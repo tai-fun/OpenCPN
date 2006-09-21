@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: chartdb.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:36  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.8  2006/08/04 11:42:01  dsr
  * no message
@@ -87,20 +90,16 @@
 #include "wx/generic/progdlgg.h"
 
 #ifdef USE_S57
-#include "s57mgr.h"
 #include "s57chart.h"
 #endif
 
 extern ChartBase    *Current_Ch;
 
-#ifdef USE_S57
-extern s57mgr       *ps57mgr;
-#endif
 
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 
 // ============================================================================
 // implementation
@@ -585,6 +584,19 @@ int ChartDB::SearchDirAndAddBSB(wxString& dir_name, const wxString& filespec,
                         bAdd = false;
                         break;
                     }
+
+                    //  Look at the chart name itself for a further check
+                    //  Todo  think about comparing publish dates?
+/*                    wxFileName base(full_name.c_str());
+                    wxFileName target(pChartTable[i].pFullPath);
+                    if(base.GetFullName() == target.GetFullName())
+                    {
+//                    printf("Comparing %s to %s\n",full_name.c_str(), pChartTable[i].pFullPath);
+                        pChartTable[i].bValid = true;
+                        bAdd = false;
+                        break;
+                    }
+*/
                 }
             }
 
@@ -859,7 +871,7 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
 
       strcpy(pEntry->ChartID, fn.GetName());
 
-      pEntry->Scale = ps57mgr->GetChartScale((char *)full_name.c_str());
+      pEntry->Scale = s57_GetChartScale((char *)full_name.c_str());
 
       OGRDataSource *pDS;
       OGRFeature *pFeat;
@@ -872,7 +884,7 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
       {
 
           //Get the first M_COVR object
-          if(   ps57mgr->GetChartFirstM_COVR((char *)full_name.c_str(), &pDS, &pFeat, &pLayer, catcov))
+          if(   s57_GetChartFirstM_COVR((char *)full_name.c_str(), &pDS, &pFeat, &pLayer, catcov))
             {
 
                 OGRPolygon *poly;
@@ -923,7 +935,7 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
 
                   pLastFeat = pFeat;
 
-                  while( ps57mgr->GetChartNextM_COVR(pDS, pLayer, pLastFeat, &pFeat, catcov))
+                  while( s57_GetChartNextM_COVR(pDS, pLayer, pLastFeat, &pFeat, catcov))
                   {
                       delete pLastFeat;
                       pLastFeat = pFeat;
@@ -1051,7 +1063,7 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
             else
             {
                   Extent ext;
-                  ps57mgr->GetChartExtent((char *)full_name.c_str(), &ext);
+                  s57_GetChartExtent((char *)full_name.c_str(), &ext);
 
                   pEntry->LatMax = ext.NLAT;
                   pEntry->LatMin = ext.SLAT;
@@ -1626,7 +1638,7 @@ bool ChartDB::GetChartID(ChartStack *ps, int stackindex, char *buf)
 //-------------------------------------------------------------------
 //    Get Chart Scale
 //-------------------------------------------------------------------
-int ChartDB::GetChartScale(ChartStack *ps, int stackindex, char *buf)
+int ChartDB::GetStackChartScale(ChartStack *ps, int stackindex, char *buf)
 {
       int dbIndex = ps->DBIndex[stackindex];
       int sc = pChartTable[dbIndex].Scale;

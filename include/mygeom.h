@@ -1,8 +1,8 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: mygeom.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
  *
- * Project:  OpenCP
- * Purpose:  Triangulated Polygon Object
+ * Project:  OpenCPN
+ * Purpose:  Tesselation of Polygon Object
  * Author:   David Register
  *
  ***************************************************************************
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:38:23  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.5  2006/07/28 20:47:50  dsr
  * Cleanup
@@ -53,111 +56,117 @@
 #define __MYGEOM_H
 
 
-#include "gpc.h"
 #include <ogr_geometry.h>
 #include "s52s57.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  106
+#define TESS_VERT   0                           // constants describing preferred tess orientation
+#define TESS_HORZ   1
+
+#define CURRENT_SENC_FORMAT_VERSION  109
+#define EQUAL_EPS 1.0e-7                        // tolerance value
 
 
-class mygeom
+//  nota bene  These definitions are identical to OpenGL prototypes
+#define PTG_TRIANGLES                      0x0004
+#define PTG_TRIANGLE_STRIP                 0x0005
+#define PTG_TRIANGLE_FAN                   0x0006
+
+
+//--------------------------------------------------------------------------------------------------
+//
+//      Internal data structures used for describing/rendering tesselated polygons
+//
+//--------------------------------------------------------------------------------------------------
+
+
+class TriPrim
 {
 public:
+        TriPrim();
+        ~TriPrim();
 
-      mygeom(s57chart *ch);
+        unsigned int type;                  // Type of triangle primitive
+                                            //  May be PTG_TRIANGLES
+                                            //         PTG_TRIANGLE_STRIP
+                                            //         PTG_TRIANGLE_FAN
 
-      void develop_and_write_tristrips(Extent *pFullExtent, OGRPolygon *poly, FILE *ofs);
-      void write_wkb_tristrips(Extent *pExt, gpc_tristrip *tristrip, FILE *ofs);
-      void read_wkb_tristrips();
-      gpc_tristrip *get_tristrips(int npt, pt* geoPt);
+        int         nVert;
+        double      *p_vertex;              //  Pointer to vertex array, x,y,x,y.....
+
+        wxBoundingBox *p_bbox;
+
+        TriPrim     *p_next;                // chain link
+};
 
 
 
-private:
-      gpc_tristrip   *tristrip;
-      s57chart       *parent;
+class PolyTriGroup
+{
+public:
+        PolyTriGroup();
+        ~PolyTriGroup();
+
+        int             nContours;
+        int             *pn_vertex;             // pointer to array of poly vertex counts
+        float           *pgroup_geom;           // pointer to Raw geometry, used for contour line drawing
+
+        TriPrim         *tri_prim_head;         // head of linked list of TriPrims
+
+    private:
+        int my_bufgets( char *buf, int buf_len_max );
 
 };
 
-/*
-class polygroup
+
+
+
+
+//--------------------------------------------------------------------------------------------------
+//
+//      Tesselator Class
+//
+//--------------------------------------------------------------------------------------------------
+class PolyTessGeo
 {
     public:
-        int         nPolys;
-        int         nCntr;
-        double      **pvert_array;
-        float       *pPolyGeo;
-        int         *pnv_array;
-        int         *pct_array;
-        polygroup   *next;
-};
+        PolyTessGeo();
+        ~PolyTessGeo();
 
-*/
+        PolyTessGeo(unsigned char *polybuf, int nrecl, int index);      // Build this from SENC file record
+        PolyTessGeo(OGRPolygon *poly);                                  // Build this from OGRPolygon
 
+        void Tess_and_write_PolyTriGroup(OGRPolygon *poly, FILE *ofs);
+        int Write_PolyTriGroup( FILE *ofs);
 
-
-class PolyGroup
-{
-public:
-    PolyGroup();
-    ~PolyGroup();
-
-    int             nPolys;
-    int             nContours;
-    int             *pn_vertex;             // pointer to array of poly vertex counts
-    int             *pcontour_nvertex;      // pointer array of contour vertex counts
-
-    double          **pvert_array;          // pointer to the array of poly vertices
-    float           *pgroup_geom;           // pointer to Raw geometry, used for contour line drawing
-
-    wxBoundingBox   *BBArray;               // Array of BBox for each poly
-
-    PolyGroup       *ppg_next;              // next PolyGroup;
-};
+        double Get_xmin(){ return xmin;}
+        double Get_xmax(){ return xmax;}
+        double Get_ymin(){ return ymin;}
+        double Get_ymax(){ return ymax;}
+        PolyTriGroup *Get_PolyTriGroup_head(){ return m_ppg_head;}
 
 
 
+    private:
+        int PolyTessGeoGL(OGRPolygon *poly);
+        int PolyTessGeoTri(OGRPolygon *poly);
+        int my_bufgets( char *buf, int buf_len_max );
 
-
-class PolyGeo
-{
-public:
-    PolyGeo();
-    ~PolyGeo();
-
-    PolyGeo(unsigned char *polybuf, int nrecl, int index);                 // Build PolyGeo from SENC file record
-
-    void develop_and_write_PolyGeo(OGRPolygon *poly, FILE *ofs);
-
-    double Get_xmin(){ return xmin;}
-    double Get_xmax(){ return xmax;}
-    double Get_ymin(){ return ymin;}
-    double Get_ymax(){ return ymax;}
-    PolyGroup *Get_PolyGroup_head(){ return m_ppg_head;}
-
-
-
- private:
-     int my_bufgets( char *buf, int buf_len_max );
 
 
     //  Data
 
-     double         xmin, xmax, ymin, ymax;
+        double         xmin, xmax, ymin, ymax;
+        PolyTriGroup    *m_ppg_head;                  // head of a PolyTriGroup chain
 
-     int            m_npoly_groups;
-     PolyGroup      *m_ppg_head;                  // head of a PolyGroup chain
-     PolyGroup      *ppg_last;
+        int             ncnt;
+        int             nwkb;
 
-     char           *m_buf_head;
-     char           *m_buf_ptr;                   // used to read passed SENC record
-     int            m_nrecl;
+        char           *m_buf_head;
+        char           *m_buf_ptr;                   // used to read passed SENC record
+        int            m_nrecl;
+
+
 
 };
-
-
-
-
-
 
 #endif

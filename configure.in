@@ -27,7 +27,6 @@ AC_SUBST(BUILD_WITH_S57)
 
 gdal_internal=false
 gdal_shared=true
-
 AC_ARG_WITH(gdal_internal,
           [[  --with-gdal-internal    use Internal GDAL/OGR]],
           [gdal_internal=true]
@@ -42,7 +41,29 @@ AC_SUBST(BUILD_WITH_SHARED_GDAL)
 GDALCONFIG=gdal-config
 GDAL_LIBS="`$GDALCONFIG --libs`"
 AC_SUBST(GDAL_LIBS)
+GDAL_CFLAGS="`$GDALCONFIG --cflags`"
+AC_SUBST(GDAL_CFLAGS)
 
+tess_internal=false
+test_glu=true
+AC_ARG_WITH(tess_internal,
+          [[  --with-tess-internal    use Internal Polygon Tesselator]],
+          [tess_internal=true]
+           )
+
+AM_CONDITIONAL(BUILD_WITH_INTERNAL_TESS, test x$tess_internal = xtrue)
+AC_SUBST(BUILD_WITH_INTERNAL_TESS)
+AM_CONDITIONAL(BUILD_WITH_GLU_TESS, test x$tess_internal = xfalse)
+AC_SUBST(BUILD_WITH_GLU_TESS)
+
+wifi_client=false
+AC_ARG_WITH(wifi_client,
+          [[  --with-wifi-client    Enable wifi client]],
+          [wifi_client=true]
+           )
+
+AM_CONDITIONAL(BUILD_WITH_WIFI_CLIENT, test x$wifi_client = xtrue)
+AC_SUBST(BUILD_WITH_WIFI_CLIENT)
 
 
 WXCONFIG=wx-config
@@ -60,14 +81,14 @@ wxversion=0
 
 AC_DEFUN([WXTEST],
 [
-	AC_REQUIRE([AC_PROG_AWK])
-	AC_MSG_CHECKING([wxWidgets version])
-	if wxversion=`$WXCONFIG --version`; then
-		AC_MSG_RESULT([$wxversion])
-	else
-		AC_MSG_RESULT([not found])
-		AC_MSG_ERROR([wxWidgets is required. Try --with-wx-config.])
-	fi])
+      AC_REQUIRE([AC_PROG_AWK])
+      AC_MSG_CHECKING([wxWidgets version])
+      if wxversion=`$WXCONFIG --version`; then
+            AC_MSG_RESULT([$wxversion])
+      else
+            AC_MSG_RESULT([not found])
+            AC_MSG_ERROR([wxWidgets is required. Try --with-wx-config.])
+      fi])
 
 # Call WXTEST func
 WXTEST
@@ -75,11 +96,11 @@ WXTEST
 # Verify minimus requires
 vers=`echo $wxversion | $AWK 'BEGIN { FS = "."; } { printf "% d", ($1 * 1000 + $2) * 1000 + $3;}'`
 if test -n "$vers" && test "$vers" -ge 2006001; then
-	WX_CPPFLAGS="`$WXCONFIG --cppflags`"
-	WX_CXXFLAGS="`$WXCONFIG --cxxflags | sed -e 's/-fno-exceptions//'`"
-	WX_LIBS="`$WXCONFIG --libs`"
+      WX_CPPFLAGS="`$WXCONFIG --cppflags`"
+      WX_CXXFLAGS="`$WXCONFIG --cxxflags | sed -e 's/-fno-exceptions//'`"
+      WX_LIBS="`$WXCONFIG --libs`"
 else
-	AC_MSG_ERROR([wxWidgets 2.6.1 or newer is required])
+      AC_MSG_ERROR([wxWidgets 2.6.1 or newer is required])
 fi
 
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: chcanv.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:36  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.8  2006/08/04 11:42:01  dsr
  * no message
@@ -153,7 +156,7 @@ extern s52plib          *ps52plib;
 
 extern bool             bGPSValid;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 
 
 //    Constants for right click menus
@@ -411,7 +414,7 @@ void ChartCanvas::OnEvtRescale(wxCommandEvent & event)
 void ChartCanvas::RescaleTimerEvent(wxTimerEvent& event)
 {
 //    Reset the scale method to bi-linear
-  current_scale_method = SCALE_BILINEAR;
+      current_scale_method = SCALE_BILINEAR;
 
 #if 1
 //    And redraw now
@@ -514,12 +517,13 @@ void ChartCanvas::GetPixPoint(int x, int y, float &lat, float &lon)
 void ChartCanvas::SetVPScale(double scale)
 {
     SetViewPoint(VPoint.clat, VPoint.clon, scale, 1, CURRENT_RENDER);
+/*
       if(m_bSubsamp)
       {
             current_scale_method = SCALE_SUBSAMP;
             pRescaleTimer->Start(m_rescale_timer_msec, wxTIMER_ONE_SHOT);
-
       }
+    */
 }
 
 void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, int sample_mode)
@@ -533,31 +537,44 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
       if(VPoint.clon != lon)
             bNewVP = true;
 
+      bool bNeedRescale = false;
+
       //    If chart scale has changed, force a cache flush and make the first render a SUB_SAMPLE
       if(VPoint.view_scale != scale)
       {
             bNewVP = true;
             if(Current_Ch)
                   Current_Ch->InvalidateCache();
-            if(m_bSubsamp)
-            {
-                  current_scale_method = SCALE_SUBSAMP;
-                  pRescaleTimer->Start(m_rescale_timer_msec, wxTIMER_ONE_SHOT);
-
-            }
+            bNeedRescale = true;
       }
 
       //    If requested by sample_mode = FORCE_SUBSAMPLE, and subsampling is enabled, then
-      //    force the scale method and initiate timer
+      //    force the scale method to SUBSAMPLE, rescale enabled
 
       if(FORCE_SUBSAMPLE == sample_mode)
-      {
-          if(m_bSubsamp)
-          {
-              current_scale_method = SCALE_SUBSAMP;
-              pRescaleTimer->Start(m_rescale_timer_msec, wxTIMER_ONE_SHOT);
+          bNeedRescale = true;
 
-          }
+
+      //    Of course, the BILINEAR Rescale is only sensible for raster charts displayed at
+      //    something other than their native (1x) resolution.  Check it...
+
+      if(Current_Ch)
+      {
+        if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+        {
+            double sc = scale / Current_Ch->GetNativeScale();      // native (1X) scale
+            if((int)rint(sc) != 1)
+            {
+                if(bNeedRescale)
+                {
+                    if(m_bSubsamp)
+                    {
+                        current_scale_method = SCALE_SUBSAMP;
+                        pRescaleTimer->Start(m_rescale_timer_msec, wxTIMER_ONE_SHOT);
+                    }
+                }
+            }
+        }
       }
 
 
@@ -1201,6 +1218,7 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                   m_pRoutePointEditTarget->rlon = cursor_lon;
                   m_pFoundPoint->m_slat = cursor_lat;             // update the SelectList entry
                   m_pFoundPoint->m_slon = cursor_lon;
+ //                 printf("edit %f %f\n", cursor_lat, cursor_lon);
 
 
 //          Manage Auto-pan on Route Edit
@@ -1652,9 +1670,6 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
 
             sel_rad_pix = 10;
             SelectRadius = sel_rad_pix/VPoint.ppd_lat;
-//            wxString imsg;
-//            imsg.Printf("SelectRadius: %f\n", SelectRadius);
-//            wxLogMessage(imsg);
 
             QueryResult = new wxString;
             array = Chs57->GetObjArrayAtLatLon( zlat, zlon, SelectRadius);
@@ -1681,6 +1696,7 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
             delete pdialog;
             delete QueryResult;
 
+            m_bForceReDraw = true;
             break;
           }
 #endif
@@ -1862,6 +1878,7 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
             }
             m_bAppendingRoute = false;
 
+            printf("n_points %d\n",pMouseRoute->m_nPoints);
             m_bForceReDraw = true;
             Refresh(false);
 
@@ -1956,6 +1973,11 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
       in_paint++;
 
       wxPaintDC dc(this);
+
+      wxRegion ru = GetUpdateRegion();
+      int rx, ry, rw, rh;
+      ru.GetBox(rx, ry, rw, rh);
+//      printf("Update Region %d %d %d %d\n", rx, ry, rw, rh);
 
       if(!Current_Ch)
       {
@@ -2069,6 +2091,8 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 //             scratch_dc.MaxX() - scratch_dc.MinX(), scratch_dc.MaxY() - scratch_dc.MinY());
       ShipDraw(scratch_dc, ShipPoint, PredPoint);
 
+
+      //  Route Creating
       wxPoint rpt;
       if(parent_frame->nRoute_State >= 2)
       {
@@ -2106,15 +2130,20 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 //    If there is a new map image, or other reason signaled by m_bForceReDraw,
 //    we need to blit the whole thing.
 //    Otherwise, it is sufficient to blit only the area with overlay object area
+//    Also, must add in the window invalid region as maintained by window class
+
       wxRegion rgn_blit;
       if(bNewMap)
             rgn_blit = rgn_chart;         // whole thing
       else
             rgn_blit = rgn_overlay;       // only the overlays
 
+ //    Also, must add in the window invalid region as maintained by window class
+      rgn_blit.Union(ru);
+
  //Todo Why need this??
 #ifdef __WXGTK__
-      rgn_blit = rgn_chart;
+//      rgn_blit = rgn_chart;
 #endif
 
       wxRegionIterator upd(rgn_blit); // get the update rect list
@@ -2125,7 +2154,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
                   &temp_dc, rect.x, rect.y);
             if(b != true)
                 wxLogMessage("scratchblitfalse");
-            //wxLogMessage("Blit %d %d %d %d",rect.x, rect.y, rect.width, rect.height);
+//            printf("   Scratch Blit %d %d %d %d\n",rect.x, rect.y, rect.width, rect.height);
             upd ++ ;
       }
 
@@ -2161,6 +2190,8 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
 
 //    And finally, blit the scratch dc onto the physical dc
+//      rgn_blit = rgn_chart;
+
       wxRegionIterator upd_final(rgn_blit);
       while (upd_final)
       {
@@ -2169,7 +2200,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
                   &scratch_dc, rect.x, rect.y);
             if(a != true)
                 wxLogMessage("blitfalse");
-            //   wxLogMessage("FinalBlit %d %d %d %d\n",rect.x, rect.y, rect.width, rect.height);
+//            printf("FinalBlit %d %d %d %d\n",rect.x, rect.y, rect.width, rect.height);
             upd_final ++ ;
       }
 
@@ -3333,12 +3364,9 @@ void *ChartRescaleThread::Entry()
 IMPLEMENT_CLASS( S57QueryDialog, wxDialog )
 
 
-// PersonalRecordDialog event table definition
+// S57QueryDialog event table definition
 
 BEGIN_EVENT_TABLE( S57QueryDialog, wxDialog )
-//EVT_UPDATE_UI( ID_VOTE, PersonalRecordDialog::OnVoteUpdate )
-//EVT_BUTTON( ID_RESET, PersonalRecordDialog::OnResetClick )
-//EVT_BUTTON( wxID_HELP, PersonalRecordDialog::OnHelpClick )
 END_EVENT_TABLE()
 
 
@@ -3382,29 +3410,29 @@ bool S57QueryDialog::Create( wxWindow* parent,
 // We have to set extra styles before creating the
 // dialog
 //      SetExtraStyle(wxWS_EX_BLOCK_EVENTS|wxDIALOG_EX_CONTEXTHELP);
-      if (!wxDialog::Create( parent, id, caption, pos, size, style ))
+    if (!wxDialog::Create( parent, id, caption, pos, size, style ))
             return false;
 
-      wxFont *dFont = wxTheFontList->FindOrCreateFont(10, wxFONTFAMILY_MODERN,
+    wxFont *dFont = wxTheFontList->FindOrCreateFont(10, wxFONTFAMILY_TELETYPE,
           wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
 
-      SetFont(*dFont);
-      CreateControls();
+    SetFont(*dFont);
+    CreateControls();
 
 //      SetDialogHelp();
 //      SetDialogValidators();
 
 // This fits the dialog to the minimum size dictated by
 // the sizers
-      GetSizer()->Fit(this);
+    GetSizer()->Fit(this);
 
 // This ensures that the dialog cannot be sized smaller
 // than the minimum size
-      GetSizer()->SetSizeHints(this);
+    GetSizer()->SetSizeHints(this);
 
 // Centre the dialog on the parent or (if none) screen
-      Centre();
-      return true;
+    Centre();
+    return true;
 }
 
 
@@ -3427,6 +3455,9 @@ void S57QueryDialog::CreateControls()
             wxDefaultPosition, wxSize(500, 500), wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_READONLY);
       boxSizer->Add(pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE, 5);
 
+      wxFont *qFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_TELETYPE,
+              wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+      pQueryTextCtl->SetFont(*qFont);
 
       if(pQueryResult)
             pQueryTextCtl->AppendText(*pQueryResult);
@@ -3434,76 +3465,6 @@ void S57QueryDialog::CreateControls()
       pQueryTextCtl->SetSelection(0,0);
       pQueryTextCtl->SetInsertionPoint(0);
 
-/*
-      // Spacer
-boxSizer->Add(5, 5, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-// Label for the name text control
-wxStaticText* nameLabel = new wxStaticText ( this, wxID_STATIC,
-wxT("&Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-boxSizer->Add(nameLabel, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE,
-5);
-
-
-
-
-
-
-// A text control for the users name
-wxTextCtrl* nameCtrl = new wxTextCtrl ( this, ID_NAME,
-wxT("Emma"), wxDefaultPosition, wxDefaultSize, 0 );
-boxSizer->Add(nameCtrl, 0, wxGROW|wxALL, 5);
-// A horizontal box sizer to contain age, sex and vote
-wxBoxSizer* ageSexVoteBox = new wxBoxSizer(wxHORIZONTAL);
-boxSizer->Add(ageSexVoteBox, 0, wxGROW|wxALL, 5);
-// Label for the age control
-wxStaticText* ageLabel = new wxStaticText ( this, wxID_STATIC,
-wxT("&Age:"), wxDefaultPosition, wxDefaultSize, 0 );
-ageSexVoteBox->Add(ageLabel, 0,
-138 Chapter 5 Standard and custom dialogs
-138
-wxALIGN_CENTER_VERTICAL|wxALL|wxADJUST_MINSIZE, 5);
-// A spin control for the users age
-wxSpinCtrl* ageSpin = new wxSpinCtrl ( this, ID_AGE,
-wxEmptyString, wxDefaultPosition, wxSize(60, -1),
-wxSP_ARROW_KEYS, 0, 120, 25 );
-ageSexVoteBox->Add(ageSpin, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-// Label for the sex control
-wxStaticText* sexLabel = new wxStaticText ( this, wxID_STATIC,
-wxT("&Sex:"), wxDefaultPosition, wxDefaultSize, 0 );
-ageSexVoteBox->Add(sexLabel, 0,
-wxALIGN_CENTER_VERTICAL|wxALL|wxADJUST_MINSIZE, 5);
-// Create the sex choice control
-wxString sexStrings[] = {
-wxT("Male"),
-wxT("Female")
-};
-wxChoice* sexChoice = new wxChoice ( this, ID_SEX,
-wxDefaultPosition, wxSize(80, -1), WXSIZEOF(sexStrings),
-sexStrings, 0 );
-sexChoice->SetStringSelection(wxT("Female"));
-ageSexVoteBox->Add(sexChoice, 0, wxALIGN_CENTER_VERTICAL|wxALL,
-5);
-// Add a spacer that stretches to push the Vote control
-// to the right
-ageSexVoteBox->Add(5, 5, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-wxCheckBox* voteCheckBox = new wxCheckBox( this, ID_VOTE,
-_T("&Vote"), wxDefaultPosition, wxDefaultSize, 0 );
-voteCheckBox ->SetValue(true);
-ageSexVoteBox->Add(voteCheckBox, 0,
-wxALIGN_CENTER_VERTICAL|wxALL, 5);
-// A dividing line before the OK and Cancel buttons
-wxStaticLine* line = new wxStaticLine ( this, wxID_STATIC,
-wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-boxSizer->Add(line, 0, wxGROW|wxALL, 5);
-// A horizontal box sizer to contain Reset, OK, Cancel and Help
-wxBoxSizer* okCancelBox = new wxBoxSizer(wxHORIZONTAL);
-boxSizer->Add(okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,
-5);
-// The Reset button
-wxButton* reset = new wxButton( this, ID_RESET, _T("&Reset"),
-wxDefaultPosition, wxDefaultSize, 0 );
-okCancelBox->Add(reset, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-*/
 
 // A horizontal box sizer to contain Reset, OK, Cancel and Help
       wxBoxSizer* okCancelBox = new wxBoxSizer(wxHORIZONTAL);

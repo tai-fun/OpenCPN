@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:36  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.6  2006/08/04 11:42:02  dsr
  * no message
@@ -68,10 +71,6 @@
  *
  */
 
-#include "dychart.h"
-
-CPL_CVSID("$Id: navutil.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
-
 
 #include "wx/wxprec.h"
 
@@ -98,6 +97,8 @@ CPL_CVSID("$Id: navutil.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 #ifdef USE_S57
 #include "s52plib.h"
 #endif
+
+CPL_CVSID("$Id: navutil.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 
 //    Statics
 
@@ -451,12 +452,11 @@ find_ok:
 
 Route::Route(void)
 {
-      this->m_bRtIsSelected = false;
-      this->m_bRtIsActive = false;
-      this->m_nRouteActivePoint = 0;
-      this->m_bIsBeingEdited = false;
-      this->m_bIsBeingCreated = false;
-      this->m_runPoint = 0;
+      m_bRtIsSelected = false;
+      m_bRtIsActive = false;
+      m_nRouteActivePoint = 0;
+      m_bIsBeingEdited = false;
+      m_bIsBeingCreated = false;
 
       pRoutePointList = new RoutePointList;
 
@@ -481,8 +481,16 @@ RoutePoint *Route::AddPoint(float rlat, float rlon)
       np->rlon = rlon;
       np->m_bPtIsSelected = false;
       np->m_pParentRoute = this;
-      m_runPoint++;
-      np->nPoint = m_runPoint;
+
+      RoutePoint *pLast = GetLastPoint();
+
+//      m_runPoint++;
+//      np->nPoint = m_runPoint;
+
+      if(NULL == pLast)
+        np->nPoint = 1;
+      else
+        np->nPoint = pLast->nPoint + 1;
 
       pRoutePointList->Append(np);
 
@@ -584,9 +592,9 @@ void Route::DrawPointLL(wxDC& dc, float rlat, float rlon, int iPoint, wxPoint *r
 
 void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2)
 {
-      if(this->m_bRtIsSelected)
+      if(m_bRtIsSelected)
             dc.SetPen(*pConfig->pSelectedRoutePen);
-      else if(this->m_bRtIsActive)
+      else if(m_bRtIsActive)
             dc.SetPen(*pConfig->pActiveRoutePen);
       else
             dc.SetPen(*pConfig->pRoutePen);
@@ -602,9 +610,9 @@ void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2)
 void Route::DrawRoute(wxDC& dc)
 {
 
-      if(this->m_bRtIsSelected)
+      if(m_bRtIsSelected)
             dc.SetPen(*pConfig->pSelectedRoutePen);
-      else if(this->m_bRtIsActive)
+      else if(m_bRtIsActive)
             dc.SetPen(*pConfig->pActiveRoutePen);
       else
             dc.SetPen(*pConfig->pRoutePen);
@@ -692,7 +700,7 @@ RoutePoint *Route::InsertPoint(int nP, float rlat, float rlon)
 
 RoutePoint *Route::GetLastPoint()
 {
-      RoutePoint *data_m1;
+      RoutePoint *data_m1 = NULL;
       wxRoutePointListNode *node = pRoutePointList->GetFirst();
 
       while (node)
@@ -851,7 +859,7 @@ MyConfig::MyConfig(const wxString &appName, const wxString &vendorName, const wx
 
 
 
-int MyConfig::LoadMyConfig(void)
+int MyConfig::LoadMyConfig(int iteration)
 {
       char buf[200];
 
@@ -878,7 +886,7 @@ int MyConfig::LoadMyConfig(void)
 
       SetPath("/Settings/GlobalState");
       Read("nDisplayCategory", &m_nDisplayCategory, (enum _DisCat)OTHER);
-      ps52plib->m_nDisplayCategory = m_nDisplayCategory;
+      ps52plib->m_nDisplayCategory = (enum _DisCat)m_nDisplayCategory;
 
       SetPath("/Settings/GlobalState");
       Read("nSymbolStyle", &m_nSymbolStyle, (enum _LUPname)PAPER_CHART);
@@ -1079,74 +1087,78 @@ int MyConfig::LoadMyConfig(void)
 
 
 //    Routes
-      int routenum = 0;
-      pRouteList = new RouteList;
-
-      this->SetPath("/Routes");
-      int iRoutes = this->GetNumberOfGroups();
-      if(iRoutes)
+      if(0 == iteration)
       {
-                  int rnt;
+        int routenum = 0;
+        pRouteList = new RouteList;
 
-                  wxString str, val;
-                  long dummy;
-                  float rlat, rlon, prev_rlat, prev_rlon;
-                  RoutePoint *pConfPoint, *prev_pConfPoint;
+        SetPath("/Routes");
+        int iRoutes = GetNumberOfGroups();
+        if(iRoutes)
+        {
+                    int rnt;
 
-                  bool bCont = this->GetFirstGroup(str, dummy);
-                  while ( bCont )
-                  {
-                        Route *pConfRoute = new Route();
-                        pRouteList->Append(pConfRoute);
+                    wxString str, val;
+                    long dummy;
+                    float rlat, rlon, prev_rlat, prev_rlon;
+                    RoutePoint *pConfPoint, *prev_pConfPoint;
 
-                        int RouteNum;
-                        sscanf(str.c_str(), "RouteDefn%d", &RouteNum);
-                        pConfRoute->ConfigRouteNum = RouteNum;
+                    bool bCont = GetFirstGroup(str, dummy);
+                    while ( bCont )
+                    {
+                            Route *pConfRoute = new Route();
+                            pRouteList->Append(pConfRoute);
 
-                        this->SetPath(str);
-                        this->Read("RoutePoints", &val);                // nPoints
-                        int nPoints = atoi(val);
+                            int RouteNum;
+                            sscanf(str.c_str(), "RouteDefn%d", &RouteNum);
+                            pConfRoute->ConfigRouteNum = RouteNum;
 
-                        pConfRoute->m_nPoints = nPoints;
-                        for(int ip = 0 ; ip < nPoints ; ip++)
-                        {
-                              char ipb[20];
-                              sprintf(ipb, "RoutePoint%d", ip+1);
-                              wxString rps(ipb);
-                              this->Read(rps, &val);                          // Point lat/lon
-                              strcpy(buf,(char *)val.c_str());
-                              sscanf(buf, "%f,%f", &rlat, &rlon);
+                            SetPath(str);
+                            Read("RoutePoints", &val);                // nPoints
+                            int nPoints = atoi(val);
 
-                              pConfPoint = pConfRoute->AddPoint(rlat, rlon);
-                              pSelect->AddSelectablePoint(rlat, rlon, pConfPoint);
+                            pConfRoute->m_nPoints = nPoints;
+                            for(int ip = 0 ; ip < nPoints ; ip++)
+                            {
+                                char ipb[20];
+                                sprintf(ipb, "RoutePoint%d", ip+1);
+                                wxString rps(ipb);
+                                Read(rps, &val);                          // Point lat/lon
+                                strcpy(buf,(char *)val.c_str());
+                                sscanf(buf, "%f,%f", &rlat, &rlon);
 
-                              if(ip)
-                              {
-                                    pSelect->AddSelectableRouteSegment(prev_rlat, prev_rlon, rlat, rlon,
-                                                                              prev_pConfPoint, pConfPoint);
-                              }
+                                pConfPoint = pConfRoute->AddPoint(rlat, rlon);
+                                pSelect->AddSelectablePoint(rlat, rlon, pConfPoint);
 
-
-                              prev_rlat = rlat;
-                              prev_rlon = rlon;
-                              prev_pConfPoint = pConfPoint;
-
-                        }
+                                if(ip)
+                                {
+                                        pSelect->AddSelectableRouteSegment(prev_rlat, prev_rlon, rlat, rlon,
+                                                                                prev_pConfPoint, pConfPoint);
+                                }
 
 
-                        this->SetPath("..");
-                        bCont = this->GetNextGroup(str, dummy);
+                                prev_rlat = rlat;
+                                prev_rlon = rlon;
+                                prev_pConfPoint = pConfPoint;
 
-      //    Get next available RouteDefnx number
-                        sscanf((char *)str.c_str(), "RouteDefn%d", &rnt);
-                        if(rnt > routenum)
-                              routenum = rnt;
+                            }
 
-                  }
+
+                            SetPath("..");
+                            bCont = GetNextGroup(str, dummy);
+
+        //    Get next available RouteDefnx number
+                            sscanf((char *)str.c_str(), "RouteDefn%d", &rnt);
+                            if(rnt > routenum)
+                                routenum = rnt;
+
+                    }
+        }
+
+        NextRouteNum = routenum + 1;
       }
 
-      NextRouteNum = routenum + 1;
-      return(iRoutes);
+      return(0);
 
 }
 
@@ -1170,10 +1182,10 @@ bool MyConfig::AddNewRoute(Route *pr, int crm)
       sprintf(buf, "%d", acrm);
       t.Append(wxString(buf));
 
-      this->SetPath(t);
+      SetPath(t);
 
       sprintf(buf, "%d", pr->m_nPoints);
-      this->Write(wxString("RoutePoints"), buf);
+      Write(wxString("RoutePoints"), buf);
 
       for(int ip=1 ; ip < pr->m_nPoints+1 ; ip++)
       {
@@ -1183,10 +1195,10 @@ bool MyConfig::AddNewRoute(Route *pr, int crm)
             pr->GetPoint(ip , &rlat, &rlon);
             sprintf(buf1, "%f,%f", rlat, rlon);
 
-            this->Write(wxString(buf), wxString(buf1));
+            Write(wxString(buf), wxString(buf1));
       }
 
-      this->Flush();
+      Flush();
 
       pr->ConfigRouteNum = acrm;
 
@@ -1208,7 +1220,7 @@ bool MyConfig::UpdateRoute(Route *pr)
       sprintf(buf, "%d", pr->ConfigRouteNum);
       t.Append(wxString(buf));
 
-      this->DeleteGroup(t);
+      DeleteGroup(t);
 
       AddNewRoute(pr, pr->ConfigRouteNum);
 
@@ -1227,9 +1239,9 @@ bool MyConfig::DeleteRoute(Route *pr)
       sprintf(buf, "%d", pr->ConfigRouteNum);
       t.Append(wxString(buf));
 
-      this->DeleteGroup(t);
+      DeleteGroup(t);
 
-      this->Flush();
+      Flush();
 
       return true;
 }

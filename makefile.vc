@@ -3,27 +3,27 @@
 !IF "$(CFG)" == ""
 CFG=release
 !MESSAGE No configuration specified.  Defaulting to release.
-!ENDIF 
+!ENDIF
 
 !IF "$(CFG)" != "debug" && "$(CFG)" != "release"
 !MESSAGE Invalid configuration "$(CFG)" specified.
 !MESSAGE You can specify a configuration when running NMAKE on this makefile
 !MESSAGE by defining the macro CFG on the command line.  For example:
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "opencpn.mak" CFG="release"
-!MESSAGE 
+!MESSAGE
 !MESSAGE Possible choices for configuration are:
-!MESSAGE 
+!MESSAGE
 !MESSAGE "release"  "debug"
-!MESSAGE 
+!MESSAGE
 !ERROR An invalid configuration is specified.
-!ENDIF 
+!ENDIF
 
 !IF "$(OS)" == "Windows_NT"
 NULL=
-!ELSE 
+!ELSE
 NULL=nul
-!ENDIF 
+!ENDIF
 ################################################################################
 
 # Global build options, from nmake.opt
@@ -65,6 +65,11 @@ GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\gdal_i.lib"
 GDAL_IMP_LIB_DEBUG = $(GDAL_BASE_LIB)"\gdal_i.lib"
 
 
+# Specify the Tesselator option
+#  Comment out the following line to use internal tesselator
+CXX_TESS = "USE_GLU_TESS"
+
+
 # WXWIDGETS Location/Configuration
 
 # Specify the application install location
@@ -83,14 +88,14 @@ WX_INCLUDE_MSW = $(WX_LIB)
 
 
 
-GDAL_INCLUDE = "$(GDAL_INC_BASE)\include" 
+GDAL_INCLUDE = "$(GDAL_INC_BASE)\include"
 
 !IF "$(GDAL_LINK)" == "STATIC"
-GDAL_INCLUDE = "$(GDAL_INC_BASE)\include" 
+GDAL_INCLUDE = "$(GDAL_INC_BASE)\include"
 !ELSEIF "$(GDAL_LINK)" == "DLL"
-GDAL_INCLUDE = "$(GDAL_INC_BASE)\include" 
+GDAL_INCLUDE = "$(GDAL_INC_BASE)\include"
 !ELSEIF "$(GDAL_LINK)" == "INTERNAL"
-GDAL_INCLUDE = ".\src\mygdal\include" 
+GDAL_INCLUDE = ".\src\mygdal\include"
 !ENDIF
 
 
@@ -111,7 +116,7 @@ GDAL_LIB = $(GDAL_STATIC_LIB_DEBUG)
 !ELSEIF "$(GDAL_LINK)" == "DLL"
 GDAL_LIB = $(GDAL_IMP_LIB_DEBUG)
 !ELSEIF "$(GDAL_LINK)" == "INTERNAL"
-GDAL_LIB = 
+GDAL_LIB =
 !ENDIF
 
 WX_LIBS = $(WX_LIB)"\wxbase26d.lib" \
@@ -129,9 +134,9 @@ LINK32_FLAGS=\
  /nodefaultlib:"libcd" \
  /debug\
  /nologo /subsystem:windows /incremental:no\
- /pdb:"$(OUTDIR)/opencpn.pdb" /machine:I386 /out:"$(OUTDIR)/opencpn.exe" 
+ /pdb:"$(OUTDIR)/opencpn.pdb" /machine:I386 /out:"$(OUTDIR)/opencpn.exe"
 
- 
+
 
 
 CPP_PROJ=/nologo /MLd /WX /GR /GX /Zi /Od\
@@ -140,6 +145,7 @@ CPP_PROJ=/nologo /MLd /WX /GR /GX /Zi /Od\
  /I $(GDAL_INCLUDE)\
  /D "_DEBUG" /D "__WXMSW__" /D "WIN32" /D "_WINDOWS"\
  /D "CPL_DISABLE_DLL" /D "_CTYPE_DISABLE_MACROS"\
+ /D "$(CXX_TESS)"\
  /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c\
 
 
@@ -148,13 +154,13 @@ CPP_PROJ=/nologo /MLd /WX /GR /GX /Zi /Od\
 
 OUTDIR=.\release_
 INTDIR=.\release_
- 
+
 !IF "$(GDAL_LINK)" == "STATIC"
 GDAL_LIB = $(GDAL_STATIC_LIB)
 !ELSEIF "$(GDAL_LINK)" == "DLL"
 GDAL_LIB = $(GDAL_IMP_LIB)
 !ELSEIF "$(GDAL_LINK)" == "INTERNAL"
-GDAL_LIB = 
+GDAL_LIB =
 !ENDIF
 
 
@@ -172,9 +178,9 @@ LINK32_FLAGS=\
  $(GDAL_LIB) \
  /nodefaultlib:"libc" \
  /nologo /subsystem:windows /incremental:no\
- /pdb:"$(OUTDIR)/opencpn.pdb" /machine:I386 /out:"$(OUTDIR)/opencpn.exe" 
+ /pdb:"$(OUTDIR)/opencpn.pdb" /machine:I386 /out:"$(OUTDIR)/opencpn.exe"
 
- 
+
 
 
 CPP_PROJ=/nologo /ML /WX /GR /GX /Od\
@@ -183,13 +189,14 @@ CPP_PROJ=/nologo /ML /WX /GR /GX /Od\
  /I $(GDAL_INCLUDE)\
  /D "__WXMSW__" /D "WIN32" /D "_WINDOWS"\
  /D "CPL_DISABLE_DLL" /D "_CTYPE_DISABLE_MACROS"\
+ /D "$(CXX_TESS)"\
  /Fo"$(INTDIR)/" /c\
 
 
- 
-!ENDIF 
- 
- 
+
+!ENDIF
+
+
 
 LINK32_OBJS= \
 	"$(INTDIR)/sercomm.obj" \
@@ -234,7 +241,7 @@ LINK32_OBJS= \
     "$(INTDIR)/gpc.obj" \
 	"$(INTDIR)/cutil.obj"
 
-	
+
 
 #	"$(INTDIR)/Hex.obj" \
 #	"$(INTDIR)/Vdr.obj" \
@@ -372,7 +379,7 @@ GDAL_OBJS = \
 	"$(INTDIR)/s57writer.obj" \
 	"$(INTDIR)/swq.obj" \
 	"$(INTDIR)/ddfrecordindex.obj"
-	
+
 !ENDIF
 
 
@@ -397,14 +404,14 @@ ALL : "$(OUTDIR)\opencpn.exe"
   $(LINK32_FLAGS) $(LINK32_OBJS) $(ISO8211_OBJS) $(GDAL_OBJS)
 <<
 
-install: "$(OUTDIR)" "$(OUTDIR)\opencpn.exe" 
+install: "$(OUTDIR)" "$(OUTDIR)\opencpn.exe"
   -mkdir $(APPDIR)
 	cd "$(OUTDIR)"
 	copy opencpn.exe $(APPDIR)
 	cd ..
 	xcopy /y /r /d /f /s data\*.* $(APPDIR)
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\opencpn.exe"
 	-@erase "$(INTDIR)\sercomm.obj"
 	-@erase "$(INTDIR)\tri.obj"
@@ -574,27 +581,27 @@ CLEAN :
 
 
 
-  
+
 CPP_OBJS="$(INTDIR)/
 CPP_SBRS=
 
 .c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 MTL_PROJ=/nologo /D "NDEBUG" /win32
 
@@ -612,7 +619,7 @@ DEP_CPP_WVSCH=\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wxprec.h"\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wx.h"\
 	".\include\wvschart.h"\
-	
+
 
 "$(INTDIR)\wvschart.obj" : $(SOURCE) $(DEP_CPP_WVSCH) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -625,7 +632,7 @@ DEP_CPP_WVSCH=\
 SOURCE=.\src\bbox.cpp
 DEP_CPP_BBOX=\
 	".\include\bbox.h"\
-	
+
 
 "$(INTDIR)\bbox.obj" : $(SOURCE)  $(DEP_CPP_BBOX) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -642,7 +649,7 @@ DEP_CPP_BITMA=\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wx.h"\
 	".\include\dychart.h"\
 	".\include\bitmapo.h"\
-	
+
 
 "$(INTDIR)\bitmapo.obj" : $(SOURCE) $(DEP_CPP_BITMA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -693,7 +700,7 @@ DEP_CPP_CHART=\
 	".\include\thumbwin.h"\
 	".\include\tcmgr.h"\
 	".\include\s57chart.h"\
-	
+
 
 "$(INTDIR)\chart1.obj" : $(SOURCE) $(DEP_CPP_CHART) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -712,7 +719,7 @@ NODEP_CPP_CHARTD=\
 	".\include\s57mgr.h"\
 	".\include\s57chart.h"\
 	".\include\chart1.h"\
-	
+
 
 "$(INTDIR)\chartdb.obj" : $(SOURCE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -730,7 +737,7 @@ DEP_CPP_CHARTI=\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wxprec.h"\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wx.h"\
 	".\include\chartimg.h"\
-	
+
 
 "$(INTDIR)\chartimg.obj" : $(SOURCE) $(DEP_CPP_CHARTI) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -757,7 +764,7 @@ NODEP_CPP_CHCAN=\
 	".\include\chart1.h"\
 	".\include\s57chart.h"\
 	".\include\s52plib.h"\
-	
+
 
 "$(INTDIR)\chcanv.obj" : $(SOURCE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -776,7 +783,7 @@ NODEP_CPP_CONCA=\
 	".\include\concanv.h"\
 	".\include\routeman.h"\
 	".\include\navutil.h"\
-	
+
 
 "$(INTDIR)\concanv.obj" : $(SOURCE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -790,7 +797,7 @@ SOURCE=.\src\cutil.c
 DEP_CPP_CUTIL=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	".\include\cutil.h"\
-	
+
 
 "$(INTDIR)\cutil.obj" : $(SOURCE) $(DEP_CPP_CUTIL) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -803,7 +810,7 @@ DEP_CPP_CUTIL=\
 SOURCE=.\src\dataum.c
 DEP_CPP_DATAU=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
-	
+
 
 "$(INTDIR)\dataum.obj" : $(SOURCE) $(DEP_CPP_DATAU) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -819,7 +826,7 @@ DEP_CPP_DYMEM=\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wxprec.h"\
 	".\include\dychart.h"\
 	".\include\dymemdc.h"\
-	
+
 
 "$(INTDIR)\dymemdc.obj" : $(SOURCE) $(DEP_CPP_DYMEM) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -833,7 +840,7 @@ SOURCE=.\src\georef.c
 DEP_CPP_GEORE=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	".\include\georef.h"\
-	
+
 
 "$(INTDIR)\georef.obj" : $(SOURCE) $(DEP_CPP_GEORE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -847,7 +854,7 @@ SOURCE=.\src\gpc.c
 DEP_CPP_GPC_C=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	".\include\gpc.h"\
-	
+
 
 "$(INTDIR)\gpc.obj" : $(SOURCE) $(DEP_CPP_GPC_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -864,7 +871,7 @@ NODEP_CPP_MYGEO=\
 	".\include\mygeom.h"\
 	".\include\dychart.h"\
 	".\include\triangulate.h"\
-	
+
 
 "$(INTDIR)\mygeom.obj" : $(SOURCE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -886,7 +893,7 @@ DEP_CPP_NAVUT=\
 	".\include\nmea.h"\
 	".\include\s52plib.h"\
 	".\include\georef.h"\
-	
+
 
 "$(INTDIR)\navutil.obj" : $(SOURCE) $(DEP_CPP_NAVUT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -899,7 +906,7 @@ DEP_CPP_NAVUT=\
 SOURCE=.\src\nmea.cpp
 DEP_CPP_NMEA_=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
-	
+
 NODEP_CPP_NMEA_=\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wxprec.h"\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wx.h"\
@@ -907,7 +914,7 @@ NODEP_CPP_NMEA_=\
 	".\include\nmea.h"\
 	".\include\chart1.h"\
 	".\include\sercomm.h"\
-	
+
 
 "$(INTDIR)\nmea.obj" : $(SOURCE) $(DEP_CPP_NMEA_) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -946,7 +953,7 @@ DEP_CPP_ROUTE=\
 	".\include\nmea.h"\
 	".\include\navutil.h"\
 	".\include\chartbase.h"\
-	
+
 
 "$(INTDIR)\routeman.obj" : $(SOURCE) $(DEP_CPP_ROUTE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -965,7 +972,7 @@ DEP_CPP_S52CN=\
 	".\include\s57chart.h"\
 	".\include\s52plib.h"\
 	".\include\s52utils.h"\
-	
+
 
 "$(INTDIR)\s52cnsy.obj" : $(SOURCE) $(DEP_CPP_S52CN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -987,7 +994,7 @@ DEP_CPP_S52PL=\
 	".\include\s52plib.h"\
 	".\include\s57chart.h"\
 	".\include\mygeom.h"\
-	
+
 
 "$(INTDIR)\s52plib.obj" : $(SOURCE) $(DEP_CPP_S52PL) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1001,7 +1008,7 @@ SOURCE=.\src\s52utils.cpp
 DEP_CPP_S52UT=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	".\include\s52utils.h"\
-	
+
 
 "$(INTDIR)\s52utils.obj" : $(SOURCE) $(DEP_CPP_S52UT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1025,7 +1032,7 @@ DEP_CPP_S57CH=\
 	".\include\nmea.h"\
 	".\include\mygeom.h"\
 	".\include\cutil.h"\
-	
+
 
 "$(INTDIR)\s57chart.obj" : $(SOURCE) $(DEP_CPP_S57CH) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1044,7 +1051,7 @@ DEP_CPP_S57MG=\
 	".\include\dychart.h"\
 	".\include\s57mgr.h"\
 	".\include\s57chart.h"\
-	
+
 
 "$(INTDIR)\s57mgr.obj" : $(SOURCE) $(DEP_CPP_S57MG) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1059,7 +1066,7 @@ DEP_CPP_SERCO=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	".\include\dychart.h"\
 	".\include\sercomm.h"\
-	
+
 
 "$(INTDIR)\sercomm.obj" : $(SOURCE) $(DEP_CPP_SERCO) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1079,7 +1086,7 @@ DEP_CPP_STATW=\
 	".\include\chartdb.h"\
 	".\include\chart1.h"\
 	".\include\chartbase.h"\
-	
+
 
 "$(INTDIR)\statwin.obj" : $(SOURCE) $(DEP_CPP_STATW) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1095,7 +1102,7 @@ DEP_CPP_TCMGR=\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wxprec.h"\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wx.h"\
 	".\include\tcmgr.h"\
-	
+
 
 "$(INTDIR)\tcmgr.obj" : $(SOURCE) $(DEP_CPP_TCMGR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1115,7 +1122,7 @@ DEP_CPP_THUMB=\
 	".\include\chart1.h"\
 	".\include\chartdb.h"\
 	".\include\chcanv.h"\
-	
+
 
 "$(INTDIR)\thumbwin.obj" : $(SOURCE) $(DEP_CPP_THUMB) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1129,7 +1136,7 @@ SOURCE=.\src\tri.c
 DEP_CPP_TRI_C=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	".\include\triangulate.h"\
-	
+
 
 "$(INTDIR)\tri.obj" : $(SOURCE) $(DEP_CPP_TRI_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1148,7 +1155,7 @@ DEP_CPP_WIFIC=\
 	".\include\wificlient.h"\
 	".\include\chart1.h"\
 	".\include\statwin.h"\
-	
+
 
 "$(INTDIR)\wificlient.obj" : $(SOURCE) $(DEP_CPP_WIFIC) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1163,7 +1170,7 @@ NODEP_CPP_ABOUT=\
 	{$(WX_INCLUDE_GENERIC)}"\wx\wxprec.h"\
 	".\include\about.h"\
 	".\include\chart1.h"\
-	
+
 
 "$(INTDIR)\about.obj" : $(SOURCE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1179,7 +1186,7 @@ DEP_CPP_DDFUT=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
-	
+
 
 "$(INTDIR)\ddfutils.obj" : $(SOURCE) $(DEP_CPP_DDFUT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1195,7 +1202,7 @@ DEP_CPP_DDFFI=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
-	
+
 
 "$(INTDIR)\ddffielddefn.obj" : $(SOURCE) $(DEP_CPP_DDFFI) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1210,7 +1217,7 @@ DEP_CPP_DDFMO=\
 	".\include\iso8211.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
-	
+
 
 "$(INTDIR)\ddfmodule.obj" : $(SOURCE) $(DEP_CPP_DDFMO) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1226,7 +1233,7 @@ DEP_CPP_DDFRE=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
-	
+
 
 "$(INTDIR)\ddfrecord.obj" : $(SOURCE) $(DEP_CPP_DDFRE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1242,7 +1249,7 @@ DEP_CPP_DDFSU=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
-	
+
 
 "$(INTDIR)\ddfsubfielddefn.obj" : $(SOURCE) $(DEP_CPP_DDFSU) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1258,7 +1265,7 @@ DEP_CPP_DDFFIE=\
 	{$(GDAL_INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
-	
+
 
 "$(INTDIR)\ddffield.obj" : $(SOURCE) $(DEP_CPP_DDFFIE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1277,7 +1284,7 @@ DEP_CPP_ZTG_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Ztg.obj" : $(SOURCE) $(DEP_CPP_ZTG_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1296,7 +1303,7 @@ DEP_CPP_ALM_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Alm.obj" : $(SOURCE) $(DEP_CPP_ALM_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1315,7 +1322,7 @@ DEP_CPP_APB_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Apb.obj" : $(SOURCE) $(DEP_CPP_APB_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1334,7 +1341,7 @@ DEP_CPP_ASD_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Asd.obj" : $(SOURCE) $(DEP_CPP_ASD_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1353,7 +1360,7 @@ DEP_CPP_BEC_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Bec.obj" : $(SOURCE) $(DEP_CPP_BEC_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1372,7 +1379,7 @@ DEP_CPP_BOD_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Bod.obj" : $(SOURCE) $(DEP_CPP_BOD_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1391,7 +1398,7 @@ DEP_CPP_BWC_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Bwc.obj" : $(SOURCE) $(DEP_CPP_BWC_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1428,7 +1435,7 @@ DEP_CPP_BWW_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Bww.obj" : $(SOURCE) $(DEP_CPP_BWW_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1447,7 +1454,7 @@ DEP_CPP_CHECK=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Checksum.obj" : $(SOURCE) $(DEP_CPP_CHECK) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1466,7 +1473,7 @@ DEP_CPP_DBT_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Dbt.obj" : $(SOURCE) $(DEP_CPP_DBT_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1485,7 +1492,7 @@ DEP_CPP_DCN_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Dcn.obj" : $(SOURCE) $(DEP_CPP_DCN_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1504,7 +1511,7 @@ DEP_CPP_DECCA=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Deccalop.obj" : $(SOURCE) $(DEP_CPP_DECCA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1523,7 +1530,7 @@ DEP_CPP_DPT_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Dpt.obj" : $(SOURCE) $(DEP_CPP_DPT_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1542,7 +1549,7 @@ DEP_CPP_EXPID=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\expid.obj" : $(SOURCE) $(DEP_CPP_EXPID) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1561,7 +1568,7 @@ DEP_CPP_FIELD=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Field.obj" : $(SOURCE) $(DEP_CPP_FIELD) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1580,7 +1587,7 @@ DEP_CPP_FREQM=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Freqmode.obj" : $(SOURCE) $(DEP_CPP_FREQM) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1653,7 +1660,7 @@ DEP_CPP_GLL_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Gll.obj" : $(SOURCE) $(DEP_CPP_GLL_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1690,7 +1697,7 @@ DEP_CPP_HDG_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Hdg.obj" : $(SOURCE) $(DEP_CPP_HDG_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1709,7 +1716,7 @@ DEP_CPP_HDT_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Hdt.obj" : $(SOURCE) $(DEP_CPP_HDT_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1728,7 +1735,7 @@ DEP_CPP_HEX_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Hex.obj" : $(SOURCE) $(DEP_CPP_HEX_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1747,7 +1754,7 @@ DEP_CPP_HEXVA=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\hexvalue.obj" : $(SOURCE) $(DEP_CPP_HEXVA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1766,7 +1773,7 @@ DEP_CPP_HSC_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Hsc.obj" : $(SOURCE) $(DEP_CPP_HSC_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1785,7 +1792,7 @@ DEP_CPP_LAT_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\lat.obj" : $(SOURCE) $(DEP_CPP_LAT_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1804,7 +1811,7 @@ DEP_CPP_LATLO=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\latlong.obj" : $(SOURCE) $(DEP_CPP_LATLO) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1823,7 +1830,7 @@ DEP_CPP_LCD_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Lcd.obj" : $(SOURCE) $(DEP_CPP_LCD_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1842,7 +1849,7 @@ DEP_CPP_LONG_=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\long.obj" : $(SOURCE) $(DEP_CPP_LONG_) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1861,7 +1868,7 @@ DEP_CPP_LORAN=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Lorantd.obj" : $(SOURCE) $(DEP_CPP_LORAN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1880,7 +1887,7 @@ DEP_CPP_MANUF=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Manufact.obj" : $(SOURCE) $(DEP_CPP_MANUF) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1899,7 +1906,7 @@ DEP_CPP_MLIST=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Mlist.obj" : $(SOURCE) $(DEP_CPP_MLIST) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1918,7 +1925,7 @@ DEP_CPP_MTW_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Mtw.obj" : $(SOURCE) $(DEP_CPP_MTW_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -1937,7 +1944,7 @@ DEP_CPP_MWV_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Mwv.obj" : $(SOURCE) $(DEP_CPP_MWV_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2010,7 +2017,7 @@ DEP_CPP_OSD_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Osd.obj" : $(SOURCE) $(DEP_CPP_OSD_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2083,7 +2090,7 @@ DEP_CPP_RESPO=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\response.obj" : $(SOURCE) $(DEP_CPP_RESPO) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2102,7 +2109,7 @@ DEP_CPP_RMA_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Rma.obj" : $(SOURCE) $(DEP_CPP_RMA_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2139,7 +2146,7 @@ DEP_CPP_RMC_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\rmc.obj" : $(SOURCE) $(DEP_CPP_RMC_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2158,7 +2165,7 @@ DEP_CPP_ROT_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Rot.obj" : $(SOURCE) $(DEP_CPP_ROT_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2177,7 +2184,7 @@ DEP_CPP_RPM_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Rpm.obj" : $(SOURCE) $(DEP_CPP_RPM_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2196,7 +2203,7 @@ DEP_CPP_RSA_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Rsa.obj" : $(SOURCE) $(DEP_CPP_RSA_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2233,7 +2240,7 @@ DEP_CPP_RTE_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Rte.obj" : $(SOURCE) $(DEP_CPP_RTE_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2270,7 +2277,7 @@ DEP_CPP_SFI_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Sfi.obj" : $(SOURCE) $(DEP_CPP_SFI_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2289,7 +2296,7 @@ DEP_CPP_STN_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Stn.obj" : $(SOURCE) $(DEP_CPP_STN_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2308,7 +2315,7 @@ DEP_CPP_TALKE=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\talkerid.obj" : $(SOURCE) $(DEP_CPP_TALKE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2327,7 +2334,7 @@ DEP_CPP_TEST_=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Test.obj" : $(SOURCE) $(DEP_CPP_TEST_) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2400,7 +2407,7 @@ DEP_CPP_VDR_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Vdr.obj" : $(SOURCE) $(DEP_CPP_VDR_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2419,7 +2426,7 @@ DEP_CPP_VHW_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Vhw.obj" : $(SOURCE) $(DEP_CPP_VHW_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2438,7 +2445,7 @@ DEP_CPP_VLW_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Vlw.obj" : $(SOURCE) $(DEP_CPP_VLW_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2475,7 +2482,7 @@ DEP_CPP_VTG_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Vtg.obj" : $(SOURCE) $(DEP_CPP_VTG_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2494,7 +2501,7 @@ DEP_CPP_WCV_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Wcv.obj" : $(SOURCE) $(DEP_CPP_WCV_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2513,7 +2520,7 @@ DEP_CPP_WNC_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Wnc.obj" : $(SOURCE) $(DEP_CPP_WNC_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2532,7 +2539,7 @@ DEP_CPP_WPL_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Wpl.obj" : $(SOURCE) $(DEP_CPP_WPL_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2623,7 +2630,7 @@ DEP_CPP_ZFO_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Zfo.obj" : $(SOURCE) $(DEP_CPP_ZFO_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2642,7 +2649,7 @@ DEP_CPP_AAM_C=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\RMC.HPP"\
-	
+
 
 "$(INTDIR)\Aam.obj" : $(SOURCE) $(DEP_CPP_AAM_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2698,7 +2705,7 @@ DEP_CPP_CPL_D=\
 	".\src\mygdal\include\cpl_vsi.h"\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\cpl_config.h"\
-	
+
 
 "$(INTDIR)\cpl_dir.obj" : $(SOURCE) $(DEP_CPP_CPL_D) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2719,7 +2726,7 @@ DEP_CPP_CPL_E=\
 	".\src\mygdal\include\cpl_config.h"\
 
 
-	
+
 
 "$(INTDIR)\cpl_error.obj" : $(SOURCE) $(DEP_CPP_CPL_E) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2742,7 +2749,7 @@ DEP_CPP_CPL_F=\
 
 
 
-	
+
 
 "$(INTDIR)\cpl_findfile.obj" : $(SOURCE) $(DEP_CPP_CPL_F) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2765,7 +2772,7 @@ DEP_CPP_CPL_M=\
 	".\src\mygdal\include\cpl_vsi.h"\
 
 
-	
+
 
 "$(INTDIR)\cpl_minixml.obj" : $(SOURCE) $(DEP_CPP_CPL_M) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2788,7 +2795,7 @@ DEP_CPP_CPL_P=\
 
 
 
-	
+
 
 "$(INTDIR)\cpl_path.obj" : $(SOURCE) $(DEP_CPP_CPL_P) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2810,7 +2817,7 @@ DEP_CPP_CPL_S=\
 
 
 
-	
+
 
 "$(INTDIR)\cpl_string.obj" : $(SOURCE) $(DEP_CPP_CPL_S) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2830,7 +2837,7 @@ DEP_CPP_CPL_V=\
 	".\src\mygdal\include\cpl_config.h"\
 
 
-	
+
 
 "$(INTDIR)\cpl_vsisimple.obj" : $(SOURCE) $(DEP_CPP_CPL_V) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2851,7 +2858,7 @@ DEP_CPP_CPLGE=\
 
 
 
-	
+
 
 "$(INTDIR)\cplgetsymbol.obj" : $(SOURCE) $(DEP_CPP_CPLGE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2873,7 +2880,7 @@ DEP_CPP_GML2O=\
 	".\src\mygdal\include\ogr_core.h"\
 	".\src\mygdal\include\ogr_spatialref.h"\
 	".\src\mygdal\include\ogr_srs_api.h"\
-	
+
 
 "$(INTDIR)\gml2ogrgeometry.obj" : $(SOURCE) $(DEP_CPP_GML2O) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2899,7 +2906,7 @@ DEP_CPP_OGR_A=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogr_attrind.obj" : $(SOURCE) $(DEP_CPP_OGR_A) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2924,7 +2931,7 @@ DEP_CPP_OGR_F=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogr_fromepsg.obj" : $(SOURCE) $(DEP_CPP_OGR_F) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2947,7 +2954,7 @@ DEP_CPP_OGR_G=\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\cpl_config.h"\
     ".\src\mygdal\include\ogr_gensql.h"\
-	
+
 
 "$(INTDIR)\ogr_gensql.obj" : $(SOURCE) $(DEP_CPP_OGR_G) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2969,7 +2976,7 @@ DEP_CPP_OGR_N=\
 	".\src\mygdal\include\cpl_port.h"\
 	".\src\mygdal\include\cpl_config.h"\
 	".\src\mygdal\include\ogr_srs_api.h"\
-	
+
 
 "$(INTDIR)\ogr_nullattrind.obj" : $(SOURCE) $(DEP_CPP_OGR_N) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2993,7 +3000,7 @@ DEP_CPP_OGR_S=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogr_srs_dict.obj" : $(SOURCE) $(DEP_CPP_OGR_S) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3021,7 +3028,7 @@ DEP_CPP_OGR_SR=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogr_srs_esri.obj" : $(SOURCE) $(DEP_CPP_OGR_SR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3046,13 +3053,13 @@ DEP_CPP_OGR_SRS=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogr_srs_proj4.obj" : $(SOURCE) $(DEP_CPP_OGR_SRS) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3075,13 +3082,13 @@ DEP_CPP_OGR_SRS_=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogr_srs_xml.obj" : $(SOURCE) $(DEP_CPP_OGR_SRS_) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3102,13 +3109,13 @@ DEP_CPP_OGR_SRSN=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogr_srsnode.obj" : $(SOURCE) $(DEP_CPP_OGR_SRSN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3131,13 +3138,13 @@ DEP_CPP_OGR2G=\
 	".\src\mygdal\include\cpl_vsi.h"\
 
 
-	
+
 
 "$(INTDIR)\ogr2gmlgeometry.obj" : $(SOURCE) $(DEP_CPP_OGR2G) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3159,13 +3166,13 @@ DEP_CPP_OGRAS=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ograssemblepolygon.obj" : $(SOURCE) $(DEP_CPP_OGRAS) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3183,13 +3190,13 @@ DEP_CPP_OGRCT=\
 	".\src\mygdal\include\cpl_port.h"\
 	".\src\mygdal\include\cpl_config.h"\
 	".\src\mygdal\include\cpl_vsi.h"\
-	
+
 
 "$(INTDIR)\ogrct.obj" : $(SOURCE) $(DEP_CPP_OGRCT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3212,13 +3219,13 @@ DEP_CPP_OGRCU=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrcurve.obj" : $(SOURCE) $(DEP_CPP_OGRCU) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3245,13 +3252,13 @@ DEP_CPP_OGRDA=\
 	".\src\mygdal\include\cpl_vsi.h"\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\ogr_gensql.h"\
-	
+
 
 "$(INTDIR)\ogrdatasource.obj" : $(SOURCE) $(DEP_CPP_OGRDA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3275,13 +3282,13 @@ DEP_CPP_OGRFE=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrfeature.obj" : $(SOURCE) $(DEP_CPP_OGRFE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3306,13 +3313,13 @@ DEP_CPP_OGRFEA=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrfeaturedefn.obj" : $(SOURCE) $(DEP_CPP_OGRFEA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3338,13 +3345,13 @@ DEP_CPP_OGRFEAT=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrfeaturequery.obj" : $(SOURCE) $(DEP_CPP_OGRFEAT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3369,13 +3376,13 @@ DEP_CPP_OGRFI=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrfielddefn.obj" : $(SOURCE) $(DEP_CPP_OGRFI) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3398,13 +3405,13 @@ DEP_CPP_OGRGE=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrgeometry.obj" : $(SOURCE) $(DEP_CPP_OGRGE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3426,13 +3433,13 @@ DEP_CPP_OGRGEO=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrgeometrycollection.obj" : $(SOURCE) $(DEP_CPP_OGRGEO) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3456,13 +3463,13 @@ DEP_CPP_OGRGEOM=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrgeometryfactory.obj" : $(SOURCE) $(DEP_CPP_OGRGEOM) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3489,13 +3496,13 @@ DEP_CPP_OGRLA=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrlayer.obj" : $(SOURCE) $(DEP_CPP_OGRLA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3518,13 +3525,13 @@ DEP_CPP_OGRLI=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrlinearring.obj" : $(SOURCE) $(DEP_CPP_OGRLI) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3546,13 +3553,13 @@ DEP_CPP_OGRLIN=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrlinestring.obj" : $(SOURCE) $(DEP_CPP_OGRLIN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3574,13 +3581,13 @@ DEP_CPP_OGRMU=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrmultilinestring.obj" : $(SOURCE) $(DEP_CPP_OGRMU) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3603,13 +3610,13 @@ DEP_CPP_OGRMUL=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrmultipoint.obj" : $(SOURCE) $(DEP_CPP_OGRMUL) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3632,13 +3639,13 @@ DEP_CPP_OGRMULT=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrmultipolygon.obj" : $(SOURCE) $(DEP_CPP_OGRMULT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3661,13 +3668,13 @@ DEP_CPP_OGRPO=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrpoint.obj" : $(SOURCE) $(DEP_CPP_OGRPO) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3690,13 +3697,13 @@ DEP_CPP_OGRPOL=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrpolygon.obj" : $(SOURCE) $(DEP_CPP_OGRPOL) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3713,13 +3720,13 @@ DEP_CPP_OGRS5=\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\cpl_config.h"\
 	".\src\mygdal\include\ogr_s57.h"\
-	
+
 
 "$(INTDIR)\ogrs57datasource.obj" : $(SOURCE) $(DEP_CPP_OGRS5) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3734,13 +3741,13 @@ DEP_CPP_OGRS57=\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\cpl_config.h"\
 	".\src\mygdal\include\ogr_s57.h"\
-	
+
 
 "$(INTDIR)\ogrs57driver.obj" : $(SOURCE) $(DEP_CPP_OGRS57) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3757,13 +3764,13 @@ DEP_CPP_OGRS57L=\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\cpl_config.h"\
 	".\src\mygdal\include\ogr_s57.h"\
-	
+
 
 "$(INTDIR)\ogrs57layer.obj" : $(SOURCE) $(DEP_CPP_OGRS57L) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3789,13 +3796,13 @@ DEP_CPP_OGRSF=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrsfdriver.obj" : $(SOURCE) $(DEP_CPP_OGRSF) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3821,13 +3828,13 @@ DEP_CPP_OGRSFD=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrsfdriverregistrar.obj" : $(SOURCE) $(DEP_CPP_OGRSFD) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3849,13 +3856,13 @@ DEP_CPP_OGRSP=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrspatialreference.obj" : $(SOURCE) $(DEP_CPP_OGRSP) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3878,13 +3885,13 @@ DEP_CPP_OGRUT=\
 	".\src\mygdal\include\cpl_error.h"\
 
 
-	
+
 
 "$(INTDIR)\ogrutils.obj" : $(SOURCE) $(DEP_CPP_OGRUT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3900,13 +3907,13 @@ DEP_CPP_S57CL=\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\cpl_config.h"\
 	".\src\mygdal\include\s57.h"\
-	
+
 
 "$(INTDIR)\s57classregistrar.obj" : $(SOURCE) $(DEP_CPP_S57CL) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3925,13 +3932,13 @@ DEP_CPP_S57FE=\
 	".\src\mygdal\include\cpl_vsi.h"\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\s57.h"\
-	
+
 
 "$(INTDIR)\s57featuredefns.obj" : $(SOURCE) $(DEP_CPP_S57FE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3948,13 +3955,13 @@ DEP_CPP_S57FI=\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\cpl_config.h"\
 	".\src\mygdal\include\s57.h"\
-	
+
 
 "$(INTDIR)\s57filecollector.obj" : $(SOURCE) $(DEP_CPP_S57FI) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3973,13 +3980,13 @@ DEP_CPP_S57RE=\
 	".\src\mygdal\include\cpl_vsi.h"\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\s57.h"\
-	
+
 
 "$(INTDIR)\s57reader.obj" : $(SOURCE) $(DEP_CPP_S57RE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -3998,13 +4005,13 @@ DEP_CPP_S57WR=\
 	".\src\mygdal\include\cpl_vsi.h"\
 	".\src\mygdal\include\cpl_error.h"\
 	".\src\mygdal\include\s57.h"\
-	
+
 
 "$(INTDIR)\s57writer.obj" : $(SOURCE) $(DEP_CPP_S57WR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -4022,7 +4029,7 @@ DEP_CPP_CPL_CO=\
 
 
 
-	
+
 
 "$(INTDIR)\cpl_conv.obj" : $(SOURCE) $(DEP_CPP_CPL_CO) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -4034,14 +4041,14 @@ DEP_CPP_CPL_CO=\
 SOURCE=.\src\mygdal\src\swq.c
 DEP_CPP_SWQ_C=\
 	".\src\mygdal\include\swq.h"\
-	
+
 
 "$(INTDIR)\swq.obj" : $(SOURCE) $(DEP_CPP_SWQ_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 
- 
+
 
 # End Source File
 ################################################################################
@@ -4049,11 +4056,11 @@ DEP_CPP_SWQ_C=\
 
 SOURCE=.\src\mygdal\src\ddfrecordindex.cpp
 DEP_CPP_DDFR2=\
-	
+
 
 "$(INTDIR)\ddfrecordindex.obj" : $(SOURCE) $(DEP_CPP_DDFR2) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
- 
+
 
 # End Source File
 # End Target

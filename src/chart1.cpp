@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: chart1.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:36  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.8  2006/08/04 11:42:01  dsr
  * no message
@@ -118,24 +121,24 @@
 #include "nmea0183/nmea0183.h"
 #include "dialog/options.h"
 #include "about.h"
-#include "wificlient.h"
+#include "thumbwin.h"
+#include "tcmgr.h"
+#include "cpl_error.h"
 
 #ifdef __WXMSW__
 #include <wx/image.h>
 #endif
 
 
-#include "thumbwin.h"
-#include "tcmgr.h"
-
-#include "cpl_error.h"
 
 #ifdef USE_S57
 #include "s52plib.h"
-#include "s57mgr.h"
 #include "s57chart.h"
 #endif
 
+#ifdef USE_WIFI_CLIENT
+#include "wificlient.h"
+#endif
 
 //#ifdef __WXMSW__
 //    #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
@@ -148,7 +151,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -226,7 +229,6 @@ wxString        *pNMEA_AP_Port;
 ChartDummy      *pDummyChart;
 
 wxString        *pWIFIServerName;
-WIFIWindow      *pWIFI;
 
 AutoPilotWindow *pAPilot;
 
@@ -247,8 +249,12 @@ bool            bGPSValid;
 
 #ifdef USE_S57
 s52plib         *ps52plib;
-s57mgr          *ps57mgr;
 #endif
+
+#ifdef USE_WIFI_CLIENT
+WIFIWindow      *pWIFI;
+#endif
+
 
 //-----------------------------------------------------------------------------------------------------
 //      OCP_NMEA_Thread Static data store
@@ -394,6 +400,22 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 //        wxLog::SetTraceMask(2);               // verbose message traces to log output
 
+/*
+
+        wxDateTime wxft =  wxDateTime::Now();
+
+        wxString sdate(wxft.Format("%D"));
+        sdate.Prepend("sudo /bin/date -s ");
+        printf("%s\n", sdate.c_str());
+
+        wxExecute(sdate, wxEXEC_ASYNC);
+
+        wxString g(wxft.Format("%T"));
+        g.Prepend("sudo /bin/date -s ");
+        printf("%s\n", g.c_str());
+*/
+
+
 //      Send init message
         wxLogMessage("\n\n");
         wxString imsg(_T(" -------Starting opencpn-------"));
@@ -491,7 +513,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      Open/Create the Config Object
         MyConfig *pCF = new MyConfig(wxString(""), wxString(""), Config_File);
         pConfig = (MyConfig *)pCF;
-        pConfig->LoadMyConfig();
+        pConfig->LoadMyConfig(0);
 
 //      Establish location of bitmaps and cursors
 #ifdef __WXMSW__
@@ -528,8 +550,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
             pcsv_locn->Append("s57data");
         }
 
-        ps57mgr = new s57mgr(*pcsv_locn);
-
+        s57_initialize(*pcsv_locn);
 
 
 
@@ -581,7 +602,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      Reload the config data, to pick up any missing data class configuration info
 //      e.g. s52plib, which could not be created until first config load completes
 //      Think catch-22
-        pConfig->LoadMyConfig();
+        pConfig->LoadMyConfig(1);
 
 
 //      Hard code the frame size for now
@@ -593,10 +614,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         ::wxClientDisplayRect(&cx, &cy, &cw, &ch);
         wxSize new_frame_size;
         if(dis_w > 1024)
-                new_frame_size.Set(1182, 900);  // ne 900
+                new_frame_size.Set(1182, 900);  //
+//                new_frame_size.Set(800, 600);  // for window debug
         else
                 new_frame_size.Set(cw, 735);
-
 
         // Create the main frame window
         gFrame = new MyFrame(NULL, _T("OpenCPN"), wxPoint(0, 0), new_frame_size);
@@ -617,7 +638,9 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port);
 
+#ifdef USE_WIFI_CLIENT
         pWIFI = new WIFIWindow(gFrame, *pWIFIServerName );
+#endif
 
         pNMEA0183 = new NMEA0183();
 
@@ -632,10 +655,8 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      Try to validate the ISO8211 library
 //      especially the ability to do ddfrecord updates
 //      which is required for s57 ENC updates.
-//      Use a dummy chart
-        s57chart *ptest_chart = new s57chart;
 
-        if(!ptest_chart->ddfrecord_test())
+        if(!s57_ddfrecord_test())
         {
             wxString message("GDAL/OGR library is not up-to-date.\n");
             message.Append("S57 ENC Updates will be disabled.\n");
@@ -643,7 +664,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
             wxMessageDialog mdlg(gFrame, message, wxString("OpenCPN"),wxICON_INFORMATION | wxOK );
             mdlg.ShowModal();
         }
-        delete ptest_chart;
 #endif
 
 
@@ -726,7 +746,6 @@ int MyApp::OnExit()
         delete pChartDirArray;
 
 #ifdef USE_S57
-        delete ps57mgr;
         delete ps52plib;
 #endif
 
@@ -1133,24 +1152,24 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
     delete g_printData;
     delete g_pageSetupData;
 
-
-
 //      Explicitely Close some children, especially the ones with event handlers
 //      or that call GUI methods
 
     cc1->Destroy();
     if(nmea)
     {
-        nmea->Close();                      //Close();
+        nmea->Close();
         nmea = NULL;                        // This will be a signal to TCP/IP socket event handler
-                                        // that any remaining events in queue are to be ignored
+                                            // that any remaining events in queue are to be ignored
     }
 
+#ifdef USE_WIFI_CLIENT
     if(pWIFI)
     {
         pWIFI->Close();
         pWIFI = NULL;
     }
+#endif
 
     console->Destroy();
     stats->Destroy();
@@ -1272,8 +1291,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     case ID_ZOOMIN:
     {
             cc1->SetVPScale(cc1->GetVPScale() / 2);
-//            Current_Ch->InvalidateCache();
-
             cc1->Refresh(false);
             break;
     }
@@ -1281,8 +1298,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     case ID_ZOOMOUT:
     {
             cc1->SetVPScale(cc1->GetVPScale() * 2);
-//            Current_Ch->InvalidateCache();
-
             cc1->Refresh(false);
             break;
     }
@@ -1299,7 +1314,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             cc1->m_bFollow = true;
             toolBar->ToggleTool(ID_FOLLOW, true);
 //      Warp speed jump to current position
-            //            Current_Ch->InvalidateCache();            This might be needed??? 8/19/06
+            Current_Ch->InvalidateCache();            // Add back for wxx11 This might be needed??? 8/19/06
             cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(), 1, /*CURRENT_RENDER*/FORCE_SUBSAMPLE);            // set mod 4
             cc1->Refresh(false);
             break;
@@ -1324,7 +1339,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
 //              Apply various system settings
             ApplyGlobalSettings(true, bnewtoolbar);                 // flying update
-
 
             if(Current_Ch)
                 Current_Ch->InvalidateCache();
@@ -1510,7 +1524,6 @@ int MyFrame::DoOptionsDialog()
 
                   *pChartDirArray = *pWorkDirArray;
 
-//                  delete ChartData;
                   if(NULL == ChartData)
                        ChartData = new ChartDB(gFrame);
                   ChartData->Update(pChartDirArray);
@@ -1608,6 +1621,7 @@ void MyFrame::OnTimer1(wxTimerEvent& event)
           UpdateToolbarStatusWindow(Current_Ch);
 
 //      Update the chart database and displayed chart
+//      bool bnew_chart = DoChartUpdate(0);
       DoChartUpdate(0);
 
 //      Update the active route, if any
@@ -1637,7 +1651,10 @@ void MyFrame::OnTimer1(wxTimerEvent& event)
 
       Timer1.Start(1000,wxTIMER_CONTINUOUS);
 
-      cc1->Refresh(false);
+      if(1/*bnew_chart*/)
+        cc1->Refresh(false);
+      else
+        cc1->RefreshRect(wxRect(0,0,1,1), false);
 
       console->Refresh(false);
 
@@ -1655,7 +1672,7 @@ void MyFrame::UpdateChartStatusField(int i)
         strcat(buf, buf1);
         strcat(buf, "  ");
 
-        ChartData->ChartDB::GetChartScale(pCurrentStack, CurrentStackEntry, buf1);
+        ChartData->GetStackChartScale(pCurrentStack, CurrentStackEntry, buf1);
         strcat(buf, buf1);
 
         if(pStatusBar)
@@ -1663,7 +1680,7 @@ void MyFrame::UpdateChartStatusField(int i)
 
         stats->Refresh(false);
 
-        ChartData->ChartDB::GetChartID(pCurrentStack, CurrentStackEntry, buf);
+        ChartData->GetChartID(pCurrentStack, CurrentStackEntry, buf);
 
         stats->pTStat1->TextDraw(buf);
 
@@ -1702,11 +1719,10 @@ void RenderShadowText(wxDC *pdc, wxFont *pFont, char *str, int x, int y)
 
 }
 
+#include "wx/encconv.h"
+
 void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
 {
-//      char buf[80], buf1[80];
-//      ChartData->ChartDB::GetChartID(pCurrentStack, CurrentStackEntry, buf);
-
     if(NULL == pchart)
         return;
 
@@ -1715,7 +1731,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
       int font2_size = 10;
       int font3_size = 14;
 #else
-      int font1_size = 24;
+      int font1_size = 22;
       int font2_size = 12;
       int font3_size = 16;
 #endif
@@ -1753,11 +1769,11 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
       wxString pub_date;
       pchart->GetPubDate(pub_date);
 
-      int w,h;
-      GetTextExtent(pub_date, &w, &h, NULL, NULL, pSWFont1);
+      int w, h, descent;
+      GetTextExtent(pub_date, &w, &h, &descent, NULL, pSWFont1);
 
       int date_locn = size_x - w - 2;
-      RenderShadowText(&dc, pSWFont1, (char *)pub_date.c_str(), date_locn, 0);
+      RenderShadowText(&dc, pSWFont1, (char *)pub_date.c_str(), date_locn, size_y - h + descent);
 
 
 //    Show File Name
@@ -1784,11 +1800,25 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
 //   Get and show the Chart Nice Name
       wxFont *pSWFont3;
       pSWFont3 = wxTheFontList->FindOrCreateFont(font3_size, wxDEFAULT,wxNORMAL, wxBOLD,
-                  FALSE, wxString("Eurostile Extended"), wxFONTENCODING_SYSTEM );
+              FALSE, wxString("Eurostile Extended"), wxFONTENCODING_SYSTEM );
       dc.SetFont(*pSWFont3);
 
-      wxString name;
-      pchart->GetName(name);
+
+      //    The Chart Nice Name may be encoded with 8-bit ascii encoding set,
+      //    especially some French chart names in NDI data sets.
+      //    Use an Encoding Converter to ensure that the name string can be
+      //    rendered in the selected font.  A simple brute force way is to
+      //    convert the string to ISO8859_1, which will be renderable by
+      //    all (??) installed system fonts.  There may be a more elegant way,
+      //    for example, try to figure out the string encoding BEFORE specifying
+      //    the font, and then FindOrCreate an appropriate font...  Todo Later.
+
+      wxString name_possibly_intl;
+      pchart->GetName(name_possibly_intl);
+
+      wxEncodingConverter ec;
+      ec.Init( wxFONTENCODING_ISO8859_2,  wxFONTENCODING_ISO8859_1, wxCONVERT_SUBSTITUTE);
+      wxString name = ec.Convert(name_possibly_intl);
 
 //    Possibly adjust the font?
       GetTextExtent(name, &w, &h, NULL, NULL, pSWFont3);
@@ -2033,14 +2063,21 @@ void MyFrame::SetChartThumbnail(int index)
 }
 
 
-void MyFrame::DoChartUpdate(int bSelectType)
+//----------------------------------------------------------------------------------
+//      DoChartUpdate
+//      Create a chartstack based on current lat/lon.
+//      Update Current_Ch, using either current chart, if still in stack, or
+//      smallest scale raster chart if not.
+//      Return true if Current_Ch has been changed, implying need for a full redraw
+//----------------------------------------------------------------------------------
+bool MyFrame::DoChartUpdate(int bSelectType)
 {
         float tLat, tLon;
         float new_scale;
-        bool bNewChart;
+        bool bNewChart = false;
 
         if(bDBUpdateInProgress)
-                return;
+                return false;
 
 //      If in auto-follow mode, use the current glat,glon to build chart stack.
 //      Otherwise, use vLat, vLon gotten from double-click on chart canvas, or other means
@@ -2078,6 +2115,7 @@ void MyFrame::DoChartUpdate(int bSelectType)
                         cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(), 0, CURRENT_RENDER);
                 }
 
+                bNewChart = true;
                 goto update_finish;
         }
 
@@ -2113,7 +2151,7 @@ void MyFrame::DoChartUpdate(int bSelectType)
                 {
                         CurrentStackEntry = tEntry;
                         new_scale = cc1->GetVPScale()/Current_Ch->GetNativeScale();
-                        bNewChart = 0;
+                        bNewChart = false;
                 }
 
                 else                            // Current_Ch is NOT in new stack
@@ -2148,7 +2186,7 @@ void MyFrame::DoChartUpdate(int bSelectType)
                         CurrentStackEntry++;
                   }
                   Current_Ch = ptc;
-                  bNewChart = 1;
+                  bNewChart = true;
                 }
 
         // Arriving here, Current_Ch is OK, or NULL
@@ -2185,20 +2223,17 @@ void MyFrame::DoChartUpdate(int bSelectType)
                   {
 //    Update the Toolbar Status window
                       UpdateToolbarStatusWindow(Current_Ch);
-
                   }
 
 //      Update the Status Line
-                        UpdateChartStatusField(2);
+                  UpdateChartStatusField(2);
 
 //      Setup the view
-                        float natural_scale = Current_Ch->GetNativeScale();
+                  float natural_scale = Current_Ch->GetNativeScale();
+                  cc1->SetViewPoint(tLat, tLon, natural_scale * new_scale, 1, CURRENT_RENDER);  // set mod 4
 
-                        cc1->SetViewPoint(tLat, tLon, natural_scale * new_scale, 1, CURRENT_RENDER);  // set mod 4
-
-                        stats->FormatStat();
+                  stats->FormatStat();
                 }
-
         }
 
         else                                                                    // No change in Chart Stack
@@ -2211,6 +2246,8 @@ void MyFrame::DoChartUpdate(int bSelectType)
 
 update_finish:
         delete pWorkStack;
+
+        return bNewChart;
 
 }
 

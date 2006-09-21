@@ -1,7 +1,7 @@
 /******************************************************************************
  * $Id:
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  Status Window
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:37  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.6  2006/08/04 11:42:03  dsr
  * no message
@@ -62,9 +65,6 @@
  *
  */
 
-#include "dychart.h"
-
-CPL_CVSID("$Id: statwin.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 
 
 #include "wx/wxprec.h"
@@ -73,6 +73,7 @@ CPL_CVSID("$Id: statwin.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
   #include "wx/wx.h"
 #endif //precompiled headers
 
+#include "dychart.h"
 
 #include "statwin.h"
 #include "chartdb.h"
@@ -86,6 +87,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
+CPL_CVSID("$Id: statwin.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -120,8 +122,10 @@ StatWin::StatWin(wxFrame *frame):
       pTStat2 = new TStatWin((wxFrame *)this);
       pTStat2->SetSize(0, y * 2/m_rows, x , y * 1/m_rows);
 
+#ifdef USE_WIFI_CLIENT
       pWiFi = new WiFiStatWin((wxFrame *)this);
       pWiFi->SetSize(x * 6/10, 0, x *4/10, y * 1/m_rows);
+#endif
 
  }
 
@@ -151,7 +155,10 @@ void StatWin::OnSize(wxSizeEvent& event)
       if(width) pPiano->SetSize(0,0, width *6/10, height*1/m_rows);
       if(width) pTStat1->SetSize(0,height * 1/m_rows, width, height*1/m_rows);
       if(width) pTStat2->SetSize(0,height * 2/m_rows, width, height*1/m_rows);
+
+#ifdef USE_WIFI_CLIENT
       if(width) pWiFi->SetSize(width * 6/10, 0, width *4/10, height*1/m_rows);
+#endif
 
 }
 
@@ -416,7 +423,7 @@ void PianoWin::MouseEvent(wxMouseEvent& event)
 
 }
 
-
+#ifdef USE_WIFI_CLIENT
 //------------------------------------------------------------------------------
 //          WiFiStat Window Implementation
 //------------------------------------------------------------------------------
@@ -431,12 +438,11 @@ WiFiStatWin::WiFiStatWin(wxFrame *frame):
     SetBackgroundColour(wxColour(150,150,150));
     pbackBrush = wxTheBrushList->FindOrCreateBrush(wxColour(150,150,150), wxSOLID);    // Solid background
 
-//    pqual_loBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(120,000,000), wxSOLID);
-//    pqual_midBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(120,120,000), wxSOLID);
-    pqual_hiBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(120,255,120), wxSOLID);
-    psecureBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(255,120,120), wxSOLID);
-    pqual_hiNewBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(000,255,000), wxSOLID);
-    psecureNewBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(255,000,000), wxSOLID);
+    pqual_hiBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(200,200,000), wxSOLID);    //Yellow
+    psecureBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(240,130, 50), wxSOLID);     //Orange
+
+    pqual_hiNewBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(000,255,000), wxSOLID); //Green
+    psecureNewBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(255,000,000), wxSOLID);  //Red
 
     for(int ista = 0 ; ista < NSIGBARS ; ista++)
         m_quality[ista] = 0;
@@ -562,5 +568,6 @@ void WiFiStatWin::SetStationAge(int istation, int age)
     m_age[istation] = age;
 }
 
+#endif
 
 

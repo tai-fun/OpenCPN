@@ -24,7 +24,7 @@ a.  Opencpn was built with the following objectives in mind.
 
 
     Personal Note:
-    Opencpn is in primary daily use as THE navigation package aboard
+    Opencpn is in primary daily use as the navigation package aboard
     M/V Dyad, a 48 ft trawler yacht cruising from Newfoundland to the
     Bahamas yearly.
 
@@ -71,8 +71,16 @@ Version 1.2.1.
 Thanks to Frank Warmerdam and others for GDAL/OGR.
 What an impressive body of work!
 
+c.  OpenCPN S57 ENC support works best with access to the OpenGL Utility
+library glu.  glu is used to tesselate large polygon areas into small
+triangles for faster display rendering.  If you cannot use, or do not have
+the OpenGL Utility library, you may choose to build OpenCPN with internal
+tesselator support.  The internal tesselator is sub-optimal compared to glu,
+but it does work fairly well, if slower slower. glu is better.
+See the Build Notes section for applicable tesselator configuration options.
 
-c.  WxWidgets########################################################
+
+d.  WxWidgets########################################################
 
 ----------------------------------------------------------------------
 3.  Platform Specific Build Notes
@@ -154,6 +162,13 @@ Some configure options specific to opencpn are available:
                                     executable file size grows.
                                     Default is OFF.
 
+        --with-tess-internal        Use internal tesselator, as opposed
+                                    to OpenGL gluTess.
+                                    Default is OFF.
+
+        --with-wifi-client           Use (undocumented) wifi monitor client
+                                    interface.
+                                    Default is OFF.
 
 GDAL/OGR and WxWidgets linkages and include paths are discovered by the
 makefile using conventional gdal-config and wx-config scripts as

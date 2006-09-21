@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: options.h,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: options.h,v 1.2 2006/09/21 01:37:48 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  Options Dialog
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:48  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/07/28 20:49:09  dsr
  * New NMEA Logic
@@ -106,6 +109,9 @@ class MyConfig;
 #define ID_PANELFONT 10015
 #define ID_CHOICE_FONTELEMENT 10016
 #define ID_BUTTONFONTCHOOSE 10017
+#define ID_CLEARLIST 10018
+#define ID_SELECTLIST 10019
+
 ////@end control identifiers
 
 /*!
@@ -169,6 +175,10 @@ public:
       void OnCancelClick( wxCommandEvent& event );
       void OnChooseFont( wxCommandEvent& event );
 
+      void OnDisplayCategoryRadioButton( wxCommandEvent& event);
+      void OnButtonClearClick( wxCommandEvent& event );
+      void OnButtonSelectClick( wxCommandEvent& event );
+
 ////@end options event handler declarations
 
 ////@begin options member function declarations
@@ -187,15 +197,18 @@ public:
     /// Should we show tooltips?
     static bool ShowToolTips();
 
-////@begin options member variables
-    wxCheckBox* pDebugShowStat;
-    wxCheckBox  *pPrintShowIcon;
-    wxPanel* ps57Ctl;
-    wxCheckListBox* ps57CtlListBox;
-    wxRadioBox* pDispCat;
+
+//    For "S57" page
+      wxCheckBox* pDebugShowStat;
+      wxCheckBox  *pPrintShowIcon;
+      wxPanel* ps57Ctl;
+      wxCheckListBox* ps57CtlListBox;
+      wxRadioBox* pDispCat;
+      wxButton* itemButtonClearList;
+      wxButton* itemButtonSelectList;
 
 //    For "Charts" page
-        wxPanel* itemPanel9;
+      wxPanel* itemPanel9;
       wxStaticBoxSizer* itemStaticBoxSizer11;
       wxBoxSizer* itemBoxSizer10;
       wxGenericDirCtrl* pDirCtl;
@@ -210,31 +223,26 @@ public:
       wxComboBox                *m_itemNMEAListBox;
       wxChoice                *m_itemNMEAAutoListBox;
 
+#ifdef USE_WIFI_CLIENT
 //    For "WiFi Options" Box
       wxStaticBox             *m_itemWIFI_TCPIP_StaticBox;
       wxStaticBoxSizer        *m_itemWIFI_TCPIP_StaticBoxSizer;
       wxTextCtrl              *m_itemWIFI_TCPIP_Source;
-//      wxChoice                *m_itemNMEAListBox;
-//      wxChoice                *m_itemNMEAAutoListBox;
+#endif
 
 //    For Fonts page
-
       wxChoice                *m_itemFontElementListBox;
 
-////@end options member variables
-
       wxCheckBox*             pSettingsCB1;
-
 
       wxArrayString           *m_pCurrentDirList;
       wxArrayString           *m_pWorkDirList;
 
       MyConfig                *m_pConfig;
 
-
       wxArrayPtrVoid          OBJLBoxArray;
-      wxString          *m_pinit_chart_dir;
-      wxWindow          *pParent;
+      wxString                *m_pinit_chart_dir;
+      wxWindow                *pParent;
 
 };
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: wificlient.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: wificlient.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:37  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.4  2006/08/04 11:42:03  dsr
  * no message
@@ -44,15 +47,13 @@
  *
  */
 
-#include "dychart.h"
-
-CPL_CVSID("$Id: wificlient.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
-
 #include "wx/wxprec.h"
 
 #ifndef  WX_PRECOMP
 #include "wx/wx.h"
 #endif //precompiled headers
+
+#include "dychart.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -64,14 +65,11 @@ CPL_CVSID("$Id: wificlient.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 #include "chart1.h"
 #include "statwin.h"
 
-
-
 extern StatWin          *stats;
 
+static int              wifi_s_dns_test_flag;
 
-extern wxString         *phost_name;
-
-static int wifi_s_dns_test_flag;
+CPL_CVSID("$Id: wificlient.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -91,7 +89,6 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
         wxWindow(frame, wxID_ANY,     wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 
 {
-
     parent_frame = (MyFrame *)frame;
     m_sock = NULL;
 
@@ -120,7 +117,6 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
 
           m_busy = FALSE;
 
-
 //    Build the target address
 
 //    n.b. Win98
@@ -128,7 +124,7 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
 //    Implications...Either name target must exist in c:\windows\hosts, or
 //                            a DNS server must be active on the network.
 //    If neither true, then wxIPV4address::Hostname() will block (forever?)....
-          //
+//
 //    Workaround....
 //    Use a thread to try the name lookup, in case it hangs
 
@@ -161,25 +157,22 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
             m_sock->Destroy();
 
             return;
-            }
+          }
 
-            addr.Hostname(WIFI_data_ip);
-            addr.Service(SERVER_PORT);
-            m_sock->Connect(addr, FALSE);       // Non-blocking connect
+          addr.Hostname(WIFI_data_ip);
+          addr.Service(SERVER_PORT);
+          m_sock->Connect(addr, FALSE);       // Non-blocking connect
 
             //  Initialize local data stores
-            for(int ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
-            {
-                station_data[ilocal].bisvalid = false;
-            }
+          for(int ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
+          {
+               station_data[ilocal].bisvalid = false;
+          }
 
-            Timer1.SetOwner(this, TIMER_WIFI1);
-            m_scan_interval_msec = 10000;
-            Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
+          Timer1.SetOwner(this, TIMER_WIFI1);
+          m_scan_interval_msec = 10000;
+          Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
       }
-
-
-
 }
 
 
@@ -190,7 +183,6 @@ WIFIWindow::~WIFIWindow()
 
 void WIFIWindow::OnCloseWindow(wxCloseEvent& event)
 {
-
 //    Kill off the WIFI Client Socket if alive
     if(m_sock)
     {
@@ -198,9 +190,6 @@ void WIFIWindow::OnCloseWindow(wxCloseEvent& event)
         m_sock->Destroy();
         Timer1.Stop();
     }
-
-//    And I'm done
-//    this->Destroy();
 }
 
 
@@ -208,8 +197,6 @@ void WIFIWindow::GetSource(wxString& source)
 {
     source = *m_pdata_server_string;
 }
-
-
 
 
 
@@ -261,34 +248,6 @@ void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
             m_bRX = true;                       // reset watchdog
             m_watchtick = 0;
 
-/*
-            if(1)                      // is the socket's parent still alive?
-            {
-
-                int nstat = 0;
-                int qual;
-                int secure_flag;
-                for(int i=0 ; i < NSCAN_DATA_STRUCT ; i++)
-                {
-                    pt = (wifi_scan_data *)(&buf[i * 256]);
-                    if(strlen(pt->ESSID))
-                    {
-                        nstat++;
-                        qual = pt->sig_quality;
-                        secure_flag = pt->secure;
-                    }
-                    else
-                        qual = 0;
-
-                    stats->pWiFi->SetStationQuality(i, qual);
-                    stats->pWiFi->SetStationSecureFlag(i, secure_flag);
-
-                }
-                stats->pWiFi->SetNumberStations(nstat);
-
-
-            }           // if 1
-*/
 
             //  Manage the data input
 
@@ -382,48 +341,19 @@ void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
             break;
 
         case wxSOCKET_LOST       :
-//            s.Append(_("wxSOCKET_LOST\n"));
             break;
         case wxSOCKET_CONNECTION :
-//            s.Append(_("wxSOCKET_CONNECTION\n"));
             break;
         default                  :
-//            s.Append(_("Unexpected event !\n"));
             break;
     }
 
 }
 
-/*
-void WIFIWindow::MyFileTimeTowxDT(MyFileTime *pft, wxDateTime *pdt)
-{
-
-//    Do some simple math to get the unix epoch time equivalent
-    wxLongLong ticks;
-
-    ticks = pft->low;
-    ticks +=  ((wxLongLong)pft->high) << 32;
-    ticks /= 10000000;
-#ifdef __WXMSW__
-      ticks -= 11644473600;
-#else
-      ticks -= 11644473600LL;
-#endif
-
-
-      if(ticks.GetHi())
-            assert(1);
-
-      pdt->Set((time_t)(ticks.GetLo()));
-}
-
-*/
 
 void WIFIWindow::OnTimer1(wxTimerEvent& event)
 {
-
     Timer1.Stop();
-
 
        if(m_sock->IsConnected())
     {
@@ -439,7 +369,6 @@ void WIFIWindow::OnTimer1(wxTimerEvent& event)
                 stats->pWiFi->SetServerStatus(true);
         }
 
-
         unsigned char c = WIFI_TRANSMIT_DATA;       // and call for more data
         m_sock->Write(&c, 1);
     }
@@ -453,11 +382,8 @@ void WIFIWindow::OnTimer1(wxTimerEvent& event)
         m_sock->Connect(addr, FALSE);       // Non-blocking connect
     }
 
-
     m_bRX = false;
     Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
-
-
 }
 
 
@@ -486,7 +412,7 @@ void *WIFIDNSTestThread::Entry()
     wxIPV4address     addr;
     addr.Hostname(*m_pip);                          // this may block forever if DNS is not active
 
-    wifi_s_dns_test_flag = 1;                            // came back OK
+    wifi_s_dns_test_flag = 1;                       // came back OK
     return NULL;
 }
 

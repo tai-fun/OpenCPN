@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: s52plib.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:38:23  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/05/28 00:52:15  dsr
  * Implement PolyGeo
@@ -122,26 +125,28 @@ public:
       bool GetShowS57Text(){return m_bShowS57Text;}
       void SetShowS57Text(bool f){m_bShowS57Text = f;}
 
+      bool GetColorScheme(){return m_ColorScheme;}
+      void SetColorScheme(Col_Scheme_t c);
+
 
 
  //Todo accessors
-      int         m_nDisplayCategory;
+      DisCat      m_nDisplayCategory;
       int         m_nSymbolStyle;
       int         m_nBoundaryStyle;
-      Col_Scheme_t  Color_Scheme;
       bool         m_bOK;
 //  Todo Make this type safe, it is always an array of (OBJLElement *)
       wxArrayPtrVoid    *pOBJLArray;    // Used for Display Filtering
       RuleHash          *_symb_sym;     // symbol symbolisation rules
 
   private:
+      bool ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp);
       int _renderTX(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int _renderTE(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int _renderSY(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int _renderLS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int _renderLSA(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int _renderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
-      int _renderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int _renderMPS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       char *_renderCS(ObjRazRules *rzRules, Rules *rules);
 
@@ -165,6 +170,10 @@ public:
                       render_canvas_parms *mask,
                       render_canvas_parms *pPatt_spec);
 
+      int dda_tri(wxPoint *ptp, color *c,
+                           render_canvas_parms *pb_spec,
+                           render_canvas_parms *mask,
+                           render_canvas_parms *pPatt_spec);
       int LoadColors(char *pColorFile);
 
       LUPHash *s52plib::_selectLUP(LUPname TNAM);
@@ -266,10 +275,11 @@ static GTree *_cond_sym = NULL;                 // conditional symbolisation rul
        wxDC       *pdc;                       // The current DC
 
       PixelCache *pPCPatt;
-
       int         *ledge;
       int         *redge;
 
+      Col_Scheme_t  m_ColorScheme;
+      int         n_colTables;
 };
 
 #endif //_S52PLIB_H_

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: options.cpp,v 1.2 2006/09/21 01:37:48 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Options Dialog
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:48  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.6  2006/08/04 11:48:38  dsr
  * no message
@@ -92,7 +95,10 @@ extern bool             g_bShowPrintIcon;
 extern wxString         *pNMEADataSource;
 extern wxString         *pNMEA_AP_Port;
 extern FontMgr          *pFontMgr;
+
+#ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
+#endif
 
 #ifdef USE_S57
 extern s52plib          *ps52plib;
@@ -141,6 +147,10 @@ BEGIN_EVENT_TABLE( options, wxDialog )
 
       EVT_CHOICE( ID_CHOICE_NMEA, options::OnNMEASourceChoice )
       EVT_COMBOBOX( ID_CHOICE_NMEA, options::OnNMEASourceChoice )
+
+    EVT_RADIOBOX(ID_RADIOBOX, options::OnDisplayCategoryRadioButton )
+    EVT_BUTTON( ID_CLEARLIST, options::OnButtonClearClick )
+    EVT_BUTTON( ID_SELECTLIST, options::OnButtonSelectClick )
 
 END_EVENT_TABLE()
 
@@ -366,11 +376,11 @@ void options::CreateControls()
 
       itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxGROW|wxALL, 5);
 
+#ifdef USE_WIFI_CLIENT
 //    Add WiFi Options Box
       wxStaticBox* itemWIFIStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("WiFi Options"));
       wxStaticBoxSizer* itemWIFIStaticBoxSizer = new wxStaticBoxSizer(itemWIFIStaticBox, wxVERTICAL);
       itemBoxSizer6->Add(itemWIFIStaticBoxSizer, 0, wxGROW|wxALL, 5);
-
 
 //    Add WiFi TCP/IP Server address
       m_itemWIFI_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("TCP/IP WiFi Data Server"));
@@ -386,7 +396,7 @@ void options::CreateControls()
       wxString ip;
       ip = pWIFIServerName->Mid(7);
       m_itemWIFI_TCPIP_Source->WriteText(ip);
-
+#endif
 
 
 
@@ -403,7 +413,7 @@ void options::CreateControls()
     //      Move the dir tree control out of the ctor, and only build it if "CHART" panel is selected.
     //      See this::OnPageChange event handler
 
-#ifndef __WXX11__
+#if 0 //ndef __WXX11__
     itemActiveChartStaticBox = new wxStaticBox(itemPanel9, wxID_ANY, _("Active Chart Directories"));
     pTextCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL, _T(""),
                                wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE ); // size needs 300,100 on gtk
@@ -453,8 +463,19 @@ void options::CreateControls()
     wxBoxSizer* itemBoxSizer23 = new wxBoxSizer(wxVERTICAL);
     itemBoxSizer22->Add(itemBoxSizer23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
     wxString* ps57CtlListBoxStrings = NULL;
-    ps57CtlListBox = new wxCheckListBox( ps57Ctl, ID_CHECKLISTBOX, wxDefaultPosition, wxSize(-1, 300), 0, ps57CtlListBoxStrings, wxLB_SINGLE );
+    ps57CtlListBox = new wxCheckListBox( ps57Ctl, ID_CHECKLISTBOX, wxDefaultPosition, wxSize(-1, 300), 0,
+                                         ps57CtlListBoxStrings, wxLB_SINGLE );
     itemBoxSizer23->Add(ps57CtlListBox, 0, wxALIGN_LEFT|wxALL, 5);
+
+    itemButtonClearList = new wxButton( ps57Ctl, ID_CLEARLIST, _("Clear All"),
+            wxDefaultPosition, wxDefaultSize, 0 );
+    itemButtonClearList->SetDefault();
+    itemBoxSizer23->Add(itemButtonClearList, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+    itemButtonSelectList = new wxButton( ps57Ctl, ID_SELECTLIST, _("Select All"),
+            wxDefaultPosition, wxDefaultSize, 0 );
+    itemButtonSelectList->SetDefault();
+    itemBoxSizer23->Add(itemButtonSelectList, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxBoxSizer* itemBoxSizer25 = new wxBoxSizer(wxVERTICAL);
     itemBoxSizer22->Add(itemBoxSizer25, 0, wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP|wxBOTTOM, 5);
@@ -464,13 +485,16 @@ void options::CreateControls()
     wxString pDispCatStrings[] = {
         _("&Base"),
         _("&Standard"),
-        _("&Other")
+        _("&Other"),
+        _("&MarinersStandard")
     };
-    pDispCat = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Display Category"), wxDefaultPosition, wxDefaultSize, 3, pDispCatStrings, 1, wxRA_SPECIFY_COLS );
+    pDispCat = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Display Category"), wxDefaultPosition, wxDefaultSize, 4, pDispCatStrings, 1, wxRA_SPECIFY_COLS );
     itemStaticBoxSizer26->Add(pDispCat, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
     itemNotebook4->AddPage(ps57Ctl, _("S57 Object Filter"));
 
+
+    //      Add Invariant buttons
     itemFlexGridSizer3->Add(itemNotebook4, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxBoxSizer* itemBoxSizer28 = new wxBoxSizer(wxHORIZONTAL);
@@ -552,7 +576,7 @@ void options::SetInitialSettings()
 //    Settings too
 
       pSettingsCB1->SetValue(m_pConfig->m_bShowDebugWindows);
-    pPrintShowIcon->SetValue(g_bShowPrintIcon);
+      pPrintShowIcon->SetValue(g_bShowPrintIcon);
 
 
 #ifdef USE_S57
@@ -584,15 +608,66 @@ void options::SetInitialSettings()
             case (OTHER):
                   nset = 2;
                   break;
+            case (MARINERS_STANDARD):
+                  nset = 3;
+                  break;
+            default:
+                    nset = 3;
+                    break;
             }
 
             pDispCat->SetSelection(nset);
       }
 
+      ps57CtlListBox->Enable(MARINERS_STANDARD == ps52plib->m_nDisplayCategory);
+      itemButtonClearList->Enable(MARINERS_STANDARD == ps52plib->m_nDisplayCategory);
+      itemButtonSelectList->Enable(MARINERS_STANDARD == ps52plib->m_nDisplayCategory);
+
 #endif
 
 }
 
+
+void options::OnDisplayCategoryRadioButton( wxCommandEvent& event)
+{
+   int select = pDispCat->GetSelection();
+
+    if(3 == select)
+    {
+        ps57CtlListBox->Enable();
+        itemButtonClearList->Enable();
+        itemButtonSelectList->Enable();
+    }
+
+    else
+    {
+        ps57CtlListBox->Disable();
+        itemButtonClearList->Disable();
+        itemButtonSelectList->Disable();
+    }
+
+    event.Skip();
+
+}
+
+void options::OnButtonClearClick( wxCommandEvent& event )
+{
+    int nOBJL = ps57CtlListBox->GetCount();
+    for( int iPtr = 0 ; iPtr < nOBJL ; iPtr++)
+        ps57CtlListBox->Check(iPtr, false);
+
+   event.Skip();
+}
+
+
+void options::OnButtonSelectClick( wxCommandEvent& event )
+{
+    int nOBJL = ps57CtlListBox->GetCount();
+    for( int iPtr = 0 ; iPtr < nOBJL ; iPtr++)
+        ps57CtlListBox->Check(iPtr, true);
+
+    event.Skip();
+}
 
 /*!
  * wxEVT_COMMAND_TREE_SEL_CHANGED event handler for ID_DIRCTRL
@@ -737,13 +812,14 @@ void options::OnXidOkClick( wxCommandEvent& event )
     wxString selp(m_itemNMEAAutoListBox->GetStringSelection());
     *pNMEA_AP_Port = selp;
 
+#ifdef USE_WIFI_CLIENT
 // WiFi
     wxString WiFiSource;
     WiFiSource.Empty();
     WiFiSource.Append("TCP/IP:");
     WiFiSource.Append(m_itemWIFI_TCPIP_Source->GetLineText(0));
     *pWIFIServerName = WiFiSource;
-
+#endif
 
 #ifdef USE_S57
     //    Handle s57 Tab
@@ -770,6 +846,10 @@ void options::OnXidOkClick( wxCommandEvent& event )
                   break;
             case 2:
                   nset = OTHER;
+                  break;
+            case 3:
+                  nset = MARINERS_STANDARD;
+                  break;
             }
             ps52plib->m_nDisplayCategory = nset;
 
@@ -903,13 +983,10 @@ void options::OnChooseFont( wxCommandEvent& event )
 }
 
 
-
-
-
 void options::OnPageChange(wxNotebookEvent& event)
 {
 
-#ifdef __WXX11__
+#ifdef __LINUX__ // __WXX11__
 
       int i = event.GetSelection();
 
@@ -990,6 +1067,8 @@ void options::OnPageChange(wxNotebookEvent& event)
                   }
               }
           }
+
+          itemBoxSizer10->Layout();
       }
 #endif
 }

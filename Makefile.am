@@ -3,8 +3,7 @@
 
 INCLUDES = \
 	$(WX_CXXFLAGS)\
-	 -Iinclude -Isrc -Isrc/nmea0183 -I/usr/local/include -Isrc/dialog
-
+	 -Iinclude -Isrc/nmea0183 -Isrc/dialog
 
 AM_CFLAGS =\
 	 -Wall\
@@ -29,6 +28,12 @@ AM_CFLAGS += -DUSE_S57
 AM_CXXFLAGS += -DUSE_S57
 endif
 
+#	The variable BUILD_WITH_GLU_TESS comes from configure script AM_CONDITIONAL()
+if BUILD_WITH_GLU_TESS
+AM_CFLAGS += -DUSE_GLU_TESS
+AM_CXXFLAGS += -DUSE_GLU_TESS
+opencpn_LDADD += -lGL -lGLU
+endif
 
 bin_PROGRAMS = opencpn
 
@@ -62,7 +67,6 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/nmea0183/sentence.cpp \
 			src/nmea0183/talkerid.cpp \
 			src/nmea0183/rmc.cpp \
-			src/wificlient.cpp \
 			src/nmea0183/hexvalue.cpp \
 			src/nmea0183/lat.cpp \
 			src/nmea0183/expid.cpp
@@ -72,7 +76,6 @@ opencpn_SOURCES +=	src/s52cnsy.cpp \
 			src/s52plib.cpp \
 			src/s52utils.cpp \
 			src/s57chart.cpp \
-			src/s57mgr.cpp \
 			src/gpc.c \
 			src/mygeom.cpp \
 			src/tri.c
@@ -86,6 +89,7 @@ opencpn_SOURCES +=	src/myiso8211/ddffielddefn.cpp \
 			src/myiso8211/ddfutils.cpp
 
 opencpn_LDADD += $(GDAL_LIBS)
+AM_CFLAGS += $(GDAL_CFLAGS)
 endif
 
 if BUILD_WITH_INTERNAL_GDAL
@@ -150,10 +154,17 @@ opencpn_SOURCES +=	src/myiso8211/ddffielddefn.cpp \
 			src/mygdal/ogr2gmlgeometry.cpp \
 			src/mygdal/gml2ogrgeometry.cpp \
 			src/mygdal/gdal_misc.cpp
+
+INCLUDES += -Isrc/mygdal
+endif
+
+if BUILD_WITH_WIFI_CLIENT
+AM_CXXFLAGS += -DUSE_WIFI_CLIENT
+opencpn_SOURCES +=	src/wificlient.cpp 
 endif
 
 
-## Installation 
+## Installation
 
 install-data-local:
 	cp -r data/wvsdata $(pkgdatadir)

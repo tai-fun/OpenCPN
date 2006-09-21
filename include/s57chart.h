@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: s57chart.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:38:23  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.8  2006/08/04 11:43:37  dsr
  * no message
@@ -94,15 +97,11 @@
 
 #include <ogrsf_frmts.h>
 
-#ifdef __LINUX__
 #include "iso8211.h"
-#endif
 
-#ifdef __WXMSW__
-#include "iso8211.h"
-#endif
-
+#include "gdal.h"
 #include "dymemdc.h"
+#include "s52s57.h"                 //types
 
 // ----------------------------------------------------------------------------
 // Random Prototypes
@@ -112,8 +111,19 @@ extern "C" void DegToUTM(float lat, float lon, char *zone, float *x, float *y, f
 extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, float *x, float *y);
 extern "C" void fromTM(double x, double y, double lat0, double lon0, double k0, double *lat, double *lon);
 
+// ----------------------------------------------------------------------------
+// S57 Utility Prototypes
+// ----------------------------------------------------------------------------
+extern "C" int  s57_initialize(const wxString& csv_dir);
+extern "C" int  s57_GetChartScale(char *pFullPath);
+extern "C" bool s57_GetChartExtent(char *pFullPath, Extent *pext);
+extern "C" bool s57_GetChartFirstM_COVR(char *pFullPath, OGRDataSource **pDS, OGRFeature **pFeature,
+                               OGRLayer **pLayer, int &catcov);
+extern "C" bool s57_GetChartNextM_COVR(OGRDataSource *pDS, OGRLayer *pLayer, OGRFeature *pLastFeature,
+                              OGRFeature **pFeature, int &catcov);
+extern "C" bool s57_ddfrecord_test();
 
-#include "s52s57.h"                 //types
+
 
 //----------------------------------------------------------------------------
 // Constants
@@ -176,10 +186,7 @@ public:
       bool DoesLatLonSelectObject(float lat, float lon, float select_radius, S57Obj *obj);
       bool IsPointInObjArea(float lat, float lon, float select_radius, S57Obj *obj);
       wxString *CreateObjDescription(const S57Obj& obj);
-      wxString *s57chart::GetAttributeDecode(wxString& att, int ival);
-//  Todo this should be in a new tristrip class, tbd
-      bool PtInVertexList(float lat, float lon,gpc_vertex_list *vl);
-      bool ddfrecord_test();
+      wxString *GetAttributeDecode(wxString& att, int ival);
 
 // Public data
 //Todo Accessors here
@@ -215,6 +222,7 @@ private:
 
 
  // Private Data
+      wxString    *m_pcsv_locn;
       int         nGeoRecords;
       float       NativeScale;
 

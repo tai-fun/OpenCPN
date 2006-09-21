@@ -272,7 +272,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
 ac_unique_file="src/chart1.cpp"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE BUILD_WITH_S57_TRUE BUILD_WITH_S57_FALSE BUILD_WITH_S57 BUILD_WITH_INTERNAL_GDAL_TRUE BUILD_WITH_INTERNAL_GDAL_FALSE BUILD_WITH_INTERNAL_GDAL BUILD_WITH_SHARED_GDAL_TRUE BUILD_WITH_SHARED_GDAL_FALSE BUILD_WITH_SHARED_GDAL GDAL_LIBS WX_LIBS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE BUILD_WITH_S57_TRUE BUILD_WITH_S57_FALSE BUILD_WITH_S57 BUILD_WITH_INTERNAL_GDAL_TRUE BUILD_WITH_INTERNAL_GDAL_FALSE BUILD_WITH_INTERNAL_GDAL BUILD_WITH_SHARED_GDAL_TRUE BUILD_WITH_SHARED_GDAL_FALSE BUILD_WITH_SHARED_GDAL GDAL_LIBS GDAL_CFLAGS BUILD_WITH_INTERNAL_TESS_TRUE BUILD_WITH_INTERNAL_TESS_FALSE BUILD_WITH_INTERNAL_TESS BUILD_WITH_GLU_TESS_TRUE BUILD_WITH_GLU_TESS_FALSE BUILD_WITH_GLU_TESS BUILD_WITH_WIFI_CLIENT_TRUE BUILD_WITH_WIFI_CLIENT_FALSE BUILD_WITH_WIFI_CLIENT WX_LIBS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -824,6 +824,8 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-gdal-internal    use Internal GDAL/OGR
+  --with-tess-internal    use Internal Polygon Tesselator
+  --with-wifi-client    Enable wifi client
   --with-wx-config=FILE     Use the given path to wx-config when determining
                             wxWidgets configuration; defaults to "wx-config"
 
@@ -3615,7 +3617,6 @@ fi
 gdal_internal=false
 gdal_shared=true
 
-
 # Check whether --with-gdal_internal or --without-gdal_internal was given.
 if test "${with_gdal_internal+set}" = set; then
   withval="$with_gdal_internal"
@@ -3650,6 +3651,61 @@ fi
 GDALCONFIG=gdal-config
 GDAL_LIBS="`$GDALCONFIG --libs`"
 
+GDAL_CFLAGS="`$GDALCONFIG --cflags`"
+
+
+tess_internal=false
+test_glu=true
+
+# Check whether --with-tess_internal or --without-tess_internal was given.
+if test "${with_tess_internal+set}" = set; then
+  withval="$with_tess_internal"
+  tess_internal=true
+
+fi;
+
+
+
+if test x$tess_internal = xtrue; then
+  BUILD_WITH_INTERNAL_TESS_TRUE=
+  BUILD_WITH_INTERNAL_TESS_FALSE='#'
+else
+  BUILD_WITH_INTERNAL_TESS_TRUE='#'
+  BUILD_WITH_INTERNAL_TESS_FALSE=
+fi
+
+
+
+
+if test x$tess_internal = xfalse; then
+  BUILD_WITH_GLU_TESS_TRUE=
+  BUILD_WITH_GLU_TESS_FALSE='#'
+else
+  BUILD_WITH_GLU_TESS_TRUE='#'
+  BUILD_WITH_GLU_TESS_FALSE=
+fi
+
+
+
+wifi_client=false
+
+# Check whether --with-wifi_client or --without-wifi_client was given.
+if test "${with_wifi_client+set}" = set; then
+  withval="$with_wifi_client"
+  wifi_client=true
+
+fi;
+
+
+
+if test x$wifi_client = xtrue; then
+  BUILD_WITH_WIFI_CLIENT_TRUE=
+  BUILD_WITH_WIFI_CLIENT_FALSE='#'
+else
+  BUILD_WITH_WIFI_CLIENT_TRUE='#'
+  BUILD_WITH_WIFI_CLIENT_FALSE=
+fi
+
 
 
 
@@ -3673,27 +3729,27 @@ wxversion=0
 # Call WXTEST func
 
 
-	echo "$as_me:$LINENO: checking wxWidgets version" >&5
+      echo "$as_me:$LINENO: checking wxWidgets version" >&5
 echo $ECHO_N "checking wxWidgets version... $ECHO_C" >&6
-	if wxversion=`$WXCONFIG --version`; then
-		echo "$as_me:$LINENO: result: $wxversion" >&5
+      if wxversion=`$WXCONFIG --version`; then
+            echo "$as_me:$LINENO: result: $wxversion" >&5
 echo "${ECHO_T}$wxversion" >&6
-	else
-		echo "$as_me:$LINENO: result: not found" >&5
+      else
+            echo "$as_me:$LINENO: result: not found" >&5
 echo "${ECHO_T}not found" >&6
-		{ { echo "$as_me:$LINENO: error: wxWidgets is required. Try --with-wx-config." >&5
+            { { echo "$as_me:$LINENO: error: wxWidgets is required. Try --with-wx-config." >&5
 echo "$as_me: error: wxWidgets is required. Try --with-wx-config." >&2;}
    { (exit 1); exit 1; }; }
-	fi
+      fi
 
 # Verify minimus requires
 vers=`echo $wxversion | $AWK 'BEGIN { FS = "."; } { printf "% d", ($1 * 1000 + $2) * 1000 + $3;}'`
 if test -n "$vers" && test "$vers" -ge 2006001; then
-	WX_CPPFLAGS="`$WXCONFIG --cppflags`"
-	WX_CXXFLAGS="`$WXCONFIG --cxxflags | sed -e 's/-fno-exceptions//'`"
-	WX_LIBS="`$WXCONFIG --libs`"
+      WX_CPPFLAGS="`$WXCONFIG --cppflags`"
+      WX_CXXFLAGS="`$WXCONFIG --cxxflags | sed -e 's/-fno-exceptions//'`"
+      WX_LIBS="`$WXCONFIG --libs`"
 else
-	{ { echo "$as_me:$LINENO: error: wxWidgets 2.6.1 or newer is required" >&5
+      { { echo "$as_me:$LINENO: error: wxWidgets 2.6.1 or newer is required" >&5
 echo "$as_me: error: wxWidgets 2.6.1 or newer is required" >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -3814,6 +3870,27 @@ if test -z "${BUILD_WITH_SHARED_GDAL_TRUE}" && test -z "${BUILD_WITH_SHARED_GDAL
   { { echo "$as_me:$LINENO: error: conditional \"BUILD_WITH_SHARED_GDAL\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"BUILD_WITH_SHARED_GDAL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${BUILD_WITH_INTERNAL_TESS_TRUE}" && test -z "${BUILD_WITH_INTERNAL_TESS_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"BUILD_WITH_INTERNAL_TESS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"BUILD_WITH_INTERNAL_TESS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${BUILD_WITH_GLU_TESS_TRUE}" && test -z "${BUILD_WITH_GLU_TESS_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"BUILD_WITH_GLU_TESS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"BUILD_WITH_GLU_TESS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${BUILD_WITH_WIFI_CLIENT_TRUE}" && test -z "${BUILD_WITH_WIFI_CLIENT_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"BUILD_WITH_WIFI_CLIENT\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"BUILD_WITH_WIFI_CLIENT\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -4397,6 +4474,16 @@ s,@BUILD_WITH_SHARED_GDAL_TRUE@,$BUILD_WITH_SHARED_GDAL_TRUE,;t t
 s,@BUILD_WITH_SHARED_GDAL_FALSE@,$BUILD_WITH_SHARED_GDAL_FALSE,;t t
 s,@BUILD_WITH_SHARED_GDAL@,$BUILD_WITH_SHARED_GDAL,;t t
 s,@GDAL_LIBS@,$GDAL_LIBS,;t t
+s,@GDAL_CFLAGS@,$GDAL_CFLAGS,;t t
+s,@BUILD_WITH_INTERNAL_TESS_TRUE@,$BUILD_WITH_INTERNAL_TESS_TRUE,;t t
+s,@BUILD_WITH_INTERNAL_TESS_FALSE@,$BUILD_WITH_INTERNAL_TESS_FALSE,;t t
+s,@BUILD_WITH_INTERNAL_TESS@,$BUILD_WITH_INTERNAL_TESS,;t t
+s,@BUILD_WITH_GLU_TESS_TRUE@,$BUILD_WITH_GLU_TESS_TRUE,;t t
+s,@BUILD_WITH_GLU_TESS_FALSE@,$BUILD_WITH_GLU_TESS_FALSE,;t t
+s,@BUILD_WITH_GLU_TESS@,$BUILD_WITH_GLU_TESS,;t t
+s,@BUILD_WITH_WIFI_CLIENT_TRUE@,$BUILD_WITH_WIFI_CLIENT_TRUE,;t t
+s,@BUILD_WITH_WIFI_CLIENT_FALSE@,$BUILD_WITH_WIFI_CLIENT_FALSE,;t t
+s,@BUILD_WITH_WIFI_CLIENT@,$BUILD_WITH_WIFI_CLIENT,;t t
 s,@WX_LIBS@,$WX_LIBS,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: thumbwin.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: thumbwin.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Chart Thumbnail Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: thumbwin.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:37  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/08/04 11:42:03  dsr
  * no message
@@ -51,10 +54,6 @@
  *
  */
 
-#include "dychart.h"
-
-CPL_CVSID("$Id: thumbwin.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
-
 
 #include "wx/wxprec.h"
 
@@ -65,6 +64,8 @@ CPL_CVSID("$Id: thumbwin.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+
+#include "dychart.h"
 
 #include "thumbwin.h"
 #include "chart1.h"
@@ -84,6 +85,7 @@ extern ChartBase        *Current_Ch;
 extern ChartCanvas      *cc1;
 
 
+CPL_CVSID("$Id: thumbwin.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    Thumbwin Implementation

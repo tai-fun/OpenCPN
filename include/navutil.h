@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: navutil.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:38:23  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -136,7 +139,6 @@ public:
       bool        m_bIsBeingEdited;
 
       RoutePointList    *pRoutePointList;
-      int               m_runPoint;
 
       wxBoundingBox     BBox;
 
@@ -159,7 +161,7 @@ public:
                               const wxString &LocalFileName);
 
 
-      int LoadMyConfig(void);
+      int LoadMyConfig(int iteration);
       virtual bool AddNewRoute(Route *pr, int ConfigRouteNum = -1);
       virtual bool UpdateRoute(Route *pr);
       virtual bool DeleteRoute(Route *pr);

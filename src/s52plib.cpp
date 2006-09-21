@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: s52plib.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:36  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.9  2006/08/04 11:42:02  dsr
  * no message
@@ -78,9 +81,6 @@
  *
  */
 
-#include "dychart.h"
-CPL_CVSID("$Id: s52plib.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
-
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
@@ -89,6 +89,7 @@ CPL_CVSID("$Id: s52plib.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
     #include "wx/wx.h"
 #endif //precompiled headers
 
+#include "dychart.h"
 
 #include "georef.h"
 
@@ -111,6 +112,7 @@ extern "C" void gpc_polygon_clip(gpc_op       operation,
 
 extern s52plib          *ps52plib;
 
+CPL_CVSID("$Id: s52plib.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -118,27 +120,23 @@ extern s52plib          *ps52plib;
 s52plib::s52plib(char *pPLPath, char *pPLLib, char *pPLCol)
 
 {
-
 //      Set up some buffers, etc...
-        pBuf = buffer;
+      pBuf = buffer;
+      n_colTables = 0;
 
-        pAlloc = new wxArrayPtrVoid;
+      pAlloc = new wxArrayPtrVoid;
+      pOBJLArray = new wxArrayPtrVoid;
 
-        pOBJLArray = new wxArrayPtrVoid;
+      m_bOK = S52_load_Plib(pPLPath, pPLLib, pPLCol);
 
-        m_bOK = S52_load_Plib(pPLPath, pPLLib, pPLCol);
-
-
-        pSmallFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD,
+      pSmallFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD,
                                                 FALSE, wxString("Eurostile Extended"));
 
-        m_bShowS57Text = false;
+      m_bShowS57Text = false;
+      m_ColorScheme = S52_DAY_BRIGHT;
 
-        Color_Scheme = S52_DAY_BRIGHT;
-
-        _symb_symR = NULL;
-
-        bUseRasterSym = false;
+      _symb_symR = NULL;
+      bUseRasterSym = false;
 
         //      Sensible defaults
         m_nSymbolStyle = PAPER_CHART;
@@ -1008,7 +1006,9 @@ int s52plib::_parseCOLS(FILE *fp)
 
    ct->tableName = new wxString(pBuf+19);
    ct->color     = new wxArrayPtrVoid;
+
    _colTables->Add((void *)ct);
+   n_colTables++;
 
    // read color
    ret  = _readS52Line( pBuf, NEWLN, 0,fp);
@@ -1295,7 +1295,7 @@ int s52plib::_parsePATT(FILE *fp)
 }
 
 
-void DestroyRuleNode(Rule *pR);
+//void DestroyRuleNode(Rule *pR);
 
 int s52plib::_parseSYMB(FILE *fp, RuleHash *pHash)
 {
@@ -1369,7 +1369,7 @@ int s52plib::_parseSYMB(FILE *fp, RuleHash *pHash)
                     if(symb->name.SYNM != symbtmp->name.SYNM)   // if the pattern names are not identical
                     {
                         (*pHash)[key] = symb;                    // replace the pattern
-                        DestroyRuleNode(symbtmp);         // remember to free to replaced node
+//                        DestroyRuleNode(symbtmp);         // remember to free to replaced node
                                                          // the node itself is destroyed as part of pAlloc
                     }
 
@@ -1598,40 +1598,6 @@ int s52plib::S52Load_Plib_Ext(char *pPLPath, char *pPLExtensionDir, char *pPLExt
 //
 //      S52_flush_Plib(): clean-up
 //
-/*
-static int _freeLUPnode(void *key, void *value, void *data )
-{
-
-   LUPrec *LUP = (LUPrec*) value;
-   Rules  *top = LUP->ruleList;
-
-   while(top != NULL){
-      Rules *Rtmp = top->next;
-      g_free(top);
-      top = Rtmp;
-   }
-
-   g_string_free(key,TRUE);
-   g_free(LUP);
-
-   return 1;
-}
-*/
-/*
-static int _freeRuleNode(void *key, void *value, void *data )
-{
-
-   Rule *rule = (Rule*) value;
-
-
-   g_string_free(rule->exposition.LXPO,TRUE);
-   g_string_free(rule->vector.LVCT    ,TRUE);
-
-   g_free(rule);
-
-   return 1;
-}
-*/
 
 void DestroyPatternRuleNode(Rule *pR)
 {
@@ -1649,16 +1615,16 @@ void DestroyPatternRuleNode(Rule *pR)
             if(pR->colRef.SCRF)
                     delete pR->colRef.SCRF;
 
-            if(pR->userData.pixelPtr)
+            if(pR->pixelPtr)
             {
                 if(pR->definition.PADF == 'V')
                 {
-                    wxBitmap *pbm = (wxBitmap *)(pR->userData.pixelPtr);
+                    wxBitmap *pbm = (wxBitmap *)(pR->pixelPtr);
                     delete pbm;
                 }
                 else if(pR->definition.PADF == 'R')
                 {
-                    render_canvas_parms *pp = (render_canvas_parms *)(pR->userData.pixelPtr);
+                    render_canvas_parms *pp = (render_canvas_parms *)(pR->pixelPtr);
 #ifdef S57USE_PIXELCACHE
                     PixelCache *pPC = (PixelCache *)pp->PCPtr;
                     delete pPC;
@@ -1677,28 +1643,23 @@ void DestroyRuleNode(Rule *pR)
     if(pR)
     {
 
-            if(pR->exposition.LXPO)
-                    delete pR->exposition.LXPO;
-
-            if(pR->vector.LVCT)
-                    delete pR->vector.LVCT;
-
-            if(pR->bitmap.SBTM)
-                    delete pR->bitmap.SBTM;
-
-            if(pR->colRef.SCRF)
-                    delete pR->colRef.SCRF;
-
-            if(pR->userData.pixelPtr)
+        if(pR->exposition.LXPO)
+            delete pR->exposition.LXPO;
+        if(pR->vector.LVCT)
+            delete pR->vector.LVCT;
+        if(pR->bitmap.SBTM)
+            delete pR->bitmap.SBTM;
+        if(pR->colRef.SCRF)
+            delete pR->colRef.SCRF;
+        if(pR->pixelPtr)
+        {
+            if(pR->definition.PADF == 'R')
             {
-                if(pR->definition.PADF == 'R')
-                {
-                    wxBitmap *pbm = (wxBitmap *)(pR->userData.pixelPtr);
-                    delete pbm;
-                }
+                wxBitmap *pbm = (wxBitmap *)(pR->pixelPtr);
+                delete pbm;
             }
+        }
     }
-
 }
 
 
@@ -1712,42 +1673,33 @@ void DestroyRules(RuleHash *rh)
         for( it = (*rh).begin(); it != (*rh).end(); ++it )
     {
         key = it->first;
-                pR = it->second;
-                if(pR)
+        pR = it->second;
+        if(pR)
+        {
+
+            if(pR->exposition.LXPO)
+                delete pR->exposition.LXPO;
+            if(pR->vector.LVCT)
+                delete pR->vector.LVCT;
+            if(pR->bitmap.SBTM)
+                delete pR->bitmap.SBTM;
+            if(pR->colRef.SCRF)
+                delete pR->colRef.SCRF;
+
+            if(pR->pixelPtr)
+            {
+                if(pR->definition.PADF == 'R')
                 {
-
-                        if(pR->exposition.LXPO)
-                                delete pR->exposition.LXPO;
-
-                        if(pR->vector.LVCT)
-                                delete pR->vector.LVCT;
-
-                        if(pR->bitmap.SBTM)
-                                delete pR->bitmap.SBTM;
-
-                        if(pR->colRef.SCRF)
-                                delete pR->colRef.SCRF;
-
-                        if(pR->userData.pixelPtr)
-                        {
-                            if(pR->definition.PADF == 'R')
-                            {
-                                wxBitmap *pbm = (wxBitmap *)(pR->userData.pixelPtr);
-                                delete pbm;
-                            }
-                        }
+                    wxBitmap *pbm = (wxBitmap *)(pR->pixelPtr);
+                    delete pbm;
                 }
-
+            }
+        }
     }
 
         rh->clear();
         delete rh;
 }
-
-// reference
-//   symb->exposition.SXPO = new wxString;                        //g_string_new('\0');
-//   symb->vector.SVCT     = new wxString;                        //g_string_new('\0');
-//   symb->bitmap.SBTM     = new wxString;
 
 
 
@@ -1777,16 +1729,16 @@ void DestroyPattRules(RuleHash *rh)
                         if(pR->colRef.SCRF)
                                 delete pR->colRef.SCRF;
 
-                        if(pR->userData.pixelPtr)
+                        if(pR->pixelPtr)
                         {
                             if(pR->definition.PADF == 'V')
                             {
-                                wxBitmap *pbm = (wxBitmap *)(pR->userData.pixelPtr);
+                                wxBitmap *pbm = (wxBitmap *)(pR->pixelPtr);
                                 delete pbm;
                             }
                             else if(pR->definition.PADF == 'R')
                             {
-                                render_canvas_parms *pp = (render_canvas_parms *)(pR->userData.pixelPtr);
+                                render_canvas_parms *pp = (render_canvas_parms *)(pR->pixelPtr);
 #ifdef S57USE_PIXELCACHE
                                 PixelCache *pPC = (PixelCache *)pp->PCPtr;
                                 delete pPC;
@@ -1806,28 +1758,26 @@ void DestroyPattRules(RuleHash *rh)
 
 void s52plib::DestroyLUP(LUPrec *pLUP)
 {
-                Rules  *top = pLUP->ruleList;
+        Rules  *top = pLUP->ruleList;
 
-                while(top != NULL)
-                {
-                        Rules *Rtmp = top->next;
-                        free(top);
-                        top = Rtmp;
-                }
+        while(top != NULL)
+        {
+            Rules *Rtmp = top->next;
+            free(top);
+            top = Rtmp;
+        }
 
-                delete pLUP->ATTCArray;
+        delete pLUP->ATTCArray;
 
-                delete pLUP->ATTC;
-                delete pLUP->INST;
+        delete pLUP->ATTC;
+        delete pLUP->INST;
 }
 
 
 void s52plib::DestroyLUPArray(wxArrayOfLUPrec *pLUPArray)
 {
         for(unsigned int il = 0 ; il < pLUPArray->GetCount() ; il++)
-        {
                 DestroyLUP(pLUPArray->Item(il));
-        }
 
         pLUPArray->Clear();
 
@@ -1854,16 +1804,6 @@ bool s52plib::S52_flush_Plib()
 
 
         delete _colTables;
-/*
-   int i = _colTables->len - 1;
-
-   // destroy color tables
-   for (; i>0; --i){
-      colTable *ct = &amp;g_array_index(_colTables, colTable, i);
-      g_array_free(ct->color, TRUE);
-   }
-   g_array_free(_colTables, TRUE);
-*/
 
    // destroy look-up tables
         DestroyLUPArray(lineLUPArray);
@@ -1972,7 +1912,17 @@ BAILOUT:
 
 
 
-// not final --should use index
+void s52plib::SetColorScheme(Col_Scheme_t c)
+{
+    //      Only use available color schemes
+    if((int)c > (n_colTables - 1))
+        m_ColorScheme = (Col_Scheme_t)(n_colTables - 1);
+    else
+        m_ColorScheme = c;
+}
+
+
+
 color *s52plib::S52_getColor(char *colorName)
 {
    color *c;
@@ -1980,7 +1930,7 @@ color *s52plib::S52_getColor(char *colorName)
    unsigned int i;
    colTable *ct;
 
-   ct = (colTable *)_colTables->Item(Color_Scheme);    //DAYBRIGHT
+   ct = (colTable *)_colTables->Item(m_ColorScheme);
 
    for (i=0; i<ct->color->GetCount(); ++i){
 
@@ -1996,34 +1946,6 @@ color *s52plib::S52_getColor(char *colorName)
    return c;
 }
 
-//
-//      pass along the callback to glib BTree
-//
-/*
-gint S52_scan_sym(S52_table_t table_t, GTraverseFunc callBack)
-{
-   if (table_t < S52_LINE_SYM || S52_COND_SYM <= table_t )
-      printf("S52:S52_scan_sym(): ERROR wrong symbology selected\n");
-   else
-      g_tree_traverse(_table[table_t],callBack,G_IN_ORDER,NULL);
-
-   return 1;
-}
-
-#ifdef S52_TEST
-int main()
-{
-
-   S52_load_Plib();
-
-   //_CIE2RGB();
-
-   S52_lookup(S52_LUP_AREA_PLN, "ACHARE", "CATACH", NULL);
-   S52_flush_Plib();
-   return TRUE;
-}
-#endif
-*/
 
 //----------------------------------------------------------------------------------
 //
@@ -3022,83 +2944,35 @@ wxImage *s52plib::RuleXBMToImage(Rule *prule)
 //
 //      Render Raster Symbol
 //      Symbol is instantiated as a bitmap the first time it is needed
+//      and re-built on color scheme change
 //
 bool s52plib::RenderRasterSymbol(Rule *prule, wxDC *pdc, wxPoint &r, float rot_angle)
-//wxBitmap *s52plib::BuildRasterSymbol(Rule *prule)
 {
         //Instantiate the symbol if necessary
-        if(prule->userData.pixelPtr == NULL)
+    if((prule->pixelPtr == NULL) || (prule->parm1 != m_ColorScheme))
         {
             wxImage *pImage = RuleXBMToImage(prule);
- /*
- //      Decode the color definitions
-                wxArrayPtrVoid *pColorArray = new wxArrayPtrVoid;
 
-                wxString cstr(*prule->colRef.SCRF);
-                unsigned int i = 0;
+            //      Make the bitmap
+            wxBitmap *pbm = new wxBitmap(*pImage);
 
-                while(i < (unsigned int)cstr.Len())
-                {
-                        i++;
-                        wxString thiscolor = cstr(i, 5);
+            //      Make the mask
+            wxMask *pmask = new wxMask(*pbm,
+                    wxColour(unused_color.R, unused_color.G, unused_color.B));
 
-                        color *pColor =  S52_getColor((char *)thiscolor.c_str());
+            //      Associate the mask with the bitmap
+            pbm->SetMask(pmask);
 
-                        pColorArray->Add((void *) pColor);
+            // delete any old private data
+            wxBitmap *pbmo = (wxBitmap *)(prule->pixelPtr);
+            delete pbmo;
 
-                        i+=5;
-                }
+            //      Save the bitmap ptr and aux parms in the rule
+            prule->pixelPtr = pbm;
+            prule->parm1 = m_ColorScheme;
 
-
-                //      Get geometry
-                int width  = prule->pos.line.bnbox_w.SYHL;
-                int height = prule->pos.line.bnbox_h.SYVL;
-
-                wxString gstr(*prule->bitmap.SBTM);                                     // the bit array
-
-                wxImage *pImage = new wxImage(width, height );          // put the bits here temporarily
-
-                for(int iy = 0 ; iy < height ; iy++)
-                {
-                        wxString thisrow = gstr(iy * width, width);             // extract a row
-
-                        for(int ix = 0 ; ix < width ; ix++)
-                        {
-                                int cref = (int)(thisrow[ix] - 'A');            // make an index
-                                if(cref >= 0)
-                                {
-                                        color *pthisbitcolor = (color *)(pColorArray->Item(cref));
-                                        pImage->SetRGB(ix, iy, pthisbitcolor->R, pthisbitcolor->G, pthisbitcolor->B);
-                                }
-                                else
-                                {
-                                        pImage->SetRGB(ix, iy, unused_color.R, unused_color.G, unused_color.B);
-                                }
-
-                        }
-                }
-                pColorArray->Clear();
-                delete pColorArray;
-
- */
-
-
-
-                //      Make the bitmap
-                wxBitmap *pbm = new wxBitmap(*pImage);
-
-                //      Make the mask
-                wxMask *pmask = new wxMask(*pbm,
-                        wxColour(unused_color.R, unused_color.G, unused_color.B));
-
-                //      Associate the mask with the bitmap
-                pbm->SetMask(pmask);
-
-                //      Save the bitmap ptr in the rule
-                prule->userData.pixelPtr = pbm;
-
-                //      Clean up
-                delete pImage;
+            //      Clean up
+            delete pImage;
 
         }               // instantiation
 
@@ -3107,7 +2981,7 @@ bool s52plib::RenderRasterSymbol(Rule *prule, wxDC *pdc, wxPoint &r, float rot_a
         //      Get the bitmap into a memory dc
         wxMemoryDC mdc;
 
-        mdc.SelectObject((wxBitmap &)(*((wxBitmap *)(prule->userData.pixelPtr))));
+        mdc.SelectObject((wxBitmap &)(*((wxBitmap *)(prule->pixelPtr))));
 
         int width  = prule->pos.line.bnbox_w.SYHL;
         int height = prule->pos.line.bnbox_h.SYVL;
@@ -3161,38 +3035,7 @@ int s52plib::_renderSY(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
             wxPoint rc;
             rzRules->chart->GetPointPix(cent_lat, cent_lon, &rc);
 
-
-//            if(rzRules->obj->Index == 8)
-//                pdc->DrawLine(r.x, r.y, rc.x, rc.y);
-
             r=rc;
-
-/*
-            if(rzRules->obj->Index == 8)
-            {
-                wxPoint a, b;
-
-                rzRules->chart->GetPointPix(bb->GetMinY(), bb->GetMinX(), &a);
-                rzRules->chart->GetPointPix(bb->GetMaxY(), bb->GetMinX(), &b);
-                pdc->DrawLine(a.x, a.y, b.x, b.y);
-
-                rzRules->chart->GetPointPix(bb->GetMaxY(), bb->GetMinX(), &a);
-                rzRules->chart->GetPointPix(bb->GetMaxY(), bb->GetMaxX(), &b);
-                pdc->DrawLine(a.x, a.y, b.x, b.y);
-
-                rzRules->chart->GetPointPix(bb->GetMaxY(), bb->GetMaxX(), &a);
-                rzRules->chart->GetPointPix(bb->GetMinY(), bb->GetMaxX(), &b);
-                pdc->DrawLine(a.x, a.y, b.x, b.y);
-
-                rzRules->chart->GetPointPix(bb->GetMinY(), bb->GetMaxX(), &a);
-                rzRules->chart->GetPointPix(bb->GetMinY(), bb->GetMinX(), &b);
-                pdc->DrawLine(a.x, a.y, b.x, b.y);
-            }
-
-  */
-
-
-
         }
 
 
@@ -3284,7 +3127,7 @@ return 0;
 */
 }
 
-
+/*
 class LineSegmentChain
 {
 public:
@@ -3477,7 +3320,7 @@ LineSegmentChain *GetTristripOutlineSegments(gpc_tristrip *tri, s57chart *chart)
                 return ret;
 }
 
-
+*/
 //-----------------------------------------------------------------------------
 //          C Linkage to clip.c
 //-----------------------------------------------------------------------------
@@ -3515,123 +3358,10 @@ int s52plib::_renderLS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 #endif
 
 
-
-
         wxPen *pthispen = wxThePenList->FindOrCreatePen(color, w, style);
         pdc->SetPen(*pthispen);
 
-        if(rzRules->obj->Tristrip)
-        {
-                gpc_tristrip *tri = rzRules->obj->Tristrip;
-
-                LineSegmentChain *lsc;
-                LineSegmentChain *lsn;
-                LineSegmentChain *lscroot;
-                lsc = GetTristripOutlineSegments(tri, rzRules->chart);
-                lscroot = lsc;
-
-#ifdef __WXMSW__
-                if(wxSOLID != style)
-                {
-                    int xmin_ = 0;
-                    int xmax_ = vp->pix_width;
-                    int ymin_ = 0;
-                    int ymax_ = vp->pix_height;
-
-                    int x0, y0, x1, y1;
-                    while(lsc)
-                    {
-                        for(int ip=0 ; ip < lsc->npt-1 ; ip++)
-                        {
-                            x0 = lsc->ptp[ip].x;
-                            y0 = lsc->ptp[ip].y;
-                            x1 = lsc->ptp[ip+1].x;
-                            y1 = lsc->ptp[ip+1].y;
-
-                            ClipResult res = cohen_sutherland_line_clip_i (&x0, &y0, &x1, &y1,
-                                   xmin_, xmax_, ymin_, ymax_);
-
-                            if(res != Invisible)
-                                pdc->DrawLine(x0,y0,x1,y1);
-                        }
-
-                        lsn = lsc->next;
-                        lsc = lsn;
-                    }
-
-
-                }
-
-                else
-                {
-                    while(lsc)
-                    {
-                        pdc->DrawLines(lsc->npt, lsc->ptp);
-                        lsn = lsc->next;
-                        lsc = lsn;
-                    }
-                }
-
-
-
-#else
-// Draw the individual segments
-                while(lsc)
-                {
-                    pdc->DrawLines(lsc->npt, lsc->ptp);
-                    lsn = lsc->next;
-                    lsc = lsn;
-                }
-
-
-
-#endif
-//      Delete the LineSegmentChain
-
-                lsc = lscroot;
-                while(lsc)
-                {
-                        free(lsc->ptp);                         // the point arrays
-                        lsn = lsc->next;
-                        delete lsc;
-                        lsc = lsn;
-                }
-
-
-        }                       // if
-
-        else if(rzRules->obj->MPoly)
-        {
-            polygroup *ppg = rzRules->obj->MPoly;
-            float *ppolygeo = ppg->pPolyGeo;
-
-            int ctr_offset = 2;
-            for(int ic = 0; ic < ppg->nCntr ; ic++)
-            {
-
-                int npt = ppg->pct_array[ic];
-                wxPoint *ptp = (wxPoint *)malloc((npt + 1) * sizeof(wxPoint));
-                wxPoint *pr = ptp;
-                for(int ip=0 ; ip < npt ; ip++)
-                {
-                        float plon = ppolygeo[(2 * ip) + ctr_offset];
-                        float plat = ppolygeo[(2 * ip) + ctr_offset + 1];
-
-                        rzRules->chart->GetPointPix(plat, plon, pr);
-                        pr++;
-                }
-                float plon = ppolygeo[ ctr_offset];             // close the polyline
-                float plat = ppolygeo[ ctr_offset + 1];
-                rzRules->chart->GetPointPix(plat, plon, pr);
-
-                pdc->DrawLines(npt + 1, ptp);
-                free(ptp);
-
-                ctr_offset += npt*2;
-            }
-        }
-
-        else if(rzRules->obj->pPolyGeo)
+        if(rzRules->obj->pPolyTessGeo)
         {
             int xmin_ = 0;
             int xmax_ = vp->pix_width;
@@ -3639,92 +3369,82 @@ int s52plib::_renderLS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
             int ymax_ = vp->pix_height;
             int x0, y0, x1, y1;
 
-            PolyGroup *ppg = rzRules->obj->pPolyGeo->Get_PolyGroup_head();
+            PolyTriGroup *pptg = rzRules->obj->pPolyTessGeo->Get_PolyTriGroup_head();
 
-            while(ppg)
+            float *ppolygeo = pptg->pgroup_geom;
+
+            int ctr_offset = 0;
+            for(int ic = 0; ic < pptg->nContours ; ic++)
             {
-                float *ppolygeo = ppg->pgroup_geom;
 
-                int ctr_offset = 2;
-                for(int ic = 0; ic < ppg->nContours ; ic++)
+                int npt = pptg->pn_vertex[ic];
+                wxPoint *ptp = (wxPoint *)malloc((npt + 1) * sizeof(wxPoint));
+                wxPoint *pr = ptp;
+
+                float *pf = &ppolygeo[ctr_offset];
+                for(int ip=0 ; ip < npt ; ip++)
                 {
-
-                    int npt = ppg->pcontour_nvertex[ic];
-                    wxPoint *ptp = (wxPoint *)malloc((npt + 1) * sizeof(wxPoint));
-                    wxPoint *pr = ptp;
-
-                    float *pf = &ppolygeo[ctr_offset];
-                    for(int ip=0 ; ip < npt ; ip++)
-                    {
 
 //                        float plon = ppolygeo[(2 * ip) + ctr_offset];
 //                        float plat = ppolygeo[(2 * ip) + ctr_offset + 1];
 
-                        float plon = *pf++;
-                        float plat = *pf++;
+                    float plon = *pf++;
+                    float plat = *pf++;
 
-                        rzRules->chart->GetPointPix(plat, plon, pr);
-                        pr++;
-                    }
-                    float plon = ppolygeo[ ctr_offset];             // close the polyline
-                    float plat = ppolygeo[ ctr_offset + 1];
                     rzRules->chart->GetPointPix(plat, plon, pr);
+                    pr++;
+                }
+                float plon = ppolygeo[ ctr_offset];             // close the polyline
+                float plat = ppolygeo[ ctr_offset + 1];
+                rzRules->chart->GetPointPix(plat, plon, pr);
 
 
-                    for(int ipc=0 ; ipc < npt ; ipc++)
-                    {
-                        x0 = ptp[ipc].x;
-                        y0 = ptp[ipc].y;
-                        x1 = ptp[ipc+1].x;
-                        y1 = ptp[ipc+1].y;
+                for(int ipc=0 ; ipc < npt ; ipc++)
+                {
+                    x0 = ptp[ipc].x;
+                    y0 = ptp[ipc].y;
+                    x1 = ptp[ipc+1].x;
+                    y1 = ptp[ipc+1].y;
 
-                        // Do not draw null segments
-                        if((x0 == x1) && (y0 == y1))
-                            continue;
+                    // Do not draw null segments
+                    if((x0 == x1) && (y0 == y1))
+                        continue;
 
-                        ClipResult res = cohen_sutherland_line_clip_i (&x0, &y0, &x1, &y1,
-                                xmin_, xmax_, ymin_, ymax_);
+                    ClipResult res = cohen_sutherland_line_clip_i (&x0, &y0, &x1, &y1,
+                            xmin_, xmax_, ymin_, ymax_);
 
-                        if(res != Invisible)
-                            pdc->DrawLine(x0,y0,x1,y1);
-                    }
-
-//                    pdc->DrawLines(npt + 1, ptp);
-                    free(ptp);
-
-                    ctr_offset += npt*2;
+                    if(res != Invisible)
+                        pdc->DrawLine(x0,y0,x1,y1);
                 }
 
-                ppg = ppg->ppg_next;
+//                    pdc->DrawLines(npt + 1, ptp);
+                free(ptp);
+                ctr_offset += npt*2;
             }
         }
 
-        else
+        else if(rzRules->obj->geoPt)
         {
             pt *ppt = rzRules->obj->geoPt;
-
-            if(NULL != ppt)
+            npt = rzRules->obj->npt;
+            ptp = (wxPoint *)malloc(npt * sizeof(wxPoint));
+            wxPoint *pr = ptp;
+            wxPoint p;
+            for(int ip=0 ; ip<npt ; ip++)
             {
-                npt = rzRules->obj->npt;
-                ptp = (wxPoint *)malloc(npt * sizeof(wxPoint));
-                wxPoint *pr = ptp;
-                wxPoint p;
-                for(int ip=0 ; ip<npt ; ip++)
-                {
-                        float plat = ppt->y;
-                        float plon = ppt->x;
+                    float plat = ppt->y;
+                    float plon = ppt->x;
 
-                        rzRules->chart->GetPointPix(plat, plon, &p);
+                    rzRules->chart->GetPointPix(plat, plon, &p);
 
-                        *pr = p;
+                    *pr = p;
 
-                        pr++;
-                        ppt++;
-                }
-
-                pdc->DrawLines(npt, ptp);
-                free(ptp);
+                    pr++;
+                    ppt++;
             }
+
+            pdc->DrawLines(npt, ptp);
+            free(ptp);
         }
 
         return 1;
@@ -3754,60 +3474,25 @@ int s52plib::_renderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
         wxPen *pthispen = wxThePenList->FindOrCreatePen(color, 1, wxSOLID);
         pdc->SetPen(*pthispen);
 
-        if(rzRules->obj->Tristrip)
+        if(rzRules->obj->pPolyTessGeo)
         {
-                gpc_tristrip *tri = rzRules->obj->Tristrip;
+            PolyTriGroup *pptg = rzRules->obj->pPolyTessGeo->Get_PolyTriGroup_head();
+            float *ppolygeo = pptg->pgroup_geom;
 
-                LineSegmentChain *lsc;
-                LineSegmentChain *lsn;
-                LineSegmentChain *lscroot;
-                lsc = GetTristripOutlineSegments(tri, rzRules->chart);
-                lscroot = lsc;
-
-// Draw the individual segments using HPGL symbology
-//Todo   use  this::draw_lc_segment() or draw_lc_poly
-                while(lsc)
-                {
-                        draw_lc_poly(pdc, lsc->ptp, lsc->npt, sym_len, sym_factor, rules->razRule);
-
-
-
-                        lsn = lsc->next;
-                        lsc = lsn;
-                }
-
-//      Delete the LineSegmentChain
-
-                lsc = lscroot;
-                while(lsc)
-                {
-                        free(lsc->ptp);                         // the point arrays
-                        lsn = lsc->next;
-                        delete lsc;
-                        lsc = lsn;
-                }
-
-        }                       // if
-
-        else if(rzRules->obj->MPoly)
-        {
-            polygroup *ppg = rzRules->obj->MPoly;
-            float *ppolygeo = ppg->pPolyGeo;
-
-            int ctr_offset = 2;
-            for(int ic = 0; ic < ppg->nCntr ; ic++)
+            int ctr_offset = 0;
+            for(int ic = 0; ic < pptg->nContours ; ic++)
             {
 
-                int npt = ppg->pct_array[ic];
+                int npt = pptg->pn_vertex[ic];
                 wxPoint *ptp = (wxPoint *)malloc((npt + 1) * sizeof(wxPoint));
                 wxPoint *pr = ptp;
                 for(int ip=0 ; ip < npt ; ip++)
                 {
-                        float plon = ppolygeo[(2 * ip) + ctr_offset];
-                        float plat = ppolygeo[(2 * ip) + ctr_offset + 1];
+                    float plon = ppolygeo[(2 * ip) + ctr_offset];
+                    float plat = ppolygeo[(2 * ip) + ctr_offset + 1];
 
-                        rzRules->chart->GetPointPix(plat, plon, pr);
-                        pr++;
+                    rzRules->chart->GetPointPix(plat, plon, pr);
+                    pr++;
                 }
                 float plon = ppolygeo[ ctr_offset];             // close the polyline
                 float plat = ppolygeo[ ctr_offset + 1];
@@ -3822,46 +3507,8 @@ int s52plib::_renderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
             }
         }
 
-        else if(rzRules->obj->pPolyGeo)
+        else if(rzRules->obj->geoPt)                            // if the object is not described by a poly structure
         {
-            PolyGroup *ppg = rzRules->obj->pPolyGeo->Get_PolyGroup_head();
-            while(NULL != ppg)
-            {
-                float *ppolygeo = ppg->pgroup_geom;
-
-                int ctr_offset = 2;
-                for(int ic = 0; ic < ppg->nContours ; ic++)
-                {
-
-                    int npt = ppg->pcontour_nvertex[ic];
-                    wxPoint *ptp = (wxPoint *)malloc((npt + 1) * sizeof(wxPoint));
-                    wxPoint *pr = ptp;
-                    for(int ip=0 ; ip < npt ; ip++)
-                    {
-                        float plon = ppolygeo[(2 * ip) + ctr_offset];
-                        float plat = ppolygeo[(2 * ip) + ctr_offset + 1];
-
-                        rzRules->chart->GetPointPix(plat, plon, pr);
-                        pr++;
-                    }
-                    float plon = ppolygeo[ ctr_offset];             // close the polyline
-                    float plat = ppolygeo[ ctr_offset + 1];
-                    rzRules->chart->GetPointPix(plat, plon, pr);
-
-
-                    draw_lc_poly(pdc, ptp, npt + 1, sym_len, sym_factor, rules->razRule);
-
-                    free(ptp);
-
-                    ctr_offset += npt*2;
-                }
-
-                ppg = ppg->ppg_next;
-            }
-        }
-        else                            // if the object is not described by a poly structure
-        {
-
                 pt *ppt = rzRules->obj->geoPt;
 
 
@@ -3996,80 +3643,6 @@ int s52plib::_renderMPS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 
 
 
-// Area Color
-int s52plib::_renderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
-{
-
-    char *str = (char*)rules->INSTstr;
-    color *c = S52_getColor(str);
-
-    polygroup *ppg = rzRules->obj->MPoly;
-    if(ppg)
-    {
-        int nPolys = ppg->nPolys;
-
-        double **pvert_array = ppg->pvert_array;
-        int *pnv_array = ppg->pnv_array;
-
-        for(int ip = 0 ; ip < nPolys ; ip++)
-        {
-            int nvert = pnv_array[ip];
-            wxPoint *ptp = (wxPoint *)malloc(nvert * sizeof(wxPoint));
-            wxPoint *pr = ptp;
-            wxPoint p;
-
-            double *pvert_list = pvert_array[ip];
-
-            for(int iv =0 ; iv < nvert ; iv++)
-            {
-                double lon = pvert_list[2 * iv];
-                double lat = pvert_list[(2 * iv) + 1];
-
-                rzRules->chart->GetPointPixEst(lat, lon, pr);
-                pr++;
-            }
-
-
-            wxBrush *pthisbrush;
-
-//            int r,g,b;
-//            r = ip * 20;
-
- //           pthisbrush = wxTheBrushList->FindOrCreateBrush(wxColour(r,r,r), wxSOLID);
-
-
-            if(ip & 1)
-            {
-                wxColour color(255, 0, 0);
-                pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
-            }
-            else
-            {
-                wxColour color(0, 255, 0);
-                pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
-            }
-/*
-             else
-            {
-                wxColour color(c->R, c->G, c->B);
-                pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
-            }
-*/
-            wxPen *pthispen = wxThePenList->FindOrCreatePen(wxColour(c->R, c->G, c->B), 1, wxSOLID);
-
-            pdc->SetPen(*pthispen);
-            pdc->SetBrush(*pthisbrush);
-
-            pdc->DrawPolygon(nvert, ptp);
-
-            free(ptp);
-        }
-
-    }       // if ppg
-
-   return 1;
-}
-
 
 
 // Conditional Symbology
@@ -4113,70 +3686,15 @@ char *s52plib::_renderCS(ObjRazRules *rzRules, Rules *rules)
 
 int s52plib::_draw(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 {
+    if(!ObjectRenderCheck(rzRules, vp))
+        return 0;
 
     pdc = pdcin;                    // use this DC
-
-        wxBoundingBox BBView(vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top);
-
-        Rules *rules = rzRules->LUP->ruleList;
-    if (rzRules->obj==NULL)
-      return 0;
-
-//   Debug
-//       if(!strncmp(rzRules->LUP->OBCL, "ACHARE", 6))
-//         int yyrt = 4;
-
-
-//      Do Object Type Filtering
-   if(m_nDisplayCategory == OTHER)
-   {
-                if(!((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz)
-                        return 0;
-   }
-
-   else                                         // check DISPLAYBASE or STANDARD
-   {
-           if(m_nDisplayCategory == DISPLAYBASE)
-                {
-                   if(DISPLAYBASE != rzRules->LUP->DISC)
-                   {
-                        ((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz = 0;
-                           return 0;
-                   }
-                }
-           else if(m_nDisplayCategory == STANDARD)
-            {
-                   if((DISPLAYBASE != rzRules->LUP->DISC) && (STANDARD != rzRules->LUP->DISC))
-                   {
-                           ((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz = 0;
-                           return 0;
-                   }
-                }
-
-           ((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz = 1;
-
-        }
-
-        int dwg = 0;
-
-
-//      View BBox filtering
-        if(BBView.Intersect(rzRules->obj->BBObj, 0) != _OUT)            // Object is not wholly outside window
-                dwg++;
-
-//      SCAMIN Filtering
-        if(vp->chart_scale > rzRules->obj->Scamin)
-                dwg = 0;
-
-//      All votes in?
-        if(dwg == 0)
-                return 0;
-
+    Rules *rules = rzRules->LUP->ruleList;
 
 //       if(!strncmp(rzRules->LUP->OBCL, "CTNARE", 6))
 //        int yyrt = 4;
-//       if(rzRules->obj->Index == 2352)
-//          int yyrt = 4;
+
 
 
         while (rules != NULL)
@@ -4237,10 +3755,12 @@ int s52plib::_draw(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 
 
 //----------------------------------------------------------------------------------
+//
 //              Fast Basic Canvas Rendering
+//              Render triangle
 //
 //----------------------------------------------------------------------------------
-int s52plib::dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp, color *c,
+int s52plib::dda_tri(wxPoint *ptp, color *c,
                       render_canvas_parms *pb_spec,
                       render_canvas_parms *mask,
                       render_canvas_parms *pPatt_spec)
@@ -4261,134 +3781,176 @@ int s52plib::dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp, color *c,
 #endif
     }
 
-    //      Debug code for color filtering
-//  r = istrip % 2  * 255; //c->R;
-//  g = 0; //c->G;
-//  b = (istrip % 2 + 1)  * 255; //c->R;
+    //      Determine ymin and ymax indices
 
-//              Create and clear the edge arrays
 
-//    memset(ledge, 0, 1500 * sizeof(int));
-//    memset(redge, 0, 1500 * sizeof(int));
+    int ymax = ptp[0].y;
+    int ymin = ptp[0].y;
+    int imin = 0;
+    int imax = 0;
+    int imid;
+
+    for(int ip=1 ; ip < 3 ; ip++)
+    {
+//        printf("%d %d\n", ptp[ip].x, ptp[ip].y);
+        if(ptp[ip].y > ymax)
+        {
+            imax = ip;
+            ymax = ptp[ip].y;
+        }
+        if(ptp[ip].y <= ymin)
+        {
+            imin = ip;
+            ymin= ptp[ip].y;
+        }
+    }
+
+    imid = 3 - (imin + imax);            // do the math...
+
+    if(imid == 3)
+    {
+        for(int ip=0 ; ip < 3 ; ip++)
+            printf(" 3v %d %d %d\n", ip, ptp[ip].x, ptp[ip].y);
+    }
 
     //      Create edge arrays using fast integer DDA
 
-    int i, m, x, dy, count;
+    int m, x, dy, count;
 
 
-    if((ptp[0].y >= 0 ) && (ptp[0].y < 1500))
-            ledge[ptp[0].y] = ptp[0].x;
 
-    for(i=0 ; i<ivmax ; i++)                         // left edge
+   // left edge
+//    if((ptp[imin].y >= 0 ) && (ptp[imin].y < 1500))           // left begin point
+//            ledge[ptp[imin].y] = ptp[imin].x;
+
+    dy = (ptp[imax].y - ptp[imin].y);
+    if(dy)
     {
-            dy = (ptp[i].y - ptp[i+1].y);
-            if(dy)
+            m = (ptp[imax].x - ptp[imin].x) << 16;
+            m /= dy;
+
+            x = ptp[imin].x << 16;
+//            x += m;
+
+            for (count = ptp[imin].y; count <= ptp[imax].y; count++)
             {
-                    m = (ptp[i+1].x - ptp[i].x) << 16;
-                    m /= dy;
-
-                    x = ptp[i].x << 16;
-                    x += m;
-
-                    for (count = ptp[i].y - 1; count >= ptp[i+1].y; count--)
-                    {
-                            if((count >= 0 ) && (count < 1500))
-                                    ledge[count] = x >> 16;
-                            x += m;
-                    }
-            }
-            else
-            {
-                    if((ptp[i].y >= 0 ) && (ptp[i].y < 1500))
-                            ledge[ptp[i].y] = __min(ledge[ptp[i].y], ptp[i+1].x);
-            }
-    }
-
-    if((ptp[ivmax].y >= 0 ) && (ptp[ivmax].y < 1500))
-            redge[ptp[ivmax].y] = ptp[ivmax].x;
-
-
-    for(i=ivmax ; i<nvert-1 ; i++)                              // right edge
-    {
-            dy = (ptp[i+1].y - ptp[i].y);
-            if(dy)
-            {
-                    m = (ptp[i+1].x - ptp[i].x) << 16;
-                    m /= dy;
-
-                    x = ptp[i].x << 16;
-                    x += m;
-
-                    for (count = ptp[i].y + 1; count <= ptp[i+1].y; count++)
-                    {
-                            if((count >= 0 ) && (count < 1500))
-                                    redge[count] = x >> 16;
-                            x += m;
-                    }
-            }
-            else
-            {
-                    if((ptp[i].y >= 0 ) && (ptp[i].y < 1500))
-                            redge[ptp[i].y] = __max(redge[ptp[i].y], ptp[i+1].x);
-            }
-    }
-
-
-    {                                                                       // closing edge
-            dy = (ptp[0].y - ptp[nvert-1].y);
-            if(dy)
-            {
-                    m = (ptp[0].x - ptp[nvert-1].x) << 16;
-                    m /= dy;
-
-                    x = ptp[nvert-1].x << 16;
-                    for (count = ptp[nvert-1].y+1; count <= ptp[0].y; count++)
-                    {
-                            if((count >= 0 ) && (count < 1500))
-                                    redge[count] = x >> 16;
-                            x += m;
-                    }
-            }
-            else
-            {
-                    count = ptp[nvert-1].y;
                     if((count >= 0 ) && (count < 1500))
-                            redge[count] = ptp[nvert-1].x;
+                            ledge[count] = x >> 16;
+                    x += m;
             }
+    }
+    else
+    {
+//            if((ptp[imin].y >= 0 ) && (ptp[imin].y < 1500))
+//                    ledge[ptp[imin].y] = __min(ledge[ptp[imin].y], ptp[imax].x);
+    }
+
+   // right edge lower
+//    if((ptp[imin].y >= 0 ) && (ptp[imin].y < 1500))           // right begin point
+//        redge[ptp[imin].y] = ptp[imin].x;
+
+    dy = (ptp[imid].y - ptp[imin].y);
+    if(dy)
+    {
+        m = (ptp[imid].x - ptp[imin].x) << 16;
+        m /= dy;
+
+        x = ptp[imin].x << 16;
+//        x += m;
+
+        for (count = ptp[imin].y; count <= ptp[imid].y; count++)
+        {
+            if((count >= 0 ) && (count < 1500))
+                redge[count] = x >> 16;
+            x += m;
+        }
+    }
+    else
+    {
+//        if((ptp[imin].y >= 0 ) && (ptp[imin].y < 1500))
+//            redge[ptp[imin].y] = __min(ledge[ptp[imin].y], ptp[imid].x);
+    }
+
+   // right edge upper
+//    if((ptp[imid].y >= 0 ) && (ptp[imid].y < 1500))           // right begin point
+//        redge[ptp[imid].y] = ptp[imid].x;
+
+    dy = (ptp[imax].y - ptp[imid].y);
+    if(dy)
+    {
+        m = (ptp[imax].x - ptp[imid].x) << 16;
+        m /= dy;
+
+        x = ptp[imid].x << 16;
+//        x += m;
+
+        for (count = ptp[imid].y; count <= ptp[imax].y; count++)
+        {
+            if((count >= 0 ) && (count < 1500))
+                redge[count] = x >> 16;
+            x += m;
+        }
+    }
+    else
+    {
+ //       if((ptp[imid].y >= 0 ) && (ptp[imid].y < 1500))
+ //           redge[ptp[imid].y] = __min(ledge[ptp[imid].y], ptp[imax].x);
     }
 
 
 
-    //              Clip the polygon
+//    if((ptp[imax].y >= 0 ) && (ptp[imax].y < 1500))         // right, top begin point
+//            redge[ptp[imax].y] = ptp[imax].x;
 
-    int y1 = ptp[ivmax].y;
-    int y2 = ptp[0].y;
 
-    int yt = pb_spec->y;
-    int ybt = pb_spec->y + pb_spec->height;
+    //      Check the triangle edge winding direction
+    int dfSum = 0;
+    dfSum += ptp[imin].x * ptp[imax].y
+            - ptp[imin].y * ptp[imax].x;
+    dfSum += ptp[imax].x * ptp[imid].y
+            - ptp[imax].y * ptp[imid].x;
+    dfSum += ptp[imid].x * ptp[imin].y
+            - ptp[imid].y * ptp[imin].x;
 
-    if(y1 < yt)
+    bool cw = dfSum < 0;
+
+    //      if cw is true, redge is actually on the right
+
+
+
+    //              Clip the triangle
+
+    int y1 = ptp[imax].y;
+    int y2 = ptp[imin].y;
+
+    int ybt = pb_spec->y;
+    int yt = pb_spec->y + pb_spec->height;
+
+//    if(pb_spec->height ==  1)
+ //       int ggld = 5;
+
+    if(y1 > yt)
             y1 = yt;
-    if(y1 > ybt)
+    if(y1 < ybt)
             y1 = ybt;
 
-    if(y2 < yt)
+    if(y2 > yt)
             y2 = yt;
-    if(y2 > ybt)
+    if(y2 < ybt)
             y2 = ybt;
 
     int lclip = pb_spec->lclip;
     int rclip = pb_spec->rclip;
 
-    for(int iy = y1 ; iy <= y2 ; iy++)
+    if(cw)
     {
+        for(int iy = y2 ; iy <= y1 ; iy++)
+        {
 
             if(ledge[iy] < lclip)
             {
                     if(redge[iy] < lclip)
-                    {
                             ledge[iy] = -1;
-                    }
                     else
                             ledge[iy] = lclip;
             }
@@ -4396,19 +3958,41 @@ int s52plib::dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp, color *c,
             if(redge[iy] > rclip)
             {
                     if(ledge[iy] > rclip)
-                    {
                             ledge[iy] = -1;
-                    }
                     else
                             redge[iy] = rclip;
             }
+        }
+    }
+    else
+    {
+        for(int iy = y2 ; iy <= y1 ; iy++)
+        {
+
+            if(redge[iy] < lclip)
+            {
+                if(ledge[iy] < lclip)
+                    ledge[iy] = -1;
+                else
+                    redge[iy] = lclip;
+            }
+
+            if(ledge[iy] > rclip)
+            {
+                if(redge[iy] > rclip)
+                    ledge[iy] = -1;
+                else
+                    ledge[iy] = rclip;
+            }
+        }
     }
 
 
-    //              Fill the polygon
 
-    int ya = y1;
-    int yb = y2;
+    //              Fill the triangle
+
+    int ya = y2;
+    int yb = y1;
 
     unsigned char *pix_buff = pb_spec->pix_buff;
     unsigned char *pbm=0;
@@ -4445,8 +4029,6 @@ int s52plib::dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp, color *c,
                                     unsigned char *px =  py  + xoff;
                                     unsigned char *pxm = pym + xoff;
 
-                                    if((pxm - pb_spec->pix_buff) > ((pb_spec->pb_pitch * pb_spec->height) * pb_spec->depth))
-                                        wxLogMessage("pix 1");
                                     int ixm = redge[iyp];
 
                                     if(mask)                 // use the mask
@@ -4524,25 +4106,40 @@ int s52plib::dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp, color *c,
             if(NULL != c)
                 color_int =  ((c->R) << 16) + ((c->G) << 8) + (c->B);
 
+            assert(ya <= yb);
 
-            for(int iyp = ya ; iyp <= yb ; iyp++)
+            for(int iyp = ya ; iyp < yb ; iyp++)
             {
-                    if((iyp >= yt) && (iyp < ybt))
+                if((iyp >= ybt) && (iyp < yt))
                     {
                             int yoff =      (iyp - pb_spec->y) * pb_spec->pb_pitch;
 
                             unsigned char *py = pix_buff + yoff;
                             unsigned char *pym = pbm + yoff;
 
-                            int ix = ledge[iyp];
-                            if(ix != -1)                    // special clip case
+
+                            int ix, ixm;
+                            if(cw)
+                            {
+                                ix = ledge[iyp];
+                                ixm = redge[iyp];
+                            }
+                            else
+                            {
+                                ixm = ledge[iyp];
+                                ix = redge[iyp];
+                            }
+
+//                            assert(ix <= ixm);
+//                            if(ix > ixm)
+//                                int ggl = 4;
+                            if((ledge[iyp] != -1) /*&& cw && (ix <= ixm)*/)
                             {
                                     int xoff = (ix-pb_spec->x) * pb_spec->depth / 8;
 
                                     unsigned char *px = py + xoff;
                                     unsigned char *pxm = pym + xoff;
 
-                                    int ixm = redge[iyp];
 
                                     if(mask)                                // use the mask
                                     {
@@ -4606,10 +4203,385 @@ int s52plib::dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp, color *c,
     return true;
 }
 
+/*
+
+//----------------------------------------------------------------------------------
+//
+//              Fast Basic Canvas Rendering
+//              Render polygon
+//              Polygons restricted as follows:
+//                  Simple Monotonic
+//                  Clockwise winding
+//
+//----------------------------------------------------------------------------------
+int s52plib::dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp, color *c,
+                      render_canvas_parms *pb_spec,
+                      render_canvas_parms *mask,
+                      render_canvas_parms *pPatt_spec)
+
+{
+    unsigned char r, g, b;
+
+    if(NULL != c)
+    {
+#ifdef dyUSE_BITMAPO_S57
+        r = c->R;
+        g = c->G;
+        b = c->B;
+#else
+        b = c->R;
+        g = c->G;
+        r = c->B;
+#endif
+    }
+
+    //      Debug code for color filtering
+//  r = istrip % 2  * 255; //c->R;
+//  g = 0; //c->G;
+//  b = (istrip % 2 + 1)  * 255; //c->R;
+
+//              Create and clear the edge arrays
+
+//    memset(ledge, 0, 1500 * sizeof(int));
+//    memset(redge, 0, 1500 * sizeof(int));
+
+    //      Create edge arrays using fast integer DDA
+
+    int i, m, x, dy, count;
+
+
+    if((ptp[0].y >= 0 ) && (ptp[0].y < 1500))
+        ledge[ptp[0].y] = ptp[0].x;
+
+    for(i=0 ; i<ivmax ; i++)                         // left edge
+    {
+        dy = (ptp[i].y - ptp[i+1].y);
+        if(dy)
+        {
+            m = (ptp[i+1].x - ptp[i].x) << 16;
+            m /= dy;
+
+            x = ptp[i].x << 16;
+            x += m;
+
+            for (count = ptp[i].y - 1; count >= ptp[i+1].y; count--)
+            {
+                if((count >= 0 ) && (count < 1500))
+                    ledge[count] = x >> 16;
+                x += m;
+            }
+        }
+        else
+        {
+            if((ptp[i].y >= 0 ) && (ptp[i].y < 1500))
+                ledge[ptp[i].y] = __min(ledge[ptp[i].y], ptp[i+1].x);
+        }
+    }
+
+    if((ptp[ivmax].y >= 0 ) && (ptp[ivmax].y < 1500))
+        redge[ptp[ivmax].y] = ptp[ivmax].x;
+
+
+    for(i=ivmax ; i<nvert-1 ; i++)                              // right edge
+    {
+        dy = (ptp[i+1].y - ptp[i].y);
+        if(dy)
+        {
+            m = (ptp[i+1].x - ptp[i].x) << 16;
+            m /= dy;
+
+            x = ptp[i].x << 16;
+            x += m;
+
+            for (count = ptp[i].y + 1; count <= ptp[i+1].y; count++)
+            {
+                if((count >= 0 ) && (count < 1500))
+                    redge[count] = x >> 16;
+                x += m;
+            }
+        }
+        else
+        {
+            if((ptp[i].y >= 0 ) && (ptp[i].y < 1500))
+                redge[ptp[i].y] = __max(redge[ptp[i].y], ptp[i+1].x);
+        }
+    }
+
+
+    {                                                                       // closing edge
+        dy = (ptp[0].y - ptp[nvert-1].y);
+        if(dy)
+        {
+            m = (ptp[0].x - ptp[nvert-1].x) << 16;
+            m /= dy;
+
+            x = ptp[nvert-1].x << 16;
+            for (count = ptp[nvert-1].y+1; count <= ptp[0].y; count++)
+            {
+                if((count >= 0 ) && (count < 1500))
+                    redge[count] = x >> 16;
+                x += m;
+            }
+        }
+        else
+        {
+            count = ptp[nvert-1].y;
+            if((count >= 0 ) && (count < 1500))
+                redge[count] = ptp[nvert-1].x;
+        }
+    }
 
 
 
+    //              Clip the polygon
 
+    int y1 = ptp[ivmax].y;
+    int y2 = ptp[0].y;
+
+    int yt = pb_spec->y;
+    int ybt = pb_spec->y + pb_spec->height;
+
+    if(y1 < yt)
+        y1 = yt;
+    if(y1 > ybt)
+        y1 = ybt;
+
+    if(y2 < yt)
+        y2 = yt;
+    if(y2 > ybt)
+        y2 = ybt;
+
+    int lclip = pb_spec->lclip;
+    int rclip = pb_spec->rclip;
+
+    for(int iy = y1 ; iy <= y2 ; iy++)
+    {
+
+        if(ledge[iy] < lclip)
+        {
+            if(redge[iy] < lclip)
+            {
+                ledge[iy] = -1;
+            }
+            else
+                ledge[iy] = lclip;
+        }
+
+        if(redge[iy] > rclip)
+        {
+            if(ledge[iy] > rclip)
+            {
+                ledge[iy] = -1;
+            }
+            else
+                redge[iy] = rclip;
+        }
+    }
+
+
+    //              Fill the polygon
+
+    int ya = y1;
+    int yb = y2;
+
+    unsigned char *pix_buff = pb_spec->pix_buff;
+    unsigned char *pbm=0;
+    if(mask)
+        pbm = mask->pix_buff;
+
+    int patt_size_x, patt_size_y, patt_pitch;
+    unsigned char *patt_s0;
+    if(pPatt_spec)
+    {
+        patt_size_y = pPatt_spec->height;
+        patt_size_x = pPatt_spec->width;
+        patt_pitch =  pPatt_spec->pb_pitch;
+        patt_s0 =     pPatt_spec->pix_buff;
+    }
+
+
+    if(pb_spec->depth == 24)
+    {
+        for(int iyp = ya ; iyp <= yb ; iyp++)
+        {
+            if((iyp >= yt) && (iyp < ybt))
+            {
+                int yoff = (iyp - pb_spec->y) * pb_spec->pb_pitch;
+
+                unsigned char *py =  pix_buff + yoff;
+                unsigned char *pym = pbm      + yoff;
+
+                int ix = ledge[iyp];
+                if(ix != -1)                    // special clip case
+                {
+                    int xoff = (ix-pb_spec->x) * 3;
+
+                    unsigned char *px =  py  + xoff;
+                    unsigned char *pxm = pym + xoff;
+
+                    if((pxm - pb_spec->pix_buff) > ((pb_spec->pb_pitch * pb_spec->height) * pb_spec->depth))
+                        wxLogMessage("pix 1");
+                    int ixm = redge[iyp];
+
+                    if(mask)                 // use the mask
+                    {
+                        while(ix <= ixm)
+                        {
+                            if(*pxm == 0)
+                            {
+                                *px++ = b;
+                                *px++ = g;
+                                *px++ = r;
+                            }
+                            else
+                            {
+                                px += 3;
+                            }
+
+                            pxm += 3;
+                            ix++;
+                        }
+                    }
+                    else                        // no mask
+                    {
+                        if(pPatt_spec)          // Pattern
+                        {
+                            while(ix <= ixm)
+                            {
+                                int patt_x = ix  % patt_size_x;
+                                int patt_y = iyp % patt_size_y;
+
+                                unsigned char *pp = patt_s0 + (patt_y * patt_pitch) +
+                                        patt_x * 3;
+
+    //  Todo    This line assumes unused_color is always 0,0,0
+                                if(*pp && *(pp+1) && *(pp+2))
+                                {
+                                    *px++ = *pp++;
+                                    *px++ = *pp++;
+                                    *px++ = *pp++;
+                                }
+                                else
+                                {
+                                    px+=3;
+                                    pp+=3;
+                                }
+
+                                ix++;
+                            }
+                        }
+
+
+                        else                    // No Pattern
+                        {
+                            while(ix <= ixm)
+                            {
+                                *px++ = b;
+                                *px++ = g;
+                                *px++ = r;
+
+                                ix++;
+                                if((px - pb_spec->pix_buff) > ((pb_spec->pb_pitch * pb_spec->height) * pb_spec->depth))
+                                    wxLogMessage("pix 2");
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if(pb_spec->depth == 32)
+    {
+        int color_int;
+        if(NULL != c)
+            color_int =  ((c->R) << 16) + ((c->G) << 8) + (c->B);
+
+
+        for(int iyp = ya ; iyp <= yb ; iyp++)
+        {
+            if((iyp >= yt) && (iyp < ybt))
+            {
+                int yoff =      (iyp - pb_spec->y) * pb_spec->pb_pitch;
+
+                unsigned char *py = pix_buff + yoff;
+                unsigned char *pym = pbm + yoff;
+
+                int ix = ledge[iyp];
+                if(ix != -1)                    // special clip case
+                {
+                    int xoff = (ix-pb_spec->x) * pb_spec->depth / 8;
+
+                    unsigned char *px = py + xoff;
+                    unsigned char *pxm = pym + xoff;
+
+                    int ixm = redge[iyp];
+
+                    if(mask)                                // use the mask
+                    {
+                        int *pxi = (int *)px ;
+                        while(ix <= ixm)
+                        {
+                            if(*pxm == 0)
+                                *pxi = color_int;
+                            pxi++;
+                            pxm += pb_spec->depth / 8;
+                            ix++;
+                        }
+                    }
+                    else                                    // no mask
+                    {
+                        if(pPatt_spec)          // Pattern
+                        {
+                            while(ix <= ixm)
+                            {
+                                int patt_x = ix  % patt_size_x;
+                                int patt_y = iyp % patt_size_y;
+
+                                unsigned char *pp = patt_s0 + (patt_y * patt_pitch) +
+                                        patt_x * 4;
+
+    //  Todo    This line assumes unused_color is always 0,0,0
+                                if(*pp && *(pp+1) && *(pp+2))
+                                {
+                                    *px++ = *pp++;
+                                    *px++ = *pp++;
+                                    *px++ = *pp++;
+                                    px++;
+                                    pp++;
+                                }
+                                else
+                                {
+                                    px+=4;
+                                    pp+=4;
+                                }
+
+                                ix++;
+                            }
+                        }
+
+                        else                    // No Pattern
+                        {
+                            int *pxi = (int *)px ;
+                            while(ix <= ixm)
+                            {
+                                *pxi++ = color_int;
+                                ix++;
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+
+*/
 
 
 
@@ -4620,7 +4592,6 @@ void s52plib::FastRenderFilledPolygon(ObjRazRules *rzRules,
                render_canvas_parms *pPatt_spec)
 {
 
-    double x,y;
 
     color cp;
     if(NULL != c)
@@ -4630,239 +4601,97 @@ void s52plib::FastRenderFilledPolygon(ObjRazRules *rzRules,
         cp.B = c->B;
     }
 
-    if(obj->Tristrip)
+
+    if(obj->pPolyTessGeo)
     {
-        gpc_tristrip *tri = obj->Tristrip;
-        int ism = tri->num_strips;
+        PolyTriGroup *ppg = obj->pPolyTessGeo->Get_PolyTriGroup_head();
 
-        for (int istrip=0;istrip< ism;istrip++)
+        TriPrim *p_tp = ppg->tri_prim_head;
+        while(p_tp)
         {
-        // If Object is not wholly outside window
-            if(BBView.Intersect(obj->BBStripArray[istrip], 0) != _OUT)
+
+            if(BBView.Intersect(*(p_tp->p_bbox), 0) != _OUT)
             {
-
-                    //      Build an array of wxPoints which is the lon/lat of strip
-                    //      I promise that vertex list is consecutive...
-                    gpc_vertex_list lstrip = tri->strip[istrip];
-
-                    int jm = tri->strip[istrip].num_vertices;
-                    wxPoint *ptp = (wxPoint *)malloc(jm * sizeof(wxPoint));
-                    wxPoint *pr = ptp;
-
-                    float lat0, lon0;
-
-                    lon0 = lstrip.vertex[0].x;
-                    lat0 = lstrip.vertex[0].y;
-                    rzRules->chart->GetPointPixEst(lat0, lon0, pr);
-                    pr++;
-
-                    int j = 2;
-                    while(j < jm)
-                    {
-                            x = lstrip.vertex[j].x;
-                            y = lstrip.vertex[j].y;
-                            rzRules->chart->GetPointPixEst(y, x, pr);
-                            pr++;
-
-                            j += 2;
-                    }
-
-                    j--;
-                    while(j > jm-1)
-                            j-= 2;
-
-                    while(j >= 1)
-                    {
-                            x = lstrip.vertex[j].x;
-                            y = lstrip.vertex[j].y;
-                            rzRules->chart->GetPointPixEst(y, x, pr);
-                            pr++;
-
-                            j -= 2;
-                    }
-
-
-        //              Find Max and Min Y points
-                    int imax, imin;
-
-                    imin = 0;                                                       // built into tristrip
-                    imax = jm / 2;
-
-                    dda_poly(jm, imin, imax, ptp, c, pb_spec, mask, pPatt_spec);
-
-                    free(ptp);
-            }                               // if BBView
-        }       // istrip loop
-    }           // if tristrip
-
-    else if(obj->MPoly)
-    {
-        polygroup *ppg = obj->MPoly;
-
-        int nPolys = ppg->nPolys;
-
-        double **pvert_array = ppg->pvert_array;
-        int *pnv_array = ppg->pnv_array;
-
-        for(int ip = 0 ; ip < nPolys ; ip++)
-        {
-#ifdef POLYTEST
- //      Debug code for color filtering
-
- int r,g,b;
- if(ip %2)
- {
-    r = 0;      //ip % 2  * 255; //c->R;
-    g = 0;      //c->G;
-    b = 255;    //(ip % 2 + 1)  * 255; //c->R;
- }
- else
- {
-     r=255;
-     g=0;
-     b=0;
- }
-  cp.R = r;
-  cp.G = g;
-  cp.B = b;
-#endif
-
-            if(BBView.Intersect(obj->BBStripArray[ip], 0) != _OUT)
-            {
-                int nvert = pnv_array[ip];
-
-                wxPoint *ptp = (wxPoint *)malloc((nvert + 1) * sizeof(wxPoint));
+                //      Get and convert the points
+                wxPoint *ptp = (wxPoint *)malloc((p_tp->nVert + 1) * sizeof(wxPoint));
                 wxPoint *pr = ptp;
 
-                wxPoint p;
+                wxPoint *pp3 = (wxPoint *)malloc(3 * sizeof(wxPoint));
 
-                double *pvert_list = pvert_array[ip];
+                double *pvert_list = p_tp->p_vertex;
 
-                double lat_max = -90.;
-                int imax;
-                for(int iv =0 ; iv < nvert ; iv++)
+                for(int iv =0 ; iv < p_tp->nVert ; iv++)
                 {
                     double lon = *pvert_list++;
                     double lat = *pvert_list++;
                     rzRules->chart->GetPointPixEst(lat, lon, pr);
 
-                    if(lat > lat_max)
-                    {
-                        imax = iv;
-                        lat_max = lat;
-                    }
                     pr++;
                 }
 
-/*
-                if((rzRules->obj->Index == 535) && (ip ==13))                   // these belong to US5NY1CM
-                dda_poly(nvert, 0, imax, ptp, &cp, pb_spec, mask, pPatt_spec);
 
-                if((rzRules->obj->Index == 703) && (ip ==11))
-                dda_poly(nvert, 0, imax, ptp, &cp, pb_spec, mask, pPatt_spec);
-*/
-                dda_poly(nvert, 0, imax, ptp, &cp, pb_spec, mask, pPatt_spec);
+                switch (p_tp->type)
+                {
+                    case PTG_TRIANGLE_FAN:
+                    {
+                        for(int it = 0 ; it < p_tp->nVert - 2 ; it++)
+                        {
+                            pp3[0].x = ptp[0].x;
+                            pp3[0].y = ptp[0].y;
+
+                            pp3[1].x = ptp[it+1].x;
+                            pp3[1].y = ptp[it+1].y;
+
+                            pp3[2].x = ptp[it+2].x;
+                            pp3[2].y = ptp[it+2].y;
+
+                            dda_tri(pp3, &cp, pb_spec, mask, pPatt_spec);
+                        }
+                        break;
+                    }
+                    case PTG_TRIANGLE_STRIP:
+                    {
+                        for(int it = 0 ; it < p_tp->nVert - 2 ; it++)
+                        {
+                            pp3[0].x = ptp[it].x;
+                            pp3[0].y = ptp[it].y;
+
+                            pp3[1].x = ptp[it+1].x;
+                            pp3[1].y = ptp[it+1].y;
+
+                            pp3[2].x = ptp[it+2].x;
+                            pp3[2].y = ptp[it+2].y;
+
+                            dda_tri(pp3, &cp, pb_spec, mask, pPatt_spec);
+                        }
+                        break;
+                    }
+                    case PTG_TRIANGLES:
+                    {
+                        for(int it = 0 ; it < p_tp->nVert ; it+=3)
+                        {
+                            pp3[0].x = ptp[it].x;
+                            pp3[0].y = ptp[it].y;
+
+                            pp3[1].x = ptp[it+1].x;
+                            pp3[1].y = ptp[it+1].y;
+
+                            pp3[2].x = ptp[it+2].x;
+                            pp3[2].y = ptp[it+2].y;
+
+                            dda_tri(pp3, &cp, pb_spec, mask, pPatt_spec);
+                        }
+                        break;
+                    }
+                }
 
                 free(ptp);
-            }
-        }
+                free(pp3);
 
-    }       // if MPoly
-
-    else if(obj->pPolyGeo)
-    {
-        PolyGroup *ppg = obj->pPolyGeo->Get_PolyGroup_head();
-
-        int nPolys = ppg->nPolys;
-
-        double **pvert_array = ppg->pvert_array;
-        int *pnv_array = ppg->pn_vertex;
-
-        wxBoundingBox *bbarray = ppg->BBArray;
-
-        for(int ip = 0 ; ip < nPolys ; ip++)
-        {
-//#define POLYTEST 1
-#ifdef POLYTEST
- //      Debug code for color filtering
-
- int r,g,b;
- if(ip %2)
- {
-     r = 0;      //ip % 2  * 255; //c->R;
-     g = 0;      //c->G;
-     b = 255;    //(ip % 2 + 1)  * 255; //c->R;
- }
- else
- {
-     r=255;
-     g=0;
-     b=0;
- }
- cp.R = r;
- cp.G = g;
- cp.B = b;
-#endif
-
-            if(BBView.Intersect(bbarray[ip], 0) != _OUT)
-            {
-                    int nvert = pnv_array[ip];
-
-                    wxPoint *ptp = (wxPoint *)malloc((nvert + 1) * sizeof(wxPoint));
-                    wxPoint *pr = ptp;
-
-                    wxPoint p;
-
-                    double *pvert_list = pvert_array[ip];
-
-                    double lat_max = -90.;
-                    int imax;
-                    for(int iv =0 ; iv < nvert ; iv++)
-                    {
-                        double lon = *pvert_list++;
-                        double lat = *pvert_list++;
-                        rzRules->chart->GetPointPixEst(lat, lon, pr);
-
-                        if(lat > lat_max)
-                        {
-                            imax = iv;
-                            lat_max = lat;
-                        }
-                        pr++;
-                    }
-
-
-//                    if((rzRules->obj->Index == 554) && (0/*ip ==87*/))                   // these belong to US5NY1CM
-/*
-                    {
-                        pr = ptp;
-                        double *pvert_list = pvert_array[ip];
-                        for(int iv =0 ; iv < nvert ; iv++)
-                        {
-                        double lon = *pvert_list++;
-                        double lat = *pvert_list++;
-                        printf("%d %d %f %f %d %d\n", ip, iv ,lon, lat, pr->x, pr->y);
-                        pr++;
-                        }
-                    }
-*/
-//                    wxLogMessage("Obj %d", rzRules->obj->Index);
-
-//                    if((rzRules->obj->Index == 535) && (ip ==15))                   // these belong to US5NY1CM
-//                    dda_poly(nvert, 0, imax, ptp, &cp, pb_spec, mask, pPatt_spec);
-
-//                    if((rzRules->obj->Index == 703) && (ip ==11))
-//                    dda_poly(nvert, 0, imax, ptp, &cp, pb_spec, mask, pPatt_spec);
-
-//                    if((rzRules->obj->Index == 750) && (ip <= 10))
-                    dda_poly(nvert, 0, imax, ptp, &cp, pb_spec, mask, pPatt_spec);
-
-                    free(ptp);
-            }       //if bbarray
-        }      // for ipoly
-    }       // if pPolyGeo
-
-
+            }   // if bbox
+            p_tp = p_tp->p_next;                // pick up the next in chain
+        }       // while
+    }       // if pPolyTessGeo
 
 }
 
@@ -4908,7 +4737,7 @@ int s52plib::FastRenderAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
 
     if(rules->razRule->definition.SYDF == 'R')
     {
-        if(rules->razRule->userData.pixelPtr == NULL)
+        if(rules->razRule->pixelPtr == NULL)
         {
             wxImage *pImage = RuleXBMToImage(rules->razRule);
 
@@ -4974,20 +4803,13 @@ int s52plib::FastRenderAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
                 }
             }
 
-            rules->razRule->userData.pixelPtr = patt_spec;
+            rules->razRule->pixelPtr = patt_spec;
 //      Clean up
             delete pImage;
         }
 
 
-        render_canvas_parms *ppatt_spec = (render_canvas_parms *)rules->razRule->userData.pixelPtr;
-
-
-
-
-
-
-
+        render_canvas_parms *ppatt_spec = (render_canvas_parms *)rules->razRule->pixelPtr;
 
 
 /*
@@ -5076,7 +4898,6 @@ int s52plib::FastRenderAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
 int s52plib::FastRenderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
                                  render_canvas_parms *pb_spec)
 {
-
    color *c;
    char *str = (char*)rules->INSTstr;
    S57Obj    *ring = NULL;
@@ -5097,7 +4918,6 @@ int s52plib::FastRenderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
    {
 
 //              Build a mask of the inner rings
-
                 render_canvas_parms mask;
                 mask = *pb_spec;                                // mask is identical to canvas
 
@@ -5157,62 +4977,12 @@ int s52plib::FastRenderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
 int s52plib::RenderArea(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp,
                                                 render_canvas_parms *pb_spec)
 {
-
-    pdc = pdcin;                    // use this DC
-
-    wxBoundingBox BBView(vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top);
-
-    Rules *rules = rzRules->LUP->ruleList;
-    if (rzRules->obj==NULL)
+    if(!ObjectRenderCheck(rzRules, vp))
         return 0;
 
-//    if(!strncmp(rzRules->LUP->OBCL, "M_COVR", 6))
-//        int yyrg = 4;
+    pdc = pdcin;                    // use this DC
+    Rules *rules = rzRules->LUP->ruleList;
 
-
-//      Do Object Type Filtering
-    if(m_nDisplayCategory == OTHER)
-    {
-            if(!((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz)
-                    return 0;
-    }
-
-    else                                              // check DISPLAYBASE or STANDARD
-    {
-       if(m_nDisplayCategory == DISPLAYBASE)
-            {
-               if(DISPLAYBASE != rzRules->LUP->DISC)
-               {
-                    ((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz = 0;
-                       return 0;
-               }
-            }
-       else if(m_nDisplayCategory == STANDARD)
-        {
-               if((DISPLAYBASE != rzRules->LUP->DISC) && (STANDARD != rzRules->LUP->DISC))
-               {
-                       ((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz = 0;
-                       return 0;
-               }
-            }
-
-       ((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz = 1;
-
-    }
-
-
-
-//      View BBox filtering
-
-    if(BBView.Intersect(rzRules->obj->BBObj, 0) == _OUT)// Object is wholly outside window
-            return 0;
-
-    //      Debug
-//    if(!strncmp(rzRules->LUP->OBCL, "BUAARE", 6))
-//        int yyrt = 4;
-
-//    if(rzRules->obj->Index == 554)
-//        int yyp = 6;
 
     while (rules != NULL)
     {
@@ -5397,77 +5167,70 @@ void s52plib::GetAndAddCSRules(ObjRazRules *rzRules, Rules *rules)
 }
 
 
+
+
+
+bool s52plib::ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp)
+{
+    wxBoundingBox BBView(vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top);
+
+    if (rzRules->obj==NULL)
+        return false;
+
+
+//      Do Object Type Filtering
+
+    if(m_nDisplayCategory == MARINERS_STANDARD)
+    {
+        if(!((OBJLElement *)(pOBJLArray->Item(rzRules->obj->iOBJL)))->nViz)
+            return false;
+    }
+
+    if(m_nDisplayCategory == OTHER)
+    {
+        if((DISPLAYBASE != rzRules->LUP->DISC)
+            && (STANDARD != rzRules->LUP->DISC)
+            && (OTHER != rzRules->LUP->DISC))
+        {
+            return false;
+        }
+    }
+
+    else if(m_nDisplayCategory == STANDARD)
+    {
+        if((DISPLAYBASE != rzRules->LUP->DISC) && (STANDARD != rzRules->LUP->DISC))
+        {
+            return false;
+        }
+    }
+    else if(m_nDisplayCategory == DISPLAYBASE)
+    {
+        if(DISPLAYBASE != rzRules->LUP->DISC)
+        {
+            return false;
+        }
+    }
+
+
+// must be visible
+
+//      View BBox filtering
+
+    if(BBView.Intersect(rzRules->obj->BBObj, 0) == _OUT)// Object is wholly outside window
+        return false;
+
+//      SCAMIN Filtering
+    if(vp->chart_scale > rzRules->obj->Scamin)
+        return false;
+
+    return true;
+}
+
+
 //----------------------------------------------------------------------------------------------------------
 //          Dead Code
 //----------------------------------------------------------------------------------------------------------
 #if 0
-static wxString AttValPrintf(S57attVal *v)
-{
-    wxString ret;
-
-    switch(v->valType)
-    {
-        case OGR_INT:                       // S57 attribute type 'E' enumerated, 'I' integer
-        {
-            int a = *(int*)(v->value);
-            ret.Printf("%d", a);
-            break;
-        }
-
-        case OGR_INT_LST:   // S57 attribute type 'L' list: comma separated integer
-        {
-
-            int *b = (int*)v->value;
-            ret.Printf("%d", b);
-
-//  Todo How many values?
-
-            break;
-        }
-
-        case OGR_REAL:              // S57 attribute type'F' float
-        {
-            float a = *(float*)(v->value);
-            ret.Printf("%f", a);
-            break;
-        }
-
-        case OGR_STR:                       // S57 attribute type'A' code string, 'S' free text
-        {
-/*
-            int a;
-            char *s = (char *)(LATTC.c_str() + 6);
-            char **b = (char **)v->value;
-            char *c = *b;
-            sscanf(s, "%d", &a);
-*/
-/*
-//  Todo Huh? why int, not string??
-            int a;                          // Attribute value from LUP
-            char *s = (char *)(LATTC.c_str() + 6);
-            sscanf(s, "%d", &a);
-
-            char *c = (char *)v->value;             // Attribute from object
-            int b = atoi(c);
-
-            if ( a == b )
-            {
-            attValMatch = TRUE;
-        }
-
-*/
-            break;
-        }
-
-        default:
-            break;
-    }   //switch
-
-
-    return ret;
-}
-
-
 
 // Area Pattern
 int s52plib::_renderAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
@@ -5603,368 +5366,8 @@ int s52plib::_renderAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
    return 1;
 }
 
-/*
-int s52plib::_LUP2rules(LUPrec *LUP, S57Obj *pObj)
-{
-   char  *str  = (char *)(LUP->INST->c_str());
-   Rules *top  = NULL;
-   Rules *last = NULL;
 
-   // check if already parsed
-   if (LUP->ruleList != NULL){
-      //printf("S52parser:_LUP2rules(): rule list already existe for %s\n", LUP->OBCL);
-      return 0;
-}
 
-   while (*str != '\0'){
-      Rules *r = NULL;
-
-      r = (Rules*)calloc(1, sizeof(Rules));             //g_new0(Rules,1);
-//        pAlloc->Add(r);
-
-      if (top == NULL){
-         top = r;
-         last= top;
-}else{                            // append rule
-         last->next = r;
-         last=r;
-}
-
-
-      // parse Symbology instruction
-
-      // SHOWTEXT
-      INSTRUCTION("TX",RUL_TXT_TX) SCANFWRD }
-      INSTRUCTION("TE",RUL_TXT_TE) SCANFWRD }
-
-      // SHOWPOINT
-
-        if(0==strncmp("SY",str,2))
-{
-                str+=3;
-        r->ruleType = RUL_SYM_PT;
-        r->INSTstr  = str;
-
-        wxString key(str,8);
-
-                r->razRule = (*_symb_sym)[key];
-
-///////////////////////////////////////////////////////////////////////////////////
-                //      Maybe print some debug???  Todo fix this
-                if(0 && (r->razRule->definition.SYDF == 'V'))
-{
-                        wxLogMessage("\n..Vector Symbol used");
-                        wxLogMessage("...Feature Class: %s", LUP->OBCL);
-                        wxLogMessage("...iOBJL        : %d", pObj->iOBJL);
-                        wxLogMessage("...Feature Attributes:");
-
-
-                        //      Show the Object Attributes
-                        char *currATT  = (char *)(pObj->attList->c_str());
-                        int   attIdx   = 0;
-
-                        char pattr[40];
-                        while(*currATT)
-{
-                                strncpy(pattr, currATT, 6);
-                                pattr[6] = 0;
-
-
-
-
-                                        S57attVal *v;
-                                        v = (pObj->attVal->Item(attIdx));
-
-
-                                        switch(v->valType){
-                                           case OGR_INT:{                       // S57 attribute type 'E' enumerated, 'I' integer
-                                                        int a = *(int*)(v->value);
-                                                        wxLogMessage("......%s, (I) %d", pattr, a);
-
-                                        break;
-}
-
-                                           case OGR_INT_LST:{   // S57 attribute type 'L' list: comma separated integer
-                                                         int *b = (int*)v->value;
-
-                                                         char buf[40];
-                                                         sprintf(buf, "......%s, (L) ", pattr);
-                                                         wxString pstr(buf);
-
-                                                         while(*b)
-{
-                                                                 int a = *b;
-                                                                 sprintf(buf, "%d,", a);
-                                                                 pstr += wxString(buf);
-                                                                 b++;
-}
-                                                         wxLogMessage(pstr);
-                                        break;
-}
-
-                                           case OGR_REAL:{              // S57 attribute type'F' float
-                                                        double a = *(double*)(v->value);
-                                                        wxLogMessage("......%s, (F) %f", pattr, a);
-                                        break;
-}
-
-                                           case OGR_STR:{                       // S57 attribute type'A' code string, 'S' text
-                                                        char *c = (char *)v->value;             // Attribute from object
-                                                        wxLogMessage("......%s, (A) %s", pattr, c);
-
-
-                                        break;
-}
-
-    default:
-                                                        break;
-}   //switch
-
-
-                                 while(*currATT != '\037')
-                                        currATT++;
-                                 currATT++;
-
-                                 ++attIdx;
-
-}  //while  curATT
-
-
-
-
-
-                        wxLogMessage("...LUP RCID     : %d", LUP->RCID);
-                        wxLogMessage("...LUP ATTC:");
-
-                        if(LUP->ATTCArray)
-{
-                                for (unsigned int i=0 ; i< LUP->ATTCArray->GetCount(); i++)
-{
-                                        wxString ats = LUP->ATTCArray->Item(i);
-                                        wxLogMessage("........%s", ats.c_str());
-}
-                                wxLogMessage("...Symbol Name: %s", r->razRule->name.SYNM);
-}
-}  // if printing debug
-
-
-////////////////////////////////////////////////////////////////////////
-                if (r->razRule == NULL)
-                        r->razRule = (*_symb_sym)["QUESMRK1"];
-
-        SCANFWRD
-}
-
-
-      // SHOWLINE
-      INSTRUCTION("LS",RUL_SIM_LN) SCANFWRD }
-      INSTRUCTION("LC",RUL_COM_LN)
-                  wxString key(str,8);
-                  r->razRule = (*_line_sym)[key];
-              if (r->razRule == NULL)
-              r->razRule = (*_symb_sym)["QUESMRK1"];
-         SCANFWRD
-}
-
-      // SHOWAREA
-      INSTRUCTION("AC",RUL_ARE_CO) SCANFWRD }
-      INSTRUCTION("AP",RUL_ARE_PA)
-                  wxString key(str,8);
-                  r->razRule = (*_patt_sym)[key];
-              if (r->razRule == NULL)
-              r->razRule = (*_patt_sym)["QUESMRK1"];
-         SCANFWRD
-}
-
-      // CALLSYMPROC
-                if(0==strncmp("CS",str,2))
-{
-                        str+=3;
-            r->ruleType = RUL_CND_SY;
-            r->INSTstr  = str;
-
-//      INSTRUCTION("CS",RUL_CND_SY)
-                        char stt[9];
-                        strncpy(stt, str, 8);
-                        stt[8] = 0;
-                        wxString index(stt);
-                        r->razRule = (*_cond_sym)[index];
-                        if (r->razRule == NULL)
-                                r->razRule = (*_cond_sym)["QUESMRK1"];
-                         SCANFWRD
-}
-
-      ++str;
-}
-
-   LUP->ruleList = top;
-
-   return 1;
-}
-
-
-*/
-
-/*
-void RenderFilledPolygonA(wxDC *pdc, ObjRazRules *rzRules, S57Obj *obj, color *c, wxBoundingBox &BBView)
-{
-
-if(obj->Index != 161)
-                return;
-
-
-//CPLError((CPLErr)0, 0, "Ply npt %d\n", npt);
-   double x,y;
-
-   if(obj->Tristrip)
-{
-
-                wxColour color(c->R, c->G, c->B);
-                wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
-                wxPen *pthispen = wxThePenList->FindOrCreatePen(color, 1, wxSOLID);
-
-                pdc->SetPen(*pthispen);
-                pdc->SetBrush(*pthisbrush);
-
-
-                gpc_tristrip *tri = obj->Tristrip;
-
-                for (int i=0;i<tri->num_strips;i++)
-{
-                        if(BBView.Intersect(obj->BBStripArray[i], 0) != _OUT)           // Object is not wholly outside window
-{
-
-        //      I promise that vertex list is consecutive...
-                                gpc_vertex_list lstrip = tri->strip[i];
-        //                      double *pd = &lstrip.vertex[0].x;
-
-                                int jm = tri->strip[i].num_vertices;
- if(jm < 20)
-         int oopr = 5;
-                                wxPoint *ptp = (wxPoint *)malloc(jm * sizeof(wxPoint));
-                                wxPoint *pr = ptp;
-
-                                float lat0, lon0;
-                                float east0, north0;
-
-                                lon0 = lstrip.vertex[0].x;
-                                lat0 = lstrip.vertex[0].y;
-                                DegToUTM(lat0, lon0, NULL, &east0, &north0, rzRules->chart->mlong0);
-
-                                float ep,np,epp,npp;
-                                rzRules->chart->GetPointPixParms(east0, north0, ep, np, epp, npp);
-
-                                rzRules->chart->GetPointPix(lat0, lon0, pr);
-                                pr++;
-
-
-
-                                int j = 2;
-                                while(j < jm)
-{
-                                        x = lstrip.vertex[j].x;
-                                        y = lstrip.vertex[j].y;
-
-                                        pr->x = (ep + x/epp) + 0.5;                     // rounding
-                                        pr->y = (np - y/npp) + 0.5;
-                                        pr++;
-
-                                        j += 2;
-}
-
-                                j--;
-                                while(j > jm-1)
-                                        j-= 2;
-
-                                while(j >= 1)
-{
-                                        x = lstrip.vertex[j].x;
-                                        y = lstrip.vertex[j].y;
-
-                                        pr->x = (ep + x/epp) + 0.5;                     // rounding
-                                        pr->y = (np - y/npp) + 0.5;
-                                        pr++;
-
-                                        j -= 2;
-}
-
-
-        int r = rand() % 256;
-        int g = rand() % 256;
-        int b = rand() % 256;
-        wxColour color(r, g, b);
-        wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
-        pdc->SetBrush(*pthisbrush);
-
-                        pdc->DrawPolygon(jm, ptp);
-
-
- for(int k = 0 ; k < jm / 2; k++)
-{
-         int a = ptp[k].x;
-         int b = ptp[k].y;
-
-         if(k == 0)
-{
-                wxColour colort(255,0,0);
-                wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(colort, wxSOLID);
-                pdc->SetBrush(*pthisbrush);
-}
-         else
-{
-                wxColour colort(0,0,255);
-                wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(colort, wxSOLID);
-                pdc->SetBrush(*pthisbrush);
-}
-
-         pdc->DrawCircle(a,b,3);
-}
-
-
-
-                        free(ptp);
-}                               // if BBView
-
-
-}
-
-
-}
-
-   else                                 //not triangulated
-{
-
-        rzRules->chart->pswb->Resume();
-                pt *geor = obj->geoPt;
-                int npt = obj->npt;
-
-                wxPoint *ptp = (wxPoint *)malloc(npt * sizeof(wxPoint));
-                wxPoint *pr = ptp;
-                for(int i=0 ; i<npt ; i++)
-{
-                        rzRules->chart->GetPointPix(geor->y, geor->x, pr);
-                        pr++;
-                        geor++;
-}
-
-
-                wxColour color(c->R, c->G, c->B);
-                wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
-                wxPen *pthispen = wxThePenList->FindOrCreatePen(color, 1, wxSOLID);
-
-                pdc->SetPen(*pthispen);
-                pdc->SetBrush(*pthisbrush);
-                pdc->DrawPolygon(npt, ptp);
-
-                free(ptp);
-rzRules->chart->pswb->Pause();
-
-
-}
-}
-
-
-*/
 
 // Area Color
 int s52plib::_renderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
@@ -6216,488 +5619,7 @@ int s52plib::_renderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 }
 
 
-#if 0
-void s52plib::FastRenderFilledPolygon(ObjRazRules *rzRules,
-                                      S57Obj *obj, color *c, wxBoundingBox &BBView,
-                                      render_canvas_parms *pb_spec, render_canvas_parms *mask,
-                                      render_canvas_parms *pPatt_spec)
-{
 
-
-
-    double x,y;
-    int i, count;
-    unsigned char r, g, b;
-
-        //      Establish this tri-strip's color values
-#ifdef dyUSE_BITMAPO_S57
-                  r = c->R;
-                  g = c->G;
-                  b = c->B;
-#else
-                  b = c->R;
-                  g = c->G;
-                  r = c->B;
-#endif
-
-
-        if(obj->Tristrip)
-{
-
-    gpc_tristrip *tri = obj->Tristrip;
-
-    int ism = tri->num_strips;
-
-
-    for (int istrip=0;istrip< ism;istrip++)
-    {
-//      Debug code for color filtering
-//  r = istrip % 2  * 255; //c->R;
-//  g = 0; //c->G;
-//  b = (istrip % 2 + 1)  * 255; //c->R;
-
-
-// If Object is not wholly outside window
-        if(BBView.Intersect(obj->BBStripArray[istrip], 0) != _OUT)
-        {
-
-                            //      Build an array of wxPoints which is the lon/lat of strip
-                            //      I promise that vertex list is consecutive...
-            gpc_vertex_list lstrip = tri->strip[istrip];
-
-            int jm = tri->strip[istrip].num_vertices;
-            wxPoint *ptp = (wxPoint *)malloc(jm * sizeof(wxPoint));
-            wxPoint *pr = ptp;
-
-            float lat0, lon0;
-
-            lon0 = lstrip.vertex[0].x;
-            lat0 = lstrip.vertex[0].y;
-            rzRules->chart->GetPointPixEst(lat0, lon0, pr);
-            pr++;
-
-            int j = 2;
-            while(j < jm)
-            {
-                x = lstrip.vertex[j].x;
-                y = lstrip.vertex[j].y;
-                rzRules->chart->GetPointPixEst(y, x, pr);
-                pr++;
-
-                j += 2;
-            }
-
-            j--;
-            while(j > jm-1)
-                j-= 2;
-
-            while(j >= 1)
-            {
-                x = lstrip.vertex[j].x;
-                y = lstrip.vertex[j].y;
-                rzRules->chart->GetPointPixEst(y, x, pr);
-                pr++;
-
-                j -= 2;
-            }
-
-
-//              Find Max and Min Y points
-            int imax, imin;
-
-            imin = 0;                                                       // built into tristrip
-            imax = jm / 2;
-
-//  dda_poly(jm, imin, imax, ptp);
-//  int dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp );
-
-//              Create and clear the edge arrays
-
-            memset(ledge, 0, 1500 * sizeof(int));
-            memset(redge, 0, 1500 * sizeof(int));
-
-//      Create edge arrays using fast integer DDA
-//      Odd/Even
-            int m, x, dy;
-
-            if(0/*jm % 2*/)
-            {                                                               // odd
-            }
-            else
-            {                                                               // even
-
-                if((ptp[0].y >= 0 ) && (ptp[0].y < 1500))
-                    ledge[ptp[0].y] = ptp[0].x;
-
-                for(i=0 ; i<imax ; i++)                         // left edge
-                {
-                    dy = (ptp[i].y - ptp[i+1].y);
-                    if(dy)
-                    {
-                        m = (ptp[i+1].x - ptp[i].x) << 16;
-                        m /= dy;
-
-                        x = ptp[i].x << 16;
-                        x += m;
-
-                        for (count = ptp[i].y - 1; count >= ptp[i+1].y; count--)
-                        {
-                            if((count >= 0 ) && (count < 1500))
-                                ledge[count] = x >> 16;
-                            x += m;
-                        }
-                    }
-                    else
-                    {
-                        if((ptp[i].y >= 0 ) && (ptp[i].y < 1500))
-                            ledge[ptp[i].y] = __min(ptp[i].x, ptp[i+1].x);
-                    }
-                }
-
-                if((ptp[imax].y >= 0 ) && (ptp[imax].y < 1500))
-                    redge[ptp[imax].y] = ptp[imax].x;
-
-                for(i=imax ; i<jm-1 ; i++)                              // right edge
-                {
-                    dy = (ptp[i+1].y - ptp[i].y);
-                    if(dy)
-                    {
-                        m = (ptp[i+1].x - ptp[i].x) << 16;
-                        m /= dy;
-
-                        x = ptp[i].x << 16;
-                        x += m;
-
-                        for (count = ptp[i].y + 1; count <= ptp[i+1].y; count++)
-                        {
-                            if((count >= 0 ) && (count < 1500))
-                                redge[count] = x >> 16;
-                            x += m;
-                        }
-                    }
-                    else
-                    {
-                        if((ptp[i].y >= 0 ) && (ptp[i].y < 1500))
-                            redge[ptp[i].y] = __max(ptp[i].x, ptp[i+1].x);
-                    }
-                }
-
-                {                                                                       // closing edge
-                    dy = (ptp[0].y - ptp[jm-1].y);
-                    if(dy)
-                    {
-                        m = (ptp[0].x - ptp[jm-1].x) << 16;
-                        m /= dy;
-
-                        x = ptp[jm-1].x << 16;
-                        for (count = ptp[jm-1].y+1; count <= ptp[0].y; count++)
-                        {
-                            if((count >= 0 ) && (count < 1500))
-                                redge[count] = x >> 16;
-                            x += m;
-                        }
-                    }
-                    else
-                    {
-                        count = ptp[jm-1].y;
-                        if((count >= 0 ) && (count < 1500))
-                            redge[count] = ptp[jm-1].x;
-                    }
-
-                }
-
-
-            }  // even case
-
-
-//              Clip the polygon
-
-            int y1 = ptp[imax].y;
-            int y2 = ptp[0].y;
-
-            int yt = pb_spec->y;
-            int ybt = pb_spec->y + pb_spec->height;
-
-            if(y1 < yt)
-                y1 = yt;
-            if(y1 > ybt)
-                y1 = ybt;
-
-            if(y2 < yt)
-                y2 = yt;
-            if(y2 > ybt)
-                y2 = ybt;
-
-            int lclip = pb_spec->lclip;
-            int rclip = pb_spec->rclip;
-
-            for(int iy = y1 ; iy <= y2 ; iy++)
-            {
-
-                if(ledge[iy] < lclip)
-                {
-                    if(redge[iy] < lclip)
-                    {
-                        ledge[iy] = -1;
-                    }
-                    else
-                        ledge[iy] = lclip;
-                }
-
-                if(redge[iy] > rclip)
-                {
-                    if(ledge[iy] > rclip)
-                    {
-                        ledge[iy] = -1;
-                    }
-                    else
-                        redge[iy] = rclip;
-                }
-            }
-
-
-//              Fill the polygon
-
-
-
-                            //      Some debug code
-
-/*
-            if(jm % 2)
-            {
-            r = rand() % 255; //c->R;
-            g = 0; //c->G;
-            b = 0; //c->B;
-        }
-            else
-            {
-            r = 0; //c->R;
-            g = rand() % 255; //c->G;
-            b = 0; //c->B;
-        }
-
-            if(jm == 8)
-            {
-            r = 0; //c->R;
-            g = 0; //c->G;
-            b = 255; //c->B;
-        }
-
-//                              r = c->R;
-//                              g = c->G;
-//                              b = c->B;
-*/
-            if(pb_spec->depth == 24)
-            {
-                int ya = y1;
-                int yb = y2;
-
-                unsigned char *pix_buff = pb_spec->pix_buff;
-                unsigned char *pbm=0;
-                if(mask)
-                    pbm = mask->pix_buff;
-
-
-                int patt_size_x, patt_size_y, patt_pitch;
-                unsigned char *patt_s0;
-                if(pPatt_spec)
-                {
-                    patt_size_y = pPatt_spec->height;
-                    patt_size_x = pPatt_spec->width;
-                    patt_pitch =  pPatt_spec->pb_pitch;
-                    patt_s0 =     pPatt_spec->pix_buff;
-                }
-
-                for(int iyp = ya ; iyp <= yb ; iyp++)
-                {
-                    if((iyp >= yt) && (iyp < ybt))
-                    {
-                        int yoff =      (iyp - pb_spec->y) * pb_spec->pb_pitch;
-
-                        unsigned char *py =  pix_buff + yoff;
-                        unsigned char *pym = pbm      + yoff;
-
-                        int ix = ledge[iyp];
-                        if(ix != -1)                    // special clip case
-                        {
-                            int xoff = (ix-pb_spec->x) * 3;
-
-                            unsigned char *px =  py  + xoff;
-                            unsigned char *pxm = pym + xoff;
-
-                            int ixm = redge[iyp];
-
-                            if(mask)                 // use the mask
-                            {
-                                while(ix <= ixm)
-                                {
-                                    if(*pxm == 0)
-                                    {
-                                        *px++ = b;
-                                        *px++ = g;
-                                        *px++ = r;
-                                    }
-                                    else
-                                    {
-                                        px += 3;
-                                    }
-
-                                    pxm += 3;
-                                    ix++;
-                                }
-                            }
-                            else                        // no mask
-                            {
-                                if(pPatt_spec)          // Pattern
-                                {
-                                    while(ix <= ixm)
-                                    {
-                                        int patt_x = ix  % patt_size_x;
-                                        int patt_y = iyp % patt_size_y;
-
-                                        unsigned char *pp = patt_s0 + (patt_y * patt_pitch) +
-                                                patt_x * 3;
-
-//  Todo    This line assumes unused_color is always 0,0,0
-                                        if(*pp && *(pp+1) && *(pp+2))
-                                        {
-                                            *px++ = *pp++;
-                                            *px++ = *pp++;
-                                            *px++ = *pp++;
-                                        }
-                                        else
-                                        {
-                                            px+=3;
-                                            pp+=3;
-                                        }
-
-                                        ix++;
-                                    }
-                                }
-
-
-                                else                    // No Pattern
-                                {
-                                    while(ix <= ixm)
-                                    {
-                                        *px++ = b;
-                                        *px++ = g;
-                                        *px++ = r;
-
-                                        ix++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if(pb_spec->depth == 32/*mask*/)
-            {
-                int ya = y1;
-                int yb = y2;
-                int color_int = ((c->R) << 16) + ((c->G) << 8) + (c->B);
-
-                unsigned char *pix_buff = pb_spec->pix_buff;
-                unsigned char *pbm=0;
-                if(mask)
-                    pbm = mask->pix_buff;
-
-
-                for(int iyp = ya ; iyp <= yb ; iyp++)
-                {
-                    if((iyp >= yt) && (iyp < ybt))
-                    {
-                        int yoff =      (iyp - pb_spec->y) * pb_spec->pb_pitch;
-
-                        unsigned char *py = pix_buff + yoff;
-                        unsigned char *pym = pbm + yoff;
-
-                        int ix = ledge[iyp];
-                        if(ix != -1)                    // special clip case
-                        {
-                            int xoff = (ix-pb_spec->x) * pb_spec->depth / 8;
-
-                            unsigned char *px = py + xoff;
-                            unsigned char *pxm = pym + xoff;
-
-                            int ixm = redge[iyp];
-
-                            if(mask)                                // use the mask
-                            {
-                                int *pxi = (int *)px ;
-                                while(ix <= ixm)
-                                {
-                                    if(*pxm == 0)
-                                        *pxi = color_int;
-                                    pxi++;
-                                    pxm += pb_spec->depth / 8;
-                                    ix++;
-                                }
-                            }
-                            else                                    // no mask
-                            {
-                                int *pxi = (int *)px ;
-                                while(ix <= ixm)
-                                {
-                                    *pxi++ = color_int;
-                                    ix++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-/*
-            else    // no mask
-            {
-
-            int ya = y1;
-            int yb = y2;
-
-            unsigned char *pix_buff = pb_spec->pix_buff;
-
-
-            for(int iyp = ya ; iyp <= yb ; iyp++)
-            {
-            if((iyp >= yt) && (iyp < ybt))
-            {
-            unsigned char *py = pix_buff + (iyp - pb_spec->y) * pb_spec->pb_pitch;
-
-            int ix = ledge[iyp];
-            if(ix != -1)                    // special clip case
-            {
-            unsigned char *px = py + (ix-pb_spec->x) * 3;
-            int ixm = redge[iyp];
-            while(ix <= ixm)
-            {
-            *px++ = b;
-            *px++ = g;
-            *px++ = r;
-
-            ix++;
-        }
-        }
-        }
-        }
-
-        }       // mask
-*/
-
-            free(ptp);
-
-
-        }                               // if BBView
-
-
-    }  // istrip loop
-}            // if tristrip
-
-}
-
-#endif
 
 void RenderFilledPolygon(wxDC *pdc, s57chart *chart, color *c,
                          pt *geoPt_list, int npt, wxBoundingBox& BBView)
@@ -6775,54 +5697,6 @@ void RenderFilledPolygon(wxDC *pdc, s57chart *chart, color *c,
 }
 
 
-/*
-
-void RenderFilledTriPolygon(wxDC *pdc, s57chart *chart, color *c,
-                                                 S57Obj *obj)
-{
-
-   wxPoint *ptp = (wxPoint *)malloc(3 * sizeof(wxPoint));
-   wxPoint *pr;
-   wxPoint p;
-   float plat, plon;
-
-   pt **tripp = obj->trip;
-
-        wxColour color(255,0,0);
-        wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
-        wxPen *pthispen = wxThePenList->FindOrCreatePen(color, 1, wxSOLID);
-
-        pdc->SetPen(*pthispen);
-        pdc->SetBrush(*pthisbrush);
-
-        for(int i=0 ; i<obj->ntri ; i++)
-{
-                pr = ptp;
-
-                for(int j=0 ; j<3 ; j++)
-{
-                        pt *trpp = *tripp;
-
-                        plat = trpp->y;
-                        plon = trpp->x;
-
-                        chart->GetPointPix(plat, plon, pr);
-
-                        pr++;
-                        tripp++;
-}
-
-                pdc->DrawPolygon(3, ptp);
-}
-
-
-
-
-
-        free(ptp);
-}
-
-*/
 
 int inpoly(wxPoint *ppoly,int npoints, int xt, int yt)
 {
@@ -6915,80 +5789,6 @@ gotit:
 
 
 }
-
-
-
-gpc_polygon *ClipPoly(int npt, pt *geoPt_list, wxBoundingBox& bbView)
-{
-
-//      Create the input structures
-
-    gpc_polygon poly;
-    gpc_polygon bbox;
-
-    gpc_polygon *result = new gpc_polygon;
-
-
-
-
-//      Poly vertices
-    gpc_vertex_list poly_vert;
-    gpc_vertex *pv = (gpc_vertex *)malloc(npt * sizeof(gpc_vertex));
-
-    poly_vert.num_vertices = npt-1;
-    poly_vert.vertex = pv;
-    double *pvd = (double *)pv;
-
-    pt *geor = geoPt_list;
-    double x, y;
-    for(int i = 0 ; i < npt-1 ; i++)
-    {
-        x = geor->x;
-        y = geor->y;
-
-        *pvd++ = x;
-        *pvd++ = y;
-
-        geor++;
-    }
-
-    poly.num_contours = 1;
-    poly.contour = &poly_vert;
-
-//      BBox vertices
-    gpc_vertex_list bbox_vert;
-    gpc_vertex *bv = (gpc_vertex *)malloc(4 * sizeof(gpc_vertex));
-    bbox_vert.num_vertices = 4;
-
-    bbox_vert.vertex = bv;
-    double *bvd = (double *)bv;
-
-
-    *bvd++ = bbView.GetMinX();
-    *bvd++ = bbView.GetMinY();
-
-    *bvd++ = bbView.GetMinX();
-    *bvd++ = bbView.GetMaxY();
-
-    *bvd++ = bbView.GetMaxX();
-    *bvd++ = bbView.GetMaxY();
-
-    *bvd++ = bbView.GetMaxX();
-    *bvd   = bbView.GetMinY();
-
-
-    bbox.num_contours = 1;
-    bbox.contour = &bbox_vert;
-
-
-
-    gpc_polygon_clip(GPC_INT, &poly, &bbox, result);
-
-    return result;
-}
-
-
-
 
 
 

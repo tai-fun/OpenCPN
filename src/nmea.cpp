@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: nmea.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:36  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.4  2006/08/04 11:42:02  dsr
  * no message
@@ -57,10 +60,6 @@
  *
  */
 
-#include "dychart.h"
-
-
-CPL_CVSID("$Id: nmea.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 
 #include "wx/wxprec.h"
 
@@ -84,6 +83,7 @@ CPL_CVSID("$Id: nmea.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
     #endif
 #endif
 
+CPL_CVSID("$Id: nmea.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 
 //    Forward Declarations
 
@@ -404,38 +404,26 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
 #else
 
+
 //      This contortion sets the system date/time on DYAD1
 //      Requires the following line in /etc/sudoers
 //          nav ALL=NOPASSWD:/bin/date -s ????????
 
-    wxLogMessage("Time set, delta t is %d", b);
+                            wxLogMessage("Time set, delta t is %d", b);
 
-    wxString sdate(wxft.FormatDate());
-    sdate.Prepend("sudo /bin/date -s ");
-    wxExecute(sdate, wxEXEC_ASYNC);
+                            wxString sdate(wxft.Format("%D"));
+                            sdate.Prepend("sudo /bin/date -s ");
+                        //    printf("%s\n", sdate.c_str());
+                            wxExecute(sdate, wxEXEC_ASYNC);
 
-    wxString g(wxft.FormatTime());
-    g.Prepend("sudo /bin/date -s ");
-    wxExecute(g, wxEXEC_ASYNC);
-
-
-
-
-    /*
-                              time_t tset = wxft.GetTicks();
-
-
-//    Need root to do this
-                              seteuid(file_user_id);
-                              stime(&tset);
-                              seteuid(user_user_id);
-    */
+                            wxString g(wxft.Format("%T"));
+                            g.Prepend("sudo /bin/date -s ");
+                        //    printf("%s\n", g.c_str());
+                            wxExecute(g, wxEXEC_ASYNC);
 
 #endif      //__WXMSW__
-
-
-                        if(parent_frame)
-                          parent_frame->m_bTimeIsSet = true;
+                            if(parent_frame)
+                            parent_frame->m_bTimeIsSet = true;
 
                         }           // if b
 
@@ -447,7 +435,6 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                         m_pParentEventHandler->AddPendingEvent(event);
 
                   }     // if 1
-
 
 
                   Timer1.Start(1000,wxTIMER_CONTINUOUS);

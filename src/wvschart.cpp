@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: wvschart.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: wvschart.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:37  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.6  2006/08/04 11:42:03  dsr
  * no message
@@ -62,15 +65,19 @@
  *
  *
  */
-#include "dychart.h"
-CPL_CVSID("$Id: wvschart.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
-
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 #ifndef  WX_PRECOMP
   #include "wx/wx.h"
 #endif //precompiled headers
+
+#include "dychart.h"
+
 #include "wvschart.h"
+
+
+CPL_CVSID("$Id: wvschart.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
+
 //      Local Prototypes
 extern "C" int wvsrtv (char *file, int latd, int lond, float **latray, float **lonray, int **segray);
 //------------------------------------------------------------------------------

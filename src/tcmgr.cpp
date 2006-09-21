@@ -26,24 +26,27 @@
  ***************************************************************************
  *
  * $Log: tcmgr.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:37  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.5  2006/08/04 11:42:03  dsr
  * no message
  *
  */
 
-#include "dychart.h"
 
-
-CPL_CVSID("$Id: tcmgr.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 
 #include "wx/wxprec.h"
 
 #ifndef  WX_PRECOMP
   #include "wx/wx.h"
 #endif //precompiled headers
+
+#include "dychart.h"
+
 
 #include <stdlib.h>
 #include <math.h>
@@ -59,6 +62,8 @@ CPL_CVSID("$Id: tcmgr.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 #ifndef PI
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
+
+CPL_CVSID("$Id: tcmgr.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters

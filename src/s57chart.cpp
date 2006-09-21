@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: s57chart.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:37  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.9  2006/08/04 11:42:02  dsr
  * no message
@@ -84,8 +87,6 @@
  *
  */
 
-#include "dychart.h"
-CPL_CVSID("$Id: s57chart.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
@@ -98,6 +99,8 @@ CPL_CVSID("$Id: s57chart.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 #include "wx/tokenzr.h"
 #include <wx/textfile.h>
 
+#include "dychart.h"
+
 #include "s52s57.h"
 #include "s52plib.h"
 
@@ -107,10 +110,11 @@ CPL_CVSID("$Id: s57chart.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 #include "mygeom.h"
 #include "cutil.h"
 
-//#include "cpl_conv.h"
-//#include "cpl_string.h"
 #include "cpl_csv.h"
 #include "setjmp.h"
+
+CPL_CVSID("$Id: s57chart.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
+
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
                               const char * pszErrorMsg );               // installed GDAL OGR library error handler
@@ -145,14 +149,12 @@ S57Obj::S57Obj()
         attList = NULL;
         attVal = NULL;
         ring = NULL;
-//      OGeo = NULL;
-        Tristrip = NULL;
-        MPoly= NULL;
-        pPolyGeo = NULL;
+        pPolyTessGeo = NULL;
         bCS_Added = 0;
         CSrules = NULL;
         FText = NULL;
         bFText_Added = 0;
+        OGeo = NULL;
         Scamin = 10000000;                              // ten million enough?
 }
 
@@ -175,13 +177,12 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
     attList = NULL;
     attVal = NULL;
     ring = NULL;
-    Tristrip = NULL;
-    MPoly= NULL;
-    pPolyGeo = NULL;
+    pPolyTessGeo = NULL;
     bCS_Added = 0;
     CSrules = NULL;
     FText = NULL;
     bFText_Added = 0;
+    OGeo = NULL;
     Scamin = 10000000;                              // ten million enough?
 
     int FEIndex;
@@ -200,7 +201,6 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
 
     OGRGeometry     *OGRgeo;
     bool            bMulti;
-    OGRPolygon      *poly;
     OGREnvelope     Envelope;
 
 
@@ -220,8 +220,6 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
             attVal =  new wxArrayOfS57attVal();
             geoPt = NULL;
             OGeo = NULL;
-            MPoly = NULL;
-            Tristrip = NULL;
 
             bMulti = false;
 
@@ -584,276 +582,9 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                     if(ll > llmax)
                         llmax = ll;
 
-#if 0
-                    if(!strncmp(buf, "  POLYTRIS", 10))
-                    {
-                        poly = NULL;
-                        sscanf(buf, "  POLYTRIS %d %f %f %f %f", &nTris,
-                            &xmin, &ymin, &xmax, &ymax);
-
-                        for(int it = 0 ; it<nTris ; it++)
-                        {
-                            gpc_tristrip *tristrip = new gpc_tristrip;
-
-                            my_fgets(buf, MAX_LINE, fpx);
-                            sscanf(buf, "Strips %d %d", &nStrips, &twkb_len);
-
-
-                            tristrip->num_strips = nStrips;
-
-                            gpc_vertex_list *strip = (gpc_vertex_list *)malloc(nStrips * sizeof(gpc_vertex_list));
-                            gpc_vertex_list *sr = strip;
-                            tristrip->strip = strip;
-
-                            unsigned char *buft = (unsigned char *)malloc(twkb_len);
-                            fpx.Read(buft,  twkb_len);
-
-    //      Defn... First point of first strip is object geometry reference point
-                            float *pc = (float *)buft;
-                            pc++;
-                            obj->x   = *pc++;
-                            obj->y   = *pc++;
-
-                            int *pn = (int *)buft;
-                            float *pf = (float *)buft;
-
-                            wxBoundingBox *bbarray = new wxBoundingBox[nStrips];
-
-                            for(int is = 0 ; is < nStrips ; is++)
-                            {
-                                int nv = *pn++;
-                                sr->num_vertices = nv;
-
-                                pf = (float *)pn;
-
-                                double *pvl = (double *)malloc(nv * 2 * sizeof(double));
-                                double *pvr = pvl;
-
-
-                                sxmax = 0.0;                    // this strip BBox
-                                sxmin = 0.0;
-                                symax = 0.0;
-                                symin = 0.0;
-
-
-                                float x = *pf++;                        // Vertex 0
-                                float y = *pf++;                        // is by defn e/n:0/0
-
-                                *pvr++ = x;
-                                *pvr++ = y;
-
-                                sxmax = -179;                   // this strip BBox
-                                sxmin = 170;
-                                symax = 0;
-                                symin = 90;
-
-
-                                for(int iv = 1 ; iv < nv ; iv++)
-                                {
-                                    float x = *pf++;
-                                    float y = *pf++;
-
-                                    sxmax = fmax(x, sxmax);
-                                    sxmin = fmin(x, sxmin);
-                                    symax = fmax(y, symax);
-                                    symin = fmin(y, symin);
-
-                                    *pvr++ = x;
-                                    *pvr++ = y;
-                                }
-
-                                sr->vertex = (gpc_vertex *)pvl;
-
-                                sr++;
-                                pn = (int *)pf;
-
-    //      Convert e/n bbox to lat/lon
-
-
-                                bbarray[is].SetMin(sxmin, symin);
-                                bbarray[is].SetMax(sxmax, symax);
-
-                            }
-
-    //      Tristrip is built, associate to corresponding S57Obj
-
-                            if(it == 0)                             // sole exterior ring
-                            {
-                                obj->Tristrip = tristrip;
-                                obj->ring = NULL;
-                                obj->BBObj.SetMin(xmin, ymin);
-                                obj->BBObj.SetMax(xmax, ymax);
-                                obj->BBStripArray = bbarray;
-
-                            }
-
-                            else
-                            {
-                                S57Obj *ringObj= new S57Obj;
-                                ringObj->ring = obj->ring;
-                                ringObj->Tristrip = tristrip;
-                                ringObj->BBObj.SetMin(xmin, ymin);
-                                ringObj->BBObj.SetMax(xmax, ymax);
-                                ringObj->BBStripArray = bbarray;
-                                obj->ring     = ringObj;
-                            }
-
-                            free(buft);
-
-                            my_fgets(buf, MAX_LINE, fpx);           // skip nl
-
-
-                        }
-                    }                                               // polytris
-
-#endif
-
-#if 0
-                    else if(!strncmp(buf, "  POLYPOLY", 10))
-                    {
-                        poly = NULL;
-                        int nPolyGroups;
-                        sscanf(buf, "  POLYPOLY %d %f %f %f %f", &nPolyGroups,
-                            &xmin, &ymin, &xmax, &ymax);
-
-                        polygroup *pgtop = NULL;
-                        polygroup *pglast = NULL;
-
-                        for(int ipg = 0 ; ipg<nPolyGroups ; ipg++)
-                        {
-                            polygroup *ppg = new polygroup;
-                            ppg->next = NULL;
-
-                            int nPolys;
-                            int nctr;
-                            my_fgets(buf, MAX_LINE, fpx);
-                            sscanf(buf, "Polys/Contours/nWKB %d %d %d", &nPolys, &nctr, &twkb_len);
-                            ppg->nCntr = nctr;
-                            ppg->pct_array = (int *)malloc(nctr * sizeof(int));
-                            int *pctr = ppg->pct_array;
-
-                            my_fgets(buf, MAX_LINE, fpx);                       // contour nVert
-
-                            wxString ivc_str(buf + 10);
-                            wxStringTokenizer tkc(ivc_str, wxT(" ,\n"));
-                            int icvert = 0;
-                            while ( tkc.HasMoreTokens() )
-                            {
-                                wxString token = tkc.GetNextToken();
-                                if(token.IsNumber())
-                                {
-                                    icvert = atoi(token.c_str());
-                                    if(icvert)
-                                    {
-                                        *pctr = icvert;
-                                        pctr++;
-                                    }
-                                }
-                            }
-
-
-
-
-
-
-
-                            float *ppolygeo = (float *)malloc(twkb_len + 1);    // allow for crlf
-                            fpx.Read(ppolygeo,  twkb_len + 1);
-                            ppg->pPolyGeo = ppolygeo;
-
-                            ppg->nPolys = nPolys;
-                            ppg->pvert_array = (double **)malloc(nPolys * sizeof(double *));
-                            ppg->pnv_array = (int *)malloc(nPolys * sizeof(int));
-
-                            wxBoundingBox *bbarray = new wxBoundingBox[nPolys];
-                            for(int ip = 0 ; ip < nPolys ; ip++)
-                            {
-                                int iPoly_id, nvert;
-                                my_fgets(buf, MAX_LINE, fpx);
-                                sscanf(buf, "Poly %d, nv=%d", &iPoly_id, &nvert);
-
-                                double *pvertex_list = (double *)malloc(nvert * 2 * sizeof(double));
-                                ppg->pvert_array[ip] = pvertex_list;
-
-                                ppg->pnv_array[ip] = nvert;
-
-                                my_fgets(buf, MAX_LINE, fpx);
-                                char *br = buf;
-                                sxmax = -179;                   // this poly BBox
-                                sxmin = 170;
-                                symax = 0;
-                                symin = 90;
-
-                                wxString iv_str(br);
-                                wxStringTokenizer tk(iv_str, wxT(" "));
-                                int ivert = 0;
-                                double *pvr = pvertex_list;
-                                while ( tk.HasMoreTokens() )
-                                {
-                                    wxString token = tk.GetNextToken();
-                                    if(token.IsNumber())
-                                    {
-                                        ivert = atoi(token.c_str());
-
-                                        float x = ppolygeo[2 * ivert];
-                                        float y = ppolygeo[(2 * ivert) + 1];
-
-                                        *pvr++ = (double)x;
-                                        *pvr++ = (double)y;
-
-                                        sxmax = fmax(x, sxmax);
-                                        sxmin = fmin(x, sxmin);
-                                        symax = fmax(y, symax);
-                                        symin = fmin(y, symin);
-                                    }
-                                }
-
-                                bbarray[ip].SetMin(sxmin, symin);
-                                bbarray[ip].SetMax(sxmax, symax);
-
-                            }
-
-                            if(NULL == pgtop)
-                                pgtop = ppg;                        // link in the group
-
-                            if(NULL != pglast)
-                                pglast->next = ppg;
-
-                            pglast = ppg;
-
-    //                                                free(ppolygeo);
-
-                            if(ipg == 0)                            // exterior ring
-                            {
-                                obj->MPoly = ppg;
-                                obj->ring = NULL;
-                                obj->BBObj.SetMin(xmin, ymin);
-                                obj->BBObj.SetMax(xmax, ymax);
-                                obj->BBStripArray = bbarray;
-
-
-                            }
-
-                            else
-                            {
-                                S57Obj *ringObj= new S57Obj;
-                                ringObj->ring = obj->ring;
-                                ringObj->MPoly = ppg;
-                                ringObj->BBObj.SetMin(xmin, ymin);
-                                ringObj->BBObj.SetMax(xmax, ymax);
-                                ringObj->BBStripArray = bbarray;
-                                obj->ring     = ringObj;
-                            }
-                        }
-                    }
-
-
-#endif
-
-
+/*
                     if(!strncmp(buf, "  POLYGEO", 9))
                     {
-                        poly = NULL;
                         int nrecl;
                         sscanf(buf, "  POLYGEO %d", &nrecl);
 
@@ -872,78 +603,29 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
 
                         }
                     }
-
-
-
-#if 0
-                    else
+*/
+                    if(!strncmp(buf, "  POLYTESSGEO", 13))
                     {
-                        poly = new OGRPolygon;
+                        int nrecl;
+                        sscanf(buf, "  POLYTESSGEO %d", &nrecl);
 
-                        my_fgets(buf, MAX_LINE, fpx);
-                        int wkb_len = atoi(buf+2);
-
-                        if(wkb_len > MAX_LINE)
+                        if (nrecl)
                         {
-                            unsigned char *buft = (unsigned char *)malloc(wkb_len);
-                            fpx.Read(buft,  wkb_len);
-                            poly->importFromWkb( (unsigned char *)buft );
-                            delete buft;
-                        }
-                        else
-                        {
-                            fpx.Read(buf,  wkb_len);
-                            poly->importFromWkb( (unsigned char *)buf );
-                        }
+                            unsigned char *polybuf = (unsigned char *)malloc(nrecl + 1);
+                            pfpx->Read(polybuf,  nrecl);
+                            polybuf[nrecl] = 0;                     // endit
+                            PolyTessGeo *ppg = new PolyTessGeo(polybuf, nrecl, FEIndex);
+                            free(polybuf);
 
-
-                        obj->npt  = poly->getExteriorRing()->getNumPoints();
-                        obj->geoPt = (pt*)malloc((obj->npt) * sizeof(pt));
-                        pt *ppt = obj->geoPt;
-                        for(int ip = 0 ; ip < obj->npt ; ip++)
-                        {
-                            OGRPoint p;
-                            poly->getExteriorRing()->getPoint(ip, &p);
-                            ppt->x = p.getX();
-                            ppt->y = p.getY();
-                            ppt++;
-                        }
-
-
-                        obj->ring = NULL;
-                        int nInterior = poly->getNumInteriorRings();
-                        for (int i=0; i<nInterior; i++)
-                        {
-                            S57Obj *ringObj= new S57Obj;
-
-                            ringObj->Primitive_type = GEO_AREA;
-                            ringObj->npt  =      poly->getInteriorRing(i)->getNumPoints();
-                            ringObj->geoPt = (pt*)malloc((ringObj->npt) * sizeof(pt));
-                            pt *ppt = ringObj->geoPt;
-                            for(int ip = 0 ; ip < ringObj->npt ; ip++)
-                            {
-                                OGRPoint p;
-                                poly->getInteriorRing(i)->getPoint(ip, &p);
-                                ppt->x = p.getX();
-                                ppt->y = p.getY();
-                                ppt++;
-                            }
-
-    //      Todo the linkage here is broken... also fix the object free code to walk the list
-                            ringObj->ring = obj->ring;
-                            obj->ring     = ringObj;
-
-                            poly->getInteriorRing(i)->getEnvelope(&Envelope);
-                            ringObj->BBObj.SetMin(Envelope.MinX, Envelope.MinY);
-                            ringObj->BBObj.SetMax(Envelope.MaxX, Envelope.MaxY);
-
-                            ringObj->Index = object_count;
+                            pPolyTessGeo = ppg;
+                            ring = NULL;
+                            BBObj.SetMin(ppg->Get_xmin(), ppg->Get_ymin());
+                            BBObj.SetMax(ppg->Get_xmax(), ppg->Get_ymax());
 
                         }
-                    }       //else
+                    }
 
-#endif
-                    OGRgeo = poly;
+                    OGRgeo = NULL;
 
                     break;
                 }
@@ -1155,6 +837,15 @@ s57chart::s57chart()
     pRigidATONArray = NULL;
 
     tmpup_array = NULL;
+    m_pcsv_locn = NULL;
+
+    wxString csv_dir;
+    if(wxGetEnv("S57_CSV", &csv_dir))
+        m_pcsv_locn = new wxString(csv_dir);
+
+    wxString *test;
+    wxString cat("SCAMIN");
+    test = GetAttributeDecode(cat, 35000);
 
 }
 
@@ -1169,6 +860,8 @@ s57chart::~s57chart()
 
     delete pFloatingATONArray;
     delete pRigidATONArray;
+
+    delete m_pcsv_locn;
 
 
 }
@@ -1242,33 +935,8 @@ int s57chart::S57_freeObj(S57Obj *obj)
 
         delete obj->attList;
 
- /*
-        if(obj->Tristrip)
-        {
-            gpc_free_tristrip(obj->Tristrip);
-            delete obj->Tristrip;
-            delete obj->BBStripArray;
-        }
- */
 
-
-        if(obj->MPoly)
-        {
-            polygroup *ppg = obj->MPoly;
-            for(int i=0 ; i<ppg->nPolys ; i++)
-            {
-                free(ppg->pvert_array[i]);
-            }
-            free(ppg->pvert_array);
-            free(ppg->pnv_array);
-            free(ppg->pct_array);
-            free(ppg->pPolyGeo);
-            delete obj->BBStripArray;
-
-            delete ppg;
-        }
-
-        delete obj->pPolyGeo;
+        delete obj->pPolyTessGeo;
 
 
        while (obj->ring)
@@ -1276,28 +944,6 @@ int s57chart::S57_freeObj(S57Obj *obj)
                     S57Obj *tmpObj = obj->ring;
                     obj->ring = tmpObj->ring;
 
-/*
-                    if(tmpObj->Tristrip)
-                    {
-                        gpc_free_tristrip(tmpObj->Tristrip);
-                        delete tmpObj->Tristrip;
-                        delete tmpObj->BBStripArray;
-                    }
-*/
-
-                    if(tmpObj->MPoly)
-                    {
-                        polygroup *ppg = tmpObj->MPoly;
-                        for(int i=0 ; i<ppg->nPolys ; i++)
-                        {
-                            free(ppg->pvert_array[i]);
-                        }
-                        free(ppg->pvert_array);
-                        free(ppg->pnv_array);
-                        delete tmpObj->BBStripArray;
-
-                        delete ppg;
-                    }
 
                     free(tmpObj);
        }
@@ -1464,7 +1110,9 @@ void s57chart::SetFullExtent(Extent& ext)
 
 void s57chart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type)
 {
-      DoRenderViewOnDC(dc, VPoint, DC_RENDER_ONLY, NULL, NULL);
+    ps52plib->SetColorScheme((Col_Scheme_t)m_color_scheme);
+
+    DoRenderViewOnDC(dc, VPoint, DC_RENDER_ONLY, NULL, NULL);
 }
 
 
@@ -1533,10 +1181,10 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
 
 #ifdef dyUSE_BITMAPO_S57
                     wxBitmapo *pDIBNew = new wxBitmapo((void *)NULL,
-                            VPoint.pix_width, VPoint.pix_height, bpp);
+                            VPoint.pix_width, VPoint.pix_height, BPP);
 #else
                     wxBitmap *pDIBNew = new wxBitmap(
-                            VPoint.pix_width, VPoint.pix_height, bpp);
+                            VPoint.pix_width, VPoint.pix_height, BPP);
 #endif
                     dc_new.SelectObject(*pDIBNew);
 #endif
@@ -1629,10 +1277,10 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
                     delete pDIB;
 #ifdef dyUSE_BITMAPO_S57
                     pDIB = new wxBitmapo((void *)NULL,
-                               VPoint.pix_width, VPoint.pix_height, bpp);
+                               VPoint.pix_width, VPoint.pix_height, BPP);
 #else
                     pDIB = new wxBitmap(
-                               VPoint.pix_width, VPoint.pix_height, bpp);
+                               VPoint.pix_width, VPoint.pix_height, BPP);
 #endif
                     dc.SelectObject(*pDIB);
 
@@ -1656,9 +1304,9 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
 #else
 
 #ifdef dyUSE_BITMAPO_S57
-              pDIB = new wxBitmapo((void *)NULL,VPoint.pix_width, VPoint.pix_height, bpp);
+              pDIB = new wxBitmapo((void *)NULL,VPoint.pix_width, VPoint.pix_height, BPP);
 #else
-              pDIB = new wxBitmap(VPoint.pix_width, VPoint.pix_height, bpp);
+              pDIB = new wxBitmap(VPoint.pix_width, VPoint.pix_height, BPP);
 #endif
               dc.SelectObject(*pDIB);
 #endif
@@ -1860,7 +1508,7 @@ int s57chart::DCRender(wxDC& dcinput, ViewPort& vp, wxRect* rect)
 #endif      //S57USE_PIXELCACHE
 
     st0.Pause();
-    printf("Render Areas                  %ldms\n", st0.Time());
+//    printf("Render Areas                  %ldms\n", st0.Time());
 
 //      Render the rest of the objects/primitives
 
@@ -1946,12 +1594,13 @@ int s57chart::DCRender(wxDC& dcinput, ViewPort& vp, wxRect* rect)
 
         }
 
+/*
         printf("Render Lines                  %ldms\n", stlines.Time());
         printf("Render Simple Points          %ldms\n", stsim_pt.Time());
         printf("Render Paper Points           %ldms\n", stpap_pt.Time());
         printf("Render Symbolized Boundaries  %ldms\n", stasb.Time());
         printf("Render Plain Boundaries       %ldms\n\n", stapb.Time());
-
+*/
         return 1;
 }
 
@@ -2050,13 +1699,13 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                                 f.Close();
 //              Anything to do?
 
-//   force_make_senc = 1;
+ //force_make_senc = 1;
                                 wxString DirName(pS57FileName->GetPath((int)wxPATH_GET_SEPARATOR));
                                 int most_recent_update_file = GetUpdateFileArray(DirName, NULL);
 
                                 if(last_update != most_recent_update_file)
                                 {
-                                    bool bupdate_possible = ddfrecord_test();
+                                    bool bupdate_possible = s57_ddfrecord_test();
                                     bbuild_new_senc = bupdate_possible;
                                 }
 
@@ -2150,9 +1799,9 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                                 pOLE->nViz = 1;
                 }
 
-//      Use display category OTHER to force use of OBJLArray
-                int dsave = ps52plib->m_nDisplayCategory;
-                ps52plib->m_nDisplayCategory = OTHER;
+//      Use display category MARINERS_STANDARD to force use of OBJLArray
+                DisCat dsave = ps52plib->m_nDisplayCategory;
+                ps52plib->m_nDisplayCategory = MARINERS_STANDARD;
 
 //      Do the render
                 DoRenderViewOnDC(memdc, vp, DC_RENDER_ONLY, NULL, NULL);
@@ -2211,9 +1860,9 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 #endif
 
         }
-
         delete pS57FileName;
 
+        m_color_scheme = cs;
         bReadyToRender = true;
 
         return INIT_OK;
@@ -2461,59 +2110,9 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
 }
 
 
-/*
-int s57chart::ApplyAllUpdates( const wxString& DirName, OGRDataSource *poDS, wxString &LastUpdateDate)
-{
-    int retval = 1;
-
-            wxDir dir(DirName);
-
-        wxArrayString *UpFiles = new wxArrayString;
-
-        int retval = GetUpdateFileArray(DirName, UpFiles);
-
-
-//      Apply the updates sequentially
-        unsigned int i;
-        bool bSuccess;
-        DDFModule oUpdateModule;
-      wxString last_date;
-
-        for(i=0 ; i<UpFiles->GetCount() ; i++)
-        {
-
-        bSuccess = oUpdateModule.Open( UpFiles->Item(i).c_str(), TRUE );
-
-        if( bSuccess )
-        {
-            poReader->ApplyUpdates( &oUpdateModule );
-
-//      Get dates
-            oUpdateModule.Rewind();
-            DDFRecord *pr = oUpdateModule.ReadRecord();                     // Record 0
-
-            int nSuccess;
-            char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0, &nSuccess));
-
-            last_date = wxString(u);
-         }
-
-        }
-
-        delete UpFiles;
-
-      LastUpdateDate = last_date;
-
-        return retval;
-
-}
-*/
 
 int s57chart::BuildS57File(const char *pFullPath)
 {
-//      int iLayer;
-//      int i;
-//      char spb[1000];
 
     OGRFeature *objectDef;
     int nProg = 0;
@@ -2528,7 +2127,7 @@ int s57chart::BuildS57File(const char *pFullPath)
     OGREnvelope xt;
 
     //      Only allow updates if ISO8211 library can do it.
-    bool benable_update = ddfrecord_test();
+    bool benable_update = s57_ddfrecord_test();
 
 
     wxString date000;
@@ -2649,6 +2248,7 @@ int s57chart::BuildS57File(const char *pFullPath)
 
     int nLayers = poDS->GetLayerCount();
 
+
     for(int iL=0 ; iL < nLayers ; iL++)
     {
         OGRLayer *pLay = poDS->GetLayer(iL);
@@ -2707,24 +2307,31 @@ int s57chart::BuildS57File(const char *pFullPath)
             if (objectDef->GetGeometryRef() != NULL)
                 geoType = objectDef->GetGeometryRef()->getGeometryType();
 
+// Debug
+//            if(!strncmp(objectDef->GetDefnRef()->GetName(), "LIGHTS", 6))
+//                int ggk = 5;
+
 //      Look for polygons to process
             if(geoType == wkbPolygon)
             {
                 OGRPolygon *poly = (OGRPolygon *)(objectDef->GetGeometryRef());
 
-                mygeom *mg = new mygeom(this);
 
-                if(1)//*!strncmp(objectDef->GetDefnRef()->GetName(), "BUAARE", 6)
+                if(1)
                 {
-                    if(1) ///*(nNextFEIndex == 750) || (nNextFEIndex == 703)
+//                    if(!strncmp(objectDef->GetDefnRef()->GetName(), "LNDARE", 6))
+                    if(1)
                     {
                         bcont = SENC_prog->Update(nProg, sobj);
                         CreateSENCRecord( objectDef, fps57, 0 );
-                        PolyGeo ppg;
-                        ppg.develop_and_write_PolyGeo( poly, fps57 );
+                        PolyTessGeo ppg(poly);
+                        ppg.Write_PolyTriGroup( fps57 );
+//                        ppgtess.Tess_and_write_PolyTriGroup(poly, fps57);
                     }
+
+
+
                 }
-                delete mg;
 
 
             }
@@ -2769,6 +2376,10 @@ int s57chart::BuildS57File(const char *pFullPath)
         {
             wxLogMessage("Could not rename temporary SENC file %s to %s",tmp_file.c_str(),
                                      s57file.GetFullPath().c_str());
+//            wxString msg1("Could not create SENC file, perhaps permissions not set to read/write?");
+//            wxMessageDialog mdlg(this, msg1, wxString("OpenCPN"),wxICON_ERROR  );
+//            if(mdlg.ShowModal() == wxID_YES)
+
             ret_code = 0;
         }
         else
@@ -2784,7 +2395,7 @@ int s57chart::BuildS57File(const char *pFullPath)
       return ret_code;
 }
 
-int     s57chart::BuildRAZFromS57File( const char *pFullPath )
+int s57chart::BuildRAZFromS57File( const char *pFullPath )
 {
 
         int nProg = 0;
@@ -2878,20 +2489,16 @@ int     s57chart::BuildRAZFromS57File( const char *pFullPath )
                                  break;
                          }
 
+//        if(!strncmp(obj->FeatureName, "LOCMAG", 6))
+//            int ffl = 4;
                          LUP = ps52plib->S52_lookupA(LUPtype,obj->FeatureName,obj);
 
                          if(NULL == LUP)
                              wxLogMessage("Could not find LUP for %s", obj->FeatureName);
                          else
                          {
-
 //              Convert LUP to rules set
                             ps52plib->_LUP2rules(LUP, obj);
-
-
-//                      if(!strncmp(szFeatureName, "DEPARE", 6))
-//                              if(LUP->FTYP == LINES_T)
-//                                      int ofit = 9;
 
 //              Add linked object/LUP to the working set
                             _insertRules(obj,LUP);
@@ -3479,17 +3086,6 @@ bool s57chart::DoesLatLonSelectObject(float lat, float lon, float select_radius,
 wxString *s57chart::CreateObjDescription(const S57Obj& obj)
 {
       wxString *ret_str = new wxString;
-      /*
-//    Get a pointer to the s57classregistrar
-      if(!ps57mgr->GetpClassRegistrar())
-      {
-            S57ClassRegistrar *poRegistrar = new S57ClassRegistrar();
-            poRegistrar->LoadInfo( NULL, FALSE );
-            ps57mgr->SavepClassRegistrar(poRegistrar);
-      }
-
-      S57ClassRegistrar *pReg = ps57mgr->GetpClassRegistrar();
-      */
 
       char *curr_att;
       int iatt;
@@ -3510,18 +3106,20 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                   //    Get the object's nice description from s57objectclasses.csv
                   //    using cpl_csv from the gdal library
 
-                  // Todo think about this directory.  as relates to S57_CSV as set in s57mgr
                   const char *name_desc;
-
-                  name_desc = MyCSVGetField("/usr/local/share/gdal/s57objectclasses.csv",
+                  if(NULL != m_pcsv_locn)
+                  {
+                    wxString oc_file(*m_pcsv_locn);
+                    oc_file.Append("/s57objectclasses.csv");
+                    name_desc = MyCSVGetField(oc_file.c_str(),
                                      "Acronym",                  // match field
                                      obj.FeatureName,            // match value
                                      CC_ExactString,
                                      "ObjectClass");             // return field
+                  }
+                  else
+                      name_desc = "";
 
-
-//                  pReg->SelectClass( obj.FeatureName );
-//                  char *name_desc = (char *)pReg->GetDescription();
 
                   *ret_str << name_desc;
                   *ret_str << '\n';
@@ -3584,13 +3182,22 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                                 if(val_str.IsNumber())
                                 {
                                     int ival = atoi(val_str.c_str());
-                                    wxString *decode_val = GetAttributeDecode(att, ival);
-                                    if(decode_val)
-                                        value.Printf("%s(%d)", decode_val->c_str(), ival);
+                                    if(0 == ival)
+                                        value.Printf("Unknown");
                                     else
-                                        value.Printf("(%d)", ival);
-                                    delete decode_val;
+                                    {
+                                        wxString *decode_val = GetAttributeDecode(att, ival);
+                                        if(decode_val)
+                                            value.Printf("%s(%d)", decode_val->c_str(), ival);
+                                        else
+                                            value.Printf("(%d)", ival);
+                                        delete decode_val;
+                                    }
                                 }
+
+                                else if(val_str.IsEmpty())
+                                    value.Printf("Unknown");
+
                                 else
                                 {
                                     value.Clear();
@@ -3692,7 +3299,7 @@ typedef struct _S57attVal{
       return ret_str;
 }
 
-
+/*
 wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
 {
 
@@ -3736,59 +3343,67 @@ wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
 }
 
 
-extern "C" int G_PtInPolygon(MyPoint *, int, float, float) ;
-
-//----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
-bool s57chart::PtInVertexList(float lat, float lon,gpc_vertex_list *vl)
+*/
+wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
 {
-    // Create the polygon point array from the tristrip vertex list
-    int num_points = vl->num_vertices;
-    MyPoint *vlpoints = new MyPoint[num_points];
 
-    vlpoints[0].x = vl->vertex[0].x;
-    vlpoints[0].y = vl->vertex[0].y;
+    wxString *ret_val = NULL;
 
-    float x,y;
-    int i=1;
-    int j = 2;
-    while(j < num_points)
+    if(NULL == m_pcsv_locn)
+        return NULL;
+
+    //  Get the attribute code from the acronym
+    const char *att_code;
+
+    wxString file(*m_pcsv_locn);
+    file.Append("/s57attributes.csv");
+    att_code = MyCSVGetField(file.c_str(),
+                                  "Acronym",                  // match field
+                                  att.c_str(),               // match value
+                                  CC_ExactString,
+                                  "Code");             // return field
+
+
+    // Now, get a nice description from s57expectedinput.csv
+    //  This will have to be a 2-d search, using ID field and Code field
+
+    bool more = true;
+    wxString ei_file(*m_pcsv_locn);
+    ei_file.Append("/s57expectedinput.csv");
+
+    FILE        *fp;
+    fp = VSIFOpen( ei_file.c_str(), "rb" );
+    if( fp == NULL )
+        return NULL;
+
+    while(more)
     {
-            x = vl->vertex[j].x;
-            y = vl->vertex[j].y;
+        char **result = CSVScanLines( fp,
+                                     0,                         // first field = attribute Code
+                                     att_code,
+                                     CC_ExactString );
 
-            vlpoints[i].x = x;
-            vlpoints[i].y = y;
-
-            j += 2;
-            i++;
+        if(NULL == result)
+        {
+            more = false;
+            break;
+        }
+        if(atoi(result[1]) == ival)
+        {
+            ret_val = new wxString(result[2]);
+        }
     }
 
-    j--;
-    while(j > num_points-1)
-            j-= 2;
 
-    while(j >= 1)
-    {
-        assert(i < num_points);
-            x = vl->vertex[j].x;
-            y = vl->vertex[j].y;
-
-            vlpoints[i].x = x;
-            vlpoints[i].y = y;
-
-            j -= 2;
-            i++;
-    }
-
-    // Is point in the poly?
-    bool ret_val = G_PtInPolygon(vlpoints, num_points, lon, lat);
-
-    delete vlpoints;
+    VSIFClose(fp);
     return ret_val;
 }
 
 
+extern "C" int G_PtInPolygon(MyPoint *, int, float, float) ;
+
+//----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
 
 
 bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Obj *obj)
@@ -3797,72 +3412,10 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
 //        int ggk = 5;
 
     bool ret = false;
-    if(obj->Tristrip)
-    {
-        gpc_tristrip *tri = obj->Tristrip;
-        int ism = tri->num_strips;
 
-        for (int istrip=0;istrip< ism;istrip++)
-        {
-
-//  Is point in any of the strips?
-            wxBoundingBox *bbstrip = &(obj->BBStripArray[istrip]);
-//  Coarse test
-            if(bbstrip->PointInBox(lon, lat, 0))
-            {
-                gpc_vertex_list *vl = &tri->strip[istrip];
-                if(PtInVertexList(lat, lon, vl))
-                {
-                    ret = true;
-                    break;
-                }
-            }
-        }
-
-        if(ret == false)                        // point is not within base poly
-            return false;
-
-        if(obj->ring)                           // object has holes?
-        {
-            S57Obj *ringObj = obj->ring;
-            while(ringObj)
-            {
-                    if(ringObj->Tristrip)
-                    {
-                        gpc_tristrip *tri = ringObj->Tristrip;
-                        int ism = tri->num_strips;
-
-                        for (int istrip=0;istrip< ism;istrip++)
-                        {
-//  Is point in any of the strips of the holes?
-                            wxBoundingBox *bbstrip = &(ringObj->BBStripArray[istrip]);
-
-                            if(bbstrip->PointInBox(lon, lat, 0))
-                            {
-                                gpc_vertex_list *vl = &tri->strip[istrip];
-                                if(PtInVertexList(lat, lon, vl))
-                                {
-                                    return false;       //point is in a hole
-                                }
-                            }
-
-                        }
-                   }
-
-                   S57Obj *rt = ringObj->ring;
-                   ringObj = rt;
-             }
-        }
-
-        return ret;          // point is in base poly, and there are no holes, or point is in no hole
-
-
-    }           // if tristrip
-
+/*
     if(obj->pPolyGeo)
     {
-//        if(obj->Index == 535)
-//            int ggl = 4;
 
 //      Is the point in the PolyGeo Bounding Box?
         if(lon > obj->pPolyGeo->Get_xmax())
@@ -3909,66 +3462,11 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
 
 
     }           // if pPolyGeo
+
+*/
     return false;
 }
 
-
-//----------------------------------------------------------------------------------
-//      ddfrecord_test
-//----------------------------------------------------------------------------------
-
-        /*
-        GDAL/OGR 1.2.0 may have a bug in ddfrecord.cpp
-        The bug is manifest on ENC updates only.
-        This behaviour has been observed on ddfrecord.cpp Version 1.25 and earlier,
-        and is corrected in ddfrecord.cpp Version 1.27 and above.
-
-        This (relatively) safe run-time test will identify the pathology
-        allowing run-time election of ENC update policy
-        */
-
-bool s57chart::ddfrecord_test()
-{
-        // Create a ddfrecord and populate the two simple text fields
-
-    DDFRecord dr(NULL);
-    DDFFieldDefn dfd1;
-    DDFFieldDefn dfd2;
-
-    dfd1.Create("tag1", "name", NULL, dsc_elementary, dtc_char_string);
-    dfd1.AddSubfield( "sub1", "A" );
-    dr.AddField( &dfd1 );
-    dr.SetStringSubfield( "tag1", 0, "sub1",0, "testlongrrrrrrrrrrrrrrrrrrrr11");
-
-    dfd2.Create("tag2", "name", NULL, dsc_elementary, dtc_char_string);
-    dfd2.AddSubfield( "sub21", "A" );
-    dr.AddField( &dfd2 );
-    dr.SetStringSubfield( "tag2", 0, "sub21",0, "testlonggggggggggggggggggggg21");
-
-
-        //  The hallmark of obsolete ddfrecord code is that shortening a data record
-        //  corrupts some data following the shortened target
-
-    char buf1[40], buf2[40];
-        // get reference copy
-    const char *before = dr.GetStringSubfield( "tag2", 0, "sub21", 0);
-    strcpy(buf1, before);
-
-        // Shorten early data
-    dr.SetStringSubfield( "tag1", 0, "sub1",0, "test12a");
-
-        //  and get it again
-    const char *after = dr.GetStringSubfield( "tag2", 0, "sub21", 0);
-    strcpy(buf2, after);
-
-    if(strcmp(buf1, buf2))
-        return false;
-    else
-        return true;
-
-//        dr.Dump(stderr);
-
-}
 
 
 
@@ -4058,1270 +3556,327 @@ const char *MyCSVGetField( const char * pszFilename,
 }
 
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//------------------------------------------------------------------------
+//
+//          Some s57 Utilities
+//          Meant to be called "bare", usually with no class instance.
+//
+//------------------------------------------------------------------------
 
+//------------------------------------------------------------------------
+//  Initialize GDAL/OGR S57ENC support
+//------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//   Dead Code
-#if 0
-int     s57chart::BuildRAZFromS57File( const char *pFullPath )
+int s57_initialize(const wxString& csv_dir)
 {
 
-    int nProg = 0;
-    int FEIndex;
+    //  MS Windows Build Note:
+    //  In a .dll GDAL build, the following _putenv() call DOES NOT properly
+    //  set the environment accessible to GDAL/OGR.  So, S57 Reader options
+    //  are not set AT ALL.  Defaults will apply.
+    //  See the README file
 
-    wxString ifs(pFullPath);
+#ifdef __WXMSW__
+    wxString envs1("S57_CSV=");
+    envs1.Append(csv_dir);
+    _putenv( envs1.c_str());
+#else
+    wxSetEnv( "S57_CSV", csv_dir.c_str());
+#endif
 
-    wxFileInputStream fpx_u(ifs);
-    wxBufferedInputStream fpx(fpx_u);
 
-    int MAX_LINE = 499999;
-    char *buf = (char *)malloc(MAX_LINE + 1);
-    int llmax = 0;
+        //  Set some S57 OGR Options thru environment variables
 
-    S52_LUP_table_t  LUPtype;
-    LUPrec           *LUP;
+        //  n.b. THERE IS A BUG in GDAL/OGR 1.2.0 wherein the sense of the flag UPDATES= is reversed.
+        //  That is, anything other than UPDATES=APPLY selects update mode.
+        //  Conversely, UPDATES=APPLY deselects updates.
+        //  Fixed in GDAL 1.3.2, at least, maybe earlier??
+        //  Detect by GDALVersion check
 
-    char szFeatureName[20];
-    int     nGeoFeature;
+    const char *version_string = GDALVersionInfo("VERSION_NUM");
+    int ver_num = (int)CPLScanLong((char *)version_string, 4);
 
-    char *br;
-    char szAtt[20];
-    char geoMatch[20];
-    int object_count = 0;
+    wxString set1, set2;
 
-    OGRGeometry     *OGRgeo;
-    bool bMulti;
-    OGRPolygon *poly;
-    OGREnvelope     Envelope;
-
-    int dun = 0;
-    int nobj = 0;
-    int nTris, twkb_len, nStrips;
-    float xmax, xmin, ymax, ymin;
-    float sxmax, sxmin, symax, symin;
-
-    hdr_buf = (char *)malloc(1);
-    wxProgressDialog    *SENC_prog = NULL;
-    int nGeo1000;
-    wxString date_000, date_upd;
-
-    if(my_fgets(buf, MAX_LINE, fpx) == 0)
-        dun = 1;
+    set1 ="LNAM_REFS=ON";
+    set1.Append(",SPLIT_MULTIPOINT=OFF");
+    set1.Append(",ADD_SOUNDG_DEPTH=OFF");
+    set1.Append(",PRESERVE_EMPTY_NUMBERS=OFF");
+    if(ver_num >= 1320)
+        set1.Append(",RETURN_PRIMITIVES=OFF");              // older GDALs handle some "off" option poorly
+    set1.Append(",RETURN_LINKAGES=OFF");
 
 
 
+    if(ver_num < 1320)
+        set2 = ",UPDATES=BUGBUG";               // updates ENABLED
+    else
+        set2 = ",UPDATES=APPLY";
 
-    while(!dun)
+    set1.Append(set2);
+
+#ifdef __WXMSW__
+    wxString envs2("OGR_S57_OPTIONS=");
+    envs2.Append(set1);
+    _putenv( envs2.c_str());
+
+#else
+    wxSetEnv("OGR_S57_OPTIONS",set1.c_str());
+#endif
+
+
+//    CPLSetConfigOption( "CPL_DEBUG", "ON");
+//    CPLSetConfigOption( "CPL_LOG", "c:\\LOG");
+
+    RegisterOGRS57();
+
+    return 0;
+}
+
+
+
+
+
+//----------------------------------------------------------------------------------
+// Get Chart Scale
+// By opening and reading directly the iso8211 file
+//----------------------------------------------------------------------------------
+int s57_GetChartScale(char *pFullPath)
+{
+
+    DDFModule   *poModule;
+    DDFRecord   *poRecord;
+    int scale;
+
+    poModule = new DDFModule();
+
+    if( !poModule->Open(pFullPath) )
     {
+        delete poModule;
+        return 0;
+    }
 
-        if(my_fgets(buf, MAX_LINE, fpx) == 0)
+    poRecord = poModule->ReadRecord();
+    if( poRecord == NULL )
+    {
+        poModule->Close();
+        delete poModule;
+        return 0;
+    }
+
+    scale = 1;
+    for( ; poRecord != NULL; poRecord = poModule->ReadRecord() )
+    {
+        if( poRecord->FindField( "DSPM" ) != NULL )
         {
-            dun = 1;
+            scale = poRecord->GetIntSubfield("DSPM",0,"CSCL",0);
             break;
         }
+    }
 
-        if(!strncmp(buf, "OGRF", 4))
+    poModule->Close();
+    delete poModule;
+
+    return scale;
+
+}
+
+//----------------------------------------------------------------------------------
+// Get First Chart M_COVR Object
+// Directly from the ios8211 file
+//              n.b. Caller owns the data source and the feature on success
+//----------------------------------------------------------------------------------
+bool s57_GetChartFirstM_COVR(char *pFullPath, OGRDataSource **pDS, OGRFeature **pFeature,
+                                 OGRLayer **pLayer, int &catcov)
+{
+
+    OGRDataSource *poDS = OGRSFDriverRegistrar::Open( pFullPath );
+
+    *pDS = poDS;                                    // give to caller
+
+    if( poDS == NULL )
+    {
+        *pFeature = NULL;
+        return false;
+    }
+
+    OGRLayer *pLay = poDS->GetLayerByName("M_COVR");
+    *pLayer = pLay;                         // Give to caller
+    pLay->ResetReading();
+    OGRFeature *objectDef = pLay->GetNextFeature();
+    *pFeature = objectDef;                  // Give to caller
+
+    if(objectDef)
+    {
+    //  Fetch the CATCOV attribute
+        for( int iField = 0; iField < objectDef->GetFieldCount(); iField++ )
         {
-
-//      Create an s57 object
-//                      sw1.Resume();
-
-            nobj++;
-
-            S57Obj      *obj = new S57Obj ;
-            obj->attList = new wxString();
-            obj->attVal = new wxArrayOfS57attVal();
-            obj->geoPt = NULL;
-            obj->OGeo = NULL;
-            obj->MPoly = NULL;
-            obj->Tristrip = NULL;
-
-            bMulti = false;
-
-
-            FEIndex = atoi(buf+19);
-
-            strncpy(szFeatureName, buf+11, 6);
-            szFeatureName[6] = 0;
-            strcpy(obj->FeatureName, szFeatureName);
-
-//   if(!strncmp(szFeatureName, "RCRTCL", 6))
-//    int ggs = 5;
-
-//      Build/Maintain a list of found OBJL types for later use
-//      And back-reference the appropriate list index in S57Obj for Display Filtering
-
-
-            bool bNeedNew = true;
-            OBJLElement *pOLE;
-
-
-            for(unsigned int iPtr = 0 ; iPtr < ps52plib->pOBJLArray->GetCount() ; iPtr++)
+            if( objectDef->IsFieldSet( iField ) )
             {
-                pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
-                if(!strncmp(pOLE->OBJLName, szFeatureName, 6))
-                {
-                    obj->iOBJL = iPtr;
-                    bNeedNew = false;
-                    break;
-                }
+                OGRFieldDefn *poFDefn = objectDef->GetDefnRef()->GetFieldDefn(iField);
+                if(!strcmp(poFDefn->GetNameRef(), "CATCOV"))
+                    catcov = objectDef->GetFieldAsInteger( iField );
             }
-
-            if(bNeedNew)
-            {
-                pOLE = (OBJLElement *)malloc(sizeof(OBJLElement));
-                strcpy(pOLE->OBJLName, szFeatureName);
-                pOLE->nViz = 1;
-
-                ps52plib->pOBJLArray->Add((void *)pOLE);
-                obj->iOBJL  = ps52plib->pOBJLArray->GetCount() - 1;
-            }
-
-
-//      Walk thru the attributes, adding interesting ones
-            hdr_len = 0;
-
-            int prim;
-            int attdun = 0;
-
-            strcpy(geoMatch, "Dummy");
-
-            while(!attdun)
-            {
-                if(hdr_len)
-                {
-                    if(0 == my_bufgets(buf, MAX_LINE))
-                    {
-                        attdun = 1;
-                        my_fgets(buf, MAX_LINE, fpx);                   // this will be POLY or POLYTRIS
-                        break;
-                    }
-                }
-
-                else
-                    my_fgets(buf, MAX_LINE, fpx);
-
-
-                if(!strncmp(buf, "HDRLEN", 6))
-                {
-                    hdr_len = atoi(buf+7);
-                    hdr_buf = (char *)realloc(hdr_buf, hdr_len);
-                    fpx.Read(hdr_buf, hdr_len);
-                    mybuf_ptr = hdr_buf;
-                }
-
-                else if(!strncmp(buf, geoMatch, 6))
-                {
-                    attdun =1;
-                    break;
-                }
-
-                else if(!strncmp(buf, "  MULT", 6))                     // Special multipoint
-                {
-                    bMulti = true;
-                    attdun =1;
-                    break;
-                }
-
-
-
-                else if(!strncmp(buf, "  PRIM", 6))
-                {
-                    prim = atoi(buf+13);
-                    switch(prim)
-                    {
-                        case 1:
-                        {
-                            strcpy(geoMatch, "  POIN");
-                            break;
-                        }
-
-                        case 2:                                                                 // linestring
-                        {
-                            strcpy(geoMatch, "  LINE");
-                            break;
-                        }
-
-                        case 3:                                                                 // area as polygon
-                        {
-                            strcpy(geoMatch, "  POLY");
-                            break;
-                        }
-
-                        default:                                                                // unrecognized
-                        {
-                            S57_freeObj(obj);                               // delete obj;
-                            obj = NULL;
-                            goto next_obj;                                  // abort this object
-
-                            break;
-                        }
-
-                    }       //switch
-                }               // if PRIM
-
-//sw4.Resume();
-                bool iua = UsefulAttribute(buf);
-
-                szAtt[0] = 0;
-
-                if(iua)
-                {
-                    S57attVal *pattValTmp = new S57attVal;
-
-//                                      if(strstr(buf, "(I)"))
-//                                        if(strstr(buf, "FFPT"))
-//                                            int ggl = 4;
-                    if(buf[10] == 'I')
-                    {
-                        br = buf+2;
-                        int i=0;
-                        while(*br != ' ')
-                        {
-                            szAtt[i++] = *br;
-                            br++;
-                        }
-
-                        szAtt[i] = 0;
-
-                        while(*br != '=')
-                            br++;
-
-                        br += 2;
-
-                        int AValInt = atoi(br);
-                        int *pAVI = (int *)malloc(sizeof(int));         //new int;
-                        *pAVI = AValInt;
-                        pattValTmp->valType = OGR_INT;
-                        pattValTmp->value   = pAVI;
-
-//      Capture SCAMIN on the fly during load
-                        if(!strcmp(szAtt, "SCAMIN"))
-                            obj->Scamin = AValInt;
-                    }
-
-
-                    else if(buf[10] == 'S')
-                    {
-                        strncpy(szAtt, &buf[2], 6);
-                        szAtt[6] = 0;
-
-                        br = buf + 15;
-
-                        int nlen = strlen(br);
-                        br[nlen-1] = 0;                                 // dump the NL char
-                        char *pAVS = (char *)malloc(nlen + 1);          ;
-                        strcpy(pAVS, br);
-
-                        pattValTmp->valType = OGR_STR;
-                        pattValTmp->value   = pAVS;
-                    }
-
-/*
-                    else if(strstr(buf, "(S)"))
-                    {
-                    br = buf+2;
-                    int i=0;
-                    while(*br != ' ')
-                    {
-                    szAtt[i++] = *br;
-                    br++;
-                }
-
-                    szAtt[i] = 0;
-
-                    while(*br != '=')
-                    br++;
-
-                    br += 2;
-
-                    int nlen = strlen(br);
-                    br[nlen-1] = 0;                                 // dump the NL char
-                    char *pAVS = (char *)malloc(nlen + 1);          ;
-                    strcpy(pAVS, br);
-
-                    pattValTmp->valType = OGR_STR;
-                    pattValTmp->value   = pAVS;
-                }
-*/
-
-//                                      else if(strstr(buf, "(R)"))
-                    else if(buf[10] == 'R')
-                    {
-                        br = buf+2;
-                        int i=0;
-                        while(*br != ' ')
-                        {
-                            szAtt[i++] = *br;
-                            br++;
-                        }
-
-                        szAtt[i] = 0;
-
-                        while(*br != '=')
-                            br++;
-
-                        br += 2;
-
-                        float AValReal;
-                        sscanf(br, "%f", &AValReal);
-
-                        float *pAVR = (float *)malloc(sizeof(float));   //new float;
-                        *pAVR = AValReal;
-                        pattValTmp->valType = OGR_REAL;
-                        pattValTmp->value   = pAVR;
-                    }
-
-                    else
-                    {
-                                                // unknown attribute type
-//                                              CPLError((CPLErr)0, 0,"Unknown Attribute Type %s", buf);
-                    }
-
-
-                    if(strlen(szAtt))
-                    {
-                        obj->attList->Append(szAtt);
-                        obj->attList->Append('\037');
-
-                        obj->attVal->Add(pattValTmp);
-                    }
-                    else
-                        delete pattValTmp;
-
-
-                }        //useful
-//sw4.Pause();
-
-            }               // while attdun
-
-
-//sw1.Pause();
-//sw2.Resume();
-
-//              Develop Geometry
-
-            switch(prim)
-            {
-                case 1:
-                {
-                    if(!bMulti)
-                    {
-                        obj->Primitive_type = GEO_POINT;
-
-                        OGRPoint *point = new OGRPoint;
-
-                        my_fgets(buf, MAX_LINE, fpx);
-                        int wkb_len = atoi(buf+2);
-                        fpx.Read(buf,  wkb_len);
-
-                        point->importFromWkb( (unsigned char *)buf );
-
-                        obj->npt  = 1;
-                        obj->x   = point->getX();
-                        obj->y   = point->getY();
-                        obj->z   = point->getZ();
-
-//                                              int ggh = nobj;
-
-//      This is where Simplified or Paper-Type point features are selected
-                        LUPtype = S52_LUPARRAY_PT_PAPER;
-//                                              LUPtype = S52_LUPARRAY_PT_SIMPL;
-                        OGRgeo = point;
-                    }
-                    else
-                    {
-                        obj->Primitive_type = GEO_POINT;
-
-                        OGRMultiPoint *mulpoint = new OGRMultiPoint;
-
-                        my_fgets(buf, MAX_LINE, fpx);
-                        int wkb_len = atoi(buf+2);
-                        fpx.Read(buf,  wkb_len);
-
-
-                        mulpoint->importFromWkb( (unsigned char *)buf );
-
-                        LUPtype = S52_LUPARRAY_PT_SIMPL;
-                        OGRgeo = mulpoint;
-
-                    }
-
-                    break;
-                }
-
-                case 2:                                                                 // linestring
-                {
-                    obj->Primitive_type = GEO_LINE;
-
-
-                    my_fgets(buf, MAX_LINE, fpx);
-                    int sb_len = atoi(buf+2);
-
-                    unsigned char *buft = (unsigned char *)malloc(sb_len);
-                    fpx.Read(buft,  sb_len);
-
-                    obj->npt = *((int *)(buft + 5));
-
-                    obj->geoPt = (pt*)malloc((obj->npt) * sizeof(pt));
-                    pt *ppt = obj->geoPt;
-                    float *pf = (float *)(buft + 9);
-
-                    // Capture points
-                    for(int ip = 0 ; ip < obj->npt ; ip++)
-                    {
-                        OGRPoint p;
-                        ppt->x = *pf++;
-                        ppt->y = *pf++;
-                        ppt++;
-                    }
-
-                    // Capture bbox limits
-                    float xmax = *pf++;
-                    float xmin = *pf++;
-                    float ymax = *pf++;
-                    float ymin = *pf;
-
-                    delete buft;
-
-                    obj->BBObj.SetMin(xmin, ymin);
-                    obj->BBObj.SetMax(xmax, ymax);
-
-                    LUPtype = S52_LUPARRAY_LINE;
-                    OGRgeo = NULL;
-
-                    break;
-                }
-
-/*
-                {
-                OGRLineString *line = new OGRLineString;
-
-                my_fgets(buf, MAX_LINE, fpx);
-                int wkb_len = atoi(buf+2);
-
-                if(wkb_len > MAX_LINE)
-                {
-                unsigned char *buft = (unsigned char *)malloc(wkb_len);
-                fpx.Read(buft,  wkb_len);
-                line->importFromWkb( (unsigned char *)buft );
-                delete buft;
-            }
-                else
-                {
-                fpx.Read(buf,  wkb_len);
-                line->importFromWkb( (unsigned char *)buf );
-            }
-
-
-                obj->npt  = line->getNumPoints();
-
-                obj->geoPt = (pt*)malloc((obj->npt) * sizeof(pt));
-                pt *ppt = obj->geoPt;
-                for(int ip = 0 ; ip < obj->npt ; ip++)
-                {
-                OGRPoint p;
-                line->getPoint(ip, &p);
-                ppt->x = p.getX();
-                ppt->y = p.getY();
-                ppt++;
-            }
-
-                LUPtype = S52_LUP_LINE;
-                OGRgeo = line;
-
-                break;
-            }
-    */
-                case 3:                                                                 // area as polygon
-                {
-    //          if(!strncmp(&szFeatureName[0], "PILBOP", 6))
-    //                int ofit = 9;
-                    obj->Primitive_type = GEO_AREA;
-
-                    int ll = strlen(buf);
-                    if(ll > llmax)
-                        llmax = ll;
-
-                    if(!strncmp(buf, "  POLYTRIS", 10))
-                    {
-                        poly = NULL;
-                        sscanf(buf, "  POLYTRIS %d %f %f %f %f", &nTris,
-                               &xmin, &ymin, &xmax, &ymax);
-
-                        for(int it = 0 ; it<nTris ; it++)
-                        {
-                            gpc_tristrip *tristrip = new gpc_tristrip;
-
-                            my_fgets(buf, MAX_LINE, fpx);
-                            sscanf(buf, "Strips %d %d", &nStrips, &twkb_len);
-
-
-                            tristrip->num_strips = nStrips;
-
-                            gpc_vertex_list *strip = (gpc_vertex_list *)malloc(nStrips * sizeof(gpc_vertex_list));
-                            gpc_vertex_list *sr = strip;
-                            tristrip->strip = strip;
-
-                            unsigned char *buft = (unsigned char *)malloc(twkb_len);
-                            fpx.Read(buft,  twkb_len);
-
-//      Defn... First point of first strip is object geometry reference point
-                            float *pc = (float *)buft;
-                            pc++;
-                            obj->x   = *pc++;
-                            obj->y   = *pc++;
-
-                            int *pn = (int *)buft;
-                            float *pf = (float *)buft;
-
-                            wxBoundingBox *bbarray = new wxBoundingBox[nStrips];
-
-                            for(int is = 0 ; is < nStrips ; is++)
-                            {
-                                int nv = *pn++;
-                                sr->num_vertices = nv;
-
-                                pf = (float *)pn;
-
-                                double *pvl = (double *)malloc(nv * 2 * sizeof(double));
-                                double *pvr = pvl;
-
-
-//      We calculate the strip bounding box from east/north, its cheaper.
-                                sxmax = 0.0;                    // this strip BBox
-                                sxmin = 0.0;
-                                symax = 0.0;
-                                symin = 0.0;
-
-
-                                float x = *pf++;                        // Vertex 0
-                                float y = *pf++;                        // is by defn e/n:0/0
-
-                                *pvr++ = x;
-                                *pvr++ = y;
-
-                                sxmax = -179;                   // this strip BBox
-                                sxmin = 170;
-                                symax = 0;
-                                symin = 90;
-
-
-                                for(int iv = 1 ; iv < nv ; iv++)
-                                {
-                                    float x = *pf++;
-                                    float y = *pf++;
-
-                                    sxmax = fmax(x, sxmax);
-                                    sxmin = fmin(x, sxmin);
-                                    symax = fmax(y, symax);
-                                    symin = fmin(y, symin);
-
-                                    *pvr++ = x;
-                                    *pvr++ = y;
-                                }
-
-                                sr->vertex = (gpc_vertex *)pvl;
-
-                                sr++;
-                                pn = (int *)pf;
-
-//      Convert e/n bbox to lat/lon
-
-
-                                bbarray[is].SetMin(sxmin, symin);
-                                bbarray[is].SetMax(sxmax, symax);
-
-                            }
-
-//      Tristrip is built, associate to corresponding S57Obj
-
-                            if(it == 0)                             // sole exterior ring
-                            {
-                                obj->Tristrip = tristrip;
-                                obj->ring = NULL;
-                                obj->BBObj.SetMin(xmin, ymin);
-                                obj->BBObj.SetMax(xmax, ymax);
-                                obj->BBStripArray = bbarray;
-
-                            }
-
-                            else
-                            {
-                                S57Obj *ringObj= new S57Obj;
-                                ringObj->ring = obj->ring;
-                                ringObj->Tristrip = tristrip;
-                                ringObj->BBObj.SetMin(xmin, ymin);
-                                ringObj->BBObj.SetMax(xmax, ymax);
-                                ringObj->BBStripArray = bbarray;
-                                obj->ring     = ringObj;
-                            }
-
-                            free(buft);
-
-                            my_fgets(buf, MAX_LINE, fpx);           // skip nl
-
-
-                        }
-                    }                                               // polytris
-
-
-                    else if(!strncmp(buf, "  POLYPOLY", 10))
-                    {
-                        poly = NULL;
-                        int nPolyGroups;
-                        sscanf(buf, "  POLYPOLY %d %f %f %f %f", &nPolyGroups,
-                               &xmin, &ymin, &xmax, &ymax);
-
-                        polygroup *pgtop = NULL;
-                        polygroup *pglast = NULL;
-
-                        for(int ipg = 0 ; ipg<nPolyGroups ; ipg++)
-                        {
-                            polygroup *ppg = new polygroup;
-                            ppg->next = NULL;
-
-                            int nPolys;
-                            int nctr;
-                            my_fgets(buf, MAX_LINE, fpx);
-                            sscanf(buf, "Polys/Contours/nWKB %d %d %d", &nPolys, &nctr, &twkb_len);
-                            ppg->nCntr = nctr;
-                            ppg->pct_array = (int *)malloc(nctr * sizeof(int));
-                            int *pctr = ppg->pct_array;
-
-                            my_fgets(buf, MAX_LINE, fpx);                       // contour nVert
-
-                            wxString ivc_str(buf + 10);
-                            wxStringTokenizer tkc(ivc_str, wxT(" ,\n"));
-                            int icvert = 0;
-                            while ( tkc.HasMoreTokens() )
-                            {
-                                wxString token = tkc.GetNextToken();
-                                if(token.IsNumber())
-                                {
-                                    icvert = atoi(token.c_str());
-                                    if(icvert)
-                                    {
-                                        *pctr = icvert;
-                                        pctr++;
-                                    }
-                                }
-                            }
-
-
-
-
-
-
-
-                            float *ppolygeo = (float *)malloc(twkb_len + 1);    // allow for crlf
-                            fpx.Read(ppolygeo,  twkb_len + 1);
-                            ppg->pPolyGeo = ppolygeo;
-
-                            ppg->nPolys = nPolys;
-                            ppg->pvert_array = (double **)malloc(nPolys * sizeof(double *));
-                            ppg->pnv_array = (int *)malloc(nPolys * sizeof(int));
-
-                            wxBoundingBox *bbarray = new wxBoundingBox[nPolys];
-                            for(int ip = 0 ; ip < nPolys ; ip++)
-                            {
-                                int iPoly_id, nvert;
-                                my_fgets(buf, MAX_LINE, fpx);
-                                sscanf(buf, "Poly %d, nv=%d", &iPoly_id, &nvert);
-
-                                double *pvertex_list = (double *)malloc(nvert * 2 * sizeof(double));
-                                ppg->pvert_array[ip] = pvertex_list;
-
-                                ppg->pnv_array[ip] = nvert;
-
-                                my_fgets(buf, MAX_LINE, fpx);
-                                char *br = buf;
-                                sxmax = -179;                   // this poly BBox
-                                sxmin = 170;
-                                symax = 0;
-                                symin = 90;
-
-                                wxString iv_str(br);
-                                wxStringTokenizer tk(iv_str, wxT(" "));
-                                int ivert = 0;
-                                double *pvr = pvertex_list;
-                                while ( tk.HasMoreTokens() )
-                                {
-                                    wxString token = tk.GetNextToken();
-                                    if(token.IsNumber())
-                                    {
-                                        ivert = atoi(token.c_str());
-
-                                        float x = ppolygeo[2 * ivert];
-                                        float y = ppolygeo[(2 * ivert) + 1];
-
-                                        *pvr++ = (double)x;
-                                        *pvr++ = (double)y;
-
-                                        sxmax = fmax(x, sxmax);
-                                        sxmin = fmin(x, sxmin);
-                                        symax = fmax(y, symax);
-                                        symin = fmin(y, symin);
-                                    }
-                                }
-
-                                bbarray[ip].SetMin(sxmin, symin);
-                                bbarray[ip].SetMax(sxmax, symax);
-
-                            }
-
-                            if(NULL == pgtop)
-                                pgtop = ppg;                        // link in the group
-
-                            if(NULL != pglast)
-                                pglast->next = ppg;
-
-                            pglast = ppg;
-
-//                                                free(ppolygeo);
-
-                            if(ipg == 0)                            // exterior ring
-                            {
-                                obj->MPoly = ppg;
-                                obj->ring = NULL;
-                                obj->BBObj.SetMin(xmin, ymin);
-                                obj->BBObj.SetMax(xmax, ymax);
-                                obj->BBStripArray = bbarray;
-
-
-                            }
-
-                            else
-                            {
-                                S57Obj *ringObj= new S57Obj;
-                                ringObj->ring = obj->ring;
-                                ringObj->MPoly = ppg;
-                                ringObj->BBObj.SetMin(xmin, ymin);
-                                ringObj->BBObj.SetMax(xmax, ymax);
-                                ringObj->BBStripArray = bbarray;
-                                obj->ring     = ringObj;
-                            }
-                        }
-                    }
-
-
-
-
-
-                    else if(!strncmp(buf, "  POLYGEO", 9))
-                    {
-                        poly = NULL;
-                        int nrecl;
-                        sscanf(buf, "  POLYGEO %d", &nrecl);
-
-                        if (nrecl)
-                        {
-                            unsigned char *polybuf = (unsigned char *)malloc(nrecl);
-                            fpx.Read(polybuf,  nrecl);
-                            PolyGeo *ppg = new PolyGeo(polybuf, nrecl, FEIndex);
-                            free(polybuf);
-
-                            obj->pPolyGeo = ppg;
-                            obj->ring = NULL;
-                            obj->BBObj.SetMin(ppg->Get_xmin(), ppg->Get_ymin());
-                            obj->BBObj.SetMax(ppg->Get_xmax(), ppg->Get_ymax());
-
-                        }
-                    }
-
-
-
-
-                    else
-                    {
-                        poly = new OGRPolygon;
-
-                        my_fgets(buf, MAX_LINE, fpx);
-                        int wkb_len = atoi(buf+2);
-
-                        if(wkb_len > MAX_LINE)
-                        {
-                            unsigned char *buft = (unsigned char *)malloc(wkb_len);
-                            fpx.Read(buft,  wkb_len);
-                            poly->importFromWkb( (unsigned char *)buft );
-                            delete buft;
-                        }
-                        else
-                        {
-                            fpx.Read(buf,  wkb_len);
-                            poly->importFromWkb( (unsigned char *)buf );
-                        }
-
-
-                        obj->npt  = poly->getExteriorRing()->getNumPoints();
-                        obj->geoPt = (pt*)malloc((obj->npt) * sizeof(pt));
-                        pt *ppt = obj->geoPt;
-                        for(int ip = 0 ; ip < obj->npt ; ip++)
-                        {
-                            OGRPoint p;
-                            poly->getExteriorRing()->getPoint(ip, &p);
-                            ppt->x = p.getX();
-                            ppt->y = p.getY();
-                            ppt++;
-                        }
-
-
-                        obj->ring = NULL;
-                        int nInterior = poly->getNumInteriorRings();
-                        for (int i=0; i<nInterior; i++)
-                        {
-                            S57Obj *ringObj= new S57Obj;
-
-                            ringObj->Primitive_type = GEO_AREA;
-                            ringObj->npt  =      poly->getInteriorRing(i)->getNumPoints();
-                            ringObj->geoPt = (pt*)malloc((ringObj->npt) * sizeof(pt));
-                            pt *ppt = ringObj->geoPt;
-                            for(int ip = 0 ; ip < ringObj->npt ; ip++)
-                            {
-                                OGRPoint p;
-                                poly->getInteriorRing(i)->getPoint(ip, &p);
-                                ppt->x = p.getX();
-                                ppt->y = p.getY();
-                                ppt++;
-                            }
-
-//      Todo the linkage here is broken... also fix the object free code to walk the list
-                            ringObj->ring = obj->ring;
-                            obj->ring     = ringObj;
-
-                            poly->getInteriorRing(i)->getEnvelope(&Envelope);
-                            ringObj->BBObj.SetMin(Envelope.MinX, Envelope.MinY);
-                            ringObj->BBObj.SetMax(Envelope.MaxX, Envelope.MaxY);
-
-                            ringObj->Index = object_count;
-
-                        }
-                    }       //else not polytris
-
-//      Here is where the Boundary symbology type is set
-                    LUPtype = S52_LUPARRAY_AREA_PLN;
-//                                      LUPtype = S52_LUPARRAY_AREA_SYM;
-                    OGRgeo = poly;
-
-                    break;
-                }
-            }       //switch
-
-
-
-//              Look up the LUP for this object
-
-//              sw2.Pause();
-//              sw3.Resume();
-
-                //      Debug code for testing
-//              if(!strncmp(&szFeatureName[0], "DAYMAR", 6))
-//                      int ofit = 9;
-
-//              if(object_count == 394)
-//                      int uurt = 9;
-
-            if(obj)
-            {
-                LUP = ps52plib->S52_lookupA(LUPtype,szFeatureName,obj);
-
-//              Convert LUP to rules set
-                ps52plib->_LUP2rules(LUP, obj);
-
-
-//                      if(!strncmp(szFeatureName, "DEPARE", 6))
-//                              if(LUP->FTYP == LINES_T)
-//                                      int ofit = 9;
-
-//              Add linked object/LUP to the working set
-
-                _insertRules(obj,LUP);
-
-
-//              Pre Setup Envelop in S57OBJ for filtered access
-                if(OGRgeo)
-                {
-                    OGRgeo->getEnvelope(&Envelope);
-                    obj->BBObj.SetMin(Envelope.MinX, Envelope.MinY);
-                    obj->BBObj.SetMax(Envelope.MaxX, Envelope.MaxY);
-                }
-
-                obj->OGeo = OGRgeo;                                     // store the OGRGeometry in the s57obj
-
-                obj->Index = FEIndex;
-            }
-
-//              sw3.Pause();
-
-next_obj:
-        object_count++;
-//              if(object_count == 666)
-//                      int yywer = 8;
-
-                if((object_count % 500) == 0)
-                {
-                    nProg = object_count / 500;
-                    if(nProg > nGeo1000 - 1)
-                        nProg = nGeo1000 - 1;
-
-                    SENC_prog->Update(nProg);
-                }
-
-
-
-
-                continue;
-
-
-        }               //OGRF
-
-        else if(!strncmp(buf, "DATEUPD", 7))
-        {
-            date_upd.Append(wxString(&buf[8]).BeforeFirst('\n'));
         }
+        return true;
+    }
 
-        else if(!strncmp(buf, "DATE000", 7))
-        {
-            date_000.Append(wxString(&buf[8]).BeforeFirst('\n'));
-        }
-
-        else if(!strncmp(buf, "SCALE", 5))
-        {
-            int ins;
-            sscanf(buf, "SCALE=%d", &ins);
-            NativeScale = ins;
-        }
-
-        else if(!strncmp(buf, "NAME", 4))
-        {
-            pName->Append(wxString(&buf[5]).BeforeFirst('\n'));
-        }
-
-        else if(!strncmp(buf, "NOGR", 4))
-        {
-            sscanf(buf, "NOGR=%d", &nGeoFeature);
-
-            nGeo1000 = nGeoFeature / 500;
-
-            SENC_prog = new wxProgressDialog(  _T("OpenCPN S57 SENC File Load"),
-                                               pFullPath,
-                                               nGeo1000, NULL,
-                                               wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH
-                                            );
-        }
-
-
-    }                       //while(!dun)
-
-
-//      fclose(fpx);
-
-    free(buf);
-
-    free(hdr_buf);
-
-    delete SENC_prog;
-
- //   Decide on pub date to show
-
-    int d000 = atoi(wxString(date_000).Mid(0,4));
-    int dupd = atoi(wxString(date_upd).Mid(0,4));
-
-    if(dupd > d000)
-        pPubYear->Append(wxString(date_upd).Mid(0,4));
     else
-        pPubYear->Append(wxString(date_000).Mid(0,4));
-
-
-    return 1;
-}
-
-#endif  // 0
-
-/*
-void generate_tristrips(S57Obj *obj)
-{
-    gpc_tristrip *tristrip = new gpc_tristrip;
-
-
-//      Create the input structures
-
-        gpc_polygon poly;
-
-
-//      Poly vertices
-        gpc_vertex_list poly_vert;
-        gpc_vertex *pv = (gpc_vertex *)malloc(obj->npt * sizeof(gpc_vertex));
-
-        poly_vert.num_vertices = obj->npt-1;
-        poly_vert.vertex = pv;
-        double *pvd = (double *)pv;
-
-        pt *geor = obj->geoPt;
-        double x, y;
-        for(int i = 0 ; i < obj->npt-1 ; i++)
-{
-                x = geor->x;
-                y = geor->y;
-
-                *pvd++ = x;
-                *pvd++ = y;
-
-                geor++;
-}
-
-        poly.num_contours = 1;
-        poly.contour = &poly_vert;
-
-
-        gpc_polygon_to_tristrip(&poly,tristrip);
-
-
-}
-*/
-
-#if 0
-void triangulate(S57Obj *obj)
-{
-    int cntr[2];
-
-// Allocate all the memory required
-
-    double  *vertices = (double *)malloc((obj->npt + 1) * 2 * sizeof(double));
-    int *tris = (int *)malloc(1000/*obj->npt*/ * 3 * sizeof(int));
-
-//      Fill in the vertex array
-
-    double *vr = vertices;
-    vr++;
-    vr++;                                           // Start at index 1
-
-    pt *pr = obj->geoPt;
-
-    int n = obj->npt - 1;
-/*
-    for(int j=0 ; j<obj->npt ; j++)
-    pr++;
-    pr--;
-*/
-    for(int i=0 ; i<n ; i++)
     {
-//              *vr++ = (pr->x + 76.0) * 1000.;
-//              *vr++ = (pr->y - 38.0) * 1000.;
-        *vr++ = pr->x;
-        *vr++ = pr->y;
-
-        pr++;
+        delete poDS;
+        *pDS = NULL;
+        return false;
     }
 
-
-//      Countour points
-    cntr[0] = n;
-
-//      Triangulate
-
-    int ntri = triangulate_polygon(1, cntr, (double (*)[2])vertices, (int (*)[3])tris);
-
-    pr = obj->geoPt;
-    pt *ptt1;
-    pt *ptt2;
-    pt *ptt3;
-
-    int *trif = (int *)tris;
-
-    int ir = 0;
-    for(int it = 0 ; it < ntri ; it++)
-    {
-        *trif++ = (int)&pr[tris[ir++]];
-        *trif++ = (int)&pr[tris[ir++]];
-        *trif++ = (int)&pr[tris[ir++]];
-    }
-
-//      obj->trip = (pt **)tris;
-//      obj->ntri = ntri;
-
 }
 
-
-#endif
-
-#if 0
-int CreateAndAddAttribute(char *buf, OGRFeature *poFeature)
+//----------------------------------------------------------------------------------
+// GetNext Chart M_COVR Object
+// Directly from the ios8211 file
+// Companion to s57_GetChartFirstM_COVR
+//              n.b. Caller still owns the data source and the feature on success
+//----------------------------------------------------------------------------------
+bool s57_GetChartNextM_COVR(OGRDataSource *pDS, OGRLayer *pLayer, OGRFeature *pLastFeature,
+                                OGRFeature **pFeature, int &catcov)
 {
 
 
-    char szAtt[20];
-    char *br;
+    if( pDS == NULL )
+        return false;
 
-    OGRFeatureDefn *poFDefn = poFeature->GetDefnRef();
+    catcov = -1;
 
-    if(strstr(buf, "(Integer)"))
+
+    int fid = pLastFeature->GetFID();
+
+    OGRFeature *objectDef = pLayer->GetFeature(fid + 1);
+    *pFeature = objectDef;                  // Give to caller
+
+    if(objectDef)
     {
-        OGRFieldDefn        oField( "", OFTInteger );
-        br = buf+2;
-        int i=0;
-        while(*br != ' ')
+        for( int iField = 0; iField < objectDef->GetFieldCount(); iField++ )
         {
-            szAtt[i++] = *br;
-            br++;
-        }
-
-        szAtt[i] = 0;
-
-        oField.Set( szAtt, OFTInteger, 10, 0 );
-        poFDefn->AddFieldDefn( &oField );
-
-        while(*br != '=')
-            br++;
-
-        br += 2;
-
-        poFeature->SetField(poFeature->GetFieldCount()-1, br);
-    }
-
-    else if(strstr(buf, "(String)"))
-    {
-        if(!strstr(buf, "(null)"))
-        {
-            OGRFieldDefn        oField( "", OFTString );
-            br = buf+2;
-            int i=0;
-            while(*br != ' ')
+            if( objectDef->IsFieldSet( iField ) )
             {
-                szAtt[i++] = *br;
-                br++;
+                OGRFieldDefn *poFDefn = objectDef->GetDefnRef()->GetFieldDefn(iField);
+                if(!strcmp(poFDefn->GetNameRef(), "CATCOV"))
+                    catcov = objectDef->GetFieldAsInteger( iField );
             }
-
-            szAtt[i] = 0;
-
-            while(*br != '=')
-                br++;
-
-            br += 2;
-
-            oField.Set( szAtt, OFTString, 10, 0 );
-            poFDefn->AddFieldDefn( &oField );
         }
+        return true;
     }
-    return 0;
-
-
-
-
-    OGRFieldDefn        oField( "", OFTInteger );
-
-    /* -------------------------------------------------------------------- */
-    /*      RCID                                                            */
-    /* -------------------------------------------------------------------- */
-    if(!strncmp(buf, "  RCID", 6))
-    {
-        oField.Set( "RCID", OFTInteger, 10, 0 );
-        poFDefn->AddFieldDefn( &oField );
-    }
-
-    /* -------------------------------------------------------------------- */
-    /*      PRIM                                                            */
-    /* -------------------------------------------------------------------- */
-    else if(!strncmp(buf, "  PRIM", 6))
-    {
-        oField.Set( "PRIM", OFTInteger, 3, 0 );
-        poFDefn->AddFieldDefn( &oField );
-    }
-
-    /* -------------------------------------------------------------------- */
-    /*      GRUP                                                            */
-    /* -------------------------------------------------------------------- */
-    else if(!strncmp(buf, "  GRUP", 6))
-    {
-        oField.Set( "GRUP", OFTInteger, 3, 0 );
-        poFDefn->AddFieldDefn( &oField );
-    }
-
-    /* -------------------------------------------------------------------- */
-    /*      OBJL                                                            */
-    /* -------------------------------------------------------------------- */
-    else if(!strncmp(buf, "  OBJL", 6))
-    {
-        oField.Set( "OBJL", OFTInteger, 5, 0 );
-        poFDefn->AddFieldDefn( &oField );
-    }
-
-    /* -------------------------------------------------------------------- */
-    /*      RVER                                                            */
-    /* -------------------------------------------------------------------- */
-    else if(!strncmp(buf, "  RVER", 6))
-    {
-        oField.Set( "RVER", OFTInteger, 3, 0 );
-        poFDefn->AddFieldDefn( &oField );
-    }
-
-    /* -------------------------------------------------------------------- */
-    /*      AGEN                                                            */
-    /* -------------------------------------------------------------------- */
-    else if(!strncmp(buf, "  AGEN", 6))
-    {
-        oField.Set( "AGEN", OFTInteger, 5, 0 );
-        poFDefn->AddFieldDefn( &oField );
-    }
-
-    /* -------------------------------------------------------------------- */
-    /*      FIDN                                                            */
-    /* -------------------------------------------------------------------- */
-    else if(!strncmp(buf, "  FIDN", 6))
-    {
-        oField.Set( "FIDN", OFTInteger, 10, 0 );
-        poFDefn->AddFieldDefn( &oField );
-    }
-
-    /* -------------------------------------------------------------------- */
-    /*      FIDS                                                            */
-    /* -------------------------------------------------------------------- */
-    else if(!strncmp(buf, "  FIDS", 6))
-    {
-        oField.Set( "FIDS", OFTInteger, 5, 0 );
-        poFDefn->AddFieldDefn( &oField );
-    }
-
-    return 0;
+    return false;
 }
 
-#endif
+
+//----------------------------------------------------------------------------------
+// Get Chart Extents
+//----------------------------------------------------------------------------------
+bool s57_GetChartExtent(char *pFullPath, Extent *pext)
+{
+ //   Fix this  find extents of which?? layer??
+/*
+    OGRS57DataSource *poDS = new OGRS57DataSource;
+    poDS->Open(pFullPath, TRUE);
+
+    if( poDS == NULL )
+    return false;
+
+    OGREnvelope Env;
+    S57Reader   *poReader = poDS->GetModule(0);
+    poReader->GetExtent(&Env, true);
+
+    pext->NLAT = Env.MaxY;
+    pext->ELON = Env.MaxX;
+    pext->SLAT = Env.MinY;
+    pext->WLON = Env.MinX;
+
+    delete poDS;
+*/
+    return true;
+
+}
+
+//----------------------------------------------------------------------------------
+//      ddfrecord_test
+//----------------------------------------------------------------------------------
+
+        /*
+        GDAL/OGR 1.2.0 may have a bug in ddfrecord.cpp
+        The bug is manifest on ENC updates only.
+        This behaviour has been observed on ddfrecord.cpp Version 1.25 and earlier,
+        and is corrected in ddfrecord.cpp Version 1.27 and above.
+
+        This (relatively) safe run-time test will identify the pathology
+        allowing run-time election of ENC update policy
+        */
+
+bool s57_ddfrecord_test()
+{
+        // Create a ddfrecord and populate the two simple text fields
+
+    DDFRecord dr(NULL);
+    DDFFieldDefn dfd1;
+    DDFFieldDefn dfd2;
+
+    dfd1.Create("tag1", "name", NULL, dsc_elementary, dtc_char_string);
+    dfd1.AddSubfield( "sub1", "A" );
+    dr.AddField( &dfd1 );
+    dr.SetStringSubfield( "tag1", 0, "sub1",0, "testlongrrrrrrrrrrrrrrrrrrrr11");
+
+    dfd2.Create("tag2", "name", NULL, dsc_elementary, dtc_char_string);
+    dfd2.AddSubfield( "sub21", "A" );
+    dr.AddField( &dfd2 );
+    dr.SetStringSubfield( "tag2", 0, "sub21",0, "testlonggggggggggggggggggggg21");
+
+
+        //  The hallmark of obsolete ddfrecord code is that shortening a data record
+        //  corrupts some data following the shortened target
+
+    char buf1[40], buf2[40];
+        // get reference copy
+    const char *before = dr.GetStringSubfield( "tag2", 0, "sub21", 0);
+    strcpy(buf1, before);
+
+        // Shorten early data
+    dr.SetStringSubfield( "tag1", 0, "sub1",0, "test12a");
+
+        //  and get it again
+    const char *after = dr.GetStringSubfield( "tag2", 0, "sub21", 0);
+    strcpy(buf2, after);
+
+    if(strcmp(buf1, buf2))
+        return false;
+    else
+        return true;
+
+//        dr.Dump(stderr);
+
+}
+
+
+
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 

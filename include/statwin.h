@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: statwin.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  Status Window
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: statwin.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:38:23  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.4  2006/08/04 11:43:37  dsr
  * no message
@@ -123,6 +126,7 @@ private:
 DECLARE_EVENT_TABLE()
 };
 
+#ifdef USE_WIFI_CLIENT
 //----------------------------------------------------------------------------
 // WiFiStatWin
 //----------------------------------------------------------------------------
@@ -143,11 +147,9 @@ class WiFiStatWin: public wxWindow
         void DrawBars(wxDC &dc, int x, int y, int box_width, int box_height, int val);
 
 
-//        wxBrush     *pqual_loBrush;
-//        wxBrush     *pqual_midBrush;
-//        wxBrush     *pqual_connBrush;
         wxBrush     *pqual_hiBrush;
         wxBrush     *psecureBrush;
+
         wxBrush     *pqual_hiNewBrush;
         wxBrush     *psecureNewBrush;
 
@@ -161,7 +163,7 @@ class WiFiStatWin: public wxWindow
 
         DECLARE_EVENT_TABLE()
 };
-
+#endif
 
 
 //----------------------------------------------------------------------------

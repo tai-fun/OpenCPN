@@ -105,7 +105,7 @@ static int initialise(int);
 static int alloc_mem(int, int[]);
 
 
-//CPL_CVSID("$Id: tri.c,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+//CPL_CVSID("$Id: tri.c,v 1.2 2006/09/21 01:37:37 dsr Exp $");
 
 
 
@@ -171,7 +171,7 @@ static int mon[SEGSIZE];        /* contains position of any vertex in */
                                 /* the monotone chain for the polygon */
 static int visited[TRSIZE];
 static int permute[SEGSIZE];
-
+static int rc[SEGSIZE];
 #else
 static node_t *qs;
 static trap_t *tr;
@@ -182,6 +182,9 @@ static vertexchain_t *vert;
 static int *mon;
 static int *visited;
 static int *permute;
+static int *triangles;
+static int *rc;
+
 #endif
 
 
@@ -222,6 +225,12 @@ static int alloc_mem(int ncontours, int contours[])
     mon = (int *)calloc(nsegp * sizeof(int), 1);
     visited = (int *)calloc(nsegp * 5 * sizeof(int), 1);
     permute = (int *)calloc(nsegp * sizeof(int), 1);
+
+    triangles = (int *)calloc(nsegp * 10 * sizeof(int), 1);
+    rc = (int *)calloc(nsegp * 10 * sizeof(int), 1);
+
+//    printf("alloc nsegp = %d\n", nsegp);
+
 #endif
 
     return 0;
@@ -323,8 +332,6 @@ polyout *trapezate_polygon(ncontours, cntr, vertices)
 
 //  Create output data structure
 
-
-
   pplast = NULL;
   top = NULL;
 
@@ -375,12 +382,13 @@ polyout *trapezate_polygon(ncontours, cntr, vertices)
     free(tr);
     free(qs);
 
-
     free(mchain);
     free(vert);
     free(mon);
     free(visited);
     free(permute);
+    free(triangles);
+    free(rc);
 #endif
 
 
@@ -428,23 +436,31 @@ polyout *trapezate_polygon(ncontours, cntr, vertices)
  *           vertices[0] must NOT be used (i.e. i/p starts from
  *           vertices[1] instead. The output triangles are
  *           specified  w.r.t. the indices of these vertices.
- * triangles: Output array to hold triangles.
  *
  * Enough space must be allocated for all the arrays before calling
  * this routine
  */
 
 
-int triangulate_polygon(ncontours, cntr, vertices, triangles)
+polyout *triangulate_polygon(ncontours, cntr, vertices)
      int ncontours;
      int cntr[];
      double (*vertices)[2];
-     int (*triangles)[3];
+
 {
   register int i;
   int nmonpoly, ccount, npoints, genus;
   int n;
   int ntri;
+  int p, q;
+  int vt0, vt1;
+  int vfirst;
+
+  polyout *top;
+  polyout *pp;
+  polyout *pplast;
+
+  alloc_mem(ncontours, cntr);
 
 #ifdef STATIC
   memset((void *)seg, 0, sizeof(seg));
@@ -497,9 +513,96 @@ int triangulate_polygon(ncontours, cntr, vertices, triangles)
   initialise(n);
   construct_trapezoids(n);
   nmonpoly = monotonate_trapezoids(n);
-  ntri  = triangulate_monotone_polygons(n, nmonpoly, triangles);
 
-  return ntri;
+  //    Check polys
+  //    There are some bugs in this code, yet.
+  //    Especially, some poly chains are corrupt, and there
+  //    is some over-writing of input data somewhere.
+  //    Check for these conditions peephole-wise, and ignore
+  //    any triangualtion results if found.   Sigh....
+  //    Todo:  Look at this some more
+
+  for (i = 0; i < nmonpoly; i++)
+  {
+      vfirst = mchain[mon[i]].vnum;
+
+      p = mchain[mon[i]].next;
+      while (mchain[p].vnum != vfirst)
+      {
+
+          vt0 = mchain[p].vnum;
+
+          q = mchain[p].next;
+          while(mchain[q].vnum != vfirst)
+          {
+              vt1 = mchain[q].vnum;
+
+              if(vt1 == vt0)
+                  return NULL;
+
+              q = mchain[q].next;
+          }
+
+          if(vert[vt0].pt.y < 5.0)
+              return NULL;
+
+          p = mchain[p].next;
+      }
+  }
+
+
+
+
+
+
+
+  ntri  = triangulate_monotone_polygons(n, nmonpoly, (int (*)[3])triangles);
+
+//  Create output data structure
+
+  pplast = NULL;
+  top = NULL;
+
+  for (i = 0; i < ntri; i++)
+  {
+      pp = calloc(sizeof(polyout), 1);
+      pp->is_valid = 1;
+      pp->id_poly = i;
+
+      pp->nvert = 3;
+      pp->vertex_index_list = (int *)malloc(3 * sizeof(int));
+
+
+      pp->vertex_index_list[0] = triangles[(i*3) + 0];
+      pp->vertex_index_list[1] = triangles[(i*3) + 1];
+      pp->vertex_index_list[2] = triangles[(i*3) + 2];
+
+     if(NULL != pplast)
+          pplast->poly_next = pp;
+
+      if(NULL == top)
+          top = pp;
+
+//  prepare next link
+      pplast= pp;
+  }
+
+#ifndef STATIC
+    free(seg);
+    free(tr);
+    free(qs);
+
+    free(mchain);
+    free(vert);
+    free(mon);
+    free(visited);
+    free(permute);
+    free(triangles);
+    free(rc);
+#endif
+
+
+  return top;
 }
 
 
@@ -1323,9 +1426,28 @@ int triangulate_monotone_polygons(nvert, nmonpoly, op)
   sprintf(s, "\n");
 #endif
 
+ if(nvert == 10709)
+{
+    op_idx = 5;
+    i=6;
+}
+
   op_idx = 0;
   for (i = 0; i < nmonpoly; i++)
     {
+
+        if((i == 183) && (1899 == nmonpoly))
+        {
+            vfirst = mchain[mon[i]].vnum;
+            printf("vert index %d %f %f\n", vfirst, vert[vfirst].pt.x, vert[vfirst].pt.y);
+            p = mchain[mon[i]].next;
+            while ((v = mchain[p].vnum) != vfirst)
+            {
+                printf("vert index %d %f %f\n", v, vert[v].pt.x, vert[v].pt.y);
+                p = mchain[p].next;
+            }
+        }
+
       vcount = 1;
       processed = FALSE;
       vfirst = mchain[mon[i]].vnum;
@@ -1358,6 +1480,9 @@ int triangulate_monotone_polygons(nvert, nmonpoly, op)
        }
 
       if (processed)            /* Go to next polygon */
+        continue;
+
+      if(vcount < 3)            // something bogus....
         continue;
 
       if (vcount == 3)          /* already a triangle */
@@ -1399,7 +1524,7 @@ static int triangulate_single_polygon(nvert, posmax, side, op)
      int op[][3];
 {
   register int v;
-  int rc[SEGSIZE], ri = 0;      /* reflex chain */
+  int ri = 0;      /* reflex chain */
   int endv, tmp, vpos;
 
   if (side == TRI_RHS)          /* RHS segment is a single segment */

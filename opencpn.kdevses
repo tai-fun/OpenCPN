@@ -1,37 +1,67 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="10" >
+ <DocsAndViews NumberOfDocuments="20" >
   <Doc0 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/chart1.cpp" >
    <View0 Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/s57chart.cpp" >
-   <View0 line="4023" Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/mygeom.cpp" >
+   <View0 line="173" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/chcanv.cpp" >
-   <View0 line="2034" Type="Source" />
+  <Doc2 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/s57chart.cpp" >
+   <View0 line="3410" Type="Source" />
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/dialog/options.cpp" >
-   <View0 line="703" Type="Source" />
+  <Doc3 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/include/mygeom.h" >
+   <View0 line="168" Type="Source" />
   </Doc3>
   <Doc4 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/s52plib.cpp" >
-   <View0 line="4178" Type="Source" />
+   <View0 line="2675" Type="Source" />
   </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/navutil.cpp" >
-   <View0 line="2458" Type="Source" />
+  <Doc5 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/include/s52plib.h" >
+   <View0 line="277" Type="Source" />
   </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/mygeom.cpp" >
-   <View0 line="1143" Type="Source" />
+  <Doc6 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/wificlient.cpp" >
+   <View0 line="115" Type="Source" />
   </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/s57mgr.cpp" >
-   <View0 line="0" Type="Source" />
+  <Doc7 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/chcanv.cpp" >
+   <View0 line="2067" Type="Source" />
   </Doc7>
   <Doc8 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/README" >
-   <View0 line="73" Type="Source" />
+   <View0 line="168" Type="Source" />
   </Doc8>
-  <Doc9 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/Makefile.am" >
-   <View0 line="0" Type="Source" />
+  <Doc9 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/makefile.vc" >
+   <View0 line="193" Type="Source" />
   </Doc9>
+  <Doc10 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/Makefile.am" >
+   <View0 line="32" Type="Source" />
+  </Doc10>
+  <Doc11 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/configure.in" >
+   <View0 line="0" Type="Source" />
+  </Doc11>
+  <Doc12 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/dialog/options.cpp" >
+   <View0 line="376" Type="Source" />
+  </Doc12>
+  <Doc13 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/dialog/options.h" >
+   <View0 line="230" Type="Source" />
+  </Doc13>
+  <Doc14 NumberOfViews="1" URL="file:///usr/local/lib/wx/include/x11univ-ansi-debug-static-2.6/wx/setup.h" >
+   <View0 line="46" Type="Source" />
+  </Doc14>
+  <Doc15 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/routeman.cpp" >
+   <View0 line="120" Type="Source" />
+  </Doc15>
+  <Doc16 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/tcmgr.cpp" >
+   <View0 line="63" Type="Source" />
+  </Doc16>
+  <Doc17 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/wvschart.cpp" >
+   <View0 line="77" Type="Source" />
+  </Doc17>
+  <Doc18 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/src/statwin.cpp" >
+   <View0 line="438" Type="Source" />
+  </Doc18>
+  <Doc19 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn/include/statwin.h" >
+   <View0 line="149" Type="Source" />
+  </Doc19>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
@@ -42,9 +72,9 @@
   </kdevbookmarks>
   <kdevvalgrind>
    <executable path="" params="" />
-   <valgrind path="" params="" />
-   <calltree path="" params="" />
-   <kcachegrind path="" />
+   <valgrind path="/usr/bin/valgrind" params="--tool=memcheck --tool=memcheck --tool=memcheck --tool=memcheck --tool=memcheck --leak-check=yes" />
+   <calltree path="calltree" params=" --trace-children=yes" />
+   <kcachegrind path="/usr/bin/kcachegrind" />
   </kdevvalgrind>
  </pluginList>
 </KDevPrjSession>

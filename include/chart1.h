@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: chart1.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:38:23  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/07/28 20:47:50  dsr
  * Cleanup
@@ -198,7 +201,7 @@ class MyFrame: public wxFrame
     void OnExit(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
     void OnTimer1(wxTimerEvent& event);
-    void DoChartUpdate(int bSelectType);
+    bool DoChartUpdate(int bSelectType);
     void OnEvtNMEA(wxCommandEvent& event);
     void OnChar(wxKeyEvent &event);
 

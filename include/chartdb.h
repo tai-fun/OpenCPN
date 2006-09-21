@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: chartdb.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:38:23  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.4  2006/07/05 02:33:48  dsr
  * DB Version 13
@@ -161,7 +164,7 @@ public:
       bool CopyStack(ChartStack *pa, ChartStack *pb);
       bool GetFullPath(ChartStack *ps, int stackindex, char *buf);
       bool GetChartID(ChartStack *ps, int stackindex, char *buf);
-      int  GetChartScale(ChartStack *ps, int stackindex, char *buf);
+      int  GetStackChartScale(ChartStack *ps, int stackindex, char *buf);
       int  GetCSPlyPoint(ChartStack *ps, int stackindex, int plyindex, float *lat, float *lon);
       int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);
       int  GetCSChartType(ChartStack *ps, int stackindex);

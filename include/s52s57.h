@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: s52s57.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:38:23  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.5  2006/07/28 20:47:57  dsr
  * Cleanup
@@ -149,8 +152,8 @@ typedef enum _LUPname{
 typedef enum _DisCat{
    DISPLAYBASE          = 'D',            //
    STANDARD             = 'S',            //
-   OTHER                = '0',            //
-   MARINERS_STANDARD,                     // value not defined
+   OTHER                = 'O',            // O for OTHER
+   MARINERS_STANDARD    = 'M',            // Mariner specified
    MARINERS_OTHER,                        // value not defined
    DISP_CAT_NUM,                          // value not defined
 }DisCat;
@@ -188,28 +191,27 @@ typedef struct _position{
    union          {int              LIHL,       PAHL,       SYHL;       } bnbox_w;
    union          {int              LIVL,       PAVL,       SYVL;       } bnbox_h;
    union          {int              LBXC,       PBXC,       SBXC;       } bnbox_x; // UpLft crnr
-   union    {int              LBXR,       PBXR,       SBXR;       } bnbox_y; // UpLft crnr
+   union          {int              LBXR,       PBXR,       SBXR;       } bnbox_y; // UpLft crnr
 }position;
 
 // rule parameter for : LINE,       PATTERN,    SYMBOL
 typedef struct _Rule{
    int            RCID;
-   union    {char             LINM[8],    PANM[8], SYNM[8]; } name;
-   union          {char             dummy,      PADF,       SYDF; } definition;
+   union          {char             LINM[8],    PANM[8], SYNM[8];       } name;
+   union          {char             dummy,      PADF,       SYDF;       } definition;
    union          {char             dummy1,     PATP,       dummy2;     } fillType;
    union          {char             dummy1,     PASP,       dummy2;     } spacing;
    union          {position   line,       patt,       symb;       } pos;
    union          {wxString   *LXPO,      *PXPO,      *SXPO;      } exposition;
    union          {wxString   *dummy,     *PBTM,      *SBTM;      } bitmap;
-   union          {wxString   *LCRF,  *PCRF,  *SCRF;  } colRef;
+   union          {wxString   *LCRF,      *PCRF,      *SCRF;      } colRef;
    union          {wxString   *LVCT,      *PVCT,      *SVCT;      } vector;
 
-   union{                                 // not a S52 field
-      unsigned int            pattName;   // pattern name (in fact its a GLuint)
-      unsigned int            listName;   // display list (in fact its a GLuint)
-      void    *pixelPtr;                  // pixel data in processor memory
-   }userData;
-}Rule;
+   // Private data
+   int     parm1;                      // integer parameter
+   void    *pixelPtr;                  // opaque pointer
+
+   }Rule;
 
 typedef struct _Rules{
    Rules_t  ruleType;
@@ -363,8 +365,7 @@ typedef struct _opt{
 class s57chart;
 class S57Obj;
 class OGRFeature;
-class polygroup;
-class PolyGeo;
+class PolyTessGeo;
 
 
 class S57Obj
@@ -403,15 +404,10 @@ public:
       pt                      *geoPt;                 // for LINE & AREA
       S57Obj                  *ring;                  // list of interior ring
 
-      polygroup               *MPoly;
-
-      gpc_tristrip            *Tristrip;
-
-      PolyGeo                 *pPolyGeo;
+      PolyTessGeo             *pPolyTessGeo;
 
 
       wxBoundingBox           BBObj;
-      wxBoundingBox           *BBStripArray;
 
       Rules                   *CSrules;               // per object conditional symbology
       int                     bCS_Added;
@@ -436,7 +432,7 @@ typedef struct _ObjRazRules{
 }ObjRazRules;
 
 
-
+/*
 class polygroup
 {
 public:
@@ -448,7 +444,7 @@ public:
     int         *pct_array;
     polygroup   *next;
 };
-
+*/
 
 
 

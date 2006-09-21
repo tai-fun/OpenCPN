@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: s52cnsy.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,8 +29,11 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:36  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.5  2006/08/04 11:42:02  dsr
  * no message
@@ -50,8 +53,13 @@
  *
  */
 
+#include "wx/wxprec.h"
+
+#ifndef  WX_PRECOMP
+#include "wx/wx.h"
+#endif //precompiled headers
+
 #include "dychart.h"
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 
 #include "s57chart.h"
 #include "s52plib.h"
@@ -63,10 +71,10 @@ extern bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val);
 // size of attributes value list buffer
 #define LISTSIZE   16   // list size
 
-#include "cpl_conv.h"
 
 extern s52plib  *ps52plib;
 
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 
 static void *CLRLIN01(void *param)
 {

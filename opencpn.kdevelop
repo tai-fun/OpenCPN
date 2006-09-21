@@ -49,12 +49,11 @@
       </debug>
       <default>
         <envvars/>
-        <configargs>--enable-debug=full
-</configargs>
+        <configargs>--enable-debug=full --with-gdal-internal --with-wx-config=/home/dsr/Projects/wxWidgets/wxGTK-2.6.2/build_gtk_debug/wx-config</configargs>
         <builddir/>
         <topsourcedir>/home/dsr/Projects/opencpn</topsourcedir>
         <cppflags/>
-        <ldflags/>
+        <ldflags>-lGL -lGLU</ldflags>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>

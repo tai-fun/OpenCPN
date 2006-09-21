@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: routeman.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/09/21 01:37:36  dsr
+ * Major refactor/cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/08/04 11:42:02  dsr
  * no message
@@ -50,16 +53,13 @@
  *
  */
 
-#include "dychart.h"
-
-CPL_CVSID("$Id: routeman.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
-
-
 #include "wx/wxprec.h"
 
 #ifndef  WX_PRECOMP
   #include "wx/wx.h"
 #endif //precompiled headers
+
+#include "dychart.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -84,24 +84,24 @@ CPL_CVSID("$Id: routeman.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 static float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
 
-
-extern ChartBase                *Current_Ch;
+extern ChartBase        *Current_Ch;
 extern ChartCanvas      *cc1;
 extern ConsoleCanvas    *console;
-//extern NMEAWindow               *nmea;
 
-extern RouteList              *pRouteList;
+extern RouteList        *pRouteList;
 extern Select           *pSelect;
 extern MyConfig         *pConfig;
 extern NMEA0183         *pNMEA0183;
 extern AutoPilotWindow  *pAPilot;
 
 extern float            gLat, gLon, gSog, gCog;
-extern bool                     bAutoPilotOut;
+extern bool             bAutoPilotOut;
 
 #ifndef PI
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
+
+CPL_CVSID("$Id: routeman.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"

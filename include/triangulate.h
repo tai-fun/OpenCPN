@@ -78,7 +78,7 @@ typedef struct {
 } polyout;
 
 
-extern int triangulate_polygon(int, int *, double (*)[2], int (*)[3]);
+//extern int triangulate_polygon(int, int *, double (*)[2], int (*)[3]);
 extern int is_point_inside_polygon(double *);
 //extern polyout *trapezate_polygon(int, int *, double (*)[2]);
 
