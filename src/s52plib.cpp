@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
+ * $Id: s52plib.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.3  2006/10/01 03:22:58  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -112,7 +115,7 @@ extern "C" void gpc_polygon_clip(gpc_op       operation,
 
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -1295,7 +1298,7 @@ int s52plib::_parsePATT(FILE *fp)
 }
 
 
-//void DestroyRuleNode(Rule *pR);
+void DestroyRuleNode(Rule *pR);
 
 int s52plib::_parseSYMB(FILE *fp, RuleHash *pHash)
 {
@@ -1369,7 +1372,7 @@ int s52plib::_parseSYMB(FILE *fp, RuleHash *pHash)
                     if(symb->name.SYNM != symbtmp->name.SYNM)   // if the pattern names are not identical
                     {
                         (*pHash)[key] = symb;                    // replace the pattern
-//                        DestroyRuleNode(symbtmp);         // remember to free to replaced node
+                        DestroyRuleNode(symbtmp);         // remember to free to replaced node
                                                          // the node itself is destroyed as part of pAlloc
                     }
 
@@ -4012,24 +4015,37 @@ int s52plib::dda_tri(wxPoint *ptp, color *c,
 
     if(pb_spec->depth == 24)
     {
-            for(int iyp = ya ; iyp <= yb ; iyp++)
+            for(int iyp = ya ; iyp < yb ; iyp++)
             {
-                    if((iyp >= yt) && (iyp < ybt))
+                    if((iyp >= ybt) && (iyp < yt))
                     {
                             int yoff = (iyp - pb_spec->y) * pb_spec->pb_pitch;
 
                             unsigned char *py =  pix_buff + yoff;
                             unsigned char *pym = pbm      + yoff;
 
-                            int ix = ledge[iyp];
-                            if(ix != -1)                    // special clip case
+                            int ix, ixm;
+                            if(cw)
+                            {
+                                ix = ledge[iyp];
+                                ixm = redge[iyp];
+                            }
+                            else
+                            {
+                                ixm = ledge[iyp];
+                                ix = redge[iyp];
+                            }
+
+//                           int ix = ledge[iyp];
+//                            if(ix != -1)                    // special clip case
+                            if(ledge[iyp] != -1) 
                             {
                                     int xoff = (ix-pb_spec->x) * 3;
 
                                     unsigned char *px =  py  + xoff;
                                     unsigned char *pxm = pym + xoff;
 
-                                    int ixm = redge[iyp];
+ //                                   int ixm = redge[iyp];
 
                                     if(mask)                 // use the mask
                                     {
@@ -4203,387 +4219,6 @@ int s52plib::dda_tri(wxPoint *ptp, color *c,
     return true;
 }
 
-/*
-
-//----------------------------------------------------------------------------------
-//
-//              Fast Basic Canvas Rendering
-//              Render polygon
-//              Polygons restricted as follows:
-//                  Simple Monotonic
-//                  Clockwise winding
-//
-//----------------------------------------------------------------------------------
-int s52plib::dda_poly(int nvert, int ivmin, int ivmax, wxPoint *ptp, color *c,
-                      render_canvas_parms *pb_spec,
-                      render_canvas_parms *mask,
-                      render_canvas_parms *pPatt_spec)
-
-{
-    unsigned char r, g, b;
-
-    if(NULL != c)
-    {
-#ifdef dyUSE_BITMAPO_S57
-        r = c->R;
-        g = c->G;
-        b = c->B;
-#else
-        b = c->R;
-        g = c->G;
-        r = c->B;
-#endif
-    }
-
-    //      Debug code for color filtering
-//  r = istrip % 2  * 255; //c->R;
-//  g = 0; //c->G;
-//  b = (istrip % 2 + 1)  * 255; //c->R;
-
-//              Create and clear the edge arrays
-
-//    memset(ledge, 0, 1500 * sizeof(int));
-//    memset(redge, 0, 1500 * sizeof(int));
-
-    //      Create edge arrays using fast integer DDA
-
-    int i, m, x, dy, count;
-
-
-    if((ptp[0].y >= 0 ) && (ptp[0].y < 1500))
-        ledge[ptp[0].y] = ptp[0].x;
-
-    for(i=0 ; i<ivmax ; i++)                         // left edge
-    {
-        dy = (ptp[i].y - ptp[i+1].y);
-        if(dy)
-        {
-            m = (ptp[i+1].x - ptp[i].x) << 16;
-            m /= dy;
-
-            x = ptp[i].x << 16;
-            x += m;
-
-            for (count = ptp[i].y - 1; count >= ptp[i+1].y; count--)
-            {
-                if((count >= 0 ) && (count < 1500))
-                    ledge[count] = x >> 16;
-                x += m;
-            }
-        }
-        else
-        {
-            if((ptp[i].y >= 0 ) && (ptp[i].y < 1500))
-                ledge[ptp[i].y] = __min(ledge[ptp[i].y], ptp[i+1].x);
-        }
-    }
-
-    if((ptp[ivmax].y >= 0 ) && (ptp[ivmax].y < 1500))
-        redge[ptp[ivmax].y] = ptp[ivmax].x;
-
-
-    for(i=ivmax ; i<nvert-1 ; i++)                              // right edge
-    {
-        dy = (ptp[i+1].y - ptp[i].y);
-        if(dy)
-        {
-            m = (ptp[i+1].x - ptp[i].x) << 16;
-            m /= dy;
-
-            x = ptp[i].x << 16;
-            x += m;
-
-            for (count = ptp[i].y + 1; count <= ptp[i+1].y; count++)
-            {
-                if((count >= 0 ) && (count < 1500))
-                    redge[count] = x >> 16;
-                x += m;
-            }
-        }
-        else
-        {
-            if((ptp[i].y >= 0 ) && (ptp[i].y < 1500))
-                redge[ptp[i].y] = __max(redge[ptp[i].y], ptp[i+1].x);
-        }
-    }
-
-
-    {                                                                       // closing edge
-        dy = (ptp[0].y - ptp[nvert-1].y);
-        if(dy)
-        {
-            m = (ptp[0].x - ptp[nvert-1].x) << 16;
-            m /= dy;
-
-            x = ptp[nvert-1].x << 16;
-            for (count = ptp[nvert-1].y+1; count <= ptp[0].y; count++)
-            {
-                if((count >= 0 ) && (count < 1500))
-                    redge[count] = x >> 16;
-                x += m;
-            }
-        }
-        else
-        {
-            count = ptp[nvert-1].y;
-            if((count >= 0 ) && (count < 1500))
-                redge[count] = ptp[nvert-1].x;
-        }
-    }
-
-
-
-    //              Clip the polygon
-
-    int y1 = ptp[ivmax].y;
-    int y2 = ptp[0].y;
-
-    int yt = pb_spec->y;
-    int ybt = pb_spec->y + pb_spec->height;
-
-    if(y1 < yt)
-        y1 = yt;
-    if(y1 > ybt)
-        y1 = ybt;
-
-    if(y2 < yt)
-        y2 = yt;
-    if(y2 > ybt)
-        y2 = ybt;
-
-    int lclip = pb_spec->lclip;
-    int rclip = pb_spec->rclip;
-
-    for(int iy = y1 ; iy <= y2 ; iy++)
-    {
-
-        if(ledge[iy] < lclip)
-        {
-            if(redge[iy] < lclip)
-            {
-                ledge[iy] = -1;
-            }
-            else
-                ledge[iy] = lclip;
-        }
-
-        if(redge[iy] > rclip)
-        {
-            if(ledge[iy] > rclip)
-            {
-                ledge[iy] = -1;
-            }
-            else
-                redge[iy] = rclip;
-        }
-    }
-
-
-    //              Fill the polygon
-
-    int ya = y1;
-    int yb = y2;
-
-    unsigned char *pix_buff = pb_spec->pix_buff;
-    unsigned char *pbm=0;
-    if(mask)
-        pbm = mask->pix_buff;
-
-    int patt_size_x, patt_size_y, patt_pitch;
-    unsigned char *patt_s0;
-    if(pPatt_spec)
-    {
-        patt_size_y = pPatt_spec->height;
-        patt_size_x = pPatt_spec->width;
-        patt_pitch =  pPatt_spec->pb_pitch;
-        patt_s0 =     pPatt_spec->pix_buff;
-    }
-
-
-    if(pb_spec->depth == 24)
-    {
-        for(int iyp = ya ; iyp <= yb ; iyp++)
-        {
-            if((iyp >= yt) && (iyp < ybt))
-            {
-                int yoff = (iyp - pb_spec->y) * pb_spec->pb_pitch;
-
-                unsigned char *py =  pix_buff + yoff;
-                unsigned char *pym = pbm      + yoff;
-
-                int ix = ledge[iyp];
-                if(ix != -1)                    // special clip case
-                {
-                    int xoff = (ix-pb_spec->x) * 3;
-
-                    unsigned char *px =  py  + xoff;
-                    unsigned char *pxm = pym + xoff;
-
-                    if((pxm - pb_spec->pix_buff) > ((pb_spec->pb_pitch * pb_spec->height) * pb_spec->depth))
-                        wxLogMessage("pix 1");
-                    int ixm = redge[iyp];
-
-                    if(mask)                 // use the mask
-                    {
-                        while(ix <= ixm)
-                        {
-                            if(*pxm == 0)
-                            {
-                                *px++ = b;
-                                *px++ = g;
-                                *px++ = r;
-                            }
-                            else
-                            {
-                                px += 3;
-                            }
-
-                            pxm += 3;
-                            ix++;
-                        }
-                    }
-                    else                        // no mask
-                    {
-                        if(pPatt_spec)          // Pattern
-                        {
-                            while(ix <= ixm)
-                            {
-                                int patt_x = ix  % patt_size_x;
-                                int patt_y = iyp % patt_size_y;
-
-                                unsigned char *pp = patt_s0 + (patt_y * patt_pitch) +
-                                        patt_x * 3;
-
-    //  Todo    This line assumes unused_color is always 0,0,0
-                                if(*pp && *(pp+1) && *(pp+2))
-                                {
-                                    *px++ = *pp++;
-                                    *px++ = *pp++;
-                                    *px++ = *pp++;
-                                }
-                                else
-                                {
-                                    px+=3;
-                                    pp+=3;
-                                }
-
-                                ix++;
-                            }
-                        }
-
-
-                        else                    // No Pattern
-                        {
-                            while(ix <= ixm)
-                            {
-                                *px++ = b;
-                                *px++ = g;
-                                *px++ = r;
-
-                                ix++;
-                                if((px - pb_spec->pix_buff) > ((pb_spec->pb_pitch * pb_spec->height) * pb_spec->depth))
-                                    wxLogMessage("pix 2");
-
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if(pb_spec->depth == 32)
-    {
-        int color_int;
-        if(NULL != c)
-            color_int =  ((c->R) << 16) + ((c->G) << 8) + (c->B);
-
-
-        for(int iyp = ya ; iyp <= yb ; iyp++)
-        {
-            if((iyp >= yt) && (iyp < ybt))
-            {
-                int yoff =      (iyp - pb_spec->y) * pb_spec->pb_pitch;
-
-                unsigned char *py = pix_buff + yoff;
-                unsigned char *pym = pbm + yoff;
-
-                int ix = ledge[iyp];
-                if(ix != -1)                    // special clip case
-                {
-                    int xoff = (ix-pb_spec->x) * pb_spec->depth / 8;
-
-                    unsigned char *px = py + xoff;
-                    unsigned char *pxm = pym + xoff;
-
-                    int ixm = redge[iyp];
-
-                    if(mask)                                // use the mask
-                    {
-                        int *pxi = (int *)px ;
-                        while(ix <= ixm)
-                        {
-                            if(*pxm == 0)
-                                *pxi = color_int;
-                            pxi++;
-                            pxm += pb_spec->depth / 8;
-                            ix++;
-                        }
-                    }
-                    else                                    // no mask
-                    {
-                        if(pPatt_spec)          // Pattern
-                        {
-                            while(ix <= ixm)
-                            {
-                                int patt_x = ix  % patt_size_x;
-                                int patt_y = iyp % patt_size_y;
-
-                                unsigned char *pp = patt_s0 + (patt_y * patt_pitch) +
-                                        patt_x * 4;
-
-    //  Todo    This line assumes unused_color is always 0,0,0
-                                if(*pp && *(pp+1) && *(pp+2))
-                                {
-                                    *px++ = *pp++;
-                                    *px++ = *pp++;
-                                    *px++ = *pp++;
-                                    px++;
-                                    pp++;
-                                }
-                                else
-                                {
-                                    px+=4;
-                                    pp+=4;
-                                }
-
-                                ix++;
-                            }
-                        }
-
-                        else                    // No Pattern
-                        {
-                            int *pxi = (int *)px ;
-                            while(ix <= ixm)
-                            {
-                                *pxi++ = color_int;
-                                ix++;
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-
-*/
-
-
 
 
 void s52plib::FastRenderFilledPolygon(ObjRazRules *rzRules,
@@ -4600,7 +4235,6 @@ void s52plib::FastRenderFilledPolygon(ObjRazRules *rzRules,
         cp.G = c->G;
         cp.B = c->B;
     }
-
 
     if(obj->pPolyTessGeo)
     {

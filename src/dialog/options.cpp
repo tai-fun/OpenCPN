@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.2 2006/09/21 01:37:48 dsr Exp $
+ * $Id: options.cpp,v 1.3 2006/10/01 03:24:19 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.3  2006/10/01 03:24:19  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:48  dsr
  * Major refactor/cleanup
  *
@@ -265,7 +268,6 @@ void options::CreateControls()
     wxStaticBoxSizer* itemNMEASourceStaticBoxSizer = new wxStaticBoxSizer(itemNMEASourceStaticBox, wxVERTICAL);
     itemNMEAStaticBoxSizer->Add(itemNMEASourceStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
-//      m_itemNMEAListBox = new wxChoice(itemPanel5, ID_CHOICE_NMEA);
       m_itemNMEAListBox = new wxComboBox(itemPanel5, ID_CHOICE_NMEA);
       m_itemNMEAListBox->Append( _T("None"));
       m_itemNMEAListBox->Append( _T("COM1"));
@@ -274,7 +276,7 @@ void options::CreateControls()
       m_itemNMEAListBox->Append( _T("COM4"));
       m_itemNMEAListBox->Append( _T("/dev/ttyS0"));
       m_itemNMEAListBox->Append( _T("/dev/ttyS1"));
-      m_itemNMEAListBox->Append( _T("TCP/IP Network"));
+      m_itemNMEAListBox->Append( _T("Network GPSD"));
 
 //    Activate the proper selections
 //    n.b. Hard coded indices
@@ -289,9 +291,9 @@ void options::CreateControls()
       }
       else if(source.Upper().Contains("NONE"))
             sidx = 0;
-      else if(source.Upper().Contains("TCP/IP"))
+      else if(source.Upper().Contains("GPSD"))
       {
-          sidx = m_itemNMEAListBox->FindString(_T("TCP/IP Network"));
+          sidx = m_itemNMEAListBox->FindString(_T("Network GPSD"));
           tcp_en = true;
       }
       else
@@ -309,7 +311,7 @@ void options::CreateControls()
       itemNMEASourceStaticBoxSizer->Add(m_itemNMEAListBox, 0, wxGROW|wxALL, 5);
 
 //    Add NMEA TCP/IP Server address
-    m_itemNMEA_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("TCP/IP NMEA Data Server"));
+    m_itemNMEA_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("GPSD Data Server"));
     m_itemNMEA_TCPIP_StaticBoxSizer = new wxStaticBoxSizer(m_itemNMEA_TCPIP_StaticBox, wxVERTICAL);
     itemNMEAStaticBoxSizer->Add(m_itemNMEA_TCPIP_StaticBoxSizer, 0, wxGROW|wxALL, 5);
 
@@ -322,7 +324,7 @@ void options::CreateControls()
       if(tcp_en)
       {
             wxString ip;
-            ip = source.Mid(7);
+            ip = source.Mid(5);
             m_itemNMEA_TCPIP_Source->WriteText(ip);
       }
 
@@ -800,10 +802,10 @@ void options::OnXidOkClick( wxCommandEvent& event )
             sel.Prepend("Serial:");
       else if(sel.Contains("/dev"))
           sel.Prepend("Serial:");
-      else if(sel.Contains("TCP/IP"))
+      else if(sel.Contains("GPSD"))
       {
             sel.Empty();
-            sel.Append("TCP/IP:");
+            sel.Append("GPSD:");
             sel.Append(m_itemNMEA_TCPIP_Source->GetLineText(0));
       }
     *pNMEADataSource = sel;
@@ -1078,7 +1080,7 @@ void options::OnNMEASourceChoice(wxCommandEvent& event)
 {
     int i = event.GetSelection();
     wxString src(m_itemNMEAListBox->GetString(i));
-    if(src.Contains("TCP/IP"))
+    if(src.Contains("GPSD"))
     {
         m_itemNMEA_TCPIP_StaticBox->Enable();
         m_itemNMEA_TCPIP_Source->Enable();
@@ -1088,10 +1090,10 @@ void options::OnNMEASourceChoice(wxCommandEvent& event)
 
         wxString source;
         source = *pNMEADataSource;
-        if(source.Contains("TCP/IP"))
+        if(source.Contains("GPSD"))
         {
             wxString ip;
-            ip = source.Mid(7);
+            ip = source.Mid(5);
             if(ip.Len())
             {
                 m_itemNMEA_TCPIP_Source->Clear();

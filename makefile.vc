@@ -1,34 +1,37 @@
 # TARGTYPE "Win32 (x86) Application" 0x0101
 
-!IF "$(CFG)" == ""
-CFG=release
-!MESSAGE No configuration specified.  Defaulting to release.
-!ENDIF
-
-!IF "$(CFG)" != "debug" && "$(CFG)" != "release"
-!MESSAGE Invalid configuration "$(CFG)" specified.
-!MESSAGE You can specify a configuration when running NMAKE on this makefile
-!MESSAGE by defining the macro CFG on the command line.  For example:
-!MESSAGE
-!MESSAGE NMAKE /f "opencpn.mak" CFG="release"
-!MESSAGE
-!MESSAGE Possible choices for configuration are:
-!MESSAGE
-!MESSAGE "release"  "debug"
-!MESSAGE
-!ERROR An invalid configuration is specified.
-!ENDIF
-
-!IF "$(OS)" == "Windows_NT"
-NULL=
-!ELSE
-NULL=nul
-!ENDIF
 ################################################################################
-
 # Global build options, from nmake.opt
 
+# Specify the application install location, (e.g. nmake -f makefile.vc install)
+APPDIR = "c:\Program Files\opencpn"
+
+# Release or Debug? [release,debug]
+CFG = release
+
+# Use S57 ENC Charts? [0,1]
+USE_S57 = 1
+
+# Specify the Tesselator option [0,1]
+# If USE_GLU_TESS = 0, then compile with the internal tesselator module
+USE_GLU_TESS = 1
+
+# Specify linkage to glu32.lib, instead of default glu32.dll [0,1]
+USE_GLU_LIB = 0
+
+# Enable the (undocumented) wifi client window [0,1]
+#USE_WIFI_CLIENT = 1
+#################################################################################
+
+
+#################################################################################
+
 # Specify the GDAL/OGR build type
+#
+# Opencpn uses the OGR/GDAL library for S57ENC support.
+# If USE_S57 is enabled (USE_S57 = 1), you must choose one.
+# Otherwise, ignore this section 
+# You may link against OGR/GDAL library in one of three ways
 #
 # Static:  Link against gdal.lib or gdald.lib static libraries.
 # DLL:  Link against gdal_i.lib, and so dynamically to gdalxx.dll
@@ -36,67 +39,163 @@ NULL=nul
 #            external GDAL dependencies
 
 #GDAL_LINK = STATIC
-GDAL_LINK = DLL
-#GDAL_LINK = INTERNAL
+#GDAL_LINK = DLL
+GDAL_LINK = INTERNAL
 
-
-# Specify the GDAL/OGR directory locations
-# Directory for GDAL/OGR Includes
-GDAL_INC_BASE = \GDALBuild
-# Directory for GDAL Libraries
-#GDAL_BASE_LIB = \gdal-1.2.0
-#GDAL_BASE_LIB = "E:\Dev-Cpp\projects\gdal13"
-GDAL_BASE_LIB = "C:\Program Files\FWTools1.0.5\lib"
-
-
+#---------------------STATIC BUILD OPTION-------------------------------------
 # Specify static GDAL library Location and names
-GDAL_STATIC_LIB = $(GDAL_BASE_LIB)"\gdal.lib"
-GDAL_STATIC_LIB_DEBUG = $(GDAL_BASE_LIB)"\gdald.lib"
+GDAL_STATIC_BASE_LIB = "c:/gdal-1.2.0"
+GDAL_STATIC_LIB = $(GDAL_STATIC_BASE_LIB)"\gdal.lib"
+GDAL_STATIC_LIB_DEBUG = $(GDAL_STATIC_BASE_LIB)"\gdald.lib"
 
+# Specify the GDAL/OGR include directory location
+GDAL_STATIC_INC_BASE = "c:/GDALBuild/include"
+
+
+
+#----------------------DLL BUILD OPTION--------------------------------------
 # Specify GDAL DLL Import Library Location and name
 # Depending on which toolset built the GDAL dll,
 # the import library name may look like these examples:
 #   MSVC build.......GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\gdal_i.lib"
 #   MINGW32 build....GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\libgdal13.a"
 # Debug versions are probably named the same.
+# Only required for external (i.e. STATIC or DLL) gdal library 
 
-GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\gdal_i.lib"
-#GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\libgdal13.a"
-GDAL_IMP_LIB_DEBUG = $(GDAL_BASE_LIB)"\gdal_i.lib"
+GDAL_DLL_BASE_LIB = "c:/GDALBuild"
+GDAL_DLL_IMP_LIB = $(GDAL_DLL_BASE_LIB)"\lib\gdal_i.lib"
+GDAL_DLL_IMP_LIB_DEBUG = $(GDAL_DLL_BASE_LIB)"\lib\gdal_i.lib"
 
-
-# Specify the Tesselator option
-#  Comment out the following line to use internal tesselator
-CXX_TESS = "USE_GLU_TESS"
-
-
-# WXWIDGETS Location/Configuration
-
-# Specify the application install location
-APPDIR = "c:\Program Files\opencpn"
+# Specify the GDAL/OGR include directory location
+GDAL_DLL_INC_BASE = "c:/GDALBuild/include"
 
 ##################################################################################
 
-# Begin Project
-CPP=cl.exe
-LINK32=link.exe
-WX_BASE = \wx262
-WX_LIB = "$(WX_BASE)\lib\vc_lib"
+
+
+#################################################################################
+# WXWIDGETS Location/Configuration
+# Assumes the "standard" wxWidgets static distribution/build
+#
+# Some modifications will be required to the makefile if shared or monolithic
+# wxWidgets libraries are to be used.
+WX_BASE = c:\wx262
+#################################################################################
+
+
+####################BEGIN MAKEFILE###############################################
+#  Probably do not need modifications in following....
+#################################################################################
+
+# Establish variables
+
+#  S57 ENC support
+!if "$(USE_S57)" == "1"
+__DS57 = /DUSE_S57
+!endif
+!if "$(USE_S57)" == "0"
+__DS57 =
+!endif
+
+
+#  Tesselator
+!if "$(USE_GLU_TESS)" == "1"
+__DGLUTESS = /DUSE_GLU_TESS
+!if "$(USE_GLU_DLL)" == "0"
+GLU_LIB = glu32.lib
+__DGLUDLL = 
+!else
+GLU_LIB = 
+__DGLUDLL = /DUSE_GLU_DLL
+!endif
+!endif
+!if "$(USE_GLU_TESS)" == "0"
+__DGLUTESS =
+GLU_LIB = 
+__DGLUDLL = 
+!endif
+
+
+
+
+#  Undocumented WIFI client
+!if "$(USE_WIFI_CLIENT)" == "1"
+__DWIFI = /DUSE_WIFI_CLIENT
+!endif
+!if "$(USE_WIFI_CLIENT)" == "0"
+__DWIFI =
+!endif
+
+
+#  Debug/Release
+!if "$(CFG)" == "debug"
+DEBUG_CHAR = d
+CPP_FLAGS_DEBUG = /Zi /Fd"$(INTDIR)/"
+!endif
+!if  "$(CFG)" == "release"
+DEBUG_CHAR = 
+CPP_FLAGS_DEBUG =
+!endif
+
+#  wxWidgets 
+WX_LIB = $(WX_BASE)\lib\vc_lib
 WX_INCLUDE_GENERIC = "$(WX_BASE)\include"
 WX_INCLUDE_MSW = $(WX_LIB)
 
-
-
-
-GDAL_INCLUDE = "$(GDAL_INC_BASE)\include"
+#  GDAL
+!if "$(GDAL_LINK)" == "DLL"
+GDAL_INCLUDE = $(GDAL_DLL_INC_BASE)
+!endif
 
 !IF "$(GDAL_LINK)" == "STATIC"
-GDAL_INCLUDE = "$(GDAL_INC_BASE)\include"
-!ELSEIF "$(GDAL_LINK)" == "DLL"
-GDAL_INCLUDE = "$(GDAL_INC_BASE)\include"
-!ELSEIF "$(GDAL_LINK)" == "INTERNAL"
-GDAL_INCLUDE = ".\src\mygdal\include"
+GDAL_INCLUDE = $(GDAL_STATIC_INC_BASE)
+!endif
+
+!IF "$(GDAL_LINK)" == "INTERNAL"
+GDAL_INCLUDE = ".\src\mygdal"
+GDAL_LIB =
 !ENDIF
+
+
+
+
+
+CPP=cl.exe
+LINK32=link.exe
+
+CPP_FLAGS_BASE = /nologo /ML$(DEBUG_CHAR) /WX /GR /GX /Od\
+ /I "include" /I "$(WX_BASE)\include" /I "$(WX_LIB)\msw$(DEBUG_CHAR)" \
+ /I $(GDAL_INCLUDE) \
+ $(__DDEBUG) \
+ /D "__WXMSW__" /D "WIN32" /D "_WINDOWS"\
+ /D "CPL_DISABLE_DLL" /D "_CTYPE_DISABLE_MACROS"\
+ $(__DGLUTESS) $(__DGLUDLL) $(__DWIFI) $(__DS57) \
+ /Fo"$(INTDIR)/" /c\
+
+CPP_PROJ = $(CPP_FLAGS_BASE) $(CPP_FLAGS_DEBUG)\
+ 
+ 
+#CPP_PROJ_DEBUG=/nologo /MLd /WX /GR /GX /Zi /Od\
+# /I "include"\
+# /I "$(WX_BASE)\include" /I "$(WX_LIB)\mswd"\
+# /I $(GDAL_INCLUDE)\
+# $(__DDEBUG) /D "__WXMSW__" /D "WIN32" /D "_WINDOWS"\
+# /D "CPL_DISABLE_DLL" /D "_CTYPE_DISABLE_MACROS"\
+# $(__DGLUTESS) $(__DWIFI) $(__DS57) \
+# /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c\
+
+#CPP_PROJ_RELEASE=/nologo /ML /WX /GR /GX /Od\
+# /I "include"\
+# /I "$(WX_BASE)\include" /I "$(WX_LIB)\msw"\
+# /I $(GDAL_INCLUDE)\
+# $(__DDEBUG) /D "__WXMSW__" /D "WIN32" /D "_WINDOWS"\
+# /D "CPL_DISABLE_DLL" /D "_CTYPE_DISABLE_MACROS"\
+# $(__DGLUTESS) $(__DWIFI) $(__DS57) \
+# /Fo"$(INTDIR)/" /c\
+
+
+
+
 
 
 #-----------------------------------
@@ -107,6 +206,8 @@ GDAL_INCLUDE = ".\src\mygdal\include"
 
 # Debug Options
 
+__DDEBUG = /D_DEBUG
+
 OUTDIR=.\debug_
 INTDIR=.\debug_
 
@@ -114,7 +215,7 @@ INTDIR=.\debug_
 !IF "$(GDAL_LINK)" == "STATIC"
 GDAL_LIB = $(GDAL_STATIC_LIB_DEBUG)
 !ELSEIF "$(GDAL_LINK)" == "DLL"
-GDAL_LIB = $(GDAL_IMP_LIB_DEBUG)
+GDAL_LIB = $(GDAL_DLL_IMP_LIB_DEBUG)
 !ELSEIF "$(GDAL_LINK)" == "INTERNAL"
 GDAL_LIB =
 !ENDIF
@@ -131,6 +232,7 @@ LINK32_FLAGS=\
  odbccp32.lib\
  comctl32.lib wsock32.lib\
  $(GDAL_LIB) \
+ $(GLU_LIB) \
  /nodefaultlib:"libcd" \
  /debug\
  /nologo /subsystem:windows /incremental:no\
@@ -139,14 +241,6 @@ LINK32_FLAGS=\
 
 
 
-CPP_PROJ=/nologo /MLd /WX /GR /GX /Zi /Od\
- /I "include"\
- /I "$(WX_BASE)\include" /I "$(WX_LIB)\mswd"\
- /I $(GDAL_INCLUDE)\
- /D "_DEBUG" /D "__WXMSW__" /D "WIN32" /D "_WINDOWS"\
- /D "CPL_DISABLE_DLL" /D "_CTYPE_DISABLE_MACROS"\
- /D "$(CXX_TESS)"\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c\
 
 
 !ELSE
@@ -155,10 +249,12 @@ CPP_PROJ=/nologo /MLd /WX /GR /GX /Zi /Od\
 OUTDIR=.\release_
 INTDIR=.\release_
 
+__DDEBUG = 
+
 !IF "$(GDAL_LINK)" == "STATIC"
 GDAL_LIB = $(GDAL_STATIC_LIB)
 !ELSEIF "$(GDAL_LINK)" == "DLL"
-GDAL_LIB = $(GDAL_IMP_LIB)
+GDAL_LIB = $(GDAL_DLL_IMP_LIB)
 !ELSEIF "$(GDAL_LINK)" == "INTERNAL"
 GDAL_LIB =
 !ENDIF
@@ -176,21 +272,11 @@ LINK32_FLAGS=\
  odbccp32.lib\
  comctl32.lib wsock32.lib\
  $(GDAL_LIB) \
+ $(GLU_LIB) \
  /nodefaultlib:"libc" \
  /nologo /subsystem:windows /incremental:no\
  /pdb:"$(OUTDIR)/opencpn.pdb" /machine:I386 /out:"$(OUTDIR)/opencpn.exe"
 
-
-
-
-CPP_PROJ=/nologo /ML /WX /GR /GX /Od\
- /I "include"\
- /I "$(WX_BASE)\include" /I "$(WX_LIB)\msw"\
- /I $(GDAL_INCLUDE)\
- /D "__WXMSW__" /D "WIN32" /D "_WINDOWS"\
- /D "CPL_DISABLE_DLL" /D "_CTYPE_DISABLE_MACROS"\
- /D "$(CXX_TESS)"\
- /Fo"$(INTDIR)/" /c\
 
 
 
@@ -200,18 +286,13 @@ CPP_PROJ=/nologo /ML /WX /GR /GX /Od\
 
 LINK32_OBJS= \
 	"$(INTDIR)/sercomm.obj" \
-	"$(INTDIR)/tri.obj" \
 	"$(INTDIR)/latlong.obj" \
-	"$(INTDIR)/s52utils.obj" \
 	"$(INTDIR)/concanv.obj" \
 	"$(INTDIR)/routeman.obj" \
 	"$(INTDIR)/options.obj" \
 	"$(INTDIR)/expid.obj" \
-	"$(INTDIR)/s57chart.obj" \
-	"$(INTDIR)/wificlient.obj" \
 	"$(INTDIR)/chart1.obj" \
 	"$(INTDIR)/talkerid.obj" \
-	"$(INTDIR)/s52plib.obj" \
 	"$(INTDIR)/nmea0183.obj" \
 	"$(INTDIR)/georef.obj" \
 	"$(INTDIR)/dymemdc.obj" \
@@ -223,7 +304,6 @@ LINK32_OBJS= \
 	"$(INTDIR)/thumbwin.obj" \
 	"$(INTDIR)/about.obj" \
 	"$(INTDIR)/rmc.obj" \
-	"$(INTDIR)/mygeom.obj" \
 	"$(INTDIR)/navutil.obj" \
 	"$(INTDIR)/sentence.obj" \
 	"$(INTDIR)/bitmapo.obj" \
@@ -232,14 +312,11 @@ LINK32_OBJS= \
 	"$(INTDIR)/chartdb.obj" \
 	"$(INTDIR)/bbox.obj" \
 	"$(INTDIR)/wvschart.obj" \
-	"$(INTDIR)/s52cnsy.obj" \
 	"$(INTDIR)/lat.obj" \
 	"$(INTDIR)/chcanv.obj" \
 	"$(INTDIR)/chartimg.obj" \
-	"$(INTDIR)/s57mgr.obj" \
 	"$(INTDIR)/rmb.obj" \
-    "$(INTDIR)/gpc.obj" \
-	"$(INTDIR)/cutil.obj"
+ 	"$(INTDIR)/cutil.obj"
 
 
 
@@ -325,6 +402,7 @@ ISO8211_OBJS = \
 GDAL_OBJS =
 !ELSEIF "$(GDAL_LINK)" == "INTERNAL"
 GDAL_OBJS = \
+	"$(INTDIR)/gdal_misc.obj" \
 	"$(INTDIR)/cpl_csv.obj" \
 	"$(INTDIR)/cpl_dir.obj" \
 	"$(INTDIR)/cpl_error.obj" \
@@ -383,6 +461,34 @@ GDAL_OBJS = \
 !ENDIF
 
 
+!if $(USE_S57) == 1
+S57_OBJS = \
+	"$(INTDIR)/s57chart.obj" \
+	"$(INTDIR)/s52utils.obj" \
+	"$(INTDIR)/s52plib.obj" \
+	"$(INTDIR)/s52cnsy.obj" \
+	"$(INTDIR)/tri.obj" \
+	"$(INTDIR)/mygeom.obj"
+!else
+S57_OBJS =
+!endif
+
+
+!if "$(USE_WIFI_CLIENT)" == "1"
+WIFI_OBJS = "$(INTDIR)/wificlient.obj"
+!ELSE
+WIFI_OBJS = 
+!ENDIF
+
+
+# Disable all GDAL and ISO8211 support if no S57 ENC support is selected
+!if $(USE_S57) == 0
+GDAL_OBJS =
+ISO8211_OBJS =
+GDAL_LIB =
+GDAL_INCLUDE = ".\src\mygdal"
+!endif
+
 
 
 #  Targets
@@ -399,9 +505,9 @@ ALL : "$(OUTDIR)\opencpn.exe"
 
 
 
-"$(OUTDIR)\opencpn.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS) $(ISO8211_OBJS) $(GDAL_OBJS)
+"$(OUTDIR)\opencpn.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS) $(ISO8211_OBJS) $(GDAL_OBJS) $(WIFI_OBJS) $(S57_OBJS)
     $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS) $(ISO8211_OBJS) $(GDAL_OBJS)
+  $(LINK32_FLAGS) $(LINK32_OBJS) $(ISO8211_OBJS) $(GDAL_OBJS) $(WIFI_OBJS) $(S57_OBJS)
 <<
 
 install: "$(OUTDIR)" "$(OUTDIR)\opencpn.exe"
@@ -432,7 +538,6 @@ CLEAN :
 	-@erase "$(INTDIR)\Gga.obj"
 	-@erase "$(INTDIR)\Bwr.obj"
 	-@erase "$(INTDIR)\Wnc.obj"
-	-@erase "$(INTDIR)\gpc.obj"
 	-@erase "$(INTDIR)\Test.obj"
 	-@erase "$(INTDIR)\Field.obj"
 	-@erase "$(INTDIR)\Omegapar.obj"
@@ -843,20 +948,6 @@ DEP_CPP_GEORE=\
 
 
 "$(INTDIR)\georef.obj" : $(SOURCE) $(DEP_CPP_GEORE) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\gpc.c
-DEP_CPP_GPC_C=\
-	{$(GDAL_INCLUDE)}"\cpl_port.h"\
-	".\include\gpc.h"\
-
-
-"$(INTDIR)\gpc.obj" : $(SOURCE) $(DEP_CPP_GPC_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -2676,16 +2767,16 @@ DEP_CPP_OPTIO=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_csv.cpp
+SOURCE=.\src\mygdal\cpl_csv.cpp
 
 DEP_CPP_CPL_C=\
-	".\src\mygdal\include\cpl_csv.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_csv.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
 
 "$(INTDIR)\cpl_csv.obj" : $(SOURCE) $(DEP_CPP_CPL_C) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -2695,16 +2786,29 @@ DEP_CPP_CPL_C=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_dir.cpp
+SOURCE=.\src\mygdal\gdal_misc.cpp
+
+DEP_CPP_CPL_D=\
+	".\src\mygdal\gdal.h"\
+
+"$(INTDIR)\gdal_misc.obj" : $(SOURCE) $(DEP_CPP_CPL_D) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\src\mygdal\cpl_dir.cpp
 
 
 DEP_CPP_CPL_D=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
 
 
 "$(INTDIR)\cpl_dir.obj" : $(SOURCE) $(DEP_CPP_CPL_D) "$(INTDIR)"
@@ -2715,15 +2819,15 @@ DEP_CPP_CPL_D=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_error.cpp
+SOURCE=.\src\mygdal\cpl_error.cpp
 
 
 DEP_CPP_CPL_E=\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
 
 
 
@@ -2736,16 +2840,16 @@ DEP_CPP_CPL_E=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_findfile.cpp
+SOURCE=.\src\mygdal\cpl_findfile.cpp
 
 
 DEP_CPP_CPL_F=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
 
 
 
@@ -2759,17 +2863,17 @@ DEP_CPP_CPL_F=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_minixml.cpp
+SOURCE=.\src\mygdal\cpl_minixml.cpp
 
 
 DEP_CPP_CPL_M=\
-	".\src\mygdal\include\cpl_minixml.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
+	".\src\mygdal\cpl_minixml.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_vsi.h"\
 
 
 
@@ -2782,16 +2886,16 @@ DEP_CPP_CPL_M=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_path.cpp
+SOURCE=.\src\mygdal\cpl_path.cpp
 
 
 DEP_CPP_CPL_P=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
 
 
 
@@ -2805,15 +2909,15 @@ DEP_CPP_CPL_P=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_string.cpp
+SOURCE=.\src\mygdal\cpl_string.cpp
 
 DEP_CPP_CPL_S=\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
 
 
 
@@ -2827,14 +2931,14 @@ DEP_CPP_CPL_S=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_vsisimple.cpp
+SOURCE=.\src\mygdal\cpl_vsisimple.cpp
 
 
 DEP_CPP_CPL_V=\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
 
 
 
@@ -2847,14 +2951,14 @@ DEP_CPP_CPL_V=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cplgetsymbol.cpp
+SOURCE=.\src\mygdal\cplgetsymbol.cpp
 
 DEP_CPP_CPLGE=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
 
 
 
@@ -2867,19 +2971,19 @@ DEP_CPP_CPLGE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\gml2ogrgeometry.cpp
+SOURCE=.\src\mygdal\gml2ogrgeometry.cpp
 
 
 DEP_CPP_GML2O=\
-	".\src\mygdal\include\cpl_minixml.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
+	".\src\mygdal\cpl_minixml.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\ogr_srs_api.h"\
 
 
 "$(INTDIR)\gml2ogrgeometry.obj" : $(SOURCE) $(DEP_CPP_GML2O) "$(INTDIR)"
@@ -2889,21 +2993,21 @@ DEP_CPP_GML2O=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_attrind.cpp
+SOURCE=.\src\mygdal\ogr_attrind.cpp
 
 DEP_CPP_OGR_A=\
-	".\src\mygdal\include\ogr_attrind.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\ogrsf_frmts.h"\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_attrind.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\ogrsf_frmts.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -2916,19 +3020,19 @@ DEP_CPP_OGR_A=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_fromepsg.cpp
+SOURCE=.\src\mygdal\ogr_fromepsg.cpp
 
 DEP_CPP_OGR_F=\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_csv.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_csv.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -2941,19 +3045,19 @@ DEP_CPP_OGR_F=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_gensql.cpp
+SOURCE=.\src\mygdal\ogr_gensql.cpp
 
 
 DEP_CPP_OGR_G=\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\swq.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
-    ".\src\mygdal\include\ogr_gensql.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\swq.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
+    ".\src\mygdal\ogr_gensql.h"\
 
 
 "$(INTDIR)\ogr_gensql.obj" : $(SOURCE) $(DEP_CPP_OGR_G) "$(INTDIR)"
@@ -2964,18 +3068,18 @@ DEP_CPP_OGR_G=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_nullattrind.cpp
+SOURCE=.\src\mygdal\ogr_nullattrind.cpp
 
 DEP_CPP_OGR_N=\
-	".\src\mygdal\include\ogr_attrind.h"\
-	".\src\mygdal\include\ogrsf_frmts.h"\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
+	".\src\mygdal\ogr_attrind.h"\
+	".\src\mygdal\ogrsf_frmts.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
 
 
 "$(INTDIR)\ogr_nullattrind.obj" : $(SOURCE) $(DEP_CPP_OGR_N) "$(INTDIR)"
@@ -2986,18 +3090,18 @@ DEP_CPP_OGR_N=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_srs_dict.cpp
+SOURCE=.\src\mygdal\ogr_srs_dict.cpp
 
 
 DEP_CPP_OGR_S=\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3011,21 +3115,21 @@ DEP_CPP_OGR_S=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_srs_esri.cpp
+SOURCE=.\src\mygdal\ogr_srs_esri.cpp
 
 
 DEP_CPP_OGR_SR=\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\cpl_csv.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\cpl_csv.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3038,19 +3142,19 @@ DEP_CPP_OGR_SR=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_srs_proj4.cpp
+SOURCE=.\src\mygdal\ogr_srs_proj4.cpp
 
 DEP_CPP_OGR_SRS=\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3065,21 +3169,21 @@ DEP_CPP_OGR_SRS=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_srs_xml.cpp
+SOURCE=.\src\mygdal\ogr_srs_xml.cpp
 
 
 DEP_CPP_OGR_SRS_=\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\cpl_minixml.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\cpl_minixml.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3094,19 +3198,19 @@ DEP_CPP_OGR_SRS_=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr_srsnode.cpp
+SOURCE=.\src\mygdal\ogr_srsnode.cpp
 
 DEP_CPP_OGR_SRSN=\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3121,21 +3225,21 @@ DEP_CPP_OGR_SRSN=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogr2gmlgeometry.cpp
+SOURCE=.\src\mygdal\ogr2gmlgeometry.cpp
 
 
 DEP_CPP_OGR2G=\
-	".\src\mygdal\include\cpl_minixml.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
+	".\src\mygdal\cpl_minixml.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_vsi.h"\
 
 
 
@@ -3150,20 +3254,20 @@ DEP_CPP_OGR2G=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ograssemblepolygon.cpp
+SOURCE=.\src\mygdal\ograssemblepolygon.cpp
 
 
 DEP_CPP_OGRAS=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3178,18 +3282,18 @@ DEP_CPP_OGRAS=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrct.cpp
+SOURCE=.\src\mygdal\ogrct.cpp
 
 DEP_CPP_OGRCT=\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_vsi.h"\
 
 
 "$(INTDIR)\ogrct.obj" : $(SOURCE) $(DEP_CPP_OGRCT) "$(INTDIR)"
@@ -3202,21 +3306,21 @@ DEP_CPP_OGRCT=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrcurve.cpp
+SOURCE=.\src\mygdal\ogrcurve.cpp
 
 
 DEP_CPP_OGRCU=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3231,27 +3335,27 @@ DEP_CPP_OGRCU=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrdatasource.cpp
+SOURCE=.\src\mygdal\ogrdatasource.cpp
 
 
 DEP_CPP_OGRDA=\
-	".\src\mygdal\include\ogrsf_frmts.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_attrind.h"\
-	".\src\mygdal\include\swq.h"\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\ogr_gensql.h"\
+	".\src\mygdal\ogrsf_frmts.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_attrind.h"\
+	".\src\mygdal\swq.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\ogr_gensql.h"\
 
 
 "$(INTDIR)\ogrdatasource.obj" : $(SOURCE) $(DEP_CPP_OGRDA) "$(INTDIR)"
@@ -3264,22 +3368,22 @@ DEP_CPP_OGRDA=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrfeature.cpp
+SOURCE=.\src\mygdal\ogrfeature.cpp
 
 DEP_CPP_OGRFE=\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3294,23 +3398,23 @@ DEP_CPP_OGRFE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrfeaturedefn.cpp
+SOURCE=.\src\mygdal\ogrfeaturedefn.cpp
 
 
 DEP_CPP_OGRFEA=\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3325,24 +3429,24 @@ DEP_CPP_OGRFEA=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrfeaturequery.cpp
+SOURCE=.\src\mygdal\ogrfeaturequery.cpp
 
 DEP_CPP_OGRFEAT=\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogrsf_frmts.h"\
-	".\src\mygdal\include\ogr_attrind.h"\
-	".\src\mygdal\include\swq.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogrsf_frmts.h"\
+	".\src\mygdal\ogr_attrind.h"\
+	".\src\mygdal\swq.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3357,23 +3461,23 @@ DEP_CPP_OGRFEAT=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrfielddefn.cpp
+SOURCE=.\src\mygdal\ogrfielddefn.cpp
 
 
 DEP_CPP_OGRFI=\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3388,21 +3492,21 @@ DEP_CPP_OGRFI=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrgeometry.cpp
+SOURCE=.\src\mygdal\ogrgeometry.cpp
 
 DEP_CPP_OGRGE=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3417,20 +3521,20 @@ DEP_CPP_OGRGE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrgeometrycollection.cpp
+SOURCE=.\src\mygdal\ogrgeometrycollection.cpp
 
 DEP_CPP_OGRGEO=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3445,22 +3549,22 @@ DEP_CPP_OGRGEO=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrgeometryfactory.cpp
+SOURCE=.\src\mygdal\ogrgeometryfactory.cpp
 
 
 DEP_CPP_OGRGEOM=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3475,25 +3579,25 @@ DEP_CPP_OGRGEOM=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrlayer.cpp
+SOURCE=.\src\mygdal\ogrlayer.cpp
 
 
 DEP_CPP_OGRLA=\
-	".\src\mygdal\include\ogrsf_frmts.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_attrind.h"\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogrsf_frmts.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_attrind.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3508,21 +3612,21 @@ DEP_CPP_OGRLA=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrlinearring.cpp
+SOURCE=.\src\mygdal\ogrlinearring.cpp
 
 
 DEP_CPP_OGRLI=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3537,20 +3641,20 @@ DEP_CPP_OGRLI=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrlinestring.cpp
+SOURCE=.\src\mygdal\ogrlinestring.cpp
 
 DEP_CPP_OGRLIN=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3565,20 +3669,20 @@ DEP_CPP_OGRLIN=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrmultilinestring.cpp
+SOURCE=.\src\mygdal\ogrmultilinestring.cpp
 
 DEP_CPP_OGRMU=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3593,21 +3697,21 @@ DEP_CPP_OGRMU=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrmultipoint.cpp
+SOURCE=.\src\mygdal\ogrmultipoint.cpp
 
 
 DEP_CPP_OGRMUL=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3622,21 +3726,21 @@ DEP_CPP_OGRMUL=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrmultipolygon.cpp
+SOURCE=.\src\mygdal\ogrmultipolygon.cpp
 
 
 DEP_CPP_OGRMULT=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3651,21 +3755,21 @@ DEP_CPP_OGRMULT=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrpoint.cpp
+SOURCE=.\src\mygdal\ogrpoint.cpp
 
 
 DEP_CPP_OGRPO=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3680,21 +3784,21 @@ DEP_CPP_OGRPO=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrpolygon.cpp
+SOURCE=.\src\mygdal\ogrpolygon.cpp
 
 
 DEP_CPP_OGRPOL=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3709,17 +3813,17 @@ DEP_CPP_OGRPOL=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrs57datasource.cpp
+SOURCE=.\src\mygdal\ogrs57datasource.cpp
 
 
 DEP_CPP_OGRS5=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_s57.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_s57.h"\
 
 
 "$(INTDIR)\ogrs57datasource.obj" : $(SOURCE) $(DEP_CPP_OGRS5) "$(INTDIR)"
@@ -3732,15 +3836,15 @@ DEP_CPP_OGRS5=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrs57driver.cpp
+SOURCE=.\src\mygdal\ogrs57driver.cpp
 
 DEP_CPP_OGRS57=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_s57.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_s57.h"\
 
 
 "$(INTDIR)\ogrs57driver.obj" : $(SOURCE) $(DEP_CPP_OGRS57) "$(INTDIR)"
@@ -3753,17 +3857,17 @@ DEP_CPP_OGRS57=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrs57layer.cpp
+SOURCE=.\src\mygdal\ogrs57layer.cpp
 
 
 DEP_CPP_OGRS57L=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_s57.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_s57.h"\
 
 
 "$(INTDIR)\ogrs57layer.obj" : $(SOURCE) $(DEP_CPP_OGRS57L) "$(INTDIR)"
@@ -3776,24 +3880,24 @@ DEP_CPP_OGRS57L=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrsfdriver.cpp
+SOURCE=.\src\mygdal\ogrsfdriver.cpp
 
 
 DEP_CPP_OGRSF=\
-	".\src\mygdal\include\ogrsf_frmts.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogrsf_frmts.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3808,24 +3912,24 @@ DEP_CPP_OGRSF=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrsfdriverregistrar.cpp
+SOURCE=.\src\mygdal\ogrsfdriverregistrar.cpp
 
 
 DEP_CPP_OGRSFD=\
-	".\src\mygdal\include\ogrsf_frmts.h"\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_feature.h"\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogrsf_frmts.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_feature.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3840,20 +3944,20 @@ DEP_CPP_OGRSFD=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrspatialreference.cpp
+SOURCE=.\src\mygdal\ogrspatialreference.cpp
 
 
 DEP_CPP_OGRSP=\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3868,21 +3972,21 @@ DEP_CPP_OGRSP=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ogrutils.cpp
+SOURCE=.\src\mygdal\ogrutils.cpp
 
 
 DEP_CPP_OGRUT=\
-	".\src\mygdal\include\ogr_geometry.h"\
-	".\src\mygdal\include\ogr_p.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\ogr_spatialref.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\ogr_srs_api.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
+	".\src\mygdal\ogr_geometry.h"\
+	".\src\mygdal\ogr_p.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\ogr_spatialref.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\ogr_srs_api.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
 
 
 
@@ -3897,16 +4001,16 @@ DEP_CPP_OGRUT=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\s57classregistrar.cpp
+SOURCE=.\src\mygdal\s57classregistrar.cpp
 
 DEP_CPP_S57CL=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\s57.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\s57.h"\
 
 
 "$(INTDIR)\s57classregistrar.obj" : $(SOURCE) $(DEP_CPP_S57CL) "$(INTDIR)"
@@ -3919,19 +4023,19 @@ DEP_CPP_S57CL=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\s57featuredefns.cpp
+SOURCE=.\src\mygdal\s57featuredefns.cpp
 
 
 DEP_CPP_S57FE=\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\s57.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\s57.h"\
 
 
 "$(INTDIR)\s57featuredefns.obj" : $(SOURCE) $(DEP_CPP_S57FE) "$(INTDIR)"
@@ -3944,17 +4048,17 @@ DEP_CPP_S57FE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\s57filecollector.cpp
+SOURCE=.\src\mygdal\s57filecollector.cpp
 
 
 DEP_CPP_S57FI=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\s57.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\s57.h"\
 
 
 "$(INTDIR)\s57filecollector.obj" : $(SOURCE) $(DEP_CPP_S57FI) "$(INTDIR)"
@@ -3967,19 +4071,19 @@ DEP_CPP_S57FI=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\s57reader.cpp
+SOURCE=.\src\mygdal\s57reader.cpp
 
 
 DEP_CPP_S57RE=\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\s57.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\s57.h"\
 
 
 "$(INTDIR)\s57reader.obj" : $(SOURCE) $(DEP_CPP_S57RE) "$(INTDIR)"
@@ -3992,19 +4096,19 @@ DEP_CPP_S57RE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\s57writer.cpp
+SOURCE=.\src\mygdal\s57writer.cpp
 
 
 DEP_CPP_S57WR=\
-	".\src\mygdal\include\ogr_api.h"\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\ogr_core.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_config.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\s57.h"\
+	".\src\mygdal\ogr_api.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\ogr_core.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_config.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\s57.h"\
 
 
 "$(INTDIR)\s57writer.obj" : $(SOURCE) $(DEP_CPP_S57WR) "$(INTDIR)"
@@ -4017,15 +4121,15 @@ DEP_CPP_S57WR=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\cpl_conv.cpp
+SOURCE=.\src\mygdal\cpl_conv.cpp
 
 DEP_CPP_CPL_CO=\
-	".\src\mygdal\include\cpl_conv.h"\
-	".\src\mygdal\include\cpl_string.h"\
-	".\src\mygdal\include\cpl_port.h"\
-	".\src\mygdal\include\cpl_vsi.h"\
-	".\src\mygdal\include\cpl_error.h"\
-	".\src\mygdal\include\cpl_config.h"\
+	".\src\mygdal\cpl_conv.h"\
+	".\src\mygdal\cpl_string.h"\
+	".\src\mygdal\cpl_port.h"\
+	".\src\mygdal\cpl_vsi.h"\
+	".\src\mygdal\cpl_error.h"\
+	".\src\mygdal\cpl_config.h"\
 
 
 
@@ -4038,9 +4142,9 @@ DEP_CPP_CPL_CO=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\swq.c
+SOURCE=.\src\mygdal\swq.c
 DEP_CPP_SWQ_C=\
-	".\src\mygdal\include\swq.h"\
+	".\src\mygdal\swq.h"\
 
 
 "$(INTDIR)\swq.obj" : $(SOURCE) $(DEP_CPP_SWQ_C) "$(INTDIR)"
@@ -4054,7 +4158,7 @@ DEP_CPP_SWQ_C=\
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\src\ddfrecordindex.cpp
+SOURCE=.\src\mygdal\ddfrecordindex.cpp
 DEP_CPP_DDFR2=\
 
 

@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.3  2006/10/01 03:22:59  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:37  dsr
  * Major refactor/cleanup
  *
@@ -87,7 +90,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.3 2006/10/01 03:22:59 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -438,11 +441,11 @@ WiFiStatWin::WiFiStatWin(wxFrame *frame):
     SetBackgroundColour(wxColour(150,150,150));
     pbackBrush = wxTheBrushList->FindOrCreateBrush(wxColour(150,150,150), wxSOLID);    // Solid background
 
-    pqual_hiBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(200,200,000), wxSOLID);    //Yellow
-    psecureBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(240,130, 50), wxSOLID);     //Orange
+    pqual_hiBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(240,240,000), wxSOLID);    //Yellow
+    psecureBrush =    wxTheBrushList->FindOrCreateBrush(wxColour(255,140, 50), wxSOLID);    //Orange
 
     pqual_hiNewBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(000,255,000), wxSOLID); //Green
-    psecureNewBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(255,000,000), wxSOLID);  //Red
+    psecureNewBrush =    wxTheBrushList->FindOrCreateBrush(wxColour(255,000,000), wxSOLID); //Red
 
     for(int ista = 0 ; ista < NSIGBARS ; ista++)
         m_quality[ista] = 0;

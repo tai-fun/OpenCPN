@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.3  2006/10/01 03:22:58  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -98,7 +101,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
 
 //    Statics
 
@@ -1059,6 +1062,7 @@ int MyConfig::LoadMyConfig(int iteration)
 
 
 //    Fonts
+
 #ifdef __WXX11__
       SetPath("/Settings/X11Fonts");
 #endif
@@ -1069,20 +1073,23 @@ int MyConfig::LoadMyConfig(int iteration)
       SetPath("/Settings/MSWFonts");
 #endif
 
-      wxString str;
-      long dummy;
-      wxString *pval = new wxString;
-
-      bool bCont = GetFirstEntry(str, dummy);
-      while ( bCont )
+      if(0 == iteration)
       {
+        wxString str;
+        long dummy;
+        wxString *pval = new wxString;
+
+        bool bCont = GetFirstEntry(str, dummy);
+        while ( bCont )
+        {
             Read(str, pval);
 
             pFontMgr->LoadFontNative(&str, pval);
 
             bCont = GetNextEntry(str, dummy);
+        }
+        delete pval;
       }
-      delete pval;
 
 
 
@@ -1336,7 +1343,7 @@ void MyConfig::UpdateSettings()
 
 #ifdef USE_S57
       Write("bShowS57Text", ps52plib->GetShowS57Text());
-      Write("nDisplayCategory", ps52plib->m_nDisplayCategory);
+      Write("nDisplayCategory", (long)ps52plib->m_nDisplayCategory);
       Write("nSymbolStyle", ps52plib->m_nSymbolStyle);
       Write("nBoundaryStyle", ps52plib->m_nBoundaryStyle);
 

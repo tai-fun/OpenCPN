@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
+ * $Id: nmea.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.3  2006/10/01 03:22:58  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -67,6 +70,8 @@
   #include "wx/wx.h"
 #endif //precompiled headers
 
+#include "wx/tokenzr.h"
+
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
@@ -83,7 +88,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
 
 //    Forward Declarations
 
@@ -130,6 +135,8 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
       pNMEA_Thread = NULL;
       m_sock = NULL;
 
+      Timer1.SetOwner(this, TIMER_NMEA1);
+
       m_pdata_source_string = new wxString(NMEADataSource);
 
 
@@ -139,10 +146,10 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
       wxLogMessage("NMEA Data Source is....%s",m_pdata_source_string->c_str());
 
 //      NMEA Data Source is private TCP/IP Server
-      if(m_pdata_source_string->Contains("TCP/IP"))
+      if(m_pdata_source_string->Contains("GPSD"))
       {
             wxString NMEA_data_ip;
-            NMEA_data_ip = m_pdata_source_string->Mid(7);         // extract the IP
+            NMEA_data_ip = m_pdata_source_string->Mid(5);         // extract the IP
 
 // Create the socket
             m_sock = new wxSocketClient();
@@ -196,6 +203,7 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
 
                   m_sock->Notify(FALSE);
                   m_sock->Destroy();
+                  m_sock = NULL;
 
                   return;
             }
@@ -203,10 +211,9 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
 
             //      Resolved the name, somehow, so Connect() the socket
             addr.Hostname(NMEA_data_ip);
-            addr.Service(22);
+            addr.Service(GPSD_PORT_NUMBER);
             m_sock->Connect(addr, FALSE);       // Non-blocking connect
 
-            Timer1.SetOwner(this, TIMER_NMEA1);
             Timer1.Start(1000,wxTIMER_CONTINUOUS);
       }
 
@@ -256,7 +263,6 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
 #endif
 
       }
-
 
 }
 
@@ -325,21 +331,174 @@ void NMEAWindow::UnPause(void)
 }
 
 
+#define USE_GPSD
+
 void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 {
 
+#define RD_BUF_SIZE    200
+    
     DATA_MSG1 *pt;
+    int nBytes;
+    unsigned char *bp;
+    unsigned char buf[RD_BUF_SIZE + 1];
+    int char_count;
+    wxString token;
+    double dglat, dglon, dgcog, dgsog;
+    double dtime;
+    wxDateTime fix_time;
 
   switch(event.GetSocketEvent())
   {
   case wxSOCKET_INPUT :
+#ifdef USE_GPSD
+            m_sock->SetFlags(wxSOCKET_NOWAIT); 
+
+
+//          Read the reply, one character at a time, looking for 0x0a (lf)
+            bp = buf;
+            char_count = 0;
+
+            while (char_count < RD_BUF_SIZE)
+            {
+                m_sock->Read(bp, 1);
+                nBytes = m_sock->LastCount();
+                if(*bp == 0x0a)
+                    break;
+
+                bp++;
+                char_count++;
+            }
+
+            *bp = 0;                        // end string
+
+//          Validate the string
+
+            if(!strncmp((const char *)buf, "GPSD", 4))
+            {
+
+                if(buf[7] != '?')           // valid data?
+                {
+                    wxStringTokenizer tkz(buf, " ");
+                    token = tkz.GetNextToken();
+
+                    token = tkz.GetNextToken();
+                    if(token.ToDouble(&dtime))
+                    {
+                        fix_time.Set((time_t) floor(dtime));
+                        wxString fix_time_format = fix_time.Format("%Y-%m-%dT%H:%M:%S");
+                    }
+
+
+                    token = tkz.GetNextToken();         // skip to lat
+  
+                    token = tkz.GetNextToken();
+                    if(token.ToDouble(&dglat))
+                        gLat = dglat;
+            
+                    token = tkz.GetNextToken();
+                    if(token.ToDouble(&dglon))
+                        gLon = dglon;
+                
+                    token = tkz.GetNextToken();         // skip to tmg
+                    token = tkz.GetNextToken();
+                    token = tkz.GetNextToken();
+
+                    token = tkz.GetNextToken();
+                    if(token.ToDouble(&dgcog))
+                        gCog = dgcog;
+
+                    token = tkz.GetNextToken();
+                    if(token.ToDouble(&dgsog))
+                        gSog = dgsog;
+
+//      Use the fix time to update the local clock
+                    if(1 /*!gFrame->m_bTimeIsSet*/)
+                    {
+
+//          Compare the server (fix) time to the current system time
+                        wxDateTime sdt;
+                        sdt.SetToCurrent();
+                        wxDateTime cwxft = fix_time;                  // take a copy
+                        wxTimeSpan ts;
+                        ts = cwxft.Subtract(sdt);
+
+                        int b = (ts.GetSeconds()).ToLong();
+//          Correct system time if necessary
+                        if(abs(b) > 2)
+                        {
+
+#ifdef __WXMSW__
+//      Fix up the fix_time to convert to GMT
+                              fix_time = fix_time.ToGMT();
+
+//    Code snippet following borrowed from wxDateCtrl, MSW
+
+                              const wxDateTime::Tm tm(fix_time.GetTm());
+                              
+
+                              SYSTEMTIME stm;
+                              stm.wYear = (WXWORD)tm.year;
+                              stm.wMonth = (WXWORD)(tm.mon - wxDateTime::Jan + 1);
+                              stm.wDay = tm.mday;
+
+                              stm.wDayOfWeek = 0;
+                              stm.wHour = fix_time.GetHour();
+                              stm.wMinute = tm.min;
+                              stm.wSecond = tm.sec;
+                              stm.wMilliseconds = 0;
+
+                              ::SetSystemTime(&stm);            // in GMT
+
+
+#else
+
+
+//      This contortion sets the system date/time on host
+//      Requires the following line in /etc/sudoers
+//          nav ALL=NOPASSWD:/bin/date -s ????????
+
+                            wxLogMessage("Time set, delta t is %d", b);
+
+                            wxString sdate(fix_time.Format("%D"));
+                            sdate.Prepend("sudo /bin/date -s ");
+                        //    printf("%s\n", sdate.c_str());
+                            wxExecute(sdate, wxEXEC_ASYNC);
+
+                            wxString g(fix_time.Format("%T"));
+                            g.Prepend("sudo /bin/date -s ");
+                        //    printf("%s\n", g.c_str());
+                            wxExecute(g, wxEXEC_ASYNC);
+
+#endif      //__WXMSW__
+                            if(parent_frame)
+                            parent_frame->m_bTimeIsSet = true;
+
+                        }           // if b
+                    }               // if 1
+
+
+
+
+//    Signal the main program thread
+
+                    wxCommandEvent event( EVT_NMEA, wxID_HIGHEST );
+                    event.SetEventObject( (wxObject *)this );
+                    event.SetExtraLong(EVT_NMEA_DIRECT);
+                    m_pParentEventHandler->AddPendingEvent(event);
+                }
+            }
+
+
+#else
             m_sock->SetFlags(wxSOCKET_WAITALL); // | wxSOCKET_BLOCK );
 
-            unsigned char buf[80];
             pt = (DATA_MSG1 *)buf;
 
 //          Read the reply, waiting forever for all data to be read
             m_sock->Read(buf, sizeof(DATA_MSG1));
+
+            nBytes = m_sock->LastCount();
 
             if((nmea) && (pt->msg == 0x8042))                      // is the socket's parent still alive?
             {                                                      // and message valid?
@@ -352,80 +511,6 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
 
 
-                  if(1 /*!gFrame->m_bTimeIsSet*/)
-                  {
-
-
-//          Cast the (void) server packet to a MyFileTime structure
-                        MyFileTime *pNMEATimeS = (MyFileTime *)(&pt->time);
-
-//          Convert server packet to a wxDateTime
-                        wxDateTime wxft;
-                        MyFileTimeTowxDT(pNMEATimeS, &wxft);
-
-//          Compare the server time to the current system time
-                        wxDateTime sdt;
-                        sdt.SetToCurrent();
-                        wxDateTime cwxft = wxft;                  // take a copy
-                        wxTimeSpan ts;
-                        ts = cwxft.Subtract(sdt);
-
-                        int b = (ts.GetSeconds()).ToLong();
-//          Correct system time if necessary
-                        if(abs(b) > 2)
-                        {
-
-#ifdef __WXMSW__
-//    Convert server time from UDT to local,
-//    since this is what MSW SetSystemTime wants
-
-                              wxDateTime this_now = wxDateTime::Now();
-                              wxDateTime this_gmt = this_now.ToGMT();
-                              wxTimeSpan diff = this_gmt.Subtract(this_now);
-                              wxft.Subtract(diff);
-
-//    Code snippet following borrowed from wxDateCtrl, MSW
-
-                              const wxDateTime::Tm tm(wxft.GetTm());
-
-                              SYSTEMTIME stm;
-                              stm.wYear = (WXWORD)tm.year;
-                              stm.wMonth = (WXWORD)(tm.mon - wxDateTime::Jan + 1);
-                              stm.wDay = tm.mday;
-
-                              stm.wDayOfWeek = 0;
-                              stm.wHour = tm.hour;
-                              stm.wMinute = tm.min;
-                              stm.wSecond = tm.sec;
-                              stm.wMilliseconds = 0;
-
-                              ::SetSystemTime(&stm);
-
-
-#else
-
-
-//      This contortion sets the system date/time on DYAD1
-//      Requires the following line in /etc/sudoers
-//          nav ALL=NOPASSWD:/bin/date -s ????????
-
-                            wxLogMessage("Time set, delta t is %d", b);
-
-                            wxString sdate(wxft.Format("%D"));
-                            sdate.Prepend("sudo /bin/date -s ");
-                        //    printf("%s\n", sdate.c_str());
-                            wxExecute(sdate, wxEXEC_ASYNC);
-
-                            wxString g(wxft.Format("%T"));
-                            g.Prepend("sudo /bin/date -s ");
-                        //    printf("%s\n", g.c_str());
-                            wxExecute(g, wxEXEC_ASYNC);
-
-#endif      //__WXMSW__
-                            if(parent_frame)
-                            parent_frame->m_bTimeIsSet = true;
-
-                        }           // if b
 
 //    Signal the main program thread
 
@@ -441,6 +526,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
             }           // if nmea
 
             break;
+#endif      //USE_GPSD
 
     case wxSOCKET_LOST       :
     case wxSOCKET_CONNECTION :
@@ -544,7 +630,11 @@ void NMEAWindow::OnTimer1(wxTimerEvent& event)
 
       if(m_sock->IsConnected())
       {
+#ifdef USE_GPSD
+            unsigned char c = 'O';
+#else
             unsigned char c = TRANSMIT_DATA;
+#endif
             m_sock->Write(&c, 1);
       }
       else                                                  // try to connect

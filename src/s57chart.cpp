@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $
+ * $Id: s57chart.cpp,v 1.3 2006/10/01 03:22:59 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,63 +26,14 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.3  2006/10/01 03:22:59  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:37  dsr
  * Major refactor/cleanup
  *
  * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
  * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.9  2006/08/04 11:42:02  dsr
- * no message
- *
- * Revision 1.8  2006/07/28 20:46:57  dsr
- * Implement GDAL/OGR library interface
- *
- * Revision 1.7  2006/06/15 02:48:53  dsr
- * Cleanup
- *
- * Revision 1.6  2006/06/02 02:15:05  dsr
- * Capture ATON floating arrays
- *
- * Revision 1.5  2006/05/28 01:46:19  dsr
- * Cleanup
- *
- * Revision 1.4  2006/05/28 00:54:22  dsr
- * Implement PolyGeo
- *
- * Revision 1.3  2006/05/19 19:27:06  dsr
- * Implement  POLYPOLY SENC object definition
- *
- * Revision 1.2  2006/04/23 03:59:50  dsr
- * Implement S57 Query
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.12  2006/04/19 00:51:10  dsr
- * Update some georeferencing errors in vector charts
- *
- * Revision 1.11  2006/03/16 03:08:24  dsr
- * Cleanup tabs
- *
- * Revision 1.10  2006/03/13 05:08:35  dsr
- * Implement S57USE_PIXELCACHE
- *
- * Revision 1.9  2006/03/04 21:20:41  dsr
- * Cleanup
- *
- * Revision 1.8  2006/03/01 04:22:32  dsr
- * Correct seteuid logic for SENC and Thumbnail creation
- *
- * Revision 1.7  2006/02/24 18:07:39  dsr
- * Update SENC for MultiPont Soundings, name, dates
- *
- * Revision 1.6  2006/02/24 03:05:41  dsr
- * Explicitely free some S57ClassRegistrar string leaks
- *
- * Revision 1.5  2006/02/23 01:49:47  dsr
- * Cleanup, optimize, increment SENC file format
- *
  *
  *
  */
@@ -105,7 +56,7 @@
 #include "s52plib.h"
 
 #include "s57chart.h"
-#include "nmea.h"                                       // for Pause/UnPause
+#include "nmea.h"                               // for Pause/UnPause
 
 #include "mygeom.h"
 #include "cutil.h"
@@ -113,7 +64,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.3 2006/10/01 03:22:59 dsr Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -398,35 +349,7 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                         pattValTmp->value   = pAVS;
                     }
 
-    /*
-                    else if(strstr(buf, "(S)"))
-                    {
-                    br = buf+2;
-                    int i=0;
-                    while(*br != ' ')
-                    {
-                    szAtt[i++] = *br;
-                    br++;
-                }
 
-                    szAtt[i] = 0;
-
-                    while(*br != '=')
-                    br++;
-
-                    br += 2;
-
-                    int nlen = strlen(br);
-                    br[nlen-1] = 0;                                 // dump the NL char
-                    char *pAVS = (char *)malloc(nlen + 1);          ;
-                    strcpy(pAVS, br);
-
-                    pattValTmp->valType = OGR_STR;
-                    pattValTmp->value   = pAVS;
-                }
-    */
-
-    //                                      else if(strstr(buf, "(R)"))
                     else if(buf[10] == 'R')
                     {
                         br = buf+2;
@@ -582,28 +505,6 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                     if(ll > llmax)
                         llmax = ll;
 
-/*
-                    if(!strncmp(buf, "  POLYGEO", 9))
-                    {
-                        int nrecl;
-                        sscanf(buf, "  POLYGEO %d", &nrecl);
-
-                        if (nrecl)
-                        {
-                            unsigned char *polybuf = (unsigned char *)malloc(nrecl + 1);
-                            pfpx->Read(polybuf,  nrecl);
-                            polybuf[nrecl] = 0;                     // endit
-                            PolyGeo *ppg = new PolyGeo(polybuf, nrecl, FEIndex);
-                            free(polybuf);
-
-                            pPolyGeo = ppg;
-                            ring = NULL;
-                            BBObj.SetMin(ppg->Get_xmin(), ppg->Get_ymin());
-                            BBObj.SetMax(ppg->Get_xmax(), ppg->Get_ymax());
-
-                        }
-                    }
-*/
                     if(!strncmp(buf, "  POLYTESSGEO", 13))
                     {
                         int nrecl;
@@ -2285,6 +2186,9 @@ int s57chart::BuildS57File(const char *pFullPath)
                 break;
 
             sobj = wxString(objectDef->GetDefnRef()->GetName());
+            wxString idx;
+            idx.Printf("  %d/%d       ", iObj, nGeoRecords);
+            sobj += idx;
 
 //  Update the progress dialog
 
@@ -2319,21 +2223,33 @@ int s57chart::BuildS57File(const char *pFullPath)
 
                 if(1)
                 {
-//                    if(!strncmp(objectDef->GetDefnRef()->GetName(), "LNDARE", 6))
+//                    if(!strncmp(objectDef->GetDefnRef()->GetName(), "UNSARE", 6))
                     if(1)
                     {
                         bcont = SENC_prog->Update(nProg, sobj);
                         CreateSENCRecord( objectDef, fps57, 0 );
                         PolyTessGeo ppg(poly);
+                        if(ppg.ErrorCode)
+                        {
+                            if(ppg.ErrorCode == ERROR_NO_DLL)
+                            {
+                                wxLogMessage("Warning: S57 SENC Create Error...could not find glu32.dll");
+//                                wxMessageDialog mdlg(pParent, "Could not find glu32.dll, \n aborting SENC creation."
+//                                    , wxString("OpenCPN"),wxICON_ERROR  );
+                                
+                                delete objectDef;
+                                delete SENC_prog;
+                                fclose(fps57);
+                                delete poDS;
+                                CPLPopErrorHandler();
+                                unlink(tmp_file.c_str());           // delete the temp file....
+
+                                return 0;                           // soft error return
+                            }
+                        }
                         ppg.Write_PolyTriGroup( fps57 );
-//                        ppgtess.Tess_and_write_PolyTriGroup(poly, fps57);
                     }
-
-
-
                 }
-
-
             }
 
 //      n.b  This next line causes skip of C_AGGR features w/o geometry
@@ -2702,14 +2618,6 @@ int s57chart::_insertRules(S57Obj *obj, LUPrec *LUP)
       return 0;
    }
 
-   /*
-   // find display priority index       --strait version
-   disPrioIdx = LUP->DPRI - '0';
-   if (disPrioIdx &lt; 0 || PRIO_NUM &lt;= disPrioIdx){
-      printf("SEQuencer:_insertRules():ERROR no display priority!!!\n");
-      return 0;
-   }
-   */
 
    // find display priority index       --talky version
    switch(LUP->DPRI){
@@ -2813,87 +2721,84 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
 
         if(( pGeo != NULL ) && (mode == 1))
         {
-        int wkb_len = pGeo->WkbSize();
-        unsigned char *pwkb_buffer = (unsigned char *)malloc(wkb_len);
+            int wkb_len = pGeo->WkbSize();
+            unsigned char *pwkb_buffer = (unsigned char *)malloc(wkb_len);
 
 //  Get the GDAL data representation
-                pGeo->exportToWkb(wkbNDR, pwkb_buffer);
+            pGeo->exportToWkb(wkbNDR, pwkb_buffer);
 
     //  Convert to opencpn SENC representation
 
     //  Set absurd bbox starting limits
-        float xmax = -1000;
-        float xmin = 1000;
-        float ymax = -1000;
-        float ymin = 1000;
+            float xmax = -1000;
+            float xmin = 1000;
+            float ymax = -1000;
+            float ymin = 1000;
 
-                int i, ip, sb_len;
-        float *pdf;
-                double *psd;
-                unsigned char *ps;
-                unsigned char *pd;
-                unsigned char *psb_buffer;
+            int i, ip, sb_len;
+            float *pdf;
+            double *psd;
+            unsigned char *ps;
+            unsigned char *pd;
+            unsigned char *psb_buffer;
 
-                OGRwkbGeometryType gType = pGeo->getGeometryType();
-        switch(gType)
-        {
-          case wkbLineString:
-            sb_len = ((wkb_len - 9) / 2) + 9 + 16;                // data will be 4 byte float, not double
-                                                                  // and bbox limits are tacked on end
-            fprintf( fpOut, "  %d\n", sb_len);
-
-
-            psb_buffer = (unsigned char *)malloc(sb_len);
-            pd = psb_buffer;
-            ps = pwkb_buffer;
-
-            memcpy(pd, ps, 9);                                    // byte order, type, and count
-
-            ip = *((int *)(ps + 5));                              // point count
-
-            pd += 9;
-            ps += 9;
-            psd = (double *)ps;
-            pdf = (float *)pd;
+            OGRwkbGeometryType gType = pGeo->getGeometryType();
+            switch(gType)
+            {
+                case wkbLineString:
+                    sb_len = ((wkb_len - 9) / 2) + 9 + 16;                // data will be 4 byte float, not double
+                                                                          // and bbox limits are tacked on end
+                    fprintf( fpOut, "  %d\n", sb_len);
 
 
-            for(i = 0 ; i < ip ; i++)                           // convert doubles to floats
-            {                                                   // computing bbox as we go
-                float x = (float)*psd;
-                *pdf = x;
-                psd++;
-                pdf++;
-                xmax = fmax(x, xmax);
-                xmin = fmin(x, xmin);
+                    psb_buffer = (unsigned char *)malloc(sb_len);
+                    pd = psb_buffer;
+                    ps = pwkb_buffer;
 
-                float y = (float)*psd;
-                *pdf = y;
-                psd++;
-                pdf++;
-                ymax = fmax(y, ymax);
-                ymin = fmin(y, ymin);
+                    memcpy(pd, ps, 9);                                    // byte order, type, and count
 
+                    ip = *((int *)(ps + 5));                              // point count
 
-            }
+                    pd += 9;
+                    ps += 9;
+                    psd = (double *)ps;
+                    pdf = (float *)pd;
 
-            *pdf++ = xmax;
-            *pdf++ = xmin;
-            *pdf++ = ymax;
-            *pdf =   ymin;
+                    for(i = 0 ; i < ip ; i++)                           // convert doubles to floats
+                    {                                                   // computing bbox as we go
+                        float x = (float)*psd;
+                        *pdf = x;
+                        psd++;
+                        pdf++;
+                        xmax = fmax(x, xmax);
+                        xmin = fmin(x, xmin);
 
-            fwrite(psb_buffer, 1, sb_len, fpOut);
-            free(psb_buffer);
-            break;
+                        float y = (float)*psd;
+                        *pdf = y;
+                        psd++;
+                        pdf++;
+                        ymax = fmax(y, ymax);
+                        ymin = fmin(y, ymin);
+                    }
 
-        case wkbMultiLineString:
-          wxLogMessage("Warning: Unimplemented SENC wkbMultiLineString record in file %s",
-                       pS57FileName->GetFullPath().c_str());
+                    *pdf++ = xmax;
+                    *pdf++ = xmin;
+                    *pdf++ = ymax;
+                    *pdf =   ymin;
 
-          wkb_len = pGeo->WkbSize();
-          fprintf( fpOut, "  %d\n", wkb_len);
-          fwrite(pwkb_buffer, 1, wkb_len, fpOut);
+                    fwrite(psb_buffer, 1, sb_len, fpOut);
+                    free(psb_buffer);
+                    break;
 
-          break;
+                case wkbMultiLineString:
+                      wxLogMessage("Warning: Unimplemented SENC wkbMultiLineString record in file %s",
+                                   pS57FileName->GetFullPath().c_str());
+
+                      wkb_len = pGeo->WkbSize();
+                      fprintf( fpOut, "  %d\n", wkb_len);
+                      fwrite(pwkb_buffer, 1, wkb_len, fpOut);
+
+                      break;
 
           //Todo Implement some other private SENC formats, e.g. wkbPoint
     /*
@@ -2904,25 +2809,22 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
           wkbMultiLineString = 5,
           wkbMultiPolygon = 6,
     */
-          default:
-          wkb_len = pGeo->WkbSize();
-          fprintf( fpOut, "  %d\n", wkb_len);
-          fwrite(pwkb_buffer, 1, wkb_len, fpOut);
+                default:
+                      wkb_len = pGeo->WkbSize();
+                      fprintf( fpOut, "  %d\n", wkb_len);
+                      fwrite(pwkb_buffer, 1, wkb_len, fpOut);
+                      break;
+            }       // switch
 
-        break;
+
+
+            free(pwkb_buffer);
+            fprintf( fpOut, "\n" );
         }
-
-
-
-
-
-                free(pwkb_buffer);
-
-                fprintf( fpOut, "\n" );
-
-        }
-
 }
+
+
+
 
 ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_radius)
 {
@@ -2937,106 +2839,72 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
 
     for (int i=0; i<PRIO_NUM; ++i)
     {
-      // Points first
+      // Points by type, array indices [0..1]
 
-          top = razRules[i][0];           //SIMPLIFIED Points
-          while ( top != NULL)
+          for(int point_type = 0 ; point_type < 2 ; point_type++)
           {
-                  crnt = top;
-                  top  = top->next;
-
-          }
-
-
-          top = razRules[i][1];           //Paper Chart Points
-          while ( top != NULL)
-          {
+            top = razRules[i][point_type];          
+            while ( top != NULL)
+            {
                   crnt = top;
                   top  = top->next;
 
                   if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
                         ret_ptr->Add(crnt->obj);
-
+            }
           }
+    
 
-      // Areas by boundary type
+      // Areas by boundary type, array indices [3..4]
 
-          top = razRules[i][4];           // Area Symbolized Boundaries
-          while ( top != NULL)
+          for(int area_boundary_type = 3 ; area_boundary_type < 5 ; area_boundary_type++)
           {
-                  crnt = top;
-                  top  = top->next;
+              top = razRules[i][area_boundary_type];           // Area nnn Boundaries
+              while ( top != NULL)
+              {
+                    crnt = top;
+                    top  = top->next;
+                    bool bviz = false;
 
-                  if(ps52plib->m_nDisplayCategory == OTHER)
-                  {
-                    OBJLElement *pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(crnt->obj->iOBJL));
-                    if(pOLE->nViz)
-                      if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                        ret_ptr->Add(crnt->obj);
-                  }
+                    if(ps52plib->m_nDisplayCategory == MARINERS_STANDARD)
+                    {
+                        if(((OBJLElement *)(ps52plib->pOBJLArray->Item(crnt->obj->iOBJL)))->nViz)
+                            bviz = true;
+                    }
 
-                  else                                              // check DISPLAYBASE or STANDARD
-                  {
-                      if(ps52plib->m_nDisplayCategory == DISPLAYBASE)
-                      {
-                         if(DISPLAYBASE == crnt->LUP->DISC)
-                         {
-                            if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                                ret_ptr->Add(crnt->obj);
-                         }
-                       }
+                    else if(ps52plib->m_nDisplayCategory == OTHER)
+                    {
+                        if(    (DISPLAYBASE == crnt->LUP->DISC)
+                            || (STANDARD == crnt->LUP->DISC)
+                            || (OTHER == crnt->LUP->DISC))
+                        {
+                            bviz = true;
+                        }
+                    }
 
-                      else if(ps52plib->m_nDisplayCategory == STANDARD)
-                      {
-                             if((DISPLAYBASE == crnt->LUP->DISC) || (STANDARD == crnt->LUP->DISC))
-                             {
-                                if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                                    ret_ptr->Add(crnt->obj);
-                             }
-                      }
+                    else if(ps52plib->m_nDisplayCategory == STANDARD)
+                    {
+                        if((DISPLAYBASE == crnt->LUP->DISC) || (STANDARD == crnt->LUP->DISC))
+                        {
+                            bviz = true;
+                        }
+                    }
 
-                  }
-          }
+                    else if(ps52plib->m_nDisplayCategory == DISPLAYBASE)
+                    {
+                        if(DISPLAYBASE == crnt->LUP->DISC)
+                        {
+                            bviz = true;
+                        }
+                    }
 
-
-          top = razRules[i][3];           // Area Plain Boundaries
-
-          while ( top != NULL)
-          {
-                  crnt = top;
-                  top  = top->next;
-
-                  if(ps52plib->m_nDisplayCategory == OTHER)
-                  {
-                    OBJLElement *pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(crnt->obj->iOBJL));
-                    if(pOLE->nViz)
-                      if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                        ret_ptr->Add(crnt->obj);
-                  }
-
-                  else                                              // check DISPLAYBASE or STANDARD
-                  {
-                      if(ps52plib->m_nDisplayCategory == DISPLAYBASE)
-                      {
-                         if(DISPLAYBASE == crnt->LUP->DISC)
-                         {
-                            if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                                ret_ptr->Add(crnt->obj);
-                         }
-                       }
-
-                      else if(ps52plib->m_nDisplayCategory == STANDARD)
-                      {
-                             if((DISPLAYBASE == crnt->LUP->DISC) || (STANDARD == crnt->LUP->DISC))
-                             {
-                                if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                                    ret_ptr->Add(crnt->obj);
-                             }
-                      }
-
-                  }
-          }
-
+                    if(bviz)
+                    {
+                        if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
+                            ret_ptr->Add(crnt->obj);
+                    }
+              }         // while
+          }         //for
 
 
       // Finally, lines
@@ -3052,7 +2920,6 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
 
       }
 
-
       return ret_ptr;
 }
 
@@ -3063,9 +2930,11 @@ bool s57chart::DoesLatLonSelectObject(float lat, float lon, float select_radius,
       switch(obj->Primitive_type)
       {
             case  GEO_POINT:
+                {
                   if((fabs(lon - obj->x) < select_radius) && (fabs(lat - obj->y) < select_radius))
                         return true;
-
+                  break;
+                }
             case  GEO_AREA:
                 {
                     return IsPointInObjArea(lat, lon, select_radius, obj);
@@ -3408,100 +3277,142 @@ extern "C" int G_PtInPolygon(MyPoint *, int, float, float) ;
 
 bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Obj *obj)
 {
-//    if(obj->Index == 2041)
-//        int ggk = 5;
-
     bool ret = false;
 
-/*
-    if(obj->pPolyGeo)
+    if(obj->pPolyTessGeo)
     {
 
 //      Is the point in the PolyGeo Bounding Box?
-        if(lon > obj->pPolyGeo->Get_xmax())
+
+        if(lon > obj->pPolyTessGeo->Get_xmax())
             return false;
-        else if(lon < obj->pPolyGeo->Get_xmin())
+        else if(lon < obj->pPolyTessGeo->Get_xmin())
             return false;
-        else if(lat > obj->pPolyGeo->Get_ymax())
+        else if(lat > obj->pPolyTessGeo->Get_ymax())
             return false;
-        else if(lat < obj->pPolyGeo->Get_ymin())
+        else if(lat < obj->pPolyTessGeo->Get_ymin())
             return false;
 
 
-        PolyGroup *ppg = obj->pPolyGeo->Get_PolyGroup_head();
+        PolyTriGroup *ppg = obj->pPolyTessGeo->Get_PolyTriGroup_head();
 
-        int npoly = ppg->nPolys;
+        TriPrim *pTP = ppg->tri_prim_head;
 
-        for (int ip = 0;ip < npoly  ; ip++)
+        MyPoint pvert_list[3];
+
+        while(pTP)
         {
-
-//  Is point in any of the polys?
-            wxBoundingBox *bbpoly = &(ppg->BBArray[ip]);
-            double **pvert_array = ppg->pvert_array;
-            int *pnv_array = ppg->pn_vertex;
-
 //  Coarse test
-            if(bbpoly->PointInBox(lon, lat, 0))
+            if(pTP->p_bbox->PointInBox(lon, lat, 0))
             {
-                    int nvert = pnv_array[ip];
+                double *p_vertex = pTP->p_vertex;
 
-                    double *pvert_list = pvert_array[ip];
-                    if(G_PtInPolygon((MyPoint *)pvert_list, nvert, lon, lat))
+                switch (pTP->type)
+                {
+                    case PTG_TRIANGLE_FAN:
                     {
-                        ret = true;
+                        for(int it = 0 ; it < pTP->nVert - 2 ; it++)
+                        {
+                            pvert_list[0].x = p_vertex[0];
+                            pvert_list[0].y = p_vertex[1];
+
+                            pvert_list[1].x = p_vertex[(it*2)+2];
+                            pvert_list[1].y = p_vertex[(it*2)+3];
+
+                            pvert_list[2].x = p_vertex[(it*2)+4];
+                            pvert_list[2].y = p_vertex[(it*2)+5];
+
+                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, lon, lat))
+                            {
+                                ret = true;
+                                break;
+                            }
+                        }
                         break;
                     }
+                    case PTG_TRIANGLE_STRIP:
+                    {
+                        for(int it = 0 ; it < pTP->nVert - 2 ; it++)
+                        {
+                            pvert_list[0].x = p_vertex[(it*2)];
+                            pvert_list[0].y = p_vertex[(it*2)+1];
+
+                            pvert_list[1].x = p_vertex[(it*2)+2];
+                            pvert_list[1].y = p_vertex[(it*2)+3];
+
+                            pvert_list[2].x = p_vertex[(it*2)+4];
+                            pvert_list[2].y = p_vertex[(it*2)+5];
+
+                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, lon, lat))
+                            {
+                                ret = true;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case PTG_TRIANGLES:
+                    {
+                        for(int it = 0 ; it < pTP->nVert ; it+=3)
+                        {
+                            pvert_list[0].x = p_vertex[(it*2)];
+                            pvert_list[0].y = p_vertex[(it*2)+1];
+
+                            pvert_list[1].x = p_vertex[(it*2)+2];
+                            pvert_list[1].y = p_vertex[(it*2)+3];
+
+                            pvert_list[2].x = p_vertex[(it*2)+4];
+                            pvert_list[2].y = p_vertex[(it*2)+5];
+
+                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, lon, lat))
+                            {
+                                ret = true;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+           
             }
+            pTP = pTP->p_next;
         }
 
-        if(ret == false)                        // point is not within base poly
-            return false;
+    }           // if pPolyTessGeo
 
-
-        return ret;
-
-
-    }           // if pPolyGeo
-
-*/
-    return false;
+    
+    
+    
+    return ret;
 }
 
 
 
+ extern wxLog *logger;
 
 /************************************************************************/
 /*                       OpenCPN_OGRErrorHandler()                      */
+/*                       Use Global wxLog Class                         */
 /************************************************************************/
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
                               const char * pszErrorMsg )
-
 {
-    static int       bLogInit = FALSE;
-    static FILE *    fpLog = stderr;
 
-    if( !bLogInit )
-    {
-        bLogInit = TRUE;
+#define ERR_BUF_LEN 200
 
-        fpLog = stderr;
-        if( CPLGetConfigOption( "CPL_LOG", NULL ) != NULL )
-        {
-            fpLog = fopen( CPLGetConfigOption("CPL_LOG",""), "wt" );
-            if( fpLog == NULL )
-                fpLog = stderr;
-        }
-    }
+    char buf[ERR_BUF_LEN + 1];
 
     if( eErrClass == CE_Debug )
-        fprintf( fpLog, "%s\n", pszErrorMsg );
+        snprintf( buf, ERR_BUF_LEN, "%s\n", pszErrorMsg );
     else if( eErrClass == CE_Warning )
-        fprintf( fpLog, "Warning %d: %s\n", nError, pszErrorMsg );
+        snprintf( buf, ERR_BUF_LEN, "Warning %d: %s\n", nError, pszErrorMsg );
     else
-        fprintf( fpLog, "ERROR %d: %s\n", nError, pszErrorMsg );
+        snprintf( buf, ERR_BUF_LEN, "ERROR %d: %s\n", nError, pszErrorMsg );
 
-    fflush( fpLog );
+    
+    wxLogMessage("%s", buf);
+
 
     //      Do not simply return on CE_Fatal errors, as we don't want to abort()
 
@@ -3567,7 +3478,7 @@ const char *MyCSVGetField( const char * pszFilename,
 //  Initialize GDAL/OGR S57ENC support
 //------------------------------------------------------------------------
 
-int s57_initialize(const wxString& csv_dir)
+int s57_initialize(const wxString& csv_dir, FILE *flog)
 {
 
     //  MS Windows Build Note:
@@ -3624,9 +3535,6 @@ int s57_initialize(const wxString& csv_dir)
     wxSetEnv("OGR_S57_OPTIONS",set1.c_str());
 #endif
 
-
-//    CPLSetConfigOption( "CPL_DEBUG", "ON");
-//    CPLSetConfigOption( "CPL_LOG", "c:\\LOG");
 
     RegisterOGRS57();
 
@@ -3850,33 +3758,4 @@ bool s57_ddfrecord_test()
     else
         return true;
 
-//        dr.Dump(stderr);
-
 }
-
-
-
-
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-

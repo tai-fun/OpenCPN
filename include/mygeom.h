@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
+ * $Id: mygeom.h,v 1.3 2006/10/01 03:24:40 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselation of Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
+ * Revision 1.3  2006/10/01 03:24:40  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
@@ -62,7 +65,7 @@
 #define TESS_VERT   0                           // constants describing preferred tess orientation
 #define TESS_HORZ   1
 
-#define CURRENT_SENC_FORMAT_VERSION  109
+#define CURRENT_SENC_FORMAT_VERSION  110
 #define EQUAL_EPS 1.0e-7                        // tolerance value
 
 
@@ -70,6 +73,9 @@
 #define PTG_TRIANGLES                      0x0004
 #define PTG_TRIANGLE_STRIP                 0x0005
 #define PTG_TRIANGLE_FAN                   0x0006
+
+//  Error Return Codes
+#define ERROR_NO_DLL            1
 
 
 //--------------------------------------------------------------------------------------------------
@@ -144,6 +150,7 @@ class PolyTessGeo
         double Get_ymax(){ return ymax;}
         PolyTriGroup *Get_PolyTriGroup_head(){ return m_ppg_head;}
 
+        int     ErrorCode;
 
 
     private:

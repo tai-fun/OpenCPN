@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: cutil.c,v 1.2 2006/10/01 03:22:58 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Extern C Linked Utilities
@@ -27,8 +27,11 @@
  *
  *
  * $Log: cutil.c,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/10/01 03:22:58  dsr
+ * no message
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/08/04 11:42:00  dsr
  * no message
@@ -52,7 +55,7 @@
 
 //#include "dychart.h"
 
-//CPL_CVSID("$Id: cutil.c,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+//CPL_CVSID("$Id: cutil.c,v 1.2 2006/10/01 03:22:58 dsr Exp $");
 
 /*************************************************************************
 
@@ -61,14 +64,12 @@
  *
  * PURPOSE
  * This routine determines if the point passed is in the polygon. It uses
-
  * the classical polygon hit-testing algorithm: a horizontal ray starting
-
  * at the point is extended infinitely rightwards and the number of
  * polygon edges that intersect the ray are counted. If the number is odd,
-
  * the point is inside the polygon.
  *
+ * Polygon is assumed OPEN, not CLOSED.
  * RETURN VALUE
  * (bool) TRUE if the point is inside the polygon, FALSE if not.
  *************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
+ * $Id: statwin.h,v 1.3 2006/10/01 03:24:40 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Status Window
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.h,v $
+ * Revision 1.3  2006/10/01 03:24:40  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
@@ -189,7 +192,9 @@ public:
       PianoWin    *pPiano;
       TStatWin    *pTStat1;
       TStatWin    *pTStat2;
+#ifdef USE_WIFI_CLIENT
       WiFiStatWin *pWiFi;
+#endif
 
 private:
 

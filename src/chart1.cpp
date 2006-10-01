@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
+ * $Id: chart1.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.3  2006/10/01 03:22:58  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -151,7 +154,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -162,9 +165,11 @@ CPL_CVSID("$Id: chart1.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
 double _HUGE;
 
 
+FILE            *flog;                  // log file
+wxLog           *logger;
+wxLog           *Oldlogger;
 
 MyFrame         *gFrame;
-
 
 ChartCanvas     *cc1;
 ConsoleCanvas   *console;
@@ -197,8 +202,6 @@ bool            bDBUpdateInProgress;
 ThumbWin        *pthumbwin;
 TCMgr           *ptcmgr;
 
-wxLog           *logger;
-wxLog           *Oldlogger;
 bool            bAutoPilotOut;
 bool            bDrawCurrentValues;
 
@@ -255,6 +258,20 @@ s52plib         *ps52plib;
 WIFIWindow      *pWIFI;
 #endif
 
+
+static wxString *pval;          // Private environment temp storage
+
+
+#ifdef USE_S57
+#ifdef __WXMSW__
+#ifdef USE_GLU_TESS
+#ifdef USE_GLU_DLL
+extern bool           s_glu_dll_ready;
+extern HINSTANCE      s_hGLU_DLL;                   // Handle to DLL
+#endif
+#endif
+#endif
+#endif
 
 //-----------------------------------------------------------------------------------------------------
 //      OCP_NMEA_Thread Static data store
@@ -328,7 +345,7 @@ IMPLEMENT_APP(MyApp)
 bool MyApp::OnInit()
 {
 
-//      _CrtSetBreakAlloc(63763);
+//      _CrtSetBreakAlloc(3788);
 
 #ifdef __WXMSW__
 _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
@@ -364,6 +381,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      wxHandleFatalExceptions(true);
 
 
+
+//      Init the private environment handler
+        pval = new wxString;
+
 // Set up default FONT encoding, which should have been done by wxWidgets some time before this......
         wxFont temp_font(10, wxDEFAULT ,wxNORMAL, wxNORMAL, FALSE, wxString(""), wxFONTENCODING_SYSTEM );
         temp_font.SetDefaultEncoding(wxFONTENCODING_SYSTEM );
@@ -388,32 +409,14 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 //      Establish Log File location
 
-#ifdef __WXMSW__
-        logger=new wxLogStderr();
-#else
         wxString log(*pHome_Locn);
         log.Append("opencpn.log");
-        FILE *flog = fopen(log.c_str(), "a");
+        flog = fopen(log.c_str(), "a");
         logger=new wxLogStderr(flog);
-#endif
+
         Oldlogger = wxLog::SetActiveTarget(logger);
 
 //        wxLog::SetTraceMask(2);               // verbose message traces to log output
-
-/*
-
-        wxDateTime wxft =  wxDateTime::Now();
-
-        wxString sdate(wxft.Format("%D"));
-        sdate.Prepend("sudo /bin/date -s ");
-        printf("%s\n", sdate.c_str());
-
-        wxExecute(sdate, wxEXEC_ASYNC);
-
-        wxString g(wxft.Format("%T"));
-        g.Prepend("sudo /bin/date -s ");
-        printf("%s\n", g.c_str());
-*/
 
 
 //      Send init message
@@ -540,7 +543,9 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 
 #ifdef USE_S57
-//      Init the s57 manager, specifying the location of the required csv files.
+//      Init the s57 chart object, specifying the location of the required csv files
+//      and error log.
+
 //      If the config file contains the entry, use it.
 //      Otherwise, default to [shared data dir]/s57_data
         if(pcsv_locn->IsEmpty())
@@ -550,7 +555,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
             pcsv_locn->Append("s57data");
         }
 
-        s57_initialize(*pcsv_locn);
+        s57_initialize(*pcsv_locn, flog);
 
 
 
@@ -629,6 +634,8 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //                        Here, we'll do explicit sizing on SIZE events
 
         cc1 =  new ChartCanvas(gFrame);                         // the chart display canvas
+        if(cc1)
+            cc1->m_bFollow = pConfig->st_bFollow;               // set initial state
 
         console = new ConsoleCanvas(gFrame);                    // the console
 
@@ -764,10 +771,12 @@ int MyApp::OnExit()
         delete pBitmap_Dir;
         delete pHome_Locn;
         delete pSData_Locn;
+        delete pcsv_locn;
         delete pTC_Dir;
         delete phost_name;
         delete pInit_Chart_Dir;
         delete pWVS_Locn;
+        delete pval;
 
         delete pNMEADataSource;
         delete pNMEA_AP_Port;
@@ -775,6 +784,18 @@ int MyApp::OnExit()
         delete pWIFIServerName;
 
         delete pFontMgr;
+
+#ifdef USE_S57		
+#ifdef __WXMSW__
+#ifdef USE_GLU_TESS
+#ifdef USE_GLU_DLL
+        if(s_glu_dll_ready)
+            FreeLibrary(s_hGLU_DLL);           // free the glu32.dll       
+#endif
+#endif
+#endif
+#endif
+
 
 //        _CrtDumpMemoryLeaks( );
 
@@ -860,18 +881,15 @@ MyFrame::~MyFrame()
 void MyFrame::OnActivate(wxActivateEvent& event)
 {
 //      Activating?
-        if(event.GetActive())
-        {
+    if(event.GetActive())
+    {
+        if(!bDBUpdateInProgress)
+            if(Current_Ch)
+                Current_Ch->InvalidateCache();
 
-                if(!bDBUpdateInProgress)
-                        if(Current_Ch)
-                                Current_Ch->InvalidateCache();
-
-                if(cc1)
-                        cc1->m_bForceReDraw = true;
-        }
-
-
+        if(cc1)
+            cc1->m_bForceReDraw = true;
+    }
 }
 
 ColorScheme MyFrame::GetColorScheme()
@@ -927,7 +945,7 @@ void MyFrame::CreateMyToolbar()
         toolBar->SetToolBitmapSize(wxSize(32,32));
     toolBar->SetRows(1);
 
-    //Set up the ToolBar
+//Set up the ToolBar
 
 
 //      Think about wxUNIV themes here....
@@ -937,29 +955,34 @@ void MyFrame::CreateMyToolbar()
 //      All this is poorly documented, and very clumsy
 //      see the wx src files
 
+//  On MSW, ToolPacking does nothing
     toolBar->SetToolPacking(1);
-    toolBar->SetToolSeparation(5);
+    int tool_packing = toolBar->GetToolPacking();
+    
+
+//  On MSW, ToolMargins does nothing
     wxSize defMargins = toolBar->GetMargins();
     toolBar->SetMargins(wxSize(6, defMargins.y));
+    wxSize tool_margin = toolBar->GetMargins();
+
+
+    toolBar->SetToolSeparation(5);                  // width of separator
+    int tool_sep = toolBar->GetToolSeparation();
 
 //      Calculate the tool and separator pitches
     wxSize toolsize = toolBar->GetToolSize();
-    int tool_sep = toolBar->GetToolSeparation();
 
-    int tool_packing = toolBar->GetToolPacking();
-    wxSize tool_margin = toolBar->GetMargins();
-
-        int x;                                          // running position
-      int pitch_tool, pitch_sep;
-      pitch_tool = toolsize.x + tool_packing + tool_margin.x;
-      pitch_sep =  tool_sep   + tool_packing + tool_margin.x;
-      x =tool_packing + tool_margin.x;
+    int x;                                          // running position
+    int pitch_tool, pitch_sep;
+    pitch_tool = toolsize.x + tool_packing + tool_margin.x;
+    pitch_sep =  tool_sep   + tool_packing + tool_margin.x;
+    x =tool_packing + tool_margin.x;
 
       // Some fixups needed here
 #ifdef __WXMSW__
-      pitch_tool = toolsize.x + tool_packing;
-      pitch_sep =  tool_sep + tool_packing;
-      x = 0;
+      pitch_tool = toolsize.x;
+      pitch_sep =  tool_sep + 1;
+      x = 3;
 #endif
 
 #ifdef __WXGTK__
@@ -982,10 +1005,6 @@ void MyFrame::CreateMyToolbar()
     MyAddTool(toolBar, ID_STKUP, _T(""), _T("scout"), _T("Stack -"), wxITEM_NORMAL);
     x += pitch_tool;
 
-//    toolBar->AddSeparator();
-//    x += pitch_sep;
-//    toolBar->AddSeparator();
-//    x += pitch_sep;
     toolBar->AddSeparator();
     x += pitch_sep;
 
@@ -994,12 +1013,9 @@ void MyFrame::CreateMyToolbar()
     MyAddTool(toolBar, ID_FOLLOW, _T(""), _T("follow"), _T("Auto Follow"), wxITEM_CHECK);
     x += pitch_tool;
 
-//    toolBar->AddSeparator();
-//    x += pitch_sep;
-//    toolBar->AddSeparator();
-//    x += pitch_sep;
     toolBar->AddSeparator();
     x += pitch_sep;
+
     MyAddTool(toolBar, ID_SETTINGS, _T(""), _T("settings"), _T("Settings"), wxITEM_NORMAL);
     x += pitch_tool;
 
@@ -1008,6 +1024,7 @@ void MyFrame::CreateMyToolbar()
 
     toolBar->AddSeparator();
     x += pitch_sep;
+    
     MyAddTool(toolBar, ID_CURRENT, _T(""), _T("current"), _T("Show Currents"), wxITEM_CHECK);
     x += pitch_tool;
 
@@ -1127,6 +1144,7 @@ void MyFrame::ReSizeToolbar(void)
 
     tool_dummy_size_x = tx - toolbar_width_without_static;
 
+//  Todo Figure out why this doesn't work for MSW
 #ifndef __WXMSW__
     if(Current_Ch)
         UpdateToolbarStatusWindow(Current_Ch, false);
@@ -1241,6 +1259,8 @@ void MyFrame::OnSize(wxSizeEvent& event)
         {
               pthumbwin->SetMaxSize(cc1->GetSize());
         }
+
+
 
 //  Rebuild the Toolbar
     if(toolBar)
@@ -1772,14 +1792,15 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
       int w, h, descent;
       GetTextExtent(pub_date, &w, &h, &descent, NULL, pSWFont1);
 
-      int date_locn = size_x - w - 2;
-      RenderShadowText(&dc, pSWFont1, (char *)pub_date.c_str(), date_locn, size_y - h + descent);
+      int date_locn_x = size_x - w - 2;
+      int date_locn_y = size_y - h;
+
+      //    + descent for linux??
+      RenderShadowText(&dc, pSWFont1, (char *)pub_date.c_str(), date_locn_x, date_locn_y);
 
 
 //    Show File Name
       wxFont *pSWFont2;
-//      pSWFont2 = wxTheFontList->FindOrCreateFont(font2_size, wxDEFAULT ,wxNORMAL, wxNORMAL,
-//                                           FALSE, wxString("Eurostile Extended"));
 
       pSWFont2 = wxTheFontList->FindOrCreateFont(font2_size, wxDEFAULT ,wxNORMAL, wxNORMAL,
                   FALSE, wxString(""), wxFONTENCODING_SYSTEM );
@@ -1822,11 +1843,11 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
 
 //    Possibly adjust the font?
       GetTextExtent(name, &w, &h, NULL, NULL, pSWFont3);
-      if(w > date_locn)
+      if(w > date_locn_x)
       {
             dc.SetFont(*pSWFont2);
             GetTextExtent(name, &w, &h, NULL, NULL, pSWFont2);
-            if(w > date_locn)                                     // still too long, so shorten it
+            if(w > date_locn_x)                                     // still too long, so shorten it
             {
               wxString nameshort;
               int l = name.Len();
@@ -1836,7 +1857,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
                 nameshort = name.Mid(0, l);
                 nameshort.Append("...");
                 GetTextExtent(nameshort, &w, &h, NULL, NULL, pSWFont2);
-                if(w < date_locn)
+                if(w < date_locn_x)
                   break;
                 l -= 1;
               }
@@ -1859,20 +1880,37 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
 
 //      Create the control
       ptool_ct_dummy = new wxStaticBitmap(toolBar, ID_TBSTAT, tool_bm_dummy,
-                wxPoint(5000,5000), wxSize(size_x, size_y),wxSIMPLE_BORDER, _T("staticBitmap"));
+                wxPoint(0,0), wxSize(size_x, size_y),wxSIMPLE_BORDER, _T("staticBitmap"));
 
 
       if(ct_pos != -1)
       {
 
-//   Delete the current status tool
-        toolBar->DeleteTool(ID_TBSTAT);
 #ifdef __WXMSW__
         delete pt;
 #endif
 
+#ifdef __WXMSW__
+//      Delete the EXIT tool
+        toolBar->DeleteTool(ID_TBEXIT);
+
+//      Delete the current status tool
+        toolBar->DeleteTool(ID_TBSTAT);
+
+//      Add the new control
+        toolBar->AddControl(ptool_ct_dummy);
+
+//      Re-insert the EXIT tool
+        MyAddTool(toolBar, ID_TBEXIT, _T(""), _T("exitt"), _T("Exit"), wxITEM_NORMAL);
+
+#else
+//   Delete the current status tool
+        toolBar->DeleteTool(ID_TBSTAT);
+
 //      Insert the new control
-            toolBar->InsertControl(ct_pos, ptool_ct_dummy);
+        toolBar->InsertControl(ct_pos, ptool_ct_dummy);
+
+#endif
 
  //     Realize the toolbar to reflect changes
         toolBar->Realize();
@@ -1898,6 +1936,11 @@ void MyFrame::SelectChartFromStack(int index)
                 Current_Ch = pTentative_Chart;
                 CurrentStackEntry = index;
             }
+            else
+            {
+                SetChartThumbnail(index);       // need to reset thumbnail on failed chart open
+            }
+
 
 //      Update the Status Line
             UpdateChartStatusField(2);
@@ -2673,6 +2716,42 @@ void MyPrintout::DrawPageOne(wxDC *dc)
 
     dc->Blit(0,0,cc1->pscratch_bm->GetWidth(),cc1->pscratch_bm->GetHeight(),&mdc, 0, 0);
     mdc.SelectObject(wxNullBitmap);
+
+}
+
+
+WX_DECLARE_STRING_HASH_MAP( wxString, EnvHash );
+static EnvHash env;
+
+
+//----------------------------------------------------------------------------------
+//      mygetenv
+//
+//      Replacement for posix getenv() which works for __WXMSW__
+//      Todo Make this thing into a couple of string arrays to stop leakage
+//----------------------------------------------------------------------------------
+
+
+extern "C" char *mygetenv(char *pvar)
+{
+        wxString key(pvar);
+        wxString test_val = env[key];
+        if(test_val.Len())
+        {
+                pval->Empty();
+                pval->Append(wxString(test_val));
+                return((char *)pval->c_str());
+
+        }
+        else
+        {
+                wxString val;
+                wxGetEnv(key, &val);
+                env[key] = val;
+                pval->Empty();
+                pval->Append(wxString(val));
+                return((char *)pval->c_str());
+        }
 
 }
 

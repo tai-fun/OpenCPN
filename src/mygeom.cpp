@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
+ * $Id: mygeom.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.3  2006/10/01 03:22:58  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -90,9 +93,11 @@
 #ifdef USE_GLU_TESS
 #include <GL/gl.h>
 #include <GL/glu.h>
+
+#include <windows.h>
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
 
 
 extern "C" polyout *triangulate_polygon(int, int[1], double (*)[2]);
@@ -115,6 +120,59 @@ static GLUtesselator  *GLUtessobj;
 static int            tess_orient;
 static wxMemoryOutputStream *ostream1;
 static wxMemoryOutputStream *ostream2;
+
+
+
+//  For __WXMSW__ builds using GLU_TESS and glu32.dll
+//  establish the dll entry points
+
+#ifdef __WXMSW__
+#ifdef USE_GLU_TESS
+#ifdef USE_GLU_DLL
+
+//  Formal definitions of required functions
+typedef void (CALLBACK* LPFNDLLTESSPROPERTY)      ( GLUtesselator *tess,
+                                                    GLenum        which, 
+                                                    GLdouble      value );
+typedef GLUtesselator * (CALLBACK* LPFNDLLNEWTESS)( void);
+typedef void (CALLBACK* LPFNDLLTESSBEGINCONTOUR)  ( GLUtesselator *);
+typedef void (CALLBACK* LPFNDLLTESSENDCONTOUR)    ( GLUtesselator *);
+typedef void (CALLBACK* LPFNDLLTESSBEGINPOLYGON)  ( GLUtesselator *, void*);
+typedef void (CALLBACK* LPFNDLLTESSENDPOLYGON)    ( GLUtesselator *);
+typedef void (CALLBACK* LPFNDLLDELETETESS)        ( GLUtesselator *);
+typedef void (CALLBACK* LPFNDLLTESSVERTEX)        ( GLUtesselator *, GLdouble *, GLdouble *);
+typedef void (CALLBACK* LPFNDLLTESSCALLBACK)      ( GLUtesselator *, const int, void (CALLBACK *fn)() );
+
+//  Static pointers to the functions
+static LPFNDLLTESSPROPERTY      s_lpfnTessProperty;
+static LPFNDLLNEWTESS           s_lpfnNewTess;
+static LPFNDLLTESSBEGINCONTOUR  s_lpfnTessBeginContour;
+static LPFNDLLTESSENDCONTOUR    s_lpfnTessEndContour;
+static LPFNDLLTESSBEGINPOLYGON  s_lpfnTessBeginPolygon;
+static LPFNDLLTESSENDPOLYGON    s_lpfnTessEndPolygon;
+static LPFNDLLDELETETESS        s_lpfnDeleteTess;
+static LPFNDLLTESSVERTEX        s_lpfnTessVertex;
+static LPFNDLLTESSCALLBACK      s_lpfnTessCallback;
+
+//  Mapping of pointers to glu functions by substitute macro
+#define gluTessProperty         s_lpfnTessProperty
+#define gluNewTess              s_lpfnNewTess
+#define gluTessBeginContour     s_lpfnTessBeginContour
+#define gluTessEndContour       s_lpfnTessEndContour
+#define gluTessBeginPolygon     s_lpfnTessBeginPolygon
+#define gluTessEndPolygon       s_lpfnTessEndPolygon
+#define gluDeleteTess           s_lpfnDeleteTess
+#define gluTessVertex           s_lpfnTessVertex
+#define gluTessCallback         s_lpfnTessCallback
+
+//  Flag to tell that dll is ready
+bool           s_glu_dll_ready;
+HINSTANCE      s_hGLU_DLL;                   // Handle to DLL
+
+#endif
+#endif
+#endif
+
 
 
 bool ispolysame(polyout *p1, polyout *p2)
@@ -160,10 +218,13 @@ PolyTessGeo::PolyTessGeo()
 //      Build PolyTessGeo Object from OGR Polygon
 PolyTessGeo::PolyTessGeo(OGRPolygon *poly)
 {
+    ErrorCode = 0;
+    m_ppg_head = NULL;
+    
 #ifdef USE_GLU_TESS
-    PolyTessGeoGL(poly);
+    ErrorCode = PolyTessGeoGL(poly);
 #else
-    PolyTessGeoTri(poly);
+    ErrorCode = PolyTessGeoTri(poly);
 #endif
 
 }
@@ -803,11 +864,20 @@ PolyTessGeo::~PolyTessGeo()
 //      Build PolyTessGeo Object from OGR Polygon
 //      Using OpenGL/GLU tesselator
 #ifdef USE_GLU_TESS
-void beginCallback(GLenum which);
-void errorCallback(GLenum errorCode);
-void endCallback(void);
-void vertexCallback(GLvoid *vertex);
-void combineCallback(GLdouble coords[3],
+
+
+#ifdef __WXMSW__
+#define __CALL_CONVENTION __stdcall
+#else
+#define __CALL_CONVENTION 
+#endif
+
+
+void __CALL_CONVENTION beginCallback(GLenum which);
+void __CALL_CONVENTION errorCallback(GLenum errorCode);
+void __CALL_CONVENTION endCallback(void);
+void __CALL_CONVENTION vertexCallback(GLvoid *vertex);
+void __CALL_CONVENTION combineCallback(GLdouble coords[3],
                      GLdouble *vertex_data[4],
                      GLfloat weight[4], GLdouble **dataOut );
 
@@ -824,6 +894,41 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly)
     wxString    stemp;
 
 
+#ifdef __WXMSW__
+//  If using the OpenGL dlls provided with Windows,
+//  load the dll and establish addresses of the entry points needed
+
+#ifdef USE_GLU_DLL
+
+    if(!s_glu_dll_ready)
+    {
+
+
+        s_hGLU_DLL = LoadLibrary("glu32.dll");
+        if (s_hGLU_DLL != NULL)
+        {
+            s_lpfnTessProperty = (LPFNDLLTESSPROPERTY)GetProcAddress(s_hGLU_DLL,"gluTessProperty");
+            s_lpfnNewTess = (LPFNDLLNEWTESS)GetProcAddress(s_hGLU_DLL, "gluNewTess");
+            s_lpfnTessBeginContour = (LPFNDLLTESSBEGINCONTOUR)GetProcAddress(s_hGLU_DLL, "gluTessBeginContour");
+            s_lpfnTessEndContour = (LPFNDLLTESSENDCONTOUR)GetProcAddress(s_hGLU_DLL, "gluTessEndContour");
+            s_lpfnTessBeginPolygon = (LPFNDLLTESSBEGINPOLYGON)GetProcAddress(s_hGLU_DLL, "gluTessBeginPolygon");
+            s_lpfnTessEndPolygon = (LPFNDLLTESSENDPOLYGON)GetProcAddress(s_hGLU_DLL, "gluTessEndPolygon");
+            s_lpfnDeleteTess = (LPFNDLLDELETETESS)GetProcAddress(s_hGLU_DLL, "gluDeleteTess");
+            s_lpfnTessVertex = (LPFNDLLTESSVERTEX)GetProcAddress(s_hGLU_DLL, "gluTessVertex");
+            s_lpfnTessCallback = (LPFNDLLTESSCALLBACK)GetProcAddress(s_hGLU_DLL, "gluTessCallback");
+
+            s_glu_dll_ready = true;
+        }
+        else
+        {
+            return ERROR_NO_DLL;
+        }
+    }
+
+#endif
+#endif
+
+
     //  Allocate a work buffer, which will be grown as needed
 #define NINIT_BUFFER_LEN 10000
     s_pwork_buf = (GLdouble *)malloc(NINIT_BUFFER_LEN * 2 * sizeof(GLdouble));
@@ -835,13 +940,15 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly)
     GLUtessobj = gluNewTess();
 
     //  Register the callbacks
-    gluTessCallback(GLUtessobj, GLU_TESS_BEGIN, (GLvoid (*) ())&beginCallback);
-    gluTessCallback(GLUtessobj, GLU_TESS_VERTEX, (GLvoid (*) ())&vertexCallback);
-    gluTessCallback(GLUtessobj, GLU_TESS_END, (GLvoid (*) ())&endCallback);
-    gluTessCallback(GLUtessobj, GLU_TESS_ERROR,(GLvoid (*) ())&errorCallback);
-    gluTessCallback(GLUtessobj, GLU_TESS_COMBINE, (GLvoid (*) ())&combineCallback);
+    gluTessCallback(GLUtessobj, GLU_TESS_BEGIN,   (GLvoid (__CALL_CONVENTION *) ())&beginCallback);
+    gluTessCallback(GLUtessobj, GLU_TESS_BEGIN,   (GLvoid (__CALL_CONVENTION *) ())&beginCallback);
+    gluTessCallback(GLUtessobj, GLU_TESS_VERTEX,  (GLvoid (__CALL_CONVENTION *) ())&vertexCallback);
+    gluTessCallback(GLUtessobj, GLU_TESS_END,     (GLvoid (__CALL_CONVENTION *) ())&endCallback);
+    gluTessCallback(GLUtessobj, GLU_TESS_COMBINE, (GLvoid (__CALL_CONVENTION *) ())&combineCallback);
 
-    glShadeModel(GL_SMOOTH);
+//    gluTessCallback(GLUtessobj, GLU_TESS_ERROR,   (GLvoid (__CALL_CONVENTION *) ())&errorCallback);
+
+//    glShadeModel(GL_SMOOTH);
     gluTessProperty(GLUtessobj, GLU_TESS_WINDING_RULE,
                     GLU_TESS_WINDING_POSITIVE );
 
@@ -1119,14 +1226,15 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly)
 
 
 // GLU tesselation support functions
-void beginCallback(GLenum which)
+void __CALL_CONVENTION beginCallback(GLenum which)
 {
     s_buf_idx = 0;
     s_nvcall = 0;
     s_gltri_type = which;
 }
 
-void errorCallback(GLenum errorCode)
+/*
+void __CALL_CONVENTION errorCallback(GLenum errorCode)
 {
     const GLubyte *estring;
 
@@ -1134,8 +1242,9 @@ void errorCallback(GLenum errorCode)
     printf("Tessellation Error: %s\n", estring);
     exit(0);
 }
+*/
 
-void endCallback(void)
+void __CALL_CONVENTION endCallback(void)
 {
     //      Create a TriPrim
 
@@ -1201,7 +1310,7 @@ void endCallback(void)
     }
 }
 
-void vertexCallback(GLvoid *vertex)
+void __CALL_CONVENTION vertexCallback(GLvoid *vertex)
 {
     GLdouble *pointer;
 
@@ -1233,7 +1342,7 @@ void vertexCallback(GLvoid *vertex)
 /*  combineCallback is used to create a new vertex when edges
  *  intersect.
  */
-void combineCallback(GLdouble coords[3],
+void __CALL_CONVENTION combineCallback(GLdouble coords[3],
                      GLdouble *vertex_data[4],
                      GLfloat weight[4], GLdouble **dataOut )
 {
@@ -1266,7 +1375,15 @@ PolyTriGroup::~PolyTriGroup()
     free(pn_vertex);
     free(pgroup_geom);
 
-    //Todo Walk the list of TriPrims
+    //Walk the list of TriPrims, deleting as we go
+    TriPrim *tp_next;
+    TriPrim *tp = tri_prim_head;
+    while(tp)
+    {
+        tp_next = tp->p_next;
+        delete tp;
+        tp = tp_next;
+    }
 }
 
 //------------------------------------------------------------------------------

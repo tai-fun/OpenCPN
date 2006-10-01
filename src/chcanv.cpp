@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
+ * $Id: chcanv.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.3  2006/10/01 03:22:58  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -156,7 +159,7 @@ extern s52plib          *ps52plib;
 
 extern bool             bGPSValid;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
 
 
 //    Constants for right click menus
@@ -563,7 +566,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
         if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
         {
             double sc = scale / Current_Ch->GetNativeScale();      // native (1X) scale
-            if((int)rint(sc) != 1)
+            if(sc !=  1)                                           //((int)rint(sc) != 1)
             {
                 if(bNeedRescale)
                 {

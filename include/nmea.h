@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: nmea.h,v 1.2 2006/10/01 03:24:40 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/10/01 03:24:40  dsr
+ * no message
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/08/04 11:43:37  dsr
  * no message
@@ -87,6 +90,9 @@
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
+
+#define GPSD_PORT_NUMBER      2947                  // Well Known Port number for GPSD
+
 #define SOCKET_ID             5
 #define TIMER_NMEA1           1
 #define TRANSMIT_DATA         0x42

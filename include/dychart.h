@@ -172,7 +172,6 @@
 //              Use and compile for S57 ENCs?
 //----------------------------------------------------------------------------
 //      Linux ./configure utility defines USE_S57 by default
-//#define USE_S57
 
 //----------------------------------------------------------------------------
 //              Use the CPL Portability library only if S57 is enabled
