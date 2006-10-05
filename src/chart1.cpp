@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
+ * $Id: chart1.cpp,v 1.4 2006/10/05 03:48:07 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.4  2006/10/05 03:48:07  dsr
+ * Toolbar updae
+ *
  * Revision 1.3  2006/10/01 03:22:58  dsr
  * no message
  *
@@ -154,7 +157,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.4 2006/10/05 03:48:07 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -724,12 +727,8 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 #endif
 
 //      Start up the ticker....
-        gFrame->Timer1.Start(1000,wxTIMER_CONTINUOUS);
+        gFrame->FrameTimer1.Start(1000,wxTIMER_CONTINUOUS);
 
-#ifdef __WXX11__
-//        OptionSetup *pOS = new OptionSetup();
-//        delete pOS;
-#endif
 
    return TRUE;
 }
@@ -817,7 +816,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
   EVT_SIZE(MyFrame::OnSize)
   EVT_MENU(-1, MyFrame::OnToolLeftClick)
-  EVT_TIMER(TIMER_1, MyFrame::OnTimer1)
+  EVT_TIMER(FRAME_TIMER_1, MyFrame::OnFrameTimer1)
   EVT_ACTIVATE(MyFrame::OnActivate)
 //  EVT_MOUSE_EVENTS(MyFrame::MouseEvent)
 //  EVT_CHAR(MyFrame::OnChar)
@@ -829,7 +828,6 @@ END_EVENT_TABLE()
 MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, const wxSize& size):
   wxFrame(frame, -1, title, pos, size, wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER)
       //wxCAPTION | wxSYSTEM_MENU | wxRESIZE_BORDER
-                                                                                 //, wxSIMPLE_BORDER)
 {
 
         pStatusBar = NULL;
@@ -840,7 +838,7 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 
 
         //      Redirect the global heartbeat timer to this frame
-        Timer1.SetOwner(this, TIMER_1);
+        FrameTimer1.SetOwner(this, FRAME_TIMER_1);
 
         //      Set up some assorted member variables
         nRoute_State = 0;
@@ -856,7 +854,7 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 
 MyFrame::~MyFrame()
 {
-        Timer1.Stop();
+        FrameTimer1.Stop();
         delete ChartData;
         delete pCurrentStack;
 
@@ -1062,6 +1060,7 @@ void MyFrame::CreateMyToolbar()
     toolbar_width_without_static = x + pitch_tool + filler_pad;     // used by Resize()
 
     wxImage tool_image_dummy(filler_width,32);
+    tool_image_dummy.Replace(0,0,0,0,0,128);
     wxBitmap tool_bm_dummy(tool_image_dummy);
 
 #define DUMMY_HEIGHT    40
@@ -1109,14 +1108,30 @@ void MyFrame::MyAddTool(wxToolBarBase *pTB, int toolId, const wxString& label, c
 
 //        pimg = new wxImage(bmp_file.GetFullPath());
 
+//        bmp_file.SetExt("bmp");
+//        wxBitmap toolBarBitmap((wxString &)bmp_file.GetFullPath(), wxBITMAP_TYPE_BMP );
+
         char **px1 = (char **)tool_xpm_hash[bmpFile];
         if(px1)
             pimg = new wxImage(px1);
         else
             pimg = new wxImage;
 
+
+//      wxMSW Bug???
+//      On Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
+//      unless a "compatible" dc is provided.  Why??
+//      As a workaround, just make a simple wxDC for temporary use
+        
+        wxBitmap tbmp(pimg->GetWidth(),pimg->GetHeight(),-1);
+        wxMemoryDC dwxdc;
+        dwxdc.SelectObject(tbmp);
+
         if(pimg->Ok())
-                ptoolBarBitmap = new wxBitmap(*pimg);
+        {
+            HDC dhdc = ::GetDC(NULL);
+            ptoolBarBitmap = new wxBitmap(*pimg, (wxDC &)dwxdc);
+        }
         else
         {
                 wxString msg1("Unable to find bitmap:");
@@ -1134,7 +1149,9 @@ void MyFrame::MyAddTool(wxToolBarBase *pTB, int toolId, const wxString& label, c
         pTB->AddTool(toolId , _T(""), *ptoolBarBitmap, shortHelpString, kind);
 
         delete ptoolBarBitmap;
+
 }
+
 
 void MyFrame::ReSizeToolbar(void)
 {
@@ -1144,13 +1161,18 @@ void MyFrame::ReSizeToolbar(void)
 
     tool_dummy_size_x = tx - toolbar_width_without_static;
 
-//  Todo Figure out why this doesn't work for MSW
-#ifndef __WXMSW__
     if(Current_Ch)
-        UpdateToolbarStatusWindow(Current_Ch, false);
-#endif
+    {
+        if(tool_dummy_size_x != tool_dummy_size_x_last)     // only update if size has changed
+        {
+            UpdateToolbarStatusWindow(Current_Ch);
+        }
+    }
+
 
 }
+
+
 
 
 
@@ -1162,7 +1184,7 @@ void MyFrame::OnExit(wxCommandEvent& event)
 
 void MyFrame::OnCloseWindow(wxCloseEvent& event)
 {
-   Timer1.Stop();
+   FrameTimer1.Stop();
 
    pConfig->UpdateSettings();
 
@@ -1261,12 +1283,9 @@ void MyFrame::OnSize(wxSizeEvent& event)
         }
 
 
-
 //  Rebuild the Toolbar
     if(toolBar)
         ReSizeToolbar();
-
-
 }
 
 
@@ -1494,17 +1513,16 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 #ifdef __WXMSW__                          // This to recreate for Printer Icon
       if(bnewtoolbar)
       {
-            DestroyMyToolbar();
-            CreateMyToolbar();
+          DestroyMyToolbar();
+          CreateMyToolbar();
       }
 #endif
 
-        if(bFlyingUpdate)
-        {
-                wxSizeEvent sevt;
-                OnSize(sevt);
-        }
-
+      if(bFlyingUpdate)
+      {
+           wxSizeEvent sevt;
+           OnSize(sevt);
+      }
 }
 
 int MyFrame::DoOptionsDialog()
@@ -1535,7 +1553,7 @@ int MyFrame::DoOptionsDialog()
       {
             if(*pChartDirArray != *pWorkDirArray)
             {
-                  Timer1.Stop();                  // stop asynchronous activity
+                  FrameTimer1.Stop();                  // stop asynchronous activity
 
                   Current_Ch = NULL;
 
@@ -1551,7 +1569,7 @@ int MyFrame::DoOptionsDialog()
 
                   pConfig->UpdateChartDirs(pChartDirArray);
 
-                  Timer1.Start(1000,wxTIMER_CONTINUOUS);
+                  FrameTimer1.Start(1000,wxTIMER_CONTINUOUS);
 
             }
 
@@ -1611,7 +1629,7 @@ void MyFrame::DoStackUp(void)
 
 
 
-void MyFrame::OnTimer1(wxTimerEvent& event)
+void MyFrame::OnFrameTimer1(wxTimerEvent& event)
 {
 
       g_tick++;
@@ -1620,7 +1638,7 @@ void MyFrame::OnTimer1(wxTimerEvent& event)
       if(quitflag)
       {
           wxLogMessage("Got quitflag from SIGUSR1");
-          Timer1.Stop();
+          FrameTimer1.Stop();
           Close();
           return;
       }
@@ -1628,7 +1646,8 @@ void MyFrame::OnTimer1(wxTimerEvent& event)
       if(bDBUpdateInProgress)
             return;
 
-      Timer1.Stop();
+      FrameTimer1.Stop();
+
 
 //  Update and check watchdog timer for GPS data source
       gGPS_Watchdog--;
@@ -1648,7 +1667,7 @@ void MyFrame::OnTimer1(wxTimerEvent& event)
       pRouteMan->UpdateProgress();
 
 //      Update the memory status, and display
-
+#ifdef __LINUX__
       int mem_current;
       GetMemoryStatus(mem_total, mem_current);
 
@@ -1659,6 +1678,7 @@ void MyFrame::OnTimer1(wxTimerEvent& event)
 
             SetStatusText(buf, 5);
       }
+#endif
 
 #ifdef AUTO_CONFIG_SAVE_MINUTES
 //  Possibly save the current configuration
@@ -1669,7 +1689,7 @@ void MyFrame::OnTimer1(wxTimerEvent& event)
 #endif
 
 
-      Timer1.Start(1000,wxTIMER_CONTINUOUS);
+      FrameTimer1.Start(1000,wxTIMER_CONTINUOUS);
 
       if(1/*bnew_chart*/)
         cc1->Refresh(false);
@@ -1741,7 +1761,7 @@ void RenderShadowText(wxDC *pdc, wxFont *pFont, char *str, int x, int y)
 
 #include "wx/encconv.h"
 
-void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
+void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 {
     if(NULL == pchart)
         return;
@@ -1759,6 +1779,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
 
 //      Create a wxBitmap for the window
       wxBitmap tool_bm_dummy(tool_dummy_size_x, tool_dummy_size_y);
+      tool_dummy_size_x_last = tool_dummy_size_x;       // record for change tracking during resize
 
       int size_x = tool_dummy_size_x;
       int size_y = tool_dummy_size_y;
@@ -1903,9 +1924,11 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
 //      Re-insert the EXIT tool
         MyAddTool(toolBar, ID_TBEXIT, _T(""), _T("exitt"), _T("Exit"), wxITEM_NORMAL);
 
+
 #else
 //   Delete the current status tool
         toolBar->DeleteTool(ID_TBSTAT);
+      toolBar->Realize();
 
 //      Insert the new control
         toolBar->InsertControl(ct_pos, ptool_ct_dummy);
@@ -1913,10 +1936,10 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize)
 #endif
 
  //     Realize the toolbar to reflect changes
-        toolBar->Realize();
+       toolBar->Realize();
       }
 
-      if(bSendSize)
+      if(bUpdate)
         SendSizeEvent();
 }
 
@@ -2313,18 +2336,17 @@ bool MyFrame::GetMemoryStatus(int& mem_total, int& mem_used)
 //      Use filesystem /proc/meminfo to determine memory status
 
     char *p, buf[2000];
-        int len;
+    int len;
 
 //      Open and read the file
-        int     fd = open("/proc/meminfo", O_RDONLY);
+    int     fd = open("/proc/meminfo", O_RDONLY);
 
     if (fd == -1)
-        {
-                mem_total = 0;
-                mem_used = 0;
-
+    {
+        mem_total = 0;
+        mem_used = 0;
         return false;
-        }
+    }
 
     len = read(fd, buf, sizeof(buf) - 1);
     if (len <= 0) {
