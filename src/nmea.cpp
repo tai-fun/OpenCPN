@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
+ * $Id: nmea.cpp,v 1.4 2006/10/05 03:50:07 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.4  2006/10/05 03:50:07  dsr
+ * suppor gpsd
+ *
  * Revision 1.3  2006/10/01 03:22:58  dsr
  * no message
  *
@@ -88,7 +91,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.4 2006/10/05 03:50:07 dsr Exp $");
 
 //    Forward Declarations
 
@@ -110,6 +113,7 @@ extern OCP_NMEA_Thread   *pNMEA_Thread;
 
 static int s_dns_test_flag;
 
+
 //------------------------------------------------------------------------------
 //    NMEA Window Implementation
 //------------------------------------------------------------------------------
@@ -119,7 +123,7 @@ BEGIN_EVENT_TABLE(NMEAWindow, wxWindow)
   EVT_CLOSE(NMEAWindow::OnCloseWindow)
 
   EVT_SOCKET(SOCKET_ID, NMEAWindow::OnSocketEvent)
-  EVT_TIMER(TIMER_NMEA1, NMEAWindow::OnTimer1)
+  EVT_TIMER(TIMER_NMEA1, NMEAWindow::OnTimerNMEA)
 
   END_EVENT_TABLE()
 
@@ -135,7 +139,8 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
       pNMEA_Thread = NULL;
       m_sock = NULL;
 
-      Timer1.SetOwner(this, TIMER_NMEA1);
+      TimerNMEA.SetOwner(this, TIMER_NMEA1);
+      TimerNMEA.Stop();
 
       m_pdata_source_string = new wxString(NMEADataSource);
 
@@ -214,7 +219,7 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
             addr.Service(GPSD_PORT_NUMBER);
             m_sock->Connect(addr, FALSE);       // Non-blocking connect
 
-            Timer1.Start(1000,wxTIMER_CONTINUOUS);
+            TimerNMEA.Start(1000,wxTIMER_CONTINUOUS);
       }
 
 
@@ -280,7 +285,7 @@ void NMEAWindow::OnCloseWindow(wxCloseEvent& event)
       {
             m_sock->Notify(FALSE);
             m_sock->Destroy();
-            Timer1.Stop();
+            TimerNMEA.Stop();
       }
 
 
@@ -316,7 +321,7 @@ void NMEAWindow::OnPaint(wxPaintEvent& event)
 
 void NMEAWindow::Pause(void)
 {
-      Timer1.Stop();
+      TimerNMEA.Stop();
 
       if(m_sock)
             m_sock->Notify(FALSE);
@@ -324,7 +329,7 @@ void NMEAWindow::Pause(void)
 
 void NMEAWindow::UnPause(void)
 {
-      Timer1.Start(1000,wxTIMER_CONTINUOUS);
+      TimerNMEA.Start(1000,wxTIMER_CONTINUOUS);
 
       if(m_sock)
             m_sock->Notify(TRUE);
@@ -377,6 +382,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
             if(!strncmp((const char *)buf, "GPSD", 4))
             {
 
+
                 if(buf[7] != '?')           // valid data?
                 {
                     wxStringTokenizer tkz(buf, " ");
@@ -386,7 +392,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                     if(token.ToDouble(&dtime))
                     {
                         fix_time.Set((time_t) floor(dtime));
-                        wxString fix_time_format = fix_time.Format("%Y-%m-%dT%H:%M:%S");
+                        wxString fix_time_format = fix_time.Format("%Y-%m-%dT%H:%M:%S");  // this should show as LOCAL time
                     }
 
 
@@ -621,27 +627,31 @@ static inline void wxToSystemTime(SYSTEMTIME *st, const wxDateTime& dt)
 
 */
 
-void NMEAWindow::OnTimer1(wxTimerEvent& event)
+
+
+
+void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 {
 
  wxStopWatch sw1, swt;
 // wxLogMessage("OnNTimer1");
-      Timer1.Stop();
+      TimerNMEA.Stop();
 
-      if(m_sock->IsConnected())
+      if(m_sock)
       {
+        if(m_sock->IsConnected())
+        {
 #ifdef USE_GPSD
             unsigned char c = 'O';
 #else
             unsigned char c = TRANSMIT_DATA;
 #endif
             m_sock->Write(&c, 1);
-      }
-      else                                                  // try to connect
-      {
+        }
+        else                                    // try to connect
+        {
             m_sock->Connect(addr, FALSE);       // Non-blocking connect
-//          m_sock->WaitOnConnect(10);
-
+        }
       }
 
 
@@ -679,7 +689,7 @@ void NMEAWindow::OnTimer1(wxTimerEvent& event)
             parent_frame->SetStatusText(buf, 3);
 
 
-      Timer1.Start(1000,wxTIMER_CONTINUOUS);
+      TimerNMEA.Start(1000,wxTIMER_CONTINUOUS);
 
 
 }
