@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.3 2006/10/01 03:24:19 dsr Exp $
+ * $Id: options.cpp,v 1.4 2006/10/05 03:52:18 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.4  2006/10/05 03:52:18  dsr
+ * gpsd
+ *
  * Revision 1.3  2006/10/01 03:24:19  dsr
  * no message
  *
@@ -988,7 +991,7 @@ void options::OnChooseFont( wxCommandEvent& event )
 void options::OnPageChange(wxNotebookEvent& event)
 {
 
-#ifdef __LINUX__ // __WXX11__
+//#ifdef __LINUX__ // __WXX11__
 
       int i = event.GetSelection();
 
@@ -1072,7 +1075,7 @@ void options::OnPageChange(wxNotebookEvent& event)
 
           itemBoxSizer10->Layout();
       }
-#endif
+//#endif
 }
 
 
