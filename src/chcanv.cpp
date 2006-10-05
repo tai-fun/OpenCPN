@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
+ * $Id: chcanv.cpp,v 1.4 2006/10/05 03:48:40 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.4  2006/10/05 03:48:40  dsr
+ * ocpcursor update
+ *
  * Revision 1.3  2006/10/01 03:22:58  dsr
  * no message
  *
@@ -159,8 +162,18 @@ extern s52plib          *ps52plib;
 
 extern bool             bGPSValid;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.4 2006/10/05 03:48:40 dsr Exp $");
 
+
+//  These are xpm images used to make cursors for this class.
+//  The relevant static identifying label is the same as the file name
+//  e.g. down.xpm contains a line .....static char *down[]....
+
+#include "bitmaps\down.xpm"
+#include "bitmaps\up.xpm"
+#include "bitmaps\left.xpm"
+#include "bitmaps\right.xpm"
+#include "bitmaps\pencil.xpm"
 
 //    Constants for right click menus
 enum
@@ -255,13 +268,24 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
       wxString Curs_Dir = *pBitmap_Dir;
 
 #ifdef __WXX11__
+      pCursorLeft =   new ocpCursor(Curs_Dir + wxString(_T("left.xpm")),  0, 00, 15);
+      pCursorRight =  new ocpCursor(Curs_Dir + wxString(_T("right.xpm")), 0, 31, 15);
+      pCursorUp =     new ocpCursor(Curs_Dir + wxString(_T("up.xpm")),    0, 15, 00);
+      pCursorDown =   new ocpCursor(Curs_Dir + wxString(_T("down.xpm")),  0, 15, 31);
+      pCursorPencil = new wxCursor(wxCURSOR_PENCIL);
+#endif
 
-      pCursorLeft =  new ocpCursor(Curs_Dir + wxString(_T("left.xpm")),  0, 00, 15);
-      pCursorRight = new ocpCursor(Curs_Dir + wxString(_T("right.xpm")), 0, 31, 15);
-      pCursorUp =    new ocpCursor(Curs_Dir + wxString(_T("up.xpm")),    0, 15, 00);
-      pCursorDown =  new ocpCursor(Curs_Dir + wxString(_T("down.xpm")),  0, 15, 31);
-      pCursorPencil =new wxCursor(wxCURSOR_PENCIL);
-#else
+#ifdef __WXMSW__
+      pCursorLeft =    new ocpCursor(left,  0, 00, 15);
+      pCursorRight =   new ocpCursor(right, 0, 31, 15);
+      pCursorUp =      new ocpCursor(up,    0, 15, 00);
+      pCursorDown =    new ocpCursor(down,  0, 15, 31);
+      pCursorPencil =  new ocpCursor(pencil, 0, 00, 20);
+#endif
+
+
+
+#ifdef __WXGTK__
       wxImage t;
       wxXPMHandler *th = new wxXPMHandler;
       t.AddHandler(th);
@@ -1881,7 +1905,6 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
             }
             m_bAppendingRoute = false;
 
-            printf("n_points %d\n",pMouseRoute->m_nPoints);
             m_bForceReDraw = true;
             Refresh(false);
 
@@ -3107,6 +3130,10 @@ void TCWin::MouseEvent(wxMouseEvent& event)
 #include "wx/x11/private.h"
 
 
+//----------------------------------------------------------------------------------------------
+//      ocpCursorRefData Definition/Implementation
+//----------------------------------------------------------------------------------------------
+
 class ocpCursorRefData: public wxObjectRefData
 {
       public:
@@ -3298,18 +3325,133 @@ ocpCursor::ocpCursor(const wxString& cursorName, long type,
 
 }
 
+#endif      // __WXX11__
 
 
 
+//      We derive a class from wxCursor to create ocpCursor
+//      Specifically to fix a bug in wxImage-wxBitmap conversions
 
-ocpCursor::ocpCursor(const char bits[], int width, int  height,
-                     int hotSpotX, int hotSpotY,
-                     const char maskBits[], wxColour *fg, wxColour *bg)
+#ifdef __WXMSW__
+
+ /*
+//----------------------------------------------------------------------------------------------
+//      ocpCursorRefData Definition/Implementation
+//----------------------------------------------------------------------------------------------
+class ocpCursorRefData: public wxObjectRefData
 {
-      wxFAIL_MSG( wxT("ocpCursor creation from bits not yet implemented") );
+      public:
+            ocpCursorRefData();
+            ocpCursorRefData(HCURSOR);
+            ~ocpCursorRefData();
+};
+
+ocpCursorRefData::ocpCursorRefData()
+{
+
 }
 
-#endif      // __WXX11__
+ocpCursorRefData::ocpCursorRefData(HCURSOR hcursor)
+{
+}
+
+
+ocpCursorRefData::~ocpCursorRefData()
+{
+}
+*/
+
+//----------------------------------------------------------------------------------------------
+//      ocpCursor Implementation
+//
+//----------------------------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------------------------
+//      A new constructor taking a file name to load and assign as a cursor
+//----------------------------------------------------------------------------------------------
+
+
+ocpCursor::ocpCursor(const wxString& cursorName, long type,
+                     int hotSpotX, int hotSpotY): wxCursor(wxCURSOR_ARROW )
+
+{
+    wxImage cImage;
+
+    if(!cImage.CanRead(cursorName))
+            ::wxInitAllImageHandlers();
+
+    cImage.LoadFile(cursorName);
+
+
+
+//      wxMSW Bug???
+//      On Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
+//      unless a "compatible" dc is provided.  Why??
+//      As a workaround, just make a simple wxDC for temporary use
+        
+    wxBitmap tbmp(cImage.GetWidth(),cImage.GetHeight(),-1);
+    wxMemoryDC dwxdc;
+    dwxdc.SelectObject(tbmp);
+
+    HCURSOR hcursor = wxBitmapToHCURSOR( wxBitmap(cImage, (wxDC &)dwxdc),
+                                         hotSpotX, hotSpotY );
+    if ( !hcursor )
+    {
+        wxLogWarning(_("Failed to create ocpCursor."));
+        return;
+    }
+
+
+//  Replace the HANDLE created in the base class constructor
+//  Probably leaks....
+    GetGDIImageData()->m_handle = hcursor;
+}
+
+
+//----------------------------------------------------------------------------------------------
+//      A new constructor taking a static char ** of XPM data and assign as a cursor
+//----------------------------------------------------------------------------------------------
+
+
+ocpCursor::ocpCursor(char **xpm_data, long type,
+                     int hotSpotX, int hotSpotY): wxCursor(wxCURSOR_ARROW )
+
+{
+    wxImage cImage(xpm_data);
+
+//      wxMSW Bug???
+//      On Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
+//      unless a "compatible" dc is provided.  Why??
+//      As a workaround, just make a simple wxDC for temporary use
+        
+    wxBitmap tbmp(cImage.GetWidth(),cImage.GetHeight(),-1);
+    wxMemoryDC dwxdc;
+    dwxdc.SelectObject(tbmp);
+
+    HCURSOR hcursor = wxBitmapToHCURSOR( wxBitmap(cImage, (wxDC &)dwxdc),
+                                         hotSpotX, hotSpotY );
+    if ( !hcursor )
+    {
+        wxLogWarning(_("Failed to create ocpCursor."));
+        return;
+    }
+
+
+//  Replace the HANDLE created in the base class constructor
+//  Probably leaks....
+    GetGDIImageData()->m_handle = hcursor;
+}
+
+
+
+
+#endif   // __MSW
+
+
+
+
+
 
 
 //---------------------------------------------------------------------------------------
