@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: concanv.cpp,v 1.2 2006/10/05 03:49:31 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  Console Canvas
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/10/05 03:49:31  dsr
+ * cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.2  2006/04/23 03:54:12  dsr
  * Cleanup leaks
@@ -79,7 +82,7 @@ extern      float gCog;
 extern      float gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.2 2006/10/05 03:49:31 dsr Exp $");
 
 
 
@@ -89,7 +92,6 @@ CPL_CVSID("$Id: concanv.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 //------------------------------------------------------------------------------
 BEGIN_EVENT_TABLE(ConsoleCanvas, wxWindow)
       EVT_PAINT(ConsoleCanvas::OnPaint)
-//  EVT_ACTIVATE(ChartCanvas::OnActivate)
       EVT_SIZE(ConsoleCanvas::OnSize)
       EVT_MOUSE_EVENTS(ConsoleCanvas::MouseEvent)
 END_EVENT_TABLE()
@@ -373,331 +375,7 @@ void ConsoleCanvas::ShowWithFreshFonts(void)
 
 
 
-/*
-#include <wx/fontdlg.h>
-#include <wx/fontenum.h>
-#include "wx/encinfo.h"
-#include "wx/fontutil.h"
 
-#include "/usr/X11R6/include/X11/Xlib.h"
-
-
-// returns TRUE if there are any fonts matching this font spec
-static bool MyTestFontSpec(const wxString& fontspec)
-{
-    // some X servers will fail to load this font because there are too many
-    // matches so we must test explicitly for this
-      if ( fontspec == _T("-*-*-*-*-*-*-*-*-*-*-*-*-*-*") )
-      {
-            return TRUE;
-      }
-
-
-      wxNativeFont test = wxLoadFont(fontspec);
-
-      if ( test )
-      {
-            XFreeFont((Display *)wxGetDisplay(), (XFontStruct *)test);        //            wxFreeFont(test);
-
-            return TRUE;
-      }
-      else
-      {
-            return FALSE;
-      }
-}
-
-
-
-
-static bool MyBuildXFontSpec(int pixelSize, int pointSize,
-                                    int family,
-                                    int style,
-                                    int weight,
-                                    bool WXUNUSED(underlined),
-                                    const wxString& facename,
-                                    const wxString& xregistry,
-                                    const wxString& xencoding,
-                                    wxString* xFontName)
-{
-      wxString xfamily;
-      switch (family)
-      {
-            case wxDECORATIVE: xfamily = wxT("lucida"); break;
-            case wxROMAN:      xfamily = wxT("times");  break;
-            case wxMODERN:     xfamily = wxT("courier"); break;
-            case wxSWISS:      xfamily = wxT("helvetica"); break;
-            case wxTELETYPE:   xfamily = wxT("lucidatypewriter"); break;
-            case wxSCRIPT:     xfamily = wxT("utopia"); break;
-            default:           xfamily = wxT("*");
-      }
-#if wxUSE_NANOX
-    int xweight;
-    switch (weight)
-    {
-          case wxBOLD:
-          {
-                xweight = MWLF_WEIGHT_BOLD;
-                break;
-          }
-          case wxLIGHT:
-          {
-                xweight = MWLF_WEIGHT_LIGHT;
-                break;
-          }
-          case wxNORMAL:
-          {
-                xweight = MWLF_WEIGHT_NORMAL;
-                break;
-          }
-
-          default:
-          {
-                xweight = MWLF_WEIGHT_DEFAULT;
-                break;
-          }
-    }
-    GR_SCREEN_INFO screenInfo;
-    GrGetScreenInfo(& screenInfo);
-
-    int yPixelsPerCM = screenInfo.ydpcm;
-
-    // A point is 1/72 of an inch.
-    // An inch is 2.541 cm.
-    // So pixelHeight = (pointSize / 72) (inches) * 2.541 (for cm) * yPixelsPerCM (for pixels)
-    // In fact pointSize is 10 * the normal point size so
-    // divide by 10.
-
-    int pixelHeight = (int) ( (((float)pointSize) / 720.0) * 2.541 * (float) yPixelsPerCM) ;
-
-    // An alternative: assume that the screen is 72 dpi.
-    //int pixelHeight = (int) (((float)pointSize / 720.0) * 72.0) ;
-    //int pixelHeight = (int) ((float)pointSize / 10.0) ;
-
-    GR_LOGFONT logFont;
-    logFont.lfHeight = pixelHeight;
-    logFont.lfWidth = 0;
-    logFont.lfEscapement = 0;
-    logFont.lfOrientation = 0;
-    logFont.lfWeight = xweight;
-    logFont.lfItalic = (style == wxNORMAL ? 0 : 1) ;
-    logFont.lfUnderline = 0;
-    logFont.lfStrikeOut = 0;
-    logFont.lfCharSet = MWLF_CHARSET_DEFAULT; // TODO: select appropriate one
-    logFont.lfOutPrecision = MWLF_TYPE_DEFAULT;
-    logFont.lfClipPrecision = 0; // Not used
-    logFont.lfRoman = (family == wxROMAN ? 1 : 0) ;
-    logFont.lfSerif = (family == wxSWISS ? 0 : 1) ;
-    logFont.lfSansSerif = !logFont.lfSerif ;
-    logFont.lfModern = (family == wxMODERN ? 1 : 0) ;
-    logFont.lfProportional = (family == wxTELETYPE ? 0 : 1) ;
-    logFont.lfOblique = 0;
-    logFont.lfSmallCaps = 0;
-    logFont.lfPitch = 0; // 0 = default
-    strcpy(logFont.lfFaceName, facename.c_str());
-
-    XFontStruct* fontInfo = (XFontStruct*) malloc(sizeof(XFontStruct));
-    fontInfo->fid = GrCreateFont((GR_CHAR*) facename.c_str(), pixelHeight, & logFont);
-    GrGetFontInfo(fontInfo->fid, & fontInfo->info);
-    return (wxNativeFont) fontInfo;
-
-#else
-    wxString fontSpec;
-    if (!facename.IsEmpty())
-    {
-          fontSpec.Printf(wxT("-*-%s-*-*-normal-*-*-*-*-*-*-*-*-*"),
-                          facename.c_str());
-
-          if ( MyTestFontSpec(fontSpec) )
-          {
-                xfamily = facename;
-          }
-          else
-          {
-                return false;
-          }
-    }
-
-    wxString xstyle;
-    switch (style)
-    {
-          case wxSLANT:
-                fontSpec.Printf(wxT("-*-%s-*-o-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xstyle = wxT("o");
-                      break;
-                }
-            // fall through - try wxITALIC now
-
-          case wxITALIC:
-                fontSpec.Printf(wxT("-*-%s-*-i-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xstyle = wxT("i");
-                }
-                else if ( style == wxITALIC ) // and not wxSLANT
-                {
-                // try wxSLANT
-                      fontSpec.Printf(wxT("-*-%s-*-o-*-*-*-*-*-*-*-*-*-*"),
-                                      xfamily.c_str());
-                      if ( MyTestFontSpec(fontSpec) )
-                      {
-                            xstyle = wxT("o");
-                      }
-                      else
-                      {
-                    // no italic, no slant - leave default
-                            xstyle = wxT("*");
-                      }
-                }
-                break;
-
-          default:
-                wxFAIL_MSG(_T("unknown font style"));
-            // fall back to normal
-
-          case wxNORMAL:
-                xstyle = wxT("r");
-                break;
-    }
-
-    wxString xweight;
-    switch (weight)
-    {
-          case wxBOLD:
-          {
-                fontSpec.Printf(wxT("-*-%s-bold-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("bold");
-                      break;
-                }
-                fontSpec.Printf(wxT("-*-%s-heavy-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("heavy");
-                      break;
-                }
-                fontSpec.Printf(wxT("-*-%s-extrabold-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("extrabold");
-                      break;
-                }
-                fontSpec.Printf(wxT("-*-%s-demibold-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("demibold");
-                      break;
-                }
-                fontSpec.Printf(wxT("-*-%s-black-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("black");
-                      break;
-                }
-                fontSpec.Printf(wxT("-*-%s-ultrablack-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("ultrablack");
-                      break;
-                }
-          }
-          break;
-          case wxLIGHT:
-          {
-                fontSpec.Printf(wxT("-*-%s-light-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("light");
-                      break;
-                }
-                fontSpec.Printf(wxT("-*-%s-thin-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("thin");
-                      break;
-                }
-          }
-          break;
-          case wxNORMAL:
-          {
-                fontSpec.Printf(wxT("-*-%s-medium-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("medium");
-                      break;
-                }
-                fontSpec.Printf(wxT("-*-%s-normal-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("normal");
-                      break;
-                }
-                fontSpec.Printf(wxT("-*-%s-regular-*-*-*-*-*-*-*-*-*-*-*"),
-                                xfamily.c_str());
-                if ( MyTestFontSpec(fontSpec) )
-                {
-                      xweight = wxT("regular");
-                      break;
-                }
-                xweight = wxT("*");
-          }
-          break;
-          default:           xweight = wxT("*"); break;
-    }
-
-    // if pointSize is -1, don't specify any
-    wxString sizeSpec;
-    if ( pointSize == -1 )
-    {
-          sizeSpec = _T('*');
-    }
-    else
-    {
-          sizeSpec.Printf(_T("%d"), pointSize);
-    }
-
-   // if pixelSize is -1, don't specify any
-    wxString pixsizeSpec;
-    if ( pixelSize == -1 )
-    {
-          pixsizeSpec = _T('*');
-    }
-    else
-    {
-          pixsizeSpec.Printf(_T("%d"), pixelSize);
-    }
-
-    // construct the X font spec from our data
-    fontSpec.Printf(wxT("-*-%s-%s-%s-normal-*-%s-%s-*-*-*-*-%s-%s"),
-                    xfamily.c_str(), xweight.c_str(), xstyle.c_str(), pixsizeSpec.c_str(),
-                    sizeSpec.c_str(), xregistry.c_str(), xencoding.c_str());
-
-    if( xFontName )
-          *xFontName = fontSpec;
-
-    if ( MyTestFontSpec(fontSpec) )
-          return true;
-    else
-          return false;
-#endif
-    // wxUSE_NANOX
-}
-*/
 //------------------------------------------------------------------------------
 //    AnnunText Implementation
 //------------------------------------------------------------------------------
