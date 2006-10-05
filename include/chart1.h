@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
+ * $Id: chart1.h,v 1.3 2006/10/05 03:52:54 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.3  2006/10/05 03:52:54  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
@@ -151,8 +154,8 @@ enum
 
 enum
 {
-      TIMER_1 = 1,
-      TIMER_2,
+      FRAME_TIMER_1 = 555,
+      FRAME_TIMER_2,
 };
 
 typedef enum ColorScheme
@@ -200,7 +203,7 @@ class MyFrame: public wxFrame
     void OnCloseWindow(wxCloseEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
-    void OnTimer1(wxTimerEvent& event);
+    void OnFrameTimer1(wxTimerEvent& event);
     bool DoChartUpdate(int bSelectType);
     void OnEvtNMEA(wxCommandEvent& event);
     void OnChar(wxKeyEvent &event);
@@ -229,7 +232,7 @@ class MyFrame: public wxFrame
 
     wxStatusBar         *pStatusBar;
 
-    wxTimer             Timer1;
+    wxTimer             FrameTimer1;
 
     wxTextCtrl          *m_textWindow;
 
@@ -248,6 +251,8 @@ class MyFrame: public wxFrame
     int  toolbar_width_without_static;
 
     string_to_pchar_hash tool_xpm_hash;         // hash map of [static] toolbar xpm bitmaps
+
+    int                 tool_dummy_size_x_last;
 
     DECLARE_EVENT_TABLE()
 };

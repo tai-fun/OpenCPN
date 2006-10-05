@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: chcanv.h,v 1.2 2006/10/05 03:52:54 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/10/05 03:52:54  dsr
+ * no message
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.5  2006/07/28 20:47:50  dsr
  * Cleanup
@@ -403,12 +406,7 @@ class ocpCursor : public wxCursor
       public:
 
             ocpCursor(const wxString& cursorName, long type, int hotSpotX=0, int hotSpotY=0);
-
-            ocpCursor(const char bits[], int width, int  height,
-                     int hotSpotX, int hotSpotY,
-                     const char maskBits[], wxColour *fg, wxColour *bg);
-
-
+            ocpCursor(char **xpm_data, long type, int hotSpotX=0, int hotSpotY=0);
 };
 
 //----------------------------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.2 2006/10/01 03:24:40 dsr Exp $
+ * $Id: nmea.h,v 1.3 2006/10/05 03:52:54 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.3  2006/10/05 03:52:54  dsr
+ * no message
+ *
  * Revision 1.2  2006/10/01 03:24:40  dsr
  * no message
  *
@@ -94,7 +97,7 @@
 #define GPSD_PORT_NUMBER      2947                  // Well Known Port number for GPSD
 
 #define SOCKET_ID             5
-#define TIMER_NMEA1           1
+#define TIMER_NMEA1           777
 #define TRANSMIT_DATA         0x42
 
 enum
@@ -146,15 +149,15 @@ private:
       void OnPaint(wxPaintEvent& event);
       void OnActivate(wxActivateEvent& event);
       void OnSocketEvent(wxSocketEvent& event);
-      void OnTimer1(wxTimerEvent& event);
-      void NMEAWindow::OnCloseWindow(wxCloseEvent& event);
+      void OnTimerNMEA(wxTimerEvent& event);
+      void OnCloseWindow(wxCloseEvent& event);
       void wxDTToMyFileTime(wxDateTime *SDT, MyFileTime *pFileTime);
       void MyFileTimeTowxDT( MyFileTime *pFileTime, wxDateTime *SDT);
 
       wxIPV4address     addr;
       wxSocketClient    *m_sock;
       bool              m_busy;
-      wxTimer           Timer1;
+      wxTimer           TimerNMEA;
       MyFrame           *parent_frame;
 
       wxString          *m_pdata_source_string;
