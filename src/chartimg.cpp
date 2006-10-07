@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: chartimg.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.8  2006/08/04 11:42:01  dsr
  * no message
@@ -72,6 +75,7 @@
   #include "wx/wx.h"
 #endif //precompiled headers
 
+#include "wx/dir.h"
 
 
 #include "chartimg.h"
@@ -115,7 +119,7 @@
       extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -138,7 +142,7 @@ PixelCache::PixelCache(int width, int height, int depth)
       line_pitch_bytes = bytes_per_pixel * width;
 
 
-#if dyUSE_BITMAPO
+#ifdef dyUSE_BITMAPO
       m_rgbo = BGR;
 #endif
 
@@ -295,7 +299,7 @@ void PixelCache::SelectIntoDC(wxMemoryDC &dc)
 //    delete m_pbm;                       // kill the old one
 
       //    Convert image to bitmap
-      #if dyUSE_BITMAPO
+      #ifdef dyUSE_BITMAPO
       if(!m_pbm)
             m_pbm = new wxBitmapo(*m_pimage, m_depth);
       #else
@@ -637,6 +641,11 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 
       wxString NOS_Name(*pBitmapFilePath);            // take a copy
 
+      wxDir target_dir(Path);
+      wxArrayString file_array;
+      int nfiles = wxDir::GetAllFiles(Path, &file_array);
+
+
       pBitmapFilePath->Prepend(Path);
 //    wxLogMessage("ChartGEO:Init....NOS File Name is: %s", pBitmapFilePath->c_str());
       wxFileName NOS_filename(*pBitmapFilePath);
@@ -690,6 +699,26 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 //                      (NOS_filename.GetFullPath()).c_str());
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
+
+
+//      Search harder
+
+            for(int ifile = 0 ; ifile < nfiles ; ifile++)
+            {
+                wxString file_up = file_array.Item(ifile);
+                file_up.MakeUpper();
+
+                wxString target_up = *pBitmapFilePath;
+                target_up.MakeUpper();
+
+                if(file_up.IsSameAs( target_up))
+                {
+                    NOS_filename.Clear();
+                    NOS_filename.Assign(file_array.Item(ifile));
+                    goto found_uclc_file;
+                }
+
+            }
 
             return INIT_FAIL_REMOVE;                  // not found at all
 
@@ -1463,21 +1492,8 @@ wxBitmap *ChartBaseBSB::CreateThumbnail(int tnx, int tny)
 
       wxBitmap *retBMP;
 
-/*
-#ifdef __WXMSW__
-      #if dyUSE_BITMAPO
-      retBMP = new wxBitmapo(pPixTN, des_width, des_height, -1);
-      #else
-      wxImage thumb_image(des_width, des_height, pPixTN, true);
-      retBMP = new wxBitmap(&thumb_image);
-      #endif
-#endif
 
-
-//    must be for X11 or GTK
-*/
-
-#if dyUSE_BITMAPO
+#ifdef dyUSE_BITMAPO
       retBMP = new wxBitmapo(pPixTN, des_width, des_height, -1);
 #else
       wxImage thumb_image(des_width, des_height, pPixTN, true);
@@ -1486,10 +1502,6 @@ wxBitmap *ChartBaseBSB::CreateThumbnail(int tnx, int tny)
 
 
       free(pPixTN);
-
-
-//      if(!retBMP->Ok())
-//          int ffj = 4;
 
       return retBMP;
 
@@ -2580,8 +2592,6 @@ bool ChartBaseBSB::GetChartBits(wxRect& source, unsigned char *pPix, int mode, i
                               }
                               else
                                     BSBGetScanline( pCP, iy, source.x, source.x + source.width, sub_samp);
-
-
                         }
                         else
                         {
@@ -3012,13 +3022,6 @@ int   ChartBaseBSB::BSBReadScanline( unsigned char *LineBuf,
       unsigned char *prgb = LineBuf;
       if(mode == 1)
       {
-/*
-#ifdef __WXMSW__
-            int * pPalette = (int *)&BGRPallete[0][0];
-#else
-            int * pPalette = (int *)&RGBPallete[0][0];
-#endif
-   */
       while( ((byNext = *lp++) != 0 ) && (iPixel < xl))
             {
                   int   nPixValue;

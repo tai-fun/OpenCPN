@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.4 2006/10/05 03:50:07 dsr Exp $
+ * $Id: nmea.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.5  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
  * Revision 1.4  2006/10/05 03:50:07  dsr
  * suppor gpsd
  *
@@ -91,7 +94,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.4 2006/10/05 03:50:07 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $");
 
 //    Forward Declarations
 
@@ -336,14 +339,12 @@ void NMEAWindow::UnPause(void)
 }
 
 
-#define USE_GPSD
 
 void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 {
 
 #define RD_BUF_SIZE    200
-    
-    DATA_MSG1 *pt;
+
     int nBytes;
     unsigned char *bp;
     unsigned char buf[RD_BUF_SIZE + 1];
@@ -355,9 +356,8 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
   switch(event.GetSocketEvent())
   {
-  case wxSOCKET_INPUT :
-#ifdef USE_GPSD
-            m_sock->SetFlags(wxSOCKET_NOWAIT); 
+      case wxSOCKET_INPUT :                     // from gpsd Daemon
+            m_sock->SetFlags(wxSOCKET_NOWAIT);
 
 
 //          Read the reply, one character at a time, looking for 0x0a (lf)
@@ -392,20 +392,20 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                     if(token.ToDouble(&dtime))
                     {
                         fix_time.Set((time_t) floor(dtime));
-                        wxString fix_time_format = fix_time.Format("%Y-%m-%dT%H:%M:%S");  // this should show as LOCAL time
+                        wxString fix_time_format = fix_time.Format("%Y-%m-%dT%H:%M:%S");  // this should show as LOCAL
                     }
 
 
                     token = tkz.GetNextToken();         // skip to lat
-  
+
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dglat))
                         gLat = dglat;
-            
+
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dglon))
                         gLon = dglon;
-                
+
                     token = tkz.GetNextToken();         // skip to tmg
                     token = tkz.GetNextToken();
                     token = tkz.GetNextToken();
@@ -419,7 +419,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                         gSog = dgsog;
 
 //      Use the fix time to update the local clock
-                    if(1 /*!gFrame->m_bTimeIsSet*/)
+                    if(fix_time.IsValid())
                     {
 
 //          Compare the server (fix) time to the current system time
@@ -441,7 +441,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 //    Code snippet following borrowed from wxDateCtrl, MSW
 
                               const wxDateTime::Tm tm(fix_time.GetTm());
-                              
+
 
                               SYSTEMTIME stm;
                               stm.wYear = (WXWORD)tm.year;
@@ -496,43 +496,6 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
             }
 
 
-#else
-            m_sock->SetFlags(wxSOCKET_WAITALL); // | wxSOCKET_BLOCK );
-
-            pt = (DATA_MSG1 *)buf;
-
-//          Read the reply, waiting forever for all data to be read
-            m_sock->Read(buf, sizeof(DATA_MSG1));
-
-            nBytes = m_sock->LastCount();
-
-            if((nmea) && (pt->msg == 0x8042))                      // is the socket's parent still alive?
-            {                                                      // and message valid?
-                  {
-                        gLat = pt->lat;
-                        gLon = pt->lon;
-                        gSog = pt->sog;
-                        gCog = pt->cog;
-                  }
-
-
-
-
-//    Signal the main program thread
-
-                        wxCommandEvent event( EVT_NMEA, wxID_HIGHEST );
-                        event.SetEventObject( (wxObject *)this );
-                        event.SetExtraLong(EVT_NMEA_DIRECT);
-                        m_pParentEventHandler->AddPendingEvent(event);
-
-                  }     // if 1
-
-
-                  Timer1.Start(1000,wxTIMER_CONTINUOUS);
-            }           // if nmea
-
-            break;
-#endif      //USE_GPSD
 
     case wxSOCKET_LOST       :
     case wxSOCKET_CONNECTION :
@@ -641,11 +604,7 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
       {
         if(m_sock->IsConnected())
         {
-#ifdef USE_GPSD
             unsigned char c = 'O';
-#else
-            unsigned char c = TRANSMIT_DATA;
-#endif
             m_sock->Write(&c, 1);
         }
         else                                    // try to connect

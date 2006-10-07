@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.2 2006/10/01 03:22:58 dsr Exp $
+ * $Id: cutil.c,v 1.3 2006/10/07 03:50:27 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  Extern C Linked Utilities
  * Author:   David Register
  *
@@ -27,6 +27,9 @@
  *
  *
  * $Log: cutil.c,v $
+ * Revision 1.3  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
  * Revision 1.2  2006/10/01 03:22:58  dsr
  * no message
  *
@@ -55,7 +58,7 @@
 
 //#include "dychart.h"
 
-//CPL_CVSID("$Id: cutil.c,v 1.2 2006/10/01 03:22:58 dsr Exp $");
+//CPL_CVSID("$Id: cutil.c,v 1.3 2006/10/07 03:50:27 dsr Exp $");
 
 /*************************************************************************
 

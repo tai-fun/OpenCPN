@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: about.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: about.h,v 1.2 2006/10/07 03:50:54 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  About Dialog
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: about.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/10/07 03:50:54  dsr
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.2  2006/04/23 04:04:28  dsr
  * Fix internal names

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.4 2006/10/05 03:48:40 dsr Exp $
+ * $Id: chcanv.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.5  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
  * Revision 1.4  2006/10/05 03:48:40  dsr
  * ocpcursor update
  *
@@ -151,7 +154,6 @@ extern ThumbWin         *pthumbwin;
 extern TCMgr            *ptcmgr;
 extern Select           *pSelectTC;
 
-extern wxString         *pBitmap_Dir;
 
 extern bool             bDrawCurrentValues;
 extern wxString         *pWVS_Locn;
@@ -162,18 +164,18 @@ extern s52plib          *ps52plib;
 
 extern bool             bGPSValid;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.4 2006/10/05 03:48:40 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
 //  The relevant static identifying label is the same as the file name
 //  e.g. down.xpm contains a line .....static char *down[]....
 
-#include "bitmaps\down.xpm"
-#include "bitmaps\up.xpm"
-#include "bitmaps\left.xpm"
-#include "bitmaps\right.xpm"
-#include "bitmaps\pencil.xpm"
+#include "bitmaps/down.xpm"
+#include "bitmaps/up.xpm"
+#include "bitmaps/left.xpm"
+#include "bitmaps/right.xpm"
+#include "bitmaps/pencil.xpm"
 
 //    Constants for right click menus
 enum
@@ -265,17 +267,8 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
       pMouseRoute = NULL;
 
 //    Build the cursors
-      wxString Curs_Dir = *pBitmap_Dir;
 
-#ifdef __WXX11__
-      pCursorLeft =   new ocpCursor(Curs_Dir + wxString(_T("left.xpm")),  0, 00, 15);
-      pCursorRight =  new ocpCursor(Curs_Dir + wxString(_T("right.xpm")), 0, 31, 15);
-      pCursorUp =     new ocpCursor(Curs_Dir + wxString(_T("up.xpm")),    0, 15, 00);
-      pCursorDown =   new ocpCursor(Curs_Dir + wxString(_T("down.xpm")),  0, 15, 31);
-      pCursorPencil = new wxCursor(wxCURSOR_PENCIL);
-#endif
-
-#ifdef __WXMSW__
+#ifndef __WXGTK__
       pCursorLeft =    new ocpCursor(left,  0, 00, 15);
       pCursorRight =   new ocpCursor(right, 0, 31, 15);
       pCursorUp =      new ocpCursor(up,    0, 15, 00);
@@ -286,61 +279,56 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
 
 
 #ifdef __WXGTK__
-      wxImage t;
-      wxXPMHandler *th = new wxXPMHandler;
-      t.AddHandler(th);
-      wxImage ICursorLeft(Curs_Dir + wxString(_T("left.xpm")),  (long)wxBITMAP_TYPE_XPM);
-      wxImage ICursorRight(Curs_Dir + wxString(_T("right.xpm")),  (long)wxBITMAP_TYPE_XPM);
-      wxImage ICursorUp(Curs_Dir + wxString(_T("up.xpm")),  (long)wxBITMAP_TYPE_XPM);
-      wxImage ICursorDown(Curs_Dir + wxString(_T("down.xpm")),  (long)wxBITMAP_TYPE_XPM);
-      wxImage ICursorPencil(Curs_Dir + wxString(_T("pencil.xpm")),  (long)wxBITMAP_TYPE_XPM);
+      wxImage ICursorLeft(left);
+      wxImage ICursorRight(right);
+      wxImage ICursorUp(up);
+      wxImage ICursorDown(down);
+      wxImage ICursorPencil(pencil);
 
       if(ICursorLeft.Ok())
-    {
+      {
         ICursorLeft.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, 0 );
         ICursorLeft.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, 15);
-            pCursorLeft =  new wxCursor(ICursorLeft);
-    }
+        pCursorLeft =  new wxCursor(ICursorLeft);
+      }
       else
-       pCursorLeft =  new wxCursor(wxCURSOR_ARROW);
+        pCursorLeft =  new wxCursor(wxCURSOR_ARROW);
 
       if(ICursorRight.Ok())
-    {
+      {
         ICursorRight.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, 31);
         ICursorRight.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, 15);
-            pCursorRight =  new wxCursor(ICursorRight);
-    }
+        pCursorRight =  new wxCursor(ICursorRight);
+      }
       else
-       pCursorRight =  new wxCursor(wxCURSOR_ARROW);
+        pCursorRight =  new wxCursor(wxCURSOR_ARROW);
 
       if(ICursorUp.Ok())
-    {
+      {
         ICursorUp.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, 15);
         ICursorUp.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, 0 );
-            pCursorUp =  new wxCursor(ICursorUp);
-    }
+        pCursorUp =  new wxCursor(ICursorUp);
+      }
       else
-       pCursorUp =  new wxCursor(wxCURSOR_ARROW);
+        pCursorUp =  new wxCursor(wxCURSOR_ARROW);
 
       if(ICursorDown.Ok())
-    {
+      {
         ICursorDown.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, 15);
         ICursorDown.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, 31);
-            pCursorDown =  new wxCursor(ICursorDown);
-    }
+        pCursorDown =  new wxCursor(ICursorDown);
+      }
       else
-       pCursorDown =  new wxCursor(wxCURSOR_ARROW);
+        pCursorDown =  new wxCursor(wxCURSOR_ARROW);
 
       if(ICursorPencil.Ok())
-    {
+      {
         ICursorPencil.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, 0 );
         ICursorPencil.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, 20);
-            pCursorPencil =  new wxCursor(ICursorPencil);
-    }
+        pCursorPencil =  new wxCursor(ICursorPencil);
+      }
       else
        pCursorPencil =  new wxCursor(wxCURSOR_ARROW);
-
-//   pCursorPencil =  new wxCursor(wxCURSOR_PENCIL);
 
 #endif
 
@@ -415,11 +403,8 @@ ChartCanvas::~ChartCanvas()
       delete pwvs_chart;
 }
 
-static int thc;
-
 void ChartCanvas::OnEvtRescale(wxCommandEvent & event)
 {
-  printf("%d RescaleEventDone\n", thc);
 
 //  Delete smoothly the rescale thread
       if(pRescaleThread)
@@ -465,14 +450,14 @@ void ChartCanvas::RescaleTimerEvent(wxTimerEvent& event)
 
         if(!pRescaleThread)
         {
-          printf("%d Starting thread\n", thc);
+//          printf("%d Starting thread\n", thc);
             pRescaleThread = new ChartRescaleThread(this, Current_Ch,
                   pCBSB->GetCurrentRsrc(), dest, SCALE_BILINEAR);
             pRescaleThread->Create();
             pRescaleThread->Run();
         }
         else
-          printf("Tried to run concurrent rescale threads\n");
+//          printf("Tried to run concurrent rescale threads\n");
 
       }
 #endif
@@ -558,6 +543,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
       int pixxd, pixyd;
       int pixx, pixy;
 
+//      printf("Scale: %.1f %.1f\n", scale, VPoint.view_scale);
       bNewVP = false;
       if(VPoint.clat != lat)
             bNewVP = true;
@@ -890,7 +876,8 @@ void ChartCanvas::OnSize(wxSizeEvent& event)
       float pix_per_mm = canvas_width / x_mm;
 
 #ifdef USE_S57
-      ps52plib->SetPPMM(pix_per_mm);
+      if(ps52plib)
+        ps52plib->SetPPMM(pix_per_mm);
 #endif
 
 
@@ -945,7 +932,6 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
 
       int x,y;
       char buf[80];
-//    ChartTypeEnum type;
       int mx, my;
       float cursor_lon ;
       float cursor_lat ;
@@ -2032,15 +2018,8 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
       wxMemoryDC temp_dc;
 #endif
 
-/*
-      char buf[30];
-      sprintf(buf, "%d,%d", VPoint.Rsrc.x, VPoint.Rsrc.y);
-      if(parent_frame->pStatusBar)
-            parent_frame->SetStatusText(buf, 2);
-*/
       if(Current_Ch)
             type = Current_Ch->ChartType;
-
 
 
 //    In case Console is shown, set up dc clipper and blt iterator regions
@@ -2100,7 +2079,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
 //    Draw the WVSChart only in the areas NOT covered by the current chart view
 //    And, only if the region is ..not.. empty
-      if(!WVSRegion.IsEmpty())
+      if(!WVSRegion.IsEmpty() && (fabs(Current_Ch->GetChartSkew()) < 1.0))
             pwvs_chart->RenderViewOnDC(temp_dc, VPoint);
 
 
@@ -2113,8 +2092,6 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
       scratch_dc.SetClippingRegion(rgn_chart);
 
       DrawAllRoutesInBBox(scratch_dc, VPoint.vpBBox);
-//   printf("\nRoute Rect %d %d %d %d\n",scratch_dc.MinX(),scratch_dc.MinY(),
-//             scratch_dc.MaxX() - scratch_dc.MinX(), scratch_dc.MaxY() - scratch_dc.MinY());
       ShipDraw(scratch_dc, ShipPoint, PredPoint);
 
 
@@ -2166,11 +2143,6 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
  //    Also, must add in the window invalid region as maintained by window class
       rgn_blit.Union(ru);
-
- //Todo Why need this??
-#ifdef __WXGTK__
-//      rgn_blit = rgn_chart;
-#endif
 
       wxRegionIterator upd(rgn_blit); // get the update rect list
       while (upd)
@@ -3174,8 +3146,16 @@ ocpCursor::ocpCursor()
 }
 */
 
+//----------------------------------------------------------------------------------------------
+//      ocpCursor Implementation
+//
+//----------------------------------------------------------------------------------------------
 
 
+
+//----------------------------------------------------------------------------------------------
+//      A new constructor taking a file name to load and assign as a cursor
+//----------------------------------------------------------------------------------------------
 ocpCursor::ocpCursor(const wxString& cursorName, long type,
                      int hotSpotX, int hotSpotY): wxCursor(wxCURSOR_CROSS)
 {
@@ -3325,6 +3305,154 @@ ocpCursor::ocpCursor(const wxString& cursorName, long type,
 
 }
 
+//----------------------------------------------------------------------------------------------
+//      A new constructor taking a static char ** of XPM data and assign as a cursor
+//----------------------------------------------------------------------------------------------
+
+ocpCursor::ocpCursor(char **xpm_data, long type,
+                     int hotSpotX, int hotSpotY): wxCursor(wxCURSOR_CROSS)
+{
+    wxImage cImage(xpm_data);
+
+    int width = cImage.GetWidth();
+    int height = cImage.GetHeight();
+
+//    m_refData = new wxCursorRefData();
+
+      //    Get some X parameters
+    int xscreen = DefaultScreen( (Display*) wxGlobalDisplay() );
+    Window xroot = RootWindow( (Display*) wxGlobalDisplay(), xscreen );
+    Visual* xvisual = DefaultVisual( (Display*) wxGlobalDisplay(), xscreen );
+
+    M_CURSORDATA->m_display = wxGlobalDisplay();
+    wxASSERT_MSG( M_CURSORDATA->m_display, wxT("No display") );
+
+      //    Make a pixmap
+    Pixmap cpixmap = XCreatePixmap( (Display*) wxGlobalDisplay(),
+                                     xroot, width, height, 1 );
+
+      //    Make an Ximage
+    XImage *data_image = XCreateImage( (Display*) wxGlobalDisplay(), xvisual,
+                                        1, ZPixmap, 0, 0, width, height, 32, 0 );
+    data_image->data = (char*) malloc( data_image->bytes_per_line * data_image->height );
+
+
+    int index = 0;
+    int pixel = 0;
+    unsigned char* data = cImage.GetData();
+
+        // Create mask
+
+    Pixmap cmask;
+    unsigned char mr, mg, mb;
+
+    if (cImage.HasMask())
+    {
+        XImage *mask_image = XCreateImage( (Display*) wxGlobalDisplay(), xvisual,
+                                            1, ZPixmap, 0, 0, width, height, 32, 0 );
+        mask_image->data = (char*) malloc( mask_image->bytes_per_line * mask_image->height );
+
+        cImage.GetOrFindMaskColour(&mr, &mg, &mb);
+
+        int rit = (mr << 16) + (mg << 8) + mb;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int ri = (int)data[index++];
+                ri += data[index++] << 8;
+                ri += data[index++] << 16;
+
+/*
+                int ri = *(int *)(&data[index]);
+                ri &= 0x00ffffff;
+                index++;
+                index++;
+                index++;
+*/
+                pixel = 1;
+                if(ri == rit)           // if data is mask value, mask pixel gets 0
+                    pixel = 0;
+
+
+                XPutPixel( mask_image, x, y, pixel );
+
+
+            }
+        }
+
+        cmask = XCreatePixmap( (Display*) wxGlobalDisplay(), xroot, width, height, 1  );
+
+        GC gc = XCreateGC( (Display*) wxGlobalDisplay(), cmask, 0, NULL );
+        XPutImage( (Display*) wxGlobalDisplay(), cmask, gc, mask_image,
+                    0, 0, 0, 0, width, height );
+
+        XDestroyImage( mask_image );
+        XFreeGC( (Display*) wxGlobalDisplay(), gc );
+
+    }
+
+      //    Render the wxImage cImage onto the Ximage
+      //    Simple black/white cursors only, please
+
+    index = 0;
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            int ri = (int)data[index++];
+            ri += data[index++] << 8;
+            ri += data[index++] << 16;
+
+                  /*
+            int ri = *(int *)(&data[index]);
+            ri &= 0x00ffffff;
+            index++;
+            index++;
+            index++;
+                  */
+
+            pixel = 0;
+            if(ri)
+                pixel = 1;
+
+
+            XPutPixel( data_image, x, y, pixel );
+
+
+        }
+    }
+
+
+
+      //    Put the Ximage into the pixmap
+
+    GC gc = XCreateGC( (Display*) wxGlobalDisplay(), cpixmap, 0, NULL );
+    XPutImage( (Display*) wxGlobalDisplay(), cpixmap, gc, data_image,
+                0, 0, 0, 0, width, height );
+
+      //    Free the Ximage stuff
+    XDestroyImage( data_image );
+    XFreeGC( (Display*) wxGlobalDisplay(), gc );
+
+      //    Make a X cursor from the pixmap
+
+
+
+    XColor fg, bg;
+    fg.red = fg.blue = fg.green = 0xffff;
+    bg.red = bg.blue = bg.green = 0;
+
+
+    M_CURSORDATA->m_cursor = (WXCursor) XCreatePixmapCursor((Display*) wxGlobalDisplay(), cpixmap, cmask,
+    &fg, &bg, hotSpotX, hotSpotY);
+
+
+
+
+}
+
 #endif      // __WXX11__
 
 
@@ -3389,7 +3517,7 @@ ocpCursor::ocpCursor(const wxString& cursorName, long type,
 //      On Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
 //      unless a "compatible" dc is provided.  Why??
 //      As a workaround, just make a simple wxDC for temporary use
-        
+
     wxBitmap tbmp(cImage.GetWidth(),cImage.GetHeight(),-1);
     wxMemoryDC dwxdc;
     dwxdc.SelectObject(tbmp);
@@ -3424,7 +3552,7 @@ ocpCursor::ocpCursor(char **xpm_data, long type,
 //      On Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
 //      unless a "compatible" dc is provided.  Why??
 //      As a workaround, just make a simple wxDC for temporary use
-        
+
     wxBitmap tbmp(cImage.GetWidth(),cImage.GetHeight(),-1);
     wxMemoryDC dwxdc;
     dwxdc.SelectObject(tbmp);

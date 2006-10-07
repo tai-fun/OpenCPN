@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: chartbase.h,v 1.2 2006/10/07 03:50:54 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  ChartBase Definition
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/10/07 03:50:54  dsr
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.2  2006/05/19 19:36:18  dsr
  * Cleanup
@@ -185,6 +188,8 @@ public:
 
       virtual ColorScheme GetColorScheme(void) { return m_color_scheme; }
 
+      virtual bool IsCacheValid(void) = 0;
+
       ChartTypeEnum     ChartType;
       int               Chart_Scale;
       wxString          *pFullPath;
@@ -240,6 +245,8 @@ public:
 
       virtual void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
 
+      virtual bool IsCacheValid(){ return false; }
+
 
 private:
       wxBitmap    *m_pBM;
@@ -269,7 +276,7 @@ class PixelCache
     int               bytes_per_pixel;
     RGBO               m_rgbo;
 
-#if dyUSE_BITMAPO
+#ifdef dyUSE_BITMAPO
       wxBitmapo         *m_pbm;
 #else
       wxBitmap          *m_pbm;

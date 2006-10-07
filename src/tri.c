@@ -81,7 +81,7 @@ Bibliography:
 
 
 
-  Implementation report: Narkhede A. and Manocha D., Fast polygon
+      Implementation report: Narkhede A. and Manocha D., Fast polygon
       triangulation algorithm based on Seidel's Algorithm, UNC-CH, 1994.
 
           -------------------------------------------------------------------
@@ -90,9 +90,9 @@ Bibliography:
               domain all rights for future licensing of the source code, all resale
                     rights, and all publishing rights.
 
-                        UNC-CH GIVES NO WARRANTY, EXPRESSED OR IMPLIED, FOR THE SOFTWARE
-                            AND/OR DOCUMENTATION PROVIDED, INCLUDING, WITHOUT LIMITATION, WARRANTY
-                                OF MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
+              UNC-CH GIVES NO WARRANTY, EXPRESSED OR IMPLIED, FOR THE SOFTWARE
+              AND/OR DOCUMENTATION PROVIDED, INCLUDING, WITHOUT LIMITATION, WARRANTY
+              OF MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
 
 
                                     - Atul Narkhede (narkhede@cs.unc.edu)
@@ -105,7 +105,7 @@ static int initialise(int);
 static int alloc_mem(int, int[]);
 
 
-//CPL_CVSID("$Id: tri.c,v 1.2 2006/09/21 01:37:37 dsr Exp $");
+//CPL_CVSID("$Id: tri.c,v 1.3 2006/10/07 03:50:28 dsr Exp $");
 
 
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bitmapo.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: bitmapo.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Optimized wxBitmap Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: bitmapo.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/08/04 11:42:01  dsr
  * no message
@@ -85,7 +88,7 @@
 #include "dychart.h"
 
 
-#if dyUSE_BITMAPO
+#ifdef dyUSE_BITMAPO
 
 // ----------------------------------------------------------------------------
 // headers
@@ -139,7 +142,7 @@
 #include <X11/extensions/XShm.h>
 #endif
 
-CPL_CVSID("$Id: bitmapo.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: bitmapo.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $");
 
 // ----------------------------------------------------------------------------
 // macros

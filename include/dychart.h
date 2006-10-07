@@ -24,7 +24,7 @@
 //  I use these shortcuts....
 #ifdef __WXX11__
 #define     __PIX_CACHE_X11IMAGE__
-#define     dyUSE_BITMAPO     1
+#define     dyUSE_BITMAPO
 #define     S57USE_PIXELCACHE 1
 #define     dyUSE_BITMAPO_S57 1
 #endif
@@ -36,7 +36,7 @@
 #ifdef __WXMSW__
 #define __PIX_CACHE_DIBSECTION__
 #define     dyUSE_DIBSECTION
-#define     dyUSE_BITMAPO     1
+#define     dyUSE_BITMAPO
 #define     dyUSE_BITMAPO_S57 1
 //#define     S57USE_PIXELCACHE 1
 #endif
@@ -47,12 +47,12 @@
 //          Required for X11 native systems and __PIX_CACHE_BMO__, optional on MSW
 
 #ifdef      __PIX_CACHE_X11IMAGE__
-#define     dyUSE_BITMAPO     1
+#define     dyUSE_BITMAPO
 #define     dyUSE_BITMAPO_S57 1
 #endif
 
 #ifdef      __PIX_CACHE_BMO__
-#define     dyUSE_BITMAPO     1
+#define     dyUSE_BITMAPO
 #define     dyUSE_BITMAPO_S57 1
 #endif
 

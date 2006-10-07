@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bitmapo.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: bitmapo.h,v 1.2 2006/10/07 03:50:54 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Optimized wxBitmap Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: bitmapo.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/10/07 03:50:54  dsr
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -47,7 +50,7 @@
 
 void *x_malloc(size_t t);
 
-#if dyUSE_BITMAPO
+#ifdef dyUSE_BITMAPO
 
 
 #ifdef __WXMSW__

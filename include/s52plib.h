@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
+ * $Id: s52plib.h,v 1.3 2006/10/07 03:50:54 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.3  2006/10/07 03:50:54  dsr
+ * *** empty log message ***
+ *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
@@ -102,19 +105,12 @@ class s52plib
 {
 public:
 
-      s52plib(char *pPLPath, char *pPLLib, char *pPLCol);
+      s52plib(const wxString& PLPath, const wxString& PLLib, const wxString& PLCol);
       ~s52plib();
 
-      int   S52_load_Plib(char *pPLPath, char *pPLLib, char *pPLCol);
-      int   S52Load_Plib_Ext(char *pPLPath, char *pPLExtensionDir, char *pPLExtensionType);
-
-      bool  S52_flush_Plib();
       void  SetPPMM(float ppmm){ canvas_pix_per_mm = ppmm;}
-
       LUPrec  *S52_lookupA(S52_LUP_table_t table_t, const char * objectName, S57Obj *pObj, bool bStrict = 0);
-
       int   _LUP2rules(LUPrec *LUP, S57Obj *pObj);
-
       color *S52_getColor(char *colorName);
 
 //    Rendering stuff
@@ -140,6 +136,14 @@ public:
       RuleHash          *_symb_sym;     // symbol symbolisation rules
 
   private:
+      int   S52_load_Plib(char *pPLPath, char *pPLLib, char *pPLCol);
+      int   S52Load_Plib_Ext(char *pPLPath, char *pPLExtensionDir, char *pPLExtensionType);
+      int   S52_load_Plib(const wxString& PLPath, const wxString& PLLib, const wxString& PLCol);
+      bool  S52_flush_Plib();
+
+
+
+
       bool ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp);
       int _renderTX(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int _renderTE(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);

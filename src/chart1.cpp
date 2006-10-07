@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.4 2006/10/05 03:48:07 dsr Exp $
+ * $Id: chart1.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.5  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
  * Revision 1.4  2006/10/05 03:48:07  dsr
  * Toolbar updae
  *
@@ -157,7 +160,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.4 2006/10/05 03:48:07 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -210,7 +213,6 @@ bool            bDrawCurrentValues;
 
 wxString        *pSData_Locn;
 wxString        *pChartListFileName;
-wxString        *pBitmap_Dir;
 wxString        *pTC_Dir;
 wxString        *pHome_Locn;
 wxString        *pWVS_Locn;
@@ -291,6 +293,11 @@ wxMutex                         *ps_mutexProtectingTheRXBuffer;
 struct sigaction sa_usr1;
 struct sigaction sa_usr1_old;
 #endif
+
+
+static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
+static int tick_idx;
+
 
 
 #ifdef __WXMSW__
@@ -521,29 +528,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pConfig = (MyConfig *)pCF;
         pConfig->LoadMyConfig(0);
 
-//      Establish location of bitmaps and cursors
-#ifdef __WXMSW__
-        pBitmap_Dir = new wxString(_T("bitmaps\\"));
-#else
-        pBitmap_Dir = new wxString(_T("bitmaps/"));
-#endif
-        pBitmap_Dir->Prepend(*pSData_Locn);
-
-//      Verify the bitmaps exist, or nothing much else can be done...
-        wxFileName bm_test_file_name(*pBitmap_Dir + wxString("left.xpm"));
-        if(bm_test_file_name.FileExists())
-            wxLogMessage("Using bitmaps in: %s", pBitmap_Dir->c_str());
-        else
-        {
-            wxString msg1("Cannot find bitmap directory\n ");
-            msg1.Append(*pBitmap_Dir);
-            msg1.Append("\n...Exiting now");
-
-            wxLogMessage("%s", msg1.c_str());
-
-            return false;                    // Probably will provoke some memory leakage....
-        }
-
 
 #ifdef USE_S57
 //      Init the s57 chart object, specifying the location of the required csv files
@@ -554,19 +538,13 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         if(pcsv_locn->IsEmpty())
         {
             pcsv_locn->Append(*pSData_Locn);
-
             pcsv_locn->Append("s57data");
         }
 
+// Todo Maybe initialize only when an s57 chart is actually opened???
         s57_initialize(*pcsv_locn, flog);
 
-
-
-        wxString plib_file(*pcsv_locn);
-        wxString plib_file_name("/S52RAZDS.RLE");
-        plib_file += plib_file_name;
-
-        ps52plib = new s52plib((char *)pcsv_locn->c_str(), (char *)plib_file_name.c_str(), "/SP52COL.DAT");
+        ps52plib = new s52plib(*pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
 
         if(!ps52plib->m_bOK)
                 wxLogMessage("S52PLIB Initialization failed, disabling S57 charts...");
@@ -576,8 +554,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 // Set default color scheme
         global_color_scheme = COLOR_SCHEME_DEFAULT;
-
-
 
 
 //      Establish location and name of chart database
@@ -738,17 +714,11 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 int MyApp::OnExit()
 {
         wxLogMessage("opencpn exiting cleanly...\n");
-
         delete pConfig;
-
         delete pSelect;
-
         delete pSelectTC;
-
         delete pRouteMan;
-
         delete pNMEA0183;
-
         delete pChartDirArray;
 
 #ifdef USE_S57
@@ -767,7 +737,6 @@ int MyApp::OnExit()
         }
 
         delete pChartListFileName;
-        delete pBitmap_Dir;
         delete pHome_Locn;
         delete pSData_Locn;
         delete pcsv_locn;
@@ -784,12 +753,12 @@ int MyApp::OnExit()
 
         delete pFontMgr;
 
-#ifdef USE_S57		
+#ifdef USE_S57
 #ifdef __WXMSW__
 #ifdef USE_GLU_TESS
 #ifdef USE_GLU_DLL
         if(s_glu_dll_ready)
-            FreeLibrary(s_hGLU_DLL);           // free the glu32.dll       
+            FreeLibrary(s_hGLU_DLL);           // free the glu32.dll
 #endif
 #endif
 #endif
@@ -956,7 +925,7 @@ void MyFrame::CreateMyToolbar()
 //  On MSW, ToolPacking does nothing
     toolBar->SetToolPacking(1);
     int tool_packing = toolBar->GetToolPacking();
-    
+
 
 //  On MSW, ToolMargins does nothing
     wxSize defMargins = toolBar->GetMargins();
@@ -1022,7 +991,7 @@ void MyFrame::CreateMyToolbar()
 
     toolBar->AddSeparator();
     x += pitch_sep;
-    
+
     MyAddTool(toolBar, ID_CURRENT, _T(""), _T("current"), _T("Show Currents"), wxITEM_CHECK);
     x += pitch_tool;
 
@@ -1084,8 +1053,9 @@ void MyFrame::CreateMyToolbar()
         toolBar->ToggleTool(ID_FOLLOW, pConfig->st_bFollow);
 
 #ifdef USE_S57
-    if(pConfig)
-        toolBar->ToggleTool(ID_TEXT, ps52plib->GetShowS57Text());
+    if((pConfig) && (ps52plib))
+        if(ps52plib->m_bOK)
+            toolBar->ToggleTool(ID_TEXT, ps52plib->GetShowS57Text());
 #endif
 
         SetStatusBarPane(-1);                   // don't show help on status bar
@@ -1097,19 +1067,9 @@ void MyFrame::CreateMyToolbar()
 void MyFrame::MyAddTool(wxToolBarBase *pTB, int toolId, const wxString& label, const wxString& bmpFile,
                               const wxString& shortHelpString, wxItemKind kind)
 {
-//      Set up the location and type of Bitmap data
-        wxFileName bmp_file(*pBitmap_Dir, _T("dummy"), _T("xpm"));
-
-        bmp_file.SetName(bmpFile);
 
         wxBitmap *ptoolBarBitmap;
-
         wxImage *pimg;
-
-//        pimg = new wxImage(bmp_file.GetFullPath());
-
-//        bmp_file.SetExt("bmp");
-//        wxBitmap toolBarBitmap((wxString &)bmp_file.GetFullPath(), wxBITMAP_TYPE_BMP );
 
         char **px1 = (char **)tool_xpm_hash[bmpFile];
         if(px1)
@@ -1122,24 +1082,26 @@ void MyFrame::MyAddTool(wxToolBarBase *pTB, int toolId, const wxString& label, c
 //      On Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
 //      unless a "compatible" dc is provided.  Why??
 //      As a workaround, just make a simple wxDC for temporary use
-        
+
         wxBitmap tbmp(pimg->GetWidth(),pimg->GetHeight(),-1);
         wxMemoryDC dwxdc;
         dwxdc.SelectObject(tbmp);
 
         if(pimg->Ok())
         {
-            HDC dhdc = ::GetDC(NULL);
+#ifdef __WXMSW__
             ptoolBarBitmap = new wxBitmap(*pimg, (wxDC &)dwxdc);
+#else
+            ptoolBarBitmap = new wxBitmap(*pimg);
+#endif
         }
         else
         {
                 wxString msg1("Unable to find bitmap:");
-                msg1.Append(bmp_file.GetName());
+                msg1.Append(bmpFile);
                 msg1.Append("...Substituting ArtProvider Bitmap");
                 wxLogMessage(msg1);
 
-//                ptoolBarBitmap = new wxBitmap(32,32, -1);
                 ptoolBarBitmap = new wxBitmap(wxArtProvider::GetBitmap(wxART_MISSING_IMAGE,
                                               wxART_TOOLBAR, wxSize(32, 32)));
         }
@@ -1240,16 +1202,22 @@ void MyFrame::OnSize(wxSizeEvent& event)
         int cccw, ccch;
         if(cc1)
         {
-                if(Current_Ch)
-                        Current_Ch->InvalidateCache();
-
                 cccw = x * 10/10;               // constrain to mod 4
                 int wr = cccw/4;
                 cccw = wr*4;
                 cccw += 2;                              // account for simple border
 
                 ccch = y - stat_height;
-                cc1->SetSize(0,0,cccw, ccch);
+
+                int cur_width, cur_height;
+                cc1->GetSize(&cur_width, &cur_height);
+                if((cur_width != cccw) || (cur_height != ccch))
+                {
+                    if(Current_Ch)
+                        Current_Ch->InvalidateCache();
+
+                    cc1->SetSize(0,0,cccw, ccch);
+                }
 
 
         }
@@ -1488,18 +1456,15 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
  //             ShowDebugWindows
         if(pConfig->m_bShowDebugWindows)
         {
-                stats->m_rows = 3;
+                stats->m_rows = 1;
                 if(!pStatusBar)
-                {
                         pStatusBar = CreateStatusBar(6);
-                }
-
 
                 Refresh();
         }
         else
         {
-                stats->m_rows = 2;
+                stats->m_rows = 1;
 
                 if(pStatusBar)
                 {
@@ -1720,9 +1685,9 @@ void MyFrame::UpdateChartStatusField(int i)
 
         stats->Refresh(false);
 
-        ChartData->GetChartID(pCurrentStack, CurrentStackEntry, buf);
+//        ChartData->GetChartID(pCurrentStack, CurrentStackEntry, buf);
 
-        stats->pTStat1->TextDraw(buf);
+//        stats->pTStat1->TextDraw(buf);
 
 }
 
@@ -1979,8 +1944,16 @@ void MyFrame::SelectChartFromStack(int index)
                         { zLat = vLat; zLon = vLon;}
 
 
+//  If the cache is invalid, as in new chart load, force a fast sub-sample render
+            int new_sample_mode;
+            if(Current_Ch->IsCacheValid())
+                new_sample_mode = CURRENT_RENDER;
+            else
+                new_sample_mode = FORCE_SUBSAMPLE;
+
+
             if(Current_Ch->ChartType == CHART_TYPE_S57)
-                cc1->SetViewPoint(zLat, zLon, cc1->GetVPChartScale(), 0, CURRENT_RENDER);
+                cc1->SetViewPoint(zLat, zLon, cc1->GetVPChartScale(), 0, new_sample_mode);
             else
             {
                   int target_scale = (int)(cc1->GetVPChartScale());
@@ -1991,23 +1964,25 @@ void MyFrame::SelectChartFromStack(int index)
                   Current_Ch->pix_to_latlong(cc1->GetCanvas_width(), 0, &slat, &slon_right);
                   float ppdl = cc1->GetCanvas_width() / (slon_right - slon_left);
                   int conv_scale_at_1x = (int)(cc1->canvas_scale_factor / ppdl);
-
+//                  printf("conv_scale_at_1x: %d  target_scale: %d\n", conv_scale_at_1x, target_scale);
 // try to match to the target when going to a smaller scale chart
                   if(conv_scale_at_1x < target_scale)
                   {
                     int scf = 1;
                     while(scf < 8)
                     {
-                        if((conv_scale_at_1x * scf * 2) > target_scale)
+                        if(fabs((conv_scale_at_1x * scf ) - target_scale) < (target_scale * 0.05))
+                            break;
+                        if((conv_scale_at_1x * scf ) > target_scale)
                             break;
                         else
                             scf *= 2;
                     }
-                    cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * scf, 1, CURRENT_RENDER); //set mod 4
+                    cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * scf, 1, new_sample_mode); //set mod 4
                   }
 
                   else
-                      cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale(), 1, CURRENT_RENDER);    // set mod 4
+                      cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale(), 1, new_sample_mode);    // set mod 4
              }
 
         cc1->SetbNewVP(true);
@@ -2531,7 +2506,7 @@ void *x_malloc(size_t t)
                 p=buf;
                 while(*p)
                 {
-                        printf("%c", *p++);
+//                        printf("%c", *p++);
                 }
 
 
@@ -2552,10 +2527,21 @@ void *x_malloc(size_t t)
 
 }
 
-
 void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 {
         char buf[4096];
+
+
+        //      Show a little heartbeat tick in StatusWindow0 on NMEA events
+        if(tick_idx++ > 6)
+            tick_idx = 0;
+
+        char tick_buf[2];
+        tick_buf[0] = nmea_tick_chars[tick_idx];
+        tick_buf[1] = 0;
+        SetStatusText(tick_buf, 0);
+
+
 
         switch(event.GetExtraLong())
         {
@@ -2584,8 +2570,6 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                     buf_nolf.RemoveLast();
                     SetStatusText(buf_nolf.c_str(), 4);
                 }
-
-//                printf("%s", buf);
 
                 *pNMEA0183 << buf;
                 pNMEA0183->Parse();

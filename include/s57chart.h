@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.3 2006/10/01 03:24:40 dsr Exp $
+ * $Id: s57chart.h,v 1.4 2006/10/07 03:50:54 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.4  2006/10/07 03:50:54  dsr
+ * *** empty log message ***
+ *
  * Revision 1.3  2006/10/01 03:24:40  dsr
  * no message
  *
@@ -170,6 +173,9 @@ public:
 
       void RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
       void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion);
+
+      // Todo be smarter here, look at pDib, etc....
+      virtual bool IsCacheValid(){ return false; }
 
 
  //Todo whats this??

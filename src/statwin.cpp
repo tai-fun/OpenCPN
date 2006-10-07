@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.4  2006/10/07 03:50:28  dsr
+ * *** empty log message ***
+ *
  * Revision 1.3  2006/10/01 03:22:59  dsr
  * no message
  *
@@ -53,18 +56,6 @@
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
  *
- * Revision 1.5  2006/04/19 00:51:46  dsr
- * *** empty log message ***
- *
- * Revision 1.4  2006/03/16 03:08:24  dsr
- * Cleanup tabs
- *
- * Revision 1.3  2006/02/23 01:50:53  dsr
- * Cleanup, optimize
- *
- * Revision 1.2  2006/02/10 03:18:52  dsr
- * *** empty log message ***
- *
  *
  */
 
@@ -90,7 +81,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.3 2006/10/01 03:22:59 dsr Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.4 2006/10/07 03:50:28 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -105,25 +96,24 @@ END_EVENT_TABLE()
 StatWin::StatWin(wxFrame *frame):
  wxWindow(frame, wxID_ANY, wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 
-
 {
       int x,y;
       GetClientSize(&x, &y);
 
       SetBackgroundColour(wxColour(150,150,150));
 
-      m_rows = 2;
+      m_rows = 1;
 
  //   Create the Children
 
       pPiano = new PianoWin((wxFrame *)this);
       pPiano->SetSize(0, 0, x *6/10, y*1/m_rows);
 
-      pTStat1 = new TStatWin((wxFrame *)this);
-      pTStat1->SetSize(0, y * 1/m_rows, x , y * 1/m_rows);
+//      pTStat1 = new TStatWin((wxFrame *)this);
+//      pTStat1->SetSize(0, y * 1/m_rows, x , y * 1/m_rows);
 
-      pTStat2 = new TStatWin((wxFrame *)this);
-      pTStat2->SetSize(0, y * 2/m_rows, x , y * 1/m_rows);
+//      pTStat2 = new TStatWin((wxFrame *)this);
+//      pTStat2->SetSize(0, y * 2/m_rows, x , y * 1/m_rows);
 
 #ifdef USE_WIFI_CLIENT
       pWiFi = new WiFiStatWin((wxFrame *)this);
@@ -141,8 +131,8 @@ StatWin::~StatWin()
 void StatWin::OnPaint(wxPaintEvent& event)
 {
       pPiano->Refresh(false);
-      pTStat1->Refresh(false);
-      pTStat2->Refresh(false);
+//      pTStat1->Refresh(false);
+//      pTStat2->Refresh(false);
 
       wxPaintDC dc(this);
 }
@@ -156,8 +146,8 @@ void StatWin::OnSize(wxSizeEvent& event)
       this->GetPosition(&x, &y);
 
       if(width) pPiano->SetSize(0,0, width *6/10, height*1/m_rows);
-      if(width) pTStat1->SetSize(0,height * 1/m_rows, width, height*1/m_rows);
-      if(width) pTStat2->SetSize(0,height * 2/m_rows, width, height*1/m_rows);
+ //     if(width) pTStat1->SetSize(0,height * 1/m_rows, width, height*1/m_rows);
+ //     if(width) pTStat2->SetSize(0,height * 2/m_rows, width, height*1/m_rows);
 
 #ifdef USE_WIFI_CLIENT
       if(width) pWiFi->SetSize(width * 6/10, 0, width *4/10, height*1/m_rows);

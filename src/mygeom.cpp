@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
+ * $Id: mygeom.cpp,v 1.4 2006/10/07 03:50:27 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.4  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
  * Revision 1.3  2006/10/01 03:22:58  dsr
  * no message
  *
@@ -94,10 +97,13 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#ifdef __WXMSW__
 #include <windows.h>
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
+#endif
+
+CPL_CVSID("$Id: mygeom.cpp,v 1.4 2006/10/07 03:50:27 dsr Exp $");
 
 
 extern "C" polyout *triangulate_polygon(int, int[1], double (*)[2]);
@@ -132,7 +138,7 @@ static wxMemoryOutputStream *ostream2;
 
 //  Formal definitions of required functions
 typedef void (CALLBACK* LPFNDLLTESSPROPERTY)      ( GLUtesselator *tess,
-                                                    GLenum        which, 
+                                                    GLenum        which,
                                                     GLdouble      value );
 typedef GLUtesselator * (CALLBACK* LPFNDLLNEWTESS)( void);
 typedef void (CALLBACK* LPFNDLLTESSBEGINCONTOUR)  ( GLUtesselator *);
@@ -220,7 +226,7 @@ PolyTessGeo::PolyTessGeo(OGRPolygon *poly)
 {
     ErrorCode = 0;
     m_ppg_head = NULL;
-    
+
 #ifdef USE_GLU_TESS
     ErrorCode = PolyTessGeoGL(poly);
 #else
@@ -869,7 +875,7 @@ PolyTessGeo::~PolyTessGeo()
 #ifdef __WXMSW__
 #define __CALL_CONVENTION __stdcall
 #else
-#define __CALL_CONVENTION 
+#define __CALL_CONVENTION
 #endif
 
 

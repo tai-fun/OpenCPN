@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.4 2006/10/05 03:52:18 dsr Exp $
+ * $Id: options.cpp,v 1.5 2006/10/07 03:51:44 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.5  2006/10/07 03:51:44  dsr
+ * *** empty log message ***
+ *
  * Revision 1.4  2006/10/05 03:52:18  dsr
  * gpsd
  *
@@ -414,47 +417,10 @@ void options::CreateControls()
 
     //      Linux wxUNIVERSAL wxGenericDirCtrl is --very-- slow.
     //      Slowness is in ArtProvider, generating the proper icons
-    //      So, on Linux X11 platforms only
+    //      So....
     //      Move the dir tree control out of the ctor, and only build it if "CHART" panel is selected.
     //      See this::OnPageChange event handler
 
-#if 0 //ndef __WXX11__
-    itemActiveChartStaticBox = new wxStaticBox(itemPanel9, wxID_ANY, _("Active Chart Directories"));
-    pTextCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL, _T(""),
-                               wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE ); // size needs 300,100 on gtk
-
-
-    wxStaticBox* itemStaticBoxSizer11Static = new wxStaticBox(itemPanel9, wxID_ANY, _("Available Chart Directories"));
-    itemStaticBoxSizer11 = new wxStaticBoxSizer(itemStaticBoxSizer11Static, wxVERTICAL);
-    itemBoxSizer10->Add(itemStaticBoxSizer11, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-
-    pDirCtl = new wxGenericDirCtrl( itemPanel9, ID_DIRCTRL, *m_pinit_chart_dir, wxDefaultPosition,
-                            wxSize(300, 100), 0, _T("All files (*.*)|*.*"), 0 );
-    itemStaticBoxSizer11->Add(pDirCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-    pSelCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL1, _T(""), wxDefaultPosition, wxSize(300, -1), 0 );
-    itemStaticBoxSizer11->Add(pSelCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-    wxBoxSizer* itemBoxSizer14 = new wxBoxSizer(wxHORIZONTAL);
-    itemStaticBoxSizer11->Add(itemBoxSizer14, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-    wxButton* itemButton15 = new wxButton( itemPanel9, ID_BUTTONADD, _("Add Selection"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemBoxSizer14->Add(itemButton15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-
-    wxStaticBoxSizer* itemStaticBoxSizer16 = new wxStaticBoxSizer(itemActiveChartStaticBox, wxVERTICAL);
-    itemBoxSizer10->Add(itemStaticBoxSizer16, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-    itemStaticBoxSizer16->Add(pTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-    wxButton* itemButton18 = new wxButton( itemPanel9, ID_BUTTONDELETE, _("Delete Selection"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemStaticBoxSizer16->Add(itemButton18, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-    wxStaticBox* itemStaticBoxSizer19Static = new wxStaticBox(itemPanel9, wxID_ANY, _("Chart List"));
-    wxStaticBoxSizer* itemStaticBoxSizer19 = new wxStaticBoxSizer(itemStaticBoxSizer19Static, wxVERTICAL);
-    itemBoxSizer10->Add(itemStaticBoxSizer19, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-    wxButton* itemButton20 = new wxButton( itemPanel9, ID_BUTTONREBUILD, _("Rebuild..."), wxDefaultPosition, wxDefaultSize, 0 );
-    itemStaticBoxSizer19->Add(itemButton20, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-#endif
 
     itemNotebook4->AddPage(itemPanel9, _("Charts"));
 

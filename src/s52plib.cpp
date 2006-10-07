@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $
+ * $Id: s52plib.cpp,v 1.4 2006/10/07 03:50:27 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.4  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
  * Revision 1.3  2006/10/01 03:22:58  dsr
  * no message
  *
@@ -115,12 +118,12 @@ extern "C" void gpc_polygon_clip(gpc_op       operation,
 
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.4 2006/10/07 03:50:27 dsr Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
 //-----------------------------------------------------------------------------
-s52plib::s52plib(char *pPLPath, char *pPLLib, char *pPLCol)
+s52plib::s52plib(const wxString& PLPath, const wxString& PLLib, const wxString& PLCol)
 
 {
 //      Set up some buffers, etc...
@@ -130,7 +133,7 @@ s52plib::s52plib(char *pPLPath, char *pPLLib, char *pPLCol)
       pAlloc = new wxArrayPtrVoid;
       pOBJLArray = new wxArrayPtrVoid;
 
-      m_bOK = S52_load_Plib(pPLPath, pPLLib, pPLCol);
+      m_bOK = S52_load_Plib(PLPath, PLLib, PLCol);
 
       pSmallFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD,
                                                 FALSE, wxString("Eurostile Extended"));
@@ -1417,15 +1420,15 @@ int CompareLUPObjects(LUPrec *item1, LUPrec *item2)
 
 #endif
 
-int s52plib::S52_load_Plib(char *pPLPath, char *pPLLib, char *pPLCol)
+int s52plib::S52_load_Plib(const wxString& PLPath, const wxString& PLLib, const wxString& PLCol)
 {
 
         //      Build file names
-        wxString PLib(pPLPath);
-        PLib += wxString(pPLLib);
+        wxString PLib(PLPath);
+        PLib += PLLib;
 
-        wxString PCol(pPLPath);
-        PCol += wxString(pPLCol);
+        wxString PCol(PLPath);
+        PCol += PLCol;
 
    FILE *fp = NULL;
    int  nRead;
@@ -1435,7 +1438,7 @@ int s52plib::S52_load_Plib(char *pPLPath, char *pPLLib, char *pPLCol)
 
    if (fp == NULL)
    {
-     wxLogMessage("S52PLIB: Cannot open S52 rules file: %s%s", pPLPath, pPLLib);
+       wxLogMessage("S52PLIB: Cannot open S52 rules file: %s", PLib.c_str());
       return 0;
    }
 
@@ -4038,7 +4041,7 @@ int s52plib::dda_tri(wxPoint *ptp, color *c,
 
 //                           int ix = ledge[iyp];
 //                            if(ix != -1)                    // special clip case
-                            if(ledge[iyp] != -1) 
+                            if(ledge[iyp] != -1)
                             {
                                     int xoff = (ix-pb_spec->x) * 3;
 

@@ -76,7 +76,6 @@ opencpn_SOURCES +=	src/s52cnsy.cpp \
 			src/s52plib.cpp \
 			src/s52utils.cpp \
 			src/s57chart.cpp \
-			src/gpc.c \
 			src/mygeom.cpp \
 			src/tri.c
 endif

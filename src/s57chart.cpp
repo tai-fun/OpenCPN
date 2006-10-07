@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.3 2006/10/01 03:22:59 dsr Exp $
+ * $Id: s57chart.cpp,v 1.4 2006/10/07 03:50:28 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.4  2006/10/07 03:50:28  dsr
+ * *** empty log message ***
+ *
  * Revision 1.3  2006/10/01 03:22:59  dsr
  * no message
  *
@@ -64,7 +67,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.3 2006/10/01 03:22:59 dsr Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.4 2006/10/07 03:50:28 dsr Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -743,10 +746,6 @@ s57chart::s57chart()
     wxString csv_dir;
     if(wxGetEnv("S57_CSV", &csv_dir))
         m_pcsv_locn = new wxString(csv_dir);
-
-    wxString *test;
-    wxString cat("SCAMIN");
-    test = GetAttributeDecode(cat, 35000);
 
 }
 
@@ -2236,7 +2235,7 @@ int s57chart::BuildS57File(const char *pFullPath)
                                 wxLogMessage("Warning: S57 SENC Create Error...could not find glu32.dll");
 //                                wxMessageDialog mdlg(pParent, "Could not find glu32.dll, \n aborting SENC creation."
 //                                    , wxString("OpenCPN"),wxICON_ERROR  );
-                                
+
                                 delete objectDef;
                                 delete SENC_prog;
                                 fclose(fps57);
@@ -2843,7 +2842,7 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
 
           for(int point_type = 0 ; point_type < 2 ; point_type++)
           {
-            top = razRules[i][point_type];          
+            top = razRules[i][point_type];
             while ( top != NULL)
             {
                   crnt = top;
@@ -2853,7 +2852,7 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
                         ret_ptr->Add(crnt->obj);
             }
           }
-    
+
 
       // Areas by boundary type, array indices [3..4]
 
@@ -3373,16 +3372,16 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
                         break;
                     }
                 }
-           
+
             }
             pTP = pTP->p_next;
         }
 
     }           // if pPolyTessGeo
 
-    
-    
-    
+
+
+
     return ret;
 }
 
@@ -3410,7 +3409,7 @@ void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
     else
         snprintf( buf, ERR_BUF_LEN, "ERROR %d: %s\n", nError, pszErrorMsg );
 
-    
+
     wxLogMessage("%s", buf);
 
 

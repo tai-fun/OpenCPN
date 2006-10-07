@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.3 2006/10/05 03:52:54 dsr Exp $
+ * $Id: nmea.h,v 1.4 2006/10/07 03:50:54 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.4  2006/10/07 03:50:54  dsr
+ * *** empty log message ***
+ *
  * Revision 1.3  2006/10/05 03:52:54  dsr
  * no message
  *
@@ -98,7 +101,6 @@
 
 #define SOCKET_ID             5
 #define TIMER_NMEA1           777
-#define TRANSMIT_DATA         0x42
 
 enum
 {

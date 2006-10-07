@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: about.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  About Dialog
@@ -27,8 +27,11 @@
  *
  *
  * $Log: about.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2006/10/07 03:50:27  dsr
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/04/23 03:57:10  dsr
  * Fix internal names
@@ -72,13 +75,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $");
 
 
 //    Some constants
 
-//    This gets filled in by cvs on CHECKOUT of a specific tagged version
-char OpenCPNVersion[] = {"\n\n                      $Name:  $"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.0"};
 
 
 char AboutText[] =
@@ -119,9 +121,6 @@ char AuthorText[] =
    Jan C. Depner\n\
       depnerj@navo.navy.mil\n\
       WVS Chart Library\n\n\
-   Alan Murta\n\
-      gpc@cs.man.ac.uk\n\
-      Polygon Graphics utilities\n\n\
    Remco Treffkorn, et al\n\
       Georeferencing Utilities\n\n"
 
@@ -144,7 +143,6 @@ char LicenseText[] =
       wvschart Public Domain see wvschart.cpp OK for GPL\
       \n\n\n\n\n\n\n\
       sercomm ??? Possible rewrite\
-      gpc Special License, see gpc.h THIS IS A COMMERCIAL PROBLEM!!!!\
       georef QPL(see License.qpl) NEED TO INCLUDE AND REFERENCE LICENSE.QPL"
 
 };

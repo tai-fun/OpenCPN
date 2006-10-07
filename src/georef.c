@@ -22,7 +22,7 @@ static double fromDMS(char *dms);
 void toDMM(double a, char *bufp, int bufplen);
 static double fromDMM(char *dms);
 
-//CPL_CVSID("$Id: georef.c,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+//CPL_CVSID("$Id: georef.c,v 1.2 2006/10/07 03:50:27 dsr Exp $");
 
 static char buf[20];
 static char r[20];
@@ -174,7 +174,7 @@ static void todmm(int flag, double a, char *bufp, int bufplen)
       d = -d;
 
     if (!flag)
-      sprintf(bufp, "%d%02ld.%03ld'", d, m / 1000, m % 1000);
+      sprintf(bufp, "%d %02ld.%03ld'", d, m / 1000, m % 1000);
     else {
       if (flag == 1) {
           char c = 'N';

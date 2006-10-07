@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: chartimg.h,v 1.2 2006/10/07 03:50:54 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
  * Author:   David Register
  *
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/10/07 03:50:54  dsr
+ * *** empty log message ***
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.2  2006/05/19 19:36:18  dsr
  * Cleanup
@@ -200,6 +203,8 @@ public:
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
 
       int  *GetPalettePtr(ColorScheme);
+
+      bool IsCacheValid(){ return cached_image_ok; }
 
 //    Public interface for Alternate thread renderer
       bool GetViewIntoPrivatePixelCache( wxRect& source, wxRect& dest, ScaleTypeEnum scale_type );
