@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.7 2006/10/08 02:40:58 dsr Exp $
+ * $Id: chcanv.cpp,v 1.8 2006/10/08 04:37:38 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.8  2006/10/08 04:37:38  dsr
+ * no message
+ *
  * Revision 1.7  2006/10/08 02:40:58  dsr
  * *** empty log message ***
  *
@@ -171,7 +174,7 @@ extern s52plib          *ps52plib;
 extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.7 2006/10/08 02:40:58 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.8 2006/10/08 04:37:38 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -2180,89 +2183,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
       if(bNewMap && (bShowTide || bShowCurrent || g_bShowOutlines))
       {
         delete pss_overlay_bmp;
-        pss_overlay_bmp = new wxBitmap(VPoint.pix_width, VPoint.pix_height, -1);
-
-        //      Here is the drawing DC
-        wxMemoryDC ssdc;
-        ssdc.SelectObject(*pss_overlay_bmp);
-        ssdc.SetBackground(*wxBLACK_BRUSH);
-        ssdc.Clear();
-
-        //      Believe it or not, it is faster to REDRAW the overlay objects
-        //      onto a mon bitmap, and then invert it into a mask bitmap
-        //      than it is to create a mask from a colour bmp.
-        //      Look at the wx code.  It goes through wxImage conversion, etc...
-        //      So, create a mono DC
-        wxMemoryDC ssdc_mask;
-        wxBitmap mask_bmp(VPoint.pix_width, VPoint.pix_height, 1);
-        ssdc_mask.SelectObject(mask_bmp);
-        ssdc_mask.SetBackground(*wxWHITE_BRUSH);
-        ssdc_mask.Clear();
-
-//    Maybe draw the Tide Points
-
-          if(bShowTide)
-          {
-                if(bShowingTide)
-                {
-                                                          // Rebuild Selpoints list on new map
-                                                          // and force redraw
-                      DrawAllTidesInBBox(ssdc, VPoint.vpBBox, bNewMap, true);
-                      DrawAllTidesInBBox(ssdc_mask, VPoint.vpBBox, false, false);       // onto the mask
-                }
-                else
-                {
-                      DrawAllTidesInBBox(ssdc, VPoint.vpBBox, bNewMap, true);
-                      DrawAllTidesInBBox(ssdc_mask, VPoint.vpBBox, false, false);       // onto the mask
-                }
-                bShowingTide = true;
-          }
-          else
-                bShowingTide = false;
-
-//    Maybe draw the current arrows
-          if(bShowCurrent)
-          {
-                if(bShowingCurrent)
-                {
-                                                          // Rebuild Selpoints list on new map
-                                                          // and force redraw
-                      DrawAllCurrentsInBBox(ssdc, VPoint.vpBBox, bNewMap, true);
-                      DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, false, true);       // onto the mask
-                }
-                else
-                {
-                      DrawAllCurrentsInBBox(ssdc, VPoint.vpBBox, true, true); // Force Selpoints add first time after
-                      DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, false, true);       // onto the mask
-                }
-                bShowingCurrent = true;
-          }
-          else
-                bShowingCurrent = false;
-
-//    Chart Outlines
-          if(g_bShowOutlines)
-          {
-              //    Todo... Speed this up....
-            RenderAllChartOutlines(&ssdc, VPoint) ;
-            RenderAllChartOutlines(&ssdc_mask, VPoint) ;       // onto the mask
-          }
-        ssdc.SelectObject(wxNullBitmap);
-
-        //      Invert the mono bmp, to make a useable mask bmp
-        wxMemoryDC ssdc_mask_invert;
-        wxBitmap mask_bmp_invert(VPoint.pix_width, VPoint.pix_height, 1);
-        ssdc_mask_invert.SelectObject(mask_bmp_invert);
-        ssdc_mask_invert.Blit(0, 0, VPoint.pix_width, VPoint.pix_height,
-                              &ssdc_mask, 0, 0, wxSRC_INVERT);
-
-        ssdc_mask_invert.SelectObject(wxNullBitmap);
-        ssdc_mask.SelectObject(wxNullBitmap);
-
-        //      Create and associate the mask
-//        pss_overlay_mask = new wxMask(*pss_overlay_bmp, wxColour(0,0,0));
-        pss_overlay_mask = new wxMask(mask_bmp_invert);
-        pss_overlay_bmp->SetMask(pss_overlay_mask);
+        pss_overlay_bmp = DrawTCBitmap(bNewMap);
       }
 
 //    blit the semi-static overlay onto the scratch DC if it is needed
@@ -2340,6 +2261,91 @@ void ChartCanvas::SetMyCursor(wxCursor *c)
 }
 
 
+//----------------------------------------------------------------------------
+//  Get a wxBitmap with wxMask associated containing the semi-static overlays
+//----------------------------------------------------------------------------
+
+wxBitmap *ChartCanvas::DrawTCBitmap(bool bAddNewSelpoints)
+{
+    wxBitmap *p_bmp = new wxBitmap(VPoint.pix_width, VPoint.pix_height, -1);
+
+    //      Here is the drawing DC
+    wxMemoryDC ssdc;
+    ssdc.SelectObject(*p_bmp);
+    ssdc.SetBackground(*wxBLACK_BRUSH);
+    ssdc.Clear();
+
+    //      Believe it or not, it is faster to REDRAW the overlay objects
+    //      onto a mon bitmap, and then invert it into a mask bitmap
+    //      than it is to create a mask from a colour bmp.
+    //      Look at the wx code.  It goes through wxImage conversion, etc...
+    //      So, create a mono DC
+    wxMemoryDC ssdc_mask;
+    wxBitmap mask_bmp(VPoint.pix_width, VPoint.pix_height, 1);
+    ssdc_mask.SelectObject(mask_bmp);
+    ssdc_mask.SetBackground(*wxWHITE_BRUSH);
+    ssdc_mask.Clear();
+
+//    Maybe draw the Tide Points
+
+      if(bShowTide)
+      {
+                                                      // Rebuild Selpoints list on new map
+            DrawAllTidesInBBox(ssdc,      VPoint.vpBBox, bAddNewSelpoints);
+            DrawAllTidesInBBox(ssdc_mask, VPoint.vpBBox, false, true);       // onto the mask
+            bShowingTide = true;
+      }
+      else
+            bShowingTide = false;
+
+//    Maybe draw the current arrows
+      if(bShowCurrent)
+      {
+            if(bShowingCurrent)
+            {
+                                                      // Rebuild Selpoints list on new map
+                                                      // and force redraw
+                  DrawAllCurrentsInBBox(ssdc,      VPoint.vpBBox, bAddNewSelpoints, true);
+                  DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, false,            true, true);  // onto the mask
+            }
+            else
+            {
+                  DrawAllCurrentsInBBox(ssdc, VPoint.vpBBox, true, true); // Force Selpoints add first time after
+                  DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, false, true, true);       // onto the mask
+            }
+            bShowingCurrent = true;
+      }
+      else
+            bShowingCurrent = false;
+
+//    Chart Outlines
+      if(g_bShowOutlines)
+      {
+          //    Todo... Speed this up....
+        RenderAllChartOutlines(&ssdc, VPoint) ;
+        RenderAllChartOutlines(&ssdc_mask, VPoint) ;       // onto the mask
+      }
+    ssdc.SelectObject(wxNullBitmap);
+
+    //      Invert the mono bmp, to make a useable mask bmp
+    wxMemoryDC ssdc_mask_invert;
+    wxBitmap mask_bmp_invert(VPoint.pix_width, VPoint.pix_height, 1);
+    ssdc_mask_invert.SelectObject(mask_bmp_invert);
+    ssdc_mask_invert.Blit(0, 0, VPoint.pix_width, VPoint.pix_height,
+                          &ssdc_mask, 0, 0, wxSRC_INVERT);
+
+    ssdc_mask_invert.SelectObject(wxNullBitmap);
+    ssdc_mask.SelectObject(wxNullBitmap);
+
+    //      Create and associate the mask
+    pss_overlay_mask = new wxMask(mask_bmp_invert);
+    p_bmp->SetMask(pss_overlay_mask);
+
+    return p_bmp;
+}
+
+
+
 
 
 
@@ -2396,16 +2402,6 @@ void ChartCanvas::DrawAllRoutesInBBox(wxDC& dc, wxBoundingBox& BltBBox)
 //    Tides and Current Chart Canvas Interface
 //------------------------------------------------------------------------------------------
 
-void ChartCanvas::DrawAllTCInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSelList, bool bforce_redraw)
-{
-      //    Clean and rebuild the selectable points list?
-      if(bRebuildSelList)
-            pSelectTC->DeleteAllTCPoints();
-
-      DrawAllCurrentsInBBox(dc, BBox, bRebuildSelList, bforce_redraw);
-      DrawAllTidesInBBox(dc, BBox, bRebuildSelList, bforce_redraw);
-}
-
 
 //------------------------------------------------------------------------------------------
 //    Tides Support
@@ -2415,7 +2411,7 @@ void ChartCanvas::DrawAllTCInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSe
 
 
 void ChartCanvas::DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox,
-                              bool bRebuildSelList,   bool bforce_redraw)
+                              bool bRebuildSelList, bool bdraw_mono)
 {
 
       //Todo move these pens and brushes to ChartCanvas ctor
@@ -2425,8 +2421,13 @@ void ChartCanvas::DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox,
       wxBrush *pgray_brush = wxTheBrushList->FindOrCreateBrush(wxColour(96,96,96), wxSOLID);
       wxBrush *pblack_brush = wxTheBrushList->FindOrCreateBrush(wxColour(0,0,0), wxSOLID);
 
-//      pTCFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD,
-//                                                      FALSE, wxString("Eurostile Extended"));
+      if(bdraw_mono)
+      {
+          pgreen_pen = pblack_pen;
+          pgreen_brush = pblack_brush;
+          pgray_brush = pblack_brush;
+      }
+
 
       if(bRebuildSelList)
             pSelectTC->DeleteAllSelectableTypePoints(SELTYPE_TIDEPOINT);
@@ -2500,7 +2501,7 @@ void ChartCanvas::DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox,
 
 
 void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
-                              bool bRebuildSelList,   bool bforce_redraw_currents)
+                              bool bRebuildSelList,   bool bforce_redraw_currents, bool bdraw_mono)
 {
       float tcvalue, dir;
       bool bnew_val;
@@ -2510,8 +2511,18 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
       float lat_last;
 
       wxPen *porange_pen = wxThePenList->FindOrCreatePen(wxColour(255,108,0), 1, wxSOLID);
+      wxPen *pblack_pen = wxThePenList->FindOrCreatePen(wxColour(0,0,0), 1, wxSOLID);
       wxBrush *porange_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,108,0), wxSOLID);
       wxBrush *pgray_brush = wxTheBrushList->FindOrCreateBrush(wxColour(96,96,96), wxSOLID);
+      wxBrush *pblack_brush = wxTheBrushList->FindOrCreateBrush(wxColour(0,0,0), wxSOLID);
+
+      if(bdraw_mono)
+      {
+          porange_pen = pblack_pen;
+          porange_brush = pblack_brush;
+          pgray_brush = pblack_brush;
+      }
+
 
       pTCFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD,
                                                       FALSE, wxString("Eurostile Extended"));

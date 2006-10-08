@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
+ * $Id: chcanv.h,v 1.4 2006/10/08 04:37:51 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.4  2006/10/08 04:37:51  dsr
+ * no message
+ *
  * Revision 1.3  2006/10/08 00:36:25  dsr
  * no message
  *
@@ -276,15 +279,14 @@ private:
       void PanTimerEvent(wxTimerEvent& event);
       void DrawAllRoutesInBBox(wxDC& dc, wxBoundingBox& BltBBox);
 
-      void DrawAllTCInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSelList,
-                       bool bforce_redraw);
       void DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSelList,
-                        bool bforce_redraw);
+                        bool bdraw_mono = false);
       void DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
-                           bool bRebuildSelList, bool bforce_redraw_currents);
+                           bool bRebuildSelList, bool bforce_redraw_currents,bool bdraw_mono = false);
       void DrawTCWindow(int x, int y, void *pIDX);
       void RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp);
       void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp);
+      wxBitmap *DrawTCBitmap(bool bAddNewSelpoints);
 
 
       //    Data
