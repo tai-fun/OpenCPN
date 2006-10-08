@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.6 2006/10/08 00:36:44 dsr Exp $
+ * $Id: chcanv.cpp,v 1.7 2006/10/08 02:40:58 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.7  2006/10/08 02:40:58  dsr
+ * *** empty log message ***
+ *
  * Revision 1.6  2006/10/08 00:36:44  dsr
  * no message
  *
@@ -168,7 +171,7 @@ extern s52plib          *ps52plib;
 extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.6 2006/10/08 00:36:44 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.7 2006/10/08 02:40:58 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1938,7 +1941,7 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp)
                         0, vp.pix_width, 0, vp.pix_height);
               if(res != Invisible)
                     pdc->DrawLine(pixx, pixy, pixx1, pixy1);
-              
+
               plylat = plylat1;
               plylon = plylon1;
               pixx = pixxs1;
@@ -2179,21 +2182,39 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
         delete pss_overlay_bmp;
         pss_overlay_bmp = new wxBitmap(VPoint.pix_width, VPoint.pix_height, -1);
 
+        //      Here is the drawing DC
         wxMemoryDC ssdc;
         ssdc.SelectObject(*pss_overlay_bmp);
         ssdc.SetBackground(*wxBLACK_BRUSH);
         ssdc.Clear();
 
+        //      Believe it or not, it is faster to REDRAW the overlay objects
+        //      onto a mon bitmap, and then invert it into a mask bitmap
+        //      than it is to create a mask from a colour bmp.
+        //      Look at the wx code.  It goes through wxImage conversion, etc...
+        //      So, create a mono DC
+        wxMemoryDC ssdc_mask;
+        wxBitmap mask_bmp(VPoint.pix_width, VPoint.pix_height, 1);
+        ssdc_mask.SelectObject(mask_bmp);
+        ssdc_mask.SetBackground(*wxWHITE_BRUSH);
+        ssdc_mask.Clear();
 
 //    Maybe draw the Tide Points
+
           if(bShowTide)
           {
                 if(bShowingTide)
+                {
                                                           // Rebuild Selpoints list on new map
                                                           // and force redraw
                       DrawAllTidesInBBox(ssdc, VPoint.vpBBox, bNewMap, true);
+                      DrawAllTidesInBBox(ssdc_mask, VPoint.vpBBox, false, false);       // onto the mask
+                }
                 else
+                {
                       DrawAllTidesInBBox(ssdc, VPoint.vpBBox, bNewMap, true);
+                      DrawAllTidesInBBox(ssdc_mask, VPoint.vpBBox, false, false);       // onto the mask
+                }
                 bShowingTide = true;
           }
           else
@@ -2203,13 +2224,17 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
           if(bShowCurrent)
           {
                 if(bShowingCurrent)
+                {
                                                           // Rebuild Selpoints list on new map
                                                           // and force redraw
                       DrawAllCurrentsInBBox(ssdc, VPoint.vpBBox, bNewMap, true);
+                      DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, false, true);       // onto the mask
+                }
                 else
+                {
                       DrawAllCurrentsInBBox(ssdc, VPoint.vpBBox, true, true); // Force Selpoints add first time after
-                                                                      // "show currents" is selected
-                                                                      // and force redraw
+                      DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, false, true);       // onto the mask
+                }
                 bShowingCurrent = true;
           }
           else
@@ -2217,11 +2242,26 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
 //    Chart Outlines
           if(g_bShowOutlines)
+          {
+              //    Todo... Speed this up....
             RenderAllChartOutlines(&ssdc, VPoint) ;
-
+            RenderAllChartOutlines(&ssdc_mask, VPoint) ;       // onto the mask
+          }
         ssdc.SelectObject(wxNullBitmap);
 
-        pss_overlay_mask = new wxMask(*pss_overlay_bmp, wxColour(0,0,0));
+        //      Invert the mono bmp, to make a useable mask bmp
+        wxMemoryDC ssdc_mask_invert;
+        wxBitmap mask_bmp_invert(VPoint.pix_width, VPoint.pix_height, 1);
+        ssdc_mask_invert.SelectObject(mask_bmp_invert);
+        ssdc_mask_invert.Blit(0, 0, VPoint.pix_width, VPoint.pix_height,
+                              &ssdc_mask, 0, 0, wxSRC_INVERT);
+
+        ssdc_mask_invert.SelectObject(wxNullBitmap);
+        ssdc_mask.SelectObject(wxNullBitmap);
+
+        //      Create and associate the mask
+//        pss_overlay_mask = new wxMask(*pss_overlay_bmp, wxColour(0,0,0));
+        pss_overlay_mask = new wxMask(mask_bmp_invert);
         pss_overlay_bmp->SetMask(pss_overlay_mask);
       }
 
@@ -2235,7 +2275,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
           while (upd_final)
           {
             wxRect rect = upd_final.GetRect();
-            bool a = scratch_dc.Blit(rect.x, rect.y, rect.width, rect.height,
+            scratch_dc.Blit(rect.x, rect.y, rect.width, rect.height,
                   &ssdc_r, rect.x, rect.y, wxCOPY, true);       // Blit with mask
             upd_final ++ ;
           }
@@ -2249,7 +2289,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
       while (upd_final)
       {
             wxRect rect = upd_final.GetRect();
-            bool a = dc.Blit(rect.x, rect.y, rect.width, rect.height,
+            dc.Blit(rect.x, rect.y, rect.width, rect.height,
                   &scratch_dc, rect.x, rect.y);
             upd_final ++ ;
       }
@@ -2495,8 +2535,8 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
                   if((type == 'c'))             // only subordinate currents are useful
                   {                             // with directions known
 
-                      
-                      
+
+
 //  This is a ---HACK---
 //  try to avoid double current arrows.  Select the first in the list only
 //  Proper fix is to correct the TCDATA index file for depth indication
@@ -2686,7 +2726,7 @@ TCWin::TCWin(ChartCanvas *parent, int x, int y, void *pvIDX):
           yc = yc-swy;
 
 
-     
+
       pParent->ClientToScreen(&xc, &yc);
       wxPoint r(xc,yc);
       Move(r);

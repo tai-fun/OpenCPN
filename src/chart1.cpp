@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.6 2006/10/08 00:36:44 dsr Exp $
+ * $Id: chart1.cpp,v 1.7 2006/10/08 02:40:58 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.7  2006/10/08 02:40:58  dsr
+ * *** empty log message ***
+ *
  * Revision 1.6  2006/10/08 00:36:44  dsr
  * no message
  *
@@ -163,7 +166,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.6 2006/10/08 00:36:44 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.7 2006/10/08 02:40:58 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -476,7 +479,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 #ifndef __WXMSW__
         user_user_id = getuid ();
-#if 1 
+#if 1
         file_user_id = geteuid ();
     #else
         file_user_id = user_user_id;
@@ -611,7 +614,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 #ifdef __WXMSW__
         long app_style = wxDEFAULT_FRAME_STYLE;
 #else
-        long app_style = wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER)
+        long app_style = (wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER);
 #endif
 
 // Create the main frame window
