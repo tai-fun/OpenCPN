@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.2 2006/09/21 01:37:48 dsr Exp $
+ * $Id: options.h,v 1.3 2006/10/08 00:37:17 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.3  2006/10/08 00:37:17  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:48  dsr
  * Major refactor/cleanup
  *
@@ -198,9 +201,12 @@ public:
     static bool ShowToolTips();
 
 
-//    For "S57" page
+//    For General Options
       wxCheckBox* pDebugShowStat;
       wxCheckBox  *pPrintShowIcon;
+      wxCheckBox  *pCDOOutlines;
+
+//    For "S57" page
       wxPanel* ps57Ctl;
       wxCheckListBox* ps57CtlListBox;
       wxRadioBox* pDispCat;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.4 2006/10/07 03:50:54 dsr Exp $
+ * $Id: s57chart.h,v 1.5 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.5  2006/10/08 00:36:25  dsr
+ * no message
+ *
  * Revision 1.4  2006/10/07 03:50:54  dsr
  * *** empty log message ***
  *
@@ -189,6 +192,8 @@ public:
 
       void SetVPParms(ViewPort *pvpt);
       void SetFullExtent(Extent& ext);
+      void GetChartExtent(Extent *pext);
+
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
 
       ArrayOfS57Obj *GetObjArrayAtLatLon(float lat, float lon, float select_radius);

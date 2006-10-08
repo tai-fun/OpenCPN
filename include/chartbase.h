@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.2 2006/10/07 03:50:54 dsr Exp $
+ * $Id: chartbase.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.3  2006/10/08 00:36:25  dsr
+ * no message
+ *
  * Revision 1.2  2006/10/07 03:50:54  dsr
  * *** empty log message ***
  *
@@ -146,6 +149,14 @@ public:
   BGR
 };
 
+typedef struct _Extent{
+  double SLAT;
+  double WLON;
+  double NLAT;
+  double ELON;
+}Extent;
+
+
 
 // ----------------------------------------------------------------------------
 // ChartBase
@@ -165,6 +176,8 @@ public:
       virtual ThumbData *GetThumbData() = 0;
       virtual float GetNativeScale() = 0;
       virtual float GetChartSkew() = 0;
+      virtual void GetChartExtent(Extent *pext) = 0;
+
       virtual void GetPubDate(wxString &data){ data = *pPubYear;}
       virtual void GetFullPath(wxString &data){ data = *pFullPath;}
       virtual void GetName(wxString &data){ data = *pName;}
@@ -227,6 +240,7 @@ public:
       virtual float GetNativeScale();
       virtual void GetPubDate(wxString &data);
       virtual float GetChartSkew(){ return 0.0;}
+      virtual void GetChartExtent(Extent *pext);
 
       virtual void InvalidateCache(void);
 

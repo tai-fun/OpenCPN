@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
+ * $Id: chartdb.cpp,v 1.3 2006/10/08 00:36:44 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.3  2006/10/08 00:36:44  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -99,7 +102,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.3 2006/10/08 00:36:44 dsr Exp $");
 
 // ============================================================================
 // implementation
@@ -1455,6 +1458,20 @@ bool ChartDB::SearchDirAndAddS57FromCatalog(wxString& dir_name, bool bshow_prog)
 }
 
 
+//-------------------------------------------------------------------------------------------------------
+//
+//      Database access methods
+//
+//-------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------
+//    Get Full Path from db
+//-------------------------------------------------------------------
+bool ChartDB::GetDBFullPath(int dbIndex, char *buf)
+{
+      strcpy(buf, pChartTable[dbIndex].pFullPath);
+      return true;
+}
 
 
 //-------------------------------------------------------------------

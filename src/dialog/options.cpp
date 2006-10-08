@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.5 2006/10/07 03:51:44 dsr Exp $
+ * $Id: options.cpp,v 1.6 2006/10/08 00:37:16 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.6  2006/10/08 00:37:16  dsr
+ * no message
+ *
  * Revision 1.5  2006/10/07 03:51:44  dsr
  * *** empty log message ***
  *
@@ -101,6 +104,7 @@
 #endif
 
 extern bool             g_bShowPrintIcon;
+extern bool             g_bShowOutlines;
 extern wxString         *pNMEADataSource;
 extern wxString         *pNMEA_AP_Port;
 extern FontMgr          *pFontMgr;
@@ -187,8 +191,8 @@ options::options( wxWindow* parent, wxWindowID id, const wxString& caption, cons
  * options creator
  */
 
-bool options::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos, const wxSize& size, long style,
-                const wxString& Initial_Chart_Dir)
+bool options::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos,
+                     const wxSize& size, long style, const wxString& Initial_Chart_Dir)
 {
 ////@begin options member initialisation
     pDebugShowStat = NULL;
@@ -241,6 +245,7 @@ void options::CreateControls()
     wxBoxSizer* itemBoxSizer6 = new wxBoxSizer(wxVERTICAL);
     itemPanel5->SetSizer(itemBoxSizer6);
 
+    //  Debug checkbox
     wxStaticBox* itemStaticBoxSizerDebugStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Debug"));
     wxStaticBoxSizer* itemStaticBoxSizerDebug = new wxStaticBoxSizer(itemStaticBoxSizerDebugStatic, wxVERTICAL);
     itemBoxSizer6->Add(itemStaticBoxSizerDebug, 0, wxGROW|wxALL, 5);
@@ -249,6 +254,7 @@ void options::CreateControls()
     pDebugShowStat->SetValue(FALSE);
     itemStaticBoxSizerDebug->Add(pDebugShowStat, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
+    //  Printing checkbox
     wxStaticBox* itemStaticBoxSizerPrintStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Printing"));
     wxStaticBoxSizer* itemStaticBoxSizerPrint = new wxStaticBoxSizer(itemStaticBoxSizerPrintStatic, wxVERTICAL);
     itemBoxSizer6->Add(itemStaticBoxSizerPrint, 0, wxGROW|wxALL, 5);
@@ -256,6 +262,15 @@ void options::CreateControls()
                              wxSize(300, -1), 0 );
     pPrintShowIcon->SetValue(FALSE);
     itemStaticBoxSizerPrint->Add(pPrintShowIcon, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+
+    //  Chart Outlines checkbox
+    wxStaticBox* itemStaticBoxSizerCDOStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Chart Display Options"));
+    wxStaticBoxSizer* itemStaticBoxSizerCDO = new wxStaticBoxSizer(itemStaticBoxSizerCDOStatic, wxVERTICAL);
+    itemBoxSizer6->Add(itemStaticBoxSizerCDO, 0, wxGROW|wxALL, 5);
+    pCDOOutlines = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Chart Outlines"), wxDefaultPosition,
+                             wxSize(300, -1), 0 );
+    pCDOOutlines->SetValue(FALSE);
+    itemStaticBoxSizerCDO->Add(pCDOOutlines, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
 
 
@@ -548,6 +563,7 @@ void options::SetInitialSettings()
 
       pSettingsCB1->SetValue(m_pConfig->m_bShowDebugWindows);
       pPrintShowIcon->SetValue(g_bShowPrintIcon);
+      pCDOOutlines->SetValue(g_bShowOutlines);
 
 
 #ifdef USE_S57
@@ -761,6 +777,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
       }
 
     g_bShowPrintIcon = pPrintShowIcon->GetValue();
+    g_bShowOutlines = pCDOOutlines->GetValue();
 
 
 //    NMEA Options

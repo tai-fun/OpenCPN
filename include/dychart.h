@@ -25,8 +25,8 @@
 #ifdef __WXX11__
 #define     __PIX_CACHE_X11IMAGE__
 #define     dyUSE_BITMAPO
-#define     S57USE_PIXELCACHE 1
-#define     dyUSE_BITMAPO_S57 1
+#define     S57USE_PIXELCACHE
+#define     dyUSE_BITMAPO_S57
 #endif
 
 #ifdef __WXGTK__
@@ -37,8 +37,8 @@
 #define __PIX_CACHE_DIBSECTION__
 #define     dyUSE_DIBSECTION
 #define     dyUSE_BITMAPO
-#define     dyUSE_BITMAPO_S57 1
-//#define     S57USE_PIXELCACHE 1
+#define     dyUSE_BITMAPO_S57
+//#define     S57USE_PIXELCACHE
 #endif
 
 
@@ -48,12 +48,12 @@
 
 #ifdef      __PIX_CACHE_X11IMAGE__
 #define     dyUSE_BITMAPO
-#define     dyUSE_BITMAPO_S57 1
+#define     dyUSE_BITMAPO_S57
 #endif
 
 #ifdef      __PIX_CACHE_BMO__
 #define     dyUSE_BITMAPO
-#define     dyUSE_BITMAPO_S57 1
+#define     dyUSE_BITMAPO_S57
 #endif
 
 
@@ -141,8 +141,8 @@
 //    Home Base, used if the config file lat/lon seems bogus or missing
 
 
-#define START_LAT  36.4
-#define START_LON  -76.00
+#define START_LAT   35.1025              // New Bern
+#define START_LON  -77.0342
 
 //------------------------------------------------------------------------------
 //          Some MSW and MSVCRT Specific Includes

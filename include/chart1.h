@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.3 2006/10/05 03:52:54 dsr Exp $
+ * $Id: chart1.h,v 1.4 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.4  2006/10/08 00:36:25  dsr
+ * no message
+ *
  * Revision 1.3  2006/10/05 03:52:54  dsr
  * no message
  *
@@ -195,7 +198,7 @@ class MyApp: public wxApp
 class MyFrame: public wxFrame
 {
   public:
-    MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, const wxSize& size);
+    MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, const wxSize& size, long style);
 
     ~MyFrame();
 

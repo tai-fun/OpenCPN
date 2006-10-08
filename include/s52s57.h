@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
+ * $Id: s52s57.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.3  2006/10/08 00:36:25  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
@@ -341,13 +344,6 @@ typedef enum _geoPrim_t{
 
 
 // in sync with OGREnvelope
-
-typedef struct _Extent{
-  double SLAT;
-  double WLON;
-  double NLAT;
-  double ELON;
-}Extent;
 
 typedef struct _pt{
    double x;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.4 2006/10/07 03:50:27 dsr Exp $
+ * $Id: s52plib.cpp,v 1.5 2006/10/08 00:36:44 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.5  2006/10/08 00:36:44  dsr
+ * no message
+ *
  * Revision 1.4  2006/10/07 03:50:27  dsr
  * *** empty log message ***
  *
@@ -118,7 +121,7 @@ extern "C" void gpc_polygon_clip(gpc_op       operation,
 
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.4 2006/10/07 03:50:27 dsr Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.5 2006/10/08 00:36:44 dsr Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -3133,200 +3136,6 @@ return 0;
 */
 }
 
-/*
-class LineSegmentChain
-{
-public:
-        int                     npt;
-        wxPoint                 *ptp;
-        LineSegmentChain        *next;
-};
-
-
-
-// Todo this thing should be part of a tristrip object.....
-LineSegmentChain *GetTristripOutlineSegments(gpc_tristrip *tri, s57chart *chart)
-{
-
-        float x,y;
-
-        LineSegmentChain *ret;
-        LineSegmentChain *lsc;
-        LineSegmentChain *lsp;
-
-        int ism = tri->num_strips;
-
-                for (int istrip=0;istrip< ism;istrip++)
-                {
-
-                        LineSegmentChain *lsn = new LineSegmentChain;
-                        lsn->next = NULL;
-                        if(istrip == 0)
-                                ret = lsn;                              // establish root of chain
-                        else
-                                lsc->next = lsn;
-
-                        lsc = lsn;
-
-                  int npt = tri->strip[istrip].num_vertices;
-
-
-                        if(npt > 3)
-                        {
-                                gpc_vertex_list lstrip = tri->strip[istrip];
-
-                                int jm = npt;
-                                wxPoint *ptp = (wxPoint *)malloc((npt+2) * sizeof(wxPoint));
-                                wxPoint *pr = ptp;
-
-                                float lat0, lon0;
-                                lon0 = lstrip.vertex[0].x;
-                                lat0 = lstrip.vertex[0].y;
-                                chart->GetPointPixEst(lat0, lon0, pr);
-                                pr++;
-
-                                int j = 2;
-                                while(j < jm)
-                                {
-                                        x = lstrip.vertex[j].x;
-                                        y = lstrip.vertex[j].y;
-
-                                        chart->GetPointPix(y, x, pr);
-                                        pr++;
-
-                                        j += 2;
-                                }
-
-                                j--;
-                                while(j > jm-1)
-                                        j-= 2;
-
-                                while(j >= 1)
-                                {
-                                        x = lstrip.vertex[j].x;
-                                        y = lstrip.vertex[j].y;
-
-                                        chart->GetPointPix(y, x, pr);
-                                        pr++;
-
-                                        j -= 2;
-                                }
-
-// Add another point to close line
-
-//                                if((ptp[jm].y == ptp[0].y) && (ptp[jm].x == ptp[0].x))
-//                                        wxLogMessage("LineSegmentChain::GetTristripOutlineSegments...Unexpectedly found closed poly %d", jm);
-
-                                if(0)
-                                {
-                                }
-                                else
-                                {
-                                        ptp[jm].x = ptp[0].x;
-                                        ptp[jm].y = ptp[0].y;
-                                        npt += 1;
-                                }
-
-//      Find original outline edges
-
-
-                                int imax = npt / 2;
-                                int nptp = npt;
-
-//      Bottom edge is horizontal
-                                if((ptp[npt-2].y == ptp[0].y) && (1))
-                                {
-                                        nptp = npt - 1;
-
-                                        if(ptp[imax-1].y == ptp[imax].y)
-                                        {
-                                                lsc->npt = imax;
-                                                lsc->ptp = ptp;
-//                                              chart->pdc->DrawLines(imax, ptp);
-
-                                                lsp = new LineSegmentChain;
-                                                lsp->next = NULL;
-                                                lsc->next = lsp;
-                                                lsp->npt = nptp - imax;
-                                                wxPoint *ptpp = (wxPoint *)malloc((nptp - imax) * sizeof(wxPoint));
-                                                memcpy(ptpp, &ptp[imax], (nptp - imax) * sizeof(wxPoint));
-                                                lsp->ptp = ptpp;
-//                                              chart->pdc->DrawLines(nptp - imax, &ptp[imax]);
-
-                                                lsc = lsp;
-                                        }
-                                        else
-                                        {
-                                                lsc->npt = npt-1;
-                                                lsc->ptp = ptp;
-//                                              chart->pdc->DrawLines(npt - 1, ptp);
-                                        }
-                                }
-
-//      Top only horizonal
-                                else if(ptp[imax-1].y == ptp[imax].y)
-                                        {
-                                                lsc->npt = imax;
-                                                lsc->ptp = ptp;
- //                                             chart->pdc->DrawLines(imax, ptp);
-
-                                                lsp = new LineSegmentChain;
-                                                lsp->next = NULL;
-                                                lsc->next = lsp;
-                                                lsp->npt = nptp - imax;
-                                                wxPoint *ptpp = (wxPoint *)malloc((nptp - imax) * sizeof(wxPoint));
-                                                memcpy(ptpp, &ptp[imax], (nptp - imax) * sizeof(wxPoint));
-                                                lsp->ptp = ptpp;
-//                                              chart->pdc->DrawLines(nptp - imax , &ptp[imax]);
-
-                                                lsc = lsp;
-
-                                        }
-//      neither horizontal
-                                else
-                                {
-                                        lsc->npt = npt;
-                                        lsc->ptp = ptp;
-//                                      chart->pdc->DrawLines(npt, ptp);
-                                }
-
-                        }       // if npt > 3
-
-                  else                          // npt must be 3
-                  {
-                        lsn->npt = 4;
-
-                        lsn->ptp = (wxPoint *)malloc(4 * sizeof(wxPoint));
-                        gpc_vertex_list lstrip = tri->strip[istrip];
-
-                        wxPoint *pr = lsn->ptp;
-
-                        float lat0, lon0;
-
-                        for(int ip = 0 ; ip < 3 ; ip++)
-                        {
-                              lon0 = lstrip.vertex[ip].x;
-                              lat0 = lstrip.vertex[ip].y;
-                              chart->GetPointPixEst(lat0, lon0, pr);
-                              pr++;
-                        }
-                        lon0 = lstrip.vertex[0].x;                      // last = first
-                        lat0 = lstrip.vertex[0].y;
-                        chart->GetPointPixEst(lat0, lon0, pr);
-
-
-
-                  }
-
-
-
-                }               // for
-
-
-                return ret;
-}
-
-*/
 //-----------------------------------------------------------------------------
 //          C Linkage to clip.c
 //-----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.2 2006/10/07 03:50:54 dsr Exp $
+ * $Id: chartimg.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.3  2006/10/08 00:36:25  dsr
+ * no message
+ *
  * Revision 1.2  2006/10/07 03:50:54  dsr
  * *** empty log message ***
  *
@@ -188,7 +191,7 @@ public:
 
       void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion  *pValidRegion);
 
-      void GetChartExtent(Extent *pext);
+      virtual void GetChartExtent(Extent *pext);
 
       PaletteDir GetPaletteDir(void);
 

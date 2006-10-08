@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: wificlient.h,v 1.2 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  wifi Client Data Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: wificlient.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2006/10/08 00:36:25  dsr
+ * no message
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/07/28 20:47:51  dsr
  * Cleanup
@@ -173,63 +176,6 @@ typedef struct
 
 #define WIFI_DOG_TIMEOUT 5
 
-
-/*
-//-------------------------------------------------------------------------------------------------------------
-//
-//    Wifi Input Thread
-//
-//    This thread manages reading the NMEA data stream from the declared NMEA serial port
-//
-//-------------------------------------------------------------------------------------------------------------
-
-#ifdef __WXMSW__
-#include <windows.h>
-#endif
-
-//    Constants
-typedef enum ENUM_BUFFER_STATE
-{
-    RX_BUFFER_EMPTY,
-    RX_BUFFER_FULL
-};
-
-#define MAX_RX_MESSSAGE_SIZE  4096
-#define     RX_BUFFER_SIZE                4096
-
-
-
-//          Inter-thread communication event declaration
-DECLARE_EVENT_TYPE(EVT_NMEA, -1)
-
-
-class OCP_NMEA_Thread: public wxThread
-{
-
-    public:
-
-        OCP_NMEA_Thread(wxWindow *MainWindow, const char *pszPortName);
-        ~OCP_NMEA_Thread(void);
-        void *Entry();
-
-    private:
-        wxEvtHandler            *m_pMainEventHandler;
-        wxString                *m_pPortName;
-        int                           TimeOutInSec;
-        char                    *put_ptr;
-        char                    *tak_ptr;
-
-        char                    *rx_buffer;
-
-        unsigned long           error;
-
-#ifdef __WXMSW__
-      HANDLE                        m_hSerialComm;
-#endif
-
-};
-
-*/
 
 //-------------------------------------------------------------------------------------------------------------
 //

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
+ * $Id: chartdb.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.3  2006/10/08 00:36:25  dsr
+ * no message
+ *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
@@ -169,6 +172,8 @@ public:
       int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);
       int  GetCSChartType(ChartStack *ps, int stackindex);
       int  GetDBChartType(int dbIndex);
+      bool GetDBFullPath(int dbIndex, char *buf);
+
       virtual int  GetStackEntry(ChartStack *ps, wxString *pfp);
       ChartBase *OpenChartFromStack(ChartStack *pStack, int StackEntry, ChartInitFlag iflag = FULL_INIT);
       int DisableChart(const char *pPathToDisable);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $
+ * $Id: chartimg.cpp,v 1.3 2006/10/08 00:36:44 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.3  2006/10/08 00:36:44  dsr
+ * no message
+ *
  * Revision 1.2  2006/10/07 03:50:27  dsr
  * *** empty log message ***
  *
@@ -119,7 +122,7 @@
       extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.3 2006/10/08 00:36:44 dsr Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -391,6 +394,7 @@ ChartBase::~ChartBase()
 // ============================================================================
 // ChartDummy implementation
 // ============================================================================
+
 ChartDummy::ChartDummy()
 {
       m_pBM = NULL;
@@ -442,18 +446,53 @@ void ChartDummy::pix_to_latlong(int pixx, int pixy, double *lat, double *lon)
 {
 }
 
-void ChartDummy::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *lat, double *lon)
-{
-}
-
 
 void ChartDummy::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
 {
 }
 
+
 void ChartDummy::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp)
 {
+
+//      pixx = (int)(((lon - vp.lon_left) * vp.ppd_lon) + 0.5);
+//      pixy = (int)(((vp.lat_top - lat)  * vp.ppd_lat) + 0.5);
+    pixx = (int)floor((lon - vp.lon_left) * vp.ppd_lon);
+    pixy = (int)floor((vp.lat_top - lat)  * vp.ppd_lat);
+
 }
+
+void ChartDummy::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
+{
+//        float pix_per_deg_lon = vp.pix_width / (vp.lon_right - vp.lon_left);
+//        float pix_per_deg_lat = vp.pix_height / (vp.lat_top - vp.lat_bot);
+//        printf("57 ppd %f %f\n",pix_per_deg_lon, pix_per_deg_lat);
+
+//        float lat_top  = vp.lat_top;
+//        float lon_left = vp.lon_left;
+
+//        double pix_per_deg_lon = vp.ppd_lon;
+//        double pix_per_deg_lat = vp.ppd_lat;
+
+        double lat = vp.lat_top  - pixy / vp.ppd_lat;
+        double lon = vp.lon_left + pixx / vp.ppd_lon;
+
+        *plat = lat;
+        *plon = lon;
+
+}
+
+void ChartDummy::GetChartExtent(Extent *pext)
+{
+    pext->NLAT = 80;
+    pext->SLAT = -80;
+    pext->ELON = 179;
+    pext->WLON = -179;
+}
+
+
+
+
 
 
 void ChartDummy::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type)
@@ -644,7 +683,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
       wxDir target_dir(Path);
       wxArrayString file_array;
       int nfiles = wxDir::GetAllFiles(Path, &file_array);
-
+      int ifile;
 
       pBitmapFilePath->Prepend(Path);
 //    wxLogMessage("ChartGEO:Init....NOS File Name is: %s", pBitmapFilePath->c_str());
@@ -703,7 +742,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 
 //      Search harder
 
-            for(int ifile = 0 ; ifile < nfiles ; ifile++)
+            for(ifile = 0 ; ifile < nfiles ; ifile++)
             {
                 wxString file_up = file_array.Item(ifile);
                 file_up.MakeUpper();

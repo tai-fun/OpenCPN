@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $
+ * $Id: nmea.cpp,v 1.6 2006/10/08 00:36:45 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.6  2006/10/08 00:36:45  dsr
+ * no message
+ *
  * Revision 1.5  2006/10/07 03:50:27  dsr
  * *** empty log message ***
  *
@@ -94,7 +97,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.6 2006/10/08 00:36:45 dsr Exp $");
 
 //    Forward Declarations
 
@@ -382,7 +385,6 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
             if(!strncmp((const char *)buf, "GPSD", 4))
             {
 
-
                 if(buf[7] != '?')           // valid data?
                 {
                     wxStringTokenizer tkz(buf, " ");
@@ -506,92 +508,6 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 }
 
 
-void NMEAWindow::MyFileTimeTowxDT(MyFileTime *pft, wxDateTime *pdt)
-{
-
-//    Do some simple math to get the unix epoch time equivalent
-      wxLongLong ticks;
-
-      ticks = pft->low;
-      ticks +=  ((wxLongLong)pft->high) << 32;
-      ticks /= 10000000;
-#ifdef __WXMSW__
-      ticks -= 11644473600;
-#else
-      ticks -= 11644473600LL;
-#endif
-
-
-      if(ticks.GetHi())
-            assert(1);
-
-      pdt->Set((time_t)(ticks.GetLo()));
-}
-
-
-/*
-// Convert seconds since 1970 to a filetime
-static void
-seconds_since_1970_to_filetime(time_t seconds, uint32 * high, uint32 * low)
-{
-      unsigned long long ticks;
-
-      ticks = (seconds + 11644473600LL) * 10000000;
-      *low = (uint32) ticks;
-      *high = (uint32) (ticks >> 32);
-}
-
-
-// Convert seconds since 1970 back to filetime
-static time_t
-convert_1970_to_filetime(uint32 high, uint32 low)
-{
-      unsigned long long ticks;
-      time_t val;
-
-      ticks = low + (((unsigned long long) high) << 32);
-      ticks /= 10000000;
-      ticks -= 11644473600LL;
-
-      val = (time_t) ticks;
-      return (val);
-
-}
-
-*/
-
-
-// ----------------------------------------------------------------------------
-// helpers for wxDateTime <-> SYSTEMTIME conversion
-// ----------------------------------------------------------------------------
-/*
-static inline void wxFromSystemTime(wxDateTime *dt, const SYSTEMTIME& st)
-{
-    dt->Set(st.wDay,
-            wx_static_cast(wxDateTime::Month, wxDateTime::Jan + st.wMonth - 1),
-            st.wYear,
-            0, 0, 0);
-}
-
-static inline void wxToSystemTime(SYSTEMTIME *st, const wxDateTime& dt)
-{
-    const wxDateTime::Tm tm(dt.GetTm());
-
-    st->wYear = (WXWORD)tm.year;
-    st->wMonth = (WXWORD)(tm.mon - wxDateTime::Jan + 1);
-    st->wDay = tm.mday;
-
-    st->wDayOfWeek =
-    st->wHour =
-    st->wMinute =
-    st->wSecond =
-    st->wMilliseconds = 0;
-}
-
-*/
-
-
-
 
 void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 {
@@ -614,12 +530,10 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
       }
 
 
-
-
+ 
 //--------------TEST
 #if(0)
-
-      if(1/*phost_name->Contains(_T("DANO"))*/)
+      if(1)
       {
             gCog = 290.;
             gSog = 7.;
@@ -649,8 +563,6 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 
 
       TimerNMEA.Start(1000,wxTIMER_CONTINUOUS);
-
-
 }
 
 
@@ -658,7 +570,7 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 //-------------------------------------------------------------------------------------------------------------
 //
 //    A simple thread to test host name resolution without blocking the main thread
-//    Doncha' love socket's name resolution logic??
+//    Dontcha' love socket's name resolution logic??
 //
 //-------------------------------------------------------------------------------------------------------------
 DNSTestThread::DNSTestThread(wxString &name_or_ip)

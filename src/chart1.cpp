@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $
+ * $Id: chart1.cpp,v 1.6 2006/10/08 00:36:44 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.6  2006/10/08 00:36:44  dsr
+ * no message
+ *
  * Revision 1.5  2006/10/07 03:50:27  dsr
  * *** empty log message ***
  *
@@ -160,7 +163,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.5 2006/10/07 03:50:27 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.6 2006/10/08 00:36:44 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -247,6 +250,7 @@ wxPrintData *g_printData = (wxPrintData*) NULL ;
 wxPageSetupData* g_pageSetupData = (wxPageSetupData*) NULL;
 
 bool            g_bShowPrintIcon;
+bool            g_bShowOutlines;
 
 FontMgr         *pFontMgr;
 
@@ -472,7 +476,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 #ifndef __WXMSW__
         user_user_id = getuid ();
-#if 1 //def dyUSE_EUID
+#if 1 
         file_user_id = geteuid ();
     #else
         file_user_id = user_user_id;
@@ -603,8 +607,15 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         else
                 new_frame_size.Set(cw, 735);
 
-        // Create the main frame window
-        gFrame = new MyFrame(NULL, _T("OpenCPN"), wxPoint(0, 0), new_frame_size);
+//  For Windows, provide the expected application Minimize/Close bar
+#ifdef __WXMSW__
+        long app_style = wxDEFAULT_FRAME_STYLE;
+#else
+        long app_style = wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER)
+#endif
+
+// Create the main frame window
+        gFrame = new MyFrame(NULL, _T("OpenCPN"), wxPoint(0, 0), new_frame_size, app_style );
 
 
 //      Create Children of Frame
@@ -794,8 +805,8 @@ END_EVENT_TABLE()
 
 
 // My frame constructor
-MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, const wxSize& size):
-  wxFrame(frame, -1, title, pos, size, wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER)
+MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, const wxSize& size, long style):
+  wxFrame(frame, -1, title, pos, size, style)  //wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER)
       //wxCAPTION | wxSYSTEM_MENU | wxRESIZE_BORDER
 {
 
@@ -2529,96 +2540,107 @@ void *x_malloc(size_t t)
 
 void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 {
-        char buf[4096];
+#define LOCAL_BUFFER_LENGTH 4096
+
+    char buf[LOCAL_BUFFER_LENGTH];
+    bool bshow_tick = false;
 
 
-        //      Show a little heartbeat tick in StatusWindow0 on NMEA events
-        if(tick_idx++ > 6)
-            tick_idx = 0;
-
-        char tick_buf[2];
-        tick_buf[0] = nmea_tick_chars[tick_idx];
-        tick_buf[1] = 0;
-        SetStatusText(tick_buf, 0);
-
-
-
-        switch(event.GetExtraLong())
+    switch(event.GetExtraLong())
+    {
+        case EVT_NMEA_PARSE_RX:
         {
-            case EVT_NMEA_PARSE_RX:
-            {
-                if(ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR )
+            if(ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR )
+        {
+                if(RX_BUFFER_FULL == rx_share_buffer_state)
                 {
-                        if(RX_BUFFER_FULL == rx_share_buffer_state)
-                        {
-                                strcpy (buf, rx_share_buffer);
-                                rx_share_buffer_state = RX_BUFFER_EMPTY;
+                    int nchar = strlen(rx_share_buffer);
+                    strncpy (buf, rx_share_buffer, wxMin(nchar, LOCAL_BUFFER_LENGTH - 1));
+                    rx_share_buffer_state = RX_BUFFER_EMPTY;
 
-                                if(rx_share_buffer_length != strlen(rx_share_buffer))
-                                        wxLogMessage("Got NMEA Event with inconsistent rx_share_buffer");
-                        }
-                        else
-                                wxLogMessage("Got NMEA Event with RX_BUFFER_EMPTY");
-
-                        ps_mutexProtectingTheRXBuffer->Unlock();
+                    if(rx_share_buffer_length != strlen(rx_share_buffer))
+                        wxLogMessage("Got NMEA Event with inconsistent rx_share_buffer");
                 }
+                else
+                     wxLogMessage("Got NMEA Event with RX_BUFFER_EMPTY");
+
+                ps_mutexProtectingTheRXBuffer->Unlock();
+        }
 
 
+/*
                 if(pStatusBar)
                 {
                     wxString buf_nolf(buf);
                     buf_nolf.RemoveLast();
                     SetStatusText(buf_nolf.c_str(), 4);
                 }
+*/
 
-                *pNMEA0183 << buf;
-                pNMEA0183->Parse();
+            *pNMEA0183 << buf;
+            pNMEA0183->Parse();
 
-                if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
-                {
-                        if(pNMEA0183->Rmc.IsDataValid == NTrue)
-                        {
-                                float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
-                                int lat_deg_int = (int)(llt / 100);
-                                float lat_deg = lat_deg_int;
-                                float lat_min = llt - (lat_deg * 100);
-                                gLat = lat_deg + (lat_min/60.);
-
-                                float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
-                                int lon_deg_int = (int)(lln / 100);
-                                float lon_deg = lon_deg_int;
-                                float lon_min = lln - (lon_deg * 100);
-                                float tgLon = lon_deg + (lon_min/60.);
-                                gLon = -tgLon;
-
-                                gSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
-                                gCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
-
-                                bool last_bGPSValid = bGPSValid;
-                                bGPSValid = true;
-                                if(!last_bGPSValid)
-                                    UpdateToolbarStatusWindow(Current_Ch);
-
-                                gGPS_Watchdog = GPS_TIMEOUT_SECONDS;
-                        }
-
-                }
-                break;
-            }       //case
-
-            case EVT_NMEA_DIRECT:
+            if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
             {
-                bool last_bGPSValid = bGPSValid;
-                bGPSValid = true;
-                if(!last_bGPSValid)
-                    UpdateToolbarStatusWindow(Current_Ch);
+                if(pNMEA0183->Rmc.IsDataValid == NTrue)
+                {
+                    float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
+                    int lat_deg_int = (int)(llt / 100);
+                    float lat_deg = lat_deg_int;
+                    float lat_min = llt - (lat_deg * 100);
+                    gLat = lat_deg + (lat_min/60.);
 
-                gGPS_Watchdog = GPS_TIMEOUT_SECONDS;
+                    float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
+                    int lon_deg_int = (int)(lln / 100);
+                    float lon_deg = lon_deg_int;
+                    float lon_min = lln - (lon_deg * 100);
+                    float tgLon = lon_deg + (lon_min/60.);
+                    gLon = -tgLon;
 
-                break;
+                    gSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
+                    gCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
+
+                    bool last_bGPSValid = bGPSValid;
+                    bGPSValid = true;
+                    if(!last_bGPSValid)
+                        UpdateToolbarStatusWindow(Current_Ch);
+
+                    gGPS_Watchdog = GPS_TIMEOUT_SECONDS;
+
+                    bshow_tick = true;
+                }
             }
+            break;
+        }       //case
 
-        }           // switch
+        case EVT_NMEA_DIRECT:
+        {
+            bool last_bGPSValid = bGPSValid;
+            bGPSValid = true;
+            if(!last_bGPSValid)
+                UpdateToolbarStatusWindow(Current_Ch);
+
+            gGPS_Watchdog = GPS_TIMEOUT_SECONDS;
+
+            bshow_tick = true;
+            break;
+        }
+
+    }           // switch
+
+    if(bshow_tick)
+    {
+    //      Show a little heartbeat tick in StatusWindow0 on NMEA events
+        if(tick_idx++ > 6)
+            tick_idx = 0;
+
+        char tick_buf[2];
+        tick_buf[0] = nmea_tick_chars[tick_idx];
+        tick_buf[1] = 0;
+        if(NULL != GetStatusBar())
+            SetStatusText(tick_buf, 0);
+    }
+
 }
 
 //----------------------------------------------------------------------------------------------------------

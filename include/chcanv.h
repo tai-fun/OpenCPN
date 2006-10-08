@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.2 2006/10/05 03:52:54 dsr Exp $
+ * $Id: chcanv.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.3  2006/10/08 00:36:25  dsr
+ * no message
+ *
  * Revision 1.2  2006/10/05 03:52:54  dsr
  * no message
  *
@@ -98,7 +101,6 @@
       class wxBitmapo;
       class WVSChart;
       class MyFrame;
-      class ChartRescaleThread;
       class ChartBaseBSB;
       class PixelCache;
       class ChartBase;
@@ -215,7 +217,6 @@ public:
       wxBitmap    *pscratch_bm;
 
 private:
-
       bool        bNewVP;
       int         cursor_region;
 
@@ -322,8 +323,9 @@ private:
 
       WVSChart    *pwvs_chart;
 
-      ChartRescaleThread      *pRescaleThread;
       ChartBaseBSB            *pCBSB;
+      wxBitmap    *pss_overlay_bmp;
+      wxMask      *pss_overlay_mask;
 
 DECLARE_EVENT_TABLE()
 };
@@ -407,29 +409,6 @@ class ocpCursor : public wxCursor
 
             ocpCursor(const wxString& cursorName, long type, int hotSpotX=0, int hotSpotY=0);
             ocpCursor(char **xpm_data, long type, int hotSpotX=0, int hotSpotY=0);
-};
-
-//----------------------------------------------------------------------------------------------------------
-//    ChartRescaleThread Specification
-//----------------------------------------------------------------------------------------------------------
-DECLARE_EVENT_TYPE(EVT_RESCALE_THREAD_DONE, -1)
-
-class ChartBase;
-
-class ChartRescaleThread : public wxThread
-{
-      public:
-        ChartRescaleThread(wxWindow *ParentWindow,
-                           ChartBase *pChart, wxRect& s, wxRect& d, ScaleTypeEnum st);
-
-        void *Entry(void);
-
-        wxEvtHandler *m_pChCanvEventHandler;
-        ChartBase *pch;
-        wxRect source;
-        wxRect dest;
-        ScaleTypeEnum scale_type;
-
 };
 
 

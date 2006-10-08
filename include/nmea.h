@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.4 2006/10/07 03:50:54 dsr Exp $
+ * $Id: nmea.h,v 1.5 2006/10/08 00:36:25 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.5  2006/10/08 00:36:25  dsr
+ * no message
+ *
  * Revision 1.4  2006/10/07 03:50:54  dsr
  * *** empty log message ***
  *
@@ -153,8 +156,6 @@ private:
       void OnSocketEvent(wxSocketEvent& event);
       void OnTimerNMEA(wxTimerEvent& event);
       void OnCloseWindow(wxCloseEvent& event);
-      void wxDTToMyFileTime(wxDateTime *SDT, MyFileTime *pFileTime);
-      void MyFileTimeTowxDT( MyFileTime *pFileTime, wxDateTime *SDT);
 
       wxIPV4address     addr;
       wxSocketClient    *m_sock;
@@ -169,17 +170,6 @@ private:
 DECLARE_EVENT_TABLE()
 };
 
-
-typedef struct _DATA_MSG1
-{
-      int         msg;
-      float       lat;
-      float       lon;
-      float       cog;
-      float       sog;
-      long        time;             // UNIX 64 bit time
-      long        time1;
-} DATA_MSG1;
 
 
 //-------------------------------------------------------------------------------------------------------------

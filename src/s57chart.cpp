@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.4 2006/10/07 03:50:28 dsr Exp $
+ * $Id: s57chart.cpp,v 1.5 2006/10/08 00:36:44 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.5  2006/10/08 00:36:44  dsr
+ * no message
+ *
  * Revision 1.4  2006/10/07 03:50:28  dsr
  * *** empty log message ***
  *
@@ -67,7 +70,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.4 2006/10/07 03:50:28 dsr Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.5 2006/10/08 00:36:44 dsr Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -789,6 +792,11 @@ void s57chart::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
 
       if(bApplyImmediate)
             InvalidateCache();
+}
+
+void s57chart::GetChartExtent(Extent *pext)
+{
+    *pext = FullExtent;
 }
 
 
@@ -2111,7 +2119,8 @@ int s57chart::BuildS57File(const char *pFullPath)
 
 
     //  Here comes the actual ISO8211 file reading
-    OGRDataSource *poDS = OGRSFDriverRegistrar::Open( pFullPath );
+    OGRSFDriver *poDriver;
+    OGRDataSource *poDS = OGRSFDriverRegistrar::Open( pFullPath, FALSE, &poDriver );
     if( poDS == NULL )
     {
         wxLogMessage("s57chart::BuildS57File  Unable to open %s )", pFullPath);
