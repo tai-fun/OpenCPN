@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.11 2006/10/08 14:15:00 dsr Exp $
+ * $Id: chcanv.cpp,v 1.10 2006/10/08 14:40:49 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,9 +26,6 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
- * Revision 1.11  2006/10/08 14:15:00  dsr
- * no message
- *
  * Revision 1.10  2006/10/08 14:40:49  dsr
  * *** empty log message ***
  *
@@ -183,7 +180,7 @@ extern s52plib          *ps52plib;
 extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.11 2006/10/08 14:15:00 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.10 2006/10/08 14:40:49 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -817,22 +814,20 @@ void ChartCanvas::ShipDraw(wxDC& dc, wxPoint& iShipPoint, wxPoint& iPredPoint)
             lPredPoint.x = pixxd;
             lPredPoint.y = pixyd;
 
-/*
             if(bGPSValid)
                 dc.SetBrush(*wxRED_BRUSH);
             else
                 dc.SetBrush(*wxWHITE_BRUSH);
-*/
-            dc.SetBrush(wxBrush(Ship_Color));
 
             wxPen ppPen(wxColour(255,0,0), 2, wxSOLID);
             dc.SetPen(ppPen);
             dc.DrawLine(lShipPoint.x, lShipPoint.y, lPredPoint.x, lPredPoint.y);
-            dc.DrawCircle(lPredPoint.x, lPredPoint.y, Ship_Size);
+            dc.DrawCircle(lPredPoint.x, lPredPoint.y, 8);
 
             dc.DrawCircle(lShipPoint.x, lShipPoint.y, 10);
       }
 }
+
 
 
 void ChartCanvas::OnActivate(wxActivateEvent& event)
@@ -1879,11 +1874,11 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
 }
 
 
-void ChartCanvas::RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono)
+void ChartCanvas::RenderAllChartOutlines(wxDC *pdc, ViewPort& vp)
 {
     for(int i=0 ; i < ChartData->nEntry ; i++)
     {
-          RenderChartOutline(pdc, i, vp, bdraw_mono);
+          RenderChartOutline(pdc, i, vp);
     }
 }
 
@@ -1894,40 +1889,47 @@ extern "C" {
 }
 
 
-void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool bdraw_mono)
+void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp)
 {
         float plylat, plylon, plylat1, plylon1;
 
         int pixx, pixy, pixx1, pixy1;
 
+        wxBrush gBrush(wxColour(0,255,0), wxSOLID);
         wxPen gPen(wxColour(0,255,0), 2, wxSOLID);
+        wxBrush rBrush(wxColour(255,0,0), wxSOLID);
         wxPen rPen(wxColour(255,0,0), 2, wxSOLID);
 
         int nPly = ChartData->GetDBPlyPoint(dbIndex, 0, &plylat, &plylon);
 
         if(ChartData->GetDBChartType(dbIndex) == CHART_TYPE_S57)
-              pdc->SetPen(gPen);
-        else
-              pdc->SetPen(rPen);
-
-        if(bdraw_mono)
         {
-#ifdef __WXX11__
-          wxPen pp(*wxBLACK, 2, wxSOLID);
-          pdc->SetPen(pp);
-#else
-          wxPen pp(*wxWHITE, 2, wxSOLID);
-          pdc->SetPen(pp);
-#endif
+              pdc->SetBrush(gBrush);
+              pdc->SetPen(gPen);
+        }
+        else
+        {
+              pdc->SetBrush(rBrush);
+              pdc->SetPen(rPen);
         }
 
 
         int i;
 
+/*
+        for( i=0 ; i<nPly ; i++)
+        {
+              ChartData->GetDBPlyPoint(dbIndex, i, &plylat, &plylon);
+
+              Current_Ch->latlong_to_pix_vp(plylat, plylon, pixx, pixy, vp);
+              pdc->DrawCircle(pixx, pixy, 3);
+        }
+*/
 
         wxPoint r, r1;
 
         ChartData->GetDBPlyPoint(dbIndex, 0, &plylat, &plylon);
+//        Current_Ch->latlong_to_pix_vp(plylat, plylon, pixx, pixy, vp);      //0
         GetPointPix(plylat, plylon, &r);
         pixx = r.x;
         pixy = r.y;
@@ -1936,6 +1938,7 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool 
         {
               ChartData->GetDBPlyPoint(dbIndex, i+1, &plylat1, &plylon1);
 
+//              Current_Ch->latlong_to_pix_vp(plylat1, plylon1, pixx1, pixy1, vp);
               GetPointPix(plylat1, plylon1, &r1);
               pixx1 = r1.x;
               pixy1 = r1.y;
@@ -1955,6 +1958,7 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool 
         }
 
         ChartData->GetDBPlyPoint(dbIndex, 0, &plylat1, &plylon1);
+//        Current_Ch->latlong_to_pix_vp(plylat1, plylon1, pixx1, pixy1, vp);
         GetPointPix(plylat1, plylon1, &r1);
         pixx1 = r1.x;
         pixy1 = r1.y;
@@ -2185,7 +2189,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
       if(bNewMap && (bShowTide || bShowCurrent || g_bShowOutlines))
       {
         delete pss_overlay_bmp;
-        pss_overlay_bmp = DrawTCCBitmap(bNewMap);
+        pss_overlay_bmp = DrawTCBitmap(bNewMap);
       }
 
 //    blit the semi-static overlay onto the scratch DC if it is needed
@@ -2267,7 +2271,7 @@ void ChartCanvas::SetMyCursor(wxCursor *c)
 //  Get a wxBitmap with wxMask associated containing the semi-static overlays
 //----------------------------------------------------------------------------
 
-wxBitmap *ChartCanvas::DrawTCCBitmap(bool bAddNewSelpoints)
+wxBitmap *ChartCanvas::DrawTCBitmap(bool bAddNewSelpoints)
 {
     wxBitmap *p_bmp = new wxBitmap(VPoint.pix_width, VPoint.pix_height, -1);
 
@@ -2333,7 +2337,7 @@ wxBitmap *ChartCanvas::DrawTCCBitmap(bool bAddNewSelpoints)
       {
           //    Todo... Speed this up....
         RenderAllChartOutlines(&ssdc, VPoint) ;
-        RenderAllChartOutlines(&ssdc_mask, VPoint, true) ;       // onto the mask
+        RenderAllChartOutlines(&ssdc_mask, VPoint) ;       // onto the mask
       }
     ssdc.SelectObject(wxNullBitmap);
 
