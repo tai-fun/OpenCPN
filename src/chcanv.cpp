@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.8 2006/10/08 04:37:38 dsr Exp $
+ * $Id: chcanv.cpp,v 1.9 2006/10/08 13:49:14 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.9  2006/10/08 13:49:14  dsr
+ * no message
+ *
  * Revision 1.8  2006/10/08 04:37:38  dsr
  * no message
  *
@@ -174,7 +177,7 @@ extern s52plib          *ps52plib;
 extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.8 2006/10/08 04:37:38 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.9 2006/10/08 13:49:14 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -2276,14 +2279,14 @@ wxBitmap *ChartCanvas::DrawTCBitmap(bool bAddNewSelpoints)
     ssdc.Clear();
 
     //      Believe it or not, it is faster to REDRAW the overlay objects
-    //      onto a mon bitmap, and then invert it into a mask bitmap
+    //      onto a mon bitmap, and then convert it into a mask bitmap
     //      than it is to create a mask from a colour bmp.
     //      Look at the wx code.  It goes through wxImage conversion, etc...
-    //      So, create a mono DC
+    //      So, create a mono DC, drawing white-on-black
     wxMemoryDC ssdc_mask;
     wxBitmap mask_bmp(VPoint.pix_width, VPoint.pix_height, 1);
     ssdc_mask.SelectObject(mask_bmp);
-    ssdc_mask.SetBackground(*wxWHITE_BRUSH);
+    ssdc_mask.SetBackground(*wxBLACK_BRUSH);
     ssdc_mask.Clear();
 
 //    Maybe draw the Tide Points
@@ -2328,17 +2331,17 @@ wxBitmap *ChartCanvas::DrawTCBitmap(bool bAddNewSelpoints)
     ssdc.SelectObject(wxNullBitmap);
 
     //      Invert the mono bmp, to make a useable mask bmp
-    wxMemoryDC ssdc_mask_invert;
-    wxBitmap mask_bmp_invert(VPoint.pix_width, VPoint.pix_height, 1);
-    ssdc_mask_invert.SelectObject(mask_bmp_invert);
-    ssdc_mask_invert.Blit(0, 0, VPoint.pix_width, VPoint.pix_height,
-                          &ssdc_mask, 0, 0, wxSRC_INVERT);
+//    wxMemoryDC ssdc_mask_invert;
+//    wxBitmap mask_bmp_invert(VPoint.pix_width, VPoint.pix_height, 1);
+//    ssdc_mask_invert.SelectObject(mask_bmp_invert);
+//    ssdc_mask_invert.Blit(0, 0, VPoint.pix_width, VPoint.pix_height,
+//                          &ssdc_mask, 0, 0, wxSRC_INVERT);
 
-    ssdc_mask_invert.SelectObject(wxNullBitmap);
+//    ssdc_mask_invert.SelectObject(wxNullBitmap);
     ssdc_mask.SelectObject(wxNullBitmap);
 
     //      Create and associate the mask
-    pss_overlay_mask = new wxMask(mask_bmp_invert);
+    pss_overlay_mask = new wxMask(mask_bmp);
     p_bmp->SetMask(pss_overlay_mask);
 
     return p_bmp;
@@ -2421,11 +2424,14 @@ void ChartCanvas::DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox,
       wxBrush *pgray_brush = wxTheBrushList->FindOrCreateBrush(wxColour(96,96,96), wxSOLID);
       wxBrush *pblack_brush = wxTheBrushList->FindOrCreateBrush(wxColour(0,0,0), wxSOLID);
 
+      wxPen *pwhite_pen = wxThePenList->FindOrCreatePen(wxColour(255,255,255), 1, wxSOLID);
+      wxBrush *pwhite_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,255), wxSOLID);
+
       if(bdraw_mono)
       {
-          pgreen_pen = pblack_pen;
-          pgreen_brush = pblack_brush;
-          pgray_brush = pblack_brush;
+          pgreen_pen = pwhite_pen;
+          pgreen_brush = pwhite_brush;
+          pgray_brush = pwhite_brush;
       }
 
 
@@ -2516,11 +2522,14 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
       wxBrush *pgray_brush = wxTheBrushList->FindOrCreateBrush(wxColour(96,96,96), wxSOLID);
       wxBrush *pblack_brush = wxTheBrushList->FindOrCreateBrush(wxColour(0,0,0), wxSOLID);
 
+      wxPen *pwhite_pen = wxThePenList->FindOrCreatePen(wxColour(255,255,255), 1, wxSOLID);
+      wxBrush *pwhite_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,255), wxSOLID);
+
       if(bdraw_mono)
       {
-          porange_pen = pblack_pen;
-          porange_brush = pblack_brush;
-          pgray_brush = pblack_brush;
+          porange_pen = pwhite_pen;
+          porange_brush = pwhite_brush;
+          pgray_brush = pwhite_brush;
       }
 
 
