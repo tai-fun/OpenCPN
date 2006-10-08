@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.9 2006/10/08 13:49:14 dsr Exp $
+ * $Id: chcanv.cpp,v 1.11 2006/10/08 14:15:00 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,12 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.11  2006/10/08 14:15:00  dsr
+ * no message
+ *
+ * Revision 1.10  2006/10/08 14:40:49  dsr
+ * *** empty log message ***
+ *
  * Revision 1.9  2006/10/08 13:49:14  dsr
  * no message
  *
@@ -177,7 +183,7 @@ extern s52plib          *ps52plib;
 extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.9 2006/10/08 13:49:14 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.11 2006/10/08 14:15:00 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -811,20 +817,22 @@ void ChartCanvas::ShipDraw(wxDC& dc, wxPoint& iShipPoint, wxPoint& iPredPoint)
             lPredPoint.x = pixxd;
             lPredPoint.y = pixyd;
 
+/*
             if(bGPSValid)
                 dc.SetBrush(*wxRED_BRUSH);
             else
                 dc.SetBrush(*wxWHITE_BRUSH);
+*/
+            dc.SetBrush(wxBrush(Ship_Color));
 
             wxPen ppPen(wxColour(255,0,0), 2, wxSOLID);
             dc.SetPen(ppPen);
             dc.DrawLine(lShipPoint.x, lShipPoint.y, lPredPoint.x, lPredPoint.y);
-            dc.DrawCircle(lPredPoint.x, lPredPoint.y, 8);
+            dc.DrawCircle(lPredPoint.x, lPredPoint.y, Ship_Size);
 
             dc.DrawCircle(lShipPoint.x, lShipPoint.y, 10);
       }
 }
-
 
 
 void ChartCanvas::OnActivate(wxActivateEvent& event)
@@ -1871,11 +1879,11 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
 }
 
 
-void ChartCanvas::RenderAllChartOutlines(wxDC *pdc, ViewPort& vp)
+void ChartCanvas::RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono)
 {
     for(int i=0 ; i < ChartData->nEntry ; i++)
     {
-          RenderChartOutline(pdc, i, vp);
+          RenderChartOutline(pdc, i, vp, bdraw_mono);
     }
 }
 
@@ -1886,47 +1894,40 @@ extern "C" {
 }
 
 
-void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp)
+void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool bdraw_mono)
 {
         float plylat, plylon, plylat1, plylon1;
 
         int pixx, pixy, pixx1, pixy1;
 
-        wxBrush gBrush(wxColour(0,255,0), wxSOLID);
         wxPen gPen(wxColour(0,255,0), 2, wxSOLID);
-        wxBrush rBrush(wxColour(255,0,0), wxSOLID);
         wxPen rPen(wxColour(255,0,0), 2, wxSOLID);
 
         int nPly = ChartData->GetDBPlyPoint(dbIndex, 0, &plylat, &plylon);
 
         if(ChartData->GetDBChartType(dbIndex) == CHART_TYPE_S57)
-        {
-              pdc->SetBrush(gBrush);
               pdc->SetPen(gPen);
-        }
         else
-        {
-              pdc->SetBrush(rBrush);
               pdc->SetPen(rPen);
+
+        if(bdraw_mono)
+        {
+#ifdef __WXX11__
+          wxPen pp(*wxBLACK, 2, wxSOLID);
+          pdc->SetPen(pp);
+#else
+          wxPen pp(*wxWHITE, 2, wxSOLID);
+          pdc->SetPen(pp);
+#endif
         }
 
 
         int i;
 
-/*
-        for( i=0 ; i<nPly ; i++)
-        {
-              ChartData->GetDBPlyPoint(dbIndex, i, &plylat, &plylon);
-
-              Current_Ch->latlong_to_pix_vp(plylat, plylon, pixx, pixy, vp);
-              pdc->DrawCircle(pixx, pixy, 3);
-        }
-*/
 
         wxPoint r, r1;
 
         ChartData->GetDBPlyPoint(dbIndex, 0, &plylat, &plylon);
-//        Current_Ch->latlong_to_pix_vp(plylat, plylon, pixx, pixy, vp);      //0
         GetPointPix(plylat, plylon, &r);
         pixx = r.x;
         pixy = r.y;
@@ -1935,7 +1936,6 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp)
         {
               ChartData->GetDBPlyPoint(dbIndex, i+1, &plylat1, &plylon1);
 
-//              Current_Ch->latlong_to_pix_vp(plylat1, plylon1, pixx1, pixy1, vp);
               GetPointPix(plylat1, plylon1, &r1);
               pixx1 = r1.x;
               pixy1 = r1.y;
@@ -1955,7 +1955,6 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp)
         }
 
         ChartData->GetDBPlyPoint(dbIndex, 0, &plylat1, &plylon1);
-//        Current_Ch->latlong_to_pix_vp(plylat1, plylon1, pixx1, pixy1, vp);
         GetPointPix(plylat1, plylon1, &r1);
         pixx1 = r1.x;
         pixy1 = r1.y;
@@ -2186,7 +2185,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
       if(bNewMap && (bShowTide || bShowCurrent || g_bShowOutlines))
       {
         delete pss_overlay_bmp;
-        pss_overlay_bmp = DrawTCBitmap(bNewMap);
+        pss_overlay_bmp = DrawTCCBitmap(bNewMap);
       }
 
 //    blit the semi-static overlay onto the scratch DC if it is needed
@@ -2268,7 +2267,7 @@ void ChartCanvas::SetMyCursor(wxCursor *c)
 //  Get a wxBitmap with wxMask associated containing the semi-static overlays
 //----------------------------------------------------------------------------
 
-wxBitmap *ChartCanvas::DrawTCBitmap(bool bAddNewSelpoints)
+wxBitmap *ChartCanvas::DrawTCCBitmap(bool bAddNewSelpoints)
 {
     wxBitmap *p_bmp = new wxBitmap(VPoint.pix_width, VPoint.pix_height, -1);
 
@@ -2286,7 +2285,15 @@ wxBitmap *ChartCanvas::DrawTCBitmap(bool bAddNewSelpoints)
     wxMemoryDC ssdc_mask;
     wxBitmap mask_bmp(VPoint.pix_width, VPoint.pix_height, 1);
     ssdc_mask.SelectObject(mask_bmp);
+
+    //      On X11, the drawing is Black on White, and the mask bitmap is inverted before
+    //      making into a mask.
+    //      On MSW and GTK, the drawing is White on Black, and no inversion is required
+    //      Todo....  Some wxWidgets problem with this....
+#ifndef __WXX11__
     ssdc_mask.SetBackground(*wxBLACK_BRUSH);
+#endif
+
     ssdc_mask.Clear();
 
 //    Maybe draw the Tide Points
@@ -2326,22 +2333,27 @@ wxBitmap *ChartCanvas::DrawTCBitmap(bool bAddNewSelpoints)
       {
           //    Todo... Speed this up....
         RenderAllChartOutlines(&ssdc, VPoint) ;
-        RenderAllChartOutlines(&ssdc_mask, VPoint) ;       // onto the mask
+        RenderAllChartOutlines(&ssdc_mask, VPoint, true) ;       // onto the mask
       }
     ssdc.SelectObject(wxNullBitmap);
 
-    //      Invert the mono bmp, to make a useable mask bmp
-//    wxMemoryDC ssdc_mask_invert;
-//    wxBitmap mask_bmp_invert(VPoint.pix_width, VPoint.pix_height, 1);
-//    ssdc_mask_invert.SelectObject(mask_bmp_invert);
-//    ssdc_mask_invert.Blit(0, 0, VPoint.pix_width, VPoint.pix_height,
-//                          &ssdc_mask, 0, 0, wxSRC_INVERT);
+#ifdef __WXX11__
+   //      Invert the mono bmp, to make a useable mask bmp
+    wxMemoryDC ssdc_mask_invert;
+    wxBitmap mask_bmp_invert(VPoint.pix_width, VPoint.pix_height, 1);
+    ssdc_mask_invert.SelectObject(mask_bmp_invert);
+    ssdc_mask_invert.Blit(0, 0, VPoint.pix_width, VPoint.pix_height,
+                          &ssdc_mask, 0, 0, wxSRC_INVERT);
 
-//    ssdc_mask_invert.SelectObject(wxNullBitmap);
+    ssdc_mask_invert.SelectObject(wxNullBitmap);
+    pss_overlay_mask = new wxMask(mask_bmp_invert);
     ssdc_mask.SelectObject(wxNullBitmap);
+#else
+    ssdc_mask.SelectObject(wxNullBitmap);
+    pss_overlay_mask = new wxMask(mask_bmp);
+#endif
 
     //      Create and associate the mask
-    pss_overlay_mask = new wxMask(mask_bmp);
     p_bmp->SetMask(pss_overlay_mask);
 
     return p_bmp;
@@ -2424,14 +2436,20 @@ void ChartCanvas::DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox,
       wxBrush *pgray_brush = wxTheBrushList->FindOrCreateBrush(wxColour(96,96,96), wxSOLID);
       wxBrush *pblack_brush = wxTheBrushList->FindOrCreateBrush(wxColour(0,0,0), wxSOLID);
 
-      wxPen *pwhite_pen = wxThePenList->FindOrCreatePen(wxColour(255,255,255), 1, wxSOLID);
-      wxBrush *pwhite_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,255), wxSOLID);
 
       if(bdraw_mono)
       {
-          pgreen_pen = pwhite_pen;
-          pgreen_brush = pwhite_brush;
-          pgray_brush = pwhite_brush;
+#ifdef __WXX11__
+          wxPen *pmono_pen = wxBLACK_PEN;
+          wxBrush *pmono_brush = wxBLACK_BRUSH;
+#else
+          wxPen *pmono_pen = wxWHITE_PEN;
+          wxBrush *pmono_brush = wxWHITE_BRUSH;
+#endif
+
+          pgreen_pen = pmono_pen;
+          pgreen_brush = pmono_brush;
+          pgray_brush = pmono_brush;
       }
 
 
@@ -2517,19 +2535,23 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
       float lat_last;
 
       wxPen *porange_pen = wxThePenList->FindOrCreatePen(wxColour(255,108,0), 1, wxSOLID);
-      wxPen *pblack_pen = wxThePenList->FindOrCreatePen(wxColour(0,0,0), 1, wxSOLID);
       wxBrush *porange_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,108,0), wxSOLID);
       wxBrush *pgray_brush = wxTheBrushList->FindOrCreateBrush(wxColour(96,96,96), wxSOLID);
-      wxBrush *pblack_brush = wxTheBrushList->FindOrCreateBrush(wxColour(0,0,0), wxSOLID);
 
-      wxPen *pwhite_pen = wxThePenList->FindOrCreatePen(wxColour(255,255,255), 1, wxSOLID);
-      wxBrush *pwhite_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,255), wxSOLID);
 
       if(bdraw_mono)
       {
-          porange_pen = pwhite_pen;
-          porange_brush = pwhite_brush;
-          pgray_brush = pwhite_brush;
+#ifdef __WXX11__
+          wxPen *pmono_pen = wxBLACK_PEN;
+          wxBrush *pmono_brush = wxBLACK_BRUSH;
+#else
+          wxPen *pmono_pen = wxWHITE_PEN;
+          wxBrush *pmono_brush = wxWHITE_BRUSH;
+#endif
+
+          porange_pen = pmono_pen;
+          porange_brush = pmono_brush;
+          pgray_brush = pmono_brush;
       }
 
 

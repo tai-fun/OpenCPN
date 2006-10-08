@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.7 2006/10/08 02:40:58 dsr Exp $
+ * $Id: chart1.cpp,v 1.8 2006/10/08 14:15:00 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.8  2006/10/08 14:15:00  dsr
+ * no message
+ *
  * Revision 1.7  2006/10/08 02:40:58  dsr
  * *** empty log message ***
  *
@@ -166,7 +169,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.7 2006/10/08 02:40:58 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.8 2006/10/08 14:15:00 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -1292,23 +1295,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             DoStackDown();
             break;
 
-
-
-    case ID_WEST:
-    {
-//            int s = ps52plib->Color_Scheme;
-//            if(++s == S52_COL_SCHEME_MAX)
-//                    s = S52_DAY_BRIGHT;
-//            ps52plib->Color_Scheme = (Col_Scheme_t)s;
-
-//            if(Current_Ch)
-//                Current_Ch->InvalidateCache();
-
-//            cc1->SetbNewVP(true);
-//            cc1->Refresh(FALSE);
-            break;
-    }
-
     case ID_ZOOMIN:
     {
             cc1->SetVPScale(cc1->GetVPScale() / 2);
@@ -1667,6 +1653,22 @@ void MyFrame::OnFrameTimer1(wxTimerEvent& event)
       }
 #endif
 
+//  Force own-ship drawing parameters
+        cc1->Ship_Color = *wxRED;
+        cc1->Ship_Size  = 10;
+
+        if(Current_Ch->Chart_Error_Factor > 0.01)
+        {
+            cc1->Ship_Color = wxColor(255,255,0);
+            cc1->Ship_Size  = 20;
+        }
+
+        if(!bGPSValid)
+        {
+            cc1->Ship_Color = *wxWHITE;
+            cc1->Ship_Size  = 10;
+        }
+
 
       FrameTimer1.Start(1000,wxTIMER_CONTINUOUS);
 
@@ -1768,12 +1770,15 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       dc.SelectObject(tool_bm_dummy);
 
 // First, clear background
-// Using a color depending on the state of bGPSValid
+// Using a color depending on the state of bGPSValid and Chart_Error_Factor
       wxBrush *p_brush;
-      if(bGPSValid)
-          p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(200,220,200), wxSOLID);
-      else
-          p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(220,200,200), wxSOLID);
+      p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(200,220,200), wxSOLID);   // quiet green
+
+      if(Current_Ch->Chart_Error_Factor > .01)                                       // one percent error
+          p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,0), wxSOLID);   // loud yellow
+
+      if(!bGPSValid)
+          p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(220,200,200), wxSOLID);  // soft red
 
       dc.SetBackground(*p_brush);
       dc.Clear();
@@ -2558,7 +2563,7 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                 if(RX_BUFFER_FULL == rx_share_buffer_state)
                 {
                     int nchar = strlen(rx_share_buffer);
-                    strncpy (buf, rx_share_buffer, wxMin(nchar, LOCAL_BUFFER_LENGTH - 1));
+                    strncpy (buf, rx_share_buffer, wxMin(nchar + 1, LOCAL_BUFFER_LENGTH - 1));
                     rx_share_buffer_state = RX_BUFFER_EMPTY;
 
                     if(rx_share_buffer_length != strlen(rx_share_buffer))

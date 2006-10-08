@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.3 2006/10/08 00:36:44 dsr Exp $
+ * $Id: chartimg.cpp,v 1.4 2006/10/08 14:15:00 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.4  2006/10/08 14:15:00  dsr
+ * no message
+ *
  * Revision 1.3  2006/10/08 00:36:44  dsr
  * no message
  *
@@ -122,7 +125,7 @@
       extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.3 2006/10/08 00:36:44 dsr Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.4 2006/10/08 14:15:00 dsr Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -374,6 +377,8 @@ ChartBase::ChartBase()
       m_color_scheme = COLOR_SCHEME_DEFAULT;
 
       bReadyToRender = false;
+
+      Chart_Error_Factor = 0;
 }
 
 ChartBase::~ChartBase()
@@ -675,7 +680,6 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 
 
 //          Extract the remaining data from .NOS Bitmap file
-
       ifs_bitmap = NULL;
 
       wxString NOS_Name(*pBitmapFilePath);            // take a copy
@@ -1230,6 +1234,7 @@ ChartBaseBSB::ChartBaseBSB()
       for(int i = 0 ; i < N_COLOR_SCHEMES ; i++)
             pPalettes[i] = NULL;
 
+      bGeoErrorSent = false;
 }
 
 ChartBaseBSB::~ChartBaseBSB()
@@ -3500,45 +3505,19 @@ found_order:
       ypl_err_max_feet = fabs(ypl_err_max * 60 * 5280 * 1.15);
 
 
-      if(fabs(xpl_err_max) > (fabs(lonmax - lonmin) * .01))
-            return(1);
-      if(fabs(ypl_err_max) > (fabs(latmax - latmin) * .01))
-            return(1);
+      if(fabs(xpl_err_max) > (fabs(lonmax - lonmin) * .01) ||
+         fabs(ypl_err_max) > (fabs(latmax - latmin) * .01))
+      {
+          if(!bGeoErrorSent)
+          {
+             wxLogMessage("Georeference error bounds excessive on chart %s", pFullPath->c_str());
+             bGeoErrorSent = true;
+          }
+      }
 
+      Chart_Error_Factor = fmax(fabs(xpl_err_max/(lonmax - lonmin)), fabs(ypl_err_max/(latmax - latmin)));
 
       return(0);
 
 }
 
-//-------------------------------------------------------------------------------
-//    Threaded ChartBaseBSB Implementation
-//-------------------------------------------------------------------------------
-
-ThreadChartBaseBSB::ThreadChartBaseBSB(ChartBase *pCh)
-{
-      ChartFileName = *(pCh->pFullPath);
-
-      wxLogMessage(" Thread::ctor File name...%s", ChartFileName.c_str());
-}
-
-
-
-void* ThreadChartBaseBSB::Entry()
-{
-      wxLogMessage("Thread::Entry  Entry()");
-      wxLogMessage("Thread::Entry  Do Stuff");
-
-//    wxLogMessage("Thread::Entry  Calling Exit()");
-
-//    Exit(0);
-
-      return 0;               // for compiler
-
-}
-
-
-void ThreadChartBaseBSB::OnExit()
-{
-      wxLogMessage("Thread::OnExit()");
-
-}

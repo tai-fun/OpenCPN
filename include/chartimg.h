@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
+ * $Id: chartimg.h,v 1.4 2006/10/08 14:15:15 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.4  2006/10/08 14:15:15  dsr
+ * no message
+ *
  * Revision 1.3  2006/10/08 00:36:25  dsr
  * no message
  *
@@ -322,23 +325,8 @@ protected:
       int         *pPalette;
       PaletteDir  palette_direction;
 
+      bool        bGeoErrorSent;
 };
-
-// ----------------------------------------------------------------------------
-// ThreadedChartBaseBSB
-// ----------------------------------------------------------------------------
-
-class  ThreadChartBaseBSB : public wxThread
-{
-public:
-     ThreadChartBaseBSB(ChartBase *pCh);
-     void* Entry();
-     void OnExit();
-
-private:
-      wxString    ChartFileName;
-};
-
 
 
 // ----------------------------------------------------------------------------

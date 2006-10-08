@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.6 2006/10/08 00:36:45 dsr Exp $
+ * $Id: nmea.cpp,v 1.7 2006/10/08 14:15:00 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.7  2006/10/08 14:15:00  dsr
+ * no message
+ *
  * Revision 1.6  2006/10/08 00:36:45  dsr
  * no message
  *
@@ -97,7 +100,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.6 2006/10/08 00:36:45 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.7 2006/10/08 14:15:00 dsr Exp $");
 
 //    Forward Declarations
 
@@ -511,9 +514,6 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
 void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 {
-
- wxStopWatch sw1, swt;
-// wxLogMessage("OnNTimer1");
       TimerNMEA.Stop();
 
       if(m_sock)
@@ -1013,9 +1013,6 @@ void *OCP_NMEA_Thread::Entry()
 
 }
 #endif
-
-
-
 
 #endif          //__LINUX__
 

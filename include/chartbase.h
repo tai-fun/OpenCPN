@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
+ * $Id: chartbase.h,v 1.4 2006/10/08 14:15:15 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.4  2006/10/08 14:15:15  dsr
+ * no message
+ *
  * Revision 1.3  2006/10/08 00:36:25  dsr
  * no message
  *
@@ -217,6 +220,8 @@ public:
 
       ColorScheme       m_color_scheme;
       bool              bReadyToRender;
+
+      double            Chart_Error_Factor;
 };
 
 

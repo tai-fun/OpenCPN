@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.4 2006/10/08 04:37:51 dsr Exp $
+ * $Id: chcanv.h,v 1.5 2006/10/08 14:15:15 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.5  2006/10/08 14:15:15  dsr
+ * no message
+ *
  * Revision 1.4  2006/10/08 04:37:51  dsr
  * no message
  *
@@ -218,6 +221,8 @@ public:
       TCWin       *pCwin;
       ViewPort    VPoint;
       wxBitmap    *pscratch_bm;
+      wxColour    Ship_Color;
+      int         Ship_Size;
 
 private:
       bool        bNewVP;
@@ -282,11 +287,11 @@ private:
       void DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSelList,
                         bool bdraw_mono = false);
       void DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
-                           bool bRebuildSelList, bool bforce_redraw_currents,bool bdraw_mono = false);
+                           bool bRebuildSelList, bool bforce_redraw_currents, bool bdraw_mono = false);
       void DrawTCWindow(int x, int y, void *pIDX);
-      void RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp);
-      void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp);
-      wxBitmap *DrawTCBitmap(bool bAddNewSelpoints);
+      void RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool bdraw_mono = false);
+      void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono = false);
+      wxBitmap *DrawTCCBitmap(bool bAddNewSelpoints);
 
 
       //    Data

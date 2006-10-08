@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.3 2006/10/08 00:36:44 dsr Exp $
+ * $Id: chartdb.cpp,v 1.4 2006/10/08 14:15:00 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.4  2006/10/08 14:15:00  dsr
+ * no message
+ *
  * Revision 1.3  2006/10/08 00:36:44  dsr
  * no message
  *
@@ -102,7 +105,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.3 2006/10/08 00:36:44 dsr Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.4 2006/10/08 14:15:00 dsr Exp $");
 
 // ============================================================================
 // implementation
@@ -662,9 +665,8 @@ bool ChartDB::CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEnt
             pEntry->ChartType = CHART_TYPE_GEO;
       }
 
-
       pch->Init(full_name, HEADER_ONLY, COLOR_SCHEME_DEFAULT);
-
+      
       char *pt = (char *)malloc(full_name.Length() + 1);
       strcpy(pt, full_name.GetData());
       pEntry->pFullPath = pt;
@@ -1489,8 +1491,6 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
       for(i=0 ; i<nEntry ; i++)
       {
           wxString tt(pChartTable[i].pFullPath);
-//          if (tt.Contains("5NY1CM"))
-//              int ggl = 5;
 
 //    First check on rough Bounding box
             if((lat < pChartTable[i].LatMax) &&
