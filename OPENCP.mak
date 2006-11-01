@@ -99,6 +99,7 @@ CLEAN :
 	-@erase ".\Release\ogrpolygon.obj"
 	-@erase ".\Release\ogrlinestring.obj"
 	-@erase ".\Release\ogrmultipolygon.obj"
+	-@erase ".\Release\ais.obj"
 	-@erase ".\Release\gdal_misc.obj"
 	-@erase ".\Release\statwin.obj"
 	-@erase ".\Release\ogrfeaturedefn.obj"
@@ -233,6 +234,7 @@ LINK32_OBJS= \
 	"$(INTDIR)/ogrpolygon.obj" \
 	"$(INTDIR)/ogrlinestring.obj" \
 	"$(INTDIR)/ogrmultipolygon.obj" \
+	"$(INTDIR)/ais.obj" \
 	"$(INTDIR)/gdal_misc.obj" \
 	"$(INTDIR)/statwin.obj" \
 	"$(INTDIR)/ogrfeaturedefn.obj" \
@@ -348,6 +350,7 @@ CLEAN :
 	-@erase ".\Debug\chartdb.obj"
 	-@erase ".\Debug\nmea0183.obj"
 	-@erase ".\Debug\cpl_string.obj"
+	-@erase ".\Debug\ais.obj"
 	-@erase ".\Debug\s52cnsy.obj"
 	-@erase ".\Debug\ogrfeature.obj"
 	-@erase ".\Debug\gml2ogrgeometry.obj"
@@ -482,6 +485,7 @@ LINK32_OBJS= \
 	"$(INTDIR)/chartdb.obj" \
 	"$(INTDIR)/nmea0183.obj" \
 	"$(INTDIR)/cpl_string.obj" \
+	"$(INTDIR)/ais.obj" \
 	"$(INTDIR)/s52cnsy.obj" \
 	"$(INTDIR)/ogrfeature.obj" \
 	"$(INTDIR)/gml2ogrgeometry.obj" \
@@ -602,56 +606,53 @@ DEP_CPP_THUMB=\
 	".\include\chartdb.h"\
 	".\include\chcanv.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/memory.h"\
-	"\wx262\include\wx/xti.h"\
-	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/msw/private.h"\
+	"\wx262\include\wx/print.h"\
+	"\wx262\include\wx/file.h"\
+	"\wx262\include\wx/stream.h"\
+	"\wx262\include\wx/wfstream.h"\
+	"\wx262\include\wx/tokenzr.h"\
+	"\wx262\include\wx/dir.h"\
+	"\wx262\include\wx/filename.h"\
+	".\include\chartbase.h"\
+	".\include\s52s57.h"\
 	"\wx262\include\wx/string.h"\
-	"\wx262\include\wx/msgout.h"\
-	{$(INCLUDE)}"\Strings.h"\
-	"\wx262\include\wx/buffer.h"\
+	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/strconv.h"\
+	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
+	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/beforestd.h"\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
-	"\wx262\include\wx/fontenc.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
+	"\wx262\include\wx/msw/winundef.h"\
 	"\wx262\include\wx/dynarray.h"\
+	"\wx262\include\wx/list.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/xti.h"\
+	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
 	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
+	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/ffile.h"\
+	"\wx262\include\wx/datetime.h"\
+	"\wx262\include\wx/longlong.h"\
 	".\include\bitmapo.h"\
+	".\include\bbox.h"\
+	".\include\dymemdc.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/gdiobj.h"\
@@ -659,83 +660,9 @@ DEP_CPP_THUMB=\
 	"\wx262\include\wx/palmos/palette.h"\
 	"\wx262\include\wx/msw/palette.h"\
 	"\wx262\include\wx/generic/paletteg.h"\
-	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/clntdata.h"\
-	"\wx262\include\wx/cursor.h"\
-	"\wx262\include\wx/thread.h"\
-	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/window.h"\
-	"\wx262\include\wx/font.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/stream.h"\
-	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/accel.h"\
-	"\wx262\include\wx/access.h"\
-	"\wx262\include\wx/palmos/window.h"\
-	"\wx262\include\wx/msw/window.h"\
-	"\wx262\include\wx/univ/window.h"\
-	"\wx262\include\wx/palmos/region.h"\
-	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/generic/accel.h"\
-	"\wx262\include\wx/msw/accel.h"\
-	"\wx262\include\wx/variant.h"\
-	"\wx262\include\wx/msw/ole/access.h"\
-	"\wx262\include\wx/datetime.h"\
-	"\wx262\include\wx/db.h"\
-	"\wx262\include\wx/isql.h"\
-	"\wx262\include\wx/isqlext.h"\
-	"\wx262\include\wx/hash.h"\
-	"\wx262\include\wx/bitmap.h"\
-	"\wx262\include\wx/palmos/bitmap.h"\
-	"\wx262\include\wx/msw/bitmap.h"\
-	"\wx262\include\wx/palmos/font.h"\
-	"\wx262\include\wx/msw/font.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
-	"\wx262\include\wx/univ/inpcons.h"\
-	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
-	"\wx262\include\wx/file.h"\
-	"\wx262\include\wx/wfstream.h"\
-	"\wx262\include\wx/tokenzr.h"\
-	"\wx262\include\wx/dir.h"\
-	"\wx262\include\wx/filename.h"\
-	".\include\chartbase.h"\
-	".\include\s52s57.h"\
-	"\wx262\include\wx/ffile.h"\
-	".\include\bbox.h"\
-	".\include\dymemdc.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
@@ -743,10 +670,23 @@ DEP_CPP_THUMB=\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/dc.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
+	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/brush.h"\
 	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/palmos/font.h"\
+	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
+	"\wx262\include\wx/palmos/bitmap.h"\
+	"\wx262\include\wx/msw/bitmap.h"\
 	"\wx262\include\wx/palmos/brush.h"\
 	"\wx262\include\wx/msw/brush.h"\
 	"\wx262\include\wx/palmos/pen.h"\
@@ -757,18 +697,8 @@ DEP_CPP_THUMB=\
 	".\include\tcmgr.h"\
 	
 NODEP_CPP_THUMB=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
@@ -782,71 +712,6 @@ NODEP_CPP_THUMB=\
 	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -861,6 +726,33 @@ NODEP_CPP_THUMB=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
@@ -933,10 +825,49 @@ DEP_CPP_THUMB=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -950,26 +881,14 @@ DEP_CPP_THUMB=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -983,20 +902,18 @@ DEP_CPP_THUMB=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -1008,6 +925,8 @@ DEP_CPP_THUMB=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -1020,31 +939,129 @@ DEP_CPP_THUMB=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	".\include\bitmapo.h"\
@@ -1053,12 +1070,6 @@ DEP_CPP_THUMB=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/wfstream.h"\
 	"\wx262\include\wx/tokenzr.h"\
@@ -1080,20 +1091,6 @@ NODEP_CPP_THUMB=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -1101,13 +1098,6 @@ NODEP_CPP_THUMB=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -1130,17 +1120,19 @@ NODEP_CPP_THUMB=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -1171,18 +1163,6 @@ NODEP_CPP_THUMB=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -1197,31 +1177,181 @@ NODEP_CPP_THUMB=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\include\wx\x11\private.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	
 
 "$(INTDIR)\thumbwin.obj" : $(SOURCE) $(DEP_CPP_THUMB) "$(INTDIR)"
@@ -1247,70 +1377,43 @@ DEP_CPP_TCMGR=\
 	"\wx262\include\wx/textfile.h"\
 	".\include\tcmgr.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/msw/private.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
 	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/memory.h"\
-	"\wx262\include\wx/xti.h"\
-	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/dynarray.h"\
 	"\wx262\include\wx/string.h"\
-	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/iosfwrap.h"\
 	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
 	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/strconv.h"\
 	"\wx262\include\wx/beforestd.h"\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
-	"\wx262\include\wx/iosfwrap.h"\
-	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
-	"\wx262\include\wx/flags.h"\
-	"\wx262\include\wx/hashmap.h"\
-	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
+	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/msw/winundef.h"\
 	"\wx262\include\wx/textbuf.h"\
 	"\wx262\include\wx/file.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/list.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/xti.h"\
+	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/flags.h"\
+	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
+	"\wx262\include\wx/intl.h"\
+	"\wx262\include\wx/generic/logg.h"\
 	
 NODEP_CPP_TCMGR=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	
 
 "$(INTDIR)\tcmgr.obj" : $(SOURCE) $(DEP_CPP_TCMGR) "$(INTDIR)"
@@ -1364,10 +1467,49 @@ DEP_CPP_TCMGR=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -1381,26 +1523,14 @@ DEP_CPP_TCMGR=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -1414,20 +1544,18 @@ DEP_CPP_TCMGR=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -1438,6 +1566,8 @@ DEP_CPP_TCMGR=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -1450,31 +1580,129 @@ DEP_CPP_TCMGR=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/textbuf.h"\
@@ -1485,20 +1713,6 @@ NODEP_CPP_TCMGR=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -1506,13 +1720,6 @@ NODEP_CPP_TCMGR=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -1535,17 +1742,19 @@ NODEP_CPP_TCMGR=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -1576,18 +1785,6 @@ NODEP_CPP_TCMGR=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -1602,22 +1799,178 @@ NODEP_CPP_TCMGR=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	
 
 "$(INTDIR)\tcmgr.obj" : $(SOURCE) $(DEP_CPP_TCMGR) "$(INTDIR)"
@@ -1643,54 +1996,8 @@ DEP_CPP_STATW=\
 	".\include\chart1.h"\
 	".\include\chartbase.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/memory.h"\
-	"\wx262\include\wx/xti.h"\
-	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/string.h"\
-	"\wx262\include\wx/msgout.h"\
-	{$(INCLUDE)}"\Strings.h"\
-	"\wx262\include\wx/buffer.h"\
-	"\wx262\include\wx/strconv.h"\
-	"\wx262\include\wx/beforestd.h"\
-	"\wx262\include\wx/afterstd.h"\
-	"\wx262\include\wx/arrstr.h"\
-	"\wx262\include\wx/iosfwrap.h"\
-	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
-	"\wx262\include\wx/flags.h"\
-	"\wx262\include\wx/hashmap.h"\
-	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
+	"\wx262\include\wx/msw/private.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/stream.h"\
 	"\wx262\include\wx/wfstream.h"\
@@ -1698,97 +2005,79 @@ DEP_CPP_STATW=\
 	"\wx262\include\wx/dir.h"\
 	"\wx262\include\wx/filename.h"\
 	".\include\s52s57.h"\
+	"\wx262\include\wx/string.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/strconv.h"\
+	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
+	"\wx262\include\wx/buffer.h"\
+	"\wx262\include\wx/beforestd.h"\
+	"\wx262\include\wx/afterstd.h"\
+	"\wx262\include\wx/arrstr.h"\
+	"\wx262\include\wx/iosfwrap.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
+	"\wx262\include\wx/msw/winundef.h"\
+	"\wx262\include\wx/dynarray.h"\
+	"\wx262\include\wx/list.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/xti.h"\
+	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/flags.h"\
+	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
+	"\wx262\include\wx/intl.h"\
+	"\wx262\include\wx/generic/logg.h"\
+	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/ffile.h"\
 	"\wx262\include\wx/datetime.h"\
+	"\wx262\include\wx/longlong.h"\
 	".\include\gpc.h"\
 	".\include\bbox.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/clntdata.h"\
-	"\wx262\include\wx/cursor.h"\
-	"\wx262\include\wx/thread.h"\
-	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
-	"\wx262\include\wx/window.h"\
-	"\wx262\include\wx/font.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
-	"\wx262\include\wx/accel.h"\
-	"\wx262\include\wx/access.h"\
-	"\wx262\include\wx/palmos/window.h"\
-	"\wx262\include\wx/msw/window.h"\
-	"\wx262\include\wx/univ/window.h"\
-	"\wx262\include\wx/palmos/region.h"\
-	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
-	"\wx262\include\wx/generic/accel.h"\
-	"\wx262\include\wx/msw/accel.h"\
-	"\wx262\include\wx/variant.h"\
-	"\wx262\include\wx/msw/ole/access.h"\
-	"\wx262\include\wx/db.h"\
-	"\wx262\include\wx/isql.h"\
-	"\wx262\include\wx/isqlext.h"\
-	"\wx262\include\wx/hash.h"\
-	"\wx262\include\wx/bitmap.h"\
-	"\wx262\include\wx/palmos/bitmap.h"\
-	"\wx262\include\wx/msw/bitmap.h"\
-	"\wx262\include\wx/palmos/font.h"\
-	"\wx262\include\wx/msw/font.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
-	"\wx262\include\wx/univ/inpcons.h"\
-	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	".\include\bitmapo.h"\
 	".\include\dymemdc.h"\
 	".\include\chcanv.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/gdiobj.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
 	"\wx262\include\wx/msw/dib.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/dc.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
+	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/brush.h"\
 	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/palmos/font.h"\
+	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
+	"\wx262\include\wx/palmos/bitmap.h"\
+	"\wx262\include\wx/msw/bitmap.h"\
 	"\wx262\include\wx/palmos/brush.h"\
 	"\wx262\include\wx/msw/brush.h"\
 	"\wx262\include\wx/palmos/pen.h"\
@@ -1798,27 +2087,9 @@ DEP_CPP_STATW=\
 	".\include\tcmgr.h"\
 	
 NODEP_CPP_STATW=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
@@ -1826,68 +2097,11 @@ NODEP_CPP_STATW=\
 	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
-	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -1902,6 +2116,33 @@ NODEP_CPP_STATW=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
@@ -1974,10 +2215,49 @@ DEP_CPP_STATW=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -1991,26 +2271,14 @@ DEP_CPP_STATW=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -2024,20 +2292,18 @@ DEP_CPP_STATW=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -2049,6 +2315,8 @@ DEP_CPP_STATW=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -2061,31 +2329,129 @@ DEP_CPP_STATW=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/file.h"\
@@ -2104,12 +2470,6 @@ DEP_CPP_STATW=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	".\include\bitmapo.h"\
 	".\include\dymemdc.h"\
 	".\include\chcanv.h"\
@@ -2121,20 +2481,6 @@ NODEP_CPP_STATW=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -2142,13 +2488,6 @@ NODEP_CPP_STATW=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -2171,17 +2510,19 @@ NODEP_CPP_STATW=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -2212,18 +2553,6 @@ NODEP_CPP_STATW=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -2238,30 +2567,180 @@ NODEP_CPP_STATW=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	".\include\wx\x11\private.h"\
 	
 
@@ -2283,68 +2762,6 @@ DEP_CPP_SERCO=\
 	".\include\dychart.h"\
 	".\include\sercomm.h"\
 	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/memory.h"\
-	"\wx262\include\wx/xti.h"\
-	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/string.h"\
-	"\wx262\include\wx/msgout.h"\
-	{$(INCLUDE)}"\Strings.h"\
-	"\wx262\include\wx/buffer.h"\
-	"\wx262\include\wx/strconv.h"\
-	"\wx262\include\wx/beforestd.h"\
-	"\wx262\include\wx/afterstd.h"\
-	"\wx262\include\wx/arrstr.h"\
-	"\wx262\include\wx/iosfwrap.h"\
-	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
-	"\wx262\include\wx/flags.h"\
-	"\wx262\include\wx/hashmap.h"\
-	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	
-NODEP_CPP_SERCO=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	
 
 "$(INTDIR)\sercomm.obj" : $(SOURCE) $(DEP_CPP_SERCO) "$(INTDIR)"
@@ -2453,60 +2870,45 @@ DEP_CPP_ROUTE=\
 	".\include\navutil.h"\
 	".\include\chartbase.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
+	"\wx262\include\wx/msw/private.h"\
+	".\include\tcmgr.h"\
+	".\include\bbox.h"\
+	"\wx262\include\wx/datetime.h"\
+	"\wx262\include\wx/matrix.h"\
+	"\wx262\include\wx/geometry.h"\
 	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
 	"\wx262\include\wx/memory.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/msgout.h"\
 	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
 	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/strconv.h"\
 	"\wx262\include\wx/beforestd.h"\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/msw/winundef.h"\
 	"\wx262\include\wx/dynarray.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
 	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	".\include\tcmgr.h"\
-	".\include\bbox.h"\
-	"\wx262\include\wx/datetime.h"\
-	"\wx262\include\wx/matrix.h"\
-	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/list.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/longlong.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/socket.h"\
 	"\wx262\include\wx/event.h"\
 	"\wx262\include\wx/sckaddr.h"\
@@ -2525,6 +2927,8 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/dlimpexp.h"\
 	"\wx262\include\wx/msw/gsockmsw.h"\
 	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
 	".\src\nmea0183\nmea0183.hpp"\
 	".\src\nmea0183\Sentence.hpp"\
 	".\src\nmea0183\Response.hpp"\
@@ -2557,6 +2961,7 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/msw/toplevel.h"\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/palette.h"\
@@ -2567,6 +2972,8 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/univ/window.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
 	"\wx262\include\wx/palmos/palette.h"\
@@ -2613,30 +3020,10 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	
 NODEP_CPP_ROUTE=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
@@ -2681,6 +3068,13 @@ NODEP_CPP_ROUTE=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
@@ -2744,14 +3138,6 @@ NODEP_CPP_ROUTE=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	
 
 "$(INTDIR)\routeman.obj" : $(SOURCE) $(DEP_CPP_ROUTE) "$(INTDIR)"
@@ -2810,10 +3196,49 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -2827,26 +3252,14 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -2860,20 +3273,18 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -2885,6 +3296,8 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -2897,31 +3310,129 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	".\include\tcmgr.h"\
@@ -2950,12 +3461,8 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/textbuf.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/msw/registry.h"\
-	"\wx262\include\wx/dialog.h"\
 	"\wx262\include\wx/generic/fontdlgg.h"\
 	"\wx262\include\wx/msw/fontdlg.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	".\include\bitmapo.h"\
 	".\include\dymemdc.h"\
 	".\include\chart1.h"\
@@ -2965,28 +3472,12 @@ DEP_CPP_ROUTE=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
 	
 NODEP_CPP_ROUTE=\
 	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -2994,13 +3485,6 @@ NODEP_CPP_ROUTE=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -3023,17 +3507,19 @@ NODEP_CPP_ROUTE=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -3064,18 +3550,6 @@ NODEP_CPP_ROUTE=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -3090,35 +3564,185 @@ NODEP_CPP_ROUTE=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
 	
 
 "$(INTDIR)\routeman.obj" : $(SOURCE) $(DEP_CPP_ROUTE) "$(INTDIR)"
@@ -3144,6 +3768,7 @@ DEP_CPP_NMEA_=\
 	".\include\chart1.h"\
 	".\include\sercomm.h"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/arrstr.h"\
@@ -3168,123 +3793,39 @@ DEP_CPP_NMEA_=\
 	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/strconv.h"\
 	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/socket.h"\
 	"\wx262\include\wx/datetime.h"\
 	"\wx262\include\wx/event.h"\
 	"\wx262\include\wx/sckaddr.h"\
 	"\wx262\include\wx/gsocket.h"\
+	"\wx262\include\wx/list.h"\
 	"\wx262\include\wx/clntdata.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
 	"\wx262\include\wx/palmos/cursor.h"\
 	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/palmos/gdiimage.h"\
 	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/longlong.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/dlimpexp.h"\
 	"\wx262\include\wx/msw/gsockmsw.h"\
 	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/window.h"\
-	"\wx262\include\wx/font.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/stream.h"\
-	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
-	"\wx262\include\wx/accel.h"\
-	"\wx262\include\wx/access.h"\
-	"\wx262\include\wx/palmos/window.h"\
-	"\wx262\include\wx/msw/window.h"\
-	"\wx262\include\wx/univ/window.h"\
-	"\wx262\include\wx/palmos/region.h"\
-	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
-	"\wx262\include\wx/generic/accel.h"\
-	"\wx262\include\wx/msw/accel.h"\
-	"\wx262\include\wx/variant.h"\
-	"\wx262\include\wx/msw/ole/access.h"\
-	"\wx262\include\wx/db.h"\
-	"\wx262\include\wx/isql.h"\
-	"\wx262\include\wx/isqlext.h"\
-	"\wx262\include\wx/hash.h"\
-	"\wx262\include\wx/bitmap.h"\
-	"\wx262\include\wx/palmos/bitmap.h"\
-	"\wx262\include\wx/msw/bitmap.h"\
-	"\wx262\include\wx/palmos/font.h"\
-	"\wx262\include\wx/msw/font.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
-	"\wx262\include\wx/univ/inpcons.h"\
-	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	
 NODEP_CPP_NMEA_=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
@@ -3299,70 +3840,8 @@ NODEP_CPP_NMEA_=\
 	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	
 
 "$(INTDIR)\nmea.obj" : $(SOURCE) $(DEP_CPP_NMEA_) "$(INTDIR)"
@@ -3416,10 +3895,49 @@ DEP_CPP_NMEA_=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -3433,26 +3951,14 @@ DEP_CPP_NMEA_=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -3466,20 +3972,18 @@ DEP_CPP_NMEA_=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -3491,6 +3995,8 @@ DEP_CPP_NMEA_=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -3503,31 +4009,129 @@ DEP_CPP_NMEA_=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/socket.h"\
@@ -3540,32 +4144,12 @@ DEP_CPP_NMEA_=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	
 NODEP_CPP_NMEA_=\
 	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -3573,13 +4157,6 @@ NODEP_CPP_NMEA_=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -3602,17 +4179,19 @@ NODEP_CPP_NMEA_=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -3643,18 +4222,6 @@ NODEP_CPP_NMEA_=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -3669,31 +4236,181 @@ NODEP_CPP_NMEA_=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	
 
 "$(INTDIR)\nmea.obj" : $(SOURCE) $(DEP_CPP_NMEA_) "$(INTDIR)"
@@ -3721,12 +4438,14 @@ DEP_CPP_NAVUT=\
 	".\include\chcanv.h"\
 	".\include\georef.h"\
 	".\include\nmea.h"\
+	".\include\ais.h"\
 	".\include\s52plib.h"\
 	"\wx262\include\wx/fontdlg.h"\
 	"\wx262\include\wx/fontenum.h"\
 	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/fontutil.h"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/arrstr.h"\
@@ -3751,41 +4470,36 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/strconv.h"\
 	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/list.h"\
+	"\wx262\include\wx/print.h"\
+	"\wx262\include\wx/config.h"\
+	"\wx262\include\wx/confbase.h"\
+	"\wx262\include\wx/fileconf.h"\
+	"\wx262\include\wx/msw/regconf.h"\
+	"\wx262\include\wx/msw/iniconf.h"\
+	".\include\bbox.h"\
+	"\wx262\include\wx/palmos/prefconf.h"\
+	"\wx262\include\wx/textfile.h"\
+	"\wx262\include\wx/textbuf.h"\
+	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/list.h"\
 	"\wx262\include\wx/msw/wince/time.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/registry.h"\
+	"\wx262\include\wx/matrix.h"\
+	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
+	"\wx262\include\wx/gdicmn.h"\
+	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/longlong.h"\
+	".\include\tcmgr.h"\
+	"\wx262\include\wx/datetime.h"\
+	".\include\sercomm.h"\
+	"\wx262\include\wx/socket.h"\
 	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
+	"\wx262\include\wx/sckaddr.h"\
+	"\wx262\include\wx/gsocket.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
@@ -3797,9 +4511,29 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/palmos/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/dlimpexp.h"\
+	"\wx262\include\wx/msw/gsockmsw.h"\
+	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
+	".\include\s52s57.h"\
+	".\include\gpc.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/generic/fontdlgg.h"\
+	"\wx262\include\wx/msw/fontdlg.h"\
+	"\wx262\include\wx/containr.h"\
+	"\wx262\include\wx/toplevel.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
 	"\wx262\include\wx/window.h"\
+	"\wx262\include\wx/iconbndl.h"\
+	"\wx262\include\wx/palmos/toplevel.h"\
+	"\wx262\include\wx/msw/toplevel.h"\
+	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/font.h"\
-	"\wx262\include\wx/stream.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/palette.h"\
@@ -3808,6 +4542,10 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/palmos/font.h"\
+	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
 	"\wx262\include\wx/palmos/palette.h"\
@@ -3817,7 +4555,6 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
 	"\wx262\include\wx/msw/ole/access.h"\
-	"\wx262\include\wx/datetime.h"\
 	"\wx262\include\wx/db.h"\
 	"\wx262\include\wx/isql.h"\
 	"\wx262\include\wx/isqlext.h"\
@@ -3825,72 +4562,21 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
-	"\wx262\include\wx/palmos/font.h"\
-	"\wx262\include\wx/msw/font.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
 	"\wx262\include\wx/icon.h"\
 	"\wx262\include\wx/iconloc.h"\
 	"\wx262\include\wx/palmos/icon.h"\
 	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
-	"\wx262\include\wx/config.h"\
-	"\wx262\include\wx/confbase.h"\
-	"\wx262\include\wx/fileconf.h"\
-	"\wx262\include\wx/msw/regconf.h"\
-	"\wx262\include\wx/msw/iniconf.h"\
-	".\include\bbox.h"\
-	"\wx262\include\wx/palmos/prefconf.h"\
-	"\wx262\include\wx/textfile.h"\
-	"\wx262\include\wx/textbuf.h"\
-	"\wx262\include\wx/file.h"\
-	"\wx262\include\wx/msw/registry.h"\
-	"\wx262\include\wx/matrix.h"\
-	"\wx262\include\wx/geometry.h"\
-	"\wx262\include\wx/math.h"\
-	".\include\tcmgr.h"\
-	".\include\sercomm.h"\
-	"\wx262\include\wx/socket.h"\
-	"\wx262\include\wx/sckaddr.h"\
-	"\wx262\include\wx/gsocket.h"\
-	"\wx262\include\wx/dlimpexp.h"\
-	"\wx262\include\wx/msw/gsockmsw.h"\
-	"\wx262\include\wx/unix/gsockunx.h"\
-	".\include\s52s57.h"\
-	".\include\gpc.h"\
-	"\wx262\include\wx/generic/fontdlgg.h"\
-	"\wx262\include\wx/msw/fontdlg.h"\
+	"\wx262\include\wx/panel.h"\
+	"\wx262\include\wx/generic/panelg.h"\
+	"\wx262\include\wx/stream.h"\
 	"\wx262\include\wx/unix/fontutil.h"\
 	
 NODEP_CPP_NAVUT=\
 	".\..\..\..\usr\X11R6\include\X11\Xlib.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
@@ -3905,6 +4591,22 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
@@ -3912,6 +4614,20 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
@@ -3934,26 +4650,6 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
@@ -3961,15 +4657,6 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\fontutil.h"\
 	
 
@@ -3990,6 +4677,7 @@ DEP_CPP_NAVUT=\
 	".\include\chcanv.h"\
 	".\include\georef.h"\
 	".\include\nmea.h"\
+	".\include\ais.h"\
 	".\include\s52plib.h"\
 	"\wx262\include\wx/fontdlg.h"\
 	"\wx262\include\wx/fontenum.h"\
@@ -4032,10 +4720,49 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -4049,26 +4776,14 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -4082,20 +4797,18 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -4107,6 +4820,8 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -4119,30 +4834,128 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/print.h"\
@@ -4150,12 +4963,6 @@ DEP_CPP_NAVUT=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	"\wx262\include\wx/config.h"\
 	"\wx262\include\wx/confbase.h"\
 	"\wx262\include\wx/fileconf.h"\
@@ -4188,20 +4995,6 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -4209,13 +5002,6 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -4238,17 +5024,19 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -4279,18 +5067,6 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -4305,30 +5081,180 @@ NODEP_CPP_NAVUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
@@ -4372,6 +5298,7 @@ DEP_CPP_DYMEM=\
 	".\include\dychart.h"\
 	".\include\dymemdc.h"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/list.h"\
 	"\wx262\include\wx/filefn.h"\
@@ -4400,23 +5327,6 @@ DEP_CPP_DYMEM=\
 	"\wx262\include\wx/msw/wince/time.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
@@ -4424,6 +5334,7 @@ DEP_CPP_DYMEM=\
 	"\wx262\include\wx/dc.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/brush.h"\
 	"\wx262\include\wx/pen.h"\
@@ -4435,11 +5346,14 @@ DEP_CPP_DYMEM=\
 	"\wx262\include\wx/msw/cursor.h"\
 	"\wx262\include\wx/palmos/gdiimage.h"\
 	"\wx262\include\wx/gdiobj.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/palmos/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
 	"\wx262\include\wx/palmos/brush.h"\
@@ -4455,16 +5369,6 @@ DEP_CPP_DYMEM=\
 NODEP_CPP_DYMEM=\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -4500,6 +5404,13 @@ NODEP_CPP_DYMEM=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
@@ -4582,10 +5493,49 @@ DEP_CPP_DYMEM=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -4598,26 +5548,14 @@ DEP_CPP_DYMEM=\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/msw/wince/time.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
@@ -4625,22 +5563,20 @@ DEP_CPP_DYMEM=\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/colour.h"\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -4653,6 +5589,8 @@ DEP_CPP_DYMEM=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -4665,31 +5603,129 @@ DEP_CPP_DYMEM=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/msw/microwin.h"\
 	"\wx262\include\wx/msw/mslu.h"\
@@ -4700,20 +5736,6 @@ NODEP_CPP_DYMEM=\
 	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -4721,13 +5743,6 @@ NODEP_CPP_DYMEM=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
@@ -4743,6 +5758,13 @@ NODEP_CPP_DYMEM=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
@@ -4756,11 +5778,6 @@ NODEP_CPP_DYMEM=\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -4791,18 +5808,6 @@ NODEP_CPP_DYMEM=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -4817,22 +5822,178 @@ NODEP_CPP_DYMEM=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	
 
@@ -4870,67 +6031,82 @@ DEP_CPP_CONCA=\
 	".\include\routeman.h"\
 	".\include\navutil.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/msw/private.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
 	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/memory.h"\
-	"\wx262\include\wx/xti.h"\
-	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/dynarray.h"\
 	"\wx262\include\wx/string.h"\
-	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/iosfwrap.h"\
 	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
 	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/strconv.h"\
 	"\wx262\include\wx/beforestd.h"\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
-	"\wx262\include\wx/iosfwrap.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
+	"\wx262\include\wx/msw/winundef.h"\
+	"\wx262\include\wx/print.h"\
+	"\wx262\include\wx/config.h"\
+	"\wx262\include\wx/confbase.h"\
+	"\wx262\include\wx/fileconf.h"\
+	"\wx262\include\wx/msw/regconf.h"\
+	"\wx262\include\wx/msw/iniconf.h"\
+	".\include\bbox.h"\
+	"\wx262\include\wx/fontdlg.h"\
+	"\wx262\include\wx/palmos/prefconf.h"\
+	"\wx262\include\wx/textfile.h"\
+	"\wx262\include\wx/textbuf.h"\
+	"\wx262\include\wx/file.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/list.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/xti.h"\
+	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
 	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/msw/registry.h"\
+	"\wx262\include\wx/matrix.h"\
+	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
+	"\wx262\include\wx/gdicmn.h"\
+	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/clntdata.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/generic/fontdlgg.h"\
+	"\wx262\include\wx/msw/fontdlg.h"\
+	"\wx262\include\wx/containr.h"\
+	"\wx262\include\wx/toplevel.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/window.h"\
+	"\wx262\include\wx/iconbndl.h"\
+	"\wx262\include\wx/palmos/toplevel.h"\
+	"\wx262\include\wx/msw/toplevel.h"\
+	"\wx262\include\wx/univ/toplevel.h"\
+	"\wx262\include\wx/event.h"\
 	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
+	"\wx262\include\wx/region.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/accel.h"\
+	"\wx262\include\wx/access.h"\
+	"\wx262\include\wx/palmos/window.h"\
+	"\wx262\include\wx/msw/window.h"\
+	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
 	"\wx262\include\wx/palmos/cursor.h"\
@@ -4940,18 +6116,10 @@ DEP_CPP_CONCA=\
 	"\wx262\include\wx/palmos/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
-	"\wx262\include\wx/window.h"\
-	"\wx262\include\wx/font.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/stream.h"\
-	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
-	"\wx262\include\wx/accel.h"\
-	"\wx262\include\wx/access.h"\
-	"\wx262\include\wx/palmos/window.h"\
-	"\wx262\include\wx/msw/window.h"\
-	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/palmos/font.h"\
+	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
 	"\wx262\include\wx/palmos/palette.h"\
@@ -4968,61 +6136,43 @@ DEP_CPP_CONCA=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
-	"\wx262\include\wx/palmos/font.h"\
-	"\wx262\include\wx/msw/font.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
 	"\wx262\include\wx/icon.h"\
 	"\wx262\include\wx/iconloc.h"\
 	"\wx262\include\wx/palmos/icon.h"\
 	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
-	"\wx262\include\wx/config.h"\
-	"\wx262\include\wx/confbase.h"\
-	"\wx262\include\wx/fileconf.h"\
-	"\wx262\include\wx/msw/regconf.h"\
-	"\wx262\include\wx/msw/iniconf.h"\
-	".\include\bbox.h"\
-	"\wx262\include\wx/fontdlg.h"\
-	"\wx262\include\wx/palmos/prefconf.h"\
-	"\wx262\include\wx/textfile.h"\
-	"\wx262\include\wx/textbuf.h"\
-	"\wx262\include\wx/file.h"\
-	"\wx262\include\wx/msw/registry.h"\
-	"\wx262\include\wx/matrix.h"\
-	"\wx262\include\wx/geometry.h"\
-	"\wx262\include\wx/math.h"\
-	"\wx262\include\wx/generic/fontdlgg.h"\
-	"\wx262\include\wx/msw/fontdlg.h"\
+	"\wx262\include\wx/panel.h"\
+	"\wx262\include\wx/generic/panelg.h"\
+	"\wx262\include\wx/encinfo.h"\
+	"\wx262\include\wx/stream.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
 	
 NODEP_CPP_CONCA=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
@@ -5037,13 +6187,20 @@ NODEP_CPP_CONCA=\
 	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
@@ -5066,26 +6223,6 @@ NODEP_CPP_CONCA=\
 	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
@@ -5093,14 +6230,6 @@ NODEP_CPP_CONCA=\
 	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
 	
 
 "$(INTDIR)\concanv.obj" : $(SOURCE) $(DEP_CPP_CONCA) "$(INTDIR)"
@@ -5155,10 +6284,49 @@ DEP_CPP_CONCA=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -5172,26 +6340,14 @@ DEP_CPP_CONCA=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -5205,20 +6361,18 @@ DEP_CPP_CONCA=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -5229,6 +6383,8 @@ DEP_CPP_CONCA=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -5241,31 +6397,129 @@ DEP_CPP_CONCA=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/print.h"\
@@ -5273,12 +6527,6 @@ DEP_CPP_CONCA=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	"\wx262\include\wx/config.h"\
 	"\wx262\include\wx/confbase.h"\
 	"\wx262\include\wx/fileconf.h"\
@@ -5301,20 +6549,6 @@ NODEP_CPP_CONCA=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -5322,13 +6556,6 @@ NODEP_CPP_CONCA=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -5351,17 +6578,19 @@ NODEP_CPP_CONCA=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -5392,18 +6621,6 @@ NODEP_CPP_CONCA=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -5418,30 +6635,180 @@ NODEP_CPP_CONCA=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
@@ -5479,7 +6846,14 @@ DEP_CPP_CHCAN=\
 	".\include\chart1.h"\
 	".\include\s57chart.h"\
 	".\include\s52plib.h"\
+	".\include\ais.h"\
+	".\src\bitmaps\down.xpm"\
+	".\src\bitmaps\up.xpm"\
+	".\src\bitmaps\left.xpm"\
+	".\src\bitmaps\right.xpm"\
+	".\src\bitmaps\pencil.xpm"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/gdicmn.h"\
@@ -5520,30 +6894,14 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/msw/private.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/longlong.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
 	".\include\tcmgr.h"\
 	".\include\bbox.h"\
 	"\wx262\include\wx/datetime.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/longlong.h"\
 	"\wx262\include\wx/config.h"\
 	"\wx262\include\wx/confbase.h"\
 	"\wx262\include\wx/fileconf.h"\
@@ -5572,6 +6930,7 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/event.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/palette.h"\
@@ -5592,6 +6951,8 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
 	"\wx262\include\wx/palmos/palette.h"\
@@ -5617,7 +6978,7 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/panel.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/encinfo.h"\
-	".\include\bitmapo.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
 	"\wx262\include\wx/wfstream.h"\
 	"\wx262\include\wx/tokenzr.h"\
 	"\wx262\include\wx/dir.h"\
@@ -5625,6 +6986,7 @@ DEP_CPP_CHCAN=\
 	".\include\chartbase.h"\
 	".\include\s52s57.h"\
 	"\wx262\include\wx/ffile.h"\
+	".\include\bitmapo.h"\
 	".\include\dymemdc.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
@@ -5644,16 +7006,6 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	".\include\gpc.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	"\wx262\include\wx/generic/progdlgg.h"\
 	{$(INCLUDE)}"\ogrsf_frmts.h"\
 	".\include\iso8211.h"\
@@ -5662,22 +7014,22 @@ DEP_CPP_CHCAN=\
 	{$(INCLUDE)}"\ogr_geometry.h"\
 	{$(INCLUDE)}"\ogr_core.h"\
 	{$(INCLUDE)}"\ogr_spatialref.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
 	{$(INCLUDE)}"\ogr_srs_api.h"\
+	{$(INCLUDE)}"\cpl_error.h"\
+	"\wx262\include\wx/socket.h"\
+	"\wx262\include\wx/sckaddr.h"\
+	"\wx262\include\wx/gsocket.h"\
+	"\wx262\include\wx/dlimpexp.h"\
+	"\wx262\include\wx/msw/gsockmsw.h"\
+	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
 	
 NODEP_CPP_CHCAN=\
 	".\src\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
@@ -5721,6 +7073,13 @@ NODEP_CPP_CHCAN=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
@@ -5784,14 +7143,7 @@ NODEP_CPP_CHCAN=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
 	
 
 "$(INTDIR)\chcanv.obj" : $(SOURCE) $(DEP_CPP_CHCAN) "$(INTDIR)"
@@ -5818,6 +7170,12 @@ DEP_CPP_CHCAN=\
 	".\include\chart1.h"\
 	".\include\s57chart.h"\
 	".\include\s52plib.h"\
+	".\include\ais.h"\
+	".\src\bitmaps\down.xpm"\
+	".\src\bitmaps\up.xpm"\
+	".\src\bitmaps\left.xpm"\
+	".\src\bitmaps\right.xpm"\
+	".\src\bitmaps\pencil.xpm"\
 	"\wx262\include\wx/defs.h"\
 	"\wx262\include\wx/wxchar.h"\
 	"\wx262\include\wx/msw/wrapwin.h"\
@@ -5855,10 +7213,49 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -5872,26 +7269,14 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -5905,20 +7290,18 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -5930,6 +7313,8 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -5942,31 +7327,129 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	"\wx262\include\wx/imagbmp.h"\
 	"\wx262\include\wx/imagpng.h"\
 	"\wx262\include\wx/imaggif.h"\
@@ -5993,12 +7476,8 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/textbuf.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/msw/registry.h"\
-	"\wx262\include\wx/dialog.h"\
 	"\wx262\include\wx/generic/fontdlgg.h"\
 	"\wx262\include\wx/msw/fontdlg.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	".\include\bitmapo.h"\
 	"\wx262\include\wx/wfstream.h"\
 	"\wx262\include\wx/tokenzr.h"\
@@ -6015,8 +7494,6 @@ DEP_CPP_CHCAN=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
 	"\wx262\include\wx/generic/progdlgg.h"\
 	{$(INCLUDE)}"\ogrsf_frmts.h"\
 	".\include\iso8211.h"\
@@ -6026,6 +7503,11 @@ DEP_CPP_CHCAN=\
 	{$(INCLUDE)}"\ogr_core.h"\
 	{$(INCLUDE)}"\ogr_spatialref.h"\
 	{$(INCLUDE)}"\ogr_srs_api.h"\
+	"\wx262\include\wx/socket.h"\
+	"\wx262\include\wx/sckaddr.h"\
+	"\wx262\include\wx/gsocket.h"\
+	"\wx262\include\wx/msw/gsockmsw.h"\
+	"\wx262\include\wx/unix/gsockunx.h"\
 	
 NODEP_CPP_CHCAN=\
 	".\src\wx\x11\private.h"\
@@ -6033,20 +7515,6 @@ NODEP_CPP_CHCAN=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -6054,13 +7522,6 @@ NODEP_CPP_CHCAN=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -6083,17 +7544,19 @@ NODEP_CPP_CHCAN=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -6124,18 +7587,6 @@ NODEP_CPP_CHCAN=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -6150,34 +7601,185 @@ NODEP_CPP_CHCAN=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
 	
 
 "$(INTDIR)\chcanv.obj" : $(SOURCE) $(DEP_CPP_CHCAN) "$(INTDIR)"
@@ -6197,6 +7799,7 @@ SOURCE=.\src\chartimg.cpp
 DEP_CPP_CHART=\
 	"\wx262\include\wx/wxprec.h"\
 	"\wx262\include\wx/wx.h"\
+	"\wx262\include\wx/dir.h"\
 	".\include\chartimg.h"\
 	"\wx262\include\wx/stream.h"\
 	"\wx262\include\wx/wfstream.h"\
@@ -6205,6 +7808,20 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/image.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
+	"\wx262\include\wx/string.h"\
+	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
+	"\wx262\include\wx/buffer.h"\
+	"\wx262\include\wx/strconv.h"\
+	"\wx262\include\wx/beforestd.h"\
+	"\wx262\include\wx/afterstd.h"\
+	"\wx262\include\wx/arrstr.h"\
+	"\wx262\include\wx/iosfwrap.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
+	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/msw/winundef.h"\
+	"\wx262\include\wx/dynarray.h"\
 	".\include\chartbase.h"\
 	".\include\georef.h"\
 	".\include\s52s57.h"\
@@ -6216,63 +7833,34 @@ DEP_CPP_CHART=\
 	".\include\chcanv.h"\
 	".\include\chart1.h"\
 	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
+	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/memory.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/msgout.h"\
-	{$(INCLUDE)}"\Strings.h"\
-	"\wx262\include\wx/buffer.h"\
-	"\wx262\include\wx/strconv.h"\
-	"\wx262\include\wx/beforestd.h"\
-	"\wx262\include\wx/afterstd.h"\
-	"\wx262\include\wx/arrstr.h"\
-	"\wx262\include\wx/iosfwrap.h"\
-	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
 	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
-	"\wx262\include\wx/palette.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/palette.h"\
 	"\wx262\include\wx/msw/palette.h"\
 	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/longlong.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
@@ -6280,6 +7868,7 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/dc.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/brush.h"\
 	"\wx262\include\wx/pen.h"\
@@ -6290,6 +7879,8 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/palmos/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
 	"\wx262\include\wx/palmos/brush.h"\
@@ -6301,58 +7892,6 @@ DEP_CPP_CHART=\
 	".\include\tcmgr.h"\
 	"\wx262\include\wx/datetime.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/clntdata.h"\
-	"\wx262\include\wx/thread.h"\
-	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/window.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/accel.h"\
-	"\wx262\include\wx/access.h"\
-	"\wx262\include\wx/palmos/window.h"\
-	"\wx262\include\wx/msw/window.h"\
-	"\wx262\include\wx/univ/window.h"\
-	"\wx262\include\wx/palmos/region.h"\
-	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/generic/accel.h"\
-	"\wx262\include\wx/msw/accel.h"\
-	"\wx262\include\wx/variant.h"\
-	"\wx262\include\wx/msw/ole/access.h"\
-	"\wx262\include\wx/db.h"\
-	"\wx262\include\wx/isql.h"\
-	"\wx262\include\wx/isqlext.h"\
-	"\wx262\include\wx/hash.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
-	"\wx262\include\wx/univ/inpcons.h"\
-	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	".\include\gpc.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/ffile.h"\
@@ -6369,18 +7908,6 @@ DEP_CPP_CHART=\
 NODEP_CPP_CHART=\
 	".\src\wx\x11\private.h"\
 	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
@@ -6388,11 +7915,13 @@ NODEP_CPP_CHART=\
 	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -6421,6 +7950,13 @@ NODEP_CPP_CHART=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
@@ -6446,51 +7982,6 @@ NODEP_CPP_CHART=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	
 
 "$(INTDIR)\chartimg.obj" : $(SOURCE) $(DEP_CPP_CHART) "$(INTDIR)"
@@ -6502,6 +7993,7 @@ NODEP_CPP_CHART=\
 DEP_CPP_CHART=\
 	"\wx262\include\wx/wxprec.h"\
 	"\wx262\include\wx/wx.h"\
+	"\wx262\include\wx/dir.h"\
 	".\include\chartimg.h"\
 	"\wx262\include\wx/stream.h"\
 	"\wx262\include\wx/wfstream.h"\
@@ -6545,10 +8037,49 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -6562,26 +8093,14 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -6594,20 +8113,18 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -6619,6 +8136,8 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -6631,31 +8150,129 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	".\include\chartbase.h"\
 	".\include\georef.h"\
 	".\include\s52s57.h"\
@@ -6676,12 +8293,6 @@ DEP_CPP_CHART=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	".\include\gpc.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/ffile.h"\
@@ -6701,20 +8312,6 @@ NODEP_CPP_CHART=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -6722,13 +8319,6 @@ NODEP_CPP_CHART=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -6751,17 +8341,19 @@ NODEP_CPP_CHART=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -6792,18 +8384,6 @@ NODEP_CPP_CHART=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -6818,31 +8398,181 @@ NODEP_CPP_CHART=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\include\wx\x11\private.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	
 
 "$(INTDIR)\chartimg.obj" : $(SOURCE) $(DEP_CPP_CHART) "$(INTDIR)"
@@ -6869,6 +8599,7 @@ DEP_CPP_CHARTD=\
 	".\include\s57chart.h"\
 	"\wx262\include\wx/arrimpl.cpp"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/stream.h"\
 	"\wx262\include\wx/wfstream.h"\
@@ -6906,33 +8637,16 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/intl.h"\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/longlong.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/ffile.h"\
 	"\wx262\include\wx/datetime.h"\
+	"\wx262\include\wx/longlong.h"\
 	".\include\dychart.h"\
 	".\include\bitmapo.h"\
 	".\include\bbox.h"\
 	".\include\dymemdc.h"\
 	".\include\chcanv.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/gdiobj.h"\
@@ -6942,6 +8656,7 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
@@ -6951,6 +8666,7 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/dc.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/brush.h"\
 	"\wx262\include\wx/pen.h"\
@@ -6961,6 +8677,8 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/palmos/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
 	"\wx262\include\wx/palmos/brush.h"\
@@ -6973,21 +8691,18 @@ DEP_CPP_CHARTD=\
 	".\include\gpc.h"\
 	".\include\georef.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
 	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/clntdata.h"\
-	"\wx262\include\wx/thread.h"\
-	"\wx262\include\wx/vector.h"\
+	"\wx262\include\wx/containr.h"\
+	"\wx262\include\wx/toplevel.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
 	"\wx262\include\wx/window.h"\
-	"\wx262\include\wx/encinfo.h"\
+	"\wx262\include\wx/iconbndl.h"\
+	"\wx262\include\wx/palmos/toplevel.h"\
+	"\wx262\include\wx/msw/toplevel.h"\
+	"\wx262\include\wx/univ/toplevel.h"\
+	"\wx262\include\wx/event.h"\
 	"\wx262\include\wx/region.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/accel.h"\
@@ -6995,6 +8710,9 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/clntdata.h"\
+	"\wx262\include\wx/thread.h"\
+	"\wx262\include\wx/vector.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
 	"\wx262\include\wx/generic/accel.h"\
@@ -7005,26 +8723,14 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/isql.h"\
 	"\wx262\include\wx/isqlext.h"\
 	"\wx262\include\wx/hash.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
 	"\wx262\include\wx/icon.h"\
 	"\wx262\include\wx/iconloc.h"\
 	"\wx262\include\wx/palmos/icon.h"\
 	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
+	"\wx262\include\wx/panel.h"\
+	"\wx262\include\wx/generic/panelg.h"\
 	{$(INCLUDE)}"\ogrsf_frmts.h"\
 	".\include\iso8211.h"\
 	{$(INCLUDE)}"\gdal.h"\
@@ -7032,21 +8738,14 @@ DEP_CPP_CHARTD=\
 	{$(INCLUDE)}"\ogr_geometry.h"\
 	{$(INCLUDE)}"\ogr_core.h"\
 	{$(INCLUDE)}"\ogr_spatialref.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
 	{$(INCLUDE)}"\ogr_srs_api.h"\
+	{$(INCLUDE)}"\cpl_error.h"\
 	
 NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
@@ -7088,6 +8787,13 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
@@ -7113,8 +8819,18 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
@@ -7133,19 +8849,6 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
@@ -7153,11 +8856,6 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	
 
 "$(INTDIR)\chartdb.obj" : $(SOURCE) $(DEP_CPP_CHARTD) "$(INTDIR)"
@@ -7212,10 +8910,49 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -7229,26 +8966,14 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -7262,20 +8987,18 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -7287,6 +9010,8 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -7299,31 +9024,129 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/wfstream.h"\
 	"\wx262\include\wx/tokenzr.h"\
@@ -7350,12 +9173,6 @@ DEP_CPP_CHARTD=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	{$(INCLUDE)}"\ogrsf_frmts.h"\
 	".\include\iso8211.h"\
 	{$(INCLUDE)}"\gdal.h"\
@@ -7370,20 +9187,6 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -7391,13 +9194,6 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -7420,17 +9216,19 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -7461,18 +9259,6 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -7487,31 +9273,181 @@ NODEP_CPP_CHARTD=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\include\wx\x11\private.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	
 
 "$(INTDIR)\chartdb.obj" : $(SOURCE) $(DEP_CPP_CHARTD) "$(INTDIR)"
@@ -7549,6 +9485,7 @@ DEP_CPP_CHART1=\
 	".\include\thumbwin.h"\
 	".\include\tcmgr.h"\
 	{$(INCLUDE)}"\cpl_error.h"\
+	".\include\ais.h"\
 	"\wx262\include\wx/image.h"\
 	".\include\s52plib.h"\
 	".\include\s57chart.h"\
@@ -7569,15 +9506,11 @@ DEP_CPP_CHART1=\
 	".\src\bitmaps\colscheme.xpm"\
 	"\wx262\include\wx/encconv.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
 	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
+	"\wx262\include\wx/intl.h"\
+	"\wx262\include\wx/cmndata.h"\
 	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
@@ -7603,7 +9536,6 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/hashmap.h"\
 	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/intl.h"\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/vector.h"\
 	"\wx262\include\wx/list.h"\
@@ -7621,24 +9553,18 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/msw/wince/time.h"\
 	"\wx262\include\wx/msw/private.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
+	"\wx262\include\wx/containr.h"\
+	"\wx262\include\wx/toplevel.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
 	"\wx262\include\wx/window.h"\
+	"\wx262\include\wx/iconbndl.h"\
+	"\wx262\include\wx/palmos/toplevel.h"\
+	"\wx262\include\wx/msw/toplevel.h"\
+	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/font.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/stream.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/palette.h"\
@@ -7647,6 +9573,10 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/palmos/font.h"\
+	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
 	"\wx262\include\wx/palmos/palette.h"\
@@ -7664,30 +9594,16 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
-	"\wx262\include\wx/palmos/font.h"\
-	"\wx262\include\wx/msw/font.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
 	"\wx262\include\wx/icon.h"\
 	"\wx262\include\wx/iconloc.h"\
 	"\wx262\include\wx/palmos/icon.h"\
 	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
+	"\wx262\include\wx/panel.h"\
+	"\wx262\include\wx/generic/panelg.h"\
+	"\wx262\include\wx/encinfo.h"\
+	"\wx262\include\wx/stream.h"\
 	".\include\bbox.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
@@ -7731,6 +9647,7 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/msw/registry.h"\
 	"\wx262\include\wx/generic/fontdlgg.h"\
 	"\wx262\include\wx/msw/fontdlg.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
 	".\include\sercomm.h"\
 	"\wx262\include\wx/socket.h"\
 	"\wx262\include\wx/sckaddr.h"\
@@ -7738,6 +9655,7 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/dlimpexp.h"\
 	"\wx262\include\wx/msw/gsockmsw.h"\
 	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
 	".\src\nmea0183\nmea0183.hpp"\
 	".\src\nmea0183\Sentence.hpp"\
 	".\src\nmea0183\Response.hpp"\
@@ -7766,6 +9684,8 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/generic/treectlg.h"\
 	"\wx262\include\wx/palmos/treectrl.h"\
 	"\wx262\include\wx/msw/treectrl.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
 	"\wx262\include\wx/textctrl.h"\
 	"\wx262\include\wx/ioswrap.h"\
 	"\wx262\include\wx/univ/textctrl.h"\
@@ -7780,6 +9700,8 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/combobox.h"\
 	"\wx262\include\wx/univ/combobox.h"\
 	"\wx262\include\wx/msw/combobox.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/imagbmp.h"\
 	"\wx262\include\wx/imagpng.h"\
 	"\wx262\include\wx/imaggif.h"\
@@ -7800,8 +9722,6 @@ DEP_CPP_CHART1=\
 	{$(INCLUDE)}"\ogr_srs_api.h"\
 	
 NODEP_CPP_CHART1=\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
@@ -7818,16 +9738,18 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
@@ -7835,6 +9757,20 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
@@ -7857,26 +9793,6 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
@@ -7884,11 +9800,6 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
@@ -7937,6 +9848,7 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
@@ -7983,6 +9895,7 @@ DEP_CPP_CHART1=\
 	".\include\thumbwin.h"\
 	".\include\tcmgr.h"\
 	{$(INCLUDE)}"\cpl_error.h"\
+	".\include\ais.h"\
 	"\wx262\include\wx/image.h"\
 	".\include\s52plib.h"\
 	".\include\s57chart.h"\
@@ -8039,10 +9952,49 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -8056,26 +10008,14 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -8089,20 +10029,18 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -8114,6 +10052,8 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -8126,40 +10066,132 @@ DEP_CPP_CHART1=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
-	"\wx262\include\wx/univ/control.h"\
-	"\wx262\include\wx/palmos/control.h"\
-	"\wx262\include\wx/msw/control.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
 	"\wx262\include\wx/univ/dialog.h"\
 	"\wx262\include\wx/palmos/dialog.h"\
 	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
+	"\wx262\include\wx/univ/control.h"\
+	"\wx262\include\wx/palmos/control.h"\
+	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
+	"\wx262\include\wx/msw/printwin.h"\
+	"\wx262\include\wx/generic/printps.h"\
+	"\wx262\include\wx/prntbase.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	".\include\bbox.h"\
@@ -8201,38 +10233,13 @@ DEP_CPP_CHART1=\
 	".\src\nmea0183\LatLong.hpp"\
 	".\src\nmea0183\RMB.hpp"\
 	".\src\nmea0183\Rmc.hpp"\
-	"\wx262\include\wx/notebook.h"\
 	"\wx262\include\wx/dirctrl.h"\
-	"\wx262\include\wx/bookctrl.h"\
-	"\wx262\include\wx/univ/notebook.h"\
-	"\wx262\include\wx/msw/notebook.h"\
-	"\wx262\include\wx/generic/notebook.h"\
-	"\wx262\include\wx/choicebk.h"\
 	"\wx262\include\wx/generic/dirctrlg.h"\
-	"\wx262\include\wx/imaglist.h"\
 	"\wx262\include\wx/treectrl.h"\
-	"\wx262\include\wx/dirdlg.h"\
-	"\wx262\include\wx/choice.h"\
-	"\wx262\include\wx/msw/imaglist.h"\
-	"\wx262\include\wx/generic/imaglist.h"\
 	"\wx262\include\wx/treebase.h"\
 	"\wx262\include\wx/generic/treectlg.h"\
 	"\wx262\include\wx/palmos/treectrl.h"\
 	"\wx262\include\wx/msw/treectrl.h"\
-	"\wx262\include\wx/textctrl.h"\
-	"\wx262\include\wx/ioswrap.h"\
-	"\wx262\include\wx/univ/textctrl.h"\
-	"\wx262\include\wx/msw/wince/textctrlce.h"\
-	"\wx262\include\wx/msw/textctrl.h"\
-	"\wx262\include\wx/generic/dirdlgg.h"\
-	"\wx262\include\wx/msw/dirdlg.h"\
-	"\wx262\include\wx/ctrlsub.h"\
-	"\wx262\include\wx/univ/choice.h"\
-	"\wx262\include\wx/msw/wince/choicece.h"\
-	"\wx262\include\wx/msw/choice.h"\
-	"\wx262\include\wx/combobox.h"\
-	"\wx262\include\wx/univ/combobox.h"\
-	"\wx262\include\wx/msw/combobox.h"\
 	"\wx262\include\wx/imagbmp.h"\
 	"\wx262\include\wx/imagpng.h"\
 	"\wx262\include\wx/imaggif.h"\
@@ -8257,20 +10264,6 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -8278,13 +10271,6 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -8307,17 +10293,19 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -8348,18 +10336,6 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -8374,57 +10350,185 @@ NODEP_CPP_CHART1=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
+	".\include\wx\x11\private.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
 	
 
 "$(INTDIR)\chart1.obj" : $(SOURCE) $(DEP_CPP_CHART1) "$(INTDIR)"
@@ -8459,9 +10563,7 @@ DEP_CPP_BITMA=\
 	"\wx262\include\wx/image.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/defs.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/gdiobj.h"\
@@ -8473,6 +10575,7 @@ DEP_CPP_BITMA=\
 	"\wx262\include\wx/msw/msvcrt.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/msgout.h"\
+	{$(INCLUDE)}"\Strings.h"\
 	"\wx262\include\wx/wxchar.h"\
 	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/strconv.h"\
@@ -8533,14 +10636,6 @@ DEP_CPP_BITMA=\
 	"\wx262\include\wx/hash.h"\
 	"\wx262\include\wx/version.h"\
 	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
 	"\wx262\include\wx/palmos/palette.h"\
 	"\wx262\include\wx/msw/palette.h"\
 	"\wx262\include\wx/generic/paletteg.h"\
@@ -8563,8 +10658,6 @@ DEP_CPP_BITMA=\
 	"\wx262\include\wx/iconloc.h"\
 	"\wx262\include\wx/palmos/icon.h"\
 	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/stream.h"\
 	"\wx262\include\wx/imagbmp.h"\
@@ -8633,9 +10726,6 @@ NODEP_CPP_BITMA=\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
@@ -8745,10 +10835,47 @@ DEP_CPP_BITMA=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -8761,16 +10888,8 @@ DEP_CPP_BITMA=\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/msw/wince/time.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
@@ -8778,14 +10897,16 @@ DEP_CPP_BITMA=\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/colour.h"\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
@@ -8811,28 +10932,122 @@ DEP_CPP_BITMA=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/vidmode.h"\
@@ -8868,20 +11083,6 @@ NODEP_CPP_BITMA=\
 	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
@@ -8897,6 +11098,13 @@ NODEP_CPP_BITMA=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
@@ -8934,18 +11142,6 @@ NODEP_CPP_BITMA=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -8953,22 +11149,166 @@ NODEP_CPP_BITMA=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcclient.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
@@ -9023,6 +11363,7 @@ DEP_CPP_BBOX_=\
 	"\wx262\include\wx/wxprec.h"\
 	".\include\bbox.h"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/wx.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
@@ -9059,34 +11400,10 @@ DEP_CPP_BBOX_=\
 	"\wx262\include\wx/msw/wince/time.h"\
 	"\wx262\include\wx/msw/private.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
 	
 NODEP_CPP_BBOX_=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	
 
 "$(INTDIR)\bbox.obj" : $(SOURCE) $(DEP_CPP_BBOX_) "$(INTDIR)"
@@ -9136,10 +11453,49 @@ DEP_CPP_BBOX_=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -9153,26 +11509,14 @@ DEP_CPP_BBOX_=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -9186,20 +11530,18 @@ DEP_CPP_BBOX_=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -9211,6 +11553,8 @@ DEP_CPP_BBOX_=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -9223,31 +11567,129 @@ DEP_CPP_BBOX_=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
 	
@@ -9256,20 +11698,6 @@ NODEP_CPP_BBOX_=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -9277,13 +11705,6 @@ NODEP_CPP_BBOX_=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -9306,17 +11727,19 @@ NODEP_CPP_BBOX_=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -9347,18 +11770,6 @@ NODEP_CPP_BBOX_=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -9373,22 +11784,178 @@ NODEP_CPP_BBOX_=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	
 
 "$(INTDIR)\bbox.obj" : $(SOURCE) $(DEP_CPP_BBOX_) "$(INTDIR)"
@@ -9415,6 +11982,7 @@ DEP_CPP_OPTIO=\
 	".\include\s52plib.h"\
 	"\wx262\include\wx/artprov.h"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/dialog.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -9486,17 +12054,6 @@ DEP_CPP_OPTIO=\
 	"\wx262\include\wx/msw/wince/time.h"\
 	"\wx262\include\wx/msw/private.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
 	"\wx262\include\wx/palmos/palette.h"\
 	"\wx262\include\wx/msw/palette.h"\
 	"\wx262\include\wx/generic/paletteg.h"\
@@ -9520,8 +12077,6 @@ DEP_CPP_OPTIO=\
 	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/panel.h"\
 	"\wx262\include\wx/generic/panelg.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/notebook.h"\
 	"\wx262\include\wx/dirctrl.h"\
 	"\wx262\include\wx/bookctrl.h"\
@@ -9583,6 +12138,7 @@ DEP_CPP_OPTIO=\
 	"\wx262\include\wx/msw/fontdlg.h"\
 	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/stream.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
 	".\include\s52s57.h"\
 	".\include\gpc.h"\
 	
@@ -9642,9 +12198,6 @@ NODEP_CPP_OPTIO=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
@@ -9759,10 +12312,49 @@ DEP_CPP_OPTIO=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -9776,26 +12368,14 @@ DEP_CPP_OPTIO=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -9809,20 +12389,18 @@ DEP_CPP_OPTIO=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -9834,6 +12412,8 @@ DEP_CPP_OPTIO=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -9846,71 +12426,138 @@ DEP_CPP_OPTIO=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
-	"\wx262\include\wx/univ/control.h"\
-	"\wx262\include\wx/palmos/control.h"\
-	"\wx262\include\wx/msw/control.h"\
-	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
 	"\wx262\include\wx/univ/dialog.h"\
 	"\wx262\include\wx/palmos/dialog.h"\
 	"\wx262\include\wx/msw/dialog.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	"\wx262\include\wx/notebook.h"\
-	"\wx262\include\wx/dirctrl.h"\
-	"\wx262\include\wx/bookctrl.h"\
-	"\wx262\include\wx/univ/notebook.h"\
-	"\wx262\include\wx/msw/notebook.h"\
-	"\wx262\include\wx/generic/notebook.h"\
-	"\wx262\include\wx/choicebk.h"\
-	"\wx262\include\wx/generic/dirctrlg.h"\
-	"\wx262\include\wx/imaglist.h"\
-	"\wx262\include\wx/treectrl.h"\
-	"\wx262\include\wx/dirdlg.h"\
-	"\wx262\include\wx/choice.h"\
-	"\wx262\include\wx/msw/imaglist.h"\
-	"\wx262\include\wx/generic/imaglist.h"\
-	"\wx262\include\wx/treebase.h"\
-	"\wx262\include\wx/generic/treectlg.h"\
-	"\wx262\include\wx/palmos/treectrl.h"\
-	"\wx262\include\wx/msw/treectrl.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
+	"\wx262\include\wx/univ/control.h"\
+	"\wx262\include\wx/palmos/control.h"\
+	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
 	"\wx262\include\wx/ioswrap.h"\
 	"\wx262\include\wx/univ/textctrl.h"\
 	"\wx262\include\wx/msw/wince/textctrlce.h"\
 	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
 	"\wx262\include\wx/generic/dirdlgg.h"\
 	"\wx262\include\wx/msw/dirdlg.h"\
-	"\wx262\include\wx/ctrlsub.h"\
-	"\wx262\include\wx/univ/choice.h"\
-	"\wx262\include\wx/msw/wince/choicece.h"\
-	"\wx262\include\wx/msw/choice.h"\
-	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
 	"\wx262\include\wx/univ/combobox.h"\
 	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
+	"\wx262\include\wx/dirctrl.h"\
+	"\wx262\include\wx/generic/dirctrlg.h"\
+	"\wx262\include\wx/treectrl.h"\
+	"\wx262\include\wx/treebase.h"\
+	"\wx262\include\wx/generic/treectlg.h"\
+	"\wx262\include\wx/palmos/treectrl.h"\
+	"\wx262\include\wx/msw/treectrl.h"\
 	"\wx262\include\wx/config.h"\
 	"\wx262\include\wx/confbase.h"\
 	"\wx262\include\wx/fileconf.h"\
@@ -9935,20 +12582,6 @@ NODEP_CPP_OPTIO=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -9956,13 +12589,6 @@ NODEP_CPP_OPTIO=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -9985,17 +12611,19 @@ NODEP_CPP_OPTIO=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -10026,18 +12654,6 @@ NODEP_CPP_OPTIO=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -10052,50 +12668,178 @@ NODEP_CPP_OPTIO=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
@@ -10129,6 +12873,7 @@ DEP_CPP_TALKE=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -10240,6 +12985,7 @@ DEP_CPP_SENTE=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -10351,6 +13097,7 @@ DEP_CPP_RMB_C=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -10462,6 +13209,7 @@ DEP_CPP_RESPO=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -10574,6 +13322,7 @@ DEP_CPP_NMEA0=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -10686,6 +13435,7 @@ DEP_CPP_LONG_=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -10797,6 +13547,7 @@ DEP_CPP_LATLO=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -10908,6 +13659,7 @@ DEP_CPP_LAT_C=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -11019,6 +13771,7 @@ DEP_CPP_HEXVA=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -11130,6 +13883,7 @@ DEP_CPP_EXPID=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -11241,6 +13995,7 @@ DEP_CPP_RMC_C=\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/platform.h"\
 	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
 	"\wx262\include\wx/msw/winundef.h"\
@@ -11344,54 +14099,8 @@ DEP_CPP_WVSCH=\
 	".\include\dychart.h"\
 	".\include\wvschart.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/memory.h"\
-	"\wx262\include\wx/xti.h"\
-	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/string.h"\
-	"\wx262\include\wx/msgout.h"\
-	{$(INCLUDE)}"\Strings.h"\
-	"\wx262\include\wx/buffer.h"\
-	"\wx262\include\wx/strconv.h"\
-	"\wx262\include\wx/beforestd.h"\
-	"\wx262\include\wx/afterstd.h"\
-	"\wx262\include\wx/arrstr.h"\
-	"\wx262\include\wx/iosfwrap.h"\
-	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
-	"\wx262\include\wx/flags.h"\
-	"\wx262\include\wx/hashmap.h"\
-	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
+	"\wx262\include\wx/msw/private.h"\
 	".\include\chartbase.h"\
 	".\include\bitmapo.h"\
 	".\include\bbox.h"\
@@ -11399,16 +14108,47 @@ DEP_CPP_WVSCH=\
 	".\include\chcanv.h"\
 	".\include\chart1.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/gdiobj.h"\
+	"\wx262\include\wx/list.h"\
 	"\wx262\include\wx/palmos/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiobj.h"\
+	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/xti.h"\
+	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/string.h"\
+	"\wx262\include\wx/msgout.h"\
+	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
+	"\wx262\include\wx/buffer.h"\
+	"\wx262\include\wx/strconv.h"\
+	"\wx262\include\wx/beforestd.h"\
+	"\wx262\include\wx/afterstd.h"\
+	"\wx262\include\wx/arrstr.h"\
+	"\wx262\include\wx/iosfwrap.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
+	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/msw/winundef.h"\
+	"\wx262\include\wx/dynarray.h"\
+	"\wx262\include\wx/flags.h"\
+	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
+	"\wx262\include\wx/intl.h"\
+	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/palmos/palette.h"\
 	"\wx262\include\wx/msw/palette.h"\
 	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/longlong.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
 	"\wx262\include\wx/msw/dib.h"\
@@ -11417,6 +14157,7 @@ DEP_CPP_WVSCH=\
 	"\wx262\include\wx/dc.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/brush.h"\
 	"\wx262\include\wx/pen.h"\
@@ -11427,6 +14168,8 @@ DEP_CPP_WVSCH=\
 	"\wx262\include\wx/palmos/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
 	"\wx262\include\wx/palmos/brush.h"\
@@ -11438,73 +14181,8 @@ DEP_CPP_WVSCH=\
 	".\include\tcmgr.h"\
 	"\wx262\include\wx/datetime.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/clntdata.h"\
-	"\wx262\include\wx/thread.h"\
-	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/window.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/stream.h"\
-	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/accel.h"\
-	"\wx262\include\wx/access.h"\
-	"\wx262\include\wx/palmos/window.h"\
-	"\wx262\include\wx/msw/window.h"\
-	"\wx262\include\wx/univ/window.h"\
-	"\wx262\include\wx/palmos/region.h"\
-	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/generic/accel.h"\
-	"\wx262\include\wx/msw/accel.h"\
-	"\wx262\include\wx/variant.h"\
-	"\wx262\include\wx/msw/ole/access.h"\
-	"\wx262\include\wx/db.h"\
-	"\wx262\include\wx/isql.h"\
-	"\wx262\include\wx/isqlext.h"\
-	"\wx262\include\wx/hash.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
-	"\wx262\include\wx/univ/inpcons.h"\
-	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	
 NODEP_CPP_WVSCH=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
@@ -11513,11 +14191,13 @@ NODEP_CPP_WVSCH=\
 	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -11546,6 +14226,13 @@ NODEP_CPP_WVSCH=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
@@ -11571,51 +14258,6 @@ NODEP_CPP_WVSCH=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	
 
 "$(INTDIR)\wvschart.obj" : $(SOURCE) $(DEP_CPP_WVSCH) "$(INTDIR)"
@@ -11666,10 +14308,49 @@ DEP_CPP_WVSCH=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -11683,26 +14364,14 @@ DEP_CPP_WVSCH=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -11716,20 +14385,18 @@ DEP_CPP_WVSCH=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -11741,6 +14408,8 @@ DEP_CPP_WVSCH=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -11753,31 +14422,129 @@ DEP_CPP_WVSCH=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	".\include\chartbase.h"\
@@ -11795,32 +14562,12 @@ DEP_CPP_WVSCH=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	
 NODEP_CPP_WVSCH=\
 	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -11828,13 +14575,6 @@ NODEP_CPP_WVSCH=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -11857,17 +14597,19 @@ NODEP_CPP_WVSCH=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -11898,18 +14640,6 @@ NODEP_CPP_WVSCH=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -11924,31 +14654,181 @@ NODEP_CPP_WVSCH=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\include\wx\x11\private.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	
 
 "$(INTDIR)\wvschart.obj" : $(SOURCE) $(DEP_CPP_WVSCH) "$(INTDIR)"
@@ -11972,6 +14852,7 @@ DEP_CPP_ABOUT=\
 	".\include\about.h"\
 	".\include\chart1.h"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/textbuf.h"\
 	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/arrstr.h"\
@@ -12003,23 +14884,6 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/log.h"\
 	"\wx262\include\wx/intl.h"\
 	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/longlong.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/notebook.h"\
 	"\wx262\include\wx/bookctrl.h"\
 	"\wx262\include\wx/univ/notebook.h"\
@@ -12034,7 +14898,9 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/event.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
@@ -12043,6 +14909,7 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
 	"\wx262\include\wx/clntdata.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
 	"\wx262\include\wx/palmos/cursor.h"\
@@ -12054,8 +14921,11 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
+	"\wx262\include\wx/longlong.h"\
 	"\wx262\include\wx/palmos/palette.h"\
 	"\wx262\include\wx/msw/palette.h"\
 	"\wx262\include\wx/generic/paletteg.h"\
@@ -12074,51 +14944,10 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/univ/inphand.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/stream.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
 	
 NODEP_CPP_ABOUT=\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
@@ -12156,6 +14985,13 @@ NODEP_CPP_ABOUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
@@ -12178,33 +15014,6 @@ NODEP_CPP_ABOUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	
 
 "$(INTDIR)\about.obj" : $(SOURCE) $(DEP_CPP_ABOUT) "$(INTDIR)"
@@ -12256,10 +15065,49 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -12273,26 +15121,14 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -12306,20 +15142,18 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -12331,6 +15165,8 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -12343,50 +15179,136 @@ DEP_CPP_ABOUT=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
-	"\wx262\include\wx/textbuf.h"\
-	"\wx262\include\wx/file.h"\
-	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
 	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
 	"\wx262\include\wx/univ/notebook.h"\
 	"\wx262\include\wx/msw/notebook.h"\
 	"\wx262\include\wx/generic/notebook.h"\
-	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
+	"\wx262\include\wx/textbuf.h"\
+	"\wx262\include\wx/file.h"\
 	"\wx262\include\wx/print.h"\
 	{$(INCLUDE)}"\cpl_error.h"\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	
@@ -12395,20 +15317,6 @@ NODEP_CPP_ABOUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -12416,13 +15324,6 @@ NODEP_CPP_ABOUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -12445,17 +15346,19 @@ NODEP_CPP_ABOUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -12486,18 +15389,6 @@ NODEP_CPP_ABOUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -12512,34 +15403,180 @@ NODEP_CPP_ABOUT=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	
 
 "$(INTDIR)\about.obj" : $(SOURCE) $(DEP_CPP_ABOUT) "$(INTDIR)"
@@ -12564,147 +15601,64 @@ DEP_CPP_WIFIC=\
 	".\include\chart1.h"\
 	".\include\statwin.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/msw/private.h"\
+	"\wx262\include\wx/socket.h"\
+	"\wx262\include\wx/datetime.h"\
+	"\wx262\include\wx/event.h"\
+	"\wx262\include\wx/sckaddr.h"\
+	"\wx262\include\wx/gsocket.h"\
 	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/clntdata.h"\
+	"\wx262\include\wx/gdicmn.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/thread.h"\
+	"\wx262\include\wx/dynarray.h"\
 	"\wx262\include\wx/memory.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/msgout.h"\
 	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
 	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/strconv.h"\
 	"\wx262\include\wx/beforestd.h"\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
+	"\wx262\include\wx/msw/winundef.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
 	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	"\wx262\include\wx/socket.h"\
-	"\wx262\include\wx/datetime.h"\
-	"\wx262\include\wx/event.h"\
-	"\wx262\include\wx/sckaddr.h"\
-	"\wx262\include\wx/gsocket.h"\
-	"\wx262\include\wx/clntdata.h"\
-	"\wx262\include\wx/cursor.h"\
-	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
 	"\wx262\include\wx/palmos/cursor.h"\
 	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/palmos/gdiimage.h"\
 	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/longlong.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/dlimpexp.h"\
 	"\wx262\include\wx/msw/gsockmsw.h"\
 	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/panel.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/window.h"\
-	"\wx262\include\wx/font.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/stream.h"\
-	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
-	"\wx262\include\wx/accel.h"\
-	"\wx262\include\wx/access.h"\
-	"\wx262\include\wx/palmos/window.h"\
-	"\wx262\include\wx/msw/window.h"\
-	"\wx262\include\wx/univ/window.h"\
-	"\wx262\include\wx/palmos/region.h"\
-	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
-	"\wx262\include\wx/generic/accel.h"\
-	"\wx262\include\wx/msw/accel.h"\
-	"\wx262\include\wx/variant.h"\
-	"\wx262\include\wx/msw/ole/access.h"\
-	"\wx262\include\wx/db.h"\
-	"\wx262\include\wx/isql.h"\
-	"\wx262\include\wx/isqlext.h"\
-	"\wx262\include\wx/hash.h"\
-	"\wx262\include\wx/bitmap.h"\
-	"\wx262\include\wx/palmos/bitmap.h"\
-	"\wx262\include\wx/msw/bitmap.h"\
-	"\wx262\include\wx/palmos/font.h"\
-	"\wx262\include\wx/msw/font.h"\
-	"\wx262\include\wx/generic/panelg.h"\
-	"\wx262\include\wx/containr.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/toplevel.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
-	"\wx262\include\wx/iconbndl.h"\
-	"\wx262\include\wx/palmos/toplevel.h"\
-	"\wx262\include\wx/msw/toplevel.h"\
-	"\wx262\include\wx/univ/toplevel.h"\
-	"\wx262\include\wx/univ/inpcons.h"\
-	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	
 NODEP_CPP_WIFIC=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
@@ -12719,70 +15673,8 @@ NODEP_CPP_WIFIC=\
 	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
-	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	
 
 "$(INTDIR)\wificlient.obj" : $(SOURCE) $(DEP_CPP_WIFIC) "$(INTDIR)"
@@ -12835,10 +15727,49 @@ DEP_CPP_WIFIC=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -12852,26 +15783,14 @@ DEP_CPP_WIFIC=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -12885,20 +15804,18 @@ DEP_CPP_WIFIC=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -12910,6 +15827,8 @@ DEP_CPP_WIFIC=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -12922,31 +15841,129 @@ DEP_CPP_WIFIC=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/socket.h"\
@@ -12959,32 +15976,12 @@ DEP_CPP_WIFIC=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	
 NODEP_CPP_WIFIC=\
 	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -12992,13 +15989,6 @@ NODEP_CPP_WIFIC=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -13021,17 +16011,19 @@ NODEP_CPP_WIFIC=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -13062,18 +16054,6 @@ NODEP_CPP_WIFIC=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -13088,31 +16068,181 @@ NODEP_CPP_WIFIC=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
 	
 
 "$(INTDIR)\wificlient.obj" : $(SOURCE) $(DEP_CPP_WIFIC) "$(INTDIR)"
@@ -13167,6 +16297,7 @@ DEP_CPP_MYGEO=\
 	{$(INCLUDE)}"\Gl\Gl.h"\
 	{$(INCLUDE)}"\Gl\Glu.h"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/arrstr.h"\
@@ -13197,49 +16328,25 @@ DEP_CPP_MYGEO=\
 	"\wx262\include\wx/msw/private.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/longlong.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
 	{$(INCLUDE)}"\ogr_geometry.h"\
 	".\include\s52s57.h"\
 	{$(INCLUDE)}"\ogr_core.h"\
 	{$(INCLUDE)}"\ogr_spatialref.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
 	{$(INCLUDE)}"\ogr_srs_api.h"\
 	".\include\gpc.h"\
 	".\include\bbox.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/longlong.h"\
 	
 NODEP_CPP_MYGEO=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	
 
 "$(INTDIR)\mygeom.obj" : $(SOURCE) $(DEP_CPP_MYGEO) "$(INTDIR)"
@@ -13295,10 +16402,49 @@ DEP_CPP_MYGEO=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -13312,26 +16458,14 @@ DEP_CPP_MYGEO=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -13345,20 +16479,18 @@ DEP_CPP_MYGEO=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -13370,6 +16502,8 @@ DEP_CPP_MYGEO=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -13382,31 +16516,129 @@ DEP_CPP_MYGEO=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	{$(INCLUDE)}"\ogr_geometry.h"\
@@ -13424,20 +16656,6 @@ NODEP_CPP_MYGEO=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -13445,13 +16663,6 @@ NODEP_CPP_MYGEO=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -13474,17 +16685,19 @@ NODEP_CPP_MYGEO=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -13515,18 +16728,6 @@ NODEP_CPP_MYGEO=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -13541,22 +16742,178 @@ NODEP_CPP_MYGEO=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	
 
 "$(INTDIR)\mygeom.obj" : $(SOURCE) $(DEP_CPP_MYGEO) "$(INTDIR)"
@@ -13581,54 +16938,8 @@ DEP_CPP_S52CN=\
 	".\include\s52plib.h"\
 	".\include\S52utils.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/memory.h"\
-	"\wx262\include\wx/xti.h"\
-	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/string.h"\
-	"\wx262\include\wx/msgout.h"\
-	{$(INCLUDE)}"\Strings.h"\
-	"\wx262\include\wx/buffer.h"\
-	"\wx262\include\wx/strconv.h"\
-	"\wx262\include\wx/beforestd.h"\
-	"\wx262\include\wx/afterstd.h"\
-	"\wx262\include\wx/arrstr.h"\
-	"\wx262\include\wx/iosfwrap.h"\
-	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
-	"\wx262\include\wx/flags.h"\
-	"\wx262\include\wx/hashmap.h"\
-	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
+	"\wx262\include\wx/msw/private.h"\
 	"\wx262\include\wx/generic/progdlgg.h"\
 	".\include\bbox.h"\
 	".\include\chartbase.h"\
@@ -13642,6 +16953,7 @@ DEP_CPP_S52CN=\
 	{$(INCLUDE)}"\gdal.h"\
 	".\include\dymemdc.h"\
 	".\include\s52s57.h"\
+	"\wx262\include\wx/dynarray.h"\
 	"\wx262\include\wx/dialog.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -13654,9 +16966,12 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/msw/toplevel.h"\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/event.h"\
+	"\wx262\include\wx/list.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
@@ -13664,8 +16979,31 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/clntdata.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/thread.h"\
+	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/xti.h"\
+	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/string.h"\
+	"\wx262\include\wx/msgout.h"\
+	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
+	"\wx262\include\wx/buffer.h"\
+	"\wx262\include\wx/strconv.h"\
+	"\wx262\include\wx/beforestd.h"\
+	"\wx262\include\wx/afterstd.h"\
+	"\wx262\include\wx/arrstr.h"\
+	"\wx262\include\wx/iosfwrap.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
+	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/msw/winundef.h"\
+	"\wx262\include\wx/flags.h"\
+	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
+	"\wx262\include\wx/intl.h"\
+	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/vector.h"\
 	"\wx262\include\wx/palmos/cursor.h"\
 	"\wx262\include\wx/msw/cursor.h"\
@@ -13676,8 +17014,15 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/longlong.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/palmos/palette.h"\
 	"\wx262\include\wx/msw/palette.h"\
 	"\wx262\include\wx/generic/paletteg.h"\
@@ -13709,24 +17054,15 @@ DEP_CPP_S52CN=\
 	".\include\chart1.h"\
 	".\include\tcmgr.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	"\wx262\include\wx/ffile.h"\
 	{$(INCLUDE)}"\ogr_feature.h"\
 	{$(INCLUDE)}"\ogr_geometry.h"\
 	{$(INCLUDE)}"\ogr_core.h"\
 	{$(INCLUDE)}"\ogr_spatialref.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
 	{$(INCLUDE)}"\ogr_srs_api.h"\
+	{$(INCLUDE)}"\cpl_error.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
 	"\wx262\include\wx/msw/dib.h"\
@@ -13747,18 +17083,6 @@ DEP_CPP_S52CN=\
 	
 NODEP_CPP_S52CN=\
 	".\src\S52CS.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
@@ -13778,6 +17102,7 @@ NODEP_CPP_S52CN=\
 	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
@@ -13799,12 +17124,20 @@ NODEP_CPP_S52CN=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
@@ -13829,14 +17162,6 @@ NODEP_CPP_S52CN=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -13922,10 +17247,49 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -13939,26 +17303,14 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -13972,20 +17324,18 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -13997,6 +17347,8 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -14009,31 +17361,129 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	"\wx262\include\wx/generic/progdlgg.h"\
@@ -14048,10 +17498,6 @@ DEP_CPP_S52CN=\
 	{$(INCLUDE)}"\gdal.h"\
 	".\include\dymemdc.h"\
 	".\include\s52s57.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
 	".\include\bitmapo.h"\
@@ -14063,8 +17509,6 @@ DEP_CPP_S52CN=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
 	"\wx262\include\wx/ffile.h"\
 	{$(INCLUDE)}"\ogr_feature.h"\
 	{$(INCLUDE)}"\ogr_geometry.h"\
@@ -14080,20 +17524,6 @@ NODEP_CPP_S52CN=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -14101,13 +17531,6 @@ NODEP_CPP_S52CN=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -14130,17 +17553,19 @@ NODEP_CPP_S52CN=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -14171,18 +17596,6 @@ NODEP_CPP_S52CN=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -14197,31 +17610,181 @@ NODEP_CPP_S52CN=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
 	
 
 "$(INTDIR)\s52cnsy.obj" : $(SOURCE) $(DEP_CPP_S52CN) "$(INTDIR)"
@@ -14248,60 +17811,45 @@ DEP_CPP_S52PL=\
 	".\include\mygeom.h"\
 	"\wx262\include\wx/image.h"\
 	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
+	"\wx262\include\wx/msw/private.h"\
+	".\include\s52s57.h"\
+	"\wx262\include\wx/hashmap.h"\
+	".\include\gpc.h"\
+	".\include\bbox.h"\
+	"\wx262\include\wx/matrix.h"\
+	"\wx262\include\wx/geometry.h"\
 	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
 	"\wx262\include\wx/memory.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/msgout.h"\
 	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/wxchar.h"\
 	"\wx262\include\wx/buffer.h"\
 	"\wx262\include\wx/strconv.h"\
 	"\wx262\include\wx/beforestd.h"\
 	"\wx262\include\wx/afterstd.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/iosfwrap.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
 	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/msw/winundef.h"\
 	"\wx262\include\wx/dynarray.h"\
 	"\wx262\include\wx/flags.h"\
-	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
 	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	".\include\s52s57.h"\
-	".\include\gpc.h"\
-	".\include\bbox.h"\
-	"\wx262\include\wx/matrix.h"\
-	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
+	"\wx262\include\wx/gdicmn.h"\
 	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/list.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/longlong.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
 	"\wx262\include\wx/generic/progdlgg.h"\
 	".\include\chartbase.h"\
 	"\wx262\include\wx/dir.h"\
@@ -14327,6 +17875,7 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/event.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/palette.h"\
@@ -14347,6 +17896,8 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
 	"\wx262\include\wx/palmos/palette.h"\
@@ -14377,24 +17928,15 @@ DEP_CPP_S52PL=\
 	".\include\chart1.h"\
 	".\include\tcmgr.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	"\wx262\include\wx/ffile.h"\
 	{$(INCLUDE)}"\ogr_feature.h"\
 	{$(INCLUDE)}"\ogr_geometry.h"\
 	{$(INCLUDE)}"\ogr_core.h"\
 	{$(INCLUDE)}"\ogr_spatialref.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
 	{$(INCLUDE)}"\ogr_srs_api.h"\
+	{$(INCLUDE)}"\cpl_error.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
 	"\wx262\include\wx/msw/dib.h"\
@@ -14422,18 +17964,8 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/imagiff.h"\
 	
 NODEP_CPP_S52PL=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
@@ -14474,6 +18006,13 @@ NODEP_CPP_S52PL=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
@@ -14504,14 +18043,6 @@ NODEP_CPP_S52PL=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -14599,10 +18130,49 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -14616,26 +18186,14 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -14649,20 +18207,18 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -14674,6 +18230,8 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -14686,31 +18244,129 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	{$(INCLUDE)}"\cpl_port.h"\
 	{$(INCLUDE)}"\cpl_config.h"\
 	".\include\s52s57.h"\
@@ -14728,10 +18384,6 @@ DEP_CPP_S52PL=\
 	".\include\iso8211.h"\
 	{$(INCLUDE)}"\gdal.h"\
 	".\include\dymemdc.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	".\include\bitmapo.h"\
 	".\include\chcanv.h"\
 	".\include\chart1.h"\
@@ -14741,8 +18393,6 @@ DEP_CPP_S52PL=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
 	"\wx262\include\wx/ffile.h"\
 	{$(INCLUDE)}"\ogr_feature.h"\
 	{$(INCLUDE)}"\ogr_geometry.h"\
@@ -14765,20 +18415,6 @@ NODEP_CPP_S52PL=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -14786,13 +18422,6 @@ NODEP_CPP_S52PL=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -14815,17 +18444,19 @@ NODEP_CPP_S52PL=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -14856,18 +18487,6 @@ NODEP_CPP_S52PL=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -14882,31 +18501,181 @@ NODEP_CPP_S52PL=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
 	
 
 "$(INTDIR)\s52plib.obj" : $(SOURCE) $(DEP_CPP_S52PL) "$(INTDIR)"
@@ -14927,68 +18696,6 @@ DEP_CPP_S52UT=\
 	".\include\dychart.h"\
 	".\include\S52utils.h"\
 	"\wx262\include\wx/msw/private.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/log.h"\
-	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\include\wx/msw/winundef.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/defs.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/wxchar.h"\
-	"\wx262\include\wx/object.h"\
-	"\wx262\include\wx/list.h"\
-	"\wx262\include\wx/filefn.h"\
-	"\wx262\include\wx/longlong.h"\
-	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/memory.h"\
-	"\wx262\include\wx/xti.h"\
-	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/string.h"\
-	"\wx262\include\wx/msgout.h"\
-	{$(INCLUDE)}"\Strings.h"\
-	"\wx262\include\wx/buffer.h"\
-	"\wx262\include\wx/strconv.h"\
-	"\wx262\include\wx/beforestd.h"\
-	"\wx262\include\wx/afterstd.h"\
-	"\wx262\include\wx/arrstr.h"\
-	"\wx262\include\wx/iosfwrap.h"\
-	"\wx262\include\wx/fontenc.h"\
-	"\wx262\include\wx/dynarray.h"\
-	"\wx262\include\wx/flags.h"\
-	"\wx262\include\wx/hashmap.h"\
-	"\wx262\include\wx/intl.h"\
-	"\wx262\include\wx/msw/wince/time.h"\
-	{$(INCLUDE)}"\Sys\Types.h"\
-	{$(INCLUDE)}"\Sys\Stat.h"\
-	"\wx262\include\wx/generic/logg.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
-	
-NODEP_CPP_S52UT=\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	
 
 "$(INTDIR)\s52utils.obj" : $(SOURCE) $(DEP_CPP_S52UT) "$(INTDIR)"
@@ -15099,6 +18806,7 @@ DEP_CPP_S57CH=\
 	{$(INCLUDE)}"\cpl_csv.h"\
 	"\wx262\include\wx/arrimpl.cpp"\
 	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
 	"\wx262\include\wx/object.h"\
 	"\wx262\include\wx/string.h"\
 	"\wx262\include\wx/gdicmn.h"\
@@ -15139,31 +18847,15 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/msw/private.h"\
 	{$(INCLUDE)}"\Sys\Stat.h"\
 	{$(INCLUDE)}"\Dirent.h"\
-	"\wx262\include\wx/msw/wrapwin.h"\
-	"\wx262\include\wx/msw/microwin.h"\
-	"\wx262\include\wx/msw/mslu.h"\
-	"\wx262\include\wx/colour.h"\
-	"\wx262\include\wx/platform.h"\
-	"\wx262\lib\vc_lib\msw\wx/setup.h"\
-	"\wx262\include\wx/chkconf.h"\
-	"\wx262\include\wx/msw/wince/libraries.h"\
-	"\wx262\include\wx/msw/gccpriv.h"\
-	"\wx262\include\wx/palmos/chkconf.h"\
-	"\wx262\include\wx/msw/wince/chkconf.h"\
-	"\wx262\include\wx/msw/chkconf.h"\
-	"\wx262\include\wx/utils.h"\
-	"\wx262\include\wx/longlong.h"\
-	"\wx262\include\wx/palmos/colour.h"\
-	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/textbuf.h"\
 	"\wx262\include\wx/file.h"\
-	{$(INCLUDE)}"\cpl_port.h"\
-	{$(INCLUDE)}"\cpl_config.h"\
 	".\include\gpc.h"\
 	".\include\bbox.h"\
 	"\wx262\include\wx/matrix.h"\
 	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/utils.h"\
 	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/longlong.h"\
 	"\wx262\include\wx/generic/progdlgg.h"\
 	".\include\chartbase.h"\
 	"\wx262\include\wx/dir.h"\
@@ -15187,6 +18879,7 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/event.h"\
 	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
 	"\wx262\include\wx/region.h"\
 	"\wx262\include\wx/validate.h"\
 	"\wx262\include\wx/palette.h"\
@@ -15207,6 +18900,8 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
 	"\wx262\include\wx/palmos/palette.h"\
@@ -15237,24 +18932,15 @@ DEP_CPP_S57CH=\
 	".\include\chart1.h"\
 	".\include\tcmgr.h"\
 	"\wx262\include\wx/print.h"\
-	{$(INCLUDE)}"\cpl_error.h"\
-	"\wx262\include\wx/msw/printwin.h"\
-	"\wx262\include\wx/generic/printps.h"\
-	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/frame.h"\
-	"\wx262\include\wx/encinfo.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
-	"\wx262\include\wx/univ/frame.h"\
-	"\wx262\include\wx/palmos/frame.h"\
-	"\wx262\include\wx/msw/frame.h"\
 	"\wx262\include\wx/ffile.h"\
 	{$(INCLUDE)}"\ogr_feature.h"\
 	{$(INCLUDE)}"\ogr_geometry.h"\
 	{$(INCLUDE)}"\ogr_core.h"\
 	{$(INCLUDE)}"\ogr_spatialref.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
 	{$(INCLUDE)}"\ogr_srs_api.h"\
+	{$(INCLUDE)}"\cpl_error.h"\
 	"\wx262\include\wx/dcclient.h"\
 	"\wx262\include\wx/dcmemory.h"\
 	"\wx262\include\wx/msw/dib.h"\
@@ -15278,6 +18964,8 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/dlimpexp.h"\
 	"\wx262\include\wx/msw/gsockmsw.h"\
 	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
 	{$(INCLUDE)}"\cpl_conv.h"\
 	{$(INCLUDE)}"\cpl_string.h"\
 	{$(INCLUDE)}"\cpl_vsi.h"\
@@ -15285,16 +18973,6 @@ DEP_CPP_S57CH=\
 NODEP_CPP_S57CH=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
@@ -15335,6 +19013,13 @@ NODEP_CPP_S57CH=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
@@ -15365,14 +19050,6 @@ NODEP_CPP_S57CH=\
 	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\include\wx\x11\private.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -15467,10 +19144,49 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/dcprint.h"\
 	"\wx262\include\wx/dcscreen.h"\
 	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
 	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
 	"\wx262\include\wx/xti.h"\
 	"\wx262\include\wx/msw/msvcrt.h"\
-	"\wx262\include\wx/msgout.h"\
 	"\wx262\include\wx/flags.h"\
 	"\wx262\include\wx/arrstr.h"\
 	"\wx262\include\wx/hashmap.h"\
@@ -15484,26 +19200,14 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/generic/logg.h"\
 	"\wx262\include\wx/clntdata.h"\
 	"\wx262\include\wx/gdicmn.h"\
-	"\wx262\include\wx/cursor.h"\
 	"\wx262\include\wx/thread.h"\
 	"\wx262\include\wx/vector.h"\
-	"\wx262\include\wx/palmos/cursor.h"\
-	"\wx262\include\wx/msw/cursor.h"\
-	"\wx262\include\wx/palmos/gdiimage.h"\
-	"\wx262\include\wx/gdiobj.h"\
-	"\wx262\include\wx/palmos/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiobj.h"\
-	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/vidmode.h"\
 	"\wx262\include\wx/build.h"\
 	"\wx262\include\wx/init.h"\
 	"\wx262\include\wx/palmos/app.h"\
 	"\wx262\include\wx/msw/app.h"\
 	"\wx262\include\wx/univ/theme.h"\
-	"\wx262\include\wx/icon.h"\
-	"\wx262\include\wx/iconloc.h"\
-	"\wx262\include\wx/palmos/icon.h"\
-	"\wx262\include\wx/msw/icon.h"\
 	"\wx262\include\wx/filefn.h"\
 	"\wx262\include\wx/longlong.h"\
 	{$(INCLUDE)}"\Dirent.h"\
@@ -15517,20 +19221,18 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/msw/colour.h"\
 	"\wx262\include\wx/font.h"\
 	"\wx262\include\wx/region.h"\
-	"\wx262\include\wx/validate.h"\
-	"\wx262\include\wx/palette.h"\
 	"\wx262\include\wx/accel.h"\
 	"\wx262\include\wx/access.h"\
 	"\wx262\include\wx/palmos/window.h"\
 	"\wx262\include\wx/msw/window.h"\
 	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
 	"\wx262\include\wx/palmos/font.h"\
 	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
 	"\wx262\include\wx/palmos/region.h"\
 	"\wx262\include\wx/msw/region.h"\
-	"\wx262\include\wx/palmos/palette.h"\
-	"\wx262\include\wx/msw/palette.h"\
-	"\wx262\include\wx/generic/paletteg.h"\
 	"\wx262\include\wx/generic/accel.h"\
 	"\wx262\include\wx/msw/accel.h"\
 	"\wx262\include\wx/variant.h"\
@@ -15542,6 +19244,8 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/bitmap.h"\
 	"\wx262\include\wx/palmos/bitmap.h"\
 	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
 	"\wx262\include\wx/generic/panelg.h"\
 	"\wx262\include\wx/containr.h"\
 	"\wx262\include\wx/toplevel.h"\
@@ -15554,31 +19258,129 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/univ/toplevel.h"\
 	"\wx262\include\wx/univ/inpcons.h"\
 	"\wx262\include\wx/univ/inphand.h"\
-	"\wx262\include\wx/brush.h"\
-	"\wx262\include\wx/pen.h"\
 	"\wx262\include\wx/math.h"\
 	"\wx262\include\wx/palmos/dc.h"\
 	"\wx262\include\wx/msw/dc.h"\
-	"\wx262\include\wx/palmos/brush.h"\
-	"\wx262\include\wx/msw/brush.h"\
-	"\wx262\include\wx/palmos/pen.h"\
-	"\wx262\include\wx/msw/pen.h"\
 	"\wx262\include\wx/palmos/dcclient.h"\
 	"\wx262\include\wx/msw/dcclient.h"\
 	"\wx262\include\wx/palmos/dcmemory.h"\
 	"\wx262\include\wx/msw/dcmemory.h"\
 	"\wx262\include\wx/palmos/dcprint.h"\
 	"\wx262\include\wx/msw/dcprint.h"\
-	"\wx262\include\wx/cmndata.h"\
-	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/palmos/dcscreen.h"\
 	"\wx262\include\wx/msw/dcscreen.h"\
-	"\wx262\include\wx/control.h"\
 	"\wx262\include\wx/univ/button.h"\
 	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
 	"\wx262\include\wx/univ/control.h"\
 	"\wx262\include\wx/palmos/control.h"\
 	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
 	"\wx262\include\wx/imagbmp.h"\
 	"\wx262\include\wx/imagpng.h"\
 	"\wx262\include\wx/imaggif.h"\
@@ -15605,10 +19407,6 @@ DEP_CPP_S57CH=\
 	".\include\iso8211.h"\
 	{$(INCLUDE)}"\gdal.h"\
 	".\include\dymemdc.h"\
-	"\wx262\include\wx/dialog.h"\
-	"\wx262\include\wx/univ/dialog.h"\
-	"\wx262\include\wx/palmos/dialog.h"\
-	"\wx262\include\wx/msw/dialog.h"\
 	".\include\bitmapo.h"\
 	".\include\chcanv.h"\
 	".\include\chart1.h"\
@@ -15618,8 +19416,6 @@ DEP_CPP_S57CH=\
 	"\wx262\include\wx/msw/printwin.h"\
 	"\wx262\include\wx/generic/printps.h"\
 	"\wx262\include\wx/prntbase.h"\
-	"\wx262\include\wx/scrolwin.h"\
-	"\wx262\include\wx/generic/scrolwin.h"\
 	"\wx262\include\wx/ffile.h"\
 	{$(INCLUDE)}"\ogr_feature.h"\
 	{$(INCLUDE)}"\ogr_geometry.h"\
@@ -15642,20 +19438,6 @@ NODEP_CPP_S57CH=\
 	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
@@ -15663,13 +19445,6 @@ NODEP_CPP_S57CH=\
 	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
@@ -15692,17 +19467,19 @@ NODEP_CPP_S57CH=\
 	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
@@ -15733,18 +19510,6 @@ NODEP_CPP_S57CH=\
 	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
 	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
@@ -15759,31 +19524,181 @@ NODEP_CPP_S57CH=\
 	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcprint.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\x11\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mgl\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\dcscreen.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\button.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\button.h"\
-	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
-	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
-	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
-	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
 	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
 	".\include\wx\x11\private.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
 	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
-	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
 	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
 	
 
@@ -17329,6 +21244,831 @@ DEP_CPP_CPL_CO=\
 "$(INTDIR)\cpl_conv.obj" : $(SOURCE) $(DEP_CPP_CPL_CO) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\src\ais.cpp
+
+!IF  "$(CFG)" == "OPENCP - Win32 Release"
+
+DEP_CPP_AIS_C=\
+	"\wx262\include\wx/wxprec.h"\
+	"\wx262\include\wx/wx.h"\
+	"\wx262\include\wx/tokenzr.h"\
+	"\wx262\include\wx/datetime.h"\
+	".\include\dychart.h"\
+	".\include\ais.h"\
+	".\include\chart1.h"\
+	".\include\nmea.h"\
+	".\include\navutil.h"\
+	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/platform.h"\
+	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/string.h"\
+	"\wx262\include\wx/arrstr.h"\
+	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/xti.h"\
+	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/wxchar.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
+	"\wx262\include\wx/flags.h"\
+	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/log.h"\
+	"\wx262\include\wx/intl.h"\
+	"\wx262\include\wx/dynarray.h"\
+	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/generic/logg.h"\
+	"\wx262\include\wx/msw/winundef.h"\
+	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/beforestd.h"\
+	"\wx262\include\wx/afterstd.h"\
+	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/buffer.h"\
+	"\wx262\include\wx/strconv.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	"\wx262\include\wx/longlong.h"\
+	"\wx262\include\wx/msw/private.h"\
+	"\wx262\include\wx/socket.h"\
+	"\wx262\include\wx/event.h"\
+	"\wx262\include\wx/sckaddr.h"\
+	"\wx262\include\wx/gsocket.h"\
+	"\wx262\include\wx/list.h"\
+	"\wx262\include\wx/clntdata.h"\
+	"\wx262\include\wx/gdicmn.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/thread.h"\
+	"\wx262\include\wx/vector.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/utils.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/gdiobj.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/filefn.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
+	"\wx262\include\wx/dlimpexp.h"\
+	"\wx262\include\wx/msw/gsockmsw.h"\
+	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\lib\vc_lib\msw\wx/setup.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
+	"\wx262\include\wx/print.h"\
+	".\include\sercomm.h"\
+	"\wx262\include\wx/config.h"\
+	"\wx262\include\wx/confbase.h"\
+	"\wx262\include\wx/fileconf.h"\
+	"\wx262\include\wx/msw/regconf.h"\
+	"\wx262\include\wx/msw/iniconf.h"\
+	".\include\bbox.h"\
+	"\wx262\include\wx/fontdlg.h"\
+	"\wx262\include\wx/palmos/prefconf.h"\
+	"\wx262\include\wx/textfile.h"\
+	"\wx262\include\wx/textbuf.h"\
+	"\wx262\include\wx/file.h"\
+	"\wx262\include\wx/msw/registry.h"\
+	"\wx262\include\wx/matrix.h"\
+	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/generic/fontdlgg.h"\
+	"\wx262\include\wx/msw/fontdlg.h"\
+	"\wx262\include\wx/containr.h"\
+	"\wx262\include\wx/toplevel.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/window.h"\
+	"\wx262\include\wx/iconbndl.h"\
+	"\wx262\include\wx/palmos/toplevel.h"\
+	"\wx262\include\wx/msw/toplevel.h"\
+	"\wx262\include\wx/univ/toplevel.h"\
+	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/colour.h"\
+	"\wx262\include\wx/region.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/accel.h"\
+	"\wx262\include\wx/access.h"\
+	"\wx262\include\wx/palmos/window.h"\
+	"\wx262\include\wx/msw/window.h"\
+	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/palmos/font.h"\
+	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
+	"\wx262\include\wx/palmos/region.h"\
+	"\wx262\include\wx/msw/region.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/generic/accel.h"\
+	"\wx262\include\wx/msw/accel.h"\
+	"\wx262\include\wx/variant.h"\
+	"\wx262\include\wx/msw/ole/access.h"\
+	"\wx262\include\wx/db.h"\
+	"\wx262\include\wx/isql.h"\
+	"\wx262\include\wx/isqlext.h"\
+	"\wx262\include\wx/hash.h"\
+	"\wx262\include\wx/bitmap.h"\
+	"\wx262\include\wx/palmos/bitmap.h"\
+	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/univ/inpcons.h"\
+	"\wx262\include\wx/univ/inphand.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/panel.h"\
+	"\wx262\include\wx/generic/panelg.h"\
+	"\wx262\include\wx/encinfo.h"\
+	"\wx262\include\wx/stream.h"\
+	
+NODEP_CPP_AIS_C=\
+	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
+	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	
+
+"$(INTDIR)\ais.obj" : $(SOURCE) $(DEP_CPP_AIS_C) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "OPENCP - Win32 Debug"
+
+DEP_CPP_AIS_C=\
+	"\wx262\include\wx/wxprec.h"\
+	"\wx262\include\wx/wx.h"\
+	"\wx262\include\wx/tokenzr.h"\
+	"\wx262\include\wx/datetime.h"\
+	".\include\dychart.h"\
+	".\include\ais.h"\
+	".\include\chart1.h"\
+	".\include\nmea.h"\
+	".\include\navutil.h"\
+	"\wx262\include\wx/defs.h"\
+	"\wx262\include\wx/wxchar.h"\
+	"\wx262\include\wx/msw/wrapwin.h"\
+	"\wx262\include\wx/platform.h"\
+	"\wx262\include\wx/features.h"\
+	"\wx262\include\wx/version.h"\
+	"\wx262\include\wx/dlimpexp.h"\
+	"\wx262\include\wx/debug.h"\
+	{$(INCLUDE)}"\Sys\Types.h"\
+	"\wx262\lib\vc_lib\mswd\wx/setup.h"\
+	"\wx262\include\wx/chkconf.h"\
+	"\wx262\include\wx/msw/wince/libraries.h"\
+	"\wx262\include\wx/msw/gccpriv.h"\
+	"\wx262\include\wx/palmos/chkconf.h"\
+	"\wx262\include\wx/msw/wince/chkconf.h"\
+	"\wx262\include\wx/msw/chkconf.h"\
+	"\wx262\include\wx/msw/winundef.h"\
+	"\wx262\include\wx/object.h"\
+	"\wx262\include\wx/dynarray.h"\
+	"\wx262\include\wx/list.h"\
+	"\wx262\include\wx/hash.h"\
+	"\wx262\include\wx/string.h"\
+	"\wx262\include\wx/intl.h"\
+	"\wx262\include\wx/log.h"\
+	"\wx262\include\wx/event.h"\
+	"\wx262\include\wx/app.h"\
+	"\wx262\include\wx/utils.h"\
+	"\wx262\include\wx/stream.h"\
+	"\wx262\include\wx/window.h"\
+	"\wx262\include\wx/panel.h"\
+	"\wx262\include\wx/frame.h"\
+	"\wx262\include\wx/dc.h"\
+	"\wx262\include\wx/dcclient.h"\
+	"\wx262\include\wx/dcmemory.h"\
+	"\wx262\include\wx/dcprint.h"\
+	"\wx262\include\wx/dcscreen.h"\
+	"\wx262\include\wx/button.h"\
+	"\wx262\include\wx/menu.h"\
+	"\wx262\include\wx/pen.h"\
+	"\wx262\include\wx/brush.h"\
+	"\wx262\include\wx/palette.h"\
+	"\wx262\include\wx/icon.h"\
+	"\wx262\include\wx/cursor.h"\
+	"\wx262\include\wx/dialog.h"\
+	"\wx262\include\wx/timer.h"\
+	"\wx262\include\wx/settings.h"\
+	"\wx262\include\wx/msgdlg.h"\
+	"\wx262\include\wx/cmndata.h"\
+	"\wx262\include\wx/control.h"\
+	"\wx262\include\wx/ctrlsub.h"\
+	"\wx262\include\wx/bmpbuttn.h"\
+	"\wx262\include\wx/checkbox.h"\
+	"\wx262\include\wx/checklst.h"\
+	"\wx262\include\wx/choice.h"\
+	"\wx262\include\wx/scrolbar.h"\
+	"\wx262\include\wx/stattext.h"\
+	"\wx262\include\wx/statbmp.h"\
+	"\wx262\include\wx/statbox.h"\
+	"\wx262\include\wx/listbox.h"\
+	"\wx262\include\wx/radiobox.h"\
+	"\wx262\include\wx/radiobut.h"\
+	"\wx262\include\wx/textctrl.h"\
+	"\wx262\include\wx/slider.h"\
+	"\wx262\include\wx/gauge.h"\
+	"\wx262\include\wx/scrolwin.h"\
+	"\wx262\include\wx/dirdlg.h"\
+	"\wx262\include\wx/toolbar.h"\
+	"\wx262\include\wx/combobox.h"\
+	"\wx262\include\wx/layout.h"\
+	"\wx262\include\wx/sizer.h"\
+	"\wx262\include\wx/memory.h"\
+	"\wx262\include\wx/mdi.h"\
+	"\wx262\include\wx/statusbr.h"\
+	"\wx262\include\wx/choicdlg.h"\
+	"\wx262\include\wx/textdlg.h"\
+	"\wx262\include\wx/filedlg.h"\
+	"\wx262\include\wx/validate.h"\
+	"\wx262\include\wx/valtext.h"\
+	"\wx262\include\wx/xti.h"\
+	"\wx262\include\wx/msw/msvcrt.h"\
+	"\wx262\include\wx/flags.h"\
+	"\wx262\include\wx/arrstr.h"\
+	"\wx262\include\wx/hashmap.h"\
+	"\wx262\include\wx/beforestd.h"\
+	"\wx262\include\wx/afterstd.h"\
+	{$(INCLUDE)}"\Strings.h"\
+	"\wx262\include\wx/buffer.h"\
+	"\wx262\include\wx/strconv.h"\
+	"\wx262\include\wx/iosfwrap.h"\
+	"\wx262\include\wx/fontenc.h"\
+	"\wx262\include\wx/generic/logg.h"\
+	"\wx262\include\wx/clntdata.h"\
+	"\wx262\include\wx/gdicmn.h"\
+	"\wx262\include\wx/thread.h"\
+	"\wx262\include\wx/vector.h"\
+	"\wx262\include\wx/vidmode.h"\
+	"\wx262\include\wx/build.h"\
+	"\wx262\include\wx/init.h"\
+	"\wx262\include\wx/palmos/app.h"\
+	"\wx262\include\wx/msw/app.h"\
+	"\wx262\include\wx/univ/theme.h"\
+	"\wx262\include\wx/filefn.h"\
+	"\wx262\include\wx/longlong.h"\
+	{$(INCLUDE)}"\Dirent.h"\
+	"\wx262\include\wx/msw/wince/time.h"\
+	"\wx262\include\wx/msw/private.h"\
+	{$(INCLUDE)}"\Sys\Stat.h"\
+	"\wx262\include\wx/msw/microwin.h"\
+	"\wx262\include\wx/msw/mslu.h"\
+	"\wx262\include\wx/colour.h"\
+	"\wx262\include\wx/palmos/colour.h"\
+	"\wx262\include\wx/msw/colour.h"\
+	"\wx262\include\wx/font.h"\
+	"\wx262\include\wx/region.h"\
+	"\wx262\include\wx/accel.h"\
+	"\wx262\include\wx/access.h"\
+	"\wx262\include\wx/palmos/window.h"\
+	"\wx262\include\wx/msw/window.h"\
+	"\wx262\include\wx/univ/window.h"\
+	"\wx262\include\wx/gdiobj.h"\
+	"\wx262\include\wx/palmos/font.h"\
+	"\wx262\include\wx/msw/font.h"\
+	"\wx262\include\wx/palmos/gdiobj.h"\
+	"\wx262\include\wx/msw/gdiobj.h"\
+	"\wx262\include\wx/palmos/region.h"\
+	"\wx262\include\wx/msw/region.h"\
+	"\wx262\include\wx/generic/accel.h"\
+	"\wx262\include\wx/msw/accel.h"\
+	"\wx262\include\wx/variant.h"\
+	"\wx262\include\wx/msw/ole/access.h"\
+	"\wx262\include\wx/db.h"\
+	"\wx262\include\wx/isql.h"\
+	"\wx262\include\wx/isqlext.h"\
+	"\wx262\include\wx/bitmap.h"\
+	"\wx262\include\wx/palmos/bitmap.h"\
+	"\wx262\include\wx/msw/bitmap.h"\
+	"\wx262\include\wx/palmos/gdiimage.h"\
+	"\wx262\include\wx/msw/gdiimage.h"\
+	"\wx262\include\wx/generic/panelg.h"\
+	"\wx262\include\wx/containr.h"\
+	"\wx262\include\wx/toplevel.h"\
+	"\wx262\include\wx/univ/frame.h"\
+	"\wx262\include\wx/palmos/frame.h"\
+	"\wx262\include\wx/msw/frame.h"\
+	"\wx262\include\wx/iconbndl.h"\
+	"\wx262\include\wx/palmos/toplevel.h"\
+	"\wx262\include\wx/msw/toplevel.h"\
+	"\wx262\include\wx/univ/toplevel.h"\
+	"\wx262\include\wx/univ/inpcons.h"\
+	"\wx262\include\wx/univ/inphand.h"\
+	"\wx262\include\wx/math.h"\
+	"\wx262\include\wx/palmos/dc.h"\
+	"\wx262\include\wx/msw/dc.h"\
+	"\wx262\include\wx/palmos/dcclient.h"\
+	"\wx262\include\wx/msw/dcclient.h"\
+	"\wx262\include\wx/palmos/dcmemory.h"\
+	"\wx262\include\wx/msw/dcmemory.h"\
+	"\wx262\include\wx/palmos/dcprint.h"\
+	"\wx262\include\wx/msw/dcprint.h"\
+	"\wx262\include\wx/palmos/dcscreen.h"\
+	"\wx262\include\wx/msw/dcscreen.h"\
+	"\wx262\include\wx/univ/button.h"\
+	"\wx262\include\wx/msw/button.h"\
+	"\wx262\include\wx/palmos/button.h"\
+	"\wx262\include\wx/menuitem.h"\
+	"\wx262\include\wx/univ/menu.h"\
+	"\wx262\include\wx/palmos/menu.h"\
+	"\wx262\include\wx/msw/menu.h"\
+	"\wx262\include\wx/univ/menuitem.h"\
+	"\wx262\include\wx/palmos/menuitem.h"\
+	"\wx262\include\wx/msw/menuitem.h"\
+	"\wx262\include\wx/ownerdrw.h"\
+	"\wx262\include\wx/palmos/pen.h"\
+	"\wx262\include\wx/msw/pen.h"\
+	"\wx262\include\wx/palmos/brush.h"\
+	"\wx262\include\wx/msw/brush.h"\
+	"\wx262\include\wx/palmos/palette.h"\
+	"\wx262\include\wx/msw/palette.h"\
+	"\wx262\include\wx/generic/paletteg.h"\
+	"\wx262\include\wx/iconloc.h"\
+	"\wx262\include\wx/palmos/icon.h"\
+	"\wx262\include\wx/msw/icon.h"\
+	"\wx262\include\wx/palmos/cursor.h"\
+	"\wx262\include\wx/msw/cursor.h"\
+	"\wx262\include\wx/univ/dialog.h"\
+	"\wx262\include\wx/palmos/dialog.h"\
+	"\wx262\include\wx/msw/dialog.h"\
+	"\wx262\include\wx/stopwatch.h"\
+	"\wx262\include\wx/msw/timer.h"\
+	"\wx262\include\wx/generic/timer.h"\
+	"\wx262\include\wx/generic/msgdlgg.h"\
+	"\wx262\include\wx/palmos/msgdlg.h"\
+	"\wx262\include\wx/msw/msgdlg.h"\
+	"\wx262\include\wx/encinfo.h"\
+	"\wx262\include\wx/univ/control.h"\
+	"\wx262\include\wx/palmos/control.h"\
+	"\wx262\include\wx/msw/control.h"\
+	"\wx262\include\wx/univ/bmpbuttn.h"\
+	"\wx262\include\wx/msw/bmpbuttn.h"\
+	"\wx262\include\wx/univ/checkbox.h"\
+	"\wx262\include\wx/msw/checkbox.h"\
+	"\wx262\include\wx/palmos/checkbox.h"\
+	"\wx262\include\wx/univ/checklst.h"\
+	"\wx262\include\wx/msw/checklst.h"\
+	"\wx262\include\wx/univ/choice.h"\
+	"\wx262\include\wx/msw/wince/choicece.h"\
+	"\wx262\include\wx/msw/choice.h"\
+	"\wx262\include\wx/univ/scrolbar.h"\
+	"\wx262\include\wx/msw/scrolbar.h"\
+	"\wx262\include\wx/univ/scrarrow.h"\
+	"\wx262\include\wx/renderer.h"\
+	"\wx262\include\wx/univ/stattext.h"\
+	"\wx262\include\wx/msw/stattext.h"\
+	"\wx262\include\wx/palmos/stattext.h"\
+	"\wx262\include\wx/univ/statbmp.h"\
+	"\wx262\include\wx/msw/statbmp.h"\
+	"\wx262\include\wx/univ/statbox.h"\
+	"\wx262\include\wx/msw/statbox.h"\
+	"\wx262\include\wx/univ/listbox.h"\
+	"\wx262\include\wx/msw/listbox.h"\
+	"\wx262\include\wx/univ/radiobox.h"\
+	"\wx262\include\wx/msw/radiobox.h"\
+	"\wx262\include\wx/palmos/radiobox.h"\
+	"\wx262\include\wx/univ/radiobut.h"\
+	"\wx262\include\wx/msw/radiobut.h"\
+	"\wx262\include\wx/palmos/radiobut.h"\
+	"\wx262\include\wx/ioswrap.h"\
+	"\wx262\include\wx/univ/textctrl.h"\
+	"\wx262\include\wx/msw/wince/textctrlce.h"\
+	"\wx262\include\wx/msw/textctrl.h"\
+	"\wx262\include\wx/univ/slider.h"\
+	"\wx262\include\wx/msw/slider95.h"\
+	"\wx262\include\wx/palmos/slider.h"\
+	"\wx262\include\wx/univ/scrthumb.h"\
+	"\wx262\include\wx/univ/gauge.h"\
+	"\wx262\include\wx/msw/gauge95.h"\
+	"\wx262\include\wx/generic/scrolwin.h"\
+	"\wx262\include\wx/generic/dirdlgg.h"\
+	"\wx262\include\wx/msw/dirdlg.h"\
+	"\wx262\include\wx/tbarbase.h"\
+	"\wx262\include\wx/univ/toolbar.h"\
+	"\wx262\include\wx/palmos/toolbar.h"\
+	"\wx262\include\wx/msw/tbar95.h"\
+	"\wx262\include\wx/msw/wince/tbarwce.h"\
+	"\wx262\include\wx/msw/tbarmsw.h"\
+	"\wx262\include\wx/imaglist.h"\
+	"\wx262\include\wx/msw/imaglist.h"\
+	"\wx262\include\wx/generic/imaglist.h"\
+	"\wx262\include\wx/univ/combobox.h"\
+	"\wx262\include\wx/msw/combobox.h"\
+	"\wx262\include\wx/bookctrl.h"\
+	"\wx262\include\wx/notebook.h"\
+	"\wx262\include\wx/choicebk.h"\
+	"\wx262\include\wx/univ/notebook.h"\
+	"\wx262\include\wx/msw/notebook.h"\
+	"\wx262\include\wx/generic/notebook.h"\
+	"\wx262\include\wx/msgout.h"\
+	"\wx262\include\wx/generic/mdig.h"\
+	"\wx262\include\wx/msw/mdi.h"\
+	"\wx262\include\wx/univ/statusbr.h"\
+	"\wx262\include\wx/palmos/statusbr.h"\
+	"\wx262\include\wx/msw/statbr95.h"\
+	"\wx262\include\wx/generic/statusbr.h"\
+	"\wx262\include\wx/generic/choicdgg.h"\
+	"\wx262\include\wx/generic/textdlgg.h"\
+	"\wx262\include\wx/numdlg.h"\
+	"\wx262\include\wx/generic/numdlgg.h"\
+	"\wx262\include\wx/generic/filedlgg.h"\
+	"\wx262\include\wx/msw/filedlg.h"\
+	"\wx262\include\wx/listctrl.h"\
+	"\wx262\include\wx/listbase.h"\
+	"\wx262\include\wx/msw/listctrl.h"\
+	"\wx262\include\wx/generic/listctrl.h"\
+	{$(INCLUDE)}"\cpl_port.h"\
+	{$(INCLUDE)}"\cpl_config.h"\
+	"\wx262\include\wx/socket.h"\
+	"\wx262\include\wx/sckaddr.h"\
+	"\wx262\include\wx/gsocket.h"\
+	"\wx262\include\wx/msw/gsockmsw.h"\
+	"\wx262\include\wx/unix/gsockunx.h"\
+	"\wx262\include\wx/print.h"\
+	{$(INCLUDE)}"\cpl_error.h"\
+	"\wx262\include\wx/msw/printwin.h"\
+	"\wx262\include\wx/generic/printps.h"\
+	"\wx262\include\wx/prntbase.h"\
+	".\include\sercomm.h"\
+	"\wx262\include\wx/config.h"\
+	"\wx262\include\wx/confbase.h"\
+	"\wx262\include\wx/fileconf.h"\
+	"\wx262\include\wx/msw/regconf.h"\
+	"\wx262\include\wx/msw/iniconf.h"\
+	".\include\bbox.h"\
+	"\wx262\include\wx/fontdlg.h"\
+	"\wx262\include\wx/palmos/prefconf.h"\
+	"\wx262\include\wx/textfile.h"\
+	"\wx262\include\wx/textbuf.h"\
+	"\wx262\include\wx/file.h"\
+	"\wx262\include\wx/msw/registry.h"\
+	"\wx262\include\wx/matrix.h"\
+	"\wx262\include\wx/geometry.h"\
+	"\wx262\include\wx/generic/fontdlgg.h"\
+	"\wx262\include\wx/msw/fontdlg.h"\
+	
+NODEP_CPP_AIS_C=\
+	".\..\..\..\wx262\include\wx\wx\mac\carbon\config_xcode.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\chkconf.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\chkconf.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\log.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\app.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\app.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\app.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\app.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\app.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\app.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\app.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\private.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\colour.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\window.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\window.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\window.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\window.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\window.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\window.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\window.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\font.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\font.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\font.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\font.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\font.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\font.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\gdiobj.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\region.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\region.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\region.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\region.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\region.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\region.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\accel.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\accel.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\accel.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\accel.h"\
+	".\..\..\..\wx262\include\wx\wx\generic\access.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\bitmap.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\frame.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\frame.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\frame.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\frame.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\frame.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\toplevel.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dc.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dcclient.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dcclient.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\dcclient.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\dcclient.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dcclient.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dcclient.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dcclient.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dcmemory.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dcmemory.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\dcmemory.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\dcmemory.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dcmemory.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dcmemory.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dcmemory.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcprint.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\x11\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mgl\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\dcscreen.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\button.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menu.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\menuitem.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\menuitem.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\pen.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\brush.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\palette.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\icon.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mgl\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\cursor.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\dialog.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\dialog.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\timer.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\msgdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\msgdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\control.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\control.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\control.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\control.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\control.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\bmpbuttn.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checkbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\checklst.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\checklst.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\choice.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\choice.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\scrolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\stattext.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbmp.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\statbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\listbox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobox.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\radiobut.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\radiobut.h"\
+	".\..\..\..\wx262\include\wx\wx\x11\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\textctrl.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\textctrl.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\slider.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\gauge.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\gauge.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\scrolwin.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\dirdlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\tbargtk.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\toolbar.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\toolbar.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\imaglist.h"\
+	".\..\..\..\wx262\include\wx\wx\motif\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\combobox.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\cocoa\notebook.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\notebook.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\mdi.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\statusbr.h"\
+	".\..\..\..\Wx262\include\wx\wx\motif\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\gtk\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\mac\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\cocoa\filedlg.h"\
+	".\..\..\..\Wx262\include\wx\wx\os2\filedlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\gsockmac.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\printmac.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\printos2.h"\
+	".\..\..\..\wx262\include\wx\wx\gtk\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\os2\fontdlg.h"\
+	".\..\..\..\wx262\include\wx\wx\mac\fontdlg.h"\
+	
+
+"$(INTDIR)\ais.obj" : $(SOURCE) $(DEP_CPP_AIS_C) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
 
 # End Source File
 # End Target

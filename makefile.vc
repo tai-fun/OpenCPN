@@ -1,86 +1,10 @@
 # TARGTYPE "Win32 (x86) Application" 0x0101
 
 ################################################################################
-# Global build options, from nmake.opt
+# Global build options, from config.vc
+################################################################################
 
-# Specify the application install location, (e.g. nmake -f makefile.vc install)
-APPDIR = "c:\Program Files\opencpn"
-
-# Release or Debug? [release,debug]
-CFG = release
-
-# Use S57 ENC Charts? [0,1]
-USE_S57 = 1
-
-# Specify the Tesselator option [0,1]
-# If USE_GLU_TESS = 0, then compile with the internal tesselator module
-USE_GLU_TESS = 1
-
-# Specify linkage to glu32.lib, instead of default glu32.dll [0,1]
-USE_GLU_LIB = 0
-
-# Enable the (undocumented) wifi client window [0,1]
-#USE_WIFI_CLIENT = 1
-#################################################################################
-
-
-#################################################################################
-
-# Specify the GDAL/OGR build type
-#
-# Opencpn uses the OGR/GDAL library for S57ENC support.
-# If USE_S57 is enabled (USE_S57 = 1), you must choose one.
-# Otherwise, ignore this section 
-# You may link against OGR/GDAL library in one of three ways
-#
-# Static:  Link against gdal.lib or gdald.lib static libraries.
-# DLL:  Link against gdal_i.lib, and so dynamically to gdalxx.dll
-# INTERNAL : Compile and link against src\mygdal, requiring no
-#            external GDAL dependencies
-
-#GDAL_LINK = STATIC
-#GDAL_LINK = DLL
-GDAL_LINK = INTERNAL
-
-#---------------------STATIC BUILD OPTION-------------------------------------
-# Specify static GDAL library Location and names
-GDAL_STATIC_BASE_LIB = "c:/gdal-1.2.0"
-GDAL_STATIC_LIB = $(GDAL_STATIC_BASE_LIB)"\gdal.lib"
-GDAL_STATIC_LIB_DEBUG = $(GDAL_STATIC_BASE_LIB)"\gdald.lib"
-
-# Specify the GDAL/OGR include directory location
-GDAL_STATIC_INC_BASE = "c:/GDALBuild/include"
-
-
-
-#----------------------DLL BUILD OPTION--------------------------------------
-# Specify GDAL DLL Import Library Location and name
-# Depending on which toolset built the GDAL dll,
-# the import library name may look like these examples:
-#   MSVC build.......GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\gdal_i.lib"
-#   MINGW32 build....GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\libgdal13.a"
-# Debug versions are probably named the same.
-# Only required for external (i.e. STATIC or DLL) gdal library 
-
-GDAL_DLL_BASE_LIB = "c:/GDALBuild"
-GDAL_DLL_IMP_LIB = $(GDAL_DLL_BASE_LIB)"\lib\gdal_i.lib"
-GDAL_DLL_IMP_LIB_DEBUG = $(GDAL_DLL_BASE_LIB)"\lib\gdal_i.lib"
-
-# Specify the GDAL/OGR include directory location
-GDAL_DLL_INC_BASE = "c:/GDALBuild/include"
-
-##################################################################################
-
-
-
-#################################################################################
-# WXWIDGETS Location/Configuration
-# Assumes the "standard" wxWidgets static distribution/build
-#
-# Some modifications will be required to the makefile if shared or monolithic
-# wxWidgets libraries are to be used.
-WX_BASE = c:\wx262
-#################################################################################
+!include <config.vc>
 
 
 ####################BEGIN MAKEFILE###############################################
@@ -114,8 +38,6 @@ __DGLUTESS =
 GLU_LIB = 
 __DGLUDLL = 
 !endif
-
-
 
 
 #  Undocumented WIFI client
@@ -155,8 +77,6 @@ GDAL_INCLUDE = $(GDAL_STATIC_INC_BASE)
 GDAL_INCLUDE = ".\src\mygdal"
 GDAL_LIB =
 !ENDIF
-
-
 
 
 
@@ -493,21 +413,20 @@ GDAL_INCLUDE = ".\src\mygdal"
 
 #  Targets
 
-
-
-
-
 ALL : "$(OUTDIR)\opencpn.exe"
 
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)\$(NULL)" mkdir "$(OUTDIR)"
 
+APP_ICON = opencpn.ico
+"$(INTDIR)\opencpn.res" : .\src\bitmaps\$(APP_ICON) ".\src\opencpn.rc"
+   rc /fo"$(INTDIR)\opencpn.res" -i ".\src\bitmaps" .\src\opencpn.rc"
 
 
-"$(OUTDIR)\opencpn.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS) $(ISO8211_OBJS) $(GDAL_OBJS) $(WIFI_OBJS) $(S57_OBJS)
+"$(OUTDIR)\opencpn.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS) "$(INTDIR)\opencpn.res" $(ISO8211_OBJS) $(GDAL_OBJS) $(WIFI_OBJS) $(S57_OBJS)
     $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS) $(ISO8211_OBJS) $(GDAL_OBJS) $(WIFI_OBJS) $(S57_OBJS)
+  $(LINK32_FLAGS) $(LINK32_OBJS) "$(INTDIR)\opencpn.res" $(ISO8211_OBJS) $(GDAL_OBJS) $(WIFI_OBJS) $(S57_OBJS)
 <<
 
 install: "$(OUTDIR)" "$(OUTDIR)\opencpn.exe"
@@ -518,6 +437,11 @@ install: "$(OUTDIR)" "$(OUTDIR)\opencpn.exe"
 	xcopy /y /r /d /f /s data\*.* $(APPDIR)
 
 CLEAN :
+	del "$(INTDIR)\*.obj
+	del "$(INTDIR)\opencpn.exe
+	del "$(INTDIR)\opencpn.res
+	
+!IF 0	
 	-@erase "$(INTDIR)\opencpn.exe"
 	-@erase "$(INTDIR)\sercomm.obj"
 	-@erase "$(INTDIR)\tri.obj"
@@ -683,7 +607,7 @@ CLEAN :
 	-@erase "$(INTDIR)\s57reader.obj"
 	-@erase "$(INTDIR)\s57writer.obj"
 	-@erase "$(INTDIR)\swq.obj"
-
+!ENDIF
 
 
 
