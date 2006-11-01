@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.3 2006/10/08 00:37:17 dsr Exp $
+ * $Id: options.h,v 1.4 2006/11/01 02:19:08 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.4  2006/11/01 02:19:08  dsr
+ * AIS Support
+ *
  * Revision 1.3  2006/10/08 00:37:17  dsr
  * no message
  *
@@ -95,25 +98,27 @@ class MyConfig;
 #define SYMBOL_OPTIONS_IDNAME ID_DIALOG
 #define SYMBOL_OPTIONS_SIZE wxSize(500, 500)
 #define SYMBOL_OPTIONS_POSITION wxDefaultPosition
-#define ID_NOTEBOOK 10002
-#define ID_PANEL2 10007
-#define ID_DEBUGCHECKBOX1 10010
-#define ID_PANEL 10004
-#define ID_DIRCTRL 10005
-#define ID_TEXTCTRL1 10000
-#define ID_BUTTONADD 10011
-#define ID_TEXTCTRL 10003
-#define ID_BUTTONDELETE 10006
-#define ID_BUTTONREBUILD 10008
-#define ID_PANEL3 10012
-#define ID_CHECKLISTBOX 10013
-#define ID_RADIOBOX 10014
-#define xID_OK 10009
-#define ID_PANELFONT 10015
+
+#define ID_TEXTCTRL1        10000
+#define ID_NOTEBOOK         10002
+#define ID_TEXTCTRL         10003
+#define ID_PANEL            10004
+#define ID_DIRCTRL          10005
+#define ID_BUTTONDELETE     10006
+#define ID_PANEL2           10007
+#define ID_BUTTONREBUILD    10008
+#define xID_OK              10009
+#define ID_DEBUGCHECKBOX1   10010
+#define ID_BUTTONADD        10011
+#define ID_PANEL3           10012
+#define ID_CHECKLISTBOX     10013
+#define ID_RADIOBOX         10014
+#define ID_PANELFONT        10015
 #define ID_CHOICE_FONTELEMENT 10016
 #define ID_BUTTONFONTCHOOSE 10017
-#define ID_CLEARLIST 10018
-#define ID_SELECTLIST 10019
+#define ID_CLEARLIST        10018
+#define ID_SELECTLIST       10019
+#define ID_CHOICE_AIS       10020
 
 ////@end control identifiers
 
@@ -226,7 +231,7 @@ public:
       wxStaticBox             *m_itemNMEA_TCPIP_StaticBox;
       wxStaticBoxSizer        *m_itemNMEA_TCPIP_StaticBoxSizer;
       wxTextCtrl              *m_itemNMEA_TCPIP_Source;
-      wxComboBox                *m_itemNMEAListBox;
+      wxComboBox              *m_itemNMEAListBox;
       wxChoice                *m_itemNMEAAutoListBox;
 
 #ifdef USE_WIFI_CLIENT
@@ -238,6 +243,9 @@ public:
 
 //    For Fonts page
       wxChoice                *m_itemFontElementListBox;
+
+//    For "AIS Options"
+      wxChoice                *m_itemAISListBox;
 
       wxCheckBox*             pSettingsCB1;
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.5 2006/10/08 14:15:15 dsr Exp $
+ * $Id: chcanv.h,v 1.6 2006/11/01 02:18:45 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.6  2006/11/01 02:18:45  dsr
+ * AIS Support
+ *
  * Revision 1.5  2006/10/08 14:15:15  dsr
  * no message
  *
@@ -110,6 +113,7 @@
       class ChartBaseBSB;
       class PixelCache;
       class ChartBase;
+      class AIS_Target_Data;
 
 //----------------------------------------------------------------------------
 //   constants
@@ -246,6 +250,7 @@ private:
       Route       *m_pEditRoute;
       RoutePoint  *pFoundRoutePoint;
 
+      AIS_Target_Data *pFoundAIS_Target_Data;
 
       wxCursor    *pCursorLeft;
       wxCursor    *pCursorRight;
@@ -292,6 +297,9 @@ private:
       void RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool bdraw_mono = false);
       void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono = false);
       wxBitmap *DrawTCCBitmap(bool bAddNewSelpoints);
+      void AISDraw(wxDC& dc);
+      double fmax4(double a, double b, double c, double d);
+      double fmin4(double a, double b, double c, double d);
 
 
       //    Data
@@ -457,5 +465,47 @@ public:
 
       wxString    *pQueryResult;
 };
+
+
+//----------------------------------------------------------------------------------------------------------
+//    AISTargetQueryDialog Specification
+//----------------------------------------------------------------------------------------------------------
+class AISTargetQueryDialog: public wxDialog
+{
+DECLARE_CLASS( AISTargetQueryDialog )
+DECLARE_EVENT_TABLE()
+public:
+
+      /// Constructors
+
+      AISTargetQueryDialog( );
+      AISTargetQueryDialog( wxWindow* parent,
+            wxWindowID id = wxID_ANY,
+            const wxString& caption = wxT("Object Query"),
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
+
+      ~AISTargetQueryDialog( );
+      /// Initialise our variables
+      void Init();
+
+      /// Creation
+      bool Create( wxWindow* parent,
+            wxWindowID id = wxID_ANY,
+            const wxString& caption = wxT("Object Query"),
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
+
+      /// Creates the controls and sizers
+      void CreateControls();
+
+      void SetText(wxString &text_string);
+
+      wxString    *pQueryResult;
+};
+
+
 
 #endif

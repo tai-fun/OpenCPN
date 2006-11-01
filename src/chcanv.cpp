@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.12 2006/10/10 15:39:53 dsr Exp $
+ * $Id: chcanv.cpp,v 1.13 2006/11/01 02:15:37 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,96 +26,11 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.13  2006/11/01 02:15:37  dsr
+ * AIS Support
+ *
  * Revision 1.12  2006/10/10 15:39:53  dsr
  * no message
- *
- * Revision 1.11  2006/10/08 14:15:00  dsr
- * no message
- *
- * Revision 1.10  2006/10/08 14:40:49  dsr
- * *** empty log message ***
- *
- * Revision 1.9  2006/10/08 13:49:14  dsr
- * no message
- *
- * Revision 1.8  2006/10/08 04:37:38  dsr
- * no message
- *
- * Revision 1.7  2006/10/08 02:40:58  dsr
- * *** empty log message ***
- *
- * Revision 1.6  2006/10/08 00:36:44  dsr
- * no message
- *
- * Revision 1.5  2006/10/07 03:50:27  dsr
- * *** empty log message ***
- *
- * Revision 1.4  2006/10/05 03:48:40  dsr
- * ocpcursor update
- *
- * Revision 1.3  2006/10/01 03:22:58  dsr
- * no message
- *
- * Revision 1.2  2006/09/21 01:37:36  dsr
- * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.8  2006/08/04 11:42:01  dsr
- * no message
- *
- * Revision 1.7  2006/07/28 20:35:28  dsr
- * Skew chart pan, cleanup
- *
- * Revision 1.6  2006/06/15 02:41:57  dsr
- * Cleanup
- *
- * Revision 1.5  2006/06/02 02:11:46  dsr
- * Implement PolyGeo Query
- *
- * Revision 1.4  2006/05/28 00:49:35  dsr
- * Floats to Doubles in ViewPort
- *
- * Revision 1.3  2006/05/19 19:20:44  dsr
- * New S57 viewport logic, incomplete....
- *
- * Revision 1.2  2006/04/23 03:55:00  dsr
- * Add S57 Query
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.14  2006/04/19 00:42:39  dsr
- * Update some georeferencing errors in vector charts
- *
- * Revision 1.13  2006/03/25 20:28:51  dsr
- * Revise TC logic in OnPaint for performance
- * Correct for error in wxDateTime in wx2.6.1
- *
- * Revision 1.12  2006/03/16 03:07:59  dsr
- * Cleanup tabs
- *
- * Revision 1.11  2006/03/13 05:48:34  dsr
- * Cleanup
- *
- * Revision 1.10  2006/03/13 05:43:23  dsr
- * Cleanup
- *
- * Revision 1.9  2006/03/13 05:04:55  dsr
- * Disable rescale thread
- *
- * Revision 1.8  2006/03/04 21:19:58  dsr
- * Implement thread-based chart rescale logic
- *
- * Revision 1.7  2006/02/24 03:03:32  dsr
- * Cleanup cursor creation
- *
- * Revision 1.6  2006/02/23 01:36:34  dsr
- * Cleanup, especially cursors and chart skew
- *
- * Revision 1.5  2006/02/10 03:18:35  dsr
- * *** empty log message ***
  *
  *
  */
@@ -150,6 +65,7 @@
 #include "s52plib.h"
 #endif
 
+#include "ais.h"
 
 extern ChartBase        *Current_Ch;
 extern float            gLat, gLon, gCog, gSog;
@@ -174,6 +90,7 @@ extern Routeman         *pRouteMan;
 extern ThumbWin         *pthumbwin;
 extern TCMgr            *ptcmgr;
 extern Select           *pSelectTC;
+extern Select           *pSelectAIS;
 
 
 extern bool             bDrawCurrentValues;
@@ -185,8 +102,16 @@ extern s52plib          *ps52plib;
 
 extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
+extern AIS_Decoder      *pAIS;
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.12 2006/10/10 15:39:53 dsr Exp $");
+
+extern "C" {
+      typedef enum { Visible, Invisible } ClipResult;
+      ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
+                                   int xmin_, int xmax_, int ymin_, int ymax_);
+}
+
+CPL_CVSID("$Id: chcanv.cpp,v 1.13 2006/11/01 02:15:37 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -219,7 +144,8 @@ enum
       ID_RC_MENU_SCALE_OUT,
       ID_RC_MENU_ZOOM_IN,
       ID_RC_MENU_ZOOM_OUT,
-      ID_RC_MENU_FINISH
+      ID_RC_MENU_FINISH,
+      ID_DEF_MENU_AIS_QUERY
 };
 
 
@@ -256,6 +182,7 @@ BEGIN_EVENT_TABLE(ChartCanvas, wxWindow)
   EVT_MENU(ID_RC_MENU_ZOOM_IN,      ChartCanvas::PopupMenuHandler)
   EVT_MENU(ID_RC_MENU_ZOOM_OUT,     ChartCanvas::PopupMenuHandler)
   EVT_MENU(ID_RC_MENU_FINISH,       ChartCanvas::PopupMenuHandler)
+  EVT_MENU(ID_DEF_MENU_AIS_QUERY,   ChartCanvas::PopupMenuHandler)
 
 END_EVENT_TABLE()
 
@@ -708,26 +635,31 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
             }
             else                                      // reasonable zoom
             {
-                  double lonul, lonur, lonll, lonlr;
-                  double latul, latur, latll, latlr;
+                double lonul, lonur, lonll, lonlr;
+                double latul, latur, latll, latlr;
 
-            Current_Ch->pix_to_latlong((int)(((0) * sc) + source.x),
+                Current_Ch->pix_to_latlong((int)(((0) * sc) + source.x),
                                (int)(((0) * sc) + source.y),
                                &latul, &lonul);
-            Current_Ch->pix_to_latlong((int)(((canvas_width) * sc) + source.x),
+                Current_Ch->pix_to_latlong((int)(((canvas_width) * sc) + source.x),
                                (int)(((0) * sc) + source.y),
                                &latur, &lonur);
-            Current_Ch->pix_to_latlong((int)(((canvas_width) * sc) + source.x),
+                Current_Ch->pix_to_latlong((int)(((canvas_width) * sc) + source.x),
                                (int)(((canvas_height) * sc) + source.y),
                                &latlr, &lonlr);
-            Current_Ch->pix_to_latlong((int)(((0) * sc) + source.x),
+                Current_Ch->pix_to_latlong((int)(((0) * sc) + source.x),
                                (int)(((canvas_height) * sc) + source.y),
                                &latll, &lonll);
 
-            VPoint.lat_top = fmax(latul, latur);
-                  VPoint.lat_bot = fmin(latll, latlr);
-                  VPoint.lon_right = fmax(lonur, lonlr);
-                  VPoint.lon_left  = fmin(lonul, lonll);
+                VPoint.lat_top = fmax4(latul, latur, latll, latlr);
+                VPoint.lat_bot = fmin4(latul, latur, latll, latlr);
+                VPoint.lon_right = fmax4(lonur, lonlr, lonul, lonll);
+                VPoint.lon_left  = fmin4(lonur, lonlr, lonul, lonll);
+
+//                VPoint.lat_top = fmax(latul, latur);
+//                VPoint.lat_bot = fmin(latll, latlr);
+//                VPoint.lon_right = fmax(lonur, lonlr);
+//                VPoint.lon_left  = fmin(lonul, lonll);
 
             }
       }
@@ -773,7 +705,31 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
 
 }
 
+double ChartCanvas::fmax4(double a, double b, double c, double d)
+{
+    double ret = a;
+    if(b > ret)
+        ret = b;
+    if(c > ret)
+        ret = c;
+    if(d > ret)
+        ret = d;
 
+    return ret;
+}
+
+double ChartCanvas::fmin4(double a, double b, double c, double d)
+{
+    double ret = a;
+    if(b < ret)
+        ret = b;
+    if(c < ret)
+        ret = c;
+    if(d < ret)
+        ret = d;
+
+    return ret;
+}
 
 
 
@@ -838,17 +794,124 @@ void ChartCanvas::ShipDraw(wxDC& dc, wxPoint& iShipPoint, wxPoint& iPredPoint)
 }
 
 
+
+void ChartCanvas::AISDraw(wxDC& dc)
+{
+
+    if(!pAIS)
+        return;
+
+    //      Iterate over the AIS Target Hashmap
+    AIS_Target_Hash::iterator it;
+
+    AIS_Target_Hash *current_targets = pAIS->GetTargetList();
+
+    for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
+    {
+          AIS_Target_Data *td = it->second;
+          
+          int drawit = 0;
+          wxPoint lShipPoint, lPredPoint;
+
+    //    Is target in Vpoint?
+          if(VPoint.vpBBox.PointInBox(td->Lon, td->Lat, 0))
+                drawit++;                                 // yep
+
+
+    //    Calculate 5 Minute Position Predictor
+
+          float east, north;
+          double plat, plon;
+          float pred_lat, pred_lon;
+
+          DegToUTM(td->Lat, td->Lon, NULL, &east, &north, long0);
+
+          east += (sin(td->COG * PI / 180) * td->SOG * (1852.) / 12.);  // 5 mins, 1852 m/nmi
+          north += (cos(td->COG * PI / 180) * td->SOG * (1852.) / 12.);  // 5 mins
+
+          UTMtoDeg(long0, 0, east, north, &plat, &plon);
+          pred_lat = plat;
+          pred_lon = plon;
+
+    //    Is predicted point in the VPoint?
+          if(VPoint.vpBBox.PointInBox(pred_lon, pred_lat, 0))
+                drawit++;                                 // yep
+
+
+    //    Do the draw if either the target or prediction is within the current VPoint
+          if(drawit)
+          {
+                int pixxd, pixyd;
+                Current_Ch->latlong_to_pix_vp(td->Lat, td->Lon, pixxd, pixyd, VPoint);
+                lShipPoint.x = pixxd;
+                lShipPoint.y = pixyd;
+
+                Current_Ch->latlong_to_pix_vp(pred_lat, pred_lon, pixxd, pixyd, VPoint);
+                lPredPoint.x = pixxd;
+                lPredPoint.y = pixyd;
+
+                //  Calculate the relative angle for this chart orientation
+
+                double theta = atan2((lPredPoint.y - lShipPoint.y),(lPredPoint.x - lShipPoint.x));
+                
+                //  Draw the icon rotated to the COG
+                wxPoint ais_tri_icon[3];
+                ais_tri_icon[0].x = -8;
+                ais_tri_icon[0].y = -6;
+                ais_tri_icon[1].x =  0;
+                ais_tri_icon[1].y =  24;
+                ais_tri_icon[2].x =  8;
+                ais_tri_icon[2].y = -6;
+
+                for(int i=0; i<3 ; i++)
+                {
+                    int px = ais_tri_icon[i].x * sin(theta) + ais_tri_icon[i].y * cos(theta);
+                    int py = ais_tri_icon[i].y * sin(theta) - ais_tri_icon[i].x * cos(theta);
+                    ais_tri_icon[i].x = px;
+                    ais_tri_icon[i].y = py;
+                }
+
+
+                dc.SetBrush(wxBrush(*wxGREEN_BRUSH));
+                if((td->NavStatus != UNDERWAY_USING_ENGINE) && (td->NavStatus != UNDERWAY_SAILING))
+                {
+                    wxBrush *p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(180,180,180), wxSOLID);   // gray
+                    dc.SetBrush(*p_brush);
+                }
+
+
+                wxPen ppPen(wxColour(0,255,0), 2, wxSOLID);
+                dc.SetPen(ppPen);
+
+                int pixx = lShipPoint.x; 
+                int pixy = lShipPoint.y; 
+                int pixx1 = lPredPoint.x; 
+                int pixy1 = lPredPoint.y; 
+
+                ClipResult res = cohen_sutherland_line_clip_i (&pixx, &pixy, &pixx1, &pixy1,
+                        0, VPoint.pix_width, 0, VPoint.pix_height);
+                if(res != Invisible)
+                    dc.DrawLine(pixx, pixy, pixx1, pixy1);
+                
+                dc.DrawCircle(lPredPoint.x, lPredPoint.y, 6);
+
+
+                dc.SetPen(wxPen(*wxBLACK_PEN));
+                dc.DrawPolygon(3, &ais_tri_icon[0], lShipPoint.x, lShipPoint.y);
+        }
+    }
+}
+
+
+
 void ChartCanvas::OnActivate(wxActivateEvent& event)
 {
-      int x,y;
-      this->GetClientSize(&x, &y);
       if(Current_Ch)
             Current_Ch->InvalidateCache();
 }
 
 void ChartCanvas::OnSize(wxSizeEvent& event)
 {
-//    int canvas_width, canvas_height;
       GetClientSize(&canvas_width, &canvas_height);
 
 //    Get some canvas metrics
@@ -1390,7 +1453,7 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                   CanvasPopupMenu(x,y, SELTYPE_ROUTECREATE);
             else                                                  // General Right Click
             {
-                                                                  // Look for selectable RouteParts
+                                                                  // Look for selectable objects
                   float slat, slon;
                   float SelectRadius;
       //    Calculate meaningful SelectRadius
@@ -1402,7 +1465,21 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                   SelectItem *pFind;
                   wxClientDC dc(this);
 
-                  if((pFind = pSelect->FindSelection(slat, slon,SELTYPE_ROUTEPOINT,SelectRadius)) != NULL)
+                  //    Try for AIS targets first
+                  if((pFind = pSelectAIS->FindSelection(slat, slon, SELTYPE_AISTARGET, SelectRadius)) != NULL)
+                  {
+                        pFoundAIS_Target_Data = (AIS_Target_Data *)pFind->m_pData1;
+
+                        CanvasPopupMenu(x,y, SELTYPE_AISTARGET);
+
+                        m_bForceReDraw = true;
+                        Refresh(false);
+                  }
+
+
+                  //    Now the various Route Parts
+
+                  else if((pFind = pSelect->FindSelection(slat, slon,SELTYPE_ROUTEPOINT,SelectRadius)) != NULL)
                   {
                         pFoundRoutePoint = (RoutePoint *)pFind->m_pData1;
 
@@ -1605,6 +1682,23 @@ void ChartCanvas::CanvasPopupMenu(int x, int y, int seltype)
                   delete pdef_menu;
                   break;
             }
+       case SELTYPE_AISTARGET:
+            {
+                  wxMenu *pdef_menu = new wxMenu();
+
+                  pdef_menu->Append(ID_DEF_MENU_MAX_DETAIL, _T("Max Detail Here"));
+                  pdef_menu->Append(ID_DEF_MENU_SCALE_IN,   _T("Scale In"));
+                  pdef_menu->Append(ID_DEF_MENU_SCALE_OUT,  _T("Scale Out"));
+
+                  pdef_menu->Append(ID_DEF_MENU_AIS_QUERY,  _T("AIS Target Query"));
+
+                  this->PopupMenu(pdef_menu, x, y);
+
+                  delete pdef_menu;
+                  break;
+            }
+
+
       }
 
       Update();
@@ -1624,6 +1718,8 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
       float SelectRadius;
       int sel_rad_pix;
 
+      AISTargetQueryDialog *pAISdialog;
+
 #ifdef USE_S57
       S57QueryDialog *pdialog;
       ArrayOfS57Obj *array;
@@ -1631,6 +1727,8 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
       wxString *description;
       wxString *QueryResult;
 #endif
+
+
 
       GetPixPoint(popx, popy, zlat, zlon);
 
@@ -1694,6 +1792,24 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
             break;
           }
 #endif
+      case ID_DEF_MENU_AIS_QUERY:
+
+            QueryResult = pAIS->BuildQueryResult(pFoundAIS_Target_Data);
+
+            pAISdialog = new AISTargetQueryDialog();
+            pAISdialog->SetText(*QueryResult);
+
+            pAISdialog->Create(NULL, -1, wxT("AIS Target Query"));
+            pAISdialog->ShowModal();
+
+            delete pAISdialog;
+            delete QueryResult;
+
+            m_bForceReDraw = true;
+
+            break;
+
+
       case ID_RT_MENU_DELETE:
             if(pRouteMan->GetpActiveRoute())
                   pRouteMan->DeactivateRoute();
@@ -1890,11 +2006,6 @@ void ChartCanvas::RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mon
     }
 }
 
-extern "C" {
-      typedef enum { Visible, Invisible } ClipResult;
-      ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
-                                   int xmin_, int xmax_, int ymin_, int ymax_);
-}
 
 
 void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool bdraw_mono)
@@ -2108,6 +2219,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
       DrawAllRoutesInBBox(scratch_dc, VPoint.vpBBox);
       ShipDraw(scratch_dc, ShipPoint, PredPoint);
+      AISDraw(scratch_dc);
 
 
       //  Route Creating
@@ -2176,6 +2288,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
       DrawAllRoutesInBBox(scratch_dc, VPoint.vpBBox);
       ShipDraw(scratch_dc, ShipPoint, PredPoint);
+      AISDraw(scratch_dc);
 
       if(parent_frame->nRoute_State >= 2)
       {
@@ -2477,7 +2590,7 @@ void ChartCanvas::DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox,
 
 //    Manage the point selection list
                               if(bRebuildSelList)
-                                    pSelectTC->AddSelectableTCPoint(lat, lon, pIDX, SELTYPE_TIDEPOINT );
+                                    pSelectTC->AddSelectablePoint(lat, lon, pIDX, SELTYPE_TIDEPOINT );
 
                               wxPoint r;
                               GetPointPix(lat, lon, &r);
@@ -2594,7 +2707,7 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
 
 //    Manage the point selection list
                               if(bRebuildSelList)
-                                    pSelectTC->AddSelectableTCPoint(lat, lon, pIDX, SELTYPE_CURRENTPOINT);
+                                    pSelectTC->AddSelectablePoint(lat, lon, pIDX, SELTYPE_CURRENTPOINT);
 
                               wxPoint r;
                               GetPointPix(lat, lon, &r);
@@ -3681,7 +3794,7 @@ ocpCursor::ocpCursor(char **xpm_data, long type,
 
 
 //---------------------------------------------------------------------------------------
-//          S57QueryDialog
+//          S57QueryDialog Implementation
 //---------------------------------------------------------------------------------------
 IMPLEMENT_CLASS( S57QueryDialog, wxDialog )
 
@@ -3808,5 +3921,134 @@ void S57QueryDialog::CreateControls()
       okCancelBox->Add(help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 }
 
+
+
+//---------------------------------------------------------------------------------------
+//          AISTargetQueryDialog Implementation
+//---------------------------------------------------------------------------------------
+IMPLEMENT_CLASS( AISTargetQueryDialog, wxDialog )
+
+
+// S57QueryDialog event table definition
+
+BEGIN_EVENT_TABLE( AISTargetQueryDialog, wxDialog )
+END_EVENT_TABLE()
+
+
+AISTargetQueryDialog::AISTargetQueryDialog( )
+{
+      Init();
+}
+
+AISTargetQueryDialog::AISTargetQueryDialog( wxWindow* parent,
+      wxWindowID id, const wxString& caption,
+      const wxPoint& pos, const wxSize& size, long style )
+{
+      Init();
+      Create(parent, id, caption, pos, size, style);
+}
+
+AISTargetQueryDialog::~AISTargetQueryDialog( )
+{
+      delete pQueryResult;
+}
+
+
+/// Initialisation
+void AISTargetQueryDialog::Init( )
+{
+      pQueryResult = NULL;
+}
+
+void AISTargetQueryDialog::SetText(wxString &text_string)
+{
+      pQueryResult = new wxString(text_string);
+}
+
+/*
+* AISTargetQueryDialog creator
+*/
+bool AISTargetQueryDialog::Create( wxWindow* parent,
+            wxWindowID id, const wxString& caption,
+            const wxPoint& pos, const wxSize& size, long style )
+{
+// We have to set extra styles before creating the
+// dialog
+//      SetExtraStyle(wxWS_EX_BLOCK_EVENTS|wxDIALOG_EX_CONTEXTHELP);
+    if (!wxDialog::Create( parent, id, caption, pos, size, style ))
+            return false;
+
+    wxFont *dFont = wxTheFontList->FindOrCreateFont(10, wxFONTFAMILY_TELETYPE,
+          wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+
+    SetFont(*dFont);
+    CreateControls();
+
+//      SetDialogHelp();
+//      SetDialogValidators();
+
+// This fits the dialog to the minimum size dictated by
+// the sizers
+    GetSizer()->Fit(this);
+
+// This ensures that the dialog cannot be sized smaller
+// than the minimum size
+    GetSizer()->SetSizeHints(this);
+
+// Centre the dialog on the parent or (if none) screen
+    Centre();
+    return true;
+}
+
+
+
+
+void AISTargetQueryDialog::CreateControls()
+{
+
+// A top-level sizer
+      wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+      this->SetSizer(topSizer);
+
+// A second box sizer to give more space around the controls
+      wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);
+      topSizer->Add(boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+
+// Here is the query result
+
+      wxTextCtrl *pQueryTextCtl = new wxTextCtrl( this, -1, _T(""),
+            wxDefaultPosition, wxSize(500, 500), wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_READONLY);
+      boxSizer->Add(pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE, 5);
+
+      wxFont *qFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_TELETYPE,
+              wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+      pQueryTextCtl->SetFont(*qFont);
+
+      if(pQueryResult)
+            pQueryTextCtl->AppendText(*pQueryResult);
+
+      pQueryTextCtl->SetSelection(0,0);
+      pQueryTextCtl->SetInsertionPoint(0);
+
+
+// A horizontal box sizer to contain Reset, OK, Cancel and Help
+      wxBoxSizer* okCancelBox = new wxBoxSizer(wxHORIZONTAL);
+            boxSizer->Add(okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,
+            5);
+// The OK button
+      wxButton* ok = new wxButton ( this, wxID_OK, wxT("&OK"),
+            wxDefaultPosition, wxDefaultSize, 0 );
+      okCancelBox->Add(ok, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+// The Cancel button
+      wxButton* cancel = new wxButton ( this, wxID_CANCEL,
+            wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+      okCancelBox->Add(cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+// The Help button
+      wxButton* help = new wxButton( this, wxID_HELP, _T("&Help"),
+            wxDefaultPosition, wxDefaultSize, 0 );
+      okCancelBox->Add(help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+}
 
 

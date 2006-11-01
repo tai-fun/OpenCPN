@@ -26,50 +26,11 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.4  2006/11/01 02:15:58  dsr
+ * AIS Support
+ *
  * Revision 1.3  2006/10/01 03:22:58  dsr
  * no message
- *
- * Revision 1.2  2006/09/21 01:37:36  dsr
- * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.6  2006/08/04 11:42:02  dsr
- * no message
- *
- * Revision 1.5  2006/07/28 20:37:18  dsr
- * New AP interface
- *
- * Revision 1.4  2006/07/05 02:28:07  dsr
- * Save/Restore WiFi Server
- *
- * Revision 1.3  2006/05/19 19:24:32  dsr
- * Cleanup font logic...
- *
- * Revision 1.2  2006/04/23 03:53:12  dsr
- * Set up default MSW font
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.10  2006/04/19 02:02:47  dsr
- * *** empty log message ***
- *
- * Revision 1.9  2006/04/19 00:54:09  dsr
- * Implement FontMgr and X11FontPicker
- *
- * Revision 1.8  2006/03/16 03:08:15  dsr
- * Cleanup tabs
- *
- * Revision 1.7  2006/03/13 05:06:38  dsr
- * More config options saved
- *
- * Revision 1.6  2006/02/23 01:43:53  dsr
- * Cleanup
- *
- * Revision 1.5  2006/02/10 03:18:35  dsr
- * *** empty log message ***
  *
  *
  */
@@ -96,12 +57,13 @@
 #include "chcanv.h"
 #include "georef.h"
 #include "nmea.h"
+#include "ais.h"
 
 #ifdef USE_S57
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.3 2006/10/01 03:22:58 dsr Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.4 2006/11/01 02:15:58 dsr Exp $");
 
 //    Statics
 
@@ -123,6 +85,8 @@ extern wxString         *pWIFIServerName;
 extern wxString         *pcsv_locn;
 extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
+extern wxString         *pAIS_Port;
+extern AIS_Decoder      *pAIS;
 
 #ifdef USE_S57
 extern s52plib          *ps52plib;
@@ -320,10 +284,10 @@ bool Select::AddAllSelectableRouteSegments(Route *pr)
 }
 
 //-----------------------------------------------------------------------------------
-//          TC Point Selection Support
+//          Selectable Point Object Support
 //-----------------------------------------------------------------------------------
 
-bool Select::AddSelectableTCPoint(float slat, float slon, void *data, int fseltype)
+bool Select::AddSelectablePoint(float slat, float slon, void *data, int fseltype)
 {
       SelectItem *pSelItem = new SelectItem;
       pSelItem->m_slat = slat;
@@ -337,11 +301,37 @@ bool Select::AddSelectableTCPoint(float slat, float slon, void *data, int fselty
       return true;
 }
 
-bool Select::DeleteAllTCPoints(void)
+bool Select::DeleteAllPoints(void)
 {
       pSelectList->DeleteContents(true);
       pSelectList->Clear();
       return true;
+}
+
+
+bool Select::DeleteSelectablePoint(void *data, int SeltypeToDelete)
+{
+      SelectItem *pFindSel;
+
+//    Iterate on the list
+      wxSelectableItemListNode *node = pSelectList->GetFirst();
+
+      while(node)
+      {
+            pFindSel = node->GetData();
+            if(pFindSel->m_seltype == SeltypeToDelete)
+            {
+                if(data == pFindSel->m_pData1)
+                {
+                  delete pFindSel;
+                  delete node;
+                  return true;
+                }
+            }
+
+            node = node->GetNext();
+       }
+      return false;
 }
 
 
@@ -361,17 +351,12 @@ bool Select::DeleteAllSelectableTypePoints(int SeltypeToDelete)
                   delete node;
                   node = pSelectList->GetFirst();
                   goto got_next_node;
-
             }
-
-
 
             node = node->GetNext();
 got_next_node:
             continue;
       }
-
-
       return true;
 }
 
@@ -396,14 +381,13 @@ SelectItem *Select::FindSelection(float slat, float slon, int fseltype, float Se
                               case SELTYPE_ROUTEPOINT:
                               case SELTYPE_TIDEPOINT:
                               case SELTYPE_CURRENTPOINT:
-                                          a = fabs(slat - pFindSel->m_slat);
+                              case SELTYPE_AISTARGET:
+                                    a = fabs(slat - pFindSel->m_slat);
                                     b = fabs(slon - pFindSel->m_slon);
 
                                     if((fabs(slat - pFindSel->m_slat) < SelectRadius) &&
                                        (fabs(slon - pFindSel->m_slon) < SelectRadius))
-                                    {
                                           goto find_ok;
-                                    }
                                     break;
                               case SELTYPE_ROUTESEGMENT:
                                     a = pFindSel->m_slat;
@@ -425,10 +409,7 @@ SelectItem *Select::FindSelection(float slat, float slon, int fseltype, float Se
 
                                           double delta = vGetLengthOfNormal(&va, &vb, &vn);
                                           if(fabs(delta) < SelectRadius)
-                                          {
                                                 goto find_ok;
-                                          }
-
                                     }
 
                                     break;
@@ -931,6 +912,9 @@ int MyConfig::LoadMyConfig(int iteration)
       SetPath("/Settings/WiFiServer");
       Read(_T("Server"), pWIFIServerName, _T("NONE"));
 
+      SetPath("/Settings/AISPort");
+      Read(_T("Port"), pAIS_Port, _T("NONE"));
+
 //    Reasonable starting point
       vLat = START_LAT;                   // display viewpoint
       vLon = START_LON;
@@ -1372,6 +1356,14 @@ void MyConfig::UpdateSettings()
       SetPath("/Settings/WiFiServer");
       Write(_T("Server"), *pWIFIServerName);
 
+
+      if(pAIS)
+      {
+        SetPath("/Settings/AISPort");
+        wxString ais_port;
+        pAIS->GetSource(ais_port);
+        Write(_T("Port"), ais_port);
+      }
 
 
 //    Fonts

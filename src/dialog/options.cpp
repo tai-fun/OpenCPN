@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.6 2006/10/08 00:37:16 dsr Exp $
+ * $Id: options.cpp,v 1.7 2006/11/01 02:19:08 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Options Dialog
@@ -26,59 +26,11 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.7  2006/11/01 02:19:08  dsr
+ * AIS Support
+ *
  * Revision 1.6  2006/10/08 00:37:16  dsr
  * no message
- *
- * Revision 1.5  2006/10/07 03:51:44  dsr
- * *** empty log message ***
- *
- * Revision 1.4  2006/10/05 03:52:18  dsr
- * gpsd
- *
- * Revision 1.3  2006/10/01 03:24:19  dsr
- * no message
- *
- * Revision 1.2  2006/09/21 01:37:48  dsr
- * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.6  2006/08/04 11:48:38  dsr
- * no message
- *
- * Revision 1.5  2006/07/28 20:49:09  dsr
- * New NMEA Logic
- *
- * Revision 1.4  2006/07/05 02:34:55  dsr
- * Save/Restore WiFi Server
- *
- * Revision 1.3  2006/05/19 19:32:29  dsr
- * Cleanup
- *
- * Revision 1.2  2006/04/23 04:02:09  dsr
- * Fix internal names
- *
- * Revision 1.1.1.1  2006/04/19 03:23:29  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.10  2006/04/19 01:00:46  dsr
- * Add Font Chooser panel
- *
- * Revision 1.9  2006/03/16 03:53:06  dsr
- * Cleanup
- *
- * Revision 1.8  2006/03/16 03:28:26  dsr
- * Cleanup tabs
- *
- * Revision 1.7  2006/03/13 04:54:11  dsr
- * Rebuild TCP/IP NMEA Source logic
- *
- * Revision 1.6  2006/02/23 01:55:09  dsr
- * Cleanup
- *
- * Revision 1.5  2006/02/10 03:19:40  dsr
- * *** empty log message ***
  *
  *
  */
@@ -108,6 +60,7 @@ extern bool             g_bShowOutlines;
 extern wxString         *pNMEADataSource;
 extern wxString         *pNMEA_AP_Port;
 extern FontMgr          *pFontMgr;
+extern wxString         *pAIS_Port;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -398,6 +351,54 @@ void options::CreateControls()
       m_itemNMEAAutoListBox->SetSelection(apidx);
 
       itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxGROW|wxALL, 5);
+
+
+
+//    Add AIS Data Input controls
+      wxStaticBox* itemAISStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("AIS Data Port"));
+      wxStaticBoxSizer* itemAISStaticBoxSizer = new wxStaticBoxSizer(itemAISStaticBox, wxVERTICAL);
+      itemNMEAStaticBoxSizer->Add(itemAISStaticBoxSizer, 0, wxGROW|wxALL, 5);
+
+      m_itemAISListBox = new wxChoice(itemPanel5, ID_CHOICE_AIS);
+      m_itemAISListBox->Append( _T("None"));
+
+      int aisidx;
+      wxString comx_ais;
+
+#ifdef __WXMSW__
+      m_itemAISListBox->Append( _T("COM1"));
+      m_itemAISListBox->Append( _T("COM2"));
+      m_itemAISListBox->Append( _T("COM3"));
+      m_itemAISListBox->Append( _T("COM4"));
+
+      aisidx = 0;
+      int aic = pAIS_Port->Find("COM");
+      if(-1 != aic)
+      {
+            comx_ais = pAIS_Port->Mid(aic + 3, 1);
+            aisidx = comx_ais[0] - '0';
+      }
+#else
+      m_itemAISListBox->Append( _T("/dev/ttyS0"));
+      m_itemAISListBox->Append( _T("/dev/ttyS1"));
+
+      aisidx = 0;
+      int aic = aisport.Find("/dev/ttyS"); 
+      if(-1 != aic)
+      {
+            char ccomx_ais = pAIS_Port->GetChar(aic+9);
+            aisidx = ccomx_ais - '0' + 1;
+      }
+
+
+#endif
+      m_itemAISListBox->SetSelection(aisidx);
+
+      itemAISStaticBoxSizer->Add(m_itemAISListBox, 0, wxGROW|wxALL, 5);
+
+
+
+
 
 #ifdef USE_WIFI_CLIENT
 //    Add WiFi Options Box
@@ -800,6 +801,10 @@ void options::OnXidOkClick( wxCommandEvent& event )
     wxString selp(m_itemNMEAAutoListBox->GetStringSelection());
     *pNMEA_AP_Port = selp;
 
+// AIS Input
+    wxString selais(m_itemAISListBox->GetStringSelection());
+    *pAIS_Port = selais;
+
 #ifdef USE_WIFI_CLIENT
 // WiFi
     wxString WiFiSource;
@@ -897,10 +902,7 @@ void options::OnButtondeleteClick( wxCommandEvent& event )
 
 void options::OnButtonrebuildClick( wxCommandEvent& event )
 {
-////@begin wxEVT_COMMAND_BUTTON_CLICKED event handler for ID_BUTTONREBUILD in options.
-    // Before editing this code, remove the block markers.
     event.Skip();
-////@end wxEVT_COMMAND_BUTTON_CLICKED event handler for ID_BUTTONREBUILD in options.
 }
 
 
@@ -910,10 +912,7 @@ void options::OnButtonrebuildClick( wxCommandEvent& event )
 
 void options::OnDebugcheckbox1Click( wxCommandEvent& event )
 {
-////@begin wxEVT_COMMAND_CHECKBOX_CLICKED event handler for ID_CHECKBOX in options.
-    // Before editing this code, remove the block markers.
     event.Skip();
-////@end wxEVT_COMMAND_CHECKBOX_CLICKED event handler for ID_CHECKBOX in options.
 }
 
 
@@ -923,7 +922,6 @@ void options::OnDebugcheckbox1Click( wxCommandEvent& event )
 
 void options::OnCancelClick( wxCommandEvent& event )
 {
-    // Before editing this code, remove the block markers.
       EndModal(0);
 
 }
@@ -933,10 +931,7 @@ void options::OnCancelClick( wxCommandEvent& event )
 
 void options::OnRadioboxSelected( wxCommandEvent& event )
 {
-////@begin wxEVT_COMMAND_RADIOBOX_SELECTED event handler for ID_RADIOBOX in options.
-    // Before editing this code, remove the block markers.
     event.Skip();
-////@end wxEVT_COMMAND_RADIOBOX_SELECTED event handler for ID_RADIOBOX in options.
 }
 
 void options::OnChooseFont( wxCommandEvent& event )

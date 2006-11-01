@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.8 2006/10/08 14:15:00 dsr Exp $
+ * $Id: chart1.cpp,v 1.9 2006/11/01 02:15:58 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.9  2006/11/01 02:15:58  dsr
+ * AIS Support
+ *
  * Revision 1.8  2006/10/08 14:15:00  dsr
  * no message
  *
@@ -142,6 +145,7 @@
 #include "thumbwin.h"
 #include "tcmgr.h"
 #include "cpl_error.h"
+#include "ais.h"
 
 #ifdef __WXMSW__
 #include <wx/image.h>
@@ -169,7 +173,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.8 2006/10/08 14:15:00 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.9 2006/11/01 02:15:58 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -204,6 +208,7 @@ RouteList       *pRouteList;
 
 Select          *pSelect;
 Select          *pSelectTC;
+Select          *pSelectAIS;
 
 Routeman        *pRouteMan;
 NMEA0183        *pNMEA0183;
@@ -243,6 +248,8 @@ OCP_NMEA_Thread *pNMEA_Thread;
 wxString        *pNMEADataSource;
 wxString        *pNMEA_AP_Port;
 
+
+
 ChartDummy      *pDummyChart;
 
 wxString        *pWIFIServerName;
@@ -274,6 +281,7 @@ WIFIWindow      *pWIFI;
 #endif
 
 
+
 static wxString *pval;          // Private environment temp storage
 
 
@@ -288,6 +296,11 @@ extern HINSTANCE      s_hGLU_DLL;                   // Handle to DLL
 #endif
 #endif
 
+
+OCP_AIS_Thread  *pAIS_Thread;
+AIS_Decoder     *pAIS;
+wxString        *pAIS_Port;
+
 //-----------------------------------------------------------------------------------------------------
 //      OCP_NMEA_Thread Static data store
 //-----------------------------------------------------------------------------------------------------
@@ -296,6 +309,13 @@ unsigned int                    rx_share_buffer_length;
 ENUM_BUFFER_STATE               rx_share_buffer_state;
 wxMutex                         *ps_mutexProtectingTheRXBuffer;
 
+//-----------------------------------------------------------------------------------------------------
+//      OCP_AIS_Thread Static data store
+//-----------------------------------------------------------------------------------------------------
+char                            ais_rx_share_buffer[MAX_RX_MESSSAGE_SIZE];
+unsigned int                    ais_rx_share_buffer_length;
+ENUM_BUFFER_STATE               ais_rx_share_buffer_state;
+wxMutex                         *ais_ps_mutexProtectingTheRXBuffer;
 
 
 
@@ -364,6 +384,7 @@ IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit()
 {
+
 
 //      _CrtSetBreakAlloc(3788);
 
@@ -455,6 +476,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pNMEADataSource = new wxString();
         pNMEA_AP_Port = new wxString();
         pWIFIServerName = new wxString();
+        pAIS_Port = new wxString();
         pcsv_locn = new wxString();
 
 
@@ -466,6 +488,9 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 //      Init the Selectable Tide/Current Items List
         pSelectTC = new Select();
+
+//      Init the Selectable AIS Target List
+        pSelectAIS = new Select();
 
 //      Init the Route Manager
         pRouteMan = new Routeman();
@@ -639,6 +664,24 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         nmea = new NMEAWindow(gFrame, *pNMEADataSource);
 
+//        pAIS = new AIS_Decoder(gFrame, "GPSD:boat.milltechmarine.com");
+        pAIS = new AIS_Decoder(gFrame, *pAIS_Port);
+//    pais->Decode("!AIVDM,1,1,,1,1P000Oh1IT1svTP2r:43grwb0Eq4,0*71**");
+
+//    pais->Decode("!AIVDM,1,1,,B,169?;>000089Jap<nvS<2r2d0H<q,0*13**");
+//    pais->Decode("!AIVDM,1,1,,B,177CQd800q`9C8D<n4A=L:bf0D0o,0*0E**");
+//    pais->Decode("!AIVDM,1,1,,B,D04SGT1@qNL8,0*1F**");
+//    pais->Decode("!AIVDM,1,1,,B,19NWp8h00289HGt<nii`L4Jl0<0k,0*67**");
+//    pais->Decode("!AIVDM,2,2,4,B,H88888888888880,2*53**");
+//    pais->Decode("!AIVDM,1,1,,B,403tAeQuBU8=N`9E;p<noc70050l,0*6D**");
+//    pais->Decode("!AIVDM,1,1,,B,D04SGT0liNL8,0*2A**");
+//    pais->Decode("!AIVDM,1,1,,B,14RI1J0P0089GU0<nG@=B?w<0@HB,0*27**");
+//    pais->Decode("!AIVDM,1,1,,B,14RE3P0P0089E;h<nTgoCwwF0@JL,0*5E**");
+//    pais->Decode("!AIVDM,1,1,,B,177CQd800q`9C4p<n5`eIbeJ0@Jm,0*44**");
+//    pais->Decode("!AIVDM,1,1,,B,D04SGT0I1NL8,0*57**");
+//    pais->Decode("!AIVDM,1,1,,B,403tAeQuBU8=j`9E;p<noc70050l,0*49**");
+//    pais->Decode("!AIVDM,1,1,,B,D03tAePF4ffpF5N9H0,4*18**");
+
         pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port);
 
 #ifdef USE_WIFI_CLIENT
@@ -734,6 +777,8 @@ int MyApp::OnExit()
         delete pConfig;
         delete pSelect;
         delete pSelectTC;
+        delete pSelectAIS;
+
         delete pRouteMan;
         delete pNMEA0183;
         delete pChartDirArray;
@@ -1189,6 +1234,13 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
         pWIFI = NULL;
     }
 #endif
+
+    if(pAIS)
+    {
+        pAIS->Close();
+        pAIS = NULL;    
+    }
+
 
     console->Destroy();
     stats->Destroy();

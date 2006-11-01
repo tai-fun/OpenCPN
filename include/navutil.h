@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.2 2006/09/21 01:38:23 dsr Exp $
+ * $Id: navutil.h,v 1.3 2006/11/01 02:18:45 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.3  2006/11/01 02:18:45  dsr
+ * AIS Support
+ *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
@@ -201,7 +204,8 @@ enum
       SELTYPE_TIDEPOINT,
       SELTYPE_CURRENTPOINT,
       SELTYPE_ROUTECREATE,
-      SELTYPE_UNKNOWN
+      SELTYPE_UNKNOWN,
+      SELTYPE_AISTARGET
 };
 
 //-----------------------------------------------------------------------------
@@ -246,9 +250,11 @@ public:
       bool AddAllSelectableRouteSegments(Route *pr);
       bool AddAllSelectableRoutePoints(Route *pr);
 
-//    Tide/Current Point Support
-      bool AddSelectableTCPoint(float slat, float slon, void *data, int fseltype);
-      bool DeleteAllTCPoints(void);
+//    Generic Point Support
+//      e.g. Tides/Currents and AIS Targets
+      bool AddSelectablePoint(float slat, float slon, void *data, int fseltype);
+      bool DeleteAllPoints(void);
+      bool DeleteSelectablePoint(void *data, int SeltypeToDelete);
 
 //    Delete all selectable points in list by type
       bool DeleteAllSelectableTypePoints(int SeltypeToDelete);
