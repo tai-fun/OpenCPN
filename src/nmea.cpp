@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.7 2006/10/08 14:15:00 dsr Exp $
+ * $Id: nmea.cpp,v 1.8 2006/11/01 02:16:37 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.8  2006/11/01 02:16:37  dsr
+ * AIS Support Touchup
+ *
  * Revision 1.7  2006/10/08 14:15:00  dsr
  * no message
  *
@@ -100,7 +103,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.7 2006/10/08 14:15:00 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.8 2006/11/01 02:16:37 dsr Exp $");
 
 //    Forward Declarations
 
@@ -120,7 +123,7 @@ extern wxString          *phost_name;
 
 extern OCP_NMEA_Thread   *pNMEA_Thread;
 
-static int s_dns_test_flag;
+int s_dns_test_flag;
 
 
 //------------------------------------------------------------------------------
