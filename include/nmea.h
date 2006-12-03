@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.5 2006/10/08 00:36:25 dsr Exp $
+ * $Id: nmea.h,v 1.6 2006/12/03 21:22:01 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,10 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.6  2006/12/03 21:22:01  dsr
+ * Redefine NMEA window ctor to include explicit window ID specification.
+ * Change NMEA timer tick rate away from exactly 1000 msec to avoid syncronization problems.
+ *
  * Revision 1.5  2006/10/08 00:36:25  dsr
  * no message
  *
@@ -100,6 +104,9 @@
 //   constants
 //----------------------------------------------------------------------------
 
+#define TIMER_NMEA_MSEC      997
+
+
 #define GPSD_PORT_NUMBER      2947                  // Well Known Port number for GPSD
 
 #define SOCKET_ID             5
@@ -134,8 +141,8 @@ class MyFrame;
 class NMEAWindow: public wxWindow
 {
 public:
-      NMEAWindow(wxFrame *frame, const wxString& NMEADataSource, const wxString& NMEAAP_Port);
-      NMEAWindow(wxFrame *frame, const wxString& NMEADataSource);
+      NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSource, const wxString& NMEAAP_Port);
+      NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSource);
       ~NMEAWindow();
 
       void GetSource(wxString& source);
