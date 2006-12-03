@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.5  2006/12/03 21:17:24  dsr
+ * Clear nRegions in ctor
+ *
  * Revision 1.4  2006/10/07 03:50:28  dsr
  * *** empty log message ***
  *
@@ -81,7 +84,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.4 2006/10/07 03:50:28 dsr Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.5 2006/12/03 21:17:24 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -256,6 +259,7 @@ PianoWin::PianoWin(wxFrame *frame):
 
     gparent = (MyFrame *)GetGrandParent();
 
+    nRegions = 0;
  }
 
 PianoWin::~PianoWin()
