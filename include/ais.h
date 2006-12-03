@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.1 2006/11/01 02:18:45 dsr Exp $
+ * $Id: ais.h,v 1.2 2006/12/03 21:23:15 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,10 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.2  2006/12/03 21:23:15  dsr
+ * Redefine AIS window ctor to include explicit window ID specification.
+ * Change AIS timer tick rate away from exactly 1000 msec to avoid syncronization problems.
+ *
  * Revision 1.1  2006/11/01 02:18:45  dsr
  * AIS Support
  *
@@ -59,6 +63,8 @@
 
 #include "chart1.h"
 
+#define TIMER_AIS_MSEC      998
+
 typedef enum AIS_Error
 {
     AIS_NoError = 0,
@@ -83,7 +89,7 @@ typedef enum ais_nav_status
     A6,
     A7,
     UNDERWAY_SAILING
-  
+
 };
 
 //---------------------------------------------------------------------------------
@@ -112,7 +118,7 @@ public:
     double      Lat;
     char        CallSign[8];                // includes terminator
     char        ShipName[21];
-    unsigned char ShipType;    
+    unsigned char ShipType;
     time_t      ReportTicks;
 
 
@@ -143,11 +149,10 @@ private:
 //      Implement the AISTargetList as a wxHashMap
 
 WX_DECLARE_HASH_MAP( int, AIS_Target_Data*, wxIntegerHash, wxIntegerEqual, AIS_Target_Hash );
- 
+
 
 
 #define AIS_SOCKET_ID             7
-#define TIMER_AIS1                888
 
 enum
 {
@@ -168,7 +173,7 @@ class AIS_Decoder : public wxWindow
 
 public:
     AIS_Decoder(void);
-    AIS_Decoder(wxFrame *pParent, const wxString& AISDataSource);
+    AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource);
 
     ~AIS_Decoder(void);
 
@@ -178,7 +183,7 @@ public:
     void Pause(void);
     void UnPause(void);
     void GetSource(wxString& source);
-    AIS_Target_Hash *GetTargetList(void) {return AISTargetList;} 
+    AIS_Target_Hash *GetTargetList(void) {return AISTargetList;}
     wxString *BuildQueryResult(AIS_Target_Data *td);
 
 private:
@@ -205,8 +210,8 @@ private:
     wxString          *m_pdata_ap_port_string;
     wxEvtHandler      *m_pParentEventHandler;
 
-    int                 istr;
-    int                 itime;
+    int               istr;
+    int               itime;
     int               nsentences;
     int               isentence;
     wxString          sentence_accumulator;
@@ -259,7 +264,7 @@ public:
       void OnExit(void);
 
 private:
-      bool HandleASuccessfulRead(char *buf, DWORD dwIncommingReadSize);
+      bool HandleASuccessfulRead(char *buf, int IncomingReadSize);
 
       wxEvtHandler            *m_pMainEventHandler;
       wxString                *m_pPortName;
@@ -275,7 +280,7 @@ private:
       termios                 *pttyset;
       termios                 *pttyset_old;
 
-      int                     m_gps_fd;
+      int                     m_ais_fd;
 #endif
 
 #ifdef __WXMSW__
