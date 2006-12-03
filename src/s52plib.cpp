@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.5 2006/10/08 00:36:44 dsr Exp $
+ * $Id: s52plib.cpp,v 1.6 2006/12/03 21:36:23 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.6  2006/12/03 21:36:23  dsr
+ * On text objects, define a bounding box to include text extents fully. This forces full redraw on viewport intersection, so that text objects scrolling onto the screen are always rendered.
+ *
  * Revision 1.5  2006/10/08 00:36:44  dsr
  * no message
  *
@@ -121,7 +124,7 @@ extern "C" void gpc_polygon_clip(gpc_op       operation,
 
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.5 2006/10/08 00:36:44 dsr Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.6 2006/12/03 21:36:23 dsr Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -138,7 +141,7 @@ s52plib::s52plib(const wxString& PLPath, const wxString& PLLib, const wxString& 
 
       m_bOK = S52_load_Plib(PLPath, PLLib, PLCol);
 
-      pSmallFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD,
+      pSmallFont = wxTheFontList->FindOrCreateFont(16, wxDEFAULT,wxNORMAL, wxBOLD,
                                                 FALSE, wxString("Eurostile Extended"));
 
       m_bShowS57Text = false;
@@ -2279,12 +2282,13 @@ gint        S52_PL_doneTXT(S52_Text *text)
 
 */
 
-void RenderText(wxDC *pdc, wxFont *pFont, char *str, int x, int y)
+void RenderText(wxDC *pdc, wxFont *pFont, char *str, int x, int y, int &dx, int &dy)
 {
 #ifdef DrawText
 #undef DrawText
 #define FIXIT
 #endif
+
 
         wxFont oldfont = pdc->GetFont(); // save current font
 
@@ -2301,7 +2305,14 @@ void RenderText(wxDC *pdc, wxFont *pFont, char *str, int x, int y)
 
         pdc->DrawText(str, x, y);
 
-        pdc->SetFont(oldfont);                  // restore last font
+        wxCoord w, h;
+        pdc->GetTextExtent(str, &w, &h);       // measure the text
+
+        pdc->SetFont(oldfont);                 // restore last font
+
+
+        dx = w+2;                              // report text string size
+        dy = h+2;
 
 #ifdef FIXIT
 #undef FIXIT
@@ -2359,17 +2370,33 @@ int s52plib::_renderTX(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
         if(rzRules->obj->FText && bShowS57Text)
         {
                 char *str = (char *)rzRules->obj->FText->frmtd->c_str();
-                RenderText(rzRules->chart->pdc, this->pSmallFont, str,
+                RenderText(rzRules->chart->pdc, pSmallFont, str,
                         r.x + rzRules->obj->FText->xoffs, r.y + rzRules->obj->FText->yoffs);
         }
 */
 
+        int dx, dy;
         text = S52_PL_parseTX(rzRules, rules, NULL);
         if(text)
         {
                 char *str = (char *)text->frmtd->c_str();
-                RenderText(pdc, this->pSmallFont, str,
-                        r.x + text->xoffs, r.y + text->yoffs);
+                RenderText(pdc, pSmallFont, str,
+                        r.x + text->xoffs, r.y + text->yoffs, dx, dy);
+
+                //  Update the object Bounding box if this object is a POINT object,
+                //  so that subsequent drawing operations will redraw the item fully
+
+                if(rzRules->obj->Primitive_type == GEO_POINT)
+                {
+                    double plat, plon;
+                    rzRules->chart->pix_to_latlong(r.x + text->xoffs, r.y + text->yoffs + dy, &plat, &plon);
+                    rzRules->obj->BBObj.SetMin(plon, plat);
+
+                    rzRules->chart->pix_to_latlong(r.x + text->xoffs + dx, r.y + text->yoffs, &plat, &plon);
+                    rzRules->obj->BBObj.SetMax(plon, plat);
+
+                }
+
                 delete text->frmtd;
                 free(text);
         }
@@ -2408,13 +2435,29 @@ int s52plib::_renderTE(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
         }
 
 
-
+        int dx, dy;
         text = S52_PL_parseTE(rzRules, rules, NULL);
         if(text)
         {
                 char *str = (char *)text->frmtd->c_str();
-                RenderText(pdc, this->pSmallFont, str,
-                        r.x + text->xoffs, r.y + text->yoffs);
+                RenderText(pdc, pSmallFont, str,
+                        r.x + text->xoffs, r.y + text->yoffs, dx, dy);
+
+                //  Update the object Bounding box if this object is a POINT object,
+                //  so that subsequent drawing operations will redraw the item fully
+
+                if(rzRules->obj->Primitive_type == GEO_POINT)
+                {
+                    double plat, plon;
+                    rzRules->chart->pix_to_latlong(r.x + text->xoffs, r.y + text->yoffs + dy, &plat, &plon);
+                    rzRules->obj->BBObj.SetMin(plon, plat);
+
+                    rzRules->chart->pix_to_latlong(r.x + text->xoffs + dx, r.y + text->yoffs, &plat, &plon);
+                    rzRules->obj->BBObj.SetMax(plon, plat);
+
+                }
+
+
                 delete text->frmtd;
                 free(text);
         }
@@ -3442,8 +3485,10 @@ int s52plib::_renderMPS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
                   sprintf(str, "%3.1f", z);
             else
                   sprintf(str, "%3.0f", z);
+
+            int dx, dy;
             RenderText(pdc, pSmallFont, str,
-                       p.x, p.y);
+                       p.x, p.y, dx, dy);
 
       }
 
