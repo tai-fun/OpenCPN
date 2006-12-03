@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.8 2006/11/01 02:16:37 dsr Exp $
+ * $Id: nmea.cpp,v 1.9 2006/12/03 21:31:41 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,56 +26,14 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.9  2006/12/03 21:31:41  dsr
+ * Implement new ctor with window ID argument.
+ * Change time set logic to run once per session only.
+ *
  * Revision 1.8  2006/11/01 02:16:37  dsr
  * AIS Support Touchup
  *
- * Revision 1.7  2006/10/08 14:15:00  dsr
- * no message
- *
- * Revision 1.6  2006/10/08 00:36:45  dsr
- * no message
- *
- * Revision 1.5  2006/10/07 03:50:27  dsr
- * *** empty log message ***
- *
- * Revision 1.4  2006/10/05 03:50:07  dsr
- * suppor gpsd
- *
- * Revision 1.3  2006/10/01 03:22:58  dsr
- * no message
- *
- * Revision 1.2  2006/09/21 01:37:36  dsr
- * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.4  2006/08/04 11:42:02  dsr
- * no message
- *
- * Revision 1.3  2006/07/28 20:38:11  dsr
- * Redesign for native LINUX serial port access
- *
- * Revision 1.2  2006/04/23 03:52:09  dsr
- * Fix internal names
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.9  2006/04/19 00:45:21  dsr
- * *** empty log message ***
- *
- * Revision 1.8  2006/03/16 03:08:15  dsr
- * Cleanup tabs
- *
- * Revision 1.7  2006/03/13 05:07:03  dsr
- * Rebuild TCP/IP NMEA Source logic
- *
- * Revision 1.6  2006/02/23 01:45:38  dsr
- * Cleanup, safe socket event handler on window destroy
- *
- *
- *
+
  */
 
 
@@ -103,7 +61,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.8 2006/11/01 02:16:37 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.9 2006/12/03 21:31:41 dsr Exp $");
 
 //    Forward Declarations
 
@@ -139,9 +97,9 @@ BEGIN_EVENT_TABLE(NMEAWindow, wxWindow)
 
   END_EVENT_TABLE()
 
-// Implement a constructor
-NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
-      wxWindow(frame, wxID_ANY,     wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
+// constructor
+NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSource):
+      wxWindow(frame, window_id,     wxPoint(20,20), wxDefaultSize, wxSIMPLE_BORDER)
 
 {
 
@@ -231,7 +189,7 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
             addr.Service(GPSD_PORT_NUMBER);
             m_sock->Connect(addr, FALSE);       // Non-blocking connect
 
-            TimerNMEA.Start(1000,wxTIMER_CONTINUOUS);
+            TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
       }
 
 
@@ -281,6 +239,7 @@ NMEAWindow::NMEAWindow(wxFrame *frame, const wxString& NMEADataSource):
 
       }
 
+      Hide();
 }
 
 
@@ -341,7 +300,7 @@ void NMEAWindow::Pause(void)
 
 void NMEAWindow::UnPause(void)
 {
-      TimerNMEA.Start(1000,wxTIMER_CONTINUOUS);
+    TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
 
       if(m_sock)
             m_sock->Notify(TRUE);
@@ -387,6 +346,10 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
             *bp = 0;                        // end string
 
 //          Validate the string
+
+// a debug test
+//            if(1)
+//                printf("%s", buf);
 
             if(!strncmp((const char *)buf, "GPSD", 4))
             {
@@ -439,7 +402,9 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
                         int b = (ts.GetSeconds()).ToLong();
 //          Correct system time if necessary
-                        if(abs(b) > 2)
+//      Only set the time once per session, and only if wrong by more than 1 minute.
+
+                        if((abs(b) > 60) && (parent_frame->m_bTimeIsSet == false))
                         {
 
 #ifdef __WXMSW__
@@ -488,15 +453,13 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                             if(parent_frame)
                             parent_frame->m_bTimeIsSet = true;
 
-                        }           // if b
-                    }               // if 1
-
-
+                        }           // if needs correction
+                    }               // if valid time
 
 
 //    Signal the main program thread
 
-                    wxCommandEvent event( EVT_NMEA, wxID_HIGHEST );
+                    wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
                     event.SetEventObject( (wxObject *)this );
                     event.SetExtraLong(EVT_NMEA_DIRECT);
                     m_pParentEventHandler->AddPendingEvent(event);
@@ -533,7 +496,7 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
       }
 
 
- 
+
 //--------------TEST
 #if(0)
       if(1)
@@ -565,7 +528,7 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
             parent_frame->SetStatusText(buf, 3);
 
 
-      TimerNMEA.Start(1000,wxTIMER_CONTINUOUS);
+      TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
 }
 
 
@@ -837,7 +800,7 @@ void *OCP_NMEA_Thread::Entry()
 
 //    Signal the main program thread
 
-                            wxCommandEvent event( EVT_NMEA, wxID_HIGHEST );
+                            wxCommandEvent event( EVT_NMEA, ID_NMEA_WINDOW );
                             event.SetEventObject( (wxObject *)this );
                             event.SetExtraLong(EVT_NMEA_PARSE_RX);
                             m_pMainEventHandler->AddPendingEvent(event);
@@ -871,151 +834,6 @@ void *OCP_NMEA_Thread::Entry()
 #endif
 
 
-#if 0
-//    Entry Point
-void *OCP_NMEA_Thread::Entry()
-{
-    //
-    // Open the serial port.
-    //
-    using namespace LibSerial ;
-    SerialStream serial_port ;
-    serial_port.Open( m_pPortName->c_str() ) ;
-    if ( ! serial_port.good() ) {
-        wxLogMessage("Could not open NMEA serial port %s", m_pPortName->c_str());
-        return 0 ;
-    }
-    //
-    // Set the baud rate of the serial port.
-    //
-    serial_port.SetBaudRate( SerialStreamBuf::BAUD_4800 ) ;
-
-    //
-    // Set the number of data bits.
-    //
-    serial_port.SetCharSize( SerialStreamBuf::CHAR_SIZE_8 ) ;
-
-    //
-    // Disable parity.
-    //
-    serial_port.SetParity( SerialStreamBuf::PARITY_NONE ) ;
-
-    //
-    // Set the number of stop bits.
-    //
-    serial_port.SetNumOfStopBits( 1 ) ;
-
-    //
-    // Turn off hardware flow control.
-    //
-    serial_port.SetFlowControl( SerialStreamBuf::FLOW_CONTROL_NONE ) ;
-
-
-
-    bool not_done = true;
-    bool nl_found;
-
-//    The main loop
-    printf("starting\n");
-
-    while(not_done)
-    {
-        if(TestDestroy())
-        {
-            not_done = false;                               // smooth exit
-            printf("smooth exit\n");
-        }
-//    Polled Blocking read of one character at a time
-//    Storing incoming characters in circular buffer
-//    And watching for new line character
-//     On new line character, send notification to parent
-
-
-        while(serial_port.rdbuf()->in_avail() > 0)
-        {
-            nl_found = false;
-
-            if(serial_port.rdbuf()->in_avail() > 0)
-            {
-                char next_byte;
-                serial_port.get(next_byte);
-                *put_ptr++ = next_byte;
-                    if((put_ptr - rx_buffer) > RX_BUFFER_SIZE)
-                        put_ptr = rx_buffer;
-
-                    if(0x0a == next_byte)
-                        nl_found = true;
-            }
-
-//    Found a NL char, thus end of message?
-            if(nl_found)
-            {
-                char *tptr;
-                char *ptmpbuf;
-                char temp_buf[RX_BUFFER_SIZE];
-
-                bool partial = false;
-                while (!partial)
-                {
-
-//    If the shared buffer is available....
-                    if(ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR )
-                    {
-                        if(RX_BUFFER_EMPTY == rx_share_buffer_state)
-                        {
-
-//    Copy the message into the rx_shared_buffer
-
-                            tptr = tak_ptr;
-                            ptmpbuf = temp_buf;
-
-                            while((*tptr != 0x0a) && (tptr != put_ptr))
-                            {
-                                *ptmpbuf++ = *tptr++;
-
-                                if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                    tptr = rx_buffer;
-                            }
-
-                            if(*tptr == 0x0a)                                     // well formed sentence
-                            {
-                                *ptmpbuf++ = *tptr++;
-                                if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                    tptr = rx_buffer;
-
-                                *ptmpbuf = 0;
-
-                                tak_ptr = tptr;
-                                strcpy(rx_share_buffer, temp_buf);
-
-                                rx_share_buffer_state = RX_BUFFER_FULL;
-                                rx_share_buffer_length = strlen(rx_share_buffer);
-
-//    Signal the main program thread
-
-                                wxCommandEvent event( EVT_NMEA, wxID_HIGHEST );
-                                event.SetEventObject( (wxObject *)this );
-                                m_pMainEventHandler->AddPendingEvent(event);
-                            }
-                            else
-                            {
-                                partial = true;
-                            }
-                        }
-                    }
-
-//    Release the MUTEX
-                    ps_mutexProtectingTheRXBuffer->Unlock();
-
-                }               // while ! partial
-            }                   //if nl
-        }                       // chars avail
-    }                          // the big while...
-
-    return 0;
-
-}
-#endif
 
 #endif          //__LINUX__
 
@@ -1195,7 +1013,7 @@ void *OCP_NMEA_Thread::Entry()
 
 //    Signal the main program thread
 
-                                                      wxCommandEvent event( EVT_NMEA, wxID_HIGHEST );
+                                                      wxCommandEvent event( EVT_NMEA, ID_NMEA_WINDOW);
                                                       event.SetEventObject( (wxObject *)this );
                                                       event.SetExtraLong(EVT_NMEA_PARSE_RX);
                                                       m_pMainEventHandler->AddPendingEvent(event);
@@ -1249,7 +1067,7 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 {
 
       m_pdata_ap_port_string = new wxString(AP_Port);
-
+      bOK = false;
 
 //    Create and init the Serial Port for Autopilot control
 
@@ -1276,6 +1094,7 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
                  bAutoPilotOut = true;
 #endif
     }
+    Hide();
 }
 
 AutoPilotWindow::~AutoPilotWindow()
@@ -1298,9 +1117,12 @@ void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 
 #ifdef __LINUX__
     bAutoPilotOut = false;
-    (void)close(m_ap_fd);
-    free (pttyset);
-    free (pttyset_old);
+    if(bOK)
+    {
+        (void)close(m_ap_fd);
+        free (pttyset);
+        free (pttyset_old);
+    }
 #endif
 }
 
