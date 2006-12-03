@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $
+ * $Id: wificlient.cpp,v 1.3 2006/12/03 21:16:05 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.cpp,v $
+ * Revision 1.3  2006/12/03 21:16:05  dsr
+ * Hide window explicitely upon creation
+ *
  * Revision 1.2  2006/09/21 01:37:37  dsr
  * Major refactor/cleanup
  *
@@ -69,7 +72,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.3 2006/12/03 21:16:05 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -173,6 +176,8 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
           m_scan_interval_msec = 10000;
           Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
       }
+
+      Hide();
 }
 
 
