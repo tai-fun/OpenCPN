@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.4 2006/10/08 00:36:25 dsr Exp $
+ * $Id: chart1.h,v 1.5 2006/12/03 21:27:20 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,10 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.5  2006/12/03 21:27:20  dsr
+ * Implement global enum definition of some ID constants, to avoid inadvertent duplication of IDs which can create ambiguity in message passing.
+ * Change gFrame timer tick rate away from exactly 1000 msec to avoid syncronization problems.
+ *
  * Revision 1.4  2006/10/08 00:36:25  dsr
  * no message
  *
@@ -40,24 +44,6 @@
  *
  * Revision 1.3  2006/07/28 20:47:50  dsr
  * Cleanup
- *
- * Revision 1.2  2006/05/19 19:36:18  dsr
- * Cleanup
- *
- * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.7  2006/04/19 00:54:35  dsr
- * Implement ColorScheme
- *
- * Revision 1.6  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.5  2006/03/13 05:10:09  dsr
- * Cleanup
- *
- * Revision 1.4  2006/02/23 01:15:53  dsr
- * Cleanup, combine old myapp and myframe definitions
  *
  *
  */
@@ -104,6 +90,8 @@ extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
+
+#define TIMER_GFRAME_1 999
 
 #define ID_QUIT     101
 
@@ -155,11 +143,6 @@ enum
 };
 
 
-enum
-{
-      FRAME_TIMER_1 = 555,
-      FRAME_TIMER_2,
-};
 
 typedef enum ColorScheme
 {
@@ -193,6 +176,7 @@ class MyApp: public wxApp
   public:
     bool OnInit();
     int OnExit();
+
 };
 
 class MyFrame: public wxFrame
@@ -210,6 +194,7 @@ class MyFrame: public wxFrame
     bool DoChartUpdate(int bSelectType);
     void OnEvtNMEA(wxCommandEvent& event);
     void OnChar(wxKeyEvent &event);
+
 
     void OnToolLeftClick(wxCommandEvent& event);
     void ClearRouteTool();
@@ -283,6 +268,21 @@ class MyPrintout: public wxPrintout
 
   void DrawPageOne(wxDC *dc);
 };
+
+
+//      A global definition for window, timer and other ID's as needed.
+enum {
+    ID_NMEA_WINDOW      = wxID_HIGHEST,
+    ID_AIS_WINDOW,
+    FRAME_TIMER_1,
+    FRAME_TIMER_2,
+    TIMER_AIS1,
+    AIS_SOCKET_ID,
+    WIFI_SOCKET_ID,
+    TIMER_WIFI1,
+    FRAME_TIMER_DOG
+};
+
 
 
 #endif
