@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.7 2006/11/01 02:19:08 dsr Exp $
+ * $Id: options.cpp,v 1.8 2006/12/03 21:29:03 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.8  2006/12/03 21:29:03  dsr
+ * Cleanup AIS options.
+ *
  * Revision 1.7  2006/11/01 02:19:08  dsr
  * AIS Support
  *
@@ -192,7 +195,8 @@ void options::CreateControls()
     itemFlexGridSizer3->AddGrowableRow(0);
     itemBoxSizer2->Add(itemFlexGridSizer3, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
-    wxNotebook* itemNotebook4 = new wxNotebook( itemDialog1, ID_NOTEBOOK, wxDefaultPosition, wxSize(400, 500), wxNB_TOP );
+    wxNotebook* itemNotebook4 = new wxNotebook( itemDialog1, ID_NOTEBOOK, wxDefaultPosition,
+            wxDefaultSize, /*wxSize(400, 500),*/ wxNB_TOP );
 
     wxPanel* itemPanel5 = new wxPanel( itemNotebook4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
     wxBoxSizer* itemBoxSizer6 = new wxBoxSizer(wxVERTICAL);
@@ -383,7 +387,7 @@ void options::CreateControls()
       m_itemAISListBox->Append( _T("/dev/ttyS1"));
 
       aisidx = 0;
-      int aic = aisport.Find("/dev/ttyS"); 
+      int aic = pAIS_Port->Find("/dev/ttyS");
       if(-1 != aic)
       {
             char ccomx_ais = pAIS_Port->GetChar(aic+9);
@@ -803,6 +807,10 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
 // AIS Input
     wxString selais(m_itemAISListBox->GetStringSelection());
+    if(selais.Contains("COM"))
+        selais.Prepend("Serial:");
+    else if(selais.Contains("/dev"))
+        selais.Prepend("Serial:");
     *pAIS_Port = selais;
 
 #ifdef USE_WIFI_CLIENT
