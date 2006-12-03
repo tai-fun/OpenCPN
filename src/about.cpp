@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $
+ * $Id: about.cpp,v 1.3 2006/12/03 21:40:51 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.3  2006/12/03 21:40:51  dsr
+ * Cleanup
+ *
  * Revision 1.2  2006/10/07 03:50:27  dsr
  * *** empty log message ***
  *
@@ -75,7 +78,7 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.3 2006/12/03 21:40:51 dsr Exp $");
 
 
 //    Some constants
@@ -146,10 +149,6 @@ char LicenseText[] =
       georef QPL(see License.qpl) NEED TO INCLUDE AND REFERENCE LICENSE.QPL"
 
 };
-
-
-
-#define ID_CHOICE_NMEA  wxID_HIGHEST + 1
 
 
 
