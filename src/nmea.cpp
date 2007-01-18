@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.9 2006/12/03 21:31:41 dsr Exp $
+ * $Id: nmea.cpp,v 1.10 2007/01/18 03:19:50 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.10  2007/01/18 03:19:50  dsr
+ * Optimize date/time set logic and exec command
+ *
  * Revision 1.9  2006/12/03 21:31:41  dsr
  * Implement new ctor with window ID argument.
  * Change time set logic to run once per session only.
@@ -61,7 +64,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.9 2006/12/03 21:31:41 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.10 2007/01/18 03:19:50 dsr Exp $");
 
 //    Forward Declarations
 
@@ -433,21 +436,21 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 #else
 
 
-//      This contortion sets the system date/time on host
+//      This contortion sets the system date/time on POSIX host
 //      Requires the following line in /etc/sudoers
-//          nav ALL=NOPASSWD:/bin/date -s ????????
+//          nav ALL=NOPASSWD:/bin/date -s *
 
-                            wxLogMessage("Time set, delta t is %d", b);
+                            wxLogMessage("Setting system time, delta t is %d", b);
 
                             wxString sdate(fix_time.Format("%D"));
-                            sdate.Prepend("sudo /bin/date -s ");
-                        //    printf("%s\n", sdate.c_str());
-                            wxExecute(sdate, wxEXEC_ASYNC);
+                            sdate.Prepend("sudo /bin/date -s \"");
 
-                            wxString g(fix_time.Format("%T"));
-                            g.Prepend("sudo /bin/date -s ");
-                        //    printf("%s\n", g.c_str());
-                            wxExecute(g, wxEXEC_ASYNC);
+                            wxString stime(fix_time.Format("%T"));
+                            stime.Prepend(" ");
+                            sdate.Append(stime);
+                            sdate.Append("\"");
+
+                            wxExecute(sdate, wxEXEC_ASYNC);
 
 #endif      //__WXMSW__
                             if(parent_frame)
