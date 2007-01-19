@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.5 2006/10/08 00:36:44 dsr Exp $
+ * $Id: s57chart.cpp,v 1.6 2007/01/19 02:18:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.6  2007/01/19 02:18:55  dsr
+ * Cleanup
+ *
  * Revision 1.5  2006/10/08 00:36:44  dsr
  * no message
  *
@@ -70,7 +73,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.5 2006/10/08 00:36:44 dsr Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.6 2007/01/19 02:18:55 dsr Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -892,11 +895,8 @@ void s57chart::GetPointPix(float rlat, float rlon, wxPoint *r)
 
 void s57chart::GetPointPixEst(float rlat, float rlon, wxPoint *r)
 {
-//        r->x = (int)(((rlon - lon_left) * pix_per_deg_lon) + 0.5);
-//        r->y = (int)(((lat_top - rlat) * pix_per_deg_lat) + 0.5);
         r->x = (int)round((rlon - lon_left) * pix_per_deg_lon);
         r->y = (int)round((lat_top - rlat) * pix_per_deg_lat);
-
 }
 
 void s57chart::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
@@ -921,12 +921,8 @@ void s57chart::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
 
 void s57chart::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp)
 {
-
-//      pixx = (int)(((lon - vp.lon_left) * vp.ppd_lon) + 0.5);
-//      pixy = (int)(((vp.lat_top - lat)  * vp.ppd_lat) + 0.5);
     pixx = (int)round((lon - vp.lon_left) * vp.ppd_lon);
     pixy = (int)round((vp.lat_top - lat)  * vp.ppd_lat);
-
 }
 
 void s57chart::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
