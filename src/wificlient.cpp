@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.3 2006/12/03 21:16:05 dsr Exp $
+ * $Id: wificlient.cpp,v 1.4 2007/01/19 02:20:37 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.cpp,v $
+ * Revision 1.4  2007/01/19 02:20:37  dsr
+ * Rebuild for wifid daemon support
+ *
  * Revision 1.3  2006/12/03 21:16:05  dsr
  * Hide window explicitely upon creation
  *
@@ -72,7 +75,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.3 2006/12/03 21:16:05 dsr Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.4 2007/01/19 02:20:37 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -230,129 +233,206 @@ void WIFIWindow::UnPause(void)
         m_sock->Notify(TRUE);
 }
 
-
+///////////////////////////////
 void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
 {
 
-//    wxString s = _("OnSocketEvent: ");
     wifi_scan_data *pt;
+    unsigned char response_type;
 
-    int i;
-    int ilocal;
+    int i, ilocal;
+    unsigned char buf[2048];
 
-    switch(event.GetSocketEvent())
+    if(event.GetSocketEvent() == wxSOCKET_INPUT)
     {
-        case wxSOCKET_INPUT :
-            m_sock->SetFlags(wxSOCKET_WAITALL); // | wxSOCKET_BLOCK );
+        m_sock->SetFlags(wxSOCKET_WAITALL); // | wxSOCKET_BLOCK );
 
-            unsigned char buf[1024];
+//          Read the first 5 bytes of the reply, getting its total type and total length
+        m_sock->Read(buf, 5);
 
-//          Read the reply, waiting forever for all data to be read
-            m_sock->Read(buf, WIFI_SCAN_RESULT_BUFFER_LENGTH);
+            //  Read the rest
+        response_type = buf[0];
+        int *pint =(int *)(&buf[1]);
+        int total_length = *pint;
+        m_sock->Read(&buf[5], total_length-5);
 
-            m_bRX = true;                       // reset watchdog
-            m_watchtick = 0;
+        switch(response_type - 0x80)
+        {
+            case 'D' :
+                m_bRX = true;                       // reset watchdog
+                m_watchtick = 0;
 
 
             //  Manage the data input
+                int pt_eaten[NSCAN_DATA_STRUCT];
 
-            int pt_eaten[NSCAN_DATA_STRUCT];
-
-            //  Some setup
-            for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
-                pt_eaten[i] = false;
+                //  Some setup
+                for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
+                    pt_eaten[i] = false;
 
 
             //  First, check to see if any input station data is already present in local store
             //  If it is (ESSID matches), then simply update the signal quality, and refresh the age.
             //  Also, flag the fact that the input data has been eaten.
 
-            for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
-            {
-                pt = (wifi_scan_data *)(&buf[i * 256]);
-                if(strlen(pt->ESSID))
+                for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
                 {
-                    for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
-                    {
-                        if((!strcmp(pt->ESSID, station_data[ilocal].ESSID)) && (station_data[ilocal].bisvalid))
-                        {
-                            station_data[ilocal].sig_quality = pt->sig_quality;
-                            station_data[ilocal].age = -1;
-                            pt_eaten[i] = true;
-                        }
-                    }
-                }
-            }
-
-            //  Now, age the local store by one
-            for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
-                if(station_data[ilocal].bisvalid)
-                    station_data[ilocal].age ++;
-
-            //  and free any entries that are over the specified age
-            for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
-            {
-                if((station_data[ilocal].bisvalid) && (station_data[ilocal].age >= N_AGEDEATH))
-                {
-                    station_data[ilocal].bisvalid = false;
-                    station_data[ilocal].ESSID[0] = 0;
-                }
-            }
-
-
-            //  Now, check to see if any input data is un-eaten
-            //  If found, then try to allocate to a local store item
-            for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
-            {
-                if(pt_eaten[i] == false)
-                {
-                    pt = (wifi_scan_data *)(&buf[i * 256]);
+                    pt = (wifi_scan_data *)(&buf[(5 + i * 256)]);           // skipping the first 5 bytes
                     if(strlen(pt->ESSID))
                     {
-                        for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
+                        for(int ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
                         {
-                            if(station_data[ilocal].bisvalid == false)
+                            if((!strcmp(pt->ESSID, station_data[ilocal].ESSID)) && (station_data[ilocal].bisvalid))
                             {
-                                strcpy(station_data[ilocal].ESSID, pt->ESSID);
                                 station_data[ilocal].sig_quality = pt->sig_quality;
-                                station_data[ilocal].secure = pt->secure;
-                                station_data[ilocal].bisvalid = true;
-                                station_data[ilocal].age = 0;
+                                station_data[ilocal].age = -1;
                                 pt_eaten[i] = true;
-                                break;
                             }
                         }
                     }
                 }
-            }
+
+            //  Now, age the local store by one
+                for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
+                    if(station_data[ilocal].bisvalid)
+                        station_data[ilocal].age ++;
+
+            //  and free any entries that are over the specified age
+                for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
+                {
+                    if((station_data[ilocal].bisvalid) && (station_data[ilocal].age >= N_AGEDEATH))
+                    {
+                        station_data[ilocal].bisvalid = false;
+                        station_data[ilocal].ESSID[0] = 0;
+                    }
+                }
+
+
+            //  Now, check to see if any input data is un-eaten
+            //  If found, then try to allocate to a local store item
+                for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
+                {
+                    if(pt_eaten[i] == false)
+                    {
+                        pt = (wifi_scan_data *)(&buf[(5 + i * 256)]);
+                        if(strlen(pt->ESSID))
+                        {
+                            for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
+                            {
+                                if(station_data[ilocal].bisvalid == false)
+                                {
+                                    strcpy(station_data[ilocal].ESSID, pt->ESSID);
+                                    station_data[ilocal].sig_quality = pt->sig_quality;
+                                    station_data[ilocal].secure = pt->secure;
+                                    station_data[ilocal].bisvalid = true;
+                                    station_data[ilocal].age = 0;
+                                    pt_eaten[i] = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
 
             //  There may still be un-eaten input data at this point......
             //  For now, ignore it.  If it is real, it will appear as soon as something else dies
 
             // Finally, send the data to the display window
-            for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
-            {
-                if(station_data[ilocal].bisvalid)
+                for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
                 {
-                    stats->pWiFi->SetStationQuality(ilocal, station_data[ilocal].sig_quality);
-                    stats->pWiFi->SetStationSecureFlag(ilocal, station_data[ilocal].secure);
-                    stats->pWiFi->SetStationAge(ilocal, station_data[ilocal].age);
+                    if(station_data[ilocal].bisvalid)
+                    {
+                        stats->pWiFi->SetStationQuality(ilocal, station_data[ilocal].sig_quality);
+                        stats->pWiFi->SetStationSecureFlag(ilocal, station_data[ilocal].secure);
+                        stats->pWiFi->SetStationAge(ilocal, station_data[ilocal].age);
+                    }
+                    else
+                        stats->pWiFi->SetStationQuality(ilocal, 0);
                 }
-                else
-                    stats->pWiFi->SetStationQuality(ilocal, 0);
-            }
             stats->Refresh(true);
 
             break;
 
-        case wxSOCKET_LOST       :
-            break;
-        case wxSOCKET_CONNECTION :
-            break;
-        default                  :
-            break;
-    }
 
+            case 'S' :
+            {
+                /*
+                StatusString = wxString(&buf[5]);
+
+                        //  This may be useful later....
+                fi_status_data *status = (wifi_status_data *)&buf[5];
+
+                memcpy(&connected_ap_mac_addr, &status->currently_connected_ap, sizeof(struct sockaddr));
+
+                        //  Check for re-connect, if needed
+                if(StatusString.StartsWith("Not"))
+                {
+                    if(s_do_reconnect)
+                    {
+                        time_t tnow = wxDateTime::GetTimeNow();
+                        last_connect_seconds = tnow - last_connect_time;
+
+                        do_reconnect();
+                    }
+                }
+
+                m_statWindow->Refresh();
+                */
+                break;
+            }
+
+            case 'R' :
+            {
+                /*
+                wxString wr(&buf[5]);
+                m_logWindow->WriteText(wr);
+                long ac_compass, ac_brg_commanded, ac_brg_current, ac_motor_dir;
+
+                        //  Parse the Antenna Controller string
+                if(!strncmp((const char *)&buf[5], "ANTC", 4))                // valid string
+                {
+                    wxStringTokenizer tk(wr, wxT(":"));
+
+                    wxString token = tk.GetNextToken();              // skip ANTC
+
+                    token = tk.GetNextToken();
+                    token.ToLong(&ac_compass);                     // compass heading
+
+                    token = tk.GetNextToken();
+                    token.ToLong(&ac_brg_commanded);               // last commanded antenna bearing
+
+                    token = tk.GetNextToken();
+                    token.ToLong(&ac_brg_current);                 // current antenna brg
+
+                    token = tk.GetNextToken();
+                    token.ToLong(&ac_motor_dir);                   // current motor state
+
+                    s_ac_compass       = ac_compass;
+                    s_ac_brg_commanded = ac_brg_commanded;
+                    s_ac_brg_current   = ac_brg_current;
+                    s_ac_motor_dir     = ac_motor_dir;
+
+
+                    m_antWindow->Refresh();
+                }
+ */
+                break;
+            }
+
+            case 'K' :
+            {
+
+                break;
+            }
+
+
+            default:
+                break;
+        }       //switch
+    }       // if
+
+
+    event.Skip();
 }
 
 
@@ -374,7 +454,7 @@ void WIFIWindow::OnTimer1(wxTimerEvent& event)
                 stats->pWiFi->SetServerStatus(true);
         }
 
-        unsigned char c = WIFI_TRANSMIT_DATA;       // and call for more data
+        unsigned char c = WIFI_TRANSMIT_DATA_EXT;       // and call for more data
         m_sock->Write(&c, 1);
     }
     else                                     // try to connect
