@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.6  2007/01/19 02:19:52  dsr
+ * Improve bar scaling
+ *
  * Revision 1.5  2006/12/03 21:17:24  dsr
  * Clear nRegions in ctor
  *
@@ -84,7 +87,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.5 2006/12/03 21:17:24 dsr Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.6 2007/01/19 02:19:52 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -498,7 +501,7 @@ void WiFiStatWin::OnPaint(wxPaintEvent& event)
                         dc.SetBrush(*psecureNewBrush);
                 }
 
-                DrawBars(dc, x+2, 2, bar_total-4 , height-4, m_quality[ista]);
+                DrawBars(dc, x+2, 2, bar_total-4 , height-4, m_quality[ista], 100);
             }
         }
     }
@@ -512,16 +515,14 @@ void WiFiStatWin::OnPaint(wxPaintEvent& event)
         dc.DrawLine(width-1, height-1, 1, height-1);
         dc.DrawLine(1, height-1, 1, 1);
     }
-
-
 }
 
-void WiFiStatWin::DrawBars(wxDC &dc, int x, int y, int box_width, int box_height, int val)
+
+void WiFiStatWin::DrawBars(wxDC &dc, int x, int y, int box_width, int box_height, int val, int val_max)
 {
     int xb;
-    int aval = val;
-    if (val > 50)
-        aval = 50;
+    //  Scale onto 0..50, so we can draw 5 bars = 50 points
+    int aval = (val * 50) / val_max;
 
     int nBars = ((aval) / 10);
 
@@ -538,6 +539,7 @@ void WiFiStatWin::DrawBars(wxDC &dc, int x, int y, int box_width, int box_height
     dc.DrawRectangle(xb, y+2, bar_w * (aval % 10) / 10, box_height-4);
 
 }
+
 
 
 void WiFiStatWin::TextDraw(const char *text)
