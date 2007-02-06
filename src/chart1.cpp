@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.9 2006/11/01 02:15:58 dsr Exp $
+ * $Id: chart1.cpp,v 1.10 2007/02/06 02:07:39 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.10  2007/02/06 02:07:39  dsr
+ * Pause event generators during Settings Dialog
+ *
  * Revision 1.9  2006/11/01 02:15:58  dsr
  * AIS Support
  *
@@ -146,6 +149,7 @@
 #include "tcmgr.h"
 #include "cpl_error.h"
 #include "ais.h"
+#include "chartimg.h"               // for ChartBaseBSB
 
 #ifdef __WXMSW__
 #include <wx/image.h>
@@ -173,7 +177,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.9 2006/11/01 02:15:58 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.10 2007/02/06 02:07:39 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -381,7 +385,6 @@ catch_sig_usr1(int signo)
 
 IMPLEMENT_APP(MyApp)
 
-
 bool MyApp::OnInit()
 {
 
@@ -457,7 +460,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         Oldlogger = wxLog::SetActiveTarget(logger);
 
-//        wxLog::SetTraceMask(2);               // verbose message traces to log output
+//        wxLog::AddTraceMask("timer");               // verbose message traces to log output
 
 
 //      Send init message
@@ -662,26 +665,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         stats = new StatWin(gFrame);
 
-        nmea = new NMEAWindow(gFrame, *pNMEADataSource);
+        nmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource);
 
 //        pAIS = new AIS_Decoder(gFrame, "GPSD:boat.milltechmarine.com");
-        pAIS = new AIS_Decoder(gFrame, *pAIS_Port);
-//    pais->Decode("!AIVDM,1,1,,1,1P000Oh1IT1svTP2r:43grwb0Eq4,0*71**");
-
-//    pais->Decode("!AIVDM,1,1,,B,169?;>000089Jap<nvS<2r2d0H<q,0*13**");
-//    pais->Decode("!AIVDM,1,1,,B,177CQd800q`9C8D<n4A=L:bf0D0o,0*0E**");
-//    pais->Decode("!AIVDM,1,1,,B,D04SGT1@qNL8,0*1F**");
-//    pais->Decode("!AIVDM,1,1,,B,19NWp8h00289HGt<nii`L4Jl0<0k,0*67**");
-//    pais->Decode("!AIVDM,2,2,4,B,H88888888888880,2*53**");
-//    pais->Decode("!AIVDM,1,1,,B,403tAeQuBU8=N`9E;p<noc70050l,0*6D**");
-//    pais->Decode("!AIVDM,1,1,,B,D04SGT0liNL8,0*2A**");
-//    pais->Decode("!AIVDM,1,1,,B,14RI1J0P0089GU0<nG@=B?w<0@HB,0*27**");
-//    pais->Decode("!AIVDM,1,1,,B,14RE3P0P0089E;h<nTgoCwwF0@JL,0*5E**");
-//    pais->Decode("!AIVDM,1,1,,B,177CQd800q`9C4p<n5`eIbeJ0@Jm,0*44**");
-//    pais->Decode("!AIVDM,1,1,,B,D04SGT0I1NL8,0*57**");
-//    pais->Decode("!AIVDM,1,1,,B,403tAeQuBU8=j`9E;p<noc70050l,0*49**");
-//    pais->Decode("!AIVDM,1,1,,B,D03tAePF4ffpF5N9H0,4*18**");
-
+        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port);
         pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port);
 
 #ifdef USE_WIFI_CLIENT
@@ -763,8 +750,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 #endif
 
 //      Start up the ticker....
-        gFrame->FrameTimer1.Start(1000,wxTIMER_CONTINUOUS);
-
+        gFrame->FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
 
    return TRUE;
 }
@@ -849,9 +835,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(-1, MyFrame::OnToolLeftClick)
   EVT_TIMER(FRAME_TIMER_1, MyFrame::OnFrameTimer1)
   EVT_ACTIVATE(MyFrame::OnActivate)
-//  EVT_MOUSE_EVENTS(MyFrame::MouseEvent)
-//  EVT_CHAR(MyFrame::OnChar)
-  EVT_COMMAND(wxID_HIGHEST, EVT_NMEA, MyFrame::OnEvtNMEA)
+  EVT_COMMAND(ID_NMEA_WINDOW, EVT_NMEA, MyFrame::OnEvtNMEA)
 END_EVENT_TABLE()
 
 
@@ -1238,7 +1222,7 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
     if(pAIS)
     {
         pAIS->Close();
-        pAIS = NULL;    
+        pAIS = NULL;
     }
 
 
@@ -1551,9 +1535,10 @@ int MyFrame::DoOptionsDialog()
       wxArrayString *pWorkDirArray = new wxArrayString;
       pSetDlg->SetWorkDirListPtr(pWorkDirArray);
 
-//  Grab a copy of the current NMEA source and AP Port
+//  Grab a copy of the current NMEA source and AP Port and AIS Port
       wxString previous_NMEA_source(*pNMEADataSource);
       wxString previous_NMEA_APPort(*pNMEA_AP_Port);
+      wxString previous_AIS_Port(*pAIS_Port);
 
 //      Pass a ptr to MyConfig, for updates
       pSetDlg->SetConfigPtr(pConfig);
@@ -1564,13 +1549,22 @@ int MyFrame::DoOptionsDialog()
 
       bool bPrevPrintIcon = g_bShowPrintIcon;
 
+//    Pause all of the async classes
+      if(pWIFI)
+          pWIFI->Pause();
+      if(pAIS)
+          pAIS->Pause();
+      if(nmea)
+          nmea->Pause();
+
+// And here goes the (modal) dialog
       int rr = pSetDlg->ShowModal();
 
       if(rr == 1)
       {
             if(*pChartDirArray != *pWorkDirArray)
             {
-                  FrameTimer1.Stop();                  // stop asynchronous activity
+                  FrameTimer1.Stop();                  // stop other asynchronous activity
 
                   Current_Ch = NULL;
 
@@ -1586,7 +1580,7 @@ int MyFrame::DoOptionsDialog()
 
                   pConfig->UpdateChartDirs(pChartDirArray);
 
-                  FrameTimer1.Start(1000,wxTIMER_CONTINUOUS);
+                  FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
 
             }
 
@@ -1594,7 +1588,7 @@ int MyFrame::DoOptionsDialog()
             {
                   nmea->Close();
                   delete nmea;
-                  nmea = new NMEAWindow(gFrame, *pNMEADataSource );
+                  nmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource );
             }
 
 
@@ -1605,10 +1599,24 @@ int MyFrame::DoOptionsDialog()
                 pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port );
             }
 
+            if(*pAIS_Port != previous_AIS_Port)
+            {
+                pAIS->Close();
+                delete pAIS;
+                pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port );
+            }
+
 
             pConfig->UpdateSettings();
       }
 
+//    Restart the async classes
+      if(pWIFI)
+          pWIFI->UnPause();
+      if(pAIS)
+          pAIS->UnPause();
+      if(nmea)
+          nmea->UnPause();
 
       delete pWorkDirArray;
 
@@ -1640,9 +1648,6 @@ void MyFrame::DoStackUp(void)
         if(CurrentStackEntry < pCurrentStack->nEntry-1)
                 SelectChartFromStack(CurrentStackEntry + 1);
 }
-
-
-
 
 
 
@@ -1722,7 +1727,7 @@ void MyFrame::OnFrameTimer1(wxTimerEvent& event)
         }
 
 
-      FrameTimer1.Start(1000,wxTIMER_CONTINUOUS);
+        FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
 
       if(1/*bnew_chart*/)
         cc1->Refresh(false);
@@ -2037,23 +2042,27 @@ void MyFrame::SelectChartFromStack(int index)
                   int conv_scale_at_1x = (int)(cc1->canvas_scale_factor / ppdl);
 //                  printf("conv_scale_at_1x: %d  target_scale: %d\n", conv_scale_at_1x, target_scale);
 // try to match to the target when going to a smaller scale chart
+                  int binary_scale_factor = 1;
                   if(conv_scale_at_1x < target_scale)
                   {
-                    int scf = 1;
-                    while(scf < 8)
+                    while(binary_scale_factor < 8)
                     {
-                        if(fabs((conv_scale_at_1x * scf ) - target_scale) < (target_scale * 0.05))
+                        if(fabs((conv_scale_at_1x * binary_scale_factor ) - target_scale) < (target_scale * 0.05))
                             break;
-                        if((conv_scale_at_1x * scf ) > target_scale)
+                        if((conv_scale_at_1x * binary_scale_factor ) > target_scale)
                             break;
                         else
-                            scf *= 2;
+                            binary_scale_factor *= 2;
                     }
-                    cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * scf, 1, new_sample_mode); //set mod 4
+//                    cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * binary_scale_factor, 1, new_sample_mode); //set mod 4
                   }
 
                   else
-                      cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale(), 1, new_sample_mode);    // set mod 4
+                      binary_scale_factor = 1;
+
+//                  double set_scale = cc1->canvas_scale_factor / (Cur_BSB_Ch->GetPpd_lon_1x() / binary_scale_factor);
+                  cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * binary_scale_factor, 1, new_sample_mode); //set mod 4
+//                  cc1->SetViewPoint(zLat, zLon, set_scale, 1, new_sample_mode);    // set mod 4
              }
 
         cc1->SetbNewVP(true);
@@ -2185,7 +2194,7 @@ void MyFrame::SetChartThumbnail(int index)
 bool MyFrame::DoChartUpdate(int bSelectType)
 {
         float tLat, tLon;
-        float new_scale;
+        float new_binary_scale_factor;
         bool bNewChart = false;
 
         if(bDBUpdateInProgress)
@@ -2214,11 +2223,8 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                 if(NULL == pDummyChart)
                 {
                         pDummyChart = new ChartDummy;
-
                         Current_Ch = pDummyChart;
-                        float natural_scale = Current_Ch->GetNativeScale();
-
-                        cc1->SetViewPoint(tLat, tLon, natural_scale, 0, CURRENT_RENDER);
+                        cc1->SetViewPoint(tLat, tLon, Current_Ch->GetNativeScale(), 0, CURRENT_RENDER);
                 }
 
                 else
@@ -2262,7 +2268,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                 if(tEntry != -1)                // Current_Ch is in the new stack
                 {
                         CurrentStackEntry = tEntry;
-                        new_scale = cc1->GetVPScale()/Current_Ch->GetNativeScale();
+                        new_binary_scale_factor = cc1->GetVPScale()/Current_Ch->GetNativeScale();
                         bNewChart = false;
                 }
 
@@ -2277,20 +2283,20 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                         {
                               if ((ptc = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry)))
                               {
-                                    new_scale = current_scale;              // Try to set scale to current value
+                                  new_binary_scale_factor = current_scale;              // Try to set scale to current value
 
 // For Raster Charts, scale must be 1,2,4,8... etc.
-                                    if(new_scale - floor(new_scale))
-                                    {
-                                          float sct = 1.0;
-                                          while(sct < 16.0)
-                                          {
-                                                if(sct > new_scale)
-                                                      break;
-                                                sct *= 2;
-                                          }
-                                          new_scale = sct;
-                                    }
+                                  if(new_binary_scale_factor - floor(new_binary_scale_factor))
+                                  {
+                                      float sct = 1.0;
+                                      while(sct < 16.0)
+                                      {
+                                          if(sct > new_binary_scale_factor)
+                                              break;
+                                          sct *= 2;
+                                      }
+                                      new_binary_scale_factor = sct;
+                                  }
 
                                     break;
                               }
@@ -2341,8 +2347,13 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                   UpdateChartStatusField(2);
 
 //      Setup the view
-                  float natural_scale = Current_Ch->GetNativeScale();
-                  cc1->SetViewPoint(tLat, tLon, natural_scale * new_scale, 1, CURRENT_RENDER);  // set mod 4
+//                  float natural_scale = Current_Ch->GetNativeScale();
+                  //    This is known to be a raster chart, so open at a "nice" (i.e. binary) scale
+//                  ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
+
+//                  double set_scale = cc1->canvas_scale_factor / (Cur_BSB_Ch->GetPpd_lat_1x() / new_binary_scale_factor);
+
+                  cc1->SetViewPoint(tLat, tLon, Current_Ch->GetNativeScale() * new_binary_scale_factor, 1, CURRENT_RENDER);
 
                   stats->FormatStat();
                 }
