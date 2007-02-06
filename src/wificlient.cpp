@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.4 2007/01/19 02:20:37 dsr Exp $
+ * $Id: wificlient.cpp,v 1.5 2007/02/06 02:08:24 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.cpp,v $
+ * Revision 1.5  2007/02/06 02:08:24  dsr
+ * Correct timer interval on UnPause()
+ *
  * Revision 1.4  2007/01/19 02:20:37  dsr
  * Rebuild for wifid daemon support
  *
@@ -75,7 +78,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.4 2007/01/19 02:20:37 dsr Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.5 2007/02/06 02:08:24 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -227,7 +230,7 @@ void WIFIWindow::Pause(void)
 
 void WIFIWindow::UnPause(void)
 {
-    Timer1.Start(1000,wxTIMER_CONTINUOUS);
+    Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
 
     if(m_sock)
         m_sock->Notify(TRUE);
