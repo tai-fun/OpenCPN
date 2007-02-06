@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.13 2006/11/01 02:15:37 dsr Exp $
+ * $Id: chcanv.cpp,v 1.14 2007/02/06 02:10:50 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.14  2007/02/06 02:10:50  dsr
+ * Improve AIS target color logic, tweak Viewport logic again.
+ *
  * Revision 1.13  2006/11/01 02:15:37  dsr
  * AIS Support
  *
@@ -111,7 +114,7 @@ extern "C" {
                                    int xmin_, int xmax_, int ymin_, int ymax_);
 }
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.13 2006/11/01 02:15:37 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.14 2007/02/06 02:10:50 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -416,8 +419,8 @@ void ChartCanvas::GetPointPix(float rlat, float rlon, wxPoint *r)
                   Current_Ch->GetChartExtent(&ext);
                   if((rlat > ext.NLAT) || (rlat < ext.SLAT) || (rlon > ext.ELON) || (rlon < ext.WLON))
                   {
-                        r->x = x;
-                        r->y = y;
+//                        r->x = x;
+//                        r->y = y;
                   }
             }
       }
@@ -530,8 +533,6 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
       if(!Current_Ch)
             return;
 
-//      float sc = scale / Current_Ch->GetNativeScale();      // native (1X) scale
-//      VPoint.Raster_Scale = 1.0 / sc;
 
       if(Current_Ch->ChartType == CHART_TYPE_S57)
       {
@@ -553,7 +554,6 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
 
               double clatd = (dpy / VPoint.ppd_lat) + last_lat;
               VPoint.clat = clatd;
-
           }
 
 
@@ -569,11 +569,20 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
       }
 
       else if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
-
       {
             ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
 
-            float sc = scale / Current_Ch->GetNativeScale();      // native (1X) scale
+            //  Calculate binary scale factor
+            //  n.b.  parameter "scale" is always contrived to be binary multiple of native scale
+            //        when this method is called for raster charts.
+
+            float binary_sc_factor = scale / Current_Ch->GetNativeScale();
+
+            //  Override ppd for raster charts
+            VPoint.ppd_lat = Cur_BSB_Ch->GetPpd_lat_1x() / binary_sc_factor;
+            VPoint.ppd_lon = Cur_BSB_Ch->GetPpd_lon_1x() / binary_sc_factor;
+
+
             Current_Ch->latlong_to_pix(lat, lon, pixxd, pixyd);
             pixx = pixxd;
             pixy = pixyd;
@@ -581,35 +590,33 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
             wxRect source;
             if(mode == 1)           // mod 4
             {
-                  int xmod = (pixx - (int)(VPoint.pix_width  * sc / 2))/4;
-                  xmod *= 4;
-                  source.x = xmod;
-                  int ymod = (pixy - (int)(VPoint.pix_height * sc / 2))/4;
-                  ymod *= 4;
-                  source.y = ymod;
+                int xmod = (pixx - (int)(VPoint.pix_width  * binary_sc_factor / 2))/4;
+                xmod *= 4;
+                source.x = xmod;
+                int ymod = (pixy - (int)(VPoint.pix_height * binary_sc_factor / 2))/4;
+                ymod *= 4;
+                source.y = ymod;
 
-                  Current_Ch->SetVPParms(&VPoint);
+                Current_Ch->SetVPParms(&VPoint);
 
                   //    Possible adjustment to clat/clon
-                  double alat, alon;
-                  Current_Ch->pix_to_latlong((int)(((VPoint.pix_width /2) * sc) + source.x),
-                                        (int)(((VPoint.pix_height/2) * sc) + source.y),
+                double alat, alon;
+                Current_Ch->pix_to_latlong((int)(((VPoint.pix_width /2) * binary_sc_factor) + source.x),
+                                              (int)(((VPoint.pix_height/2) * binary_sc_factor) + source.y),
                                         &alat, &alon);
-                  VPoint.clat = alat;
-                  VPoint.clon = alon;
+                VPoint.clat = alat;
+                VPoint.clon = alon;
             }
             else
             {
-                  source.x = pixx - (int)(VPoint.pix_width  * sc / 2);
-                  source.y = pixy - (int)(VPoint.pix_height * sc / 2);
+                source.x = pixx - (int)(VPoint.pix_width  * binary_sc_factor / 2);
+                source.y = pixy - (int)(VPoint.pix_height * binary_sc_factor / 2);
             }
 
 
-            source.width = (int)(VPoint.pix_width * sc) ;
-            source.height = (int)(VPoint.pix_height * sc) ;
+            source.width = (int)(VPoint.pix_width * binary_sc_factor) ;
+            source.height = (int)(VPoint.pix_height * binary_sc_factor) ;
 
-            VPoint.ppd_lat = Cur_BSB_Ch->GetPpd_lat_1x() / sc;
-            VPoint.ppd_lon = Cur_BSB_Ch->GetPpd_lon_1x() / sc;
 
 
             //    Compute VPoint bounding box
@@ -622,14 +629,50 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
             //    disastrously when applied too far from chart centroid.
             if(((source.x < 0) && (source.x + source.width  > Cur_BSB_Ch->GetSize_X())) ||
                 ((source.y < 0) && (source.y + source.height > Cur_BSB_Ch->GetSize_Y())) )
-            {                                         // hi zoom out
-                  float pwidth = VPoint.pix_width;
-                  float pheight = VPoint.pix_height;
+            {
+                                                         // hi zoom out
+                double st = sin(Cur_BSB_Ch->GetChartSkew() * PI / 180.);
+                double ct = cos(Cur_BSB_Ch->GetChartSkew() * PI / 180.);
 
-                  VPoint.lat_top =   lat + ((pheight/2) / VPoint.ppd_lat);
-                  VPoint.lon_left =  lon - ((pwidth/2)  / VPoint.ppd_lon);
-                  VPoint.lat_bot =   VPoint.lat_top  - ((pheight) / VPoint.ppd_lat);
-                  VPoint.lon_right = VPoint.lon_left + ((pwidth)  / VPoint.ppd_lon);
+                double pw2 = VPoint.pix_width / 2;
+                double ph2 = VPoint.pix_height / 2;
+
+                double lonuls, lonurs, lonlls, lonlrs;
+                double latuls, laturs, latlls, latlrs;
+                double xp, yp;
+
+                //ur
+                xp = (pw2 * ct) - (ph2 * st);
+                yp = (ph2 * ct) + (pw2 * st);
+                lonurs = lon + (xp / VPoint.ppd_lon);
+                laturs = lat + (yp / VPoint.ppd_lat);
+                //ul
+                xp = (-pw2 * ct) - (ph2 * st);
+                yp = (ph2 * ct) + (-pw2 * st);
+                lonuls = lon + (xp / VPoint.ppd_lon);
+                latuls = lat + (yp / VPoint.ppd_lat);
+                //ll
+                xp = (-pw2 * ct) - (-ph2 * st);
+                yp = (-ph2 * ct) + (-pw2 * st);
+                lonlls = lon + (xp / VPoint.ppd_lon);
+                latlls = lat + (yp / VPoint.ppd_lat);
+                //lr
+                xp = (pw2 * ct) - (-ph2 * st);
+                yp = (-ph2 * ct) + (pw2 * st);
+                lonlrs = lon + (xp / VPoint.ppd_lon);
+                latlrs = lat + (yp / VPoint.ppd_lat);
+
+
+                VPoint.lat_top = fmax4(latuls, laturs, latlls, latlrs);
+                VPoint.lat_bot = fmin4(latuls, laturs, latlls, latlrs);
+                VPoint.lon_right = fmax4(lonurs, lonlrs, lonuls, lonlls);
+                VPoint.lon_left  = fmin4(lonurs, lonlrs, lonuls, lonlls);
+
+
+//                  VPoint.lat_top =   lat + ((pheight/2) / VPoint.ppd_lat);
+//                  VPoint.lon_left =  lon - ((pwidth/2)  / VPoint.ppd_lon);
+//                  VPoint.lat_bot =   VPoint.lat_top  - ((pheight) / VPoint.ppd_lat);
+//                  VPoint.lon_right = VPoint.lon_left + ((pwidth)  / VPoint.ppd_lon);
 
 
             }
@@ -638,35 +681,36 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
                 double lonul, lonur, lonll, lonlr;
                 double latul, latur, latll, latlr;
 
-                Current_Ch->pix_to_latlong((int)(((0) * sc) + source.x),
-                               (int)(((0) * sc) + source.y),
+                Current_Ch->pix_to_latlong((int)(((0) * binary_sc_factor) + source.x),
+                                            (int)(((0) * binary_sc_factor) + source.y),
                                &latul, &lonul);
-                Current_Ch->pix_to_latlong((int)(((canvas_width) * sc) + source.x),
-                               (int)(((0) * sc) + source.y),
+                Current_Ch->pix_to_latlong((int)(((canvas_width) * binary_sc_factor) + source.x),
+                                            (int)(((0) * binary_sc_factor) + source.y),
                                &latur, &lonur);
-                Current_Ch->pix_to_latlong((int)(((canvas_width) * sc) + source.x),
-                               (int)(((canvas_height) * sc) + source.y),
+                Current_Ch->pix_to_latlong((int)(((canvas_width) * binary_sc_factor) + source.x),
+                                            (int)(((canvas_height) * binary_sc_factor) + source.y),
                                &latlr, &lonlr);
-                Current_Ch->pix_to_latlong((int)(((0) * sc) + source.x),
-                               (int)(((canvas_height) * sc) + source.y),
+                Current_Ch->pix_to_latlong((int)(((0) * binary_sc_factor) + source.x),
+                                            (int)(((canvas_height) * binary_sc_factor) + source.y),
                                &latll, &lonll);
 
                 VPoint.lat_top = fmax4(latul, latur, latll, latlr);
                 VPoint.lat_bot = fmin4(latul, latur, latll, latlr);
                 VPoint.lon_right = fmax4(lonur, lonlr, lonul, lonll);
                 VPoint.lon_left  = fmin4(lonur, lonlr, lonul, lonll);
-
+//                printf("VPoint.lon_left %f\n", VPoint.lon_left);
+                //dsr
 //                VPoint.lat_top = fmax(latul, latur);
 //                VPoint.lat_bot = fmin(latll, latlr);
 //                VPoint.lon_right = fmax(lonur, lonlr);
 //                VPoint.lon_left  = fmin(lonul, lonll);
+
 
             }
       }
 
       else if(Current_Ch->ChartType == CHART_TYPE_DUMMY)
       {
-
             float pwidth = VPoint.pix_width;
             float pheight = VPoint.pix_height;
 
@@ -681,15 +725,18 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
       long0 = (VPoint.lon_right + VPoint.lon_left) / 2.;
 
 //      Set the VP Bounding Box
-      VPoint.vpBBox.SetMin(fmin(VPoint.lon_right, VPoint.lon_left),  fmin(VPoint.lat_bot, VPoint.lat_top));
-      VPoint.vpBBox.SetMax(fmax(VPoint.lon_right, VPoint.lon_left),  fmax(VPoint.lat_bot, VPoint.lat_top));
+//      VPoint.vpBBox.SetMin(fmin(VPoint.lon_right, VPoint.lon_left),  fmin(VPoint.lat_bot, VPoint.lat_top));
+//      VPoint.vpBBox.SetMax(fmax(VPoint.lon_right, VPoint.lon_left),  fmax(VPoint.lat_bot, VPoint.lat_top));
+      VPoint.vpBBox.SetMin(VPoint.lon_left,  VPoint.lat_bot);
+      VPoint.vpBBox.SetMax(VPoint.lon_right, VPoint.lat_top);
 
 
 
       //    Calculate the conventional scale
 
-      float ppdl = canvas_width / (VPoint.lon_right - VPoint.lon_left);
-      VPoint.chart_scale = canvas_scale_factor / ppdl;
+//      float ppdl = canvas_width / (VPoint.lon_right - VPoint.lon_left);
+//      VPoint.chart_scale = canvas_scale_factor / ppdl;
+      VPoint.chart_scale = canvas_scale_factor / VPoint.ppd_lon;
 
       //    Update the vp parameters private to the chart type
       Current_Ch->SetVPParms(&VPoint);
@@ -767,14 +814,16 @@ void ChartCanvas::ShipDraw(wxDC& dc, wxPoint& iShipPoint, wxPoint& iPredPoint)
 //    Do the draw if either the ship or prediction is within the current VPoint
     if(drawit)
       {
-            int pixxd, pixyd;
-            Current_Ch->latlong_to_pix_vp(gLat, gLon, pixxd, pixyd, VPoint);
-            lShipPoint.x = pixxd;
-            lShipPoint.y = pixyd;
+ //           int pixxd, pixyd;
+ //           Current_Ch->latlong_to_pix_vp(gLat, gLon, pixxd, pixyd, VPoint);
+ //           lShipPoint.x = pixxd;
+ //           lShipPoint.y = pixyd;
+            GetPointPix(gLat, gLon, &lShipPoint);
 
-            Current_Ch->latlong_to_pix_vp(pred_lat, pred_lon, pixxd, pixyd, VPoint);
-            lPredPoint.x = pixxd;
-            lPredPoint.y = pixyd;
+ //           Current_Ch->latlong_to_pix_vp(pred_lat, pred_lon, pixxd, pixyd, VPoint);
+//           lPredPoint.x = pixxd;
+//            lPredPoint.y = pixyd;
+            GetPointPix(pred_lat, pred_lon, &lPredPoint);
 
 /*
             if(bGPSValid)
@@ -801,6 +850,10 @@ void ChartCanvas::AISDraw(wxDC& dc)
     if(!pAIS)
         return;
 
+    wxBrush *p_yellow_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,000), wxSOLID);   // yellow
+    wxBrush *p_gray_brush = wxTheBrushList->FindOrCreateBrush(wxColour(180,180,180), wxSOLID);   // gray
+    wxBrush *p_orange_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,108,0), wxSOLID);   // orange
+
     //      Iterate over the AIS Target Hashmap
     AIS_Target_Hash::iterator it;
 
@@ -809,7 +862,7 @@ void ChartCanvas::AISDraw(wxDC& dc)
     for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
     {
           AIS_Target_Data *td = it->second;
-          
+
           int drawit = 0;
           wxPoint lShipPoint, lPredPoint;
 
@@ -841,19 +894,26 @@ void ChartCanvas::AISDraw(wxDC& dc)
     //    Do the draw if either the target or prediction is within the current VPoint
           if(drawit)
           {
-                int pixxd, pixyd;
-                Current_Ch->latlong_to_pix_vp(td->Lat, td->Lon, pixxd, pixyd, VPoint);
-                lShipPoint.x = pixxd;
-                lShipPoint.y = pixyd;
+//              int pixxd, pixyd;
+//              Current_Ch->latlong_to_pix_vp(td->Lat, td->Lon, pixxd, pixyd, VPoint);
+//              lShipPoint.x = pixxd;
+//              lShipPoint.y = pixyd;
+              GetPointPix(td->Lat, td->Lon, &lShipPoint);
 
-                Current_Ch->latlong_to_pix_vp(pred_lat, pred_lon, pixxd, pixyd, VPoint);
-                lPredPoint.x = pixxd;
-                lPredPoint.y = pixyd;
+              GetPointPix(pred_lat, pred_lon, &lPredPoint);
+
+              if(td->SOG > 0.5)
+              {
+
+//                Current_Ch->latlong_to_pix_vp(pred_lat, pred_lon, pixxd, pixyd, VPoint);
+//                lPredPoint.x = pixxd;
+//                lPredPoint.y = pixyd;
+                GetPointPix(pred_lat, pred_lon, &lPredPoint);
 
                 //  Calculate the relative angle for this chart orientation
 
                 double theta = atan2((lPredPoint.y - lShipPoint.y),(lPredPoint.x - lShipPoint.x));
-                
+
                 //  Draw the icon rotated to the COG
                 wxPoint ais_tri_icon[3];
                 ais_tri_icon[0].x = -8;
@@ -865,39 +925,65 @@ void ChartCanvas::AISDraw(wxDC& dc)
 
                 for(int i=0; i<3 ; i++)
                 {
-                    int px = ais_tri_icon[i].x * sin(theta) + ais_tri_icon[i].y * cos(theta);
-                    int py = ais_tri_icon[i].y * sin(theta) - ais_tri_icon[i].x * cos(theta);
-                    ais_tri_icon[i].x = px;
-                    ais_tri_icon[i].y = py;
+                    double px = ((double)ais_tri_icon[i].x) * sin(theta) + ((double)ais_tri_icon[i].y) * cos(theta);
+                    double py = (double)ais_tri_icon[i].y * sin(theta) - (double)ais_tri_icon[i].x * cos(theta);
+                    ais_tri_icon[i].x = (int)floor(px);
+                    ais_tri_icon[i].y = (int)floor(py);
                 }
 
-
+                // Default color is green
                 dc.SetBrush(wxBrush(*wxGREEN_BRUSH));
+                dc.SetPen(*wxGREEN_PEN);
+
+                //  except for....
                 if((td->NavStatus != UNDERWAY_USING_ENGINE) && (td->NavStatus != UNDERWAY_SAILING))
-                {
-                    wxBrush *p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(180,180,180), wxSOLID);   // gray
-                    dc.SetBrush(*p_brush);
-                }
+                    dc.SetBrush(*p_gray_brush);
+
+                //and....
+                if(!strncmp(td->ShipName, "UNKNOWN", 7))
+                    dc.SetBrush(*p_yellow_brush);
 
 
-                wxPen ppPen(wxColour(0,255,0), 2, wxSOLID);
-                dc.SetPen(ppPen);
-
-                int pixx = lShipPoint.x; 
-                int pixy = lShipPoint.y; 
-                int pixx1 = lPredPoint.x; 
-                int pixy1 = lPredPoint.y; 
+                int pixx = lShipPoint.x;
+                int pixy = lShipPoint.y;
+                int pixx1 = lPredPoint.x;
+                int pixy1 = lPredPoint.y;
 
                 ClipResult res = cohen_sutherland_line_clip_i (&pixx, &pixy, &pixx1, &pixy1,
                         0, VPoint.pix_width, 0, VPoint.pix_height);
                 if(res != Invisible)
                     dc.DrawLine(pixx, pixy, pixx1, pixy1);
-                
+
                 dc.DrawCircle(lPredPoint.x, lPredPoint.y, 6);
 
 
                 dc.SetPen(wxPen(*wxBLACK_PEN));
                 dc.DrawPolygon(3, &ais_tri_icon[0], lShipPoint.x, lShipPoint.y);
+              }
+              else                                      // SOG is near zero, use diamond icon
+              {
+                  wxPoint ais_dia_icon[4];
+                  ais_dia_icon[0].x =  6;
+                  ais_dia_icon[0].y =  0;
+                  ais_dia_icon[1].x =  0;
+                  ais_dia_icon[1].y =  6;
+                  ais_dia_icon[2].x = -6;
+                  ais_dia_icon[2].y =  0;
+                  ais_dia_icon[3].x =  0;
+                  ais_dia_icon[3].y = -6;
+
+                  // Default for slow target is orange
+                  dc.SetBrush(wxBrush(*p_orange_brush));
+                  dc.SetPen(wxPen(*wxBLACK_PEN));
+
+                  // except....
+                  if(!strncmp(td->ShipName, "UNKNOWN", 7))
+                      dc.SetBrush(*p_yellow_brush);
+
+                  dc.DrawPolygon(4, &ais_dia_icon[0], lShipPoint.x, lShipPoint.y);
+
+              }
+
         }
     }
 }
@@ -2735,8 +2821,12 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
 
 //    Get the display pixel location of the current station
                                                 int pixxc, pixyc;
-                                                Current_Ch->latlong_to_pix_vp(lat, lon,
-                                                                        pixxc, pixyc, VPoint);
+                                                wxPoint cpoint;
+//                                                Current_Ch->latlong_to_pix_vp(lat, lon, pixxc, pixyc, VPoint);
+                                                GetPointPix(lat, lon, &cpoint);
+                                                pixxc = cpoint.x;
+                                                pixyc = cpoint.y;
+
 //    Draw arrow using preset parameters, see mm_per_knot variable
                                                 float scale = fabs(tcvalue) * current_draw_scaler;
 
