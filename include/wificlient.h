@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.h,v 1.3 2006/12/03 21:19:07 dsr Exp $
+ * $Id: wificlient.h,v 1.4 2007/02/06 02:12:08 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  wifi Client Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.h,v $
+ * Revision 1.4  2007/02/06 02:12:08  dsr
+ * Cleanup
+ *
  * Revision 1.3  2006/12/03 21:19:07  dsr
  * Redefine some ID constants from global enum list
  *
@@ -71,7 +74,8 @@
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
-#define WIFI_TRANSMIT_DATA    0x42          //This is the request code
+#define WIFI_TRANSMIT_DATA        0x42          //This is the request code
+#define WIFI_TRANSMIT_DATA_EXT    'D'          //Extended request code
 
 
 #define NLOCALSTORE           4

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.3 2006/10/01 03:24:40 dsr Exp $
+ * $Id: statwin.h,v 1.4 2007/02/06 02:11:47 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Status Window
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.h,v $
+ * Revision 1.4  2007/02/06 02:11:47  dsr
+ * Cleanup
+ *
  * Revision 1.3  2006/10/01 03:24:40  dsr
  * no message
  *
@@ -43,18 +46,6 @@
  *
  * Revision 1.2  2006/07/05 02:34:32  dsr
  * Add WiFi Client Status Window
- *
- * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.4  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.3  2006/02/23 01:26:29  dsr
- * Cleanup
- *
- * Revision 1.2  2006/02/10 03:19:06  dsr
- * *** empty log message ***
  *
  *
  */
@@ -147,7 +138,7 @@ class WiFiStatWin: public wxWindow
         void SetStationSecureFlag(int istation, int flag);
         void SetStationAge(int istation, int age);
         void SetServerStatus(bool stat) { m_bserverstat = stat; }
-        void DrawBars(wxDC &dc, int x, int y, int box_width, int box_height, int val);
+        void DrawBars(wxDC &dc, int x, int y, int box_width, int box_height, int val, int val_max);
 
 
         wxBrush     *pqual_hiBrush;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.2 2006/12/03 21:23:15 dsr Exp $
+ * $Id: ais.h,v 1.3 2007/02/06 02:11:22 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.3  2007/02/06 02:11:22  dsr
+ * Cleanup
+ *
  * Revision 1.2  2006/12/03 21:23:15  dsr
  * Redefine AIS window ctor to include explicit window ID specification.
  * Change AIS timer tick rate away from exactly 1000 msec to avoid syncronization problems.
@@ -210,8 +213,8 @@ private:
     wxString          *m_pdata_ap_port_string;
     wxEvtHandler      *m_pParentEventHandler;
 
-    int               istr;
-    int               itime;
+//    int               istr;
+//    int               itime;
     int               nsentences;
     int               isentence;
     wxString          sentence_accumulator;
