@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.5  2007/03/02 02:01:06  dsr
+ * Cleanup, improve horizontal route segment selection
+ *
  * Revision 1.4  2006/11/01 02:15:58  dsr
  * AIS Support
  *
@@ -58,12 +61,13 @@
 #include "georef.h"
 #include "nmea.h"
 #include "ais.h"
+#include "cutil.h"
 
 #ifdef USE_S57
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.4 2006/11/01 02:15:58 dsr Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.5 2007/03/02 02:01:06 dsr Exp $");
 
 //    Statics
 
@@ -101,15 +105,6 @@ WX_DEFINE_LIST(RouteList);
 WX_DEFINE_LIST(SelectableItemList);
 WX_DEFINE_LIST(RoutePointList);
 
-//-----------------------------------------------------------------------------
-//          C Linkage to clip.c
-//-----------------------------------------------------------------------------
-
-extern "C" {
-      typedef enum { Visible, Invisible } ClipResult;
-      ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
-                                   int xmin_, int xmax_, int ymin_, int ymax_);
-}
 //-----------------------------------------------------------------------------
 //          Select
 //-----------------------------------------------------------------------------
@@ -396,8 +391,8 @@ SelectItem *Select::FindSelection(float slat, float slon, int fseltype, float Se
                                     d = pFindSel->m_slon2;
 
 //    As a course test, use segment bounding box test
-                                    if( (slat >= fmin(a,b)) && (slat <= fmax(a,b)) &&
-                                        (slon >= fmin(c,d)) && (slon <= fmax(c,d)))
+                                    if( (slat >= (fmin(a,b) - SelectRadius)) && (slat <= (fmax(a,b) + SelectRadius)) &&
+                                         (slon >= (fmin(c,d) - SelectRadius)) && (slon <= (fmax(c,d) + SelectRadius))  )
                                     {
 //    Use vectors to do hit test....
                                           VECTOR2D va, vb, vn;
@@ -445,7 +440,6 @@ Route::Route(void)
       pRoutePointList = new RoutePointList;
 
       BBox.Reset();
-
 }
 
 
@@ -467,9 +461,6 @@ RoutePoint *Route::AddPoint(float rlat, float rlon)
       np->m_pParentRoute = this;
 
       RoutePoint *pLast = GetLastPoint();
-
-//      m_runPoint++;
-//      np->nPoint = m_runPoint;
 
       if(NULL == pLast)
         np->nPoint = 1;
@@ -583,8 +574,6 @@ void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2)
       else
             dc.SetPen(*pConfig->pRoutePen);
 
-
-//      dc.DrawLine(rp1->x, rp1->y, rp2->x, rp2->y);
       DrawRouteLine(dc, rp1->x, rp1->y, rp2->x, rp2->y);            // with clipping
 }
 
@@ -613,9 +602,6 @@ void Route::DrawRoute(wxDC& dc)
 
             RoutePoint *prp = node->GetData();
             DrawPointLL(dc, prp->rlat, prp->rlon, prp->nPoint, &rptn);
-//    printf("Line %d %d %d %d\n",rpt.x, rpt.y, rptn.x, rptn.y );
-
-//            dc.DrawLine(rpt.x, rpt.y, rptn.x, rptn.y);
             DrawRouteLine(dc, rpt.x, rpt.y, rptn.x, rptn.y);            // with clipping
             rpt = rptn;
 
@@ -670,9 +656,7 @@ RoutePoint *Route::InsertPoint(int nP, float rlat, float rlon)
 
             node = node->GetNext();
             i++;
-
       }
-
 
       m_nPoints++;
 
@@ -692,7 +676,6 @@ RoutePoint *Route::GetLastPoint()
             data_m1 = node->GetData();
             node = node->GetNext();
       }
-
       return(data_m1);
 }
 
@@ -1315,7 +1298,7 @@ void MyConfig::UpdateSettings()
       {
             sprintf(pv, "%10.4f,%10.4f", cc1->VPoint.clat, cc1->VPoint.clon);
             Write("VPLatLon", pv);
-            sprintf(pv, "%16.1f", cc1->VPoint.view_scale);
+            sprintf(pv, "%16.1f", cc1->VPoint.view_scale_ppm);
             Write("VPScale", pv);
       }
 
@@ -2399,164 +2382,4 @@ double vVectorMagnitude(PVECTOR2D v0)
 
 
 
-/////////////
 
- #ifndef __CLIP_H__
-  #define __CLIP_H__
-
- #ifdef __cplusplus
-             extern "C" {
- #endif /* __cplusplus */
-
-//typedef enum { NotClipped, WasClipped } ClipResult;
-
-ClipResult cohen_sutherland_line_clip_d (double *x0, double *y0, double *x1, double *y1,
-                              double xmin_, double xmax_, double ymin_, double ymax_);
-
-//ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
-//                              int xmin_, int xmax_, int ymin_, int ymax_);
-
-#ifdef __cplusplus
- }
-#endif /* __cplusplus */
-
-#endif /* __CLIP_H__ */
-
-extern "C" {
-      ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
-                                   int xmin_, int xmax_, int ymin_, int ymax_);
-}
-/*
-*
-* Copyright (C) 1999,2000,2001,2002,2003 Percy Zahl
-*
-* Authors: Percy Zahl <zahl@users.sf.net>
-* additional features: Andreas Klust <klust@users.sf.net>
-* WWW Home: http://gxsm.sf.net
-*
-*/
-
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <math.h>
-
-//#include "clip.h"
-
-#define CTRUE -1
-#define CFALSE 0
-
-typedef enum {
-      LEFT, RIGHT, BOTTOM, TOP
-} edge;
-typedef long outcode;
-
-
-/* Local variables for cohen_sutherland_line_clip: */
-struct LOC_cohen_sutherland_line_clip {
-      double xmin, xmax, ymin, ymax;
-} ;
-
-void CompOutCode (double x, double y, outcode *code, struct LOC_cohen_sutherland_line_clip *LINK)
-{
-      /*Compute outcode for the point (x,y) */
-      *code = 0;
-      if (y > LINK->ymax)
-                  *code = 1L << ((long)TOP);
-      else if (y < LINK->ymin)
-                  *code = 1L << ((long)BOTTOM);
-      if (x > LINK->xmax)
-                  *code |= 1L << ((long)RIGHT);
-      else if (x < LINK->xmin)
-                  *code |= 1L << ((long)LEFT);
-}
-
-ClipResult cohen_sutherland_line_clip_i (int *x0_, int *y0_, int *x1_, int *y1_,
-                                         int xmin_, int xmax_, int ymin_, int ymax_)
-{
-      ClipResult ret;
-      double x0,y0,x1,y1;
-      x0 = *x0_;
-      y0 = *y0_;
-      x1 = *x1_;
-      y1 = *y1_;
-      ret = cohen_sutherland_line_clip_d (&x0, &y0, &x1, &y1,
-                                          (double)xmin_, (double)xmax_,
-                                          (double)ymin_, (double)ymax_);
-      *x0_ = (int)x0;
-      *y0_ = (int)y0;
-      *x1_ = (int)x1;
-      *y1_ = (int)y1;
-      return ret;
-}
-
-ClipResult cohen_sutherland_line_clip_d (double *x0, double *y0, double *x1, double *y1,
-                                         double xmin_, double xmax_, double ymin_, double ymax_)
-{
-      /* Cohen-Sutherland clipping algorithm for line P0=(x1,y0) to P1=(x1,y1)
-            and clip rectangle with diagonal from (xmin,ymin) to (xmax,ymax).*/
-      struct LOC_cohen_sutherland_line_clip V;
-      int accept = CFALSE, done = CFALSE;
-      ClipResult clip = Visible;
-      outcode outcode0, outcode1, outcodeOut;
-      /*Outcodes for P0,P1, and whichever point lies outside the clip rectangle*/
-      double x=0., y=0.;
-
-      V.xmin = xmin_;
-      V.xmax = xmax_;
-      V.ymin = ymin_;
-      V.ymax = ymax_;
-      CompOutCode(*x0, *y0, &outcode0, &V);
-      CompOutCode(*x1, *y1, &outcode1, &V);
-      do {
-                  if (outcode0 == 0 && outcode1 == 0) {   /*Trivial accept and exit*/
-                        accept = CTRUE;
-                        done = CTRUE;
-                  } else if ((outcode0 & outcode1) != 0) {
-                        clip = Invisible;
-                        done = CTRUE;
-                  }
-                  /*Logical intersection is true, so trivial reject and exit.*/
-                  else {
-                        clip = Visible;
-                        /*Failed both tests, so calculate the line segment to clip;
-                        from an outside point to an intersection with clip edge.*/
-                        /*At least one endpoint is outside the clip rectangle; pick it.*/
-                        if (outcode0 != 0)
-                              outcodeOut = outcode0;
-                        else
-                              outcodeOut = outcode1;
-                        /*Now find intersection point;
-                        use formulas y=y0+slope*(x-x0),x=x0+(1/slope)*(y-y0).*/
-
-                        if (((1L << ((long)TOP)) & outcodeOut) != 0) {
-                              /*Divide line at top of clip rectangle*/
-                              x = *x0 + (*x1 - *x0) * (V.ymax - *y0) / (*y1 - *y0);
-                              y = V.ymax;
-                        } else if (((1L << ((long)BOTTOM)) & outcodeOut) != 0) {
-                              /*Divide line at bottom of clip rectangle*/
-                              x = *x0 + (*x1 - *x0) * (V.ymin - *y0) / (*y1 - *y0);
-                              y = V.ymin;
-                        } else if (((1L << ((long)RIGHT)) & outcodeOut) != 0) {
-                              /*Divide line at right edge of clip rectangle*/
-                              y = *y0 + (*y1 - *y0) * (V.xmax - *x0) / (*x1 - *x0);
-                              x = V.xmax;
-                        } else if (((1L << ((long)LEFT)) & outcodeOut) != 0) {
-                              /*Divide line at left edge of clip rectangle*/
-                              y = *y0 + (*y1 - *y0) * (V.xmin - *x0) / (*x1 - *x0);
-                              x = V.xmin;
-                        }
-                        /*Now we move outside point to intersection point to clip,
-                        and get ready for next pass.*/
-                        if (outcodeOut == outcode0) {
-                              *x0 = x;
-                              *y0 = y;
-                              CompOutCode(*x0, *y0, &outcode0, &V);
-                        } else {
-                              *x1 = x;
-                              *y1 = y;
-                              CompOutCode(*x1, *y1, &outcode1, &V);
-                        }
-                  }
-      } while (!done);
-      return clip;
-}
