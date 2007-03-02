@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.10 2007/02/06 02:07:39 dsr Exp $
+ * $Id: chart1.cpp,v 1.11 2007/03/02 02:09:06 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.11  2007/03/02 02:09:06  dsr
+ * Cleanup, convert to UTM Projection
+ *
  * Revision 1.10  2007/02/06 02:07:39  dsr
  * Pause event generators during Settings Dialog
  *
@@ -177,7 +180,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.10 2007/02/06 02:07:39 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.11 2007/03/02 02:09:06 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -202,6 +205,7 @@ StatWin         *stats;
 wxToolBarBase   *toolBar;
 MyConfig        *pConfig;
 
+ChartBase       *Current_Vector_Ch;
 ChartBase       *Current_Ch;
 ChartDB         *ChartData;
 ChartStack      *pCurrentStack;
@@ -636,10 +640,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         ::wxClientDisplayRect(&cx, &cy, &cw, &ch);
         wxSize new_frame_size;
         if(dis_w > 1024)
-                new_frame_size.Set(1182, 900);  //
-//                new_frame_size.Set(800, 600);  // for window debug
+            new_frame_size.Set(1182, 900);  //
+            //   new_frame_size.Set(800, 600);  // for window debug
         else
-                new_frame_size.Set(cw, 735);
+            new_frame_size.Set(cw, 735);
 
 //  For Windows, provide the expected application Minimize/Close bar
 #ifdef __WXMSW__
@@ -1333,14 +1337,14 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_ZOOMIN:
     {
-            cc1->SetVPScale(cc1->GetVPScale() / 2);
+            cc1->SetVPScale(cc1->GetVPScale() * 2);
             cc1->Refresh(false);
             break;
     }
 
     case ID_ZOOMOUT:
     {
-            cc1->SetVPScale(cc1->GetVPScale() * 2);
+            cc1->SetVPScale(cc1->GetVPScale() / 2);
             cc1->Refresh(false);
             break;
     }
@@ -1358,7 +1362,8 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             toolBar->ToggleTool(ID_FOLLOW, true);
 //      Warp speed jump to current position
             Current_Ch->InvalidateCache();            // Add back for wxx11 This might be needed??? 8/19/06
-            cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(), 1, /*CURRENT_RENDER*/FORCE_SUBSAMPLE);            // set mod 4
+            cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(),
+                              Current_Ch->GetChartSkew() * PI / 180., 1, FORCE_SUBSAMPLE);     // set mod 4
             cc1->Refresh(false);
             break;
         }
@@ -2029,18 +2034,46 @@ void MyFrame::SelectChartFromStack(int index)
 
 
             if(Current_Ch->ChartType == CHART_TYPE_S57)
-                cc1->SetViewPoint(zLat, zLon, cc1->GetVPChartScale(), 0, new_sample_mode);
+                cc1->SetViewPoint(zLat, zLon, cc1->GetVPScale(),
+                                  Current_Ch->GetChartSkew() * PI / 180., 0, new_sample_mode);
             else
             {
-                  int target_scale = (int)(cc1->GetVPChartScale());
+                //  New chart is raster type
+                // try to match new viewport scale to the previous view scale when going to a smaller scale chart
+                double target_scale = cc1->GetVPScale();
 
+                ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
+
+                double new_chart_1x_scale = Cur_BSB_Ch->GetPPM();
+
+                int binary_scale_factor = 1;
+                if(new_chart_1x_scale > target_scale)
+                {
+                    while(binary_scale_factor < 8)
+                    {
+                        if(fabs((new_chart_1x_scale / binary_scale_factor ) - target_scale) < (target_scale * 0.05))
+                            break;
+                        if((new_chart_1x_scale / binary_scale_factor ) < target_scale)
+                            break;
+                        else
+                            binary_scale_factor *= 2;
+                    }
+                }
+
+                else
+                    binary_scale_factor = 1;
+
+                //  And set the new view
+                cc1->SetViewPoint(zLat, zLon, new_chart_1x_scale / binary_scale_factor,
+                                  Current_Ch->GetChartSkew() * PI / 180., 1, new_sample_mode); //set mod 4
+
+                /*
 // calculate new chart conventional scale at 1x
                   double slat, slon_left, slon_right;
                   Current_Ch->pix_to_latlong(0, 0, &slat, &slon_left);
                   Current_Ch->pix_to_latlong(cc1->GetCanvas_width(), 0, &slat, &slon_right);
                   float ppdl = cc1->GetCanvas_width() / (slon_right - slon_left);
                   int conv_scale_at_1x = (int)(cc1->canvas_scale_factor / ppdl);
-//                  printf("conv_scale_at_1x: %d  target_scale: %d\n", conv_scale_at_1x, target_scale);
 // try to match to the target when going to a smaller scale chart
                   int binary_scale_factor = 1;
                   if(conv_scale_at_1x < target_scale)
@@ -2054,15 +2087,15 @@ void MyFrame::SelectChartFromStack(int index)
                         else
                             binary_scale_factor *= 2;
                     }
-//                    cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * binary_scale_factor, 1, new_sample_mode); //set mod 4
                   }
 
                   else
                       binary_scale_factor = 1;
 
-//                  double set_scale = cc1->canvas_scale_factor / (Cur_BSB_Ch->GetPpd_lon_1x() / binary_scale_factor);
-                  cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * binary_scale_factor, 1, new_sample_mode); //set mod 4
-//                  cc1->SetViewPoint(zLat, zLon, set_scale, 1, new_sample_mode);    // set mod 4
+                  getPPM?
+                  cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * binary_scale_factor,
+                                    Current_Ch->GetChartSkew() * PI / 180., 1, new_sample_mode); //set mod 4
+                */
              }
 
         cc1->SetbNewVP(true);
@@ -2224,13 +2257,13 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                 {
                         pDummyChart = new ChartDummy;
                         Current_Ch = pDummyChart;
-                        cc1->SetViewPoint(tLat, tLon, Current_Ch->GetNativeScale(), 0, CURRENT_RENDER);
+                        cc1->SetViewPoint(tLat, tLon, .001, 0, 0, CURRENT_RENDER);
                 }
 
                 else
                 {
                         Current_Ch = pDummyChart;
-                        cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(), 0, CURRENT_RENDER);
+                        cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(), 0, 0, CURRENT_RENDER);
                 }
 
                 bNewChart = true;
@@ -2253,11 +2286,11 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
 
         //      Note current scale
-                float current_scale;
+                double current_binary_scale_factor;
                 if(Current_Ch)
-                        current_scale = cc1->GetVPScale()/Current_Ch->GetNativeScale();
+                    current_binary_scale_factor = cc1->GetVPBinaryScaleFactor();
                 else
-                        current_scale = 1;
+                    current_binary_scale_factor = 1;
 
         //  Is Current Chart in new stack?
 
@@ -2268,7 +2301,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                 if(tEntry != -1)                // Current_Ch is in the new stack
                 {
                         CurrentStackEntry = tEntry;
-                        new_binary_scale_factor = cc1->GetVPScale()/Current_Ch->GetNativeScale();
+                        new_binary_scale_factor = current_binary_scale_factor;
                         bNewChart = false;
                 }
 
@@ -2283,7 +2316,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                         {
                               if ((ptc = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry)))
                               {
-                                  new_binary_scale_factor = current_scale;              // Try to set scale to current value
+                                  new_binary_scale_factor = current_binary_scale_factor;        // Try to set scale to current value
 
 // For Raster Charts, scale must be 1,2,4,8... etc.
                                   if(new_binary_scale_factor - floor(new_binary_scale_factor))
@@ -2307,7 +2340,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                   bNewChart = true;
                 }
 
-        // Arriving here, Current_Ch is OK, or NULL
+        // Arriving here, Current_Ch is opened and OK, or NULL
                 if(NULL == Current_Ch)
                         CurrentStackEntry = 0;                                          // safe value
 
@@ -2346,14 +2379,19 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 //      Update the Status Line
                   UpdateChartStatusField(2);
 
-//      Setup the view
-//                  float natural_scale = Current_Ch->GetNativeScale();
-                  //    This is known to be a raster chart, so open at a "nice" (i.e. binary) scale
-//                  ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
+//      Setup the view using the current scale
+                  double set_scale = cc1->GetVPScale();
 
-//                  double set_scale = cc1->canvas_scale_factor / (Cur_BSB_Ch->GetPpd_lat_1x() / new_binary_scale_factor);
+                  // However, if current chart is a raster chart, set scale to a "nice" (i.e. binary) scale
+                  if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+                  {
+                      ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
+                      set_scale = Cur_BSB_Ch->GetPPM() / new_binary_scale_factor;
+                  }
 
-                  cc1->SetViewPoint(tLat, tLon, Current_Ch->GetNativeScale() * new_binary_scale_factor, 1, CURRENT_RENDER);
+
+                  cc1->SetViewPoint(tLat, tLon, set_scale,
+                                    Current_Ch->GetChartSkew() * PI / 180., 1, CURRENT_RENDER);
 
                   stats->FormatStat();
                 }
@@ -2362,12 +2400,32 @@ bool MyFrame::DoChartUpdate(int bSelectType)
         else                                                                    // No change in Chart Stack
         {
                 if(cc1->m_bFollow)
-                    cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(), 1, CURRENT_RENDER);
+                    cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(),
+                                      Current_Ch->GetChartSkew() * PI / 180., 1, CURRENT_RENDER);
         }
 
 
 
 update_finish:
+
+        //  Some debug
+        //  Open the smallest scale vector chart available
+#if 0
+        CurrentStackEntry = 0;
+        ChartBase *ptcv = NULL;
+        while(CurrentStackEntry < pCurrentStack->nEntry)
+        {
+            if(ChartData->GetCSChartType(pCurrentStack, CurrentStackEntry) == CHART_TYPE_S57)
+            {
+                if ((ptcv = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry)))
+                {
+                      break;
+                }
+            }
+            CurrentStackEntry++;
+        }
+        Current_Vector_Ch = ptcv;
+#endif
         delete pWorkStack;
 
         return bNewChart;

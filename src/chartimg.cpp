@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.4 2006/10/08 14:15:00 dsr Exp $
+ * $Id: chartimg.cpp,v 1.5 2007/03/02 02:09:06 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.5  2007/03/02 02:09:06  dsr
+ * Cleanup, convert to UTM Projection
+ *
  * Revision 1.4  2006/10/08 14:15:00  dsr
  * no message
  *
@@ -117,6 +120,8 @@
       extern "C" void DegToUTM(float lat, float lon, char *zone, float *x, float *y, float lon0);
       extern "C" void UTMtoDeg(double long0, short southernHemisphere, double x, double y, double *lat, double *lon);
 
+      extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y);
+
       extern "C" int compute_georef_equations(struct GeoRef *cp, double E12[],
                             double N12[], double E21[], double N21[]);
       extern "C" int georef(double e1, double n1, double *e, double *n, double E[],
@@ -125,7 +130,7 @@
       extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.4 2006/10/08 14:15:00 dsr Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.5 2007/03/02 02:09:06 dsr Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -446,7 +451,7 @@ void ChartDummy::InvalidateCache(void)
 {
 }
 
-
+/*
 void ChartDummy::pix_to_latlong(int pixx, int pixy, double *lat, double *lon)
 {
 }
@@ -460,10 +465,8 @@ void ChartDummy::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
 void ChartDummy::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp)
 {
 
-//      pixx = (int)(((lon - vp.lon_left) * vp.ppd_lon) + 0.5);
-//      pixy = (int)(((vp.lat_top - lat)  * vp.ppd_lat) + 0.5);
-    pixx = (int)floor((lon - vp.lon_left) * vp.ppd_lon);
-    pixy = (int)floor((vp.lat_top - lat)  * vp.ppd_lat);
+    pixx = (int)floor((lon - vp.pref_c_lon) * vp.view_scale_ppm * 1852 * 60);
+    pixy = (int)floor((vp.pref_a_lat - lat)  * vp.view_scale_ppm * 1852 * 60);
 
 }
 
@@ -479,14 +482,14 @@ void ChartDummy::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *pla
 //        double pix_per_deg_lon = vp.ppd_lon;
 //        double pix_per_deg_lat = vp.ppd_lat;
 
-        double lat = vp.lat_top  - pixy / vp.ppd_lat;
-        double lon = vp.lon_left + pixx / vp.ppd_lon;
+    double lat = vp.pref_a_lat  - pixy / (vp.view_scale_ppm * 1852 * 60);
+    double lon = vp.pref_c_lon  + pixx / (vp.view_scale_ppm * 1852 * 60);
 
-        *plat = lat;
-        *plon = lon;
+    *plat = lat;
+    *plon = lon;
 
 }
-
+*/
 void ChartDummy::GetChartExtent(Extent *pext)
 {
     pext->NLAT = 80;
@@ -1638,9 +1641,10 @@ void ChartBaseBSB::pix_to_latlong(int pixx, int pixy, double *plat, double *plon
 
 void ChartBaseBSB::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
 {
-      float raster_scale = GetNativeScale() / vp.view_scale;
+//    float raster_scale = GetNativeScale() / vp.view_scale;
+    float raster_scale = vp.binary_scale_factor;
 
-      pix_to_latlong((int)(pixx/raster_scale) + Rsrc.x, (int)(pixy/raster_scale) + Rsrc.y, plat, plon);
+    pix_to_latlong((int)(pixx*raster_scale) + Rsrc.x, (int)(pixy*raster_scale) + Rsrc.y, plat, plon);
 }
 
 
@@ -1654,7 +1658,8 @@ void ChartBaseBSB::SetVPParms(ViewPort *vpt)
 void ChartBaseBSB::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion)
 {
 
-      float raster_scale = GetNativeScale() / VPoint.view_scale;
+//      float raster_scale = GetNativeScale() / VPoint.view_scale;
+      float raster_scale = VPoint.binary_scale_factor;
       int rxl, rxr;
       if(Rsrc.x < 0)
             rxl = (int)(-Rsrc.x * raster_scale);
@@ -2070,10 +2075,11 @@ void ChartBaseBSB::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pix
       int px, py;
       latlong_to_pix(lat, lon, px, py);
 
-      float raster_scale = GetNativeScale() / vp.view_scale;
+      float raster_scale = vp.binary_scale_factor;
+//      float raster_scale = GetNativeScale() / vp.view_scale;
 
-      pixx = (int)((px - Rsrc.x) * raster_scale);
-      pixy = (int)((py - Rsrc.y) * raster_scale);
+      pixx = (int)((px - Rsrc.x) / raster_scale);
+      pixy = (int)((py - Rsrc.y) / raster_scale);
 
 }
 
@@ -2083,7 +2089,8 @@ void ChartBaseBSB::UpdateViewPortParms(ViewPort &vp)
     int pixxd, pixyd;
     latlong_to_pix(vp.clat, vp.clon, pixxd, pixyd);
 
-    float sc = vp.view_scale / GetNativeScale();    // native (1X) scale
+//    float sc = vp.view_scale / GetNativeScale();    // native (1X) scale
+    float sc = vp.binary_scale_factor;
 
     Rsrc.x = pixxd - (int)(vp.pix_width  * sc / 2);
     Rsrc.y = pixyd - (int)(vp.pix_height * sc / 2);
@@ -3517,6 +3524,38 @@ found_order:
 
       Chart_Error_Factor = fmax(fabs(xpl_err_max/(lonmax - lonmin)), fabs(ypl_err_max/(latmax - latmin)));
 
+
+      // More analysis
+
+      // Define reference point as near "average" point
+      double lat_ref = (latmax + latmin)/2.;
+      double lon_ref = (lonmax + lonmin)/2.;
+
+      // calculate the northing/easting from the reference point to a position
+      // about 10% of the chart size away from the reference point
+
+      double lat_test = lat_ref + 0.10 * (latmax - latmin);
+      double lon_test = lon_ref + 0.10 * (lonmax - lonmin);
+      double easting, northing;
+      toTM(lat_test, lon_test, lat_ref, lon_ref, 0.9996, &easting, &northing);
+
+      // Calculate the pixel positions of reference point and test point
+      int xref, yref;
+      latlong_to_pix(lat_ref, lon_ref, xref, yref);
+      int x_test, y_test;
+      latlong_to_pix(lat_test, lon_test, x_test, y_test);
+
+      // And so the pixel rates, and pixels per meter.
+ //     double ppm_east = (x_test - xref) / easting;
+ //     double ppm_north = (y_test - yref) / northing;
+
+      // Note that this type of polar length calculation works nicely on all chart skew angles
+      ppm_avg = sqrt(((x_test - xref) * (x_test - xref)) + ((y_test - yref) * (y_test - yref))) /
+                  sqrt((easting * easting) + (northing * northing));
+
+      //    We may also note that the ppm_avg multiplied by the published chart scale is usually around 10000,
+      //    which is evidently related to the chart scanning methodology.  Just a comment....
+//      printf("e/n %f6 %f6 %f6 %f6 %f6\n", ppm_east, ppm_north, ppm_avg, Chart_Scale*ppm_avg, (ppm_east + ppm_north)/ppm_east);
       return(0);
 
 }

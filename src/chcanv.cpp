@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.14 2007/02/06 02:10:50 dsr Exp $
+ * $Id: chcanv.cpp,v 1.15 2007/03/02 02:09:06 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.15  2007/03/02 02:09:06  dsr
+ * Cleanup, convert to UTM Projection
+ *
  * Revision 1.14  2007/02/06 02:10:50  dsr
  * Improve AIS target color logic, tweak Viewport logic again.
  *
@@ -62,6 +65,7 @@
 #include "georef.h"
 #include "chartimg.h"
 #include "chart1.h"
+#include "cutil.h"
 
 #ifdef USE_S57
 #include "s57chart.h"               // for ArrayOfS57Obj
@@ -70,6 +74,14 @@
 
 #include "ais.h"
 
+// ----------------------------------------------------------------------------
+// Useful Prototypes
+// ----------------------------------------------------------------------------
+extern "C" void toDMS(double a, char *bufp, int bufplen);
+extern "C" void toDMM(double a, char *bufp, int bufplen);
+extern bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
+
+extern ChartBase        *Current_Vector_Ch;
 extern ChartBase        *Current_Ch;
 extern float            gLat, gLon, gCog, gSog;
 extern float            vLat, vLon;
@@ -77,11 +89,6 @@ extern ChartDB          *ChartData;
 extern int              CurrentStackEntry;
 extern bool             bDBUpdateInProgress;
 
-
-extern "C" void toDMS(double a, char *bufp, int bufplen);
-extern "C" void toDMM(double a, char *bufp, int bufplen);
-extern "C" void DegToUTM(float lat, float lon, char *zone, float *x, float *y, float lon0);
-extern "C" void UTMtoDeg(double long0, short southernHemisphere, double x, double y, double *lat, double *lon);
 
 extern ConsoleCanvas    *console;
 
@@ -108,13 +115,8 @@ extern bool             g_bShowOutlines;
 extern AIS_Decoder      *pAIS;
 
 
-extern "C" {
-      typedef enum { Visible, Invisible } ClipResult;
-      ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
-                                   int xmin_, int xmax_, int ymin_, int ymax_);
-}
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.14 2007/02/06 02:10:50 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.15 2007/03/02 02:09:06 dsr Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -192,9 +194,6 @@ END_EVENT_TABLE()
 // Define a constructor for my canvas
 ChartCanvas::ChartCanvas(wxFrame *frame):
  wxWindow(frame, wxID_ANY,    wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER )
-
-
-
 {
       parent_frame = (MyFrame *)frame;          // save a pointer to parent
 
@@ -319,8 +318,7 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
 
       VPoint.clat = 0;
       VPoint.clon = 0;
-      VPoint.view_scale = 0;
-//      VPoint.Raster_Scale = 1.0;
+      VPoint.view_scale_ppm = 0;
 
       canvas_scale_factor = 1000.;
 
@@ -359,8 +357,6 @@ ChartCanvas::~ChartCanvas()
 
 void ChartCanvas::OnEvtRescale(wxCommandEvent & event)
 {
-
-
 //  Tell the chart to take and use the alternate pix buffer
       pCBSB->AssumeAlternateCacheParms();
 
@@ -389,40 +385,40 @@ void ChartCanvas::GetPointPix(float rlat, float rlon, wxPoint *r)
       int  rpixxd, rpixyd;
       if(Current_Ch)
       {
-            Current_Ch->latlong_to_pix_vp(rlat, rlon, rpixxd, rpixyd, VPoint);
-            r->x = rpixxd;
-            r->y = rpixyd;
+          // If the Current Chart is a raster chart, and the
+          // requested lat/long is within the boundaries of the chart,
+          // then use the imbedded BSB chart georeferencing algorithm
+          // for greater accuracy
+          bool bUseMercator = true;
 
+          if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+          {
+              ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
 
-//   Geolocation on small scale charts is poor if the requested point is very far away from the chart centroid
-//    So, in this case use a linear estimator
-//    Of course, cannot use linear estimator on skewed charts
+              bool bInside = G_FloatPtInPolygon((MyFlPoint *)Cur_BSB_Ch->pPlyTable,
+                      Cur_BSB_Ch->nPlypoint, rlon, rlat);
+              if(bInside)
+              {
+                  Cur_BSB_Ch->latlong_to_pix_vp(rlat, rlon, rpixxd, rpixyd, VPoint);
+                  r->x = rpixxd;
+                  r->y = rpixyd;
+                  bUseMercator = false;
+              }
+          }
 
-            if(Current_Ch->GetChartSkew() ==  0.0)
-            {
+          //    if needed, use the Mercator scaling estimator
+          if(bUseMercator)
+          {
+              double easting, northing;
+              toTM(rlat, rlon, VPoint.clat, VPoint.clon, 0.9996, &easting, &northing);
+              double epix = easting  * VPoint.view_scale_ppm;
+              double npix = northing * VPoint.view_scale_ppm;
 
-                  int x = (int)((rlon - VPoint.lon_left) * VPoint.ppd_lon);
-                  int y = (int)((rlat - VPoint.lat_top) * VPoint.ppd_lat * -1);
-//Todo maybe change to something like
-//if((absf(VPoint.clat - rlat) > (VPoint.lat_top - VPoint.lat_bot) * n)
-                  if((abs(r->x - x) > 1000) || (abs(r->y - y ) > 1000))
-                  {
-//                  wxString path;
-//                  Current_Ch->GetFullPath(path);
-//                  printf("GetPointPix Substitute on chart %s... %d %d %d %d\n", path.c_str(),
-//                        r->x, x, r->y, y);
-                        r->x = x;
-                        r->y = y;
-                  }
-
-                  Extent ext;
-                  Current_Ch->GetChartExtent(&ext);
-                  if((rlat > ext.NLAT) || (rlat < ext.SLAT) || (rlon > ext.ELON) || (rlon < ext.WLON))
-                  {
-//                        r->x = x;
-//                        r->y = y;
-                  }
-            }
+              double dx = epix * cos(VPoint.skew) + npix * sin(VPoint.skew);
+              double dy = npix * cos(VPoint.skew) - epix * sin(VPoint.skew);
+              r->x = (int)round((VPoint.pix_width  / 2) + dx);
+              r->y = (int)round((VPoint.pix_height / 2) - dy);
+          }
       }
 }
 
@@ -430,20 +426,21 @@ void ChartCanvas::GetPixPoint(int x, int y, float &lat, float &lon)
 {
   if(Current_Ch)
   {
-//  Linear estimation is no good on large charts, skewed or not...........
-    if(1/*0.0 != Current_Ch->GetChartSkew()*/)
-    {
+      //    Use UTM estimator
+    int dx = x - (VPoint.pix_width  / 2);
+    int dy = (VPoint.pix_height / 2) - y;
 
-      double slat, slon;
-      Current_Ch->vp_pix_to_latlong(VPoint, x, y, &slat, &slon);
-      lat = slat;
-      lon = slon;
-    }
-    else
-    {
-        lat =  VPoint.lat_top - (y/VPoint.ppd_lat);
-        lon =  VPoint.lon_left + (x/VPoint.ppd_lon);
-    }
+    double xp = (dx * cos(VPoint.skew)) - (dy * sin(VPoint.skew));
+    double yp = (dy * cos(VPoint.skew)) + (dx * sin(VPoint.skew));
+
+    double d_east = xp / VPoint.view_scale_ppm;
+    double d_north = yp / VPoint.view_scale_ppm;
+
+    double slat, slon;
+    fromTM(d_east, d_north, VPoint.clat, VPoint.clon, .9996, &slat, &slon);
+
+    lat = slat;
+    lon = slon;
   }
 }
 
@@ -452,22 +449,18 @@ void ChartCanvas::GetPixPoint(int x, int y, float &lat, float &lon)
 
 void ChartCanvas::SetVPScale(double scale)
 {
-    SetViewPoint(VPoint.clat, VPoint.clon, scale, 1, CURRENT_RENDER);
-/*
-      if(m_bSubsamp)
-      {
-            current_scale_method = SCALE_SUBSAMP;
-            pRescaleTimer->Start(m_rescale_timer_msec, wxTIMER_ONE_SHOT);
-      }
-    */
+    SetViewPoint(VPoint.clat, VPoint.clon, scale, VPoint.skew, 1, CURRENT_RENDER);
 }
 
-void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, int sample_mode)
+void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double skew, int mode, int sample_mode)
 {
       int pixxd, pixyd;
       int pixx, pixy;
 
 //      printf("Scale: %.1f %.1f\n", scale, VPoint.view_scale);
+
+      VPoint.skew = skew;
+
       bNewVP = false;
       if(VPoint.clat != lat)
             bNewVP = true;
@@ -477,7 +470,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
       bool bNeedRescale = false;
 
       //    If chart scale has changed, force a cache flush and make the first render a SUB_SAMPLE
-      if(VPoint.view_scale != scale)
+      if(VPoint.view_scale_ppm != scale_ppm)
       {
             bNewVP = true;
             if(Current_Ch)
@@ -499,7 +492,8 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
       {
         if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
         {
-            double sc = scale / Current_Ch->GetNativeScale();      // native (1X) scale
+            ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
+            double sc = scale_ppm / Cur_BSB_Ch->GetPPM();           // native (1X) scale
             if(sc !=  1)                                           //((int)rint(sc) != 1)
             {
                 if(bNeedRescale)
@@ -520,14 +514,15 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
 
       double last_lat = VPoint.clat;
       double last_lon = VPoint.clon;
-      float last_scale = VPoint.view_scale;
+      float last_scale = VPoint.view_scale_ppm;
+      double prev_easting_c = VPoint.c_east;
+      double prev_northing_c = VPoint.c_north;
 
       VPoint.clat = lat;
       VPoint.clon = lon;
-      VPoint.view_scale = scale;
-
-      VPoint.ppd_lat = canvas_scale_factor / scale;
-      VPoint.ppd_lon = canvas_scale_factor / scale;
+      VPoint.view_scale_ppm = scale_ppm;
+      VPoint.c_east =  0;
+      VPoint.c_north = 0;
 
 
       if(!Current_Ch)
@@ -536,36 +531,67 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
 
       if(Current_Ch->ChartType == CHART_TYPE_S57)
       {
+          s57chart *Cur_S57_Ch = dynamic_cast<s57chart *>(Current_Ch);
+          double ref_lat = Cur_S57_Ch->ref_lat;
+          double ref_lon = Cur_S57_Ch->ref_lon;
+
+          //    Handle the first switch to an s57 chart
+          //    After the first time, use exact previous UTM coordinates of center point
+          //    as stored in VPoint.c_north
+          if((prev_easting_c == 0) || (prev_northing_c == 0))
+          {
+              double prov_prev_easting_c, prov_prev_northing_c;
+              toTM(last_lat, last_lon, ref_lat, ref_lon, 0.9996, &prov_prev_easting_c, &prov_prev_northing_c);
+              prev_easting_c = prov_prev_easting_c;
+              prev_northing_c = prov_prev_northing_c;
+          }
+
+          double easting_c, northing_c;
+          toTM(lat, lon,  ref_lat, ref_lon, 0.9996, &easting_c, &northing_c);
+          VPoint.c_east = easting_c;
+          VPoint.c_north = northing_c;
 
 //      If this viewpoint is same scale as last...
-          if(last_scale == VPoint.view_scale)
+          if(last_scale == VPoint.view_scale_ppm)
           {
-//      then require this viewport to be exact integral pixel number different from last
-              double delta_pix_x = ( VPoint.clon - last_lon) * VPoint.ppd_lon;
-              int dpix_x = (int)floor(delta_pix_x);
+
+              //  then require this viewport to be exact integral pixel difference from last
+              //  adjusting clat/clat and UTM accordingly
+
+              double delta_pix_x = ( easting_c - prev_easting_c) * VPoint.view_scale_ppm;
+              int dpix_x = (int)round(delta_pix_x);
               double dpx = dpix_x;
 
-              float delta_pix_y = ( VPoint.clat - last_lat) * VPoint.ppd_lat;
-              int dpix_y = (int)floor(delta_pix_y);
+              float delta_pix_y = ( northing_c - prev_northing_c) * VPoint.view_scale_ppm;
+              int dpix_y = (int)round(delta_pix_y);
               double dpy = dpix_y;
 
-              double clond =  (dpx / VPoint.ppd_lon) + last_lon;
-              VPoint.clon = clond;
+              double c_east_d =  (dpx / VPoint.view_scale_ppm) + prev_easting_c;
+              double c_north_d = (dpy / VPoint.view_scale_ppm) + prev_northing_c;
+              double xlat, xlon;
+              fromTM(c_east_d, c_north_d, ref_lat, ref_lon, .9996, &xlat, &xlon);
+              VPoint.clon = xlon;
+              VPoint.clat = xlat;
+              VPoint.c_east = c_east_d;
+              VPoint.c_north = c_north_d;
 
-              double clatd = (dpy / VPoint.ppd_lat) + last_lat;
-              VPoint.clat = clatd;
+//              printf("\nchcanv dpx c_east_d  prev_easting_c %20.10f %20.10f %20.10f\n", dpx, c_east_d, prev_easting_c);
+//              printf("chcanv last_lat, last_lon %20.10f %20.10f\n", last_lat, last_lon);
           }
 
 
 
 //    Ensure accuracy in case width or height are odd numbers
+/*
             float pwidth = VPoint.pix_width;
             float pheight = VPoint.pix_height;
 
-            VPoint.lat_top =   VPoint.clat + ((pheight/2) / VPoint.ppd_lat);
-            VPoint.lon_left =  VPoint.clon - ((pwidth/2)  / VPoint.ppd_lon);
-            VPoint.lat_bot =   VPoint.lat_top  - ((pheight) / VPoint.ppd_lat);
-            VPoint.lon_right = VPoint.lon_left + ((pwidth)  / VPoint.ppd_lon);
+
+            VPoint.lat_top =   VPoint.clat + ((pheight/2) / ppd_lat);
+            VPoint.lon_left =  VPoint.clon - ((pwidth/2)  / ppd_lon);
+            VPoint.lat_bot =   VPoint.lat_top  - ((pheight) / ppd_lat);
+            VPoint.lon_right = VPoint.lon_left + ((pwidth)  / ppd_lon);
+*/
       }
 
       else if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
@@ -573,27 +599,23 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
             ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
 
             //  Calculate binary scale factor
-            //  n.b.  parameter "scale" is always contrived to be binary multiple of native scale
-            //        when this method is called for raster charts.
+            //  n.b.  parameter "scale_ppm" is always contrived to be binary multiple of native scale
+            //        in pixels per meter when this method is called for raster charts.
+            //        phasing: value of 2.0 means zoom OUT.
 
-            float binary_sc_factor = scale / Current_Ch->GetNativeScale();
+            VPoint.binary_scale_factor = (round(100 * Cur_BSB_Ch->GetPPM() / scale_ppm)) / 100.;
 
-            //  Override ppd for raster charts
-            VPoint.ppd_lat = Cur_BSB_Ch->GetPpd_lat_1x() / binary_sc_factor;
-            VPoint.ppd_lon = Cur_BSB_Ch->GetPpd_lon_1x() / binary_sc_factor;
-
-
-            Current_Ch->latlong_to_pix(lat, lon, pixxd, pixyd);
+            Cur_BSB_Ch->latlong_to_pix(lat, lon, pixxd, pixyd);
             pixx = pixxd;
             pixy = pixyd;
 
             wxRect source;
             if(mode == 1)           // mod 4
             {
-                int xmod = (pixx - (int)(VPoint.pix_width  * binary_sc_factor / 2))/4;
+                int xmod = (pixx - (int)(VPoint.pix_width  * VPoint.binary_scale_factor / 2))/4;
                 xmod *= 4;
                 source.x = xmod;
-                int ymod = (pixy - (int)(VPoint.pix_height * binary_sc_factor / 2))/4;
+                int ymod = (pixy - (int)(VPoint.pix_height * VPoint.binary_scale_factor / 2))/4;
                 ymod *= 4;
                 source.y = ymod;
 
@@ -601,144 +623,104 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
 
                   //    Possible adjustment to clat/clon
                 double alat, alon;
-                Current_Ch->pix_to_latlong((int)(((VPoint.pix_width /2) * binary_sc_factor) + source.x),
-                                              (int)(((VPoint.pix_height/2) * binary_sc_factor) + source.y),
+                Cur_BSB_Ch->pix_to_latlong((int)(((VPoint.pix_width /2) * VPoint.binary_scale_factor) + source.x),
+                                            (int)(((VPoint.pix_height/2) * VPoint.binary_scale_factor) + source.y),
                                         &alat, &alon);
                 VPoint.clat = alat;
                 VPoint.clon = alon;
             }
             else
             {
-                source.x = pixx - (int)(VPoint.pix_width  * binary_sc_factor / 2);
-                source.y = pixy - (int)(VPoint.pix_height * binary_sc_factor / 2);
+                source.x = pixx - (int)(VPoint.pix_width  * VPoint.binary_scale_factor / 2);
+                source.y = pixy - (int)(VPoint.pix_height * VPoint.binary_scale_factor / 2);
             }
 
 
-            source.width = (int)(VPoint.pix_width * binary_sc_factor) ;
-            source.height = (int)(VPoint.pix_height * binary_sc_factor) ;
+            source.width = (int)(VPoint.pix_width * VPoint.binary_scale_factor) ;
+            source.height = (int)(VPoint.pix_height * VPoint.binary_scale_factor) ;
 
 
-
-            //    Compute VPoint bounding box
-            //    For skewed ( i.e. non-North-up) charts, use max and min on corners
-            //    N.b. this results in the VPoint bbox being the minimum lat/lon
-            //    bbox which fully contains the screen contents.
-
-            //    Also, for charts displayed at high zoom-out, compute viewport boundaries
-            //    using native pixel-per-degree rates, since georef algorithms sometimes fail
-            //    disastrously when applied too far from chart centroid.
-            if(((source.x < 0) && (source.x + source.width  > Cur_BSB_Ch->GetSize_X())) ||
-                ((source.y < 0) && (source.y + source.height > Cur_BSB_Ch->GetSize_Y())) )
-            {
-                                                         // hi zoom out
-                double st = sin(Cur_BSB_Ch->GetChartSkew() * PI / 180.);
-                double ct = cos(Cur_BSB_Ch->GetChartSkew() * PI / 180.);
-
-                double pw2 = VPoint.pix_width / 2;
-                double ph2 = VPoint.pix_height / 2;
-
-                double lonuls, lonurs, lonlls, lonlrs;
-                double latuls, laturs, latlls, latlrs;
-                double xp, yp;
-
-                //ur
-                xp = (pw2 * ct) - (ph2 * st);
-                yp = (ph2 * ct) + (pw2 * st);
-                lonurs = lon + (xp / VPoint.ppd_lon);
-                laturs = lat + (yp / VPoint.ppd_lat);
-                //ul
-                xp = (-pw2 * ct) - (ph2 * st);
-                yp = (ph2 * ct) + (-pw2 * st);
-                lonuls = lon + (xp / VPoint.ppd_lon);
-                latuls = lat + (yp / VPoint.ppd_lat);
-                //ll
-                xp = (-pw2 * ct) - (-ph2 * st);
-                yp = (-ph2 * ct) + (-pw2 * st);
-                lonlls = lon + (xp / VPoint.ppd_lon);
-                latlls = lat + (yp / VPoint.ppd_lat);
-                //lr
-                xp = (pw2 * ct) - (-ph2 * st);
-                yp = (-ph2 * ct) + (pw2 * st);
-                lonlrs = lon + (xp / VPoint.ppd_lon);
-                latlrs = lat + (yp / VPoint.ppd_lat);
-
-
-                VPoint.lat_top = fmax4(latuls, laturs, latlls, latlrs);
-                VPoint.lat_bot = fmin4(latuls, laturs, latlls, latlrs);
-                VPoint.lon_right = fmax4(lonurs, lonlrs, lonuls, lonlls);
-                VPoint.lon_left  = fmin4(lonurs, lonlrs, lonuls, lonlls);
-
-
-//                  VPoint.lat_top =   lat + ((pheight/2) / VPoint.ppd_lat);
-//                  VPoint.lon_left =  lon - ((pwidth/2)  / VPoint.ppd_lon);
-//                  VPoint.lat_bot =   VPoint.lat_top  - ((pheight) / VPoint.ppd_lat);
-//                  VPoint.lon_right = VPoint.lon_left + ((pwidth)  / VPoint.ppd_lon);
-
-
-            }
-            else                                      // reasonable zoom
-            {
-                double lonul, lonur, lonll, lonlr;
-                double latul, latur, latll, latlr;
-
-                Current_Ch->pix_to_latlong((int)(((0) * binary_sc_factor) + source.x),
-                                            (int)(((0) * binary_sc_factor) + source.y),
-                               &latul, &lonul);
-                Current_Ch->pix_to_latlong((int)(((canvas_width) * binary_sc_factor) + source.x),
-                                            (int)(((0) * binary_sc_factor) + source.y),
-                               &latur, &lonur);
-                Current_Ch->pix_to_latlong((int)(((canvas_width) * binary_sc_factor) + source.x),
-                                            (int)(((canvas_height) * binary_sc_factor) + source.y),
-                               &latlr, &lonlr);
-                Current_Ch->pix_to_latlong((int)(((0) * binary_sc_factor) + source.x),
-                                            (int)(((canvas_height) * binary_sc_factor) + source.y),
-                               &latll, &lonll);
-
-                VPoint.lat_top = fmax4(latul, latur, latll, latlr);
-                VPoint.lat_bot = fmin4(latul, latur, latll, latlr);
-                VPoint.lon_right = fmax4(lonur, lonlr, lonul, lonll);
-                VPoint.lon_left  = fmin4(lonur, lonlr, lonul, lonll);
-//                printf("VPoint.lon_left %f\n", VPoint.lon_left);
-                //dsr
-//                VPoint.lat_top = fmax(latul, latur);
-//                VPoint.lat_bot = fmin(latll, latlr);
-//                VPoint.lon_right = fmax(lonur, lonlr);
-//                VPoint.lon_left  = fmin(lonul, lonll);
-
-
-            }
       }
 
       else if(Current_Ch->ChartType == CHART_TYPE_DUMMY)
+          // Nothing special to do here
       {
-            float pwidth = VPoint.pix_width;
-            float pheight = VPoint.pix_height;
-
-            VPoint.lat_top =   lat + ((pheight/2) / VPoint.ppd_lat);
-            VPoint.lon_left =  lon - ((pwidth/2)  / VPoint.ppd_lon);
-            VPoint.lat_bot =   VPoint.lat_top  - ((pheight) / VPoint.ppd_lat);
-            VPoint.lon_right = VPoint.lon_left + ((pwidth)  / VPoint.ppd_lon);
       }
 
 
-//      Calculate and store some metrics
-      long0 = (VPoint.lon_right + VPoint.lon_left) / 2.;
+      //      Calculate and store some metrics
 
-//      Set the VP Bounding Box
-//      VPoint.vpBBox.SetMin(fmin(VPoint.lon_right, VPoint.lon_left),  fmin(VPoint.lat_bot, VPoint.lat_top));
-//      VPoint.vpBBox.SetMax(fmax(VPoint.lon_right, VPoint.lon_left),  fmax(VPoint.lat_bot, VPoint.lat_top));
-      VPoint.vpBBox.SetMin(VPoint.lon_left,  VPoint.lat_bot);
-      VPoint.vpBBox.SetMax(VPoint.lon_right, VPoint.lat_top);
+      //  Compute Viewport reference points for co-ordinate hit testing
+
+      //  Screen geometry factors
+      double pw2 = VPoint.pix_width / 2;
+      double ph2 = VPoint.pix_height / 2;
+      double pix_l = sqrt((pw2 * pw2) + (ph2 * ph2));
+      double phi = atan2(ph2, pw2);
+
+            //  Get four reference "corner" points by Mercator projection algorithms
+            //  and mercator scale factor
+
+      double pref_a_east = pix_l * cos(phi + skew) / scale_ppm;
+      double pref_a_north = pix_l * sin(phi + skew) / scale_ppm;;
+      fromTM(pref_a_east, pref_a_north, lat, lon, .9996, &VPoint.pref_a_lat, &VPoint.pref_a_lon);
+
+      double pref_b_east = pix_l * cos(skew - phi + PI) / scale_ppm;
+      double pref_b_north = pix_l * sin(skew - phi + PI) / scale_ppm;;
+      fromTM(pref_b_east, pref_b_north, lat, lon, .9996, &VPoint.pref_b_lat, &VPoint.pref_b_lon);
+
+      double pref_c_east = pix_l * cos(phi + skew + PI) / scale_ppm;
+      double pref_c_north = pix_l * sin(phi + skew + PI) / scale_ppm;;
+      fromTM(pref_c_east, pref_c_north, lat, lon, .9996, &VPoint.pref_c_lat, &VPoint.pref_c_lon);
+
+      double pref_d_east = pix_l * cos(skew - phi) / scale_ppm;
+      double pref_d_north = pix_l * sin(skew - phi) / scale_ppm;;
+      fromTM(pref_d_east, pref_d_north, lat, lon, .9996, &VPoint.pref_d_lat, &VPoint.pref_d_lon);
+
+            //  Calculate an absolute max and min bounding box
+
+            //    For skewed ( i.e. non-North-up) charts
+            //    this results in the VPoint bbox being the minimum lat/lon
+            //    bbox which fully contains the screen contents.
+
+
+      double lat_min = VPoint.pref_a_lat;
+      lat_min = fmin(lat_min, VPoint.pref_b_lat);
+      lat_min = fmin(lat_min, VPoint.pref_c_lat);
+      lat_min = fmin(lat_min, VPoint.pref_d_lat);
+
+      double lon_min = VPoint.pref_a_lon;
+      lon_min = fmin(lon_min, VPoint.pref_b_lon);
+      lon_min = fmin(lon_min, VPoint.pref_c_lon);
+      lon_min = fmin(lon_min, VPoint.pref_d_lon);
+
+      double lat_max = VPoint.pref_a_lat;
+      lat_max = fmax(lat_max, VPoint.pref_b_lat);
+      lat_max = fmax(lat_max, VPoint.pref_c_lat);
+      lat_max = fmax(lat_max, VPoint.pref_d_lat);
+
+      double lon_max = VPoint.pref_a_lon;
+      lon_max = fmax(lon_max, VPoint.pref_b_lon);
+      lon_max = fmax(lon_max, VPoint.pref_c_lon);
+      lon_max = fmax(lon_max, VPoint.pref_d_lon);
+
+      VPoint.vpBBox.SetMin(lon_min,  lat_min);
+      VPoint.vpBBox.SetMax(lon_max,  lat_max);
+
+
+      VPoint.lat_top =   lat_max;
+      VPoint.lon_left =  lon_min;
+      VPoint.lat_bot =   lat_min;
+      VPoint.lon_right = lon_max;
 
 
 
       //    Calculate the conventional scale
 
-//      float ppdl = canvas_width / (VPoint.lon_right - VPoint.lon_left);
-//      VPoint.chart_scale = canvas_scale_factor / ppdl;
-      VPoint.chart_scale = canvas_scale_factor / VPoint.ppd_lon;
+      VPoint.chart_scale = canvas_scale_factor / (scale_ppm * 1852 * 60);
 
-      //    Update the vp parameters private to the chart type
+      //    As an optimization,
+      //    call down to the chart to preset some parameters
       Current_Ch->SetVPParms(&VPoint);
 
       if(parent_frame->pStatusBar)
@@ -751,34 +733,6 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale, int mode, i
       VPoint.bValid = true;                     // Mark this ViewPoint as OK
 
 }
-
-double ChartCanvas::fmax4(double a, double b, double c, double d)
-{
-    double ret = a;
-    if(b > ret)
-        ret = b;
-    if(c > ret)
-        ret = c;
-    if(d > ret)
-        ret = d;
-
-    return ret;
-}
-
-double ChartCanvas::fmin4(double a, double b, double c, double d)
-{
-    double ret = a;
-    if(b < ret)
-        ret = b;
-    if(c < ret)
-        ret = c;
-    if(d < ret)
-        ret = d;
-
-    return ret;
-}
-
-
 
 void ChartCanvas::ShipDraw(wxDC& dc, wxPoint& iShipPoint, wxPoint& iPredPoint)
 {
@@ -793,16 +747,16 @@ void ChartCanvas::ShipDraw(wxDC& dc, wxPoint& iShipPoint, wxPoint& iPredPoint)
 
 //    Calculate 5 Minute Position Predictor
 
-      float east, north;
+      double east, north;
       double plat, plon;
       float pred_lat, pred_lon;
 
-      DegToUTM(gLat, gLon, NULL, &east, &north, long0);
+      toTM(gLat, gLon, VPoint.clat, VPoint.clon, 0.9996, &east, &north);
 
       east += (sin(gCog * PI / 180) * gSog * (1852.) / 12.);  // 5 mins, 1852 m/nmi
       north += (cos(gCog * PI / 180) * gSog * (1852.) / 12.);  // 5 mins
 
-      UTMtoDeg(long0, 0, east, north, &plat, &plon);
+      fromTM(east, north, VPoint.clat, VPoint.clon, .9996, &plat, &plon);
       pred_lat = plat;
       pred_lon = plon;
 
@@ -814,23 +768,10 @@ void ChartCanvas::ShipDraw(wxDC& dc, wxPoint& iShipPoint, wxPoint& iPredPoint)
 //    Do the draw if either the ship or prediction is within the current VPoint
     if(drawit)
       {
- //           int pixxd, pixyd;
- //           Current_Ch->latlong_to_pix_vp(gLat, gLon, pixxd, pixyd, VPoint);
- //           lShipPoint.x = pixxd;
- //           lShipPoint.y = pixyd;
             GetPointPix(gLat, gLon, &lShipPoint);
 
- //           Current_Ch->latlong_to_pix_vp(pred_lat, pred_lon, pixxd, pixyd, VPoint);
-//           lPredPoint.x = pixxd;
-//            lPredPoint.y = pixyd;
             GetPointPix(pred_lat, pred_lon, &lPredPoint);
 
-/*
-            if(bGPSValid)
-                dc.SetBrush(*wxRED_BRUSH);
-            else
-                dc.SetBrush(*wxWHITE_BRUSH);
-*/
             dc.SetBrush(wxBrush(Ship_Color));
 
             wxPen ppPen(wxColour(255,0,0), 2, wxSOLID);
@@ -846,7 +787,6 @@ void ChartCanvas::ShipDraw(wxDC& dc, wxPoint& iShipPoint, wxPoint& iPredPoint)
 
 void ChartCanvas::AISDraw(wxDC& dc)
 {
-
     if(!pAIS)
         return;
 
@@ -873,16 +813,16 @@ void ChartCanvas::AISDraw(wxDC& dc)
 
     //    Calculate 5 Minute Position Predictor
 
-          float east, north;
+          double east, north;
           double plat, plon;
           float pred_lat, pred_lon;
 
-          DegToUTM(td->Lat, td->Lon, NULL, &east, &north, long0);
+          toTM(td->Lat, td->Lon, VPoint.clat, VPoint.clon, 0.9996, &east, &north);
 
-          east += (sin(td->COG * PI / 180) * td->SOG * (1852.) / 12.);  // 5 mins, 1852 m/nmi
-          north += (cos(td->COG * PI / 180) * td->SOG * (1852.) / 12.);  // 5 mins
+          east += (sin(gCog * PI / 180) * gSog * (1852.) / 12.);  // 5 mins, 1852 m/nmi
+          north += (cos(gCog * PI / 180) * gSog * (1852.) / 12.);  // 5 mins
 
-          UTMtoDeg(long0, 0, east, north, &plat, &plon);
+          fromTM(east, north, VPoint.clat, VPoint.clon, .9996, &plat, &plon);
           pred_lat = plat;
           pred_lon = plon;
 
@@ -894,20 +834,11 @@ void ChartCanvas::AISDraw(wxDC& dc)
     //    Do the draw if either the target or prediction is within the current VPoint
           if(drawit)
           {
-//              int pixxd, pixyd;
-//              Current_Ch->latlong_to_pix_vp(td->Lat, td->Lon, pixxd, pixyd, VPoint);
-//              lShipPoint.x = pixxd;
-//              lShipPoint.y = pixyd;
               GetPointPix(td->Lat, td->Lon, &lShipPoint);
-
               GetPointPix(pred_lat, pred_lon, &lPredPoint);
 
               if(td->SOG > 0.5)
               {
-
-//                Current_Ch->latlong_to_pix_vp(pred_lat, pred_lon, pixxd, pixyd, VPoint);
-//                lPredPoint.x = pixxd;
-//                lPredPoint.y = pixyd;
                 GetPointPix(pred_lat, pred_lon, &lPredPoint);
 
                 //  Calculate the relative angle for this chart orientation
@@ -981,9 +912,7 @@ void ChartCanvas::AISDraw(wxDC& dc)
                       dc.SetBrush(*p_yellow_brush);
 
                   dc.DrawPolygon(4, &ais_dia_icon[0], lShipPoint.x, lShipPoint.y);
-
               }
-
         }
     }
 }
@@ -1093,6 +1022,11 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
       mx = x;
       my = y;
 
+      //    Calculate meaningful SelectRadius
+      float SelectRadius;
+      int sel_rad_pix = 10;
+      SelectRadius = sel_rad_pix/(VPoint.view_scale_ppm * 1852 * 60);
+
 #ifdef __WXMSW__
       if(console->IsShown())
       {
@@ -1106,9 +1040,6 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
       }
 #endif
 
-
-
-
       if(Current_Ch)
       {
             GetPixPoint(x, y, cursor_lat, cursor_lon);
@@ -1120,12 +1051,15 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
             buf[i++] = ' ';
 
             toDMM(cursor_lon, &buf[i], 20);
+
+//            sprintf(buf, "%f7.4 %f7.4", cursor_lat, cursor_lon);
             if(parent_frame->pStatusBar)
                   parent_frame->SetStatusText(buf, 1);
       }
 
-
-
+      sprintf(buf, "%d %d", x, y);
+      if(parent_frame->pStatusBar)
+          parent_frame->SetStatusText(buf, 2);
 
 //    Route Creation Rubber Banding
       if(parent_frame->nRoute_State >= 2)
@@ -1135,8 +1069,8 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
             bDrawingRoute = true;
 
 //          Manage Auto-pan on Route Create
-            double chart_extent_lon = VPoint.lon_right - VPoint.lon_left;
-            double chart_extent_lat = VPoint.lat_top - VPoint.lat_bot;
+            double chart_extent_lon = VPoint.pref_a_lon - VPoint.pref_c_lon;
+            double chart_extent_lat = VPoint.pref_a_lat - VPoint.pref_c_lat;
 
             double new_lat = VPoint.clat;
             double new_lon = VPoint.clon;
@@ -1167,11 +1101,9 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                         bft = true;
                   }
 
-
-
             if((bft) && !pPanTimer->IsRunning())
             {
-                SetViewPoint(new_lat, new_lon, VPoint.view_scale, 1, FORCE_SUBSAMPLE);
+                SetViewPoint(new_lat, new_lon, VPoint.view_scale_ppm, VPoint.skew, 1, FORCE_SUBSAMPLE);
 
                 vLat = new_lat;
                 vLon = new_lon;
@@ -1185,7 +1117,6 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
 
       }
 
-
 //          Mouse Clicks
 
 //    Manage canvas panning
@@ -1197,11 +1128,10 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
             vLat = cursor_lat;
             vLon = cursor_lon;
 
-            SetViewPoint((double)vLat, (double)vLon, VPoint.view_scale, 1, FORCE_SUBSAMPLE);
+            SetViewPoint((double)vLat, (double)vLon, VPoint.view_scale_ppm, VPoint.skew, 1, FORCE_SUBSAMPLE);
 
-            this->Refresh(FALSE);
+            Refresh(FALSE);
       }
-
 
       if(event.LeftDown())
       {
@@ -1243,24 +1173,16 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
 
                   parent_frame->nRoute_State++;
 
-                  this->Refresh(false);
+                  Refresh(false);
             }
 
             else                                // Not creating Route
-            {                                         // So look for selectable route point
+            {                                   // So look for selectable route point
 
                   double slat, slon;
-                  float SelectRadius;
-      //    Calculate meaningful SelectRadius
-                  int sel_rad_pix = 10;
-
-                  SelectRadius = sel_rad_pix/VPoint.ppd_lat;
-
                   slat = cursor_lat;
                   slon = cursor_lon;
-                  SelectItem *pFind = pSelect->FindSelection(slat, slon,
-                                                                                    SELTYPE_ROUTEPOINT,
-                                                                                    SelectRadius);
+                  SelectItem *pFind = pSelect->FindSelection(slat, slon, SELTYPE_ROUTEPOINT, SelectRadius);
 
                   if(pFind)
                   {
@@ -1273,7 +1195,6 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                         this->m_pFoundPoint = pFind;
                         m_bForceReDraw = true;
                   }
-
 
                   else
                   {
@@ -1328,14 +1249,9 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                         if(!bft)
                         {
                             GetPixPoint(p.x, p.y, dlat, dlon);
-                            SetViewPoint(dlat, dlon, VPoint.view_scale, 1, FORCE_SUBSAMPLE);
+                            SetViewPoint(dlat, dlon, VPoint.view_scale_ppm, VPoint.skew, 1, FORCE_SUBSAMPLE);
                             vLat = dlat;
                             vLon = dlon;
-
-// Doesn't work for skewed charts
-//                            SetViewPoint(new_lat, new_lon, VPoint.view_scale, 1, FORCE_SUBSAMPLE);
-//                            vLat = new_lat;
-//                            vLon = new_lon;
 
                             m_bFollow = false;      // update the follow flag
                             toolBar->ToggleTool(ID_FOLLOW, false);
@@ -1360,8 +1276,8 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
 
 
 //          Manage Auto-pan on Route Edit
-                  double chart_extent_lon = VPoint.lon_right - VPoint.lon_left;
-                  double chart_extent_lat = VPoint.lat_top - VPoint.lat_bot;
+                  double chart_extent_lon = VPoint.pref_a_lon - VPoint.pref_c_lon;
+                  double chart_extent_lat = VPoint.pref_a_lat - VPoint.pref_c_lat;
 
                   double new_lat = VPoint.clat;
                   double new_lon = VPoint.clon;
@@ -1395,11 +1311,9 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                         bft = true;
                   }
 
-
-
                   if((bft) && !pPanTimer->IsRunning())
                   {
-                      SetViewPoint(new_lat, new_lon, VPoint.view_scale, 1, FORCE_SUBSAMPLE);
+                      SetViewPoint(new_lat, new_lon, VPoint.view_scale_ppm, VPoint.skew, 1, FORCE_SUBSAMPLE);
 
                         float new_cursor_lat, new_cursor_lon;
                         GetPixPoint(x, y, new_cursor_lat, new_cursor_lon);
@@ -1432,18 +1346,9 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                         p.y -= (my - last_drag.y);
 
                         GetPixPoint(p.x, p.y, dlat, dlon);
-                        SetViewPoint(dlat, dlon, GetVPScale(), 1, FORCE_SUBSAMPLE);
+                        SetViewPoint(dlat, dlon, GetVPScale(), VPoint.skew, 1, FORCE_SUBSAMPLE);
                         vLat = dlat;
                         vLon = dlon;
-
-                        /*  Does not work for skewed charts....
-                        float nlat = (my - last_drag.y) / VPoint.ppd_lat;
-                        float nlon = (mx - last_drag.x) / VPoint.ppd_lon;
-
-                        SetViewPoint(VPoint.clat + nlat, VPoint.clon - nlon, GetVPScale(), 1);
-                        vLat = VPoint.clat + nlat;
-                        vLon = VPoint.clon - nlon;
-                        */
 
                         m_bFollow = false;
                         toolBar->ToggleTool(ID_FOLLOW, false);
@@ -1461,12 +1366,8 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
 
                         Refresh(false);
                   }
-
             }
-
-
       }
-
 
       if(event.LeftUp())
       {
@@ -1528,8 +1429,6 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
       }
 
 
-
-
       if(event.RightDown())
       {
             last_drag.x = mx;
@@ -1541,11 +1440,6 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
             {
                                                                   // Look for selectable objects
                   float slat, slon;
-                  float SelectRadius;
-      //    Calculate meaningful SelectRadius
-                  int sel_rad_pix = 10;
-
-                  SelectRadius = sel_rad_pix/VPoint.ppd_lat;
                   slat = cursor_lat;
                   slon = cursor_lon;
                   SelectItem *pFind;
@@ -1608,7 +1502,6 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
 
                         m_bForceReDraw = true;
                         Refresh(false);
-
                   }
 
                   else
@@ -1849,7 +1742,7 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
                 Chs57 = dynamic_cast<s57chart*>(Current_Ch);
 
                 sel_rad_pix = 10;
-                SelectRadius = sel_rad_pix/VPoint.ppd_lat;
+                SelectRadius = sel_rad_pix/(VPoint.view_scale_ppm * 1852 * 60);
 
                 QueryResult = new wxString;
                 array = Chs57->GetObjArrayAtLatLon( zlat, zlon, SelectRadius);
@@ -2120,11 +2013,6 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool 
           pdc->SetPen(pp);
 #endif
         }
-
-
-        int i;
-
-
         wxPoint r, r1;
 
         ChartData->GetDBPlyPoint(dbIndex, 0, &plylat, &plylon);
@@ -2132,7 +2020,7 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool 
         pixx = r.x;
         pixy = r.y;
 
-        for( i=0 ; i<nPly-1 ; i++)
+        for( int i=0 ; i<nPly-1 ; i++)
         {
               ChartData->GetDBPlyPoint(dbIndex, i+1, &plylat1, &plylon1);
 
@@ -2163,9 +2051,7 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool 
                         0, vp.pix_width, 0, vp.pix_height);
         if(res != Invisible)
                   pdc->DrawLine(pixx, pixy, pixx1, pixy1);
-
 }
-
 
 void ChartCanvas::WarpPointerDeferred(int x, int y)
 {
@@ -2291,8 +2177,23 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
 //    Draw the WVSChart only in the areas NOT covered by the current chart view
 //    And, only if the region is ..not.. empty
-      if(!WVSRegion.IsEmpty() && (fabs(Current_Ch->GetChartSkew()) < 1.0))
+//      if(!WVSRegion.IsEmpty() && (fabs(Current_Ch->GetChartSkew()) < 1.0))
             pwvs_chart->RenderViewOnDC(temp_dc, VPoint);
+
+      //    This is a bit of debug code.
+      //    If Current_Vector_Ch is set, render and blit it with an odd ROP
+      //    to check registration and UTM coordination between vector and
+      //    raster charts.
+
+      if(Current_Vector_Ch)
+      {
+        Current_Vector_Ch->SetVPParms(&VPoint);
+        wxMemoryDC vec_temp_dc;
+        Current_Vector_Ch->RenderViewOnDC(vec_temp_dc, VPoint, current_scale_method);
+        temp_dc.Blit(0,0,VPoint.pix_width, VPoint.pix_height, &vec_temp_dc, 0, 0, wxXOR );
+        vec_temp_dc.SelectObject(wxNullBitmap);
+
+      }
 
 
 //    Draw the overlay objects on a scratch DC, to calculate update regions
@@ -2804,7 +2705,6 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
                               d[1].x = r.x+dd; d[1].y = r.y;
                               d[2].x = r.x; d[2].y = r.y-dd;
                               d[3].x = r.x-dd; d[3].y = r.y;
-
 
 
                               if(ptcmgr->GetTideOrCurrent15(now, i, tcvalue, dir, bnew_val))
@@ -4019,7 +3919,7 @@ void S57QueryDialog::CreateControls()
 IMPLEMENT_CLASS( AISTargetQueryDialog, wxDialog )
 
 
-// S57QueryDialog event table definition
+// AISTargetQueryDialog event table definition
 
 BEGIN_EVENT_TABLE( AISTargetQueryDialog, wxDialog )
 END_EVENT_TABLE()
