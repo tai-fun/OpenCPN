@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.4 2006/10/08 14:15:15 dsr Exp $
+ * $Id: chartbase.h,v 1.5 2007/03/02 02:03:38 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.5  2007/03/02 02:03:38  dsr
+ * Remove geo-referencing methods from base class
+ *
  * Revision 1.4  2006/10/08 14:15:15  dsr
  * no message
  *
@@ -188,12 +191,6 @@ public:
 
       virtual void InvalidateCache(void) = 0;
 
-      virtual void pix_to_latlong(int pixx, int pixy, double *lat, double *lon) = 0;
-      virtual void vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *lat, double *lon) = 0;
-
-      virtual void latlong_to_pix(double lat, double lon, int &pixx, int &pixy) = 0;
-      virtual void latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp) = 0;
-
       virtual void RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type) = 0;
 
       virtual void SetVPParms(ViewPort *vpt) = 0;
@@ -210,7 +207,6 @@ public:
       int               Chart_Scale;
       wxString          *pFullPath;
       wxString          *pName;
-
 
       wxString          *pPubYear;
 
@@ -248,13 +244,6 @@ public:
       virtual void GetChartExtent(Extent *pext);
 
       virtual void InvalidateCache(void);
-
-
-      virtual void pix_to_latlong(int pixx, int pixy, double *lat, double *lon);
-      virtual void vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *lat, double *lon);
-
-      virtual void latlong_to_pix(double lat, double lon, int &pixx, int &pixy);
-      virtual void latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp);
 
       virtual void RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
 
