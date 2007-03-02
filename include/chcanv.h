@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.6 2006/11/01 02:18:45 dsr Exp $
+ * $Id: chcanv.h,v 1.7 2007/03/02 02:05:44 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.7  2007/03/02 02:05:44  dsr
+ * Re-define ViewPort Class to better support skewed and UTM Vector charts
+ *
  * Revision 1.6  2006/11/01 02:18:45  dsr
  * AIS Support
  *
@@ -99,6 +102,7 @@
 #include <wx/datetime.h>
 #endif
 
+
 //----------------------------------------------------------------------------
 //    Forward Declarations
 //----------------------------------------------------------------------------
@@ -158,12 +162,16 @@ class ViewPort
 //  Generic
     double   clat;                   // center point
     double   clon;
-    double   view_scale;
-    double   lat_top;
-    double   lat_bot;
-    double   lon_left;
-    double   lon_right;
-    wxBoundingBox vpBBox;
+    double   view_scale_ppm;
+    double   binary_scale_factor;    // Meaningful for Raster Charts only
+    double   skew;
+    double   c_east, c_north;       // UTM co-ordinates of ViewPort center
+                                    // relative to (near) chart centroid
+
+
+    wxBoundingBox vpBBox;           // An un-skewed rectangular lat/lon bounding box
+                                    // which contains the entire vieport
+
     float    chart_scale;            // conventional chart displayed scale
 
     int      pix_width;
@@ -171,8 +179,23 @@ class ViewPort
 
     bool     bValid;                 // This VP is valid
 
-    double   ppd_lat;
-    double   ppd_lon;
+
+    double   pref_a_lat;            // Viewport reference "corner" points
+    double   pref_a_lon;            // Used for hit testing
+    double   pref_b_lat;            // n.b. on skewed viewports, points
+    double   pref_b_lon;            // describe a skewed rectangle
+    double   pref_c_lat;
+    double   pref_c_lon;
+    double   pref_d_lat;
+    double   pref_d_lon;
+
+    //  These for s57 charts only, will have to go.....
+    //  s57chart.cpp needs to acknowledge reference points
+    double   lat_top;
+    double   lat_bot;
+    double   lon_left;
+    double   lon_right;
+
 
 };
 
@@ -197,7 +220,7 @@ public:
       void SetMyCursor(wxCursor *c);
 
 
-      void SetViewPoint(double lat, double lon, double scale, int mod_mode, int sample_mode);
+      void SetViewPoint(double lat, double lon, double scale_ppm, double skew, int mod_mode, int sample_mode);
 
       void SetVPScale(double sc);
 
@@ -208,8 +231,9 @@ public:
       //    Accessors
       int GetCanvas_width(){ return canvas_width;}
       int GetCanvas_height(){ return canvas_height;}
-      float GetVPScale(){return VPoint.view_scale;}
+      float GetVPScale(){return VPoint.view_scale_ppm;}
       float GetVPChartScale(){return VPoint.chart_scale;}
+      double GetVPBinaryScaleFactor(){return VPoint.binary_scale_factor;}
 
       void  SetbNewVP(bool f){ bNewVP = f;}
 
@@ -268,8 +292,6 @@ private:
       int         popx, popy;
       bool        m_bAppendingRoute;
 
-      float       long0;
-
       wxBitmap    *pThumbDIBShow;
       wxBitmap    *pThumbShowing;
 
@@ -298,8 +320,6 @@ private:
       void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono = false);
       wxBitmap *DrawTCCBitmap(bool bAddNewSelpoints);
       void AISDraw(wxDC& dc);
-      double fmax4(double a, double b, double c, double d);
-      double fmin4(double a, double b, double c, double d);
 
 
       //    Data
@@ -314,7 +334,6 @@ private:
       int         m_test;
 
       wxPoint     last_drag;
-      ChartBase   *drag_chart;              // Todo for debug only
 
       wxMemoryDC  *pmemdc;
 
