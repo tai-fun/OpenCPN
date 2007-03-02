@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: wvschart.h,v 1.2 2007/03/02 02:08:23 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: wvschart.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2007/03/02 02:08:23  dsr
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
  * Rename/Import to OpenCPN
@@ -49,6 +52,10 @@
 
 
 #include "chartbase.h"
+// ----------------------------------------------------------------------------
+// Useful Prototypes
+// ----------------------------------------------------------------------------
+extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y);
 
 //----------------------------------------------------------------------------
 //   constants

@@ -16,13 +16,14 @@
 #include <ctype.h>
 
 #include "georef.h"
+#include "dychart.h"
 
 void toDMS(double a, char *bufp, int bufplen);
 static double fromDMS(char *dms);
 void toDMM(double a, char *bufp, int bufplen);
 static double fromDMM(char *dms);
 
-//CPL_CVSID("$Id: georef.c,v 1.2 2006/10/07 03:50:27 dsr Exp $");
+CPL_CVSID("$Id: georef.c,v 1.3 2007/03/02 02:02:34 dsr Exp $");
 
 static char buf[20];
 static char r[20];
@@ -403,7 +404,7 @@ static double M(double phi, double a, double es);
 /* --------------------------------------------------------------------------------- */
 
 void
-toTM(float lat, float lon, float lat0, float lon0, float k0, float *x, float *y)
+toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y)
 {
 //    extern struct PREFS gPrefs;
       double m, et2, n, t, c, A, a, m0, es, lambda, phi, lambda0, phi0;
@@ -584,8 +585,10 @@ void DegToUTM(float lat, float lon, char *zone, float *x, float *y, float long0)
 //    char nz;
 //    float lon0;
 
-      toTM(lat, lon, lat0, long0, k0, x, y);
-      *x += 5.0e6;                        // false easting
+    double dx, dy;
+    toTM(lat, lon, lat0, long0, k0, &dx, &dy);
+      *x = dx + 5.0e6;                        // false easting
+      *y = dy;
 //    *y += 1.0e7;
 //    if (lat < 0.0)                      // false northing for southern hemisphere
 //                *y = 10000000.0 - *y;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
+ * $Id: chartdb.h,v 1.4 2007/03/02 02:04:09 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.4  2007/03/02 02:04:09  dsr
+ * Cleanup
+ *
  * Revision 1.3  2006/10/08 00:36:25  dsr
  * no message
  *
@@ -85,9 +88,10 @@
 
 
 typedef struct  {
-      float y;
-      float x;
+    float y;
+    float x;
 } MyFlPoint;
+
 
 // ----------------------------------------------------------------------------
 //    Fwd Declarations

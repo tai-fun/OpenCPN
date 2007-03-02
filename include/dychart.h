@@ -27,6 +27,7 @@
 #define     dyUSE_BITMAPO
 #define     S57USE_PIXELCACHE
 #define     dyUSE_BITMAPO_S57
+//#define __PIX_CACHE_WXIMAGE__
 #endif
 
 #ifdef __WXGTK__

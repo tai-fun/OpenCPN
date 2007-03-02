@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.4 2006/10/08 14:15:15 dsr Exp $
+ * $Id: chartimg.h,v 1.5 2007/03/02 02:04:49 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,50 +26,8 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
- * Revision 1.4  2006/10/08 14:15:15  dsr
- * no message
- *
- * Revision 1.3  2006/10/08 00:36:25  dsr
- * no message
- *
- * Revision 1.2  2006/10/07 03:50:54  dsr
- * *** empty log message ***
- *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.2  2006/05/19 19:36:18  dsr
+ * Revision 1.5  2007/03/02 02:04:49  dsr
  * Cleanup
- *
- * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.11  2006/04/19 00:55:54  dsr
- * Implement ColorScheme and BSB palette load
- *
- * Revision 1.10  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.9  2006/03/13 05:10:09  dsr
- * Cleanup
- *
- * Revision 1.8  2006/03/04 21:24:21  dsr
- * Add Alternate PixelCache support for thread-based rescaler
- *
- * Revision 1.7  2006/02/24 17:57:04  dsr
- * Move GetPubDate() to base class
- *
- * Revision 1.6  2006/02/24 03:00:17  dsr
- * Cleanup
- *
- * Revision 1.5  2006/02/23 01:18:54  dsr
- * Cleanup, add chart extent and chart skew support
- *
- * Revision 1.4  2006/02/09 13:56:39  dsr
- * Define ThumbData friends
- *
- * Revision 1.3  2006/02/10 03:19:06  dsr
- * *** empty log message ***
  *
  *
  */
@@ -168,7 +126,8 @@ public:
 class  ChartBaseBSB     :public ChartBase
 {
 public:
-//    Methods
+      //    Public methods
+
       ChartBaseBSB();
       virtual ~ChartBaseBSB() = 0;
 
@@ -178,10 +137,17 @@ public:
 
       float GetNativeScale(){return (float)Chart_Scale;}
       float GetChartSkew(){return Chart_Skew;}
-      //    Public methods
+      int GetSize_X(){ return Size_X;}
+      int GetSize_Y(){ return Size_Y;}
+      double GetPPM(){ return ppm_avg;}
+      bool IsCacheValid(){ return cached_image_ok; }
+      void InvalidateCache(){cached_image_ok = 0;}
+      Plypoint *GetPlyTable(){ return pPlyTable;}
+      int       GetnPlypoints(){ return nPlypoint;}
+
+
       virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
       virtual void InvalidateLineCache();
-      void InvalidateCache(){cached_image_ok = 0;}
 
       virtual void latlong_to_pix(double lat, double lon, int &pixx, int &pixy);
       virtual void latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp);
@@ -198,19 +164,12 @@ public:
 
       PaletteDir GetPaletteDir(void);
 
-      Plypoint *GetPlyTable(){ return pPlyTable;}
-      int       GetnPlypoints(){ return nPlypoint;}
 
-      int GetSize_X(){ return Size_X;}
-      int GetSize_Y(){ return Size_Y;}
-      float GetPpd_lon_1x(){ return ppd_lon_1x;}
-      float GetPpd_lat_1x(){ return ppd_lat_1x;}
 
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
 
       int  *GetPalettePtr(ColorScheme);
 
-      bool IsCacheValid(){ return cached_image_ok; }
 
 //    Public interface for Alternate thread renderer
       bool GetViewIntoPrivatePixelCache( wxRect& source, wxRect& dest, ScaleTypeEnum scale_type );
@@ -220,6 +179,10 @@ public:
       PixelCache        *pPixCacheAlternate;
       wxRect            cache_rect_alt;
       wxRect            cache_rect_scaled_alt;
+
+      //Todo  Convert to accessors
+      Plypoint    *pPlyTable;
+      int         nPlypoint;
 
 protected:
 
@@ -268,14 +231,10 @@ protected:
       wxRect      Rsrc;           // Current chart source rectangle
 
 
-
-
       Refpoint    *pRefTable;
       int         nRefpoint;
 
-
       float       long0;
-
 
       int         nColorSize;
       int         *pline_table;           // pointer to Line offset table
@@ -291,7 +250,6 @@ protected:
       wxFileInputStream *ifs_bitmap;
 
       wxString          *pBitmapFilePath;
-
 
       unsigned char     *ifs_buf;
       unsigned char     *ifs_bufend;
@@ -320,12 +278,13 @@ protected:
       float       LatMax;
       float       LatMin;
 
-      Plypoint    *pPlyTable;
-      int         nPlypoint;
       int         *pPalette;
       PaletteDir  palette_direction;
 
       bool        bGeoErrorSent;
+
+      double      ppm_avg;              // Calculated true scale factor of the 1X chart,
+                                        // pixels per meter
 };
 
 

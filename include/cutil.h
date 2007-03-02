@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: cutil.h,v 1.2 2007/03/02 02:06:00 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Extern C Linked Utilities
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: cutil.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2007/03/02 02:06:00  dsr
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.2  2006/06/02 02:06:04  dsr
  * MyPoint becomes double
@@ -41,14 +44,6 @@
 #define __CUTIL_H__
 
 
-/*
-typedef struct  {
-      int   left;
-      int top;
-      int   right;
-      int bottom;
-} MyRect;
-*/
 
 typedef struct  {
       double x;
@@ -56,8 +51,43 @@ typedef struct  {
 } MyPoint;
 
 
-
 int Intersect(MyPoint, MyPoint, MyPoint, MyPoint) ;
 int CCW(MyPoint, MyPoint, MyPoint) ;
+
+//-------------------------------------------------------------------------------------------------------
+//  Cohen & Sutherland Line clipping algorithms
+//-------------------------------------------------------------------------------------------------------
+/*
+*
+* Copyright (C) 1999,2000,2001,2002,2003 Percy Zahl
+*
+* Authors: Percy Zahl <zahl@users.sf.net>
+* additional features: Andreas Klust <klust@users.sf.net>
+* WWW Home: http://gxsm.sf.net
+*
+*/
+
+typedef enum { Visible, Invisible } ClipResult;
+
+#ifdef __cplusplus
+             extern "C" {
+#endif /* __cplusplus */
+
+ ClipResult cohen_sutherland_line_clip_d (double *x0, double *y0, double *x1, double *y1,
+                                         double xmin_, double xmax_, double ymin_, double ymax_);
+#ifdef __cplusplus
+             }
+#endif /* __cplusplus */
+
+#ifdef __cplusplus
+             extern "C" {
+#endif /* __cplusplus */
+
+ ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
+                                             int xmin_, int xmax_, int ymin_, int ymax_);
+#ifdef __cplusplus
+             }
+#endif /* __cplusplus */
+
 
 #endif
