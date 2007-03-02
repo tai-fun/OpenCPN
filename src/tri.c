@@ -65,18 +65,18 @@ Bibliography:
 
   @book{o-cgc-94
     , author =      "J. O'Rourke"
-        , title =       "Computational Geometry in {C}"
-            , publisher =   "Cambridge University Press"
-                , year =        1994
-                    , note =        "ISBN 0-521-44592-2/Pb \$24.95,
+    , title =       "Computational Geometry in {C}"
+    , publisher =   "Cambridge University Press"
+    , year =        1994
+    , note =        "ISBN 0-521-44592-2/Pb \$24.95,
                     ISBN 0-521-44034-3/Hc \$49.95.
-                        Cambridge University Press
-                        40 West 20th Street
-                        New York, NY 10011-4211
-                        1-800-872-7423
-                            346+xi pages, 228 exercises, 200 figures, 219 references"
-                            , update =      "94.05 orourke, 94.01 orourke"
-                                , annote =      "Textbook"
+                    Cambridge University Press
+                    40 West 20th Street
+                    New York, NY 10011-4211
+                    1-800-872-7423
+                    346+xi pages, 228 exercises, 200 figures, 219 references"
+    , update =      "94.05 orourke, 94.01 orourke"
+    , annote =      "Textbook"
   }
 
 
@@ -86,13 +86,13 @@ Bibliography:
 
           -------------------------------------------------------------------
 
-              This code is in the public domain. Specifically, we give to the public
-              domain all rights for future licensing of the source code, all resale
-                    rights, and all publishing rights.
+    This code is in the public domain. Specifically, we give to the public
+    domain all rights for future licensing of the source code, all resale
+    rights, and all publishing rights.
 
-              UNC-CH GIVES NO WARRANTY, EXPRESSED OR IMPLIED, FOR THE SOFTWARE
-              AND/OR DOCUMENTATION PROVIDED, INCLUDING, WITHOUT LIMITATION, WARRANTY
-              OF MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
+    UNC-CH GIVES NO WARRANTY, EXPRESSED OR IMPLIED, FOR THE SOFTWARE
+    AND/OR DOCUMENTATION PROVIDED, INCLUDING, WITHOUT LIMITATION, WARRANTY
+    OF MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
 
 
                                     - Atul Narkhede (narkhede@cs.unc.edu)
@@ -105,7 +105,7 @@ static int initialise(int);
 static int alloc_mem(int, int[]);
 
 
-//CPL_CVSID("$Id: tri.c,v 1.3 2006/10/07 03:50:28 dsr Exp $");
+CPL_CVSID("$Id: tri.c,v 1.4 2007/03/02 01:58:33 dsr Exp $");
 
 
 
