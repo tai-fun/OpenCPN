@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
+ * $Id: s52cnsy.cpp,v 1.3 2007/03/02 01:59:50 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.3  2007/03/02 01:59:50  dsr
+ * Implement SOUNDG02 Method
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -74,7 +77,7 @@ extern bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.3 2007/03/02 01:59:50 dsr Exp $");
 
 static void *CLRLIN01(void *param)
 {
@@ -1188,6 +1191,7 @@ static void *SEABED01(void *param)
    return NULL;
 }
 
+/*
 static void *SNDFRM02(void *param)
 {
         ObjRazRules *rzRules = (ObjRazRules *)param;
@@ -1196,25 +1200,233 @@ static void *SNDFRM02(void *param)
         CPLError((CPLErr)0, 0,"s52csny : SNDFRM02 ERROR no conditional symbology for: %s\n",rzRules->LUP->OBCL);
    return NULL;
 }
+*/
+
+static void *SNDFRM02(S57Obj *obj, double depth_value);
 
 static void *SOUNDG02(void *param)
+// Remarks: In S-57 soundings are elements of sounding arrays rather than individual
+// objects. Thus the conditional symbology methodology must examine each
+// sounding of a sounding array one by one. To symbolize the depth values it
+// calls the procedure SNDFRM02 which in turn translates the depth values
+// into a set of symbols to be shown at the soundings position.
 {
-//      S57Obj *obj = rzRules->obj;
-//      ObjRazRules *rzRules = (ObjRazRules *)param;
-//      S57Obj *obj = rzRules->obj;
+    // Shortcut.  This CS method causes a branch to an S52plib method
+    // which splits multi-point soundings into separate point objects,
+    // and then calls CS(SOUNDG03) on successive points below.
+      char *r = (char *)malloc(3);
+      strcpy(r, "MP");
 
-/*
-      //    Add another rule onto the ruleList
-      Rules *r = NULL;
+      return r;
 
-      r = (Rules*)calloc(1, sizeof(Rules));
-      r->ruleType = RUL_MUL_SG;
-*/
-//      r->INSTstr = "SY(LIGHTS03)";
-//      r->razRule = (*ps52plib->_symb_sym)["QUESMRK1"];
+}
 
-//      CPLError((CPLErr)0, 0,"s52csny : SOUNDG02 ERROR no conditional symbology for: %s\n",rzRules->LUP->OBCL);
-      return NULL; //r;
+
+static void *SOUNDG03(void *param)
+// Remarks:  SOUNDG03 is a private conditional symbology,
+// called to render individual points of a multi-point sounding set.
+{
+    ObjRazRules *rzRules = (ObjRazRules *)param;
+    S57Obj *obj = rzRules->obj;
+
+    char *r = (char *)SNDFRM02(obj, obj->z);
+    return r;
+
+}
+
+
+
+static void *SNDFRM02(S57Obj *obj, double depth_value)
+// Remarks: Soundings differ from plain text because they have to be readable under all
+// circumstances and their digits are placed according to special rules. This
+// conditional symbology procedure accesses a set of carefully designed
+// sounding symbols provided by the symbol library and composes them to
+// sounding labels. It symbolizes swept depth and it also symbolizes for low
+// reliability as indicated by attributes QUASOU and QUAPOS.
+{
+
+    wxString sndfrm02;
+    char     temp_str[LISTSIZE] = {'\0'};
+
+    char    *symbol_prefix    = NULL;
+
+    wxString *tecsoustr = GetStringAttrWXS(obj, "TECSOU");
+    char     tecsou[LISTSIZE] = {'\0'};
+
+    wxString *quasoustr = GetStringAttrWXS(obj, "QUASOU");
+    char     quasou[LISTSIZE] = {'\0'};
+
+    wxString *statusstr = GetStringAttrWXS(obj, "STATUS");
+    char     status[LISTSIZE] = {'\0'};
+
+    double   leading_digit    = 0.0;
+
+    // FIXME: test to fix the rounding error (!?)
+    depth_value  += (depth_value > 0.0)? 0.01: -0.01;
+    leading_digit = (int) depth_value;
+
+    if (depth_value <= S52_getMarinerParam(S52_MAR_SAFETY_DEPTH))
+        symbol_prefix = "SOUNDS";
+    else
+        symbol_prefix = "SOUNDG";
+
+    if (NULL != tecsoustr)
+    {
+        _parseList(tecsoustr->c_str(), tecsou);
+        if (strpbrk(tecsou, "\006"))
+        {
+            sprintf(temp_str, ";SY(%sB1)", symbol_prefix);
+            sndfrm02.Append(temp_str);
+        }
+    }
+
+    if (NULL != quasoustr) _parseList(quasoustr->c_str(), quasou);
+    if (NULL != statusstr) _parseList(statusstr->c_str(), status);
+
+    if (strpbrk(quasou, "\003\004\005\010\011") || strpbrk(status, "\022"))
+    {
+        sprintf(temp_str, ";SY(%sC2)", symbol_prefix);
+        sndfrm02.Append(temp_str);
+
+    }
+    else
+    {
+        wxString *quaposstr = GetStringAttrWXS(obj, "QUAPOS");
+        int quapos    = (NULL == quaposstr)? 0 : atoi(quaposstr->c_str());
+
+        if (NULL != quaposstr)
+        {
+            if (2 <= quapos && quapos < 10)
+            {
+                sprintf(temp_str, ";SY(%sC2)", symbol_prefix);
+                sndfrm02.Append(temp_str);
+            }
+        }
+        delete quaposstr;
+    }
+
+    // Continuation A
+    if (depth_value < 10.0) {
+        // can be above water (negative)
+        int fraction = (int)ABS((depth_value - leading_digit)*10);
+
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)ABS(leading_digit));
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix, fraction);
+        sndfrm02.Append(temp_str);
+
+        // above sea level (negative)
+        if (depth_value < 0.0)
+        {
+            sprintf(temp_str, ";SY(%sA1)", symbol_prefix);
+            sndfrm02.Append(temp_str);
+        }
+        goto return_point;
+    }
+
+    if (depth_value < 31.0) {
+        double fraction = depth_value - floor(leading_digit);
+
+        if (fraction != 0.0) {
+            fraction = fraction * 10;
+            if (leading_digit >= 10.0)
+            {
+                sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)leading_digit/10);
+                sndfrm02.Append(temp_str);
+            }
+
+            sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)leading_digit);
+            sndfrm02.Append(temp_str);
+            sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix, (int)fraction);
+            sndfrm02.Append(temp_str);
+
+            goto return_point;
+        }
+    }
+
+    // Continuation B
+    depth_value = leading_digit;    // truncate to integer
+    if (depth_value < 100.0)
+    {
+        double first_digit = floor(leading_digit / 10);
+        double secnd_digit = floor(leading_digit - (first_digit * 10));
+
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)first_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix, (int)secnd_digit);
+        sndfrm02.Append(temp_str);
+
+        goto return_point;
+    }
+
+    if (depth_value < 1000.0)
+    {
+        double first_digit = floor(leading_digit / 100);
+        double secnd_digit = floor((leading_digit - (first_digit * 100)) / 10);
+        double third_digit = floor(leading_digit - (first_digit * 100) - (secnd_digit * 10));
+
+        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)first_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)secnd_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix, (int)third_digit);
+        sndfrm02.Append(temp_str);
+
+        goto return_point;
+    }
+
+    if (depth_value < 10000.0)
+    {
+        double first_digit = floor(leading_digit / 1000);
+        double secnd_digit = floor((leading_digit - (first_digit * 1000)) / 100);
+        double third_digit = floor((leading_digit - (first_digit * 1000) - (secnd_digit * 100)) / 10);
+        double last_digit  = floor(leading_digit - (first_digit * 1000) - (secnd_digit * 100) - (third_digit * 100)) ;
+
+        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)first_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)secnd_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix, (int)third_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s4%1i)", symbol_prefix, (int)last_digit);
+        sndfrm02.Append(temp_str);
+
+        goto return_point;
+    }
+
+    // Continuation C
+    {
+        double first_digit  = floor(leading_digit / 10000);
+        double secnd_digit  = floor((leading_digit - (first_digit * 10000)) / 1000);
+        double third_digit  = floor((leading_digit - (first_digit * 10000) - (secnd_digit * 1000)) / 100 );
+        double fourth_digit = floor((leading_digit - (first_digit * 10000) - (secnd_digit * 1000) - (third_digit * 100)) / 10 ) ;
+        double last_digit   = floor(leading_digit - (first_digit * 10000) - (secnd_digit * 1000) - (third_digit * 100) - (fourth_digit * 10)) ;
+
+        sprintf(temp_str, ";SY(%s3%1i)", symbol_prefix, (int)first_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)secnd_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)third_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix, (int)fourth_digit);
+        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s4%1i)", symbol_prefix, (int)last_digit);
+        sndfrm02.Append(temp_str);
+
+        goto return_point;
+    }
+
+return_point:
+        sndfrm02.Append('\037');
+
+        char *r = (char *)malloc(sndfrm02.Len() + 1);
+        strcpy(r, sndfrm02.c_str());
+
+        delete tecsoustr;
+        delete quasoustr;
+        delete statusstr;
+
+        return r;
 }
 
 
@@ -1439,13 +1651,14 @@ Cond condTable[] = {
    {"RESTRN01",RESTRN01},
 //   {"RESCSP01",RESCSP01},
    {"SEABED01",SEABED01},
-   {"SNDFRM02",SNDFRM02},
+//   {"SNDFRM02",SNDFRM02},
    {"SOUNDG02",SOUNDG02},
    {"TOPMAR01",TOPMAR01},
    {"UDWHAZ03",UDWHAZ03},
    {"VESSEL01",VESSEL01},
    {"VRMEBL01",VRMEBL01},
    {"WRECKS02",WRECKS02},
+   {"SOUNDG03",SOUNDG03},                   // special case for MPS
    {"########",NULL}
 };
 
