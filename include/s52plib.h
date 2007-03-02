@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.3 2006/10/07 03:50:54 dsr Exp $
+ * $Id: s52plib.h,v 1.4 2007/03/02 02:06:32 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.4  2007/03/02 02:06:32  dsr
+ * Convert to UTM Projection
+ *
  * Revision 1.3  2006/10/07 03:50:54  dsr
  * *** empty log message ***
  *
@@ -70,7 +73,6 @@
 
 
 #include "s52s57.h"                 //types
-
 
 //    Dynamic arrays of pointers need explicit macros in wx261
 #ifdef __WX261

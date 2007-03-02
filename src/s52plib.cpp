@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.6 2006/12/03 21:36:23 dsr Exp $
+ * $Id: s52plib.cpp,v 1.7 2007/03/02 01:59:23 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.7  2007/03/02 01:59:23  dsr
+ * Convert to UTM Projection
+ *
  * Revision 1.6  2006/12/03 21:36:23  dsr
  * On text objects, define a bounding box to include text extents fully. This forces full redraw on viewport intersection, so that text objects scrolling onto the screen are always rendered.
  *
@@ -108,6 +111,8 @@
 #include "s52plib.h"
 #include "s57chart.h"                   // for back function references
 #include "mygeom.h"
+#include "cutil.h"
+
 #include <stdlib.h>                             // 261, min() becomes __min(), etc.
 
 #include "wx/image.h"                   // Missing from wxprec.h
@@ -116,15 +121,9 @@
 #include <malloc.h>
 #endif
 
-
-extern "C" void gpc_polygon_clip(gpc_op       operation,
-                                gpc_polygon *subject_p,
-                                gpc_polygon *clip_p,
-                                gpc_polygon *result_p);
-
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.6 2006/12/03 21:36:23 dsr Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.7 2007/03/02 01:59:23 dsr Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -843,6 +842,9 @@ Rules *s52plib::StringToRules(char *str)
 
       // parse Symbology instruction in string
 
+      // Special Case for MultPoint Soundings
+           INSTRUCTION("MP",RUL_MUL_SG) SCANFWRD }
+
       // SHOWTEXT
             INSTRUCTION("TX",RUL_TXT_TX) SCANFWRD }
 
@@ -914,13 +916,11 @@ Rules *s52plib::StringToRules(char *str)
    }
 
 //  If it should happen that no rule is built, delete the initially allocated rule
-
    if(0 == top->ruleType)
     {
         free(top);
         top = NULL;
     }
-
 
    return top;
 }
@@ -2112,15 +2112,23 @@ char      *_getParamVal(ObjRazRules *rzRules, char *str, char *buf, int bsz)
         }
 
         // special case ENC return an index
-// Todo Build static natsur character array
-        if (0/*0==strncmp(buf, "NATSUR", 6)*/) {
+// Todo parse value, including comma delimiters, pass to GetAttributeDecode,
+        // and format str.  Think about cacheing this??
+        if (!strncmp(buf, "NATSUR", 6))
+        {
+
+            wxString att("NATSUR");
+//            wxString *pnat = rzRules->chart->GetAttributeDecode(att, 17);
+
 //            int i = atoi(value.c_str());
 
 //            if ( 0 < i && i <= MAX_NATSUR)
 //                strcpy(buf, natsur[i]);
 
 
-        } else {
+        }
+        else
+        {
             strncpy(buf, value.c_str(), vallen);            // value from ENC
             buf[vallen] = '\0';
         }
@@ -2337,26 +2345,9 @@ int s52plib::_renderTX(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 
         S52_Text *text = NULL;
 
+//  Render text at declared x/y of object
         wxPoint r;
-//  if Object is area, Render text at centroid of BoundingBox
-        if(rzRules->obj->Primitive_type == GEO_AREA)
-        {
-            float cent_lat, cent_lon;
-            wxBoundingBox *bb = &(rzRules->obj->BBObj);
-
-            cent_lat = ((bb->GetMinY()) + (bb->GetMaxY())) / 2;
-            cent_lon = ((bb->GetMinX()) + (bb->GetMaxX())) / 2;
-
-            rzRules->chart->GetPointPix(cent_lat, cent_lon, &r);
-
-        }
-        else
-        {
-            float xlon = rzRules->obj->x;
-            float ylat = rzRules->obj->y;
-
-            rzRules->chart->GetPointPix(ylat, xlon, &r);
-        }
+        rzRules->chart->GetPointPix(rzRules, rzRules->obj->y, rzRules->obj->x, &r);
 
 
 /*
@@ -2389,10 +2380,10 @@ int s52plib::_renderTX(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
                 if(rzRules->obj->Primitive_type == GEO_POINT)
                 {
                     double plat, plon;
-                    rzRules->chart->pix_to_latlong(r.x + text->xoffs, r.y + text->yoffs + dy, &plat, &plon);
+                    rzRules->chart->GetPixPoint(r.x + text->xoffs, r.y + text->yoffs + dy, &plat, &plon, vp);
                     rzRules->obj->BBObj.SetMin(plon, plat);
 
-                    rzRules->chart->pix_to_latlong(r.x + text->xoffs + dx, r.y + text->yoffs, &plat, &plon);
+                    rzRules->chart->GetPixPoint(r.x + text->xoffs + dx, r.y + text->yoffs, &plat, &plon, vp);
                     rzRules->obj->BBObj.SetMax(plon, plat);
 
                 }
@@ -2413,26 +2404,9 @@ int s52plib::_renderTE(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 
         S52_Text *text = NULL;
 
+        //  Render text at declared x/y of object
         wxPoint r;
-//  if Object is area, Render text at centroid of BoundingBox
-        if(rzRules->obj->Primitive_type == GEO_AREA)
-        {
-            float cent_lat, cent_lon;
-            wxBoundingBox *bb = &(rzRules->obj->BBObj);
-
-            cent_lat = ((bb->GetMinY()) + (bb->GetMaxY())) / 2;
-            cent_lon = ((bb->GetMinX()) + (bb->GetMaxX())) / 2;
-
-            rzRules->chart->GetPointPix(cent_lat, cent_lon, &r);
-
-        }
-        else
-        {
-            float xlon = rzRules->obj->x;
-            float ylat = rzRules->obj->y;
-
-            rzRules->chart->GetPointPix(ylat, xlon, &r);
-        }
+        rzRules->chart->GetPointPix(rzRules, rzRules->obj->y, rzRules->obj->x, &r);
 
 
         int dx, dy;
@@ -2449,10 +2423,10 @@ int s52plib::_renderTE(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
                 if(rzRules->obj->Primitive_type == GEO_POINT)
                 {
                     double plat, plon;
-                    rzRules->chart->pix_to_latlong(r.x + text->xoffs, r.y + text->yoffs + dy, &plat, &plon);
+                    rzRules->chart->GetPixPoint(r.x + text->xoffs, r.y + text->yoffs + dy, &plat, &plon, vp);
                     rzRules->obj->BBObj.SetMin(plon, plat);
 
-                    rzRules->chart->pix_to_latlong(r.x + text->xoffs + dx, r.y + text->yoffs, &plat, &plon);
+                    rzRules->chart->GetPixPoint(r.x + text->xoffs + dx, r.y + text->yoffs, &plat, &plon, vp);
                     rzRules->obj->BBObj.SetMax(plon, plat);
 
                 }
@@ -3068,29 +3042,12 @@ int s52plib::_renderSY(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
            angle = 135;
 
 
-        float xlon = rzRules->obj->x;
-        float ylat = rzRules->obj->y;
-
+        //  Render symbol at object's x/y
         wxPoint r;
-        rzRules->chart->GetPointPix(ylat, xlon, &r);
+        rzRules->chart->GetPointPix(rzRules, rzRules->obj->y, rzRules->obj->x, &r);
 
 
-        if(rzRules->obj->Primitive_type == GEO_AREA)
-        {
-            //  Render symbol at centroid of BoundingBox
-            float cent_lat, cent_lon;
-            wxBoundingBox *bb = &(rzRules->obj->BBObj);
-
-            cent_lat = ((bb->GetMinY()) + (bb->GetMaxY())) / 2;
-            cent_lon = ((bb->GetMinX()) + (bb->GetMaxX())) / 2;
-
-            wxPoint rc;
-            rzRules->chart->GetPointPix(cent_lat, cent_lon, &rc);
-
-            r=rc;
-        }
-
-
+        //  Render a raster or vector symbol, as specified by LUP rules
         if(rules->razRule->definition.SYDF == 'V')
                 RenderHPGL(rules->razRule, pdc, r, angle);
 
@@ -3179,18 +3136,6 @@ return 0;
 */
 }
 
-//-----------------------------------------------------------------------------
-//          C Linkage to clip.c
-//-----------------------------------------------------------------------------
-
-extern "C" {
-      typedef enum { Visible, Invisible } ClipResult;
-      ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
-                                   int xmin_, int xmax_, int ymin_, int ymax_);
-}
-
-
-
 // Line Simple Style
 int s52plib::_renderLS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 {
@@ -3235,26 +3180,22 @@ int s52plib::_renderLS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
             for(int ic = 0; ic < pptg->nContours ; ic++)
             {
 
-                int npt = pptg->pn_vertex[ic];
+                npt = pptg->pn_vertex[ic];
                 wxPoint *ptp = (wxPoint *)malloc((npt + 1) * sizeof(wxPoint));
                 wxPoint *pr = ptp;
 
                 float *pf = &ppolygeo[ctr_offset];
                 for(int ip=0 ; ip < npt ; ip++)
                 {
-
-//                        float plon = ppolygeo[(2 * ip) + ctr_offset];
-//                        float plat = ppolygeo[(2 * ip) + ctr_offset + 1];
-
                     float plon = *pf++;
                     float plat = *pf++;
 
-                    rzRules->chart->GetPointPix(plat, plon, pr);
+                    rzRules->chart->GetPointPix(rzRules, plat, plon, pr);
                     pr++;
                 }
                 float plon = ppolygeo[ ctr_offset];             // close the polyline
                 float plat = ppolygeo[ ctr_offset + 1];
-                rzRules->chart->GetPointPix(plat, plon, pr);
+                rzRules->chart->GetPointPix(rzRules, plat, plon, pr);
 
 
                 for(int ipc=0 ; ipc < npt ; ipc++)
@@ -3293,7 +3234,7 @@ int s52plib::_renderLS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
                     float plat = ppt->y;
                     float plon = ppt->x;
 
-                    rzRules->chart->GetPointPix(plat, plon, &p);
+                    rzRules->chart->GetPointPix(rzRules, plat, plon, &p);
 
                     *pr = p;
 
@@ -3349,12 +3290,12 @@ int s52plib::_renderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
                     float plon = ppolygeo[(2 * ip) + ctr_offset];
                     float plat = ppolygeo[(2 * ip) + ctr_offset + 1];
 
-                    rzRules->chart->GetPointPix(plat, plon, pr);
+                    rzRules->chart->GetPointPix(rzRules, plat, plon, pr);
                     pr++;
                 }
                 float plon = ppolygeo[ ctr_offset];             // close the polyline
                 float plat = ppolygeo[ ctr_offset + 1];
-                rzRules->chart->GetPointPix(plat, plon, pr);
+                rzRules->chart->GetPointPix(rzRules, plat, plon, pr);
 
 
                 draw_lc_poly(pdc, ptp, npt + 1, sym_len, sym_factor, rules->razRule);
@@ -3379,7 +3320,7 @@ int s52plib::_renderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
                         float plat = ppt->y;
                         float plon = ppt->x;
 
-                        rzRules->chart->GetPointPix(plat, plon, &p);
+                        rzRules->chart->GetPointPix(rzRules, plat, plon, &p);
 
                         *pr = p;
 
@@ -3466,30 +3407,68 @@ void s52plib::draw_lc_poly(wxDC *pdc, wxPoint *ptp, int npt,
 // Multipoint Sounding
 int s52plib::_renderMPS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 {
-      OGRMultiPoint *pMP = (OGRMultiPoint *)(rzRules->obj->OGeo);
-      int npt = pMP->getNumGeometries();
+    int npt = rzRules->obj->npt;
 
       wxPoint p;
+      double *pd = rzRules->obj->geoPtz;            // the UTM points
+      double *pdl = rzRules->obj->geoPtMulti;       // and corresponding lat/lon
+
       for(int ip=0 ; ip<npt ; ip++)
       {
-            OGRPoint *poPoint = (OGRPoint *)( pMP->getGeometryRef( ip ));
 
-            float plat = poPoint->getY();
-            float plon = poPoint->getX();
-            float z = poPoint->getZ();
+            double east = *pd++;
+            double nort = *pd++;;
+            double depth = *pd++;
 
-            rzRules->chart->GetPointPix(plat, plon, &p);
 
+            ObjRazRules *point_rzRules = new ObjRazRules;
+            *point_rzRules = *rzRules;              // take a copy of attributes, etc
+
+            //  Need a new LUP
+            LUPrec *NewLUP = new LUPrec;
+            *NewLUP = *(rzRules->LUP);
+            point_rzRules->LUP = NewLUP;
+
+            //  Need a new S57Obj
+            S57Obj *point_obj = new S57Obj;
+            *point_obj = *(rzRules->obj);
+            point_rzRules->obj = point_obj;
+
+            //  Touchup the new items
+            point_rzRules->obj->bCS_Added = false;
+            point_rzRules->obj->bIsClone = true;
+
+            point_rzRules->next = NULL;
+            Rules *ru = StringToRules("CS(SOUNDG03");
+            point_rzRules->LUP->ruleList = ru;
+
+            point_obj->x = east;
+            point_obj->y = nort;
+            point_obj->z = depth;
+
+            double lon = *pdl++;
+            double lat = *pdl++;
+            point_obj->BBObj.SetMin(lon, lat);
+            point_obj->BBObj.SetMax(lon, lat);
+
+            _draw(pdc, point_rzRules, vp);
+
+            delete ru;
+            delete point_obj;
+            delete point_rzRules;
+            delete NewLUP;
+
+/*
+            rzRules->chart->GetPointPix(rzRules, nort, east, &p);
             char str[10];
-            if(z < 10)
-                  sprintf(str, "%3.1f", z);
+            if(depth < 10)
+                sprintf(str, "%3.1f", depth);
             else
-                  sprintf(str, "%3.0f", z);
+                sprintf(str, "%3.0f", depth);
 
             int dx, dy;
-            RenderText(pdc, pSmallFont, str,
-                       p.x, p.y, dx, dy);
-
+            RenderText(pdc, pSmallFont, str, p.x, p.y, dx, dy);
+*/
       }
 
 
@@ -3552,24 +3531,24 @@ int s52plib::_draw(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
     pdc = pdcin;                    // use this DC
     Rules *rules = rzRules->LUP->ruleList;
 
-//       if(!strncmp(rzRules->LUP->OBCL, "CTNARE", 6))
+//       if(!strncmp(rzRules->LUP->OBCL, "SOUNDG", 6))
 //        int yyrt = 4;
 
 
 
         while (rules != NULL)
         {
-                  switch (rules->ruleType){
+                switch (rules->ruleType){
 //                         case RUL_ARE_CO:       _renderAC(rzRules,rules, vp);break;             // AC
-                         case RUL_TXT_TX:       _renderTX(rzRules,rules, vp);break;             // TX
-                         case RUL_TXT_TE:       _renderTE(rzRules,rules, vp);break;             // TE
-                         case RUL_SYM_PT:       _renderSY(rzRules,rules, vp);break;             // SY
-                         case RUL_SIM_LN:       _renderLS(rzRules,rules, vp);break;             // LS
-                         case RUL_COM_LN:       _renderLC(rzRules,rules, vp);break;             // LC
-                         case RUL_MUL_SG:       _renderMPS(rzRules,rules, vp);break;            // MultiPoint Sounding
+                        case RUL_TXT_TX:       _renderTX(rzRules,rules, vp);break;             // TX
+                        case RUL_TXT_TE:       _renderTE(rzRules,rules, vp);break;             // TE
+                        case RUL_SYM_PT:       _renderSY(rzRules,rules, vp);break;             // SY
+                        case RUL_SIM_LN:       _renderLS(rzRules,rules, vp);break;             // LS
+                        case RUL_COM_LN:       _renderLC(rzRules,rules, vp);break;             // LC
+                        case RUL_MUL_SG:       _renderMPS(rzRules,rules, vp);break;            // MultiPoint Sounding
 
-                         case RUL_CND_SY:
-                             {
+                        case RUL_CND_SY:
+                            {
                                 if(!rzRules->obj->bCS_Added)
                                 {
                                     rzRules->obj->CSrules = NULL;
@@ -3583,16 +3562,16 @@ int s52plib::_draw(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
                                 {
                                     switch (rules->ruleType)
                                     {
-//                                        case RUL_ARE_CO:       _renderAC(rzRules,rules, vp);break;             // AC
-                                        case RUL_TXT_TX:       _renderTX(rzRules,rules, vp);break;             // TX
-                                        case RUL_TXT_TE:       _renderTE(rzRules,rules, vp);break;             // TE
-                                        case RUL_SYM_PT:       _renderSY(rzRules,rules, vp);break;             // SY
-                                        case RUL_SIM_LN:       _renderLS(rzRules,rules, vp);break;             // LS
-                                        case RUL_COM_LN:       _renderLC(rzRules,rules, vp);break;             // LC
-                                        case RUL_MUL_SG:       _renderMPS(rzRules,rules, vp);break;            // MultiPoint Sounding
+//                                        case RUL_ARE_CO:       _renderAC(rzRules,rules, vp);break;
+                                        case RUL_TXT_TX:       _renderTX(rzRules,rules, vp);break;
+                                        case RUL_TXT_TE:       _renderTE(rzRules,rules, vp);break;
+                                        case RUL_SYM_PT:       _renderSY(rzRules,rules, vp);break;
+                                        case RUL_SIM_LN:       _renderLS(rzRules,rules, vp);break;
+                                        case RUL_COM_LN:       _renderLC(rzRules,rules, vp);break;
+                                        case RUL_MUL_SG:       _renderMPS(rzRules,rules, vp);break;   // MultiPoint Sounding
                                         case RUL_NONE:
                                         default:
-                                          break; // no rule type (init)
+                                        break; // no rule type (init)
                                     }
                                     rules_last = rules;
                                     rules = rules->next;
@@ -3600,12 +3579,12 @@ int s52plib::_draw(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 
                                 rules = rules_last;
                                 break;
-                             }
+                            }
 
-                         case RUL_NONE:
-                         default:
-                                 break; // no rule type (init)
-                  }                                     // switch
+                        case RUL_NONE:
+                        default:
+                                break; // no rule type (init)
+                }                                     // switch
 
                   rules = rules->next;
          }
@@ -4100,7 +4079,6 @@ void s52plib::FastRenderFilledPolygon(ObjRazRules *rzRules,
         TriPrim *p_tp = ppg->tri_prim_head;
         while(p_tp)
         {
-
             if(BBView.Intersect(*(p_tp->p_bbox), 0) != _OUT)
             {
                 //      Get and convert the points
@@ -4115,7 +4093,7 @@ void s52plib::FastRenderFilledPolygon(ObjRazRules *rzRules,
                 {
                     double lon = *pvert_list++;
                     double lat = *pvert_list++;
-                    rzRules->chart->GetPointPixEst(lat, lon, pr);
+                    rzRules->chart->GetPointPix(rzRules, lat, lon, pr);
 
                     pr++;
                 }
@@ -4339,6 +4317,9 @@ int s52plib::FastRenderAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
 //  Use the current viewport as a bounding box
     wxBoundingBox BBView(vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top);
 
+    FastRenderFilledPolygon(rzRules, rzRules->obj, NULL, BBView, pb_spec, NULL, ppatt_spec);
+
+/*
 //  If no interior rings occur, then make a call to renderer directly without mask
 
     S57Obj    *ring = rzRules->obj->ring;
@@ -4351,7 +4332,8 @@ int s52plib::FastRenderAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
 //    Else build a mask of the object, considering interior rings as "holes"
     else
     {
-/*
+        int iop = 4;
+
 
         render_canvas_parms patt_mask;
         patt_mask = *pb_spec;                   // mask geometry is identical to canvas
@@ -4368,17 +4350,13 @@ int s52plib::FastRenderAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
 
         FastRenderFilledPolygon(rzRules, rzRules->obj, &ctb, BBView, &patt_mask, NULL, NULL);
 
-
-
-
-
-
         //  Do an area render using pattern, color, and mask
 
         FastRenderFilledPolygon(rzRules, rzRules->obj, c, BBView, pb_spec, &patt_mask, pPCPatt);
-  */
+
     }
-    // Clean up
+    */
+        // Clean up
 
 }       // Raster
 
@@ -4391,12 +4369,15 @@ int s52plib::FastRenderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
 {
    color *c;
    char *str = (char*)rules->INSTstr;
-   S57Obj    *ring = NULL;
    wxBoundingBox BBView(vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top);
 
    c = ps52plib->S52_getColor(str);
 
+   FastRenderFilledPolygon(rzRules,     rzRules->obj, c, BBView, pb_spec, NULL, NULL);
+   return 1;
 
+   /*
+   S57Obj    *ring = NULL;
    ring = rzRules->obj->ring;
 
    if(ring == NULL)                                                     // no holes
@@ -4462,6 +4443,7 @@ int s52plib::FastRenderAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
 
 
    return 1;
+*/
 }
 
 
@@ -4663,8 +4645,8 @@ void s52plib::GetAndAddCSRules(ObjRazRules *rzRules, Rules *rules)
 
 bool s52plib::ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp)
 {
-    wxBoundingBox BBView(vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top);
-
+//    wxBoundingBox BBView(vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top);
+    wxBoundingBox BBView = vp->vpBBox;
     if (rzRules->obj==NULL)
         return false;
 

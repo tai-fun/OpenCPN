@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.5 2006/10/08 00:36:25 dsr Exp $
+ * $Id: s57chart.h,v 1.6 2007/03/02 02:07:11 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.6  2007/03/02 02:07:11  dsr
+ * Convert to UTM Projection
+ *
  * Revision 1.5  2006/10/08 00:36:25  dsr
  * no message
  *
@@ -113,11 +116,11 @@
 #include "s52s57.h"                 //types
 
 // ----------------------------------------------------------------------------
-// Random Prototypes
+// Useful Prototypes
 // ----------------------------------------------------------------------------
-extern "C" void UTMtoDeg(double long0, short southernHemisphere, double x, double y, double *lat, double *lon);
-extern "C" void DegToUTM(float lat, float lon, char *zone, float *x, float *y, float lon0);
-extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, float *x, float *y);
+//extern "C" void UTMtoDeg(double long0, short southernHemisphere, double x, double y, double *lat, double *lon);
+//extern "C" void DegToUTM(float lat, float lon, char *zone, float *x, float *y, float lon0);
+extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y);
 extern "C" void fromTM(double x, double y, double lat0, double lon0, double k0, double *lat, double *lon);
 
 // ----------------------------------------------------------------------------
@@ -181,14 +184,8 @@ public:
       virtual bool IsCacheValid(){ return false; }
 
 
- //Todo whats this??
-      void GetPointPix(float rlat, float rlon, wxPoint *r);
-      void pix_to_latlong(int pixx, int pixy, double *plat, double *plon);
-      void vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon);
-      void latlong_to_pix(double lat, double lon, int &pixx, int &pixy);
-      void latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp);
-
-      void GetPointPixEst(float rlat, float rlon, wxPoint *r);
+      void GetPointPix(ObjRazRules *rzRules, float rlat, float rlon, wxPoint *r);
+      void GetPixPoint(int pixx, int pixy, double *plat, double *plon, ViewPort *vpt);
 
       void SetVPParms(ViewPort *pvpt);
       void SetFullExtent(Extent& ext);
@@ -208,6 +205,7 @@ public:
       wxArrayPtrVoid *pFloatingATONArray;
       wxArrayPtrVoid *pRigidATONArray;
 
+      double        ref_lat, ref_lon;             // Common reference point, derived from FullExtent
 
 private:
       void DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
@@ -224,7 +222,6 @@ private:
 
       int S57_done();
       int S57_freeObj(S57Obj *obj);
-      int _create_attList(S57Obj *obj);
       const char *getName(OGRFeature *feature);
       int GetUpdateFileArray(const wxString& DirName, wxArrayString *UpFiles);
       int CountUpdates( const wxString& DirName, wxString &LastUpdateDate);
@@ -262,8 +259,13 @@ private:
 #endif
 #endif
 
-//  Linear Projection Parms
-      double        pix_per_deg_lat, pix_per_deg_lon, lat_top, lon_left;
+
+//  UTM Projection parms
+      double     easting_vp_center, northing_vp_center;
+      double    x_vp_center, y_vp_center;
+      double    view_scale_ppm;
+      double    prev_easting_ul, prev_northing_ul;
+      double    prev_easting_lr, prev_northing_lr;
 
 
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.3 2006/10/01 03:24:40 dsr Exp $
+ * $Id: mygeom.h,v 1.4 2007/03/02 02:06:21 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselation of Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
+ * Revision 1.4  2007/03/02 02:06:21  dsr
+ * Convert to UTM Projection
+ *
  * Revision 1.3  2006/10/01 03:24:40  dsr
  * no message
  *
@@ -65,7 +68,6 @@
 #define TESS_VERT   0                           // constants describing preferred tess orientation
 #define TESS_HORZ   1
 
-#define CURRENT_SENC_FORMAT_VERSION  110
 #define EQUAL_EPS 1.0e-7                        // tolerance value
 
 
@@ -76,6 +78,10 @@
 
 //  Error Return Codes
 #define ERROR_NO_DLL            1
+
+//  Some external prototypes
+extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y);
+extern "C" void fromTM(double x, double y, double lat0, double lon0, double k0, double *lat, double *lon);
 
 
 //--------------------------------------------------------------------------------------------------
@@ -139,9 +145,8 @@ class PolyTessGeo
         ~PolyTessGeo();
 
         PolyTessGeo(unsigned char *polybuf, int nrecl, int index);      // Build this from SENC file record
-        PolyTessGeo(OGRPolygon *poly);                                  // Build this from OGRPolygon
+        PolyTessGeo(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon);  // Build this from OGRPolygon
 
-        void Tess_and_write_PolyTriGroup(OGRPolygon *poly, FILE *ofs);
         int Write_PolyTriGroup( FILE *ofs);
 
         double Get_xmin(){ return xmin;}
@@ -154,8 +159,8 @@ class PolyTessGeo
 
 
     private:
-        int PolyTessGeoGL(OGRPolygon *poly);
-        int PolyTessGeoTri(OGRPolygon *poly);
+        int PolyTessGeoGL(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon);
+        int PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon);
         int my_bufgets( char *buf, int buf_len_max );
 
 

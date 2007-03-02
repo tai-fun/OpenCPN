@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.3 2006/10/08 00:36:25 dsr Exp $
+ * $Id: s52s57.h,v 1.4 2007/03/02 02:06:32 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.4  2007/03/02 02:06:32  dsr
+ * Convert to UTM Projection
+ *
  * Revision 1.3  2006/10/08 00:36:25  dsr
  * no message
  *
@@ -70,10 +73,9 @@
 #ifndef _S52S57_H_
 #define _S52S57_H_
 
-
-
-#include "gpc.h"
 #include "bbox.h"
+
+#define CURRENT_SENC_FORMAT_VERSION  112
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
@@ -81,8 +83,8 @@ class OGREnvelope;
 class OGRGeometry;
 
 typedef enum _S52_table_t{
-                  //S52_PL_ID,                  // S52 Library Identification Module DB
-                  //S52_PL_COL,                 // Colour Table (6)
+       //S52_PL_ID,                  // S52 Library Identification Module DB
+       //S52_PL_COL,                 // Colour Table (6)
          S52_LUP_PT_SIMPL,    // Look-Up Table for simplified point symbol
          S52_LUP_PT_PAPER,    // Look-Up Table for paper chart point symbol
          S52_LUP_LINE,           // Look-Up Table for line
@@ -219,28 +221,12 @@ typedef struct _Rule{
 typedef struct _Rules{
    Rules_t  ruleType;
    char    *INSTstr;          // Symbology Instruction string
-   Rule       *razRule;       // rule
+   Rule    *razRule;          // rule
    struct _Rules *next;
 }Rules;
 
 
-// LOOKUP MODULE STRUCTURE
-/*
-typedef struct _LUPrec{
-   int      RCID;       // record identifier
-   char           OBCL[7];          // Name (6 char) '\0' terminated
-   Object_t FTYP;             // 'A' Area, 'L' Line, 'P' Point
-   DisPrio  DPRI;             // Display Priority
-   RadPrio  RPRI;             // 'O' or 'S', Radar Priority
-   LUPname  TNAM;             // FTYP:  areas, points, lines
-   wxString *ATTC;                  // Attribute Code/Value (repeat)
-   wxString *INST;                  // Instruction Field (rules)
-   DisCat   DISC;             // Display Categorie: D/S/O, DisplayBase, Standard, Other
-   int            LUCM;             // Look-Up Comment (PLib3.x put 'groupes' here,
-                                          // hense 'int', but its a string in the specs)
-   Rules   *ruleList;   // rasterization rule list
-}LUPrec;
-*/
+// LOOKUP MODULE CLASS
 
 class LUPrec{
 public:
@@ -297,16 +283,13 @@ typedef struct _S52_Text {
 
 //-- COLOR MODULE STRUCTURE ---------------------------------------
 typedef struct _colTable{
-   wxString             * tableName;
-   wxArrayPtrVoid * color;
+   wxString         *tableName;
+   wxArrayPtrVoid   *color;
 }colTable;
 
 //
 // WARNING: must be in sync OGRatt_t
-// S57query.h not include to simplifie module dependencie
-// but now there is one !!!
-// Alternatively load attribute value type from file!
-#ifndef _S57QUERY_H_
+
 typedef enum _OGRatt_t{
    OGR_INT,
    OGR_INT_LST,
@@ -319,7 +302,6 @@ typedef struct _S57attVal{
    void *   value;
    OGRatt_t valType;
 }S57attVal;
-#endif
 
 
 
@@ -329,9 +311,6 @@ typedef struct _OBJLElement{
 }OBJLElement;
 
 
-
-// From s57
-// WDR: class declarations
 
 // OGR primitiv
 typedef enum _geoPrim_t{
@@ -343,18 +322,10 @@ typedef enum _geoPrim_t{
 }GeoPrim_t;
 
 
-// in sync with OGREnvelope
-
 typedef struct _pt{
    double x;
    double y;
 }pt;
-
-typedef struct _opt{
-   double x;
-   double y;
-}opt;
-
 
 
 //      Fwd References
@@ -381,27 +352,24 @@ private:
 
 public:
       // Instance Data
-      S57Obj                  *thisObj;
       char                    FeatureName[8];
       GeoPrim_t               Primitive_type;
 
       wxString                *attList;
       wxArrayOfS57attVal      *attVal;
 
-      OGRFeature              *objectDef;             // opaque
       int                     iOBJL;
       int                     Index;
 
-      OGRGeometry             *OGeo;                  // pointer to the native OGR Geometry
-      int                     npt;                    // number of point in geoPt
       double                  x;                      // for POINT
       double                  y;
       double                  z;
-      pt                      *geoPt;                 // for LINE & AREA
-      S57Obj                  *ring;                  // list of interior ring
-
+      int                     npt;                    // number of points as needed by arrays
+      pt                      *geoPt;                 // for LINE & AREA not described by PolyTessGeo
+      double                  *geoPtz;                // an array[3] for MultiPoint, UTM with Z, i.e. depth
+      double                  *geoPtMulti;            // an array[2] for MultiPoint, lat/lon to make bbox
+                                                      // of decomposed points
       PolyTessGeo             *pPolyTessGeo;
-
 
       wxBoundingBox           BBObj;
 
@@ -412,7 +380,7 @@ public:
       int                     bFText_Added;
 
       int                     Scamin;                 // SCAMIN attribute decoded during load
-
+      bool                    bIsClone;
 };
 
 
@@ -428,19 +396,6 @@ typedef struct _ObjRazRules{
 }ObjRazRules;
 
 
-/*
-class polygroup
-{
-public:
-    int         nPolys;
-    int         nCntr;
-    double      **pvert_array;
-    float       *pPolyGeo;
-    int         *pnv_array;
-    int         *pct_array;
-    polygroup   *next;
-};
-*/
 
 
 

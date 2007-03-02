@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.6 2007/01/19 02:18:55 dsr Exp $
+ * $Id: s57chart.cpp,v 1.7 2007/03/02 01:59:16 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.7  2007/03/02 01:59:16  dsr
+ * Convert to UTM Projection
+ *
  * Revision 1.6  2007/01/19 02:18:55  dsr
  * Cleanup
  *
@@ -73,7 +76,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.6 2007/01/19 02:18:55 dsr Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.7 2007/03/02 01:59:16 dsr Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -97,6 +100,14 @@ static jmp_buf env_ogrf;                    // the context saved by setjmp();
 #include <wx/arrimpl.cpp>                   // Implement an array of S57 Objects
 WX_DEFINE_OBJARRAY(ArrayOfS57Obj);
 
+//  This needs to be temporarily static so that S57OBJ ctor can use it to
+//  convert SENC UTM data to lat/lon for bounding boxes.
+//  Eventually, goes into private data when chart rendering is done by
+//  UTM methods only.
+//  At that point, S57OBJ works only in UTM
+
+static double s_ref_lat, s_ref_lon;
+
 
 
 //----------------------------------------------------------------------------------
@@ -105,16 +116,17 @@ WX_DEFINE_OBJARRAY(ArrayOfS57Obj);
 
 S57Obj::S57Obj()
 {
-        thisObj = this;
         attList = NULL;
         attVal = NULL;
-        ring = NULL;
         pPolyTessGeo = NULL;
         bCS_Added = 0;
         CSrules = NULL;
         FText = NULL;
         bFText_Added = 0;
-        OGeo = NULL;
+        geoPtMulti = NULL;
+        geoPtz = NULL;
+        geoPt = NULL;
+        bIsClone = false;
         Scamin = 10000000;                              // ten million enough?
 }
 
@@ -124,6 +136,35 @@ S57Obj::S57Obj()
 
 S57Obj::~S57Obj()
 {
+    //  Don't delete any allocated records of simple copy clones
+    if(!bIsClone)
+    {
+        for(unsigned int iv = 0 ; iv < attVal->GetCount() ; iv++)
+        {
+            S57attVal *vv =  attVal->Item(iv);
+            void *v2 = vv->value;
+            free(v2);
+            delete vv;
+        }
+        delete attVal;
+        delete attList;
+
+
+        delete pPolyTessGeo;
+
+        if(FText)
+        {
+            delete FText->frmtd;    // the formatted text string
+            free(FText);
+        }
+
+        if(geoPt)
+            free(geoPt);
+        if(geoPtz)
+            free(geoPtz);
+        if(geoPtMulti)
+            free(geoPtMulti);
+    }
 }
 
 //----------------------------------------------------------------------------------
@@ -131,27 +172,26 @@ S57Obj::~S57Obj()
 //----------------------------------------------------------------------------------
 
 S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
-
 {
-    thisObj = this;
     attList = NULL;
     attVal = NULL;
-    ring = NULL;
     pPolyTessGeo = NULL;
     bCS_Added = 0;
     CSrules = NULL;
     FText = NULL;
     bFText_Added = 0;
-    OGeo = NULL;
+    bIsClone = false;
+
+    geoPtMulti = NULL;
+    geoPtz = NULL;
+    geoPt = NULL;
     Scamin = 10000000;                              // ten million enough?
 
     int FEIndex;
 
-
     int MAX_LINE = 499999;
     char *buf = (char *)malloc(MAX_LINE + 1);
     int llmax = 0;
-
 
     char szFeatureName[20];
 
@@ -159,13 +199,9 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
     char szAtt[20];
     char geoMatch[20];
 
-    OGRGeometry     *OGRgeo;
-    bool            bMulti;
-    OGREnvelope     Envelope;
-
+    bool bMulti = false;
 
     char *hdr_buf = (char *)malloc(1);
-
 
     if(strlen(first_line) == 0)
         return;
@@ -178,11 +214,6 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
         {
             attList = new wxString();
             attVal =  new wxArrayOfS57attVal();
-            geoPt = NULL;
-            OGeo = NULL;
-
-            bMulti = false;
-
 
             FEIndex = atoi(buf+19);
 
@@ -190,14 +221,11 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
             szFeatureName[6] = 0;
             strcpy(FeatureName, szFeatureName);
 
-
     //      Build/Maintain a list of found OBJL types for later use
     //      And back-reference the appropriate list index in S57Obj for Display Filtering
 
-
             bool bNeedNew = true;
             OBJLElement *pOLE;
-
 
             for(unsigned int iPtr = 0 ; iPtr < ps52plib->pOBJLArray->GetCount() ; iPtr++)
             {
@@ -402,9 +430,7 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                     else
                         delete pattValTmp;
 
-
                 }        //useful
-
             }               // while attdun
 
 
@@ -419,52 +445,78 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                     {
                         Primitive_type = GEO_POINT;
 
-                        OGRPoint *point = new OGRPoint;
-
                         my_fgets(buf, MAX_LINE, *pfpx);
                         int wkb_len = atoi(buf+2);
                         pfpx->Read(buf,  wkb_len);
 
-                        point->importFromWkb( (unsigned char *)buf );
-
                         npt  = 1;
-                        x   = point->getX();
-                        y   = point->getY();
-                        z   = point->getZ();
+                        float *pfs = (float *)(buf + 5);                // point to the point
 
-                        OGRgeo = point;
+                        float easting, northing;
+                        easting = *pfs++;
+                        northing = *pfs;
 
-   //              Setup Envelope
-                        OGRgeo->getEnvelope(&Envelope);
-                        BBObj.SetMin(Envelope.MinX, Envelope.MinY);
-                        BBObj.SetMax(Envelope.MaxX, Envelope.MaxY);
+                        x = easting;                                    // and save as UTM
+                        y = northing;
 
+                        //  Convert from UTM to lat/lon for bbox
+                        double xll, yll;
+                        fromTM(easting, northing, s_ref_lat, s_ref_lon, .9996, &yll, &xll);
+
+                        BBObj.SetMin(xll, yll);
+                        BBObj.SetMax(xll, yll);
 
                     }
                     else
                     {
                         Primitive_type = GEO_POINT;
 
-                        OGRMultiPoint *mulpoint = new OGRMultiPoint;
-
                         my_fgets(buf, MAX_LINE, *pfpx);
                         int wkb_len = atoi(buf+2);
                         pfpx->Read(buf,  wkb_len);
 
+                        npt = *((int *)(buf + 5));
 
-                        mulpoint->importFromWkb( (unsigned char *)buf );
+                        geoPtz = (double *)malloc(npt * 3 * sizeof(double));
+                        geoPtMulti = (double *)malloc(npt * 2 * sizeof(double));
 
-                        OGRgeo = mulpoint;
+                        double *pdd = geoPtz;
+                        double *pdl = geoPtMulti;
 
-    //              Setup Envelope
-                        OGRgeo->getEnvelope(&Envelope);
-                        BBObj.SetMin(Envelope.MinX, Envelope.MinY);
-                        BBObj.SetMax(Envelope.MaxX, Envelope.MaxY);
+                        float *pfs = (float *)(buf + 9);                 // start of data
+                        for(int ip=0 ; ip<npt ; ip++)
+                        {
+                            float easting, northing;
+                            easting = *pfs++;
+                            northing = *pfs++;
+                            float depth = *pfs++;
+
+                            *pdd++ = easting;
+                            *pdd++ = northing;
+                            *pdd++ = depth;
+
+                        //  Convert point from UTM to lat/lon for later use in decomposed bboxes
+                            double xll, yll;
+                            fromTM(easting, northing, s_ref_lat, s_ref_lon, .9996, &yll, &xll);
+
+                            *pdl++ = xll;
+                            *pdl++ = yll;
+                        }
+
+                        // Capture bbox limits recorded in SENC record as lon/lat
+                        float xmax = *pfs++;
+                        float xmin = *pfs++;
+                        float ymax = *pfs++;
+                        float ymin = *pfs;
+
+                        BBObj.SetMin(xmin, ymin);
+                        BBObj.SetMax(xmax, ymax);
+
                     }
                     break;
                 }
 
-                case 2:                                                                 // linestring
+                case 2:                                                // linestring
                 {
                     Primitive_type = GEO_LINE;
 
@@ -481,16 +533,15 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                     pt *ppt = geoPt;
                     float *pf = (float *)(buft + 9);
 
-                        // Capture points
+                        // Capture UTM points
                     for(int ip = 0 ; ip < npt ; ip++)
                     {
-                        OGRPoint p;
                         ppt->x = *pf++;
                         ppt->y = *pf++;
                         ppt++;
                     }
 
-                        // Capture bbox limits
+                    // Capture bbox limits recorded as lon/lat
                     float xmax = *pf++;
                     float xmin = *pf++;
                     float ymax = *pf++;
@@ -498,12 +549,19 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
 
                     delete buft;
 
+                    // set s57obj bbox as lat/lon
                     BBObj.SetMin(xmin, ymin);
                     BBObj.SetMax(xmax, ymax);
 
-                    OGRgeo = NULL;
+                    //  and declare x/y of the object to be average east/north of all points
+                    double e1, e2, n1, n2;
+                    toTM(ymax, xmax, s_ref_lat, s_ref_lon, .9996, &e1, &n1);
+                    toTM(ymin, xmin, s_ref_lat, s_ref_lon, .9996, &e2, &n2);
 
-                    break;
+                    x = (e1 + e2) / 2.;
+                    y = (n1 + n2) / 2.;
+
+                   break;
                 }
 
                 case 3:                                                                 // area as polygon
@@ -528,14 +586,21 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                             free(polybuf);
 
                             pPolyTessGeo = ppg;
-                            ring = NULL;
+
+                            //  Set the s57obj bounding box as lat/lon
                             BBObj.SetMin(ppg->Get_xmin(), ppg->Get_ymin());
                             BBObj.SetMax(ppg->Get_xmax(), ppg->Get_ymax());
 
+                            //  and declare x/y of the object to be average east/north of all points
+                            double e1, e2, n1, n2;
+                            toTM(ppg->Get_ymax(), ppg->Get_xmax(), s_ref_lat, s_ref_lon, .9996, &e1, &n1);
+                            toTM(ppg->Get_ymin(), ppg->Get_xmin(), s_ref_lat, s_ref_lon, .9996, &e2, &n2);
+
+                            x = (e1 + e2) / 2.;
+                            y = (n1 + n2) / 2.;
+
                         }
                     }
-
-                    OGRgeo = NULL;
 
                     break;
                 }
@@ -546,10 +611,7 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
 
             if(prim > 0)
             {
-
-                OGeo = OGRgeo;                                     // store the OGRGeometry in the s57obj
-
-                Index = FEIndex;
+               Index = FEIndex;
             }
         }               //OGRF
     }                       //while(!dun)
@@ -805,71 +867,58 @@ void s57chart::GetChartExtent(Extent *pext)
 
 int s57chart::S57_done()
 {
-
-
-//      Delete the created S57Objs
-        ObjRazRules *top;
-        ObjRazRules *nxx;
-        for (int i=0; i<PRIO_NUM; ++i)
+//      Delete the created ObjRazRules, including the S57Objs
+    ObjRazRules *top;
+    ObjRazRules *nxx;
+    for (int i=0; i<PRIO_NUM; ++i)
+    {
+        for(int j=0 ; j<LUPNAME_NUM ; j++)
         {
-                for(int j=0 ; j<LUPNAME_NUM ; j++)
-                {
 
-                        top = razRules[i][j];
-                        while ( top != NULL)
-                        {
-                                S57Obj *po = top->obj;
-                                nxx  = top->next;
+            top = razRules[i][j];
+            while ( top != NULL)
+            {
+                    delete top->obj;
 
-                                S57_freeObj(po);
-                                free(top);
-                                top = nxx;
-                        }
-                }
+                    nxx  = top->next;
+                    free(top);
+                    top = nxx;
+            }
         }
-
-
-        return 1;
+    }
+    return 1;
 }
 
 int s57chart::S57_freeObj(S57Obj *obj)
 {
-        for(unsigned int iv = 0 ; iv < obj->attVal->GetCount() ; iv++)
-        {
-                S57attVal *vv =  obj->attVal->Item(iv);
-                void *v2 = vv->value;
-                free(v2);
-                delete vv;
-        }
+    for(unsigned int iv = 0 ; iv < obj->attVal->GetCount() ; iv++)
+    {
+        S57attVal *vv =  obj->attVal->Item(iv);
+        void *v2 = vv->value;
+        free(v2);
+        delete vv;
+    }
 
-        delete obj->attVal;
+    delete obj->attVal;
 
-        delete obj->attList;
+    delete obj->attList;
 
-
-        delete obj->pPolyTessGeo;
-
-
-       while (obj->ring)
-       {
-                    S57Obj *tmpObj = obj->ring;
-                    obj->ring = tmpObj->ring;
-
-
-                    free(tmpObj);
-       }
-
-           delete obj->OGeo;
-
+    delete obj->pPolyTessGeo;
 
    if(obj->FText)
    {
-           delete obj->FText->frmtd;    // the formatted text string
-           free(obj->FText);
+      delete obj->FText->frmtd;    // the formatted text string
+      free(obj->FText);
    }
 
    if(obj->geoPt)
-                free(obj->geoPt);
+        free(obj->geoPt);
+
+   if(obj->geoPtz)
+       free(obj->geoPtz);
+
+   if(obj->geoPtMulti)
+       free(obj->geoPtMulti);
 
    free(obj);
 
@@ -888,63 +937,31 @@ double round(double x)
 }
 #endif
 
-void s57chart::GetPointPix(float rlat, float rlon, wxPoint *r)
+void s57chart::GetPointPix(ObjRazRules *rzRules, float north, float east, wxPoint *r)
 {
-        GetPointPixEst(rlat, rlon, r);
+    r->x = (int)round(((east - easting_vp_center) * view_scale_ppm) + x_vp_center);
+    r->y = (int)round(y_vp_center - ((north - northing_vp_center) * view_scale_ppm));
 }
 
-void s57chart::GetPointPixEst(float rlat, float rlon, wxPoint *r)
+void s57chart::GetPixPoint(int pixx, int pixy, double *plat, double *plon, ViewPort *vpt)
 {
-        r->x = (int)round((rlon - lon_left) * pix_per_deg_lon);
-        r->y = (int)round((lat_top - rlat) * pix_per_deg_lat);
-}
+     //    Use UTM estimator
+    int dx = pixx - (vpt->pix_width / 2);
+    int dy = (vpt->pix_height / 2) - pixy;
 
-void s57chart::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
-{
-        float lat = lat_top      - pixy / pix_per_deg_lat;
-        float lon = lon_left + pixx / pix_per_deg_lon;
+    double xp = (dx * cos(vpt->skew)) - (dy * sin(vpt->skew));
+    double yp = (dy * cos(vpt->skew)) + (dx * sin(vpt->skew));
 
-        *plat = lat;
-        *plon = lon;
-}
+    double d_east = xp / vpt->view_scale_ppm;
+    double d_north = yp / vpt->view_scale_ppm;
 
-void s57chart::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
-{
-        wxPoint r;
-        GetPointPixEst(lat, lon, &r);
+    double slat, slon;
+    fromTM(d_east, d_north, vpt->clat, vpt->clon, .9996, &slat, &slon);
 
-        pixx = r.x;
-        pixy = r.y;
+    *plat = slat;
+    *plon = slon;
 
 }
-
-
-void s57chart::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp)
-{
-    pixx = (int)round((lon - vp.lon_left) * vp.ppd_lon);
-    pixy = (int)round((vp.lat_top - lat)  * vp.ppd_lat);
-}
-
-void s57chart::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
-{
-//        float pix_per_deg_lon = vp.pix_width / (vp.lon_right - vp.lon_left);
-//        float pix_per_deg_lat = vp.pix_height / (vp.lat_top - vp.lat_bot);
-//        printf("57 ppd %f %f\n",pix_per_deg_lon, pix_per_deg_lat);
-
-//        float lat_top  = vp.lat_top;
-//        float lon_left = vp.lon_left;
-
-//        double pix_per_deg_lon = vp.ppd_lon;
-//        double pix_per_deg_lat = vp.ppd_lat;
-
-        double lat = vp.lat_top  - pixy / vp.ppd_lat;
-        double lon = vp.lon_left + pixx / vp.ppd_lon;
-
-        *plat = lat;
-        *plon = lon;
-
-}
-
 
 //-----------------------------------------------------------------------
 //              Calculate and Set ViewPoint Constants
@@ -952,30 +969,21 @@ void s57chart::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat,
 
 void s57chart::SetVPParms(ViewPort *vpt)
 {
-        //      Todo This is silly... Use the vp directly
-        pix_per_deg_lon = vpt->ppd_lon;
-        pix_per_deg_lat = vpt->ppd_lat;
+    //  Set up local UTM rendering constants
+    x_vp_center = vpt->pix_width / 2;
+    y_vp_center = vpt->pix_height / 2;
+    view_scale_ppm = vpt->view_scale_ppm;
 
-        lat_top    = vpt->lat_top;
-        lon_left   = vpt->lon_left;
-
-
+    easting_vp_center = vpt->c_east;
+    northing_vp_center = vpt->c_north;
 }
 
-/*
-int rftoi(float x)
-{
-        if(x < 0.0)
-                return (int)(x - 0.5);
-        else
-                return (int)(x + 0.5);
-}
-*/
 
 ThumbData *s57chart::GetThumbData(int tnx, int tny, float lat, float lon)
 {
 
-//      Plot the passed lat/lon at the thumbnail bitmap scale
+    //  Plot the passed lat/lon at the thumbnail bitmap scale
+    //  Using simple linear algorithm.
         if( pThumbData->pDIB)
         {
 
@@ -1033,7 +1041,7 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
 
 
         //Todo Add a check on last_vp.bValid
-        if(VPoint.view_scale != last_vp.view_scale)
+        if(VPoint.view_scale_ppm != last_vp.view_scale_ppm)
         {
             bNewVP = true;
                 if(pDIB)
@@ -1044,11 +1052,39 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
         }
 
 //      Calculate the desired rectangle in the last cached image space
+/*
         rul.x = (int)round((VPoint.lon_left - last_vp.lon_left) * pix_per_deg_lon);
         rul.y = (int)round((last_vp.lat_top - VPoint.lat_top) * pix_per_deg_lat);
 
         rlr.x = (int)round((VPoint.lon_right - last_vp.lon_left) * pix_per_deg_lon);
         rlr.y = (int)round((last_vp.lat_top - VPoint.lat_bot) * pix_per_deg_lat);
+*/
+        double easting_ul, northing_ul;
+//        toTM(VPoint.lat_top, VPoint.lon_left,  ref_lat, ref_lon, 0.9996, &easting_ul, &northing_ul);
+        double easting_lr, northing_lr;
+//        toTM(VPoint.lat_bot, VPoint.lon_right, ref_lat, ref_lon, 0.9996, &easting_lr, &northing_lr);
+
+        easting_ul =  VPoint.c_east -  ((VPoint.pix_width  / 2) / view_scale_ppm);
+        northing_ul = VPoint.c_north + ((VPoint.pix_height / 2) / view_scale_ppm);
+        easting_lr = easting_ul + (VPoint.pix_width / view_scale_ppm);
+        northing_lr = northing_ul + (VPoint.pix_height / view_scale_ppm);
+
+        prev_easting_ul =  last_vp.c_east -  ((last_vp.pix_width  / 2) / view_scale_ppm);
+        prev_northing_ul = last_vp.c_north + ((last_vp.pix_height / 2) / view_scale_ppm);
+        prev_easting_lr = easting_ul + (last_vp.pix_width / view_scale_ppm);
+        prev_northing_lr = northing_ul + (last_vp.pix_height / view_scale_ppm);
+
+//        double prev_easting_ul, prev_northing_ul;
+//        toTM(last_vp.lat_top, last_vp.lon_left,  ref_lat, ref_lon, 0.9996, &prev_easting_ul, &prev_northing_ul);
+//        double prev_easting_lr, prev_northing_lr;
+//        toTM(last_vp.lat_bot, last_vp.lon_right, ref_lat, ref_lon, 0.9996, &prev_easting_lr, &prev_northing_lr);
+
+
+        rul.x = (int)round((easting_ul - prev_easting_ul) * view_scale_ppm);
+        rul.y = (int)round((prev_northing_ul - northing_ul) * view_scale_ppm);
+
+        rlr.x = (int)round((easting_lr - prev_easting_ul) * view_scale_ppm);
+        rlr.y = (int)round((prev_northing_ul - northing_lr) * view_scale_ppm);
 
         if((rul.x != 0) || (rul.y != 0))
                 bNewVP = true;
@@ -1113,7 +1149,8 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
                     }
 
 
-                    dc_new.Blit(desx, desy, wu, hu, (wxDC *)&dc_last, srcx, srcy);
+//                    printf("blit %d %d %d %d %d %d\n",desx, desy, wu, hu,  srcx, srcy);
+                    dc_new.Blit(desx, desy, wu, hu, (wxDC *)&dc_last, srcx, srcy, wxCOPY);
 
                     dc_new.SelectObject(wxNullBitmap);
                     dc_last.SelectObject(wxNullBitmap);
@@ -1145,21 +1182,34 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
 
                         ViewPort temp_vp = VPoint;
 
+ /*
                         temp_vp.lat_top = last_vp.lat_top - (rul.y / pix_per_deg_lat) - (rect.y / pix_per_deg_lat);
                         temp_vp.lat_bot = temp_vp.lat_top - (rect.height / pix_per_deg_lat);
 
                         temp_vp.lon_left  = last_vp.lon_left + (rul.x / pix_per_deg_lon) + (rect.x / pix_per_deg_lon);
                         temp_vp.lon_right = temp_vp.lon_left + (rect.width / pix_per_deg_lon);
+ */
+
+                        double temp_northing_ul = prev_northing_ul - (rul.y / view_scale_ppm) - (rect.y / view_scale_ppm);
+                        double temp_easting_ul = prev_easting_ul + (rul.x / view_scale_ppm) + (rect.x / view_scale_ppm);
+                        fromTM(temp_easting_ul, temp_northing_ul, ref_lat, ref_lon, .9996, &temp_vp.lat_top, &temp_vp.lon_left);
+
+                        double temp_northing_lr = temp_northing_ul - (rect.height / view_scale_ppm);
+                        double temp_easting_lr = temp_easting_ul + (rect.width / view_scale_ppm);
+                        fromTM(temp_easting_lr, temp_northing_lr, ref_lat, ref_lon, .9996, &temp_vp.lat_bot, &temp_vp.lon_right);
 
                         temp_vp.vpBBox.SetMin(temp_vp.lon_left, temp_vp.lat_bot);
                         temp_vp.vpBBox.SetMax(temp_vp.lon_right, temp_vp.lat_top);
 
 //      Update the helper parameters
-                        lon_left = last_vp.lon_left + (rul.x / pix_per_deg_lon);
-                        lat_top = last_vp.lat_top - (rul.y / pix_per_deg_lat);
+//                        lat_top =  temp_vp.vpBBox.GetMaxY();
+//                        lon_left = temp_vp.vpBBox.GetMinX();
+
+//                        lon_left = last_vp.lon_left + (rul.x / pix_per_deg_lon);
+//                        lat_top = last_vp.lat_top - (rul.y / pix_per_deg_lat);
 
 //      And Render it new piece on the target dc
-//     wxLogMessage("Reuse, rendering %d %d %d %d ", rect.x, rect.y, rect.width, rect.height);
+//     printf("Reuse, rendering %d %d %d %d \n", rect.x, rect.y, rect.width, rect.height);
                         DCRender(dc, temp_vp, &rect);
 
                         upd ++ ;
@@ -1220,19 +1270,13 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
             }
 
 //      Update last_vp to reflect the current cached bitmap
-
-        double dy = (last_vp.lat_top - lat_top);
-        dy *= pix_per_deg_lat;
         last_vp = VPoint;
-
-        double pwidth = VPoint.pix_width;
-        double pheight = VPoint.pix_height;
-
-        last_vp.lon_left  = lon_left;
-        last_vp.lon_right = lon_left + (pwidth /pix_per_deg_lon);
-        last_vp.lat_top = lat_top;
-        last_vp.lat_bot = lat_top - (pheight/pix_per_deg_lat);
-
+/*
+        prev_easting_ul =  easting_ul;
+        prev_northing_ul = northing_ul;
+        prev_easting_lr =  easting_lr;
+        prev_northing_lr = northing_lr;
+*/
 
         }       //if NEWVP
 
@@ -1416,6 +1460,7 @@ int s57chart::DCRender(wxDC& dcinput, ViewPort& vp, wxRect* rect)
 
 //      Render the rest of the objects/primitives
 
+
     wxStopWatch stlines;
     stlines.Pause();
     wxStopWatch stsim_pt;
@@ -1434,7 +1479,7 @@ int s57chart::DCRender(wxDC& dcinput, ViewPort& vp, wxRect* rect)
                 if(rect)
                 {
                         wxRect nr = *rect;
-                        pdcc = new wxDCClipper(dcinput, nr);
+ //                       pdcc = new wxDCClipper(dcinput, nr);
                 }
 
                 stlines.Resume();
@@ -1447,9 +1492,6 @@ int s57chart::DCRender(wxDC& dcinput, ViewPort& vp, wxRect* rect)
 
 
                 }
-//      Destroy Clipper
-                if(pdcc)
-                        delete pdcc;
                 stlines.Pause();
 
                 stsim_pt.Resume();
@@ -1496,6 +1538,10 @@ int s57chart::DCRender(wxDC& dcinput, ViewPort& vp, wxRect* rect)
                 }
                 stapb.Pause();
 
+//      Destroy Clipper
+                if(pdcc)
+                    delete pdcc;
+
         }
 
 /*
@@ -1516,6 +1562,13 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 {
     pFullPath = new wxString(name);
 
+    //  Establish a common reference point for the chart
+    ref_lat = (FullExtent.NLAT + FullExtent.SLAT) /2.;
+    ref_lon = (FullExtent.WLON + FullExtent.ELON) /2.;
+
+    //  Todo Eventually s_ref_lat/lon goes away.
+    s_ref_lat = ref_lat;
+    s_ref_lon = ref_lon;
 
 // Look for Thumbnail
         wxFileName ThumbFileNameLook(name);
@@ -1603,7 +1656,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                                 f.Close();
 //              Anything to do?
 
- //force_make_senc = 1;
+// force_make_senc = 1;
                                 wxString DirName(pS57FileName->GetPath((int)wxPATH_GET_SEPARATOR));
                                 int most_recent_update_file = GetUpdateFileArray(DirName, NULL);
 
@@ -1661,8 +1714,13 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 
                 float ext_max = fmax((vp.lat_top - vp.lat_bot), (vp.lon_right - vp.lon_left));
 
+/*
                 vp.ppd_lat = S57_THUMB_SIZE/ ext_max;
                 vp.ppd_lon = vp.ppd_lat;
+                vp.view_scale_ppm = vp.ppd_lat / (1852 * 60);
+*/
+
+                vp.view_scale_ppm = (S57_THUMB_SIZE/ ext_max) / (1852 * 60);
 
                 vp.pix_height = S57_THUMB_SIZE;
                 vp.pix_width  = S57_THUMB_SIZE;
@@ -1673,7 +1731,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                 vp.chart_scale = 10000000 - 1;
                 vp.bValid = true;
                 //Todo this becomes last_vp.bValid = false;
-                last_vp.view_scale = -1;                // cause invalidation of cache
+                last_vp.view_scale_ppm = -1;                // cause invalidation of cache
                 SetVPParms(&vp);
 
 
@@ -2232,7 +2290,7 @@ int s57chart::BuildS57File(const char *pFullPath)
                     {
                         bcont = SENC_prog->Update(nProg, sobj);
                         CreateSENCRecord( objectDef, fps57, 0 );
-                        PolyTessGeo ppg(poly);
+                        PolyTessGeo ppg(poly, true, ref_lat, ref_lon);
                         if(ppg.ErrorCode)
                         {
                             if(ppg.ErrorCode == ERROR_NO_DLL)
@@ -2409,8 +2467,8 @@ int s57chart::BuildRAZFromS57File( const char *pFullPath )
                                  break;
                          }
 
-//        if(!strncmp(obj->FeatureName, "LOCMAG", 6))
-//            int ffl = 4;
+ //       if(!strncmp(obj->FeatureName, "SOUNDG", 6))
+ //           int ffl = 4;
                          LUP = ps52plib->S52_lookupA(LUPtype,obj->FeatureName,obj);
 
                          if(NULL == LUP)
@@ -2546,71 +2604,6 @@ int s57chart::BuildRAZFromS57File( const char *pFullPath )
 
 
 
-int s57chart::_create_attList(S57Obj *obj)
-{
-   int i;
-   int nAtt = 0;
-
-   // debug DRVAL
-//if (0 == strncmp(getName(obj->objectDef), "DEPARE",6))
-//   int iiop =9;
-
-   // load attributes: name and value
-   nAtt = obj->objectDef->GetFieldCount();
-   for (i=8; i<nAtt; ++i){                                      // skip 8 first field
-     if (obj->objectDef->IsFieldSet(i)){
-//        S57attVal attValTmp;
-         S57attVal *pattValTmp = new S57attVal;
-
-        if (obj->attList == NULL ){
-//           obj->attList = g_string_new(obj->objectDef->GetFieldDefnRef(i)->GetNameRef());
-           obj->attList = new wxString(obj->objectDef->GetFieldDefnRef(i)->GetNameRef());
-
-//           obj->attVal  = g_array_new(FALSE, TRUE, sizeof(S57attVal));
-                   obj->attVal = new wxArrayOfS57attVal();
-        }else
-//           obj->attList = g_string_append(obj->attList,obj->objectDef->GetFieldDefnRef(i)->GetNameRef());
-           obj->attList->Append(obj->objectDef->GetFieldDefnRef(i)->GetNameRef());
-
-        pattValTmp->value   = obj->objectDef->GetRawFieldRef(i);
-        //attValTmp.valType = obj->objectDef->GetFieldDefnRef(i)->GetType();
-
-        switch(obj->objectDef->GetFieldDefnRef(i)->GetType()){
-           // Simple 32bit integer
-           case OFTInteger:             pattValTmp->valType = OGR_INT;          break;
-           // List of 32bit integers
-           case OFTIntegerList: pattValTmp->valType = OGR_INT_LST; break;
-           // Double Precision floating point
-           case OFTReal:                        pattValTmp->valType = OGR_REAL;         break;
-           // String of ASCII chars
-           case OFTString:                      pattValTmp->valType = OGR_STR;          break;
-
-           // ATTRIBUTE TYPE NOT VALID IN S57
-           // List of doubles                                   OFTRealList             = 3,
-           // Array of strings                        OFTStringList             = 5,
-           // Double byte string (unsupported)        OFTWideString             = 6,
-           // List of wide strings (unsupported)      OFTWideStringList = 7,
-           // Raw Binary data (unsupported)           OFTBinary                         = 8,
-           default:
-              printf("S57query:_create_attList(): no S57 attribute type equivalence for OGR type\n");
-
-
-        }
-
-
-//        g_array_append_val(obj->attVal, attValTmp);
-                obj->attVal->Add(pattValTmp);
-
-//           obj->attList = g_string_append_c(obj->attList,'\037');
-             obj->attList->Append('\037');
-     }
-   }
-
-   return 1;
-}
-
-
-
 int s57chart::_insertRules(S57Obj *obj, LUPrec *LUP)
 {
    ObjRazRules   *rzRules = NULL;
@@ -2667,10 +2660,7 @@ int s57chart::_insertRules(S57Obj *obj, LUPrec *LUP)
 
 
 
-
-
 void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
-
 {
 
 #define MAX_HDR_LINE    400
@@ -2709,19 +2699,18 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                         sheader += '\n';
                         }
                 }
-
         }
 
         OGRGeometry *pGeo = pFeature->GetGeometryRef();
 
         if(mode == 1)
         {
-                sprintf( line, "  %s\n", pGeo->getGeometryName());
+            sprintf( line, "  %s\n", pGeo->getGeometryName());
             sheader += line;
-      }
+        }
 
-      fprintf( fpOut, "HDRLEN=%d\n", sheader.Len());
-      fwrite(sheader.c_str(), 1, sheader.Len(), fpOut);
+        fprintf( fpOut, "HDRLEN=%d\n", sheader.Len());
+        fwrite(sheader.c_str(), 1, sheader.Len(), fpOut);
 
         if(( pGeo != NULL ) && (mode == 1))
         {
@@ -2734,10 +2723,10 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
     //  Convert to opencpn SENC representation
 
     //  Set absurd bbox starting limits
-            float xmax = -1000;
-            float xmin = 1000;
-            float ymax = -1000;
-            float ymin = 1000;
+            float lonmax = -1000;
+            float lonmin = 1000;
+            float latmax = -1000;
+            float latmin = 1000;
 
             int i, ip, sb_len;
             float *pdf;
@@ -2745,6 +2734,8 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
             unsigned char *ps;
             unsigned char *pd;
             unsigned char *psb_buffer;
+            double lat, lon;
+            int nPoints;
 
             OGRwkbGeometryType gType = pGeo->getGeometryType();
             switch(gType)
@@ -2770,25 +2761,29 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
 
                     for(i = 0 ; i < ip ; i++)                           // convert doubles to floats
                     {                                                   // computing bbox as we go
-                        float x = (float)*psd;
-                        *pdf = x;
-                        psd++;
-                        pdf++;
-                        xmax = fmax(x, xmax);
-                        xmin = fmin(x, xmin);
 
-                        float y = (float)*psd;
-                        *pdf = y;
-                        psd++;
-                        pdf++;
-                        ymax = fmax(y, ymax);
-                        ymin = fmin(y, ymin);
+                        float lon = (float)*psd++;
+                        float lat = (float)*psd++;
+
+                        //  Calculate UTM from chart common reference point
+                        double easting, northing;
+                        toTM(lat, lon, ref_lat, ref_lon, 0.9996, &easting, &northing);
+
+                        *pdf++ = easting;
+                        *pdf++ = northing;
+
+                        lonmax = fmax(lon, lonmax);
+                        lonmin = fmin(lon, lonmin);
+                        latmax = fmax(lat, latmax);
+                        latmin = fmin(lat, latmin);
+
                     }
 
-                    *pdf++ = xmax;
-                    *pdf++ = xmin;
-                    *pdf++ = ymax;
-                    *pdf =   ymin;
+                    //      Store the Bounding Box as lat/lon
+                    *pdf++ = lonmax;
+                    *pdf++ = lonmin;
+                    *pdf++ = latmax;
+                    *pdf =   latmin;
 
                     fwrite(psb_buffer, 1, sb_len, fpOut);
                     free(psb_buffer);
@@ -2804,17 +2799,106 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
 
                       break;
 
-          //Todo Implement some other private SENC formats, e.g. wkbPoint
-    /*
-          wkbPoint = 1,
-          wkbLineString = 2,
-          wkbPolygon = 3,
-          wkbMultiPoint = 4,
-          wkbMultiLineString = 5,
-          wkbMultiPolygon = 6,
-    */
+                case wkbPoint:
+                    sb_len = ((wkb_len - 5) / 2) + 5;                   // data will be 4 byte float, not double
+
+                    fprintf( fpOut, "  %d\n", sb_len);
+
+                    psb_buffer = (unsigned char *)malloc(sb_len);
+                    pd = psb_buffer;
+                    ps = pwkb_buffer;
+
+                    memcpy(pd, ps, 5);                                  // byte order, type
+
+                    pd += 5;
+                    ps += 5;
+                    psd = (double *)ps;
+                    pdf = (float *)pd;
+
+                    lon = *psd++;                                      // fetch the point
+                    lat = *psd;
+
+                    //  Calculate UTM from chart common reference point
+                    double easting, northing;
+                    toTM(lat, lon, ref_lat, ref_lon, 0.9996, &easting, &northing);
+
+                    *pdf++ = easting;
+                    *pdf   = northing;
+
+                    //  And write it out
+                    fwrite(psb_buffer, 1, sb_len, fpOut);
+                    free(psb_buffer);
+
+                    break;
+
+                case wkbMultiPoint25D:
+                    ps = pwkb_buffer;
+                    ps += 5;
+                    nPoints = *((int *)ps);                     // point count
+
+                    sb_len = (9 + nPoints * 3 * sizeof(float)) + 16;        // GTYPE and count, points as floats
+                                                                            // and trailing bbox
+                    fprintf( fpOut, "  %d\n", sb_len);
+
+                    psb_buffer = (unsigned char *)malloc(sb_len);
+                    pd = psb_buffer;
+                    ps = pwkb_buffer;
+
+                    memcpy(pd, ps, 9);                                  // byte order, type, count
+
+                    ps += 9;
+                    pd += 9;
+
+                    pdf = (float *)pd;
+
+                    for(int ip=0 ; ip < nPoints ; ip++)
+                    {
+                        ps += 5;
+                        psd = (double *)ps;
+
+                        lon = *psd++;
+                        lat = *psd++;
+                        double depth = *psd;
+
+                        //  Calculate UTM from chart common reference point
+                        double easting, northing;
+                        toTM(lat, lon, ref_lat, ref_lon, 0.9996, &easting, &northing);
+
+                        *pdf++ = easting;
+                        *pdf++ = northing;
+                        *pdf++ = (float)depth;
+
+                        ps += 3 * sizeof(double);
+
+                        //  Keep a running calculation of min/max
+                        lonmax = fmax(lon, lonmax);
+                        lonmin = fmin(lon, lonmin);
+                        latmax = fmax(lat, latmax);
+                        latmin = fmin(lat, latmin);
+                    }
+
+                    //      Store the Bounding Box as lat/lon
+                    *pdf++ = lonmax;
+                    *pdf++ = lonmin;
+                    *pdf++ = latmax;
+                    *pdf =   latmin;
+
+                    //  And write it out
+                    fwrite(psb_buffer, 1, sb_len, fpOut);
+                    free(psb_buffer);
+
+
+                    break;
+
+                    //      Special case, polygons are handled separately
+                case wkbPolygon:
+                    break;
+
+                    //      All others
                 default:
-                      wkb_len = pGeo->WkbSize();
+                    wxLogMessage("Warning: Unimplemented ogr geotype in SENC record create:file %s, geotype %d",
+                                 pS57FileName->GetFullPath().c_str(), gType);
+                    wkb_len = pGeo->WkbSize();
                       fprintf( fpOut, "  %d\n", wkb_len);
                       fwrite(pwkb_buffer, 1, wkb_len, fpOut);
                       break;
@@ -2921,7 +3005,6 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
                   if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
                         ret_ptr->Add(crnt->obj);
           }
-
       }
 
       return ret_ptr;
@@ -2929,15 +3012,37 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
 
 bool s57chart::DoesLatLonSelectObject(float lat, float lon, float select_radius, S57Obj *obj)
 {
-
-
       switch(obj->Primitive_type)
       {
             case  GEO_POINT:
+                //  For single Point objects, the integral object bounding box contains the lat/lon of the object,
+                //  possibly expanded by text or symbol rendering
                 {
-                  if((fabs(lon - obj->x) < select_radius) && (fabs(lat - obj->y) < select_radius))
-                        return true;
-                  break;
+                    if(1 == obj->npt)
+                    {
+                        if(obj->BBObj.PointInBox( lon, lat, select_radius))
+                            return true;
+                    }
+                    //  For MultiPoint objects, make a bounding box from each point's lat/lon
+                    //  and check it
+                    else
+                    {
+                        //  Coarse test first
+                        if(!obj->BBObj.PointInBox( lon, lat, select_radius))
+                            return false;
+                        //  Now decomposed soundings, one by one
+                        double *pdl = obj->geoPtMulti;
+                        for(int ip = 0 ; ip < obj->npt ;  ip++)
+                        {
+                            double lon_point = *pdl++;
+                            double lat_point = *pdl++;
+                            wxBoundingBox BB_point(lon_point, lat_point, lon_point, lat_point);
+                            if(BB_point.PointInBox( lon, lat, select_radius))
+                                return true;
+                        }
+                    }
+
+                    break;
                 }
             case  GEO_AREA:
                 {
@@ -2951,7 +3056,6 @@ bool s57chart::DoesLatLonSelectObject(float lat, float lon, float select_radius,
 
             break;
       }
-
 
       return false;
 }
@@ -3172,51 +3276,6 @@ typedef struct _S57attVal{
       return ret_str;
 }
 
-/*
-wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
-{
-
-      wxString ret_string;
-
-      wxString file;
-      wxGetEnv(wxString("S57_CSV"), &file);
-
-      file.Append(wxT("/attdecode.csv"));
-
-      char *attdec;
-
-      attdec = (char *)MyCSVGetField( file.c_str(),
-                              "Attribute", att.c_str(), CC_ExactString,
-                              "ValueDecode" );
-
-      if(strlen(attdec))
-      {
-//    Extract the required value
-            wxString sattdec(attdec);
-            wxStringTokenizer tk(sattdec, wxT(";"));
-
-            while ( tk.HasMoreTokens() )
-            {
-                  wxString token = tk.GetNextToken();
-                  long tval;
-                  if(token.ToLong(&tval))
-                  {
-                        ret_string = tk.GetNextToken();
-                        if((int)tval == ival)
-                            return new wxString(ret_string);
-                  }
-
-                  else
-                        tk.GetNextToken();
-
-            }
-       }
-
-       return NULL;
-}
-
-
-*/
 wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
 {
 
@@ -3304,6 +3363,11 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
 
         MyPoint pvert_list[3];
 
+        //  Polygon geometry is carried in UTM coordinates, so...
+        //  make the hit test thus.
+        double easting, northing;
+        toTM(lat, lon, ref_lat, ref_lon, 0.9996, &easting, &northing);
+
         while(pTP)
         {
 //  Coarse test
@@ -3326,7 +3390,7 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
                             pvert_list[2].x = p_vertex[(it*2)+4];
                             pvert_list[2].y = p_vertex[(it*2)+5];
 
-                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, lon, lat))
+                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, easting, northing))
                             {
                                 ret = true;
                                 break;
@@ -3347,7 +3411,7 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
                             pvert_list[2].x = p_vertex[(it*2)+4];
                             pvert_list[2].y = p_vertex[(it*2)+5];
 
-                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, lon, lat))
+                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, easting, northing))
                             {
                                 ret = true;
                                 break;
@@ -3368,7 +3432,7 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
                             pvert_list[2].x = p_vertex[(it*2)+4];
                             pvert_list[2].y = p_vertex[(it*2)+5];
 
-                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, lon, lat))
+                            if(G_PtInPolygon((MyPoint *)pvert_list, 3, easting, northing))
                             {
                                 ret = true;
                                 break;
