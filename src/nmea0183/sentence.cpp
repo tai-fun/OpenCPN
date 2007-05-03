@@ -37,7 +37,7 @@ NMEA0183_BOOLEAN SENTENCE::Boolean( int field_number ) const
    }
    else
    {
-      return( Unknown );
+      return( Unknown0183 );
    }
 }
 
@@ -244,7 +244,7 @@ NMEA0183_BOOLEAN SENTENCE::IsChecksumBad( int checksum_field_number ) const
 
    if ( checksum_in_sentence == "" )
    {
-      return( Unknown );
+      return( Unknown0183 );
    }
 
    if ( ComputeChecksum() != HexValue( checksum_in_sentence ) )

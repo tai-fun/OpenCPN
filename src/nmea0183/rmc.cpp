@@ -25,7 +25,7 @@ void RMC::Empty( void )
 {
 
    UTCTime.Empty();
-   IsDataValid                = Unknown;
+   IsDataValid                = Unknown0183;
    SpeedOverGroundKnots       = 0.0;
    Position.Empty();
    TrackMadeGoodDegreesTrue   = 0.0;
@@ -72,7 +72,7 @@ bool RMC::Parse( const SENTENCE& sentence )
       return( FALSE );
    }
    
-   if ( check == Unknown )
+   if ( check == Unknown0183 )
    {
       SetErrorMessage( "Missing Checksum" );
       return( FALSE );

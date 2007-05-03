@@ -24,7 +24,7 @@ RMB::~RMB()
 void RMB::Empty( void )
 {
 
-   IsDataValid                     = Unknown;
+   IsDataValid                     = Unknown0183;
    CrossTrackError                 = 0.0;
    DirectionToSteer                = LR_Unknown;
    To.Empty();
@@ -33,7 +33,7 @@ void RMB::Empty( void )
    RangeToDestinationNauticalMiles = 0.0;
    BearingToDestinationDegreesTrue = 0.0;
    DestinationClosingVelocityKnots = 0.0;
-   IsArrivalCircleEntered          = Unknown;
+   IsArrivalCircleEntered          = Unknown0183;
 }
 
 bool RMB::Parse( const SENTENCE& sentence )
@@ -75,7 +75,7 @@ bool RMB::Parse( const SENTENCE& sentence )
       return( FALSE );
    }
 
-   if ( check == Unknown )
+   if ( check == Unknown0183 )
    {
       SetErrorMessage( "Missing Checksum" );
       return( FALSE );

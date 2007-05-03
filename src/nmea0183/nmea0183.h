@@ -40,7 +40,7 @@
 
 typedef enum _NMEA0183_BOOLEAN
 {
-   Unknown = 0,
+   Unknown0183 = 0,
    NTrue,
    NFalse
 } NMEA0183_BOOLEAN;
@@ -59,14 +59,14 @@ typedef enum _eastwest
    West
 } EASTWEST;
 
-typedef enum
+typedef enum _northsouth
 {
    NS_Unknown = 0,
    North,
    South
 } NORTHSOUTH;
 
-typedef enum
+typedef enum _reference
 {
    ReferenceUnknown = 0,
    BottomTrackingLog,
@@ -76,7 +76,7 @@ typedef enum
    PositioningSystemGroundReference
 } REFERENCE;
 
-typedef enum
+typedef enum _communicationsmode
 {
    CommunicationsModeUnknown         = 0,
    F3E_G3E_SimplexTelephone          = 'd',
@@ -91,7 +91,7 @@ typedef enum
    F1C_F2C_F3C_FaxMachine            = '|'
 } COMMUNICATIONS_MODE;
 
-typedef enum
+typedef enum _transducertype
 {
    TransducerUnknown   = 0,
    AngularDisplacementTransducer = 'A',

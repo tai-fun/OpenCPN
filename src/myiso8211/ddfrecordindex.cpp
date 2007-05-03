@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ddfrecordindex.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ddfrecordindex.cpp,v 1.2 2007/05/03 13:30:25 dsr Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements DDFRecordIndex class.  This class is used to cache
@@ -30,8 +30,11 @@
  ******************************************************************************
  *
  * $Log: ddfrecordindex.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:30:25  dsr
+ * Correct some compiler dependecies for Windows compiler
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:29  dsr
  * Rename/Import to OpenCPN
@@ -62,7 +65,7 @@
 #include "s57.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ddfrecordindex.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: ddfrecordindex.cpp,v 1.2 2007/05/03 13:30:25 dsr Exp $");
 
 /************************************************************************/
 /*                           DDFRecordIndex()                           */
@@ -295,7 +298,7 @@ void DDFRecordIndex::Sort()
     if( bSorted )
         return;
 
-    qsort( pasRecords, nRecordCount, sizeof(DDFIndexedRecord), DDFCompare );
+    qsort( pasRecords, nRecordCount, sizeof(DDFIndexedRecord), ((*__pascal C func)(void const *,void const *))DDFCompare );
 
     bSorted = TRUE;
 }
