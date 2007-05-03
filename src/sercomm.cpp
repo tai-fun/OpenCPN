@@ -2,17 +2,18 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "dychart.h"
+///#include "dychart.h"
 
 #ifdef __WXMSW__
-#ifdef dyUSE_MSW_SERCOMM
+#ifdef __WXMSW__          ///ocpnUSE_MSW_SERCOMM
 
 #include "sercomm.h"
 
 #include <string.h>
 #include <assert.h>
 
-CPL_CVSID("$Id: sercomm.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+#include "dychart.h"
+CPL_CVSID("$Id: sercomm.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $");
 
 //#include <sstream>
 
@@ -23,7 +24,9 @@ CPL_CVSID("$Id: sercomm.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 CSyncSerialComm::CSyncSerialComm(const char *pszPortName)
       : m_hSerialComm(INVALID_HANDLE_VALUE)
 {
-      assert(pszPortName);
+
+//    rewrite this thing with better license????
+            assert(pszPortName);
 
       m_pszPortName = new char[strlen(pszPortName) +1];
       strcpy(m_pszPortName, pszPortName);
@@ -273,5 +276,5 @@ HRESULT CSyncSerialComm::Flush(DWORD dwFlag)
             return E_FAIL;
 }
 
-#endif            //dyUSE_MSW_SERCOMM
+#endif            //ocpnUSE_MSW_SERCOMM
 #endif            //__WXMSW__

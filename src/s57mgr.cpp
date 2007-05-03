@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57mgr.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: s57mgr.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S57 Chart Manager
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: s57mgr.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:23:56  dsr
+ * Major refactor for 1.2.0
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.6  2006/08/04 11:42:03  dsr
  * no message
@@ -79,7 +82,7 @@
 
 //#include "../mygdal/include/iso8211.h"
 
-CPL_CVSID("$Id: s57mgr.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: s57mgr.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $");
 
 static wxString *pval;
 
@@ -130,7 +133,6 @@ extern char **environ;
 }
 */
 
-//extern "C" char *mygetenv(char *pvar);
 
 //----------------------------------------------------------------------------------
 //      s57mgr Implementation

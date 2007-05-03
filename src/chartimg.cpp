@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.5 2007/03/02 02:09:06 dsr Exp $
+ * $Id: chartimg.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.6  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.5  2007/03/02 02:09:06  dsr
  * Cleanup, convert to UTM Projection
  *
@@ -86,7 +89,6 @@
 
 #include "wx/dir.h"
 
-
 #include "chartimg.h"
 
 
@@ -116,236 +118,15 @@
 // ----------------------------------------------------------------------------
 // Random Prototypes
 // ----------------------------------------------------------------------------
-      extern "C" int polynomial_curve_fit(int p_order, int samples, double *x_data, double *y_data, double *p_coef);
-      extern "C" void DegToUTM(float lat, float lon, char *zone, float *x, float *y, float lon0);
-      extern "C" void UTMtoDeg(double long0, short southernHemisphere, double x, double y, double *lat, double *lon);
 
-      extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y);
-
-      extern "C" int compute_georef_equations(struct GeoRef *cp, double E12[],
-                            double N12[], double E21[], double N21[]);
-      extern "C" int georef(double e1, double n1, double *e, double *n, double E[],
-              double N[], int order);
-
-      extern void *x_malloc(size_t t);
+extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.5 2007/03/02 02:09:06 dsr Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
 // ----------------------------------------------------------------------------
-
-
-// ============================================================================
-// PixelCache Implementation
-// ============================================================================
-PixelCache::PixelCache(int width, int height, int depth)
-{
-      m_width = width;
-      m_height = height;
-      m_depth = depth;
-      m_pbm = NULL;
-      m_rgbo = RGB;                        // default value;
-
-      line_pitch_bytes =
-      bytes_per_pixel = BPP / 8;
-      line_pitch_bytes = bytes_per_pixel * width;
-
-
-#ifdef dyUSE_BITMAPO
-      m_rgbo = BGR;
-#endif
-
-
-#ifdef __PIX_CACHE_DIBSECTION__
-      m_pDS = new wxDIB(width, -height, BPP);
-      pData = m_pDS->GetData();
-#endif
-
-
-#ifdef __PIX_CACHE_WXIMAGE__
-      m_pimage = new wxImage(m_width, m_height, (bool)FALSE);
-      pData = m_pimage->GetData();
-
-#endif
-
-
-
-#ifdef __PIX_CACHE_X11IMAGE__
-      xdisplay = (Display *)wxGlobalDisplay();
-      int xscreen = DefaultScreen( xdisplay );
-      Visual* xvisual = DefaultVisual( xdisplay, xscreen );
-      int bpp = wxTheApp->GetVisualInfo(xdisplay)->m_visualDepth;
-
-      #ifdef ocpUSE_MITSHM
-//    Use Shared Memory Extension
-//    XShmSegmentInfo shminfo;
-      pshminfo = new XShmSegmentInfo;
-
-      m_pxim = XShmCreateImage( xdisplay, xvisual, bpp, ZPixmap, NULL, pshminfo, width, height );
-      if (m_pxim == NULL) {
-            wxLogError("XShmCreateImage failed!");
-            return ;
-      }
-
-//    Identify and allocate the shared memory buffer
-      pshminfo->shmid = shmget( IPC_PRIVATE, m_pxim->bytes_per_line * m_pxim->height, IPC_CREAT|0777 );
-      if (pshminfo->shmid < 0) {
-//            perror("shmget");
-            XDestroyImage( m_pxim );
-            m_pxim = NULL;
-            wxLogMessage( "alloc_back_buffer: Shared memory error (shmget), disabling." );
-//            c->shm = 0;
-//            return NULL;
-      }
-
-      pshminfo->shmaddr = m_pxim->data
-                  = (char*)shmat( pshminfo->shmid, 0, 0 );
-      if (pshminfo->shmaddr == (char *) -1) {
-//            perror("alloc_back_buffer");
-            XDestroyImage( m_pxim );
-            m_pxim = NULL;
-            wxLogMessage("shmat failed\n");
-//            return NULL;
-      }
-
-      pData = (unsigned char *)pshminfo->shmaddr;
-
-      pshminfo->readOnly = False;
-
-      XShmAttach( xdisplay, pshminfo );
-
-//    Make some further checks
-/*
-      ErrorFlag = 0;
-      XSetErrorHandler( HandleXError );
-// This may trigger the X protocol error we're ready to catch:
-      XShmAttach( xdisplay, &shminfo );
-      XSync( xdisplay, False );
-
-      if (ErrorFlag) {
-// we are on a remote display, this error is normal, don't print it
-            XFlush( xdisplay );
-            ErrorFlag = 0;
-            XDestroyImage( img );
-            shmdt( shminfo.shmaddr );
-            shmctl( shminfo.shmid, IPC_RMID, 0 );
-//            return NULL;
-      }
-*/
-
-      #else
-
-      int ignore;
-      bool bMIT_SHM;
-      if (XQueryExtension( xdisplay, "MIT-SHM", &ignore, &ignore, &ignore ))
-          bMIT_SHM = true;
-      else
-          bMIT_SHM = false;
-
-
-      m_pxim = XCreateImage( xdisplay, xvisual, bpp, ZPixmap, 0, 0, width, height, 32, 0 );
-      m_pxim->data = (char*) x_malloc( m_pxim->bytes_per_line * m_pxim->height );
-      pData = (unsigned char *)m_pxim->data;
-      #endif
-
-#endif            //__PIX_CACHE_X11IMAGE__
-
-#ifdef __PIX_CACHE_BMO__
-      pData = (unsigned char *)x_malloc(width * height * depth/8);
-#endif
-
-}
-
-PixelCache::~PixelCache()
-{
-#ifdef __PIX_CACHE_WXIMAGE__
-      delete m_pimage;
-      delete m_pbm;
-#endif
-
-
-#ifdef __PIX_CACHE_DIBSECTION__
-      delete m_pDS;
-#endif
-
-#ifdef __PIX_CACHE_X11IMAGE__
-      delete m_pbm;
-      #ifdef ocpUSE_MITSHM
-      XSync( xdisplay, False );                 // make sure the server is finished with this object
-
-      XShmDetach( xdisplay, pshminfo );
-      XDestroyImage( m_pxim );
-      shmdt( pshminfo->shmaddr );               // free the memory
-      shmctl( pshminfo->shmid, IPC_RMID, 0 );   // mark segment as destroyed
-      delete pshminfo;
-      #else
-      XSync( xdisplay, False );                 // make sure the server is finished with this object
-      XDestroyImage( m_pxim );
-      #endif
-
-#endif
-
-
-#ifdef __PIX_CACHE_BMO__
-      delete m_pbm;
-      free (pData);
-#endif
-
-
-}
-
-void PixelCache::SelectIntoDC(wxMemoryDC &dc)
-{
-
-#ifdef __PIX_CACHE_DIBSECTION__
-      dyMemDC *pmdc = dynamic_cast<dyMemDC*>(&dc);
-      pmdc->SelectObject (*m_pDS);
-
-#endif      //__PIX_CACHE_DIBSECTION__
-
-
-#ifdef __PIX_CACHE_WXIMAGE__
-//    delete m_pbm;                       // kill the old one
-
-      //    Convert image to bitmap
-      #ifdef dyUSE_BITMAPO
-      if(!m_pbm)
-            m_pbm = new wxBitmapo(*m_pimage, m_depth);
-      #else
-      if(!m_pbm)
-            m_pbm = new wxBitmap (*m_pimage, -1);
-      #endif
-
-      if(m_pbm)
-            dc.SelectObject(*m_pbm);
-#endif            // __PIX_CACHE_WXIMAGE__
-
-
-#ifdef __PIX_CACHE_X11IMAGE__
-      #ifdef ocpUSE_MITSHM
-      if(!m_pbm)
-            m_pbm = new wxBitmapo(m_pxim, m_width, m_height, m_depth, TRUE);  // True, this is a shared XImage
-      dc.SelectObject(*m_pbm);
-      #else
-
-      if(!m_pbm)
-            m_pbm = new wxBitmapo(m_pxim, m_width, m_height, m_depth);
-      dc.SelectObject(*m_pbm);
-
-      #endif
-#endif            //__PIX_CACHE_X11IMAGE__
-
-
-#ifdef __PIX_CACHE_BMO__
-      if(!m_pbm)
-            m_pbm = new wxBitmapo(pData, m_width, m_height, m_depth);
-      dc.SelectObject(*m_pbm);
-#endif
-
-
-}
 
 
 // ============================================================================
@@ -354,13 +135,37 @@ void PixelCache::SelectIntoDC(wxMemoryDC &dc)
 
 ThumbData::ThumbData()
 {
-    pDIB = NULL;
+    pDIBThumb = NULL;
 }
 
 ThumbData::~ThumbData()
 {
-    delete pDIB;
+    delete pDIBThumb;
 }
+
+// ============================================================================
+// Palette implementation
+// ============================================================================
+Palette::Palette()
+{
+    // Index into palette is 1-based, so predefine the first entry as null
+    nFwd = 1;
+    nRev = 1;
+    FwdPalette =(int *)malloc( sizeof(int));
+    RevPalette =(int *)malloc( sizeof(int));
+    FwdPalette[0] = 0;
+    RevPalette[0] = 0;
+}
+
+Palette::~Palette()
+{
+    if(NULL != FwdPalette)
+        free( FwdPalette );
+    if(NULL != RevPalette)
+        free( RevPalette ) ;
+
+}
+
 
 
 // ============================================================================
@@ -374,7 +179,6 @@ ChartBase::ChartBase()
       pPubYear->Clear();
 
       pThumbData = new ThumbData;
-      pThumbData->pDIB = NULL;
 
       pName = new wxString;
       pName->Clear();
@@ -384,6 +188,7 @@ ChartBase::ChartBase()
       bReadyToRender = false;
 
       Chart_Error_Factor = 0;
+
 }
 
 ChartBase::~ChartBase()
@@ -449,6 +254,8 @@ void ChartDummy::GetPubDate(wxString &data)
 
 void ChartDummy::InvalidateCache(void)
 {
+      delete m_pBM;
+      m_pBM = NULL;
 }
 
 /*
@@ -547,6 +354,7 @@ ChartGEO::~ChartGEO()
 InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs )
 {
       #define BUF_LEN_MAX 4000
+
       PreInit(name, init_flags, cs);
 
       char buffer[BUF_LEN_MAX];
@@ -613,8 +421,8 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
                   pRefTable = (Refpoint *)realloc(pRefTable, sizeof(Refpoint) * (nRefpoint+1));
                   pRefTable[nRefpoint].xr = xr;
                   pRefTable[nRefpoint].yr = yr;
-                  pRefTable[nRefpoint].ltr = ltr;
-                  pRefTable[nRefpoint].lnr = lnr;
+                  pRefTable[nRefpoint].latr = ltr;
+                  pRefTable[nRefpoint].lonr = lnr;
                   pRefTable[nRefpoint].bXValid = 1;
                   pRefTable[nRefpoint].bYValid = 1;
 
@@ -696,7 +504,10 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 //    wxLogMessage("ChartGEO:Init....NOS File Name is: %s", pBitmapFilePath->c_str());
       wxFileName NOS_filename(*pBitmapFilePath);
       if(NOS_filename.FileExists())
-            ifs_bitmap = new wxFileInputStream(*pBitmapFilePath); // open the bitmap file
+      {
+            ifss_bitmap = new wxFileInputStream(*pBitmapFilePath); // open the bitmap file
+            ifs_bitmap = new wxBufferedInputStream(*ifss_bitmap);
+      }
 //    File as fetched verbatim from the .geo file doesn't exist.
 //    Try all possible upper/lower cases
       else
@@ -773,7 +584,8 @@ found_uclc_file:
 
             delete pBitmapFilePath;                   // fix up the member element
             pBitmapFilePath = new wxString(NOS_filename.GetFullPath());
-            ifs_bitmap = new wxFileInputStream(*pBitmapFilePath); // open the bitmap file
+            ifss_bitmap = new wxFileInputStream(*pBitmapFilePath); // open the bitmap file
+            ifs_bitmap = new wxBufferedInputStream(*ifss_bitmap);
 
       }           //else
 
@@ -781,11 +593,11 @@ found_uclc_file:
       if(ifs_bitmap == NULL)
             return INIT_FAIL_REMOVE;
 
-      if(!ifs_bitmap->Ok())
+      if(!ifss_bitmap->Ok())
             return INIT_FAIL_REMOVE;
 
 
-      while( (ReadBSBHdrLine(ifs_bitmap, &buffer[0], BUF_LEN_MAX)) != 0 )
+      while( (ReadBSBHdrLine(ifss_bitmap, &buffer[0], BUF_LEN_MAX)) != 0 )
       {
 
             if(!strncmp(buffer, "NOS", 3))
@@ -805,7 +617,15 @@ found_uclc_file:
                               i = tkz.GetPosition();
                               Size_Y = atoi(&buffer[i]);
                         }
+                        else if(token.IsSameAs("DU", TRUE))                  // extract DU=n
+                        {
+                            token = tkz.GetNextToken();
+                            long temp_du;
+                            if(token.ToLong(&temp_du))
+                                Chart_DU = temp_du;
+                        }
                   }
+
             }
 
             else if (!strncmp(buffer, "RGB", 3))
@@ -868,7 +688,7 @@ found_uclc_file:
             return INIT_OK;
 
 //    Advance to the data
-      unsigned char c;
+      char c;
       if((c = ifs_bitmap->GetC()) != 0x1a){ assert(false); return INIT_FAIL_REMOVE;}
       if((c = ifs_bitmap->GetC()) == 0x0d)
       {
@@ -902,8 +722,7 @@ found_uclc_file:
 
 ChartKAP::ChartKAP()
 {
-//    _CrtSetBreakAlloc(4097);
-      ChartType = CHART_TYPE_KAP;
+     ChartType = CHART_TYPE_KAP;
 }
 
 
@@ -927,7 +746,17 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 
       pFullPath = new wxString(name);
 
-      ifs_bitmap = new wxFileInputStream(name); // Open again, as the bitmap
+      ifss_bitmap = new wxFileInputStream(name); // Open again, as the bitmap
+      ifs_bitmap = new wxBufferedInputStream(*ifss_bitmap);
+
+      //    Clear georeferencing coefficients
+      for(int icl=0 ; icl< 12 ; icl++)
+      {
+          wpx[icl] = 0;
+          wpy[icl] = 0;
+          pwx[icl] = 0;
+          pwy[icl] = 0;
+      }
 
 
 //    Validate the BSB header
@@ -1015,6 +844,14 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                             i++;
                           }
                         }
+                        if(token.IsSameAs("DU", TRUE))                  // extract DU=n
+                        {
+                          token = tkz.GetNextToken();
+                          long temp_du;
+                          if(token.ToLong(&temp_du))
+                                Chart_DU = temp_du;
+                        }
+
                   }
             }
 
@@ -1074,14 +911,111 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                   pRefTable = (Refpoint *)realloc(pRefTable, sizeof(Refpoint) * (nRefpoint+1));
                   pRefTable[nRefpoint].xr = xr;
                   pRefTable[nRefpoint].yr = yr;
-                  pRefTable[nRefpoint].ltr = ltr;
-                  pRefTable[nRefpoint].lnr = lnr;
+                  pRefTable[nRefpoint].latr = ltr;
+                  pRefTable[nRefpoint].lonr = lnr;
                   pRefTable[nRefpoint].bXValid = 1;
                   pRefTable[nRefpoint].bYValid = 1;
 
                   nRefpoint++;
 
             }
+
+            else if (!strncmp(buffer, "WPX", 3))
+            {
+                int idx = 0;
+                double d;
+                wxStringTokenizer tkz(&buffer[4], ",");
+                wxString token = tkz.GetNextToken();
+
+                if(token.ToLong((long int *)&wpx_type))
+                {
+                    while ( tkz.HasMoreTokens() && (idx < 12) )
+                    {
+                        token = tkz.GetNextToken();
+                        if(token.ToDouble(&d))
+                        {
+                            wpx[idx] = d;
+                            idx++;
+                        }
+                    }
+                }
+                n_wpx = idx;
+            }
+
+            else if (!strncmp(buffer, "WPY", 3))
+            {
+                int idx = 0;
+                double d;
+                wxStringTokenizer tkz(&buffer[4], ",");
+                wxString token = tkz.GetNextToken();
+
+                if(token.ToLong((long int *)&wpy_type))
+                {
+                    while ( tkz.HasMoreTokens() && (idx < 12) )
+                    {
+                        token = tkz.GetNextToken();
+                        if(token.ToDouble(&d))
+                        {
+                            wpy[idx] = d;
+                            idx++;
+                        }
+                    }
+                }
+                n_wpy = idx;
+            }
+
+            else if (!strncmp(buffer, "PWX", 3))
+            {
+                int idx = 0;
+                double d;
+                wxStringTokenizer tkz(&buffer[4], ",");
+                wxString token = tkz.GetNextToken();
+
+                if(token.ToLong((long int *)&pwx_type))
+                {
+                    while ( tkz.HasMoreTokens() && (idx < 12) )
+                    {
+                        token = tkz.GetNextToken();
+                        if(token.ToDouble(&d))
+                        {
+                            pwx[idx] = d;
+                            idx++;
+                        }
+                    }
+                }
+                n_pwx = idx;
+            }
+
+            else if (!strncmp(buffer, "PWY", 3))
+            {
+                int idx = 0;
+                double d;
+                wxStringTokenizer tkz(&buffer[4], ",");
+                wxString token = tkz.GetNextToken();
+
+                if(token.ToLong((long int *)&pwy_type))
+                {
+                    while ( tkz.HasMoreTokens() && (idx < 12) )
+                    {
+                        token = tkz.GetNextToken();
+                        if(token.ToDouble(&d))
+                        {
+                            pwy[idx] = d;
+                            idx++;
+                        }
+                    }
+                }
+                n_pwy = idx;
+            }
+
+
+            else if (!strncmp(buffer, "CPH", 3))
+            {
+                float float_cph;
+                sscanf(&buffer[4], "%f", &float_cph);
+                m_cph = float_cph;
+            }
+
 
             else if (!strncmp(buffer, "PLY", 3))
             {
@@ -1093,7 +1027,6 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                   pPlyTable[nPlypoint].lnp = lnp;
 
                   nPlypoint++;
-
             }
 
             else if(!strncmp(buffer, "CED", 3))
@@ -1111,26 +1044,36 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                               char date_string[40];
                               char date_buf[10];
                               sscanf(&buffer[i], "%s\r\n", date_string);
-                              wxDateTime dt;
-                              if(dt.ParseDate(date_string))       // successful parse?
-                              {
-                                    int iyear = dt.GetYear();
+
+
+                            wxDateTime dt;
+                                          if(dt.ParseDate(date_string))       // successful parse?
+                            {
+                                              int iyear = dt.GetYear(); // GetYear() fails on W98, DMC compiler, wx2.8.3
 //    BSB charts typically list publish date as xx/yy/zz, we want 19zz.
-                                    if(iyear < 100)
-                                          iyear += 1900;
-                                    sprintf(date_buf, "%d", iyear);
-                              }
-                              else
-                              {
-                                    sscanf(date_string, "%s", date_buf);
-                              }
-                              pPubYear->Append(date_buf);
+                                              if(iyear < 100)
+                                                iyear += 1900;
+                                              sprintf(date_buf, "%d", iyear);
+                             }
+                             else
+                             {
+                                 sscanf(date_string, "%s", date_buf);
+                             }
+
+
+//                             sscanf(date_string, "%s", date_buf);
+                             pPubYear->Append(date_buf);
                         }
                   }
             }
 
       }
 
+
+      //    If imbedded coefficients are found,
+      //    then use the polynomial georeferencing algorithms
+      if(n_pwx && n_pwy && n_pwx && n_pwy)
+          bHaveImbeddedGeoref = true;
 
 
 
@@ -1183,7 +1126,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 //    Read the Color table bit size
       nColorSize = ifs_hdr->GetC();
 
-
+      nFileOffsetDataStart = ifs_hdr->TellI();
 
 //    Perform common post-init actions in ChartBaseBSB
       InitReturn pi_ret = PostInit();
@@ -1192,9 +1135,6 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
       else
             return INIT_OK;
 }
-
-
-
 
 
 
@@ -1217,6 +1157,12 @@ ChartBaseBSB::ChartBaseBSB()
       pRefTable = (Refpoint *)x_malloc(sizeof(Refpoint));
       nRefpoint = 0;
       cPoints.status = 0;
+      bHaveImbeddedGeoref = false;
+      n_wpx = 0;
+      n_wpy = 0;
+      n_pwx = 0;
+      n_pwy = 0;
+
 
       pPlyTable = (Plypoint *)x_malloc(sizeof(Plypoint));
       nPlypoint = 0;
@@ -1232,12 +1178,17 @@ ChartBaseBSB::ChartBaseBSB()
       m_bilinear_limit = 8;         // bilinear scaling only up to 4
 
       ifs_bitmap = NULL;
+      ifss_bitmap = NULL;
       ifs_hdr = NULL;
 
       for(int i = 0 ; i < N_COLOR_SCHEMES ; i++)
             pPalettes[i] = NULL;
 
       bGeoErrorSent = false;
+      Chart_DU = 0;
+      m_cph = 0.;
+
+
 }
 
 ChartBaseBSB::~ChartBaseBSB()
@@ -1254,30 +1205,24 @@ ChartBaseBSB::~ChartBaseBSB()
       if(ifs_buf)
             free(ifs_buf);
 
-
-
       free(pRefTable);
       free(pPlyTable);
 
-      if(ifs_hdr)
-            if(ifs_hdr->Ok())
-                  delete ifs_hdr;
-
-      if(ifs_bitmap)
-            if(ifs_bitmap->Ok())
-                  delete ifs_bitmap;
-
+      delete ifs_bitmap;
+      delete ifs_hdr;
+      delete ifss_bitmap;
 
       if(cPoints.status)
       {
-            free(E12);
-            free(N12);
-            free(E21);
-            free(N21);
-            free(cPoints.e1);
-            free(cPoints.n1);
-            free(cPoints.e2);
-            free(cPoints.n2);
+          free(cPoints.tx );
+          free(cPoints.ty );
+          free(cPoints.lon );
+          free(cPoints.lat );
+
+          free(cPoints.pwx );
+          free(cPoints.wpx );
+          free(cPoints.pwy );
+          free(cPoints.wpy );
       }
 
 //    Free the line cache
@@ -1326,23 +1271,40 @@ void ChartBaseBSB::CreatePaletteEntry(char *buffer, int palette_index)
 
       Palette *pp = pPalettes[palette_index];
 
+      pp->FwdPalette = (int *)realloc(pp->FwdPalette, (pp->nFwd + 1) * sizeof(int));
+      pp->RevPalette = (int *)realloc(pp->RevPalette, (pp->nRev + 1) * sizeof(int));
+      pp->nFwd++;
+      pp->nRev++;
+
       int i;
       int n,r,g,b;
       sscanf(&buffer[4], "%d,%d,%d,%d", &n, &r, &g, &b);
 
       i=n;
+
+      int fcolor, rcolor;
+      fcolor = (b << 16) + (g << 8) + r;
+      rcolor = (r << 16) + (g << 8) + b;
+
+      pp->RevPalette[i] = rcolor;
+      pp->FwdPalette[i] = fcolor;
+
+/*
       if(i < PALETTE_SIZE)
       {
             pp->FwdPalette[i][0] = (unsigned char)r;
             pp->FwdPalette[i][1] = (unsigned char)g;
             pp->FwdPalette[i][2] = (unsigned char)b;
+            pp->FwdPalette[i][3] = 255;
+
             pp->RevPalette[i][0] = (unsigned char)b;
             pp->RevPalette[i][1] = (unsigned char)g;
             pp->RevPalette[i][2] = (unsigned char)r;
+            pp->RevPalette[i][3] = 255;
       }
       else
-            wxLogMessage("Palette has more than PALETTE_SIZE entries");
-
+          wxLogMessage("Palette has more than PALETTE_SIZE entries, %d:%d", i, PALETTE_SIZE);
+*/
 
 }
 
@@ -1356,7 +1318,17 @@ InitReturn ChartBaseBSB::PostInit(void)
             if(pPalettes[i] == NULL)
             {
                 Palette *pNullSubPal = new Palette;
-                *pNullSubPal = *pPalettes[COLOR_SCHEME_DEFAULT];        // copy the palette
+                pNullSubPal->nFwd = pPalettes[COLOR_SCHEME_DEFAULT]->nFwd;        // copy the palette count
+                pNullSubPal->nRev = pPalettes[COLOR_SCHEME_DEFAULT]->nRev;        // copy the palette count
+                //  Deep copy the palette rgb tables
+                free( pNullSubPal->FwdPalette );
+                pNullSubPal->FwdPalette = (int *)malloc(pNullSubPal->nFwd * sizeof(int));
+                memcpy(pNullSubPal->FwdPalette, pPalettes[COLOR_SCHEME_DEFAULT]->FwdPalette, pNullSubPal->nFwd * sizeof(int));
+
+                free( pNullSubPal->RevPalette );
+                pNullSubPal->RevPalette = (int *)malloc(pNullSubPal->nRev * sizeof(int));
+                memcpy(pNullSubPal->RevPalette, pPalettes[COLOR_SCHEME_DEFAULT]->RevPalette, pNullSubPal->nRev * sizeof(int));
+
                 pPalettes[i] = pNullSubPal;
             }
       }
@@ -1366,8 +1338,9 @@ InitReturn ChartBaseBSB::PostInit(void)
 
       pPalette = GetPalettePtr(m_color_scheme);
 
+
       //    Allocate memory for ifs file buffering
-      ifs_bufsize = 64000;
+      ifs_bufsize = Size_X * 4;
       ifs_buf = (unsigned char *)x_malloc(ifs_bufsize);
       if(!ifs_buf)
             return INIT_FAIL_REMOVE;
@@ -1387,16 +1360,67 @@ InitReturn ChartBaseBSB::PostInit(void)
       pline_table[Size_Y] = ifs_bitmap->TellI();                     // fill in useful last table entry
 
       int offset;
-      for(int iplt=0 ; iplt<Size_Y ; iplt++)
+      for(int ifplt=0 ; ifplt<Size_Y ; ifplt++)
       {
-            offset = 0;
-            offset += (unsigned char)ifs_bitmap->GetC() * 256 * 256 * 256;
-            offset += (unsigned char)ifs_bitmap->GetC() * 256 * 256 ;
-            offset += (unsigned char)ifs_bitmap->GetC() * 256 ;
-            offset += (unsigned char)ifs_bitmap->GetC();
+          offset = 0;
+          offset += (unsigned char)ifs_bitmap->GetC() * 256 * 256 * 256;
+          offset += (unsigned char)ifs_bitmap->GetC() * 256 * 256 ;
+          offset += (unsigned char)ifs_bitmap->GetC() * 256 ;
+          offset += (unsigned char)ifs_bitmap->GetC();
 
-            pline_table[iplt] = offset;
+          pline_table[ifplt] = offset;
       }
+
+      //    Try to validate the line index
+
+      bool bline_index_ok = true;
+      m_nLineOffset = 0;
+
+      for(int iplt=0 ; iplt<Size_Y - 1 ; iplt++)
+      {
+            if( wxInvalidOffset == ifs_bitmap->SeekI(pline_table[iplt], wxFromStart))
+                  assert(0);
+            int thisline_size = pline_table[iplt+1] - pline_table[iplt] ;
+
+            ifs_bitmap->Read(ifs_buf, thisline_size);
+
+            unsigned char *lp = ifs_buf;
+
+            unsigned char byNext;
+            int nLineMarker = 0;
+            do
+            {
+                  byNext = *lp++;
+                  nLineMarker = nLineMarker * 128 + (byNext & 0x7f);
+            } while( (byNext & 0x80) != 0 );
+
+            //  Linemarker Correction factor needed here
+            //  Some charts start with LineMarker = 0, some with LineMarker = 1
+            //  Assume the first LineMarker found is the index base, and use
+            //  as a correction offset
+
+            if(iplt == 0)
+                m_nLineOffset = nLineMarker;
+
+            if(nLineMarker != iplt + m_nLineOffset)
+            {
+                bline_index_ok = false;
+                break;
+            }
+
+      }
+
+        // Recreate the scan line index if the imbedded version seems corrupt
+      if(!bline_index_ok)
+      {
+          wxLogMessage("Line Index corrupt, recreating on chart %s", pFullPath->c_str());
+          if(!CreateLineIndex())
+          {
+            return INIT_FAIL_REMOVE;
+          }
+      }
+
+
 
       //    Allocate the Line Cache
       if(bUseLineCache)
@@ -1424,6 +1448,46 @@ InitReturn ChartBaseBSB::PostInit(void)
 
       bReadyToRender = true;
       return INIT_OK;
+}
+
+
+bool ChartBaseBSB::CreateLineIndex()
+{
+    //  Assumes file stream ifs_bitmap is currently open
+
+//    wxBufferedInputStream *pbis = new wxBufferedInputStream(*ifss_bitmap);
+
+    //  Seek to start of data
+    ifs_bitmap->SeekI(nFileOffsetDataStart);                 // go to Beginning of data
+
+    for(int iplt=0 ; iplt<Size_Y ; iplt++)
+    {
+        int offset = ifs_bitmap->TellI();
+
+        int iscan;
+        iscan = BSBScanScanline(ifs_bitmap);
+
+        if(iscan > Size_Y)
+        {
+           wxLogMessage("!!CreateLineIndex() failed on chart %s", pFullPath->c_str());
+           return false;
+        }
+
+        //  Skipped lines?
+        if(iscan != iplt)
+        {
+            while((iplt < iscan) && (iplt < Size_Y))
+            {
+                pline_table[iplt] = 0;
+                iplt++;
+            }
+        }
+
+        pline_table[iplt] = offset;
+
+    }
+
+    return true;
 }
 
 
@@ -1540,11 +1604,11 @@ wxBitmap *ChartBaseBSB::CreateThumbnail(int tnx, int tny)
       wxBitmap *retBMP;
 
 
-#ifdef dyUSE_BITMAPO
-      retBMP = new wxBitmapo(pPixTN, des_width, des_height, -1);
+#ifdef ocpnUSE_ocpnBitmap
+      retBMP = new ocpnBitmap(pPixTN, des_width, des_height, -1);
 #else
       wxImage thumb_image(des_width, des_height, pPixTN, true);
-      retBMP = new wxBitmap(&thumb_image);
+      retBMP = new wxBitmap(thumb_image);
 #endif
 
 
@@ -1565,8 +1629,8 @@ ThumbData *ChartBaseBSB::GetThumbData(int tnx, int tny, float lat, float lon)
 
 
 //    Create the bitmap if needed
-      if(!pThumbData->pDIB)
-            pThumbData->pDIB = CreateThumbnail(tnx, tny);
+      if(!pThumbData->pDIBThumb)
+            pThumbData->pDIBThumb = CreateThumbnail(tnx, tny);
 
 
 //    Plot the supplied Lat/Lon on the thumbnail
@@ -1575,15 +1639,9 @@ ThumbData *ChartBaseBSB::GetThumbData(int tnx, int tny, float lat, float lon)
 
       int div_factor = __min(divx, divy);
 
-      double dpix, dpiy;
       int pixx, pixy;
-      float  northing, easting;
 
-      DegToUTM(lat, lon, NULL, &easting, &northing, long0);
-
-      georef(easting, northing, &dpix, &dpiy, this->E21, this->N21, cPoints.order);
-      pixx = (int)floor((dpix + 0.5));                // rounding
-      pixy = (int)floor((dpiy+ 0.5));
+      latlong_to_pix(lat, lon, pixx, pixy);
 
       pThumbData->ShipX = pixx / div_factor;
       pThumbData->ShipY = pixy / div_factor;
@@ -1612,9 +1670,14 @@ void ChartBaseBSB::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnu
       if(pPixCache == NULL)
           GetViewUsingCache(Rsrc, dest, SCALE_SUBSAMP);
 
+///      wxStopWatch st;
+
 //    Select the data into the dc
       pPixCache->SelectIntoDC(dc);
 
+///      int time = st.Time();
+///      if(time > 1)
+///          printf("   Pix CacheSelect %ldms\n", st.Time());
 
 }
 
@@ -1627,24 +1690,145 @@ void ChartBaseBSB::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnu
 //-----------------------------------------------------------------------
 //          Pixel to Lat/Long Conversion helpers
 //-----------------------------------------------------------------------
+static double polytrans( double* coeff, double lon, double lat );
 
-void ChartBaseBSB::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
+int ChartBaseBSB::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
 {
-      double  northing, easting;
+    if(bUseGeoRef)
+    {
+        if(bHaveImbeddedGeoref)
+        {
+            double lon = polytrans( pwx, pixx, pixy );
+            lon = (lon < 0) ? lon + m_cph : lon - m_cph;
+            *plon = lon;
+            *plat = polytrans( pwy, pixx, pixy );
 
-      double px = pixx;
-      double py = pixy;
-      georef(px, py, &easting, &northing, this->E12, this->N12, cPoints.order);
+    /*        double  northing, easting;
 
-      UTMtoDeg(long0, 0, easting, northing, plat, plon);
+            double px = pixx;
+            double py = pixy;
+            georef(px, py, &easting, &northing, this->E12, this->N12, cPoints.order);
+
+            UTMtoDeg(long0, 0, easting, northing, plat, plon);
+            */
+        }
+        else                                            // use calculated coefficients
+        {
+            double lon = polytrans( cPoints.pwx, pixx, pixy );
+            lon = (lon < 0) ? lon + m_cph : lon - m_cph;
+            *plon = lon;
+            *plat = polytrans( cPoints.pwy, pixx, pixy );
+
+        }
+        return 0;
+    }
+    else
+        return 1;                   // report upstream as error
 }
 
-void ChartBaseBSB::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
+int ChartBaseBSB::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
 {
 //    float raster_scale = GetNativeScale() / vp.view_scale;
     float raster_scale = vp.binary_scale_factor;
 
-    pix_to_latlong((int)(pixx*raster_scale) + Rsrc.x, (int)(pixy*raster_scale) + Rsrc.y, plat, plon);
+    return(pix_to_latlong((int)(pixx*raster_scale) + Rsrc.x, (int)(pixy*raster_scale) + Rsrc.y, plat, plon));
+}
+
+
+
+
+int ChartBaseBSB::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
+{
+    if(bUseGeoRef)
+    {
+        if(bHaveImbeddedGeoref)
+        {
+    /*        DegToUTM(lat, lon, NULL, &easting, &northing, long0);
+
+            double dpix, dpiy;
+            float  northing, easting;
+
+            georef(easting, northing, &dpix, &dpiy, this->E21, this->N21, cPoints.order);
+            pixx = (int)floor((dpix + 0.5));                // rounding
+            pixy = (int)floor((dpiy+ 0.5));
+    */
+            /* change longitude phase (CPH) */
+            double lonp = (lon < 0) ? lon + m_cph : lon - m_cph;
+            double xd = polytrans( wpx, lonp, lat );
+            double yd = polytrans( wpy, lonp, lat );
+            pixx = (int)(xd + 0.5);
+            pixy = (int)(yd + 0.5);
+
+        }
+        else                                            // use calculated coefficients
+        {
+            /* change longitude phase (CPH) */
+            double lonp = (lon < 0) ? lon + m_cph : lon - m_cph;
+            double xd = polytrans( cPoints.wpx, lonp, lat );
+            double yd = polytrans( cPoints.wpy, lonp, lat );
+            pixx = (int)(xd + 0.5);
+            pixy = (int)(yd + 0.5);
+        }
+
+        return 0;
+    }
+    else
+        return 1;                   // report upstream as error
+}
+
+
+int ChartBaseBSB::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp)
+{
+    int px, py;
+    int ret_val = latlong_to_pix(lat, lon, px, py);
+
+    float raster_scale = vp.binary_scale_factor;
+
+    pixx = (int)((px - Rsrc.x) / raster_scale);
+    pixy = (int)((py - Rsrc.y) / raster_scale);
+
+    return ret_val;
+}
+
+
+void ChartBaseBSB::UpdateViewPortParms(ViewPort &vp)
+{
+
+    int pixxd, pixyd;
+    float sc = vp.binary_scale_factor;
+
+    if(!latlong_to_pix(vp.clat, vp.clon, pixxd, pixyd))
+    {
+
+        Rsrc.x = pixxd - (int)(vp.pix_width  * sc / 2);
+        Rsrc.y = pixyd - (int)(vp.pix_height * sc / 2);
+
+        Rsrc.width =  (int)(vp.pix_width  * sc) ;
+        Rsrc.height = (int)(vp.pix_height * sc) ;
+    }
+
+    else
+    {
+                //  Internal Georeferencing on this chart has been declared bad, so
+                //  use a linear Mercater estimator to get started
+
+        double e_est, n_est;
+        toSM(vp.clat, vp.clon,
+             pRefTable[m_i_ref_near_center].latr,
+             pRefTable[m_i_ref_near_center].lonr, &e_est, &n_est);
+        int dx = (int)(e_est * ppm_avg);
+        int dy = (int)(n_est * ppm_avg);
+
+        int pixxe = (int)(pRefTable[m_i_ref_near_center].xr) + dx;
+        int pixye = (int)(pRefTable[m_i_ref_near_center].yr) - dy;
+
+        Rsrc.x = pixxe - (int)(vp.pix_width  * sc / 2);
+        Rsrc.y = pixye - (int)(vp.pix_height * sc / 2);
+
+        Rsrc.width =  (int)(vp.pix_width  * sc) ;
+        Rsrc.height = (int)(vp.pix_height * sc) ;
+    }
+
 }
 
 
@@ -1654,12 +1838,15 @@ void ChartBaseBSB::SetVPParms(ViewPort *vpt)
       return;
 }
 
+void ChartBaseBSB::GetSourceRect(wxRect *rect)
+{
+    *rect = Rsrc;
+}
+
 
 void ChartBaseBSB::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion)
 {
-
-//      float raster_scale = GetNativeScale() / VPoint.view_scale;
-      float raster_scale = VPoint.binary_scale_factor;
+      float raster_scale = 1.0 / VPoint.binary_scale_factor;
       int rxl, rxr;
       if(Rsrc.x < 0)
             rxl = (int)(-Rsrc.x * raster_scale);
@@ -1709,9 +1896,6 @@ bool ChartBaseBSB::GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnu
 //    Calculate the digital scale, e.g. 1,2,4,8,,,
       int cs1 = source.width/dest.width;
 
-//    if(cs1 == 0)
-//          cs1 = 1;
-
 //    Enforce a limit on bilinear scaling, for performance reasons
 
       scale_type_corrected = scale_type;
@@ -1735,8 +1919,7 @@ bool ChartBaseBSB::GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnu
       if(!cached_image_ok)
             return GetView( source, dest, scale_type_corrected );
 
-//    canvas_scale = (float)dest.width / (float)source.width;
-    if(0 == cs1)                                        // overzoom
+      if(0 == cs1)                                        // overzoom
             return GetView( source, dest, scale_type_corrected );
 
       if(abs(source.x - cache_rect.x) % cs1)
@@ -1782,7 +1965,7 @@ bool ChartBaseBSB::GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnu
             if(1 == cs1)                                    // unity scale
             {
                   ppnx = (unsigned char *)x_malloc((abs(stride_rows)) * source.width * BPP/8);
-                  GetChartBits(s1, ppnx, 1, get_bits_submap);
+                  GetChartBits(s1, ppnx, get_bits_submap);
             }
             else
             {
@@ -1792,9 +1975,9 @@ bool ChartBaseBSB::GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnu
 
 //    Now, concatenate the data
 
-            unsigned char *ppc = (unsigned char *)pPixCache->pData;     // source
+            unsigned char *ppc = (unsigned char *)pPixCache->GetpData();     // source
             PixelCache *pPCtemp = new PixelCache(dest.width, dest.height, BPP);     // destination
-            pPix = pPCtemp->pData;
+            pPix = pPCtemp->GetpData();
 
 
             unsigned char *ppn = ppnx;
@@ -1855,7 +2038,7 @@ bool ChartBaseBSB::GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnu
             if(1 == cs1)                                    // unity scale
             {
                   ppnx = (unsigned char *)x_malloc((abs(stride_pixels)) * source.height * BPP/8);
-                  GetChartBits(s1, ppnx, 1, get_bits_submap);
+                  GetChartBits(s1, ppnx, get_bits_submap);
             }
             else
             {
@@ -1865,9 +2048,9 @@ bool ChartBaseBSB::GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnu
 
 //    Now, concatenate the data
 
-            unsigned char *ppc = (unsigned char *)pPixCache->pData;     // source
+            unsigned char *ppc = (unsigned char *)pPixCache->GetpData();     // source
             PixelCache *pPCtemp = new PixelCache(dest.width, dest.height, BPP);     // destination
-            pPix = pPCtemp->pData;
+            pPix = pPCtemp->GetpData();
 
             unsigned char *ppn = ppnx;
             pCP = pPix;
@@ -1955,9 +2138,9 @@ bool ChartBaseBSB::GetView( wxRect& source, wxRect& dest, ScaleTypeEnum scale_ty
       if(canvas_scale == 1)
       {
 //    Get the chart bits directly into the PixelCache data buffer
-            GetChartBits(source, pPixCacheTemp->pData, 1, get_bits_submap);
-            delete pPixCache;
-            pPixCache = pPixCacheTemp;
+          GetChartBits(source, pPixCacheTemp->GetpData(), get_bits_submap);
+          delete pPixCache;
+          pPixCache = pPixCacheTemp;
       }
 
 //    Otherwise, non-unity scale, so need a temp buffer
@@ -1965,7 +2148,7 @@ bool ChartBaseBSB::GetView( wxRect& source, wxRect& dest, ScaleTypeEnum scale_ty
       {
 //    Get and Rescale the data directly into the temporary PixelCache data buffer
 
-            unsigned char *ppnx = pPixCacheTemp->pData;
+            unsigned char *ppnx = pPixCacheTemp->GetpData();
             if(!GetAndScaleData(&ppnx, source, source.width, dest.width, scale_type))
             {
                 delete pPixCacheTemp;                       // Some error, retain old cache
@@ -1988,117 +2171,6 @@ bool ChartBaseBSB::GetView( wxRect& source, wxRect& dest, ScaleTypeEnum scale_ty
 
       return TRUE;
 }
-
-
-
-bool ChartBaseBSB::GetViewIntoPrivatePixelCache( wxRect& source, wxRect& dest, ScaleTypeEnum scale_type )
-{
-  int cs1 = source.width/dest.width;
-
-//    Setup the scale_type dependencies
-  int get_bits_submap = 1;            // default, bi-linear
-
-//    n.b if cs1 ==0, we are oversampling, scale > 1
-  if( (scale_type == SCALE_SUBSAMP) && cs1)
-    get_bits_submap = cs1;
-
-  float l_canvas_scale = (float)dest.width / (float)source.width;
-
-//    Create the PixelCache
-  pPixCacheAlternate = new PixelCache(dest.width, dest.height, BPP);
-
-
-//    Special case for unity scale
-//    In this case, need only one buffer, so make it the PixelCache buffer directly
-  if(l_canvas_scale == 1)
-  {
-//    Get the chart bits directly into the PixelCache data buffer
-    GetChartBits(source, pPixCacheAlternate->pData, 1, get_bits_submap);
-  }
-
-//    Otherwise, non-unity scale, so need a temp buffer
-  else
-  {
-//    Get and Rescale the data directly into the PixelCache data buffer
-
-    unsigned char *ppnx = pPixCacheAlternate->pData;
-    GetAndScaleData(&ppnx, source, source.width, dest.width, scale_type);
-  }
-
-      cache_rect_alt = source;
-      cache_rect_scaled_alt = dest;
-
-
-  return TRUE;
-}
-bool ChartBaseBSB::AssumeAlternateCacheParms()
-{
-      if(pPixCacheAlternate)
-      {
-            delete pPixCache;
-            pPixCache = pPixCacheAlternate;
-
-            pPixCacheAlternate = NULL;
-
-            cache_rect = cache_rect_alt;
-            cache_rect_scaled = cache_rect_scaled_alt;
-
-            cached_image_ok = 1;
-      }
-      //Todo make wxLogMessage
-      else
-            printf("tried to assume null pixelcache\n");
-
-      return true;
-}
-
-
-
-void ChartBaseBSB::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
-{
-      float  northing, easting;
-//    char zone[20];;
-
-      DegToUTM(lat, lon, NULL, &easting, &northing, long0);
-
-      double dpix, dpiy;
-
-      georef(easting, northing, &dpix, &dpiy, this->E21, this->N21, cPoints.order);
-      pixx = (int)floor((dpix + 0.5));                // rounding
-      pixy = (int)floor((dpiy+ 0.5));
-
-}
-
-
-void ChartBaseBSB::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp)
-{
-      int px, py;
-      latlong_to_pix(lat, lon, px, py);
-
-      float raster_scale = vp.binary_scale_factor;
-//      float raster_scale = GetNativeScale() / vp.view_scale;
-
-      pixx = (int)((px - Rsrc.x) / raster_scale);
-      pixy = (int)((py - Rsrc.y) / raster_scale);
-
-}
-
-
-void ChartBaseBSB::UpdateViewPortParms(ViewPort &vp)
-{
-    int pixxd, pixyd;
-    latlong_to_pix(vp.clat, vp.clon, pixxd, pixyd);
-
-//    float sc = vp.view_scale / GetNativeScale();    // native (1X) scale
-    float sc = vp.binary_scale_factor;
-
-    Rsrc.x = pixxd - (int)(vp.pix_width  * sc / 2);
-    Rsrc.y = pixyd - (int)(vp.pix_height * sc / 2);
-
-    Rsrc.width =  (int)(vp.pix_width  * sc) ;
-    Rsrc.height = (int)(vp.pix_height * sc) ;
-}
-
 
 bool ChartBaseBSB::ScaleData(unsigned char *pPix, unsigned char **ppn, wxRect& source, int s_width,
                               int d_width, ScaleTypeEnum scale_type)
@@ -2305,11 +2377,12 @@ bool ChartBaseBSB::GetAndScaleData(unsigned char **ppn, wxRect& source, int s_wi
 
       if(factor > 1)
       {
-
-
             int Factor =  (int)factor;
             int a = (int)factor;
             int b = 0;
+
+            if(0 == a)
+                a=1;                    // shouldn't happen
 
             // Calculate scountre = 2 * log2(factor)
             while((a & 0x01) == 0)
@@ -2322,13 +2395,11 @@ bool ChartBaseBSB::GetAndScaleData(unsigned char **ppn, wxRect& source, int s_wi
             scounter = b*2;
 
 
-//    Allocate a working buffer based on scale factor
-//          s_data = (unsigned char *) x_malloc( (source.width) * ((int)factor + 9) * BPP/8 );
-
-
             if(scale_type == SCALE_BILINEAR)
             {
-                s_data = (unsigned char *) x_malloc( (source.width) * ((int)factor + 9) * BPP/8 ); // work buffer
+//    Allocate a working buffer based on scale factor
+                  int wb_size = (source.width) * ((Factor + 1) * 2) * BPP/8 ;
+                  s_data = (unsigned char *) x_malloc( wb_size ); // work buffer
                   unsigned char *pixel;
                   int y_offset;
 
@@ -2343,12 +2414,13 @@ bool ChartBaseBSB::GetAndScaleData(unsigned char **ppn, wxRect& source, int s_wi
                         s1.y = yr;
                         s1.width = source.width;
                         s1.height = Factor;
-                        GetChartBits(s1, s_data, 1, get_bits_submap);
+                        GetChartBits(s1, s_data, get_bits_submap);
                         yr += Factor;
 
 //      Take a peek into the message queue for mouse movements.
 //      If found, abort this render operation
 //      Profuse apologies for the direct hardware hack....
+#ifdef __RENDER_PEEK__
 #ifdef __WXMSW__
     MSG msg;
     if(::PeekMessage(&msg, (HWND)0,  WM_MOUSEFIRST, WM_MOUSELAST,  PM_NOREMOVE))
@@ -2367,6 +2439,22 @@ if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
   delete xevt;
 #endif
 
+#ifdef __WXGTK__PEEK            // untested............
+GdkEvent *pevt = gdk_event_peek();
+GdkEvent *peek_event = gdk_event_peek();
+if (peek_event)
+   {
+       if ((peek_event->type == GDK_MOTION_NOTIFY))
+            {
+                gdk_event_free( peek_event );
+                free(s_data);
+                return false;
+            }
+            else
+              gdk_event_free( peek_event );
+   }
+#endif
+#endif
                         int y_off0 = 0;
                         for (int x = 0; x < target_width; x++)
                         {
@@ -2378,32 +2466,26 @@ if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
 
                               if((x * Factor) < (Size_X - source.x))
                               {
-
             // determine average
-                                          for ( int y1 = 0 ; y1 < Factor ; ++y1 )
-                                          {
-                                                pixel = pix0 + (BPP/8 * y_offset ) ;
-                                                for ( int x1 = 0 ; x1 < Factor ; ++x1 )
-                                                {
+                                    for ( int y1 = 0 ; y1 < Factor ; ++y1 )
+                                    {
+                                        pixel = pix0 + (BPP/8 * y_offset ) ;
+                                        for ( int x1 = 0 ; x1 < Factor ; ++x1 )
+                                        {
+                                            avgRed += pixel[0] ;
+                                            avgGreen += pixel[1] ;
+                                            avgBlue += pixel[2] ;
 
-                                                      avgRed += pixel[0] ;
-                                                      avgGreen += pixel[1] ;
-                                                      avgBlue += pixel[2] ;
+                                            pixel += BPP/8;
+                                        }
+                                        y_offset += old_width ;
+                                    }
 
-                                                      pixel += BPP/8;
-                                                }
-                                                y_offset += old_width ;
-                                          }
-
-
-                                          unsigned char *rgb_data = target_data;
-                                          *(rgb_data++) = avgRed >> scounter;
-                                          *(rgb_data++) = avgGreen >> scounter;
-                                          *(rgb_data++) = avgBlue >> scounter;
-                                          target_data += BPP/8;
-
-
-
+                                    unsigned char *rgb_data = target_data;
+                                    *(rgb_data++) = avgRed >> scounter;
+                                    *(rgb_data++) = avgGreen >> scounter;
+                                    *(rgb_data++) = avgBlue >> scounter;
+                                    target_data += BPP/8;
                               }
                               else
                               {
@@ -2426,7 +2508,8 @@ if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
                   //    Do this case such that the working buffer malloc is bounded.
                   if((source.x < 0) && ((source.width + source.x) > Size_X))
                   {
-                        s_data = (unsigned char *) x_malloc( (Size_X) * ((int)factor + 9) * BPP/8 ); // work buffer
+                        int wb_size = (Size_X) * ((Factor + 1) * 2) * BPP/8 ;
+                        s_data = (unsigned char *) x_malloc( wb_size ); // work buffer
                         int yr = source.y;
 
                         unsigned char *y_off0;
@@ -2442,7 +2525,7 @@ if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
                               s1.y = yr;
                               s1.width = Size_X;
                               s1.height = Factor;
-                              GetChartBits(s1, s_data, 1, get_bits_submap);
+                              GetChartBits(s1, s_data, get_bits_submap);
                               yr += Factor;
 
                               y_off0 = s_data;
@@ -2499,7 +2582,8 @@ if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
                   //    malloc of work buffer will be reasonable size , about O(Size_X)
                   else
                   {
-                        s_data = (unsigned char *) x_malloc( (source.width) * ((int)factor + 9) * BPP/8 ); // work buffer
+                        int wb_size = (source.width) * ((Factor + 1) * 2) * BPP/8 ;
+                        s_data = (unsigned char *) x_malloc( wb_size ); // work buffer
                         int yr = source.y;
 
                         unsigned char *y_off0;
@@ -2515,7 +2599,7 @@ if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
                               s1.y = yr;
                               s1.width = source.width;
                               s1.height = Factor;
-                              GetChartBits(s1, s_data, 1, get_bits_submap);
+                              GetChartBits(s1, s_data, get_bits_submap);
                               yr += Factor;
 
                               y_off0 = s_data;
@@ -2554,7 +2638,7 @@ if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
             //    Seems safe enough to read all the required data
             s_data = (unsigned char *) x_malloc( (source.x + source.width) * source.height * BPP/8 );
 
-            GetChartBits(source, s_data, 1, get_bits_submap);
+            GetChartBits(source, s_data, get_bits_submap);
 
             for (int j = 0; j < target_height; j++)
             {
@@ -2578,94 +2662,215 @@ if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
 }
 
 
+bool ChartBaseBSB::InitializeBackgroundBilinearRender(ViewPort &VPoint)
+{
+    wxRect dest(0,0,VPoint.pix_width, VPoint.pix_height);
+
+    float factor = ((float)Rsrc.width)/((float)dest.width);
+
+    if(factor < 1.0)            // it should never happen that we try to
+        return false;           // re-scale an overzoomed chart, but....
+
+    float pfactor = 1.0 / factor;
+
+    int old_height = Rsrc.height;
+    int old_width  = Rsrc.width;
+
+    br_target_width = (int)((float)old_width * pfactor) ;
+    br_target_height = (int)((float)old_height * pfactor);
+
+    pPixCacheBackground = new PixelCache(dest.width, dest.height, BPP);
+
+    br_target_data = pPixCacheBackground->GetpData();
+
+//    Setup the scale_type dependencies
+    br_get_bits_submap = 1;            // always bi-linear
+
+    br_Factor =  (int)factor;
+    int a = (int)factor;
+    int b = 0;
+
+    if(a == 0)                      // shouldn't happen
+        a=1;
+
+// Calculate scounter = 2 * log2(factor)
+    while((a & 0x01) == 0)
+    {
+        a=a>>1;
+        b++;
+    }
+
+    br_scounter = b*2;
+
+//    Allocate a working buffer whose size is based on scale factor
+
+    bwb_size = (Rsrc.width) * ((br_Factor + 1) * 2) * BPP/8 ;
+    background_work_buffer = (unsigned char *) x_malloc( bwb_size ); // work buffer
+
+    //  Set starting points
+    br_y_source = Rsrc.y;
+    br_target_y = 0;
+
+    return true;
+
+}
+
+bool ChartBaseBSB::AbortBackgroundRender(void)
+{
+    free(background_work_buffer);
+    background_work_buffer = NULL;
+
+    delete pPixCacheBackground;
+
+    return true;
+}
+
+bool ChartBaseBSB::FinishBackgroundRender(void)
+{
+    cache_scale_method= SCALE_BILINEAR;             // the cache is set
+    cache_rect = Rsrc;
+//    cache_rect_scaled = dest;
+
+    cached_image_ok = 1;
+
+    delete pPixCache;
+    pPixCache = pPixCacheBackground;
+
+    free(background_work_buffer);
+    background_work_buffer = NULL;
+
+    return true;
+}
+
+bool ChartBaseBSB::ContinueBackgroundRender(void)
+        /*
+        Return true when finished
+        */
+{
+    if(NULL == background_work_buffer)
+        return true;
+
+    if (br_target_y < br_target_height)
+    {
+                  //    Read "factor" lines
+        wxRect s1;
+        s1.x = Rsrc.x;
+        s1.y = br_y_source;
+        s1.width = Rsrc.width;
+        s1.height = br_Factor;
+        GetChartBits(s1, background_work_buffer, br_get_bits_submap);
+        br_y_source += br_Factor;
+
+        int y_off0 = 0;
+        unsigned char *pixel;
+        int y_offset;
+
+        for (int x = 0; x < br_target_width; x++)
+        {
+            unsigned int avgRed = 0 ;
+            unsigned int avgGreen = 0;
+            unsigned int avgBlue = 0;
+            unsigned char *pix0 = background_work_buffer + BPP/8 * ( x * br_Factor ) ;
+            y_offset = y_off0;
+
+            if((x * br_Factor) < (Size_X - Rsrc.x))
+            {
+            // determine average
+                for ( int y1 = 0 ; y1 < br_Factor ; ++y1 )
+                {
+                    pixel = pix0 + (BPP/8 * y_offset ) ;
+                    for ( int x1 = 0 ; x1 < br_Factor ; ++x1 )
+                    {
+                        avgRed += pixel[0] ;
+                        avgGreen += pixel[1] ;
+                        avgBlue += pixel[2] ;
+
+                        pixel += BPP/8;
+                    }
+                    y_offset += Rsrc.width ;
+                }
 
 
-bool ChartBaseBSB::GetChartBits(wxRect& source, unsigned char *pPix, int mode, int sub_samp)
+                unsigned char *rgb_data = br_target_data;
+                *(rgb_data++) = avgRed >> br_scounter;
+                *(rgb_data++) = avgGreen >> br_scounter;
+                *(rgb_data++) = avgBlue >> br_scounter;
+                br_target_data += BPP/8;
+            }
+
+            else
+            {
+                unsigned char *rgb_data = br_target_data;
+                *(rgb_data++) = 0;
+                *(rgb_data++) = 0;
+                *(rgb_data++) = 0;
+                br_target_data += BPP/8;
+            }
+
+        }  // for x
+
+        br_target_y++;
+
+        return false;                   // more to come
+
+    }  // if y on range
+
+
+    return true;                        // done
+}
+
+
+bool ChartBaseBSB::GetChartBits(wxRect& source, unsigned char *pPix, int sub_samp)
 {
 
-//      int ix;
       int iy;
 #define FILL_BYTE 0
 
 //    Decode the KAP file RLL stream into image pPix
 
       unsigned char *pCP;
-//      unsigned char *pSP;
       pCP = pPix;
 
       iy = source.y;
 
       while (iy < source.y + source.height)
       {
-
             if((iy >= 0) && (iy < Size_Y))
             {
+                    if(source.x >= 0)
+                    {
+                            if((source.x + source.width) > Size_X)
+                            {
+                                if((Size_X - source.x) < 0)
+                                        memset(pCP, FILL_BYTE, source.width  * BPP/8);
+                                else
+                                {
 
-                  if(mode == 0)
-                  {
-                        /*
-                        unsigned char *pX = 0;        // cause GPF
+                                        BSBGetScanline( pCP,  iy, source.x, Size_X, sub_samp);
+                                        memset(pCP + (Size_X - source.x) * BPP/8, FILL_BYTE,
+                                            source.x + source.width - Size_X);
+                                }
+                            }
+                            else
+                                BSBGetScanline( pCP, iy, source.x, source.x + source.width, sub_samp);
+                    }
+                    else
+                    {
+                            if((source.width + source.x) >= 0)
+                            {
+                                // Special case, black on left side
+                                //  must ensure that (black fill length % sub_samp) == 0
 
-                        pSP = pCP;
-                        for(ix=source.x; ix<source.x + source.width ; ix++)
-                        {
-                              if((ix > 0) && (ix < Size_X))
-                              {
-                                    int j = *pX++;
-                                    *pSP++ = RGBPallete[j][0];
-                                    *pSP++ = RGBPallete[j][1];
-                                    *pSP++ = RGBPallete[j][2];
-                              }
-                              else
-                              {
-                                    pSP += BPP/8;
-                                    pX++;
-                              }
-                        }
-                        */
-                  }
-
-                  else              // mode 1
-                  {
-                        if(source.x >= 0)
-                        {
-                              if((source.x + source.width) > Size_X)
-                              {
-                                    if((Size_X - source.x) < 0)
-                                          memset(pCP, FILL_BYTE, source.width  * BPP/8);
-                                    else
-                                    {
-
-                                          BSBGetScanline( pCP,  iy, source.x, Size_X, sub_samp);
-                                          memset(pCP + (Size_X - source.x) * BPP/8, FILL_BYTE,
-                                                source.x + source.width - Size_X);
-                                    }
-                              }
-                              else
-                                    BSBGetScanline( pCP, iy, source.x, source.x + source.width, sub_samp);
-                        }
-                        else
-                        {
-                              if((source.width + source.x) >= 0)
-                              {
-                                    // Special case, black on left side
-                                    //  must ensure that (black fill length % sub_samp) == 0
-
-                                    int xfill_corrected = -source.x + (source.x % sub_samp);    //+ve
-                                    memset(pCP, FILL_BYTE, (xfill_corrected * BPP/8));
-                                    BSBGetScanline( pCP + (xfill_corrected * BPP/8),  iy, 0,
-                                           source.width + source.x , sub_samp);
-                              }
-                              else
-                              {
-                                    memset(pCP, FILL_BYTE, source.width  * BPP/8);
-                              }
-                        }
-
-
-                  }
-
-
+                                int xfill_corrected = -source.x + (source.x % sub_samp);    //+ve
+                                memset(pCP, FILL_BYTE, (xfill_corrected * BPP/8));
+                                BSBGetScanline( pCP + (xfill_corrected * BPP/8),  iy, 0,
+                                        source.width + source.x , sub_samp);
+                            }
+                            else
+                            {
+                                memset(pCP, FILL_BYTE, source.width  * BPP/8);
+                            }
+                    }
             }
 
             else              // requested y is off chart
@@ -2684,79 +2889,6 @@ bool ChartBaseBSB::GetChartBits(wxRect& source, unsigned char *pPix, int mode, i
 }
 
 
-
-
-
-wxImage *ChartBaseBSB::ShrinkImage( wxImage *src_image, int Factor )
-{
-
-
-    int old_height = src_image->GetHeight(),
-         old_width  = src_image->GetWidth();
-
-    int width = old_width / Factor ;
-    int height = old_height / Factor ;
-
-      char unsigned *data = (unsigned char *) x_malloc( width*height*BPP/8 );
-
-    wxImage *psi = new wxImage( width , height, data, false );
-
-
-      int scounter;
-      if(Factor == 2)
-            scounter = 2;
-      else if(Factor == 4)
-            scounter = 4;
-      else if(Factor == 8)
-            scounter = 8;
-      else if(Factor == 16)
-            scounter = 16;
-
-      assert(Factor < 17);
-
-    char unsigned *source_data = src_image->GetData();
-    char unsigned *target_data = data;
-      unsigned char *pixel;
-      int y_offset;
-//    int y3 = old_width * BPP/8;
-
-    for (int y = 0; y < height; y++)
-    {
-        int y_off0 = (y * Factor) * old_width;
-            for (int x = 0; x < width; x++)
-        {
-            unsigned int avgRed = 0 ;
-            unsigned int avgGreen = 0;
-            unsigned int avgBlue = 0;
-//            unsigned int counter = 0 ;
-            unsigned char *pix0 = source_data + BPP/8 * ( x * Factor ) ;
-                  y_offset = y_off0;
-
-                     // determine average
-            for ( int y1 = 0 ; y1 < Factor ; ++y1 )
-            {
-                        pixel = pix0 + (BPP/8 * y_offset ) ;
-                for ( int x1 = 0 ; x1 < Factor ; ++x1 )
-                {
-
-                    avgRed += pixel[0] ;
-                    avgGreen += pixel[1] ;
-                    avgBlue += pixel[2] ;
-
-                              pixel += BPP/8;
-                }
-                        y_offset += old_width;
-            }
-
-                  *(target_data++) = avgRed >> scounter;
-            *(target_data++) = avgGreen >> scounter;
-            *(target_data++) = avgBlue >> scounter;
-        }
-    }
-
-
-    return psi;
-}
 
 
 
@@ -2847,9 +2979,72 @@ int ChartBaseBSB::ReadBSBHdrLine(wxFileInputStream* ifs, char* buf, int buf_len_
 }
 
 
-static wxMutex s_mutexProtectingIFS_Bitmap;
+//static wxMutex s_mutexProtectingIFS_Bitmap;
+
 //-----------------------------------------------------------------------
-//    Get a BSB Scan Line Using Cache
+//    Scan a BSB Scan Line from raw data
+//      Leaving stream pointer at start of next line
+//-----------------------------------------------------------------------
+int   ChartBaseBSB::BSBScanScanline(wxInputStream *pinStream )
+{
+      int nLineMarker, nValueShift, iPixel = 0;
+      unsigned char byValueMask, byCountMask;
+      unsigned char byNext;
+      int coffset;
+
+      if(1)
+      {
+//      Read the line number.
+            nLineMarker = 0;
+            do
+            {
+                  byNext = pinStream->GetC();
+                  nLineMarker = nLineMarker * 128 + (byNext & 0x7f);
+            } while( (byNext & 0x80) != 0 );
+
+//      Setup masking values.
+            nValueShift = 7 - nColorSize;
+            byValueMask = (((1 << nColorSize)) - 1) << nValueShift;
+            byCountMask = (1 << (7 - nColorSize)) - 1;
+
+//      Read and simulate expansion of runs.
+
+            while( ((byNext = pinStream->GetC()) != 0 ) && (iPixel < Size_X))
+            {
+
+                  int   nPixValue;
+                  int nRunCount;
+                  nPixValue = (byNext & byValueMask) >> nValueShift;
+
+                  nRunCount = byNext & byCountMask;
+
+                  while( (byNext & 0x80) != 0 )
+                  {
+                        byNext = pinStream->GetC();
+                        nRunCount = nRunCount * 128 + (byNext & 0x7f);
+                  }
+
+                  if( iPixel + nRunCount + 1 > Size_X )
+                        nRunCount = Size_X - iPixel - 1;
+
+
+//          Store nPixValue in the destination
+//                  memset(pCL, nPixValue, nRunCount+1);
+//                  pCL += nRunCount+1;
+                  iPixel += nRunCount+1;
+            }
+            coffset = pinStream->TellI();
+
+      }
+
+
+      return nLineMarker;
+}
+
+
+
+//-----------------------------------------------------------------------
+//    Get a BSB Scan Line Using Cache and scan line index if available
 //-----------------------------------------------------------------------
 int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int xl, int sub_samp)
 
@@ -2885,16 +3080,22 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
 
       if((bUseLineCache && !pt->bValid) || (!bUseLineCache))
       {
+          if(pline_table[y] == 0)
+              return 0;
+
+          if(pline_table[y+1] == 0)
+              return 0;
+
             int thisline_size = pline_table[y+1] - pline_table[y] ;
 
-            wxMutexLocker lock(s_mutexProtectingIFS_Bitmap);
+            if(thisline_size > ifs_bufsize)
+                ifs_buf = (unsigned char *)realloc(ifs_buf, thisline_size);
 
             if( wxInvalidOffset == ifs_bitmap->SeekI(pline_table[y], wxFromStart))
                   return 0;
+
             ifs_bitmap->Read(ifs_buf, thisline_size);
             lp = ifs_buf;
-
-
 
 //    At this point, the unexpanded, raw line is at *lp, and the expansion destination is xtemp_line
 
@@ -2929,12 +3130,13 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
                         nRunCount = nRunCount * 128 + (byNext & 0x7f);
                   }
 
-                  if( iPixel + nRunCount + 1 > Size_X )
+                  if( iPixel + nRunCount + 1 > Size_X )     // protection
                         nRunCount = Size_X - iPixel - 1;
 
+                  if(nRunCount < 0)                         // against corrupt data
+                      nRunCount = 0;
 
 //          Store nPixValue in the destination
-
                   memset(pCL, nPixValue, nRunCount+1);
                   pCL += nRunCount+1;
                   iPixel += nRunCount+1;
@@ -2945,7 +3147,6 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
 
       if(bUseLineCache)
             pt->bValid = true;
-
 
 
 //          Line is valid, de-reference thru proper pallete directly to target
@@ -2977,16 +3178,19 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
 // Get the last pixel explicitely
 //  irrespective of the sub_sampling factor
 
-      unsigned char *pCLast = xtemp_line + (xl - 1);
-      unsigned char *prgb_last = pLineBuf + ((xl - 1)-xs) * BPP/8;
+      if(xs < xl-1)
+      {
+        unsigned char *pCLast = xtemp_line + (xl - 1);
+        unsigned char *prgb_last = pLineBuf + ((xl - 1)-xs) * BPP/8;
 
-      rgbval = (int)(pPalette[*pCLast]);        // last pixel
-      unsigned char a = rgbval & 0xff;
-      *prgb_last++ = a;
-      a = (rgbval >> 8) & 0xff;
-      *prgb_last++ = a;
-      a = (rgbval >> 16) & 0xff;
-      *prgb_last = a;
+        rgbval = (int)(pPalette[*pCLast]);        // last pixel
+        unsigned char a = rgbval & 0xff;
+        *prgb_last++ = a;
+        a = (rgbval >> 8) & 0xff;
+        *prgb_last++ = a;
+        a = (rgbval >> 16) & 0xff;
+        *prgb_last = a;
+      }
 
       return 1;
 }
@@ -2995,270 +3199,6 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
 
 
 
-#if 0
-/************************************************************************/
-/*                          BSBReadScanline()                           */
-/************************************************************************/
-int   ChartBaseBSB::BSBReadScanline( unsigned char *LineBuf,
-                                             int y, int xs, int xl,
-                                            int mode, int sub_samp)
-
-
-{
-
-
-      assert (y >= 0);
-      assert (xl >= 0);
-
-    int           nLineMarker = 0, nValueShift, iPixel = 0;
-    unsigned char byValueMask, byCountMask;
-    unsigned char byNext;
-      unsigned char *lp;
-
-
-
- int thisline_size = pline_table[y+1] - pline_table[y] ;
-
-      if((0/*thisline_size > ifs_bufend - ifs_lp - 1*/) ||
-         (pline_table[y] < ifs_file_offset) ||
-         (pline_table[y] + thisline_size > ifs_file_offset + ifs_bufsize))
-      {
-            ifs_bitmap->SeekI(pline_table[y], wxFromStart);
-            ifs_bitmap->Read(ifs_buf, ifs_bufsize);
-//          ifs_lp = ifs_buf;
-            ifs_file_offset = pline_table[y];
-      }
-
-      lp = pline_table[y] - ifs_file_offset + ifs_buf;
-//    lp = ifs_lp;
-//    ifs_lp += thisline_size;
-
-
-/* -------------------------------------------------------------------- */
-/*      Read the line number.  Pre 2.0 BSB seemed to expect the line    */
-/*      numbers to be zero based, while 2.0 and later seemed to         */
-/*      expect it to be one based, and for a 0 to be some sort of       */
-/*      missing line marker.                                            */
-/* -------------------------------------------------------------------- */
-    do {
-        byNext = *lp++;                                     //ifs->GetC();
-        nLineMarker = nLineMarker * 128 + (byNext & 0x7f);
-    } while( (byNext & 0x80) != 0 );
-
-/*HACKHACK
-    if( nLineMarker != nScanline
-        && nLineMarker != nScanline + 1 )
-    {
-        CPLError( CE_Failure, CPLE_AppDefined,
-                  "Got scanline id %d when looking for %d.",
-                  nLineMarker, nScanline+1 );
-        return FALSE;
-    }
-*/
-/* -------------------------------------------------------------------- */
-/*      Setup masking values.                                           */
-/* -------------------------------------------------------------------- */
-    nValueShift = 7 - nColorSize;
-    byValueMask = (((1 << nColorSize)) - 1) << nValueShift;
-    byCountMask = (1 << (7 - nColorSize)) - 1;
-
-/* -------------------------------------------------------------------- */
-/*      Read and expand runs.                                           */
-/* -------------------------------------------------------------------- */
-
-//    High speed method, using palette pointer to
-//    fully expand line to RGB values into the ScanlineBuf
-//    Be careful here...
-
-      unsigned char *prgb = LineBuf;
-      if(mode == 1)
-      {
-      while( ((byNext = *lp++) != 0 ) && (iPixel < xl))
-            {
-                  int   nPixValue;
-                  int     nRunCount;
-                  nPixValue = (byNext & byValueMask) >> nValueShift;
-
-                  nRunCount = byNext & byCountMask;
-
-                  while( (byNext & 0x80) != 0 )
-                  {
-                        byNext = *lp++;
-                        nRunCount = nRunCount * 128 + (byNext & 0x7f);
-                  }
-
-                  if( iPixel + nRunCount + 1 > Size_X )
-                        nRunCount = Size_X - iPixel - 1;
-
-
-                  if( iPixel + nRunCount + 1 > xl)
-                        nRunCount = xl - iPixel - 1;
-
-                  int rgbval = (int)(pPalette[nPixValue]);
-
-//    WXMSW Optimization, using inline _ASM code
-#ifndef __WXMSW__
-
-
-                  for( int i = 0; i < nRunCount+1; i++ )
-                  {
-//    Store pixels in the line buffer only if (xs =< iPixel =< xl)
-                        if(iPixel >= xs)
-                        {
-                              *((int *)prgb) = rgbval;
-                              prgb+=BPP/8;
-                        }
-
-                        iPixel++;
-                        if(iPixel >= xl)
-                              break;
-                  }
-
-
-#else
-      /*
-      Register usage:
-            edi         prgb
-            ecx         i counter
-            edx         iPixel
-            ebx         rgbval
-            eax         xs
-
-      */
-/*
-      _asm
-        {
-                  mov         edi,[prgb];
-                  mov         ebx,[rgbval];
-                  mov         ecx,[nRunCount];
-                  inc         ecx;
-                  mov         edx,[iPixel];
-                  mov         eax,[xl];
-
-        deloop:
-                  mov         [edi], ebx;
-                  add         edi,BPP/8;
-                  inc         edx;
-                  cmp         edx,eax;
-                  jge         loop_dun;
-                  loop  deloop;
-
-        loop_dun:
-                  mov         [iPixel],edx;
-                  mov         [prgb],edi;
-        }
-*/
-
-      _asm
-        {
-                  mov         edi,[prgb];
-                  mov         ebx,[rgbval];
-                  mov         ecx,[nRunCount];
-//                inc         ecx;
-                  mov         edx,[iPixel];
-                  mov         eax,[xs];
-
-                  cmp         ecx, 0;
-                  jz          loop_dun;
-
-        deloop:
-                  cmp         edx,eax;
-                  jae         over_skip_start;
-                  inc         edx;
-                  loop  deloop;
-                  jmp         loop_dun;
-
-        over_skip_start:
-
-                  mov         [edi], ebx;
-                  add         edi,BPP/8;
-                  inc         edx;
-                  loop  over_skip_start;
-
-        loop_dun:
-                  cmp         edx,eax;
-                  jb          over_end;
-
-                  mov         [edi], bl;
-                  inc         edi;
-                  mov         [edi], bh;
-                  inc         edi;
-                  shr         ebx, 16;
-                  mov         [edi], bl;
-                  inc         edi;
-        over_end:
-                  inc         edx;
-                  mov         [iPixel],edx;
-                  mov         [prgb],edi;
-        } // _ASM
-
-
-
-
-#endif  //__MSW__
-
-            }     //while
-
-
-      }     // if High Speed
-
-
-
-
-
-      else        // Do low speed
-      {
-            while( ((byNext = *lp++) != 0 ) && (iPixel < xl))
-            {
-                  int   nPixValue;
-                  int     nRunCount;
-
-                  nPixValue = (byNext & byValueMask) >> nValueShift;
-
-                  nRunCount = byNext & byCountMask;
-
-                  while( (byNext & 0x80) != 0 )
-                  {
-                        byNext = *lp++;
-                        nRunCount = nRunCount * 128 + (byNext & 0x7f);
-                  }
-
-                  if( iPixel + nRunCount + 1 > Size_X )
-                        nRunCount = Size_X - iPixel - 1;
-
-             for( int ip = 0; ip < nRunCount+1; ip++ )
-               {
-                     if(iPixel >= xs)
-                        LineBuf[iPixel++] = nPixValue;
-               }
-
-
-//                memset(&LineBuf[iPixel], nPixValue, nRunCount+1);
-//                iPixel += nRunCount+1;
-            }
-
-/* -------------------------------------------------------------------- */
-/*      For reasons that are unclear, some scanlines are exactly one    */
-/*      pixel short (such as in the BSB 3.0 354704.KAP product from     */
-/*      NDI/CHS) but are otherwise OK.  Just add a zero if this         */
-/*      appear to have occured.                                         */
-/* -------------------------------------------------------------------- */
-            if( iPixel == Size_X - 1 )
-                  LineBuf[iPixel++] = 0;
-      }     //else low speed
-
- //if((prgb - LineBuf) > (xl - xs)*BPP/8)
-//     int yyg = 9;
-
-
-// int thisline_size1 = pline_table[y+1] - pline_table[y] ;
-//if(thisline_size != thisline_size1)
-//     int r=0;
-
-      return TRUE;                                    //iPixel == nXSize;
-}
-
-#endif
 
 
 int  *ChartBaseBSB::GetPalettePtr(ColorScheme cs)
@@ -3292,12 +3232,8 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 
       int i,n;
       double elt, elg;
-//    char zone[20];
 
-      int e0xmax = 0;
-      int e0ymax = 0;
-
-//    Calculate the longitude/pixel rate, for later zone estimation
+//    Calculate the max/min reference points
 
       float lonmin = 179;
       float lonmax = -179;
@@ -3312,251 +3248,400 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
       for(n=0 ; n<nRefpoint ; n++)
       {
             //    Longitude
-            if(pRefTable[n].lnr > lonmax)
+            if(pRefTable[n].lonr > lonmax)
             {
-                  lonmax = pRefTable[n].lnr;
+                  lonmax = pRefTable[n].lonr;
                   plonmax = (int)pRefTable[n].xr;
             }
-            if(pRefTable[n].lnr < lonmin)
+            if(pRefTable[n].lonr < lonmin)
             {
-                  lonmin = pRefTable[n].lnr;
+                  lonmin = pRefTable[n].lonr;
                   plonmin = (int)pRefTable[n].xr;
             }
 
             //    Latitude
-            if(pRefTable[n].ltr < latmin)
+            if(pRefTable[n].latr < latmin)
             {
-                  latmin = pRefTable[n].ltr;
+                  latmin = pRefTable[n].latr;
                   platmin = (int)pRefTable[n].yr;
             }
-            if(pRefTable[n].ltr > latmax)
+            if(pRefTable[n].latr > latmax)
             {
-                  latmax = pRefTable[n].ltr;
+                  latmax = pRefTable[n].latr;
                   platmax = (int)pRefTable[n].yr;
             }
-
-
       }
 
+      //    Search for and find the reference point which is nearest the chart centroid
 
-      ppd_lon_1x = (plonmax - plonmin)/(lonmax - lonmin);
-      ppd_lat_1x = fabs((platmax - platmin)/(latmax - latmin));        // always +ve, correct in canvas
-
-
-      long0 = (lonmin +lonmax)/2.;
-
-//    Calculate the northing/easting for the given ref points
-
-//    double lat, lon;
+      double d_current_min = pow(360, 2);
       for(n=0 ; n<nRefpoint ; n++)
       {
-            float nf, ef;
+          double cx = (lonmin +lonmax)/2.;
+          double cy = (latmin +latmax)/2.;
 
-            DegToUTM(pRefTable[n].ltr, pRefTable[n].lnr, NULL,
-                  &ef, &nf, long0);
-
-            pRefTable[n].easting = ef;
-            pRefTable[n].northing = nf;
-
-//          sscanf(zone, "%d", &izone);
-
-//          UTMtoDeg(long0, 0, pRefTable[n].easting, pRefTable[n].northing, &lat, &lon);
+          double d = pow((pRefTable[n].lonr - cx), 2) + pow((pRefTable[n].latr - cy), 2);
+          if(d < d_current_min)
+          {
+              d_current_min = d;
+              m_i_ref_near_center = n;
+          }
       }
-
 
 
 //          Build the Control Point Structure, etc
 
-            cPoints.count = nRefpoint;
+        cPoints.count = nRefpoint;
 
-            cPoints.e1 = (double *)x_malloc(nRefpoint * sizeof(double));
-            cPoints.n1 = (double *)x_malloc(nRefpoint * sizeof(double));
-            cPoints.e2 = (double *)x_malloc(nRefpoint * sizeof(double));
-            cPoints.n2 = (double *)x_malloc(nRefpoint * sizeof(double));
+        cPoints.tx  = (double *)x_malloc(nRefpoint * sizeof(double));
+        cPoints.ty  = (double *)x_malloc(nRefpoint * sizeof(double));
+        cPoints.lon = (double *)x_malloc(nRefpoint * sizeof(double));
+        cPoints.lat = (double *)x_malloc(nRefpoint * sizeof(double));
 
-            for(n=0 ; n<nRefpoint ; n++)
-            {
-                  cPoints.e1[n] = pRefTable[n].xr;
-                  cPoints.n1[n] = pRefTable[n].yr;
-                  cPoints.e2[n] = pRefTable[n].easting;
-                  cPoints.n2[n] = pRefTable[n].northing;
-            }
+        cPoints.pwx = (double *)x_malloc(12 * sizeof(double));
+        cPoints.wpx = (double *)x_malloc(12 * sizeof(double));
+        cPoints.pwy = (double *)x_malloc(12 * sizeof(double));
+        cPoints.wpy = (double *)x_malloc(12 * sizeof(double));
 
+        for(n=0 ; n<nRefpoint ; n++)
+        {
+            cPoints.tx[n] = pRefTable[n].xr;
+            cPoints.ty[n] = pRefTable[n].yr;
+            cPoints.lon[n] = pRefTable[n].lonr;
+            cPoints.lat[n] = pRefTable[n].latr;
+        }
 
-            E12 = (double *)x_malloc(16 * sizeof(double));
-            N12 = (double *)x_malloc(16 * sizeof(double));
-            E21 = (double *)x_malloc(16 * sizeof(double));
-            N21 = (double *)x_malloc(16 * sizeof(double));
+        //      Helper parameters
+        cPoints.txmax = plonmax;
+        cPoints.txmin = plonmin;
+        cPoints.tymax = platmax;
+        cPoints.tymin = platmin;
+        cPoints.lonmax = lonmax;
+        cPoints.lonmin = lonmin;
+        cPoints.latmax = latmax;
+        cPoints.latmin = latmin;
 
-//    Changelog....
-//    2/7/05 Explorer Abacos AB015_1 has 12 points.
-//          If use order=3, results in non-linear x/lon conversions
-//                So, force to order = 2.
-
-//  2/16/05 Iteratively try all possible orders for best fit
-
-//    2/18/05 Back to the old way....sigh
-
-            if(nRefpoint > 15)            //12
-                  cPoints.order = 3;
-            else
-                  cPoints.order = 2;
-
-            if(nRefpoint <= 8)
-                  cPoints.order = 1;
-
-            compute_georef_equations(&cPoints, E12, N12,
-                        E21, N21);
-
-            cPoints.status = 1;
-
-//    Check errors
-            int ord;
-
-            int y = Size_Y/2;
-
-            int x = 0;
-            int dx = Size_X/50;
-            int x1, y1;
-
-            double lat, lon;
+        cPoints.status = 1;
 
 
-            while(x < Size_X)
-            {
-                  pix_to_latlong(x,y, &lat, &lon);
-                  latlong_to_pix(lat, lon, x1, y1);
+        bUseGeoRef = true;                // default is true
 
-                  e0xmax = __max(e0xmax, abs(x-x1));
-                  e0ymax = __max(e0ymax, abs(y-y1));
-
-                  x += dx;
-            }
-            if((e0ymax < 5) && (e0xmax < 5))
-                  goto found_order;
-
-
- //         Try iteratively all orders...
-
-            int exmax[4];
-            int eymax[4];
-
-            ord = 1;
-            while(ord <= 3)
-            {
-                  cPoints.order = ord;
-                  compute_georef_equations(&cPoints, E12, N12,
-                              E21, N21);
-
-                  cPoints.status = 1;
-
-
-//    Check errors
-                  int y = Size_Y/2;
-
-                  int x = 0;
-                  int dx = Size_X/50;
-                  int x1, y1;
-
-                  double lat, lon;
-
-                  exmax[ord] = 0;
-                  eymax[ord] = 0;
-
-                  while(x < Size_X)
-                  {
-                        pix_to_latlong(x,y, &lat, &lon);
-                        latlong_to_pix(lat, lon, x1, y1);
-
-                        exmax[ord] = __max(exmax[ord], abs(x-x1));
-                        eymax[ord] = __max(eymax[ord], abs(y-y1));
-
-                        x += dx;
-                  }
-
-                  if((eymax[ord] < 5) && (exmax[ord] < 5))
-                        goto found_order;
-
-                  ord++;
-            }
-
-//    if arrive here, bad solution all around, so give up and use ord = 3
+        if(!bHaveImbeddedGeoref)
+        {
             cPoints.order = 3;
 
+            if(Georef_Calculate_Coefficients(&cPoints))
+                bUseGeoRef = false;         // some error in georef calculation
 
-found_order:
-
-
+            // Touch up the coefficients
+            if(cPoints.order < 3)
+            {
+                cPoints.pwx[6] = cPoints.pwy[6] = cPoints.wpx[6] = cPoints.wpy[6] = 0.;
+                cPoints.pwx[7] = cPoints.pwy[7] = cPoints.wpx[7] = cPoints.wpy[7] = 0.;
+                cPoints.pwx[8] = cPoints.pwy[8] = cPoints.wpx[8] = cPoints.wpy[8] = 0.;
+                cPoints.pwx[9] = cPoints.pwy[9] = cPoints.wpx[9] = cPoints.wpy[9] = 0.;
+            }
+            if(cPoints.order < 2)
+            {
+                cPoints.pwx[3] = cPoints.pwy[3] = cPoints.wpx[3] = cPoints.wpy[3] = 0.;
+                cPoints.pwx[4] = cPoints.pwy[4] = cPoints.wpx[4] = cPoints.wpy[4] = 0.;
+                cPoints.pwx[5] = cPoints.pwy[5] = cPoints.wpx[5] = cPoints.wpy[5] = 0.;
+            }
+        }
 
 
 //          Calculate and store errors
 
-      double xpl_err_max = 0;
-      double ypl_err_max = 0;
-      double xpl_err_max_feet, ypl_err_max_feet;
+        if(bUseGeoRef)
+        {
+            double xpl_err_max = 0;
+            double ypl_err_max = 0;
+            double xpl_err_max_feet, ypl_err_max_feet;
 
-      for(i=0 ; i<nRefpoint ; i++)
-      {
-            pix_to_latlong((int)pRefTable[i].xr, (int)pRefTable[i].yr,
-                        &elt, &elg);
-            pRefTable[i].ypl_error = elt - pRefTable[i].ltr;
-            pRefTable[i].xpl_error = elg - pRefTable[i].lnr;
+            for(i=0 ; i<nRefpoint ; i++)
+            {
+                    pix_to_latlong((int)pRefTable[i].xr, (int)pRefTable[i].yr,
+                                &elt, &elg);
+                    pRefTable[i].ypl_error = elt - pRefTable[i].latr;
+                    pRefTable[i].xpl_error = elg - pRefTable[i].lonr;
 
-            if(fabs(pRefTable[i].ypl_error) > fabs(ypl_err_max))
-                  ypl_err_max = pRefTable[i].ypl_error;
-            if(fabs(pRefTable[i].xpl_error) > fabs(xpl_err_max))
-                  xpl_err_max = pRefTable[i].xpl_error;
-      }
+                    if(fabs(pRefTable[i].ypl_error) > fabs(ypl_err_max))
+                        ypl_err_max = pRefTable[i].ypl_error;
+                    if(fabs(pRefTable[i].xpl_error) > fabs(xpl_err_max))
+                        xpl_err_max = pRefTable[i].xpl_error;
+            }
 
-      xpl_err_max_feet = fabs(xpl_err_max * 60 * 5280 * 1.15);
-      ypl_err_max_feet = fabs(ypl_err_max * 60 * 5280 * 1.15);
-
-
-      if(fabs(xpl_err_max) > (fabs(lonmax - lonmin) * .01) ||
-         fabs(ypl_err_max) > (fabs(latmax - latmin) * .01))
-      {
-          if(!bGeoErrorSent)
-          {
-             wxLogMessage("Georeference error bounds excessive on chart %s", pFullPath->c_str());
-             bGeoErrorSent = true;
-          }
-      }
-
-      Chart_Error_Factor = fmax(fabs(xpl_err_max/(lonmax - lonmin)), fabs(ypl_err_max/(latmax - latmin)));
+            xpl_err_max_feet = fabs(xpl_err_max * 60 * 5280 * 1.15);
+            ypl_err_max_feet = fabs(ypl_err_max * 60 * 5280 * 1.15);
+            Chart_Error_Factor = fmax(fabs(xpl_err_max/(lonmax - lonmin)), fabs(ypl_err_max/(latmax - latmin)));
 
 
-      // More analysis
+      //        Good enough for navigation?
+            if(Chart_Error_Factor > .02)
+            {
+                if(!bGeoErrorSent)
+                {
+                    wxLogMessage("!!Georeference Chart_Error_Factor on chart %s is %5g", pFullPath->c_str(), Chart_Error_Factor);
+                    printf("!!Georeference Chart_Error_Factor on chart %s is %5g\n", pFullPath->c_str(), Chart_Error_Factor);
 
-      // Define reference point as near "average" point
-      double lat_ref = (latmax + latmin)/2.;
-      double lon_ref = (lonmax + lonmin)/2.;
+                    bGeoErrorSent = true;
+                    bUseGeoRef = false;
+                }
+            }
+        }
 
-      // calculate the northing/easting from the reference point to a position
-      // about 10% of the chart size away from the reference point
 
-      double lat_test = lat_ref + 0.10 * (latmax - latmin);
-      double lon_test = lon_ref + 0.10 * (lonmax - lonmin);
-      double easting, northing;
-      toTM(lat_test, lon_test, lat_ref, lon_ref, 0.9996, &easting, &northing);
+            // More analysis
+        if(bUseGeoRef)
+        {
 
-      // Calculate the pixel positions of reference point and test point
-      int xref, yref;
-      latlong_to_pix(lat_ref, lon_ref, xref, yref);
-      int x_test, y_test;
-      latlong_to_pix(lat_test, lon_test, x_test, y_test);
+            // Define reference point as near "average" point
+            double lat_ref = (latmax + latmin)/2.;
+            double lon_ref = (lonmax + lonmin)/2.;
 
-      // And so the pixel rates, and pixels per meter.
- //     double ppm_east = (x_test - xref) / easting;
- //     double ppm_north = (y_test - yref) / northing;
+            // calculate the northing/easting from the reference point to a position
+            // about 10% of the chart size away from the reference point
 
-      // Note that this type of polar length calculation works nicely on all chart skew angles
-      ppm_avg = sqrt(((x_test - xref) * (x_test - xref)) + ((y_test - yref) * (y_test - yref))) /
-                  sqrt((easting * easting) + (northing * northing));
+            double lat_test = lat_ref; // + 0.10 * (latmax - latmin);
+            double lon_test = lon_ref + 0.10 * (lonmax - lonmin);
+            double easting, northing;
+            toSM(lat_test, lon_test, lat_ref, lon_ref, &easting, &northing);
+
+            // Calculate the pixel positions of reference point and test point
+            int xref, yref;
+            latlong_to_pix(lat_ref, lon_ref, xref, yref);
+            int x_test, y_test;
+            latlong_to_pix(lat_test, lon_test, x_test, y_test);
+
+            // And so the pixel rates, and pixels per meter.
+            // Note that this type of polar length calculation works nicely on all chart skew angles
+            ppm_avg = sqrt(((x_test - xref) * (x_test - xref)) + ((y_test - yref) * (y_test - yref))) /
+                        sqrt((easting * easting) + (northing * northing));
+
+        }
+        else
+            //  Algorithmic georeferencing is no good, so
+            //  Try to get a ppm_avg from looking directly at the reference points
+        {
+
+            // Define reference point as near "average" point
+            double lat_ref = (latmax + latmin)/2.;
+            double lon_ref = (lonmax + lonmin)/2.;
+
+            //  Search the control points for that one which is closest to chart center
+
+            double min_dist = 360;
+            int imin;
+            for(i=0 ; i<nRefpoint ; i++)
+            {
+                double dist = sqrt(((lat_ref - pRefTable[i].latr) * (lat_ref - pRefTable[i].latr))
+                    + ((lon_ref - pRefTable[i].lonr) * (lon_ref - pRefTable[i].lonr)));
+
+                if(dist < min_dist)
+                {
+                        min_dist = dist;
+                        imin = i;
+                }
+            }
+
+            //  Now search the control points for that one point whose latitude matches,
+            //  and which is closest
+
+            double min_distl = 360;
+            int iminl = -1;
+            for(i=0 ; i<nRefpoint ; i++)
+            {
+                if((pRefTable[imin].latr == pRefTable[i].latr) && (i != imin))
+                {
+                    double distl = fabs(pRefTable[imin].lonr - pRefTable[i].lonr);
+
+                    if(distl < min_distl)
+                    {
+                        min_distl = distl;
+                        iminl = i;
+                    }
+                }
+            }
+
+            //  Found one?
+            if(-1 != iminl)
+            {
+                double easting0, northing0;
+                toSM(pRefTable[imin].latr, pRefTable[imin].lonr, lat_ref, lon_ref, &easting0, &northing0);
+
+                double easting1, northing1;
+                toSM(pRefTable[iminl].latr, pRefTable[iminl].lonr, lat_ref, lon_ref, &easting1, &northing1);
+
+                ppm_avg = fabs((pRefTable[imin].xr - pRefTable[iminl].xr) / (easting0 - easting1));
+            }
+
+                //  One more try, assume simple Mercator projection
+                //  Find two reference points with identical latitude
+            else
+            {
+                ppm_avg = 0;
+                for(i=0 ; i<nRefpoint ; i++)
+                {
+                    for(int j=i+1 ; j < nRefpoint ; j++)
+                    {
+                        if((pRefTable[i].latr == pRefTable[j].latr))
+                        {
+                            double easting0, northing0;
+                            toSM(pRefTable[i].latr, pRefTable[i].lonr, lat_ref, lon_ref, &easting0, &northing0);
+
+                            double easting1, northing1;
+                            toSM(pRefTable[j].latr, pRefTable[j].lonr, lat_ref, lon_ref, &easting1, &northing1);
+
+                            ppm_avg = fabs((pRefTable[i].xr - pRefTable[j].xr) / (easting0 - easting1));
+
+                            break;
+                        }
+                    }
+                    if(0.0 != ppm_avg)
+                        break;
+                }
+
+            }
+
+                // Last chance
+                // Find two points with different longitudes, get Simple Mercator scale from them
+            if(0 == ppm_avg)
+            {
+                for(i=0 ; i<nRefpoint ; i++)
+                {
+                    for(int j=i+1 ; j < nRefpoint ; j++)
+                    {
+                        if((pRefTable[i].lonr != pRefTable[j].lonr))
+                        {
+                            double easting0, northing0;
+                            toSM(pRefTable[i].latr, pRefTable[i].lonr, lat_ref, lon_ref, &easting0, &northing0);
+
+                            double easting1, northing1;
+                            toSM(pRefTable[j].latr, pRefTable[j].lonr, lat_ref, lon_ref, &easting1, &northing1);
+
+                            ppm_avg = fabs((pRefTable[i].xr - pRefTable[j].xr) / (easting0 - easting1));
+
+                            break;
+                        }
+                    }
+                    if(0.0 != ppm_avg)
+                        break;
+                }
+            }
+        }
+
+
+
+
+             // cannot use georef at all
+             // so hack out a reasonable ppm_avg from chart scale and scanning resolution (DU)
+            //  converting chart scanning resolution in DotsPerInch to DotsPerMeter
+        if(0 == ppm_avg)
+        {
+            ppm_avg = Chart_DU * 39.37 / Chart_Scale;
+        }
+
 
       //    We may also note that the ppm_avg multiplied by the published chart scale is usually around 10000,
-      //    which is evidently related to the chart scanning methodology.  Just a comment....
+      //    which is related to the chart scanning resolution (parameter DU in header.
 //      printf("e/n %f6 %f6 %f6 %f6 %f6\n", ppm_east, ppm_north, ppm_avg, Chart_Scale*ppm_avg, (ppm_east + ppm_north)/ppm_east);
       return(0);
 
 }
+
+
+/*
+*  Extracted from bsb_io.c - implementation of libbsb reading and writing
+*
+*  Copyright (C) 2000  Stuart Cunningham <stuart_hc@users.sourceforge.net>
+*
+*  This library is free software; you can redistribute it and/or
+*  modify it under the terms of the GNU Lesser General Public
+*  License as published by the Free Software Foundation; either
+*  version 2.1 of the License, or (at your option) any later version.
+*
+*  This library is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*  Lesser General Public License for more details.
+*
+*  You should have received a copy of the GNU Lesser General Public
+*  License along with this library; if not, write to the Free Software
+*  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+*  $Id: chartimg.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $
+*
+*/
+
+
+/**
+ * generic polynomial to convert georeferenced lat/lon to char's x/y
+ *
+ * @param coeff list of polynomial coefficients
+ * @param lon longitute or x
+ * @param lat latitude or y
+ *
+ * @return coordinate corresponding to the coeff list
+ */
+static double polytrans( double* coeff, double lon, double lat )
+{
+    double ret = coeff[0] + coeff[1]*lon + coeff[2]*lat;
+    ret += coeff[3]*lon*lon;
+    ret += coeff[4]*lon*lat;
+    ret += coeff[5]*lat*lat;
+    ret += coeff[6]*lon*lon*lon;
+    ret += coeff[7]*lon*lon*lat;
+    ret += coeff[8]*lon*lat*lat;
+    ret += coeff[9]*lat*lat*lat;
+//    ret += coeff[10]*lat*lat*lat*lat;
+//    ret += coeff[11]*lat*lat*lat*lat*lat;
+    return ret;
+}
+
+
+#if 0
+/**
+ * converts Lon/Lat to chart's X/Y
+ *
+ * @param p pointer to a BSBImage structure
+ * @param lon longitude (-180.0 to 180.0)
+ * @param lat latitude (-180.0 to 180.0)
+ * @param x  output chart X coordinate
+ * @param y  output chart Y coordinate
+ *
+ * @return 1 on success and 0 on error
+ */
+extern int bsb_LLtoXY(BSBImage *p, double lon, double  lat, int* x, int* y)
+{
+    /* change longitude phase (CPH) */
+    lon = (lon < 0) ? lon + p->cph : lon - p->cph;
+    double xd = polytrans( p->wpx, lon, lat );
+    double yd = polytrans( p->wpy, lon, lat );
+    *x = (int)(xd + 0.5);
+    *y = (int)(yd + 0.5);
+    return 1;
+}
+
+/**
+ * converts chart's X/Y to Lon/Lat
+ *
+ * @param p pointer to a BSBImage structure
+ * @param x chart X coordinate
+ * @param y chart Y coordinate
+ * @param lon output longitude (-180.0 to 180.0)
+ * @param lat output latitude (-180.0 to 180.0)
+ *
+ * @return 1 on success and 0 on error
+ */
+extern int bsb_XYtoLL(BSBImage *p, int x, int y, double* lonout, double*  latout)
+{
+    double lon = polytrans( p->pwx, x, y );
+    lon = (lon < 0) ? lon + p->cph : lon - p->cph;
+    *lonout = lon;
+    *latout = polytrans( p->pwy, x, y );
+    return 1;
+}
+
+#endif
+
 

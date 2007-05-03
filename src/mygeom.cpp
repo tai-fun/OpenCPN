@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.5 2007/03/02 02:01:51 dsr Exp $
+ * $Id: mygeom.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,58 +26,11 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.6  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.5  2007/03/02 02:01:51  dsr
  * Convert to UTM Projection
- *
- * Revision 1.4  2006/10/07 03:50:27  dsr
- * *** empty log message ***
- *
- * Revision 1.3  2006/10/01 03:22:58  dsr
- * no message
- *
- * Revision 1.2  2006/09/21 01:37:36  dsr
- * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.8  2006/08/04 11:42:01  dsr
- * no message
- *
- * Revision 1.7  2006/07/28 20:36:17  dsr
- * Disable random segment selector, faults.
- *
- * Revision 1.6  2006/06/15 02:42:52  dsr
- * Inline assembly optimization
- *
- * Revision 1.5  2006/06/02 02:12:10  dsr
- * Optimize
- *
- * Revision 1.4  2006/05/28 01:45:56  dsr
- * Cleanup
- *
- * Revision 1.3  2006/05/28 00:51:29  dsr
- * Implement PolyGeo
- *
- * Revision 1.2  2006/05/19 19:10:07  dsr
- * Add POLYPOLY object definition creation and creation
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.6  2006/04/19 00:44:51  dsr
- * *** empty log message ***
- *
- * Revision 1.5  2006/03/16 03:08:15  dsr
- * Cleanup tabs
- *
- * Revision 1.4  2006/02/24 18:06:10  dsr
- * Fix Tristrip logic for degenerate(n = 3) case
- *
- * Revision 1.3  2006/02/23 01:43:15  dsr
- * Cleanup
- *
- *
  *
  */
 // For compilers that support precompilation, includes "wx.h".
@@ -93,6 +46,7 @@
 #include "dychart.h"
 
 #include "mygeom.h"
+#include "georef.h"
 
 #include "triangulate.h"
 
@@ -106,13 +60,87 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.5 2007/03/02 02:01:51 dsr Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $");
 
+//------------------------------------------------------------------------------
+//          Some local definitions for opengl/glu types,
+//            just enough to build the glu tesselator option.
+//          Included here to avoid having to find and include
+//            the Microsoft versions of gl.h and glu.h.
+//          You are welcome.....
+//------------------------------------------------------------------------------
+/*
+#ifdef __WXMSW__
+class GLUtesselator;
 
-extern "C" polyout *triangulate_polygon(int, int[1], double (*)[2]);
+typedef unsigned int GLenum;
+typedef unsigned char GLboolean;
+typedef unsigned int GLbitfield;
+typedef signed char GLbyte;
+typedef short GLshort;
+typedef int GLint;
+typedef int GLsizei;
+typedef unsigned char GLubyte;
+typedef unsigned short GLushort;
+typedef unsigned int GLuint;
+typedef float GLfloat;
+typedef float GLclampf;
+typedef double GLdouble;
+typedef double GLclampd;
+typedef void GLvoid;
 
+#define GLU_TESS_BEGIN                     100100
+#define GLU_TESS_VERTEX                    100101
+#define GLU_TESS_END                       100102
+#define GLU_TESS_ERROR                     GLU_ERROR
+#define GLU_TESS_EDGE_FLAG                 100104
+#define GLU_TESS_COMBINE                   100105
+#define GLU_TESS_BEGIN_DATA                100106
+#define GLU_TESS_VERTEX_DATA               100107
+#define GLU_TESS_END_DATA                  100108
+#define GLU_TESS_ERROR_DATA                100109
+#define GLU_TESS_EDGE_FLAG_DATA            100110
+#define GLU_TESS_COMBINE_DATA              100111
+#define GLU_BEGIN                          GLU_TESS_BEGIN
+#define GLU_VERTEX                         GLU_TESS_VERTEX
+#define GLU_END                            GLU_TESS_END
+#define GLU_EDGE_FLAG                      GLU_TESS_EDGE_FLAG
+#define GLU_CW                             100120
+#define GLU_CCW                            100121
+#define GLU_INTERIOR                       100122
+#define GLU_EXTERIOR                       100123
+#define GLU_UNKNOWN                        100124
+#define GLU_TESS_WINDING_RULE              100140
+#define GLU_TESS_BOUNDARY_ONLY             100141
+#define GLU_TESS_TOLERANCE                 100142
+#define GLU_TESS_ERROR1                    100151
+#define GLU_TESS_ERROR2                    100152
+#define GLU_TESS_ERROR3                    100153
+#define GLU_TESS_ERROR4                    100154
+#define GLU_TESS_ERROR5                    100155
+#define GLU_TESS_ERROR6                    100156
+#define GLU_TESS_ERROR7                    100157
+#define GLU_TESS_ERROR8                    100158
+#define GLU_TESS_MISSING_BEGIN_POLYGON     100151
+#define GLU_TESS_MISSING_BEGIN_CONTOUR     100152
+#define GLU_TESS_MISSING_END_POLYGON       100153
+#define GLU_TESS_MISSING_END_CONTOUR       100154
+#define GLU_TESS_COORD_TOO_LARGE           100155
+#define GLU_TESS_NEED_COMBINE_CALLBACK     100156
+#define GLU_TESS_WINDING_ODD               100130
+#define GLU_TESS_WINDING_NONZERO           100131
+#define GLU_TESS_WINDING_POSITIVE          100132
+#define GLU_TESS_WINDING_NEGATIVE          100133
+#define GLU_TESS_WINDING_ABS_GEQ_TWO       100134
 
-//      Internal Prototypes
+#define GL_TRIANGLES                       0x0004
+#define GL_TRIANGLE_STRIP                  0x0005
+#define GL_TRIANGLE_FAN                    0x0006
+
+#endif
+*/
+
+//      Module Internal Prototypes
 
 
 #ifdef USE_GLU_TESS
@@ -177,12 +205,12 @@ static LPFNDLLTESSCALLBACK      s_lpfnTessCallback;
 #define gluTessVertex           s_lpfnTessVertex
 #define gluTessCallback         s_lpfnTessCallback
 
-//  Flag to tell that dll is ready
-bool           s_glu_dll_ready;
-HINSTANCE      s_hGLU_DLL;                   // Handle to DLL
 
 #endif
 #endif
+//  Flag to tell that dll is ready
+bool           s_glu_dll_ready;
+HINSTANCE      s_hGLU_DLL;                   // Handle to DLL
 #endif
 
 
@@ -219,7 +247,6 @@ bool ispolysame(polyout *p1, polyout *p2)
 
 
 
-
 //------------------------------------------------------------------------------
 //          PolyTessGeo Implementation
 //------------------------------------------------------------------------------
@@ -228,15 +255,18 @@ PolyTessGeo::PolyTessGeo()
 }
 
 //      Build PolyTessGeo Object from OGR Polygon
-PolyTessGeo::PolyTessGeo(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon)
+PolyTessGeo::PolyTessGeo(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon, bool bUseInternalTess)
 {
     ErrorCode = 0;
     m_ppg_head = NULL;
 
+    if(bUseInternalTess)
+        ErrorCode = PolyTessGeoTri(poly, bSENC_UTM, ref_lat, ref_lon);
+    else
 #ifdef USE_GLU_TESS
-    ErrorCode = PolyTessGeoGL(poly, bSENC_UTM, ref_lat, ref_lon);
+        ErrorCode = PolyTessGeoGL(poly, bSENC_UTM, ref_lat, ref_lon);
 #else
-    ErrorCode = PolyTessGeoTri(poly, bSENC_UTM, ref_lat, ref_lon);
+        ErrorCode = PolyTessGeoTri(poly, bSENC_UTM, ref_lat, ref_lon);
 #endif
 
 }
@@ -397,7 +427,7 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat
         npta += nptr + 2;
     }
 
-    pt *geoPt = (pt*)malloc((npta) * sizeof(pt));     // vertex array
+    pt *geoPt = (pt*)malloc((npta + 1) * sizeof(pt));     // vertex array
 
 //      Create input structures
 
@@ -625,7 +655,7 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat
         {
             //  Calculate UTM from chart common reference point
             double easting, northing;
-            toTM(ty, tx, ref_lat, ref_lon, 0.9996, &easting, &northing);
+            toSM(ty, tx, ref_lat, ref_lon, &easting, &northing);
             *vro++ = easting;              // x
             *vro++ = northing;             // y
         }
@@ -666,34 +696,50 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat
             pTP->type = PTG_TRIANGLES;
             pTP->nVert = pr->nvert;
 
-            assert(0);
-            //  Need work here
             //  Convert to UTM
             pTP->p_vertex = (double *)malloc(pr->nvert * 2 * sizeof(double));
-            double *dbr = pTP->p_vertex;
+            double *pdd = pTP->p_vertex;
             int *ivr = pr->vertex_index_list;
-            for(int i=0 ; i<pr->nvert ; i++)
+            if(bSENC_UTM)
             {
-                int ivp = ivr[i];
-                memcpy(dbr++, &geoPt[ivp].x, sizeof(double));
-                memcpy(dbr++, &geoPt[ivp].y, sizeof(double));
+                for(int i=0 ; i<pr->nvert ; i++)
+                {
+                    int ivp = ivr[i];
+                    double dlon = geoPt[ivp].x;
+                    double dlat = geoPt[ivp].y;
+
+                    double easting, northing;
+                    toSM(dlat, dlon, ref_lat, ref_lon, &easting, &northing);
+                    *pdd++ = easting;
+                    *pdd++ = northing;
+                }
             }
 
+            else
+            {
+                for(int i=0 ; i<pr->nvert ; i++)
+                {
+                    int ivp = ivr[i];
+
+                    memcpy(pdd++, &geoPt[ivp].x, sizeof(double));
+                    memcpy(pdd++, &geoPt[ivp].y, sizeof(double));
+                }
+            }
             //  Calculate bounding box as lat/lon
 
             pTP->p_bbox = new wxBoundingBox;
 
             float sxmax = -179;                   // this poly BBox
             float sxmin = 170;
-            float symax = 0;
+            float symax = -90;
             float symin = 90;
 
-            double *pvr = pTP->p_vertex;
             for(int iv=0 ; iv < pr->nvert ; iv++)
             {
-                double xd, yd;
-                xd = *pvr++;
-                yd = *pvr++;
+                int *ivr = pr->vertex_index_list;
+                int ivp = ivr[iv];
+                double xd = geoPt[ivp].x;
+                double yd = geoPt[ivp].y;
 
                 sxmax = fmax(xd, sxmax);
                 sxmin = fmin(xd, sxmin);
@@ -722,6 +768,7 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat
         free(pf);
     }
 
+    free (geoPt);
     return 0;
 }
 
@@ -887,7 +934,6 @@ PolyTessGeo::~PolyTessGeo()
 
 
 
-
 //      Build PolyTessGeo Object from OGR Polygon
 //      Using OpenGL/GLU tesselator
 #ifdef USE_GLU_TESS
@@ -907,7 +953,6 @@ void __CALL_CONVENTION vertexCallback(GLvoid *vertex);
 void __CALL_CONVENTION combineCallback(GLdouble coords[3],
                      GLdouble *vertex_data[4],
                      GLfloat weight[4], GLdouble **dataOut );
-
 
 
 int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon)
@@ -1239,7 +1284,7 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_UTM, double ref_lat,
         {
             //  Calculate UTM from chart common reference point
             double easting, northing;
-            toTM(ty, tx, ref_lat, ref_lon, 0.9996, &easting, &northing);
+            toSM(ty, tx, ref_lat, ref_lon, &easting, &northing);
             *vro++ = easting;              // x
             *vro++ = northing;             // y
         }
@@ -1357,7 +1402,7 @@ void __CALL_CONVENTION endCallback(void)
                     double dlat = *pds++;
 
                     double easting, northing;
-                    toTM(dlat, dlon, s_ref_lat, s_ref_lon, 0.9996, &easting, &northing);
+                    toSM(dlat, dlon, s_ref_lat, s_ref_lon, &easting, &northing);
                     double deast = easting;
                     double dnorth = northing;
                     *pdd++ = deast;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.3 2007/03/02 01:59:50 dsr Exp $
+ * $Id: s52cnsy.cpp,v 1.4 2007/05/03 13:23:56 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.4  2007/05/03 13:23:56  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.3  2007/03/02 01:59:50  dsr
  * Implement SOUNDG02 Method
  *
@@ -77,7 +80,7 @@ extern bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.3 2007/03/02 01:59:50 dsr Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.4 2007/05/03 13:23:56 dsr Exp $");
 
 static void *CLRLIN01(void *param)
 {
@@ -117,6 +120,7 @@ static void *DATCVR01(void *param)
     // 2.1- Limit of ENC coverage
     //datcvr01 = g_string_new(";OP(3OD11060);LC(HODATA01)");
     rule_str.Append("LC(HODATA01)");
+//    rule_str.Append("AC(DEPDW)");
     // FIXME: get cell extend
 
     // 2.2- No data areas
@@ -1214,8 +1218,8 @@ static void *SOUNDG02(void *param)
     // Shortcut.  This CS method causes a branch to an S52plib method
     // which splits multi-point soundings into separate point objects,
     // and then calls CS(SOUNDG03) on successive points below.
-      char *r = (char *)malloc(3);
-      strcpy(r, "MP");
+      char *r = (char *)malloc(6);
+      strcpy(r, "MP();");
 
       return r;
 
@@ -1380,7 +1384,7 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
         double first_digit = floor(leading_digit / 1000);
         double secnd_digit = floor((leading_digit - (first_digit * 1000)) / 100);
         double third_digit = floor((leading_digit - (first_digit * 1000) - (secnd_digit * 100)) / 10);
-        double last_digit  = floor(leading_digit - (first_digit * 1000) - (secnd_digit * 100) - (third_digit * 100)) ;
+        double last_digit  = floor(leading_digit - (first_digit * 1000) - (secnd_digit * 100) - (third_digit * 10)) ;
 
         sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)first_digit);
         sndfrm02.Append(temp_str);

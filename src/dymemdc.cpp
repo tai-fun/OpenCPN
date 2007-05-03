@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dymemdc.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: dymemdc.cpp,v 1.2 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Enhanced wxMemoryDC
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: dymemdc.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.2  2006/08/04 11:42:01  dsr
  * no message
@@ -76,9 +79,9 @@
 #endif
 
 #include "dychart.h"
-#include "dymemdc.h"
+//#include "dymemdc.h"
 
-CPL_CVSID("$Id: dymemdc.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: dymemdc.cpp,v 1.2 2007/05/03 13:23:55 dsr Exp $");
 
 
 // ----------------------------------------------------------------------------
@@ -140,20 +143,19 @@ void dyMemDC::SelectObject(wxDIB& dib)
 
       hDIB = (HBITMAP)::SelectObject(GetHdc(), hDIB);
 
-/*
+
       if ( !hDIB )
     {
         wxLogLastError(wxT("SelectObject(dyMemDC, DIB)"));
 
         wxFAIL_MSG(wxT("Couldn't select a DIB into dyMemDC"));
     }
-*/
-/*
+
     else if ( !m_oldBitmap )
     {
-        m_oldBitmap = hBmp;
+        m_oldBitmap = hDIB;
     }
-*/
+
 }
 
 #endif      //dyUSE_DIBSECTION

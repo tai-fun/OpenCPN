@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.4 2006/10/08 14:15:00 dsr Exp $
+ * $Id: chartdb.cpp,v 1.5 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.5  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.4  2006/10/08 14:15:00  dsr
  * no message
  *
@@ -34,47 +37,6 @@
  *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.8  2006/08/04 11:42:01  dsr
- * no message
- *
- * Revision 1.7  2006/07/28 20:32:18  dsr
- * Eliminate duplicate charts from db
- *
- * Revision 1.6  2006/07/05 02:31:48  dsr
- * Cleanup
- *
- * Revision 1.5  2006/06/15 02:39:07  dsr
- * Support Database Update and direct search for S57 charts
- *
- * Revision 1.4  2006/06/02 02:09:31  dsr
- * Cleanup
- *
- * Revision 1.3  2006/05/19 19:17:53  dsr
- * New chart caching logic
- *
- * Revision 1.2  2006/04/23 03:55:45  dsr
- * Fix internal names
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.9  2006/04/19 00:37:05  dsr
- * Implement ColorScheme
- *
- * Revision 1.8  2006/03/16 03:07:59  dsr
- * Cleanup tabs
- *
- * Revision 1.7  2006/02/24 18:03:15  dsr
- * Cleanup
- *
- * Revision 1.6  2006/02/23 01:33:17  dsr
- * Cleanup, use chart extents fully
- *
- *
  *
  */
 
@@ -105,7 +67,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.4 2006/10/08 14:15:00 dsr Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.5 2007/05/03 13:23:55 dsr Exp $");
 
 // ============================================================================
 // implementation
@@ -220,7 +182,7 @@ bool ChartDB::LoadBinary(wxString *filename)
             char *s = (char *)buf;
 
             int ifp = 0;
-            while((*s = ifs->GetC()) != 0)
+            while((*s = (char)ifs->GetC()) != 0)
             {
                   s++;
                   ifp++;
@@ -303,7 +265,7 @@ bool ChartDB::SaveBinary(wxString *filename, wxArrayString *pChartDirArray)
       cth.nTableEntries = nEntry;
       cth.nDirEntries = pChartDirArray->GetCount();
 
-      char *ctp = (char *)(&cth.dbVersion);
+      char *ctp = (char *)(&cth.dbVersion[0]);
       char vb[5];
       sprintf(vb, "V%03d", DB_VERSION);
       for(int i = 0 ; i<4 ; i++)
@@ -666,12 +628,13 @@ bool ChartDB::CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEnt
       }
 
       pch->Init(full_name, HEADER_ONLY, COLOR_SCHEME_DEFAULT);
-      
+
       char *pt = (char *)malloc(full_name.Length() + 1);
       strcpy(pt, full_name.GetData());
       pEntry->pFullPath = pt;
 
-      strcpy(pEntry->ChartID, fn.GetName());
+      strncpy(pEntry->ChartID, fn.GetName(), sizeof(pEntry->ChartID));
+      pEntry->ChartID[sizeof(pEntry->ChartID)-1] = 0;
 
       pEntry->Scale = pch->Chart_Scale;
 
@@ -1475,6 +1438,17 @@ bool ChartDB::GetDBFullPath(int dbIndex, char *buf)
       return true;
 }
 
+//-------------------------------------------------------------------
+//    Get Lat/Lon Bounding Box from db
+//-------------------------------------------------------------------
+bool ChartDB::GetDBBoundingBox(int dbIndex, wxBoundingBox *box)
+{
+    box->SetMax(pChartTable[dbIndex].LonMax, pChartTable[dbIndex].LatMax);
+    box->SetMin(pChartTable[dbIndex].LonMin, pChartTable[dbIndex].LatMin);
+
+    return true;
+}
+
 
 //-------------------------------------------------------------------
 //    Build Chart stack
@@ -1483,7 +1457,6 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
 {
       int i=0;
       int j=0;
-      char buf[20];
 
       if(!bValid)
             return 0;                           // Database is not properly initialized
@@ -1517,7 +1490,6 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
                               if(bAuxInside)
                               {
                                   cstk->DBIndex[j] = i;
-                                  strcpy(buf, pChartTable[i].ChartID);
                                   j++;
                                   break;
                               }
@@ -1527,7 +1499,6 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
                       else
                       {
                             cstk->DBIndex[j] = i;
-                            strcpy(buf, pChartTable[i].ChartID);
                             j++;
                       }
                   }
@@ -1599,10 +1570,11 @@ bool ChartDB::CopyStack(ChartStack *pa, ChartStack *pb)
 //-------------------------------------------------------------------
 //    Get Full Path
 //-------------------------------------------------------------------
-bool ChartDB::GetFullPath(ChartStack *ps, int stackindex, char *buf)
+bool ChartDB::GetFullPath(ChartStack *ps, int stackindex, char *buf, int nbuf)
 {
       int dbIndex = ps->DBIndex[stackindex];
-      strcpy(buf, pChartTable[dbIndex].pFullPath);
+      strncpy(buf, pChartTable[dbIndex].pFullPath, nbuf);
+      buf[nbuf-1] = 0;
 
       return true;
 }
@@ -1645,17 +1617,18 @@ int ChartDB::GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon)
 //-------------------------------------------------------------------
 //    Get Chart ID
 //-------------------------------------------------------------------
-bool ChartDB::GetChartID(ChartStack *ps, int stackindex, char *buf)
+bool ChartDB::GetChartID(ChartStack *ps, int stackindex, char *buf, int nbuf)
 {
       int dbIndex = ps->DBIndex[stackindex];
-      strcpy(buf, pChartTable[dbIndex].ChartID);
+      strncpy(buf, pChartTable[dbIndex].ChartID, nbuf);
+      buf[nbuf-1] = 0;
 
       return true;
 }
 //-------------------------------------------------------------------
 //    Get Chart Scale
 //-------------------------------------------------------------------
-int ChartDB::GetStackChartScale(ChartStack *ps, int stackindex, char *buf)
+int ChartDB::GetStackChartScale(ChartStack *ps, int stackindex, char *buf, int nbuf)
 {
       int dbIndex = ps->DBIndex[stackindex];
       int sc = pChartTable[dbIndex].Scale;
@@ -1714,7 +1687,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
       char buf[80];
       CacheEntry *pce;
 
-      GetFullPath(pStack, StackEntry, buf);
+      GetFullPath(pStack, StackEntry, buf, sizeof(buf));
 
       wxDateTime now = wxDateTime::Now();                   // get time for LRU use
 
@@ -1902,7 +1875,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                   if(INIT_OK == ir)
                   {
 //    Only add to cache if requesting a full init
-                        if(1/*FULL_INIT == init_flag*/)
+//                        if(1/*FULL_INIT == init_flag*/)
                         {
                               pce = new CacheEntry;
                               pce->FullPath = wxString(buf);
@@ -1988,7 +1961,7 @@ int CCW(MyFlPoint p0, MyFlPoint p1, MyFlPoint p2) ;
 /*************************************************************************
 
 
- * FUNCTION:   G_PtInPolygon
+ * FUNCTION:   G_FloatPtInPolygon
  *
  * PURPOSE
  * This routine determines if the point passed is in the polygon. It uses
@@ -2018,7 +1991,7 @@ int CCW(MyFlPoint p0, MyFlPoint p1, MyFlPoint p2) ;
    pt0.y = y;
 
    pt1 = pt2 = pt0 ;
-   pt2.x = 180.;                    // Good east till Hong Kong?
+   pt2.x = 1.e6;
 
    // Now go through each of the lines in the polygon and see if it
    // intersects
@@ -2034,7 +2007,7 @@ int CCW(MyFlPoint p0, MyFlPoint p1, MyFlPoint p2) ;
    if (Intersect(pt0, pt2, *ppt, *rgpts))
       wnumintsct++ ;
 
-   return (wnumintsct&1) ;
+   return (bool)(wnumintsct&1) ;
 
 }
 

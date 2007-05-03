@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.3  2007/05/03 13:23:56  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.2  2006/09/21 01:37:37  dsr
  * Major refactor/cleanup
  *
@@ -63,7 +66,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters
@@ -196,9 +199,11 @@ TCMgr::TCMgr(const wxString &data_dir, const wxString &home_dir)
 
 //    Load the Harmonic Constant Invariants
       FILE *fp;
-      char linrec[linelen], junk[80];
+      char linrec[linelen];
+      char junk[80];
       int a, b;
-      if (!(fp = fopen (hfile_name, "r")))
+      fp = fopen (hfile_name, "r");
+      if (NULL == fp)
             return;
 
       free_data();
@@ -315,8 +320,11 @@ void TCMgr::LoadMRU(void)
             while(!mru_file.Eof())
             {
                   str = mru_file.GetNextLine();
-                  while(str[0] == '#')
-                        str = mru_file.GetNextLine();
+                  while(((str[0] == '#') || (str.IsEmpty())) && !mru_file.Eof())
+                          str = mru_file.GetNextLine();
+
+                  if(!mru_file.Eof())
+                      break;
 
                   pmru_entry = (mru_entry *)malloc(sizeof(mru_entry));
 
@@ -514,7 +522,6 @@ bool TCMgr::GetTideOrCurrent15(time_t t, int idx, float &tcvalue, float& dir, bo
       int t_today_00 = today_00.GetTicks();
       int t_today_00_at_station = t_today_00 - (corr_mins * 60);
 
-//    int t_at_station = this_now.GetTicks() - (corr_mins * 60);
       int t_at_station = this_gmt.GetTicks() - (station_offset * 60) + (corr_mins * 60);
 
       int t_mins = (t_at_station - t_today_00_at_station) / 60;
@@ -767,7 +774,7 @@ Station_Data *TCMgr::find_or_load_harm_data(IDX_entry *pIDX)
 //    OK, have to read and create from the raw file
 
       psd = NULL;
-      if(1/*!pIDX->IDX_tried_once*/)
+//      if(1/*!pIDX->IDX_tried_once*/)
       {
             pIDX->IDX_tried_once = 1;
 
@@ -880,8 +887,8 @@ Station_Data *TCMgr::find_or_load_harm_data(IDX_entry *pIDX)
             pIDX->pref_sta_data = psd;                // save for later
             return psd;
       }
-      else                                                  // already tried
-            return NULL;
+//      else                                                  // already tried
+//            return NULL;
 
 }
 
@@ -1090,15 +1097,21 @@ int TCMgr::compare_tm (struct tm *a, struct tm *b) {
     a->tm_min, a->tm_sec,
     b->tm_year+1900, b->tm_mon+1, b->tm_mday, b->tm_hour,
     b->tm_min, b->tm_sec); */
-  if ((temp = compare_int (a->tm_year, b->tm_year)))
+
+  temp = compare_int (a->tm_year, b->tm_year);
+  if (temp)
     return temp;
-  if ((temp = compare_int (a->tm_mon, b->tm_mon)))
+  temp = compare_int (a->tm_mon, b->tm_mon);
+  if (temp)
     return temp;
-  if ((temp = compare_int (a->tm_mday, b->tm_mday)))
+  temp = compare_int (a->tm_mday, b->tm_mday);
+  if (temp)
     return temp;
-  if ((temp = compare_int (a->tm_hour, b->tm_hour)))
+  temp = compare_int (a->tm_hour, b->tm_hour);
+  if (temp)
     return temp;
-  if ((temp = compare_int (a->tm_min, b->tm_min)))
+  temp = compare_int (a->tm_min, b->tm_min);
+  if (temp)
     return temp;
   return compare_int (a->tm_sec, b->tm_sec);
 }
@@ -1134,7 +1147,7 @@ time_t TCMgr::tm2gmt (struct tm *ht)
   /* For simplicity, I'm going to insist that the time_t we want is
      positive.  If time_t is signed, skip the sign bit.
    */
-  if (thebit < (time_t)0) {
+  if ((signed long)thebit < (time_t)0) {
     /* You can't just shift thebit right because it propagates the sign bit. */
     loopcounter--;
     thebit = ((time_t)1) << (loopcounter-1);
@@ -1334,7 +1347,9 @@ int TCMgr::allocate_copy_string(char **dst, char *string) {
 void TCMgr::free_harmonic_file_list() {
 harmonic_file_entry *pHarmonic, *pHarmonic_next;
 
-   if ((pHarmonic=harmonic_file_list)) {
+   pHarmonic=harmonic_file_list;
+   if (NULL != pHarmonic)
+   {
       while (pHarmonic->next) {
          pHarmonic_next = (harmonic_file_entry *)pHarmonic->next;
          free(pHarmonic->name);
@@ -1374,20 +1389,27 @@ int i, done;
    Free arrays allocated for station index
  --------------------------------------------------*/
 void TCMgr::free_station_index() {
-IDX_entry *pIDX, *pIDX_prev;
+IDX_entry *pIDX, *pIDX_next;
 
       int in = 1;
 
       if (pIDX_first) {
       pIDX = pIDX_first;
-      while ((pIDX_prev=(IDX_entry *)pIDX->IDX_next))
+      pIDX_next=pIDX_first;
+
+      while (NULL != pIDX_next)
       {
-         if (pIDX->IDX_tzname != NULL) free(pIDX->IDX_tzname);
-             free(pIDX);
-         pIDX = pIDX_prev;
+         pIDX_next=(IDX_entry *)pIDX->IDX_next;
+
+         if (pIDX->IDX_tzname != NULL)
+             free(pIDX->IDX_tzname);
+         free(pIDX);
+
+         pIDX = pIDX_next;
        in++;
       }
-      free( pIDX);
+
+//      free( pIDX);
       pIDX_first = NULL;
    }
    index_in_memory = FALSE;
@@ -1432,8 +1454,21 @@ char *str;
 // Read master until EOF then read user file.
      case IFF_READ :
        str = fgets( index_line, 1024, IndexFile);
+
        if (str != NULL)
-         return(1);
+       {
+// Scrub the index_line[] for invalid characters
+            int i_scrub = 0;
+            while(index_line[i_scrub])
+            {
+                if((signed char)index_line[i_scrub] < 0)
+                    index_line[i_scrub] = '?';
+                i_scrub++;
+            }
+
+            return(1);
+       }
+
  //      if (UserFile)
  //        str = fgets( index_line, 1024, UserFile);
        if (str != NULL)
@@ -1780,14 +1815,15 @@ harmonic_file_entry *pHarmonic, *pHarmonic_prev;
                   index_in_memory   = TRUE;
                   pIDX->IDX_next    = NULL;
                   pIDX->IDX_rec_num = num_IDX;
-                          pIDX->IDX_tried_once = 0;               // master station search control
-                          pIDX->Valid15 = 0;
+                  pIDX->IDX_tried_once = 0;               // master station search control
+                  pIDX->Valid15 = 0;
 
                   if (build_IDX_entry(pIDX))
                      printf("Index file error at entry %d!\n", num_IDX);
                   if (pIDX_first == NULL)
                      pIDX_first = pIDX;
-                  else pIDX_prev->IDX_next = pIDX;
+                  else
+                     pIDX_prev->IDX_next = pIDX;
                   pIDX_prev = pIDX;
                }
                else {  // Could not allocate memory for index, do long way
@@ -1804,7 +1840,8 @@ harmonic_file_entry *pHarmonic, *pHarmonic_prev;
             while (pHarmonic && pHarmonic->next)
                pHarmonic = (harmonic_file_entry *)pHarmonic->next;
             pHarmonic_prev = pHarmonic;
-            if (!(pHarmonic = (harmonic_file_entry *)malloc(sizeof(harmonic_file_entry)))) {
+            pHarmonic = (harmonic_file_entry *)malloc(sizeof(harmonic_file_entry));
+            if (NULL == pHarmonic) {
 //               no_mem_msg();
                free_harmonic_file_list();
             }
@@ -2189,7 +2226,8 @@ int TCMgr::next_big_event (time_t *tm, IDX_entry *pIDX)
 
 //    if (mark && ((text && !graphmode) || (!text && graphmode)
 //    || ppm || gif || ps))
-      int marklev = 0;
+//      int marklev = 0;
+#if (0)
       if(0)
       if ((p > marklev && q <= marklev) || (p < marklev && q >= marklev)) {
         /* Transition event */
@@ -2213,6 +2251,7 @@ int TCMgr::next_big_event (time_t *tm, IDX_entry *pIDX)
           }
         }
       }
+#endif
 
     if (flags) {
       *tm -= 60;

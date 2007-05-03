@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.2 2007/02/06 02:04:51 dsr Exp $
+ * $Id: ais.cpp,v 1.3 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.3  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.2  2007/02/06 02:04:51  dsr
  * Correct text decode algorithm
  *
@@ -35,14 +38,14 @@
  */
 
 
-#include "wx/wxprec.h"
+//#include "wx/wxprec.h"
 
-#ifndef  WX_PRECOMP
+//#ifndef  WX_PRECOMP
   #include "wx/wx.h"
-#endif //precompiled headers
+//#endif //precompiled headers
 
 #include "wx/tokenzr.h"
-#include "wx/datetime.h"
+//#include "wx/datetime.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -60,11 +63,12 @@ extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 
-CPL_CVSID("$Id: ais.cpp,v 1.2 2007/02/06 02:04:51 dsr Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.3 2007/05/03 13:23:55 dsr Exp $");
 
+// the first string in this list produces a 6 digit MMSI... BUGBUG
 
 char test_str[24][79] = {
-
+"!AIVDM,1,1,,A,100Rsb@P1PJREovFCnS7n?vt08Ag,0*13**",
 "!AIVDM,1,1,,A,15Mnh`PP0jIcl78Csm`hCgvB2D00,0*29**",
 "!AIVDM,2,1,1,A,55Mnh`P00001L@7S3GP=Dl8E8h4pB2222222220P0`A6357d07PT851F,0*75**",
 "!AIVDM,2,2,1,A,0Dp0jE6H8888880,2*40**",
@@ -88,7 +92,7 @@ char test_str[24][79] = {
 "!AIVDM,1,1,,A,15Mnh`PP0nIckqdCsiC@iOwR2@LP,0*34**",
 "!AIVDM,1,1,,A,15Mnh`PP0nIckttCsjEhdgvB2H4m,0*75**",
 "!AIVDM,1,1,,A,15Mnh`PP0mIcl0jCskPhiwvr2D00,0*47**",
-"!AIVDM,1,1,,A,15Mnh`PP0mIcl4hCslVhb?wR2<00,0*5A**",
+
 
 };
 
@@ -149,7 +153,7 @@ unsigned char AIS_Bitstring::to_6bit(const char c)
     else
         cp += 0x28;
 
-    return (cp & 0x3f);
+    return (unsigned char)(cp & 0x3f);
 }
 
 
@@ -200,7 +204,7 @@ bool AIS_Bitstring::GetStr(int sp, int len, char *dest, int max_len)
 
             i++;
          }
-         temp_str[k] = acc & 0x3f;
+         temp_str[k] = (char)(acc & 0x3f);
 
          if(acc < 32)
              temp_str[k] += 0x40;
@@ -431,21 +435,50 @@ AIS_Error AIS_Decoder::Decode(char *str)
             {
                 (*AISTargetList)[td->MMSI] = td;            // so insert this entry
                 tm = td;
+//                printf("add MMSI %d\n", td->MMSI);
             }
             else
             {
                 temp = (*AISTargetList)[td->MMSI];          // find current entry
                 tm = Merge(temp, td);                       // merge in new data
+//                printf("update MMSI %d\n", td->MMSI);
 
                 (*AISTargetList)[td->MMSI] = tm;            // replace the current entry
                 delete temp;                                // and kill the old one
                 delete td;
+
+                //  Debug
+                wxDateTime now = wxDateTime::Now();
+                now.MakeGMT();
+                int target_age = now.GetTicks() - tm->ReportTicks;
+                if(target_age > 500)
+                    printf("AIS:Found very high target age\n");
+
             }
 
         //  Update the AIS Target Selectable list
 
             pSelectAIS->DeleteSelectablePoint((void *)temp, SELTYPE_AISTARGET);
             pSelectAIS->AddSelectablePoint(tm->Lat, tm->Lon, (void *)tm, SELTYPE_AISTARGET);
+
+            ///debug
+            SelectItem *pFindSel;
+
+            printf("On AIS Target List Update, Inspecting Selectable List....\n");
+            wxSelectableItemListNode *node = pSelectAIS->GetSelectList()->GetFirst();
+
+            while(node)
+            {
+                pFindSel = node->GetData();
+                if(pFindSel->m_seltype == SELTYPE_AISTARGET)
+                {
+                    AIS_Target_Data *tp = (AIS_Target_Data *)pFindSel->m_pData1;
+                    printf("       MMSI: %d\n", tp->MMSI);
+                }
+
+                node = node->GetNext();
+            }
+            /// end debug
 
             ret = AIS_NoError;
         }
@@ -462,23 +495,24 @@ AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tth
 {
      AIS_Target_Data *result = new AIS_Target_Data;
 
-     if((tlast->MID == 1) && (tthis->MID == 5))
+
+     //  Name update
+     if(tthis->MID == 5)
      {
          *result = *tlast;
          strncpy(&result->ShipName[0], &tthis->ShipName[0], 21);
      }
 
-     if((tlast->MID == 5) && (tthis->MID == 1))
+     //     Position update
+     else if((tthis->MID == 1) || (tthis->MID == 2) || (tthis->MID == 3))
      {
          *result = *tthis;
          strncpy(&result->ShipName[0], &tlast->ShipName[0], 21);
      }
 
-      if((tlast->MID == 1) && (tthis->MID == 1))
-     {
-         *result = *tthis;
-         strncpy(&result->ShipName[0], &tlast->ShipName[0], 21);
-     }
+     else
+         *result = *tlast;                  // default
+
 
 
      return result;
@@ -517,6 +551,10 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
         {
             atd.MID = message_ID;
             atd.MMSI = bstr->GetInt(9, 30);
+// Debug
+//            if(atd.MMSI && (atd.MMSI < 100000000))
+//                atd.MMSI = bstr->GetInt(9, 30);
+
             atd.NavStatus = bstr->GetInt(39, 4);
             atd.SOG = 0.1 * (bstr->GetInt(51, 10));
 
@@ -547,6 +585,9 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
 
             if((111111111 == atd.MMSI) || (181.0 == atd.Lon) || (91.0 == atd.Lat))      // bogus data
                 parse_result = false;
+            if(0 == atd.MMSI)
+                parse_result = 0;
+
             else
             {
                 //  Todo there may be a bug here.  Sometimes get invalid utc_hour, utc_min
@@ -566,6 +607,10 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
         {
             atd.MID = message_ID;
             atd.MMSI = bstr->GetInt(9, 30);
+// Debug
+//            if(atd.MMSI < 100000000)
+//                atd.MMSI = bstr->GetInt(9, 30);
+
             int DSI = bstr->GetInt(39, 2);
             if(0 == DSI)
             {
@@ -636,6 +681,8 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     wxString *res = new wxString;
     wxString line;
 
+    line.Printf("MMSI:  %d\n", td->MMSI);
+    res->Append(line);
 
     //  Clip any unused characters (@) from the name
     wxString ts;
@@ -656,6 +703,23 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     wxDateTime now = wxDateTime::Now();
     now.MakeGMT();
     int target_age = now.GetTicks() - td->ReportTicks;
+///  Debug
+    if((target_age > 500) || (target_age < -500))
+    {
+        printf("\nAIS:Found absurd target age\n");
+        printf("Here is the hash map\n");
+        AIS_Target_Hash::iterator it;
+        AIS_Target_Hash *current_targets = GetTargetList();
+        for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
+        {
+            AIS_Target_Data *tdd = it->second;
+
+            int target_aged = now.GetTicks() - tdd->ReportTicks;
+            printf("Current Target: MMSI: %d    target_age:%d\n", tdd->MMSI, target_aged);
+
+        }
+    }
+///
     line.Printf("Report Age: %d Sec.\n", target_age);
     res->Append(line);
 
@@ -690,10 +754,10 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
       wxLogMessage("AIS Data Source is....%s",m_pdata_source_string->c_str());
 
 //      Data Source is private TCP/IP Server
-      if(m_pdata_source_string->Contains("GPSD"))
+      if(m_pdata_source_string->Contains("TCP/IP"))
       {
             wxString AIS_data_ip;
-            AIS_data_ip = m_pdata_source_string->Mid(5);         // extract the IP
+            AIS_data_ip = m_pdata_source_string->Mid(7);         // extract the IP
 
 // Create the socket
             m_sock = new wxSocketClient();
@@ -755,7 +819,7 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
 
             //      Resolved the name, somehow, so Connect() the socket
             addr.Hostname(AIS_data_ip);
-            addr.Service(20175/*GPSD_PORT_NUMBER*/);
+            addr.Service(3047/*GPSD_PORT_NUMBER*/);
             m_sock->Connect(addr, FALSE);       // Non-blocking connect
       }
 
@@ -910,9 +974,6 @@ void AIS_Decoder::OnSocketEvent(wxSocketEvent& event)
 
             if(!strncmp((const char *)buf, "!AIVDM", 6))
             {
-
-                if(1)           // valid data?
-                {
                   Decode(buf);
 
 //    Signal the main program thread
@@ -921,7 +982,6 @@ void AIS_Decoder::OnSocketEvent(wxSocketEvent& event)
 //                    event.SetEventObject( (wxObject *)this );
 //                    event.SetExtraLong(EVT_AIS_DIRECT);
 //                    m_pParentEventHandler->AddPendingEvent(event);
-                }
             }
 
 
@@ -934,8 +994,8 @@ void AIS_Decoder::OnSocketEvent(wxSocketEvent& event)
 
 }
 
-
-
+//static int itime;
+//static int istr;
 void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 {
       TimerAIS.Stop();
@@ -952,14 +1012,19 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
       AIS_Target_Hash::iterator it;
       AIS_Target_Hash *current_targets = GetTargetList();
 
+//      printf("\n");
       for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
       {
           AIS_Target_Data *td = it->second;
 
           int target_age = now.GetTicks() - td->ReportTicks;
+//          printf("Current Target: MMSI: %d    target_age:%d\n", td->MMSI, target_age);
+
           if(target_age > death_age_seconds)
           {
+//              printf("      erase MMSI %d\n", td->MMSI);
               current_targets->erase(it);
+              pSelectAIS->DeleteSelectablePoint((void *)td, SELTYPE_AISTARGET);
               delete td;
               break;        // kill only one per tick, since iterator becomes invalid...
           }
@@ -969,7 +1034,7 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 //--------------TEST DATA strings
 #if(0)
       char str[82];
-//      if(1)
+      if(1)
       {
           if(itime++ > 2)
           {
@@ -1070,7 +1135,6 @@ void *OCP_AIS_Thread::Entry()
 
     // Open the serial port.
     if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
-//    if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NOCTTY)) < 0)
     {
         wxLogMessage("AIS NMEA input device open failed: %s\n", m_pPortName->c_str());
         return 0;
@@ -1366,7 +1430,6 @@ void *OCP_AIS_Thread::Entry()
 
 
 //    Set up event specification
-      DWORD dwEventMask;
 
       if(!SetCommMask(m_hSerialComm, EV_RXCHAR)) // Setting Event Type
             goto fail_point;
@@ -1377,7 +1440,6 @@ void *OCP_AIS_Thread::Entry()
       osReader.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
       not_done = true;
-      bool nl_found;
 
 //    The main loop
 
@@ -1451,141 +1513,6 @@ void *OCP_AIS_Thread::Entry()
       }                 // big while
 
 
-
-
-
-
-/*
-      while(not_done)
-      {
-            if(TestDestroy())
-                  not_done = false;                               // smooth exit
-
-//    Blocking read of one character at a time
-//    Storing incoming characters in circular buffer
-//    And watching for new line character
-            if(WaitCommEvent(m_hSerialComm, &dwEventMask, NULL)) // Waiting For Event to Occur
-            {
-                  char szBuf;
-                  DWORD dwIncommingReadSize;
-
-                  do
-                  {
-                        nl_found = false;
-                        dwIncommingReadSize = 0;
-
-
-                        COMSTAT    ComStat ;
-                        DWORD      dwErrorFlags;
-
-
-                        ClearCommError( m_hSerialComm, &dwErrorFlags, &ComStat ) ;
-
-                        if(ComStat.cbInQue )
-                        {
-
-                              if(ReadFile(m_hSerialComm, &szBuf, 1, &dwIncommingReadSize, NULL) != 0)
-                              {
-                                    if(dwIncommingReadSize > 0)
-                                    {
-                                          int nchar = dwIncommingReadSize;
-                                          while(nchar)
-                                          {
-                                                *put_ptr++ = szBuf;
-                                                if((put_ptr - rx_buffer) > RX_BUFFER_SIZE)
-                                                      put_ptr = rx_buffer;
-
-                                                if(0x0a == szBuf)
-                                                      nl_found = true;
-
-                                                nchar--;
-                                          }
-                                    }
-                              }
-
-                              else
-                              {
-                                    error = ::GetLastError();
-                                    break;
-                              }
-                        }
-
-//    Found a NL char, thus end of message?
-                        if(nl_found)
-                        {
-                              char *tptr;
-                              char *ptmpbuf;
-                              char temp_buf[RX_BUFFER_SIZE];
-
-                              bool partial = false;
-                              while (!partial)
-                              {
-
-//    If the shared buffer is available....
-                                    if(ais_ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR )
-                                    {
-                                          if(RX_BUFFER_EMPTY == ais_rx_share_buffer_state)
-                                          {
-
-//    Copy the message into the rx_shared_buffer
-
-                                                tptr = tak_ptr;
-                                                ptmpbuf = temp_buf;
-
-                                                while((*tptr != 0x0a) && (tptr != put_ptr))
-                                                {
-                                                      *ptmpbuf++ = *tptr++;
-
-                                                      if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                                            tptr = rx_buffer;
-                                                }
-
-                                                if(*tptr == 0x0a)                                     // well formed sentence
-                                                {
-                                                      *ptmpbuf++ = *tptr++;
-                                                      if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                                            tptr = rx_buffer;
-
-                                                      *ptmpbuf = 0;
-
-                                                      tak_ptr = tptr;
-
-                                                      strcpy(ais_rx_share_buffer, temp_buf);
-
-                                                      ais_rx_share_buffer_state = RX_BUFFER_FULL;
-                                                      ais_rx_share_buffer_length = strlen(ais_rx_share_buffer);
-
-//    Signal the main program thread
-
-                                                      wxCommandEvent event( EVT_AIS, ID_AIS_WINDOW );
-                                                      event.SetEventObject( (wxObject *)this );
-                                                      event.SetExtraLong(EVT_AIS_PARSE_RX);
-                                                      m_pMainEventHandler->AddPendingEvent(event);
-                                                }
-                                                else
-                                                {
-                                                      partial = true;
-//                                                    wxLogMessage("partial");
-                                                }
-                                          }
-                                    }
-
-//    Release the MUTEX
-                                    ais_ps_mutexProtectingTheRXBuffer->Unlock();
-
-                              }                 // while
-
-                        }
-
-                  } while(dwIncommingReadSize > 0);
-
-//
-            }
-
-
-      }           // the big while...
-
-*/
 fail_point:
 
       return 0;
@@ -1594,7 +1521,7 @@ fail_point:
 
 
 
-bool OCP_AIS_Thread::HandleASuccessfulRead(char *buf, DWORD dwIncommingReadSize)
+bool OCP_AIS_Thread::HandleASuccessfulRead(char *buf, int dwIncommingReadSize)
 {
     bool nl_found;
     char *bp = buf;
@@ -1651,7 +1578,7 @@ bool OCP_AIS_Thread::HandleASuccessfulRead(char *buf, DWORD dwIncommingReadSize)
                                         tptr = rx_buffer;
                             }
 
-                            if(*tptr == 0x0a)                                     // well formed sentence
+                            if((*tptr == 0x0a) && (tptr != put_ptr))          // well formed sentence
                             {
                                   *ptmpbuf++ = *tptr++;
                                   if((tptr - rx_buffer) > RX_BUFFER_SIZE)

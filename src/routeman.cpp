@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $
+ * $Id: routeman.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.3  2007/05/03 13:23:56  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.2  2006/09/21 01:37:36  dsr
  * Major refactor/cleanup
  *
@@ -68,7 +71,7 @@
 #include <wx/listimpl.cpp>
 
 #ifdef __WXMSW__
-#if dyUSE_MSW_SERCOMM
+#if ocpnUSE_MSW_SERCOMM
         #include "sercomm.h"
 #endif
 #endif
@@ -101,7 +104,7 @@ extern bool             bAutoPilotOut;
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: routeman.cpp,v 1.2 2006/09/21 01:37:36 dsr Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -215,6 +218,8 @@ bool Routeman::ActivateNextPoint(Route *pr)
 
 bool Routeman::UpdateProgress()
 {
+    bool bret_val = false;
+
         if(pActiveRoute)
         {
 //      Update bearing, range, and crosstrack error
@@ -227,12 +232,11 @@ bool Routeman::UpdateProgress()
 
 //      Calculate Range using UTM coordinates
 /*
-                float east1, east2, north1, north2;
+                float east1, north1;
 
-                DegToUTM(gLat, gLon, NULL, &east1, &north1, gLon);
-                DegToUTM(pActivePoint->rlat, pActivePoint->rlon, NULL, &east2, &north2, gLon);
+                toUTM(gLat, gLon, pActivePoint->rlat, pActivePoint->rlon, .9996, &east1, &north1);
 
-                float d3 = sqrt((east1-east2) * (east1-east2) + (north1-north2) * (north1-north2));
+                float d3 = sqrt((east1 * east1) + (north1 * north1));
                 CurrentRngToActivePoint = d3 / 1852.0;
 */
 
@@ -323,16 +327,16 @@ bool Routeman::UpdateProgress()
 
                 }
 
-        //      cc1->m_bForceReDraw = true;                     // cause a redraw for blink
-
 
                 if(!bDidArrival)                                        // Only once on arrival
                         UpdateAutopilot();
+
+                bret_val = true;                                        // a route is active
         }
 
         m_bDataValid = true;
 
-        return true;
+        return bret_val;
 }
 
 bool Routeman::DeactivateRoute()

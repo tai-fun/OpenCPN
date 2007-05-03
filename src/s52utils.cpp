@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52utils.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: s52utils.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Utility Library
@@ -29,8 +29,11 @@
  ***************************************************************************
  *
  * $Log: s52utils.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:23:56  dsr
+ * Major refactor for 1.2.0
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/08/04 11:42:02  dsr
  * no message
@@ -55,7 +58,7 @@
  */
 
 #include "dychart.h"
-CPL_CVSID("$Id: s52utils.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: s52utils.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $");
 
 #include "s52utils.h"
 #include <stdio.h>        // FILE
@@ -75,7 +78,7 @@ CPL_CVSID("$Id: s52utils.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
 #define TRUE 1
 #define FALSE 0
 
-#define PATH_MAX 255
+#define CPATH_MAX 255
 ///////////////////////////////////////////////////////////////////
 //
 //   GLOBAL MARINER PARAMETER (will move out)
@@ -128,6 +131,7 @@ gboolean SYMBOLIZED_BND  = TRUE;     // symbolized area boundaries
 */
 
 // WARNING: must be in sync with S52_MAR_param_t
+/*
 static char *_MARparamNm[]  = {
     "S52_MAR_NONE",             //= 0,    // default
     "S52_MAR_SHOW_TEXT",        //= 1,    // view group 23
@@ -148,6 +152,7 @@ static char *_MARparamNm[]  = {
 
     "S52_MAR_NUM"               //= 16    // number of parameters
 };
+*/
 
 // WARNING: must be in sync with _MARparamNm
 static double _MARparamVal[] = {
@@ -207,9 +212,9 @@ int S52_getConfig(const char *label, valueBuf *vbuf)
    FILE *fp;
 //   int ret = 0;
    int  ret = 1;
-   char lbuf[PATH_MAX] = {'#'};
-   char tmp [PATH_MAX];
-   char frmt[PATH_MAX];
+   char lbuf[CPATH_MAX] = {'#'};
+   char tmp [CPATH_MAX];
+   char frmt[CPATH_MAX];
 
    fp = fopen(CONF_NAME, "r");
    if (NULL == fp) {
@@ -252,12 +257,13 @@ float S52_getMarinerParam(S52_MAR_param_t param)
 // return Mariner parameter or '0.0' if fail
 // FIXME: check mariner param against groups selection
 {
-    valueBuf vbuf;
+//    valueBuf vbuf;
 
 //      DSR
     return (float)_MARparamVal[param];
-
-    if (S52_MAR_NONE<param && param<S52_MAR_NUM) {
+/*
+    if (S52_MAR_NONE<param && param<S52_MAR_NUM)
+    {
 
         if (S52_getConfig(_MARparamNm[param], &vbuf))
             return (float)atof(vbuf);
@@ -266,6 +272,7 @@ float S52_getMarinerParam(S52_MAR_param_t param)
     }
 
     return (float)0.0;
+*/    
 }
 
 int    S52_setMarinerParam(S52_MAR_param_t param, double val)

@@ -1,13 +1,22 @@
-/*
- *    Copyright  1996, 1997, 1998, 1999, 2000 by Remco Treffkorn
- *    Distributed under the terms of the Q Public License. Please see
- *    the included file LICENSE.
- *
- * This module is a mess as far as static buffers, should be a real pain
- * to fix...
- */
+/****************************************************************************/
+/*                                                                          */
+/*                                                                          */
+/* This file has been extracted from gpstrans                               */
+/* Parts are taken from John F. Waers (jfwaers@csn.net) program MacGPS.     */
+/*                                                                          */
+/*                                                                          */
+/*    Copyright (c) 1995 by Carsten Tschach (tschach@zedat.fu-berlin.de)    */
+/*                                                                          */
+/* Permission  to use, copy,  modify, and distribute  this software and its */
+/* documentation for non-commercial purpose, is hereby granted without fee, */
+/* providing that the  copyright notice  appear in all copies and that both */
+/* the  copyright notice and  this permission  notice appear in  supporting */
+/* documentation.  I make no representations about  the suitability of this */
+/* software  for any  purpose.  It is  provides "as is" without  express or */
+/* implid warranty.                                                         */
+/*                                                                          */
+/****************************************************************************/
 
-//#include "dychart.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,18 +25,198 @@
 #include <ctype.h>
 
 #include "georef.h"
-#include "dychart.h"
 
-void toDMS(double a, char *bufp, int bufplen);
-static double fromDMS(char *dms);
-void toDMM(double a, char *bufp, int bufplen);
-static double fromDMM(char *dms);
 
-CPL_CVSID("$Id: georef.c,v 1.3 2007/03/02 02:02:34 dsr Exp $");
+//      Fix up CPL_CVSID if not available
+//      This code block taken directly from <cpl_port.h>
+#ifndef CPL_CVSID
+#ifndef NULL
+#define NULL 0
+#endif
 
-static char buf[20];
-static char r[20];
+/***********************************************************************
+ * Define CPL_CVSID() macro.  It can be disabled during a build by
+ * defining DISABLE_CPLID in the compiler options.
+ *
+ * The cvsid_aw() function is just there to prevent reports of cpl_cvsid()
+ * being unused.
+ */
 
+#ifndef DISABLE_CVSID
+#  define CPL_CVSID(string)     static char cpl_cvsid[] = string; \
+static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
+#else
+#  define CPL_CVSID(string)
+#endif
+
+#endif
+
+
+CPL_CVSID("$Id: georef.c,v 1.4 2007/05/03 13:23:55 dsr Exp $");
+
+
+/* For NAD27 shift table */
+//extern struct CTABLE conus_ct[];
+
+//  ellipsoid: index into the gEllipsoid[] array, in which
+//             a is the ellipsoid semimajor axis
+//             invf is the inverse of the ellipsoid flattening f
+//  dx, dy, dz: ellipsoid center with respect to WGS84 ellipsoid center
+//    x axis is the prime meridian
+//    y axis is 90 degrees east longitude
+//    z axis is the axis of rotation of the ellipsoid
+
+// The following values for dx, dy and dz were extracted from the output of
+// the GARMIN PCX5 program. The output also includes values for da and df, the
+// difference between the reference ellipsoid and the WGS84 ellipsoid semi-
+// major axis and flattening, respectively. These are replaced by the
+// data contained in the structure array gEllipsoid[], which was obtained from
+// the Defence Mapping Agency document number TR8350.2, "Department of Defense
+// World Geodetic System 1984."
+
+struct DATUM const gDatum[] = {
+//         name               ellipsoid   dx      dy       dz
+    { "Adindan",                5,   -162,    -12,    206 },    // 0
+    { "Afgooye",               15,    -43,   -163,     45 },    // 1
+    { "Ain el Abd 1970",       14,   -150,   -251,     -2 },    // 2
+    { "Anna 1 Astro 1965",      2,   -491,    -22,    435 },    // 3
+    { "Arc 1950",               5,   -143,    -90,   -294 },    // 4
+    { "Arc 1960",               5,   -160,     -8,   -300 },    // 5
+    { "Ascension Island ï¿½8",  14,   -207,    107,     52 },     // 6
+    { "Astro B4 Sorol Atoll",  14,    114,   -116,   -333 },    // 7
+    { "Astro Beacon ï¿½ï¿½",      14,    145,     75,   -272 },     // 8
+    { "Astro DOS 71/4",        14,   -320,    550,   -494 },    // 9
+    { "Astronomic Stn ï¿½2",    14,    124,   -234,    -25 },     // 10
+    { "Australian Geod ï¿½6",    2,   -133,    -48,    148 },     // 11
+    { "Australian Geod ï¿½4",    2,   -134,    -48,    149 },     // 12
+    { "Bellevue (IGN)",        14,   -127,   -769,    472 },    // 13
+    { "Bermuda 1957",           4,    -73,    213,    296 },    // 14
+    { "Bogota Observatory",    14,    307,    304,   -318 },    // 15
+    { "Campo Inchauspe",       14,   -148,    136,     90 },    // 16
+    { "Canton Astro 1966",     14,    298,   -304,   -375 },    // 17
+    { "Cape",                   5,   -136,   -108,   -292 },    // 18
+    { "Cape Canaveral",         4,     -2,    150,    181 },    // 19
+    { "Carthage",               5,   -263,      6,    431 },    // 20
+    { "CH-1903",                3,    674,     15,    405 },    // 21
+    { "Chatham 1971",          14,    175,    -38,    113 },    // 22
+    { "Chua Astro",            14,   -134,    229,    -29 },    // 23
+    { "Corrego Alegre",        14,   -206,    172,     -6 },    // 24
+    { "Djakarta (Batavia)",     3,   -377,    681,    -50 },    // 25
+    { "DOS 1968",              14,    230,   -199,   -752 },    // 26
+    { "Easter Island 1967",    14,    211,    147,    111 },    // 27
+    { "European 1950",         14,    -87,    -98,   -121 },    // 28
+    { "European 1979",         14,    -86,    -98,   -119 },    // 29
+    { "Finland Hayford",       14,    -78,   -231,    -97 },    // 30
+    { "Gandajika Base",        14,   -133,   -321,     50 },    // 31
+    { "Geodetic Datum ï¿½9",    14,     84,    -22,    209 },     // 32
+    { "Guam 1963",              4,   -100,   -248,    259 },    // 33
+    { "GUX 1 Astro",           14,    252,   -209,   -751 },    // 34
+    { "Hjorsey 1955",          14,    -73,     46,    -86 },    // 35
+    { "Hong Kong 1963",        14,   -156,   -271,   -189 },    // 36
+    { "Indian Bangladesh",      6,    289,    734,    257 },    // 37
+    { "Indian Thailand",        6,    214,    836,    303 },    // 38
+    { "Ireland 1965",           1,    506,   -122,    611 },    // 39
+    { "ISTS 073 Astro ï¿½9",    14,    208,   -435,   -229 },     // 40
+    { "Johnston Island",       14,    191,    -77,   -204 },    // 41
+    { "Kandawala",              6,    -97,    787,     86 },    // 42
+    { "Kerguelen Island",      14,    145,   -187,    103 },    // 43
+    { "Kertau 1948",            7,    -11,    851,      5 },    // 44
+    { "L.C. 5 Astro",           4,     42,    124,    147 },    // 45
+    { "Liberia 1964",           5,    -90,     40,     88 },    // 46
+    { "Luzon Mindanao",         4,   -133,    -79,    -72 },    // 47
+    { "Luzon Philippines",      4,   -133,    -77,    -51 },    // 48
+    { "Mahe 1971",              5,     41,   -220,   -134 },    // 49
+    { "Marco Astro",           14,   -289,   -124,     60 },    // 50
+    { "Massawa",                3,    639,    405,     60 },    // 51
+    { "Merchich",               5,     31,    146,     47 },    // 52
+    { "Midway Astro 1961",     14,    912,    -58,   1227 },    // 53
+    { "Minna",                  5,    -92,    -93,    122 },    // 54
+    { "NAD27 Alaska",           4,     -5,    135,    172 },    // 55
+    { "NAD27 Bahamas",          4,     -4,    154,    178 },    // 56
+    { "NAD27 Canada",           4,    -10,    158,    187 },    // 57
+    { "NAD27 Canal Zone",       4,      0,    125,    201 },    // 58
+    { "NAD27 Caribbean",        4,     -7,    152,    178 },    // 59
+    { "NAD27 Central",          4,      0,    125,    194 },    // 60
+    { "NAD27 CONUS",            4,     -8,    160,    176 },    // 61
+    { "NAD27 Cuba",             4,     -9,    152,    178 },    // 62
+    { "NAD27 Greenland",        4,     11,    114,    195 },    // 63
+    { "NAD27 Mexico",           4,    -12,    130,    190 },    // 64
+    { "NAD27 San Salvador",     4,      1,    140,    165 },    // 65
+    { "NAD83",                 11,      0,      0,      0 },    // 66
+    { "Nahrwn Masirah Ilnd",    5,   -247,   -148,    369 },    // 67
+    { "Nahrwn Saudi Arbia",     5,   -231,   -196,    482 },    // 68
+    { "Nahrwn United Arab",     5,   -249,   -156,    381 },    // 69
+    { "Naparima BWI",          14,     -2,    374,    172 },    // 70
+    { "Observatorio 1966",     14,   -425,   -169,     81 },    // 71
+    { "Old Egyptian",          12,   -130,    110,    -13 },    // 72
+    { "Old Hawaiian",           4,     61,   -285,   -181 },    // 73
+    { "Oman",                   5,   -346,     -1,    224 },    // 74
+    { "Ord Srvy Grt Britn",     0,    375,   -111,    431 },    // 75
+    { "Pico De Las Nieves",    14,   -307,    -92,    127 },    // 76
+    { "Pitcairn Astro 1967",   14,    185,    165,     42 },    // 77
+    { "Prov So Amrican ï¿½6",   14,   -288,    175,   -376 },     // 78
+    { "Prov So Chilean ï¿½3",   14,     16,    196,     93 },     // 79
+    { "Puerto Rico",            4,     11,     72,   -101 },    // 80
+    { "Qatar National",        14,   -128,   -283,     22 },    // 81
+    { "Qornoq",                14,    164,    138,   -189 },    // 82
+    { "Reunion",               14,     94,   -948,  -1262 },    // 83
+    { "Rome 1940",             14,   -225,    -65,      9 },    // 84
+    { "RT 90",                  3,    498,    -36,    568 },    // 85
+    { "Santo (DOS)",           14,    170,     42,     84 },    // 86
+    { "Sao Braz",              14,   -203,    141,     53 },    // 87
+    { "Sapper Hill 1943",      14,   -355,     16,     74 },    // 88
+    { "Schwarzeck",            21,    616,     97,   -251 },    // 89
+    { "South American ï¿½9",    16,    -57,      1,    -41 },     // 90
+    { "South Asia",             8,      7,    -10,    -26 },    // 91
+    { "Southeast Base",        14,   -499,   -249,    314 },    // 92
+    { "Southwest Base",        14,   -104,    167,    -38 },    // 93
+    { "Timbalai 1948",          6,   -689,    691,    -46 },    // 94
+    { "Tokyo",                  3,   -128,    481,    664 },    // 95
+    { "Tristan Astro 1968",    14,   -632,    438,   -609 },    // 96
+    { "Viti Levu 1916",         5,     51,    391,    -36 },    // 97
+    { "Wake-Eniwetok ï¿½0",     13,    101,     52,    -39 },     // 98
+    { "WGS 72",                19,      0,      0,      5 },    // 99
+    { "WGS 84",                20,      0,      0,      0 },    // 100
+    { "Zanderij",              14,   -265,    120,   -358 },    // 101
+    { 0 },
+};
+
+struct ELLIPSOID const gEllipsoid[] = {
+//  name                               a        1/f
+    {  "Airy 1830",                  6377563.396, 299.3249646   }, // 0
+    {  "Modified Airy",              6377340.189, 299.3249646   }, // 1
+    {  "Australian National",        6378160.0,   298.25        }, // 2
+    {  "Bessel 1841",                6377397.155, 299.15281282  }, // 3
+    {  "Clarke 1866",                6378206.4,   294.9786982   }, // 4
+    {  "Clarke 1880",                6378249.145, 293.465       }, // 5
+    {  "Everest (India 1830)",       6377276.345, 300.8017      }, // 6
+    {  "Everest (1948)",             6377304.063, 300.8017      }, // 7
+    {  "Modified Fischer 1960",      6378155.0,   298.3         }, // 8
+    {  "Everest (Pakistan)",         6377309.613, 300.8017      }, // 9
+    {  "Indonesian 1974",            6378160.0,   298.247       }, // 10 ?
+    {  "GRS 80",                     6378137.0,   298.257222101 }, // 11
+    {  "Helmert 1906",               6378200.0,   298.3         }, // 12
+    {  "Hough 1960",                 6378270.0,   297.0         }, // 13
+    {  "International 1924",         6378388.0,   297.0         }, // 14
+    {  "Krassovsky 1940",            6378245.0,   298.3         }, // 15
+    {  "South American 1969",        6378160.0,   298.25        }, // 16
+    {  "Everest (Malaysia 1969)",    6377295.664, 300.8017      }, // 17
+    {  "Everest (Sabah Sarawak)",    6377298.556, 300.8017      }, // 18
+    {  "WGS 72",                     6378135.0,   298.26        }, // 19
+    {  "WGS 84",                     6378137.0,   298.257223563 }, // 20
+    {  "Bessel 1841 (Namibia)",      6377483.865, 299.1528128   }, // 21
+    {  "Everest (India 1956)",       6377301.243, 300.8017      }, // 22
+    {  "Fischer 1960",               6378166.0,   298.3         }, // 23
+    {  "WGS 60",                     6378165.0,   298.3         }, // 24
+    {  "WGS 66",                     6378145.0,   298.25        }, // 25
+    {  "SGS 85",                     6378136.0,   298.257       }, // 26
+    { 0 },
+};
+
+/* define constants */
+static const double WGSa     = 6378137.0;           /* WGS84 semimajor axis */
+static const double WGSinvf  = 298.257223563;                  /* WGS84 1/f */
+static const short  WGS84ID  = 100;                    /* ID of WGS84 datum */
 
 void datumParams(short datum, double *a, double *es)
 {
@@ -37,74 +226,6 @@ void datumParams(short datum, double *a, double *es)
     double f = 1.0 / gEllipsoid[gDatum[datum].ellipsoid].invf;    // flattening
     *es = 2 * f - f * f;      // eccentricity^2
     *a = gEllipsoid[gDatum[datum].ellipsoid].a;       // semimajor axis
-}
-
-double fromUserFormat(int format, char *a)
-{
-    double d;
-
-    switch (format) {
-    case DMS:
-      return fromDMS(a);
-
-    case DMM:
-      return fromDMM(a);
-
-    case DDD:
-      sscanf(a, "%lf", &d);
-      return d;
-
-    default:
-//    error("Illegal Conversion attempt!\nPlease report.\n", 0);
-      return (double) 0.0;
-    }
-}
-
-void toUserFormatLat(int format, double a, char *bufp, int bufplen)
-{
-    char *p = "N";
-
-    if (a < 0) {
-      p = "S";
-      a = -a;
-    }
-    /* Leave 1 for N/S, 1 for - */
-    toUserFormat(format, a, bufp, bufplen-2);
-    strcat(bufp, p);
-    return;
-}
-
-void toUserFormatLon(int format, double a, char *bufp, int bufplen)
-{
-    char *p = "E";
-
-    if (a < 0) {
-      p = "W";
-      a = -a;
-    }
-    /* Leave 1 for N/S, 1 for - */
-    toUserFormat(format, a, bufp, bufplen-2);
-    strcat(bufp, p);
-    return;
-}
-
-void toUserFormat(int format, double a, char *bufp, int bufplen)
-{
-    switch (format) {
-    case DMS:
-      toDMS(a, bufp, bufplen);
-      break;
-
-    case DMM:
-    default:
-      toDMM(a, bufp, bufplen);
-      break;
-
-    case DDD:
-      my_snprintf(bufp, (bufplen-1), "%.5lf", a);
-      break;
-    }
-    return;
 }
 
 /****************************************************************************/
@@ -137,10 +258,12 @@ void toDMS(double a, char *bufp, int bufplen)
 /****************************************************************************/
 /* Convert dd mm'ss.s" (DMS-Format) to degrees.                             */
 /****************************************************************************/
-static double fromDMS(char *dms)
+
+double fromDMS(char *dms)
 {
     int d = 0, m = 0;
     double s = 0.0;
+    char buf[20];
 
     buf[0] = '\0';
 
@@ -158,7 +281,8 @@ static double fromDMS(char *dms)
 /****************************************************************************/
 /* Convert degrees to dd mm.mmm' (DMM-Format)                               */
 /****************************************************************************/
-static void todmm(int flag, double a, char *bufp, int bufplen)
+
+void todmm(int flag, double a, char *bufp, int bufplen)
 {
     short neg = 0;
     int d;
@@ -205,26 +329,15 @@ void toDMM(double a, char *bufp, int bufplen)
     todmm(0, a, bufp, bufplen);
     return;
 }
-
-void toRawLatDMM(double a, char *bufp, int bufplen)
-{
-    todmm(1, a, bufp, bufplen);
-    return;
-}
-
-void toRawLonDMM(double a, char *bufp, int bufplen)
-{
-    todmm(2, a, bufp, bufplen);
-    return;
-}
-
 /****************************************************************************/
 /* Convert dd mm.mmm' (DMM-Format) to degree.                               */
 /****************************************************************************/
-static double fromDMM(char *dms)
+double fromDMM(char *dms)
 {
     int d = 0;
     double m = 0.0;
+    char buf[20];
+    char r[20];
 
     buf[0] = r[0] = '\0';
     sscanf(dms, "%d%[ ]%lf%[ 'NSWEnswe]", &d, buf, &m, buf);
@@ -237,176 +350,69 @@ static double fromDMM(char *dms)
       return -m;
 }
 
-/****************************************************************************/
-/* Convert                                                                  */
-/****************************************************************************/
-//#define CHUCK 1
-#ifdef CHUCK
 
-char UTMLetterDesignator(double lat)
-{
-    char nz;
 
-//FIXME: we need to handle the z case
-
-    nz = 'C' + ((int) (lat + 80.0)) / 8;
-    if (nz > 'H')
-      ++nz;             // skip 'I' and 'O'
-
-    if (nz > 'N')
-      ++nz;
-    return nz;
-}
-
-void DegToUTM(float Lat, float Long, char *UTMZone, float *UTMNorthing, float *UTMEasting)
-{
-    //Does not take into account thespecial UTM zones between 0 degrees and
-    //36 degrees longitude above 72 degrees latitude and a special zone 32
-    //between 56 degrees and 64 degrees north latitude
-    //Written by Chuck Gantz- chuck.gantz@globalstar.com
-
-    double a, eccSquared;
-    double k0 = 0.9996;
-
-    double LongOrigin;
-    double eccPrimeSquared;
-    double N, T, C, A, M;
-
-    double LatRad = Lat * DEGREE;
-    double LongRad = Long * DEGREE;
-    double LongOriginRad;
-
-//    datumParams(mapdata.mapdatum, &a, &eccSquared);
-    datumParams(100, &a, &eccSquared);
-
-    if (Long > -6 && Long <= 0)
-      LongOrigin = -3;  //arbitrarily set origin at 0 longitude to 3W
-
-    else if (Long < 6 && Long > 0)
-      LongOrigin = 3;
-    else
-      LongOrigin = (int) (Long / 6) * 6 + 3 * (int) (Long / 6) / abs((int) (Long / 6));
-    LongOriginRad = LongOrigin * DEGREE;
-
-    //compute the UTM Zone from the latitude and longitude
-    sprintf(UTMZone, "%d%c", (int) ((Long + 180) / 6) + 1, UTMLetterDesignator(Lat));
-
-    eccPrimeSquared = (eccSquared) / (1 - eccSquared);
-
-    N = a / sqrt(1 - eccSquared * sin(LatRad) * sin(LatRad));
-    T = tan(LatRad) * tan(LatRad);
-    C = eccPrimeSquared * cos(LatRad) * cos(LatRad);
-    A = cos(LatRad) * (LongRad - LongOriginRad);
-
-    M = a * ((1 - eccSquared / 4 - 3 * eccSquared * eccSquared / 64 - 5
-      * eccSquared * eccSquared * eccSquared / 256) * LatRad
-      - (3 * eccSquared / 8 + 3 * eccSquared * eccSquared / 32 + 45
-      * eccSquared * eccSquared * eccSquared / 1024) * sin(2 * LatRad)
-      + (15 * eccSquared * eccSquared / 256 + 45 * eccSquared * eccSquared
-      * eccSquared / 1024) * sin(4 * LatRad)
-      - (35 * eccSquared * eccSquared * eccSquared / 3072) * sin(6 * LatRad));
-
-    *UTMEasting = (double) (k0 * N * (A + (1 - T + C) * A * A * A / 6
-      + (5 - 18 * T + T * T + 72 * C - 58 * eccPrimeSquared)
-      * A * A * A * A * A / 120.0) + 500000.0);
-
-    *UTMNorthing = (double) (k0 * (M + N * tan(LatRad)
-      *(A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A * A * A * A / 24
-      + (61 - 58 * T + T * T + 600 * C - 330 * eccPrimeSquared)
-      * A * A * A * A * A * A / 720)));
-    if (Lat < 0)
-      *UTMNorthing += 10000000.0;   //10000000 meter offset for southern hemisphere
-
-}
-
-void aUTMtoDeg(char *UTMZone, short southernHemisphere, double UTMNorthing, double UTMEasting,
-      double *Lat, double *Long)
-{
-    //Lat and Long are in decimal degrees.
-    //Does not take into account the special UTM zones between 0 degrees
-    //and 36 degrees longitude above 72 degrees latitude and a special
-    //zone 32 between 56 degrees and 64 degrees north latitude
-    //Written by Chuck Gantz- chuck.gantz@globalstar.com
-
-    double k0 = 0.9996;
-    double a, eccSquared;
-    double eccPrimeSquared;
-    double e1;
-    double N1, T1, C1, R1, D, M;
-    double LongOrigin;
-    double mu, phi1, phi1Rad;
-    double x, y;
-    int ZoneNumber;
-    char *ZoneLetter;
-    int NorthernHemisphere;   //1 for northern hemispher, 0 for southern
-
-      double sLat, sLong;
-      double rad2deg;
-      rad2deg = 180. / PI;
-
-//    datumParams(mapdata.mapdatum, &a, &eccSquared);
-    datumParams(100, &a, &eccSquared);
-    e1 = (1 - sqrt(1 - eccSquared)) / (1 + sqrt(1 - eccSquared));
-    x = UTMEasting - 500000.0;      //remove 500,000 meter offset for longitude
-
-    y = UTMNorthing;
-
-    sscanf(UTMZone, "%d%c", &ZoneNumber, &ZoneLetter);
-    if ((toupper(*ZoneLetter) - 'N') > 0)
-      NorthernHemisphere = 1; //point is in northern hemisphere
-
-    else {
-      NorthernHemisphere = 0; //point is in southern hemisphere
-
-      y -= 10000000.0;  //remove 10,000,000 meter offset used for southern hemisphere
-
-    }
-
-    LongOrigin = (ZoneNumber - 1) * 6 - 180 + 3;      //+3 puts origin in middle of zone
-
-    eccPrimeSquared = (eccSquared) / (1 - eccSquared);
-
-    M = y / k0;
-    mu = M / (a * (1 - eccSquared / 4 - 3 * eccSquared * eccSquared / 64 - 5 * eccSquared * eccSquared * eccSquared / 256));
-
-    phi1Rad = mu + (3 * e1 / 2 - 27 * e1 * e1 * e1 / 32) * sin(2 * mu)
-      + (21 * e1 * e1 / 16 - 55 * e1 * e1 * e1 * e1 / 32) * sin(4 * mu)
-      + (151 * e1 * e1 * e1 / 96) * sin(6 * mu);
-    phi1 = phi1Rad * rad2deg;
-
-    N1 = a / sqrt(1 - eccSquared * sin(phi1Rad) * sin(phi1Rad));
-    T1 = tan(phi1Rad) * tan(phi1Rad);
-    C1 = eccPrimeSquared * cos(phi1Rad) * cos(phi1Rad);
-    R1 = a * (1 - eccSquared) / pow(1 - eccSquared * sin(phi1Rad) * sin(phi1Rad), 1.5);
-    D = x / (N1 * k0);
-
-    sLat = phi1Rad - (N1 * tan(phi1Rad) / R1) * (D * D / 2 - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * eccPrimeSquared) * D * D * D * D / 24
-                                    + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * eccPrimeSquared - 3 * C1 * C1) * D * D * D * D * D * D / 720);
-    sLat = sLat * rad2deg;
-      *Lat = sLat;
-
-    sLong = (D - (1 + 2 * T1 + C1) * D * D * D / 6 + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * eccPrimeSquared + 24 * T1 * T1)
-          * D * D * D * D * D / 120) / cos(phi1Rad);
-    sLong = LongOrigin + sLong * rad2deg;
-      *Long = sLong;
-
-}
-
-#else
-
-static const float lat0 = 0.0;      // reference transverse mercator latitude
-static const float k0 = 0.9996;
-
-//static void calcPhi(double *phi, double e, double t);
-
-static double M(double phi, double a, double es);
 
 /* --------------------------------------------------------------------------------- */
 
+/****************************************************************************/
+/* Convert Lat/Lon <-> Simple Mercater                                      */
+/****************************************************************************/
 void
-toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y)
+toSM(float lat, float lon, float lat0, float lon0, double *x, double *y)
 {
-//    extern struct PREFS gPrefs;
+    double z = 6378137.0 * PI / 2.;
+
+    //  x = lambda - lambda0
+
+    double x1 = (lon - lon0) * DEGREE * z;
+    
+     // y =.5 ln( (1 + sin t) / (1 - sin t) )
+    double s = sin(lat * DEGREE);
+    double y3 = (.5 * log((1 + s) / (1 - s))) * z;
+
+    double s0 = sin(lat0 * DEGREE);
+    double y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
+    double y4 = y3 - y30;
+
+    *x = x1;
+    *y = y4;
+}
+
+void
+fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon)
+{
+      double z = 6378137.0 * PI / 2.;
+
+      // lat = arcsin((e^2(y+y0) - 1)/(e^2(y+y0) + 1))
+      double s0 = sin(lat0 * DEGREE);
+      double y0 = (.5 * log((1 + s0) / (1 - s0))) * z;
+
+      double e = exp(2 * (y0 + y) / z);
+      double e11 = (e - 1)/(e + 1);
+      double lat2 =(atan2(e11, sqrt(1 - e11 * e11))) / DEGREE;
+      
+
+      // lon = x + lon0
+      double lon1 = lon0 + (x / (DEGREE * z));
+
+      *lat = lat2;
+      *lon = lon1;
+}
+
+
+/****************************************************************************/
+/* Convert Lat/Lon <-> Transverse Mercater                                                                  */
+/****************************************************************************/
+static const float k0 = 0.9996;
+
+
+static double M(double phi, double a, double es);
+
+
+void
+toTM(float lat, float lon, float lat0, float lon0, double *x, double *y)
+{
       double m, et2, n, t, c, A, a, m0, es, lambda, phi, lambda0, phi0;
       double f;
 
@@ -418,7 +424,7 @@ toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *
       a = 6378137.0;
 
       f = 1.0 / 298.257223563;                              // flattening
-    es = 2 * f - f * f;                                     // eccentricity^2
+      es = 2 * f - f * f;                                   // eccentricity^2
 
       lambda = lon * DEGREE;
       phi = lat * DEGREE;
@@ -441,22 +447,22 @@ toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *
                   + (61.0 - 58.0*t + t*t + 600.0*c - 330.0*et2)*pow(A, 6.0)/720.0) );
 
 
-
 }
 
 /* --------------------------------------------------------------------------------- */
 
+
 void
-fromTM(double x, double y, double lat0, double lon0, double k0, double *lat, double *lon)
+fromTM(double x, double y, double lat0, double lon0, double *lat, double *lon)
 {
-//    extern struct PREFS gFilePrefs;
+
       double a, m0, es, et2, m, e1, mu, phi1, c1, t1, n1, r1, d, phi0, lambda0;
 
       phi0 = lat0 * DEGREE;
       lambda0 = lon0 * DEGREE;
 
 //    datumParams(mapdata.mapdatum, &a, &es);
-    datumParams(100, &a, &es);
+      datumParams(100, &a, &es);
 
       m0 = M(phi0, a, es);
 
@@ -480,6 +486,7 @@ fromTM(double x, double y, double lat0, double lon0, double k0, double *lat, dou
       *lon = (lambda0 + (d - (1.0 + 2.0 * t1 + c1) * pow(d, 3.0)/6.0
                   + (5.0 -2.0 * c1 + 28.0 * t1 - 3.0 * c1*c1 + 8.0 * et2 + 24.0 * t1*t1)
                   * pow(d, 5.0)/120.0) / cos(phi1)) / DEGREE;
+
 }
 
 /* --------------------------------------------------------------------------------- */
@@ -498,638 +505,1540 @@ static double M(double phi, double a, double es)
 }
 
 
-/* --------------------------------------------------------------------------------- */
-/*
-static void toUPS(double lat, double lon, double *x, double *y)
-{
-//    extern struct PREFS gPrefs;
-      double a, t, e, es, rho;
-      const double k0 = 0.994;
-
-      double lambda = lon * DEGREE;
-      double phi = fabs(lat * DEGREE);
-
- //   datumParams(mapdata.mapdatum, &a, &es);
-    datumParams(100, &a, &es);
-      e = sqrt(es);
-      t = tan(PI/4.0 - phi/2.0) / pow( (1.0 - e * sin(phi)) / (1.0 + e * sin(phi)), (e/2.0) );
-      rho = 2.0 * a * k0 * t / sqrt(pow(1.0+e, 1.0+e) * pow(1.0-e, 1.0-e));
-      *x = rho * sin(lambda);
-      *y = rho * cos(lambda);
-
-      if (lat > 0.0)    // Northern hemisphere
-            *y = -(*y);
-      *x += 2.0e6;      // Add in false easting and northing
-      *y += 2.0e6;
-}
-*/
-
-/* --------------------------------------------------------------------------------- */
-
-/*
-static void fromUPS(short southernHemisphere, double x, double y, double *lat, double *lon)
-{
-//    extern struct PREFS gFilePrefs;
-      double a, es, e, t, rho;
-      const double k0 = 0.994;
-
-//    datumParams(mapdata.mapdatum, &a, &es);
-    datumParams(100, &a, &es);
-      e = sqrt(es);
-
-      x -= 2.0e6;       // Remove false easting and northing
-      y -= 2.0e6;
-
-      rho = sqrt(x*x + y*y);
-      t = rho * sqrt(pow(1.0+e, 1.0+e) * pow(1.0-e, 1.0-e)) / (2.0 * a * k0);
-
-      calcPhi(lat, e, t);
-      *lat /= DEGREE;
-
-      if (y != 0.0)
-            t = atan(fabs(x/y));
-      else {
-            t = PI / 2.0;
-            if (x < 0.0) t = -t;
-      }
-
-      if (!southernHemisphere)
-            y = -y;
-
-      if (y < 0.0)
-            t = PI - t;
-
-      if (x < 0.0)
-            t = -t;
-
-      *lon = t / DEGREE;
-}
-*/
 
 /* --------------------------------------------------------------------------------- */
 /*
-static void calcPhi(double *phi, double e, double t)
-{
-      double old = PI/2.0 - 2.0 * atan(t);
-      short maxIterations = 20;
-
-      while ( (fabs((*phi - old) / *phi) > 1.0e-8) && maxIterations-- ) {
-            old = *phi;
-            *phi = PI/ 2.0 - 2.0 * atan( t * pow((1.0 - e * sin(*phi)) / ((1.0 + e * sin(*phi))), (e / 2.0)) );
-      }
-}
-*/
-
-void DegToUTM(float lat, float lon, char *zone, float *x, float *y, float long0)
-{
-//    char nz;
-//    float lon0;
-
-    double dx, dy;
-    toTM(lat, lon, lat0, long0, k0, &dx, &dy);
-      *x = dx + 5.0e6;                        // false easting
-      *y = dy;
-//    *y += 1.0e7;
-//    if (lat < 0.0)                      // false northing for southern hemisphere
-//                *y = 10000000.0 - *y;
-
-// DSR No Zone needed, never southern hemisphere or polar regions  brrrrrr....
-
-/*
-      if ((lat >= -80.0) && (lat <= 84.0)) {
-            nz = 'C'+((short)(lat + 80.0)) / 8;
-            if (nz > 'H') ++nz;                             // skip 'I' and 'O'
-            if (nz > 'N') ++nz;
-            lon0 = 6.0 * floor(lon / 6.0) + 3.0;
-            if(zone)
-                  sprintf(zone, "%02d %c", ((short)lon0 +183) / 6, nz);
-
-            lon0 = long0;
-
-            toTM(lat, lon, lat0, lon0, k0, x, y);
-            *x += 5.0e5;                        // false easting
-            if (lat < 0.0)                      // false northing for southern hemisphere
-                  *y = 10000000.0 - *y;
-      }
-      else {
-            if(zone)
-            {
-                  strcpy(zone, "00\tx");
-                  if (lat > 0.0)
-                        if (lon < 0.0) zone[3] = 'Y';
-                                      else zone[3] = 'Z';
-                  else
-                        if (lon < 0.0) zone[3] = 'A';
-                                      else zone[3] = 'B';
-            }
-
-            toUPS(lat, lon, x, y);
-      }
-*/
-
-}
-
-/* --------------------------------------------------------------------------------- */
-
-void UTMtoDeg(double long0, short southernHemisphere, double x, double y, double *lat, double *lon)
-{
-//    double lon0;
-
-      x -= 5.0e6;                   //   remove false easting
-//    if(y > 10000000)
-//                y = 1.0e7 - y;                // remove false northing for southern hemisphere
-//    y -= 1.0e7;
-      fromTM(x, y, lat0, long0, k0, lat, lon);
-
-      return;
-
-/*
-      if (zone != 0) {
-            lon0 = (double)((-183 + 6 * zone));
-            if (southernHemisphere)
-                  y = 1.0e7 - y;                // remove false northing for southern hemisphere
-            x -= 5.0e5;                   //   and false easting
-            fromTM(x, y, lat0, lon0, k0, lat, lon);
-      }
-      else
-            fromUPS(southernHemisphere, x, y, lat, lon);
-*/
-}
-
-#if 0
-void aUTMtoDeg(char *zone, char *x, char *y, double *lat, double *lon)
-{
-    double dx, dy;
-    int izone;
-
-    sscanf(zone, "%d", &izone);
-    sscanf(x, "%lf", &dx);
-    sscanf(y, "%lf", &dy);
-
-    /*FIXME: handle southern hemisphere*/
-    UTMtoDeg(izone, 0, dx, dy, lat, lon);
-}
-#endif
-
-#endif
-
-
-#include <stdarg.h>
-#include <stdlib.h>
-
-int my_snprintf (char *str, size_t sz, const char *format, ...)
-{
-      va_list args;
-      int ret;
-      char * tmp;
-
-      va_start(args, format);
-
-      tmp = malloc (sz);
-    if (tmp == NULL)
-      return 0;
-
-    ret = sprintf (tmp, format, args);
-
-    strcpy(str, tmp);
-
-      free (tmp);
-
-
-
-      va_end(args);
-      return ret;
-}
-
-
-/*
- *    Copyright  1996, 1997, 1998, 1999, 2000 by Remco Treffkorn
- *    Distributed under the terms of the Q Public License. Please see
- *    the included file LICENSE.
+ * lmfit
+ *
+ * Solves or minimizes the sum of squares of m nonlinear
+ * functions of n variables.
+ *
+ * From public domain Fortran version
+ * of Argonne National Laboratories MINPACK
+ *     argonne national laboratory. minpack project. march 1980.
+ *     burton s. garbow, kenneth e. hillstrom, jorge j. more
+ * C translation by Steve Moshier
+ * Joachim Wuttke converted the source into C++ compatible ANSI style
+ * and provided a simplified interface
  */
 
 
+#include <stdlib.h>
+#include <math.h>
+//#include "lmmin.h"            // all moved to georef.h
+#define _LMDIF
 
-#define MAXORDER 3
+///=================================================================================
+///     Customized section for openCPN georeferencing
 
-typedef double DOUBLE;
+double my_fit_function( double tx, double ty, int n_par, double* p )
+{
 
-/* structure for use internally with these functions.  these functions expect
-   square matrices so only one variable is given (n) for the matrix size */
+    double ret = p[0] + p[1]*tx + p[2]*ty;
+    if(n_par > 3)
+    {
+        ret += p[3]*tx*tx;
+        ret += p[4]*tx*ty;
+        ret += p[5]*ty*ty;
+    }
+    if(n_par > 6)
+    {
+        ret += p[6]*tx*tx*tx;
+        ret += p[7]*tx*tx*ty;
+        ret += p[8]*tx*ty*ty;
+        ret += p[9]*ty*ty*ty;
+    }
 
-struct MATRIX {
-    int n;              /* size of this matrix (n x n) */
-    DOUBLE *v;
+    return ret;
+}
+
+int Georef_Calculate_Coefficients_Onedir(int n_points, int n_par, double *tx, double *ty, double *y, double *p,
+                                        double hintp0, double hintp1, double hintp2)
+        /*
+        n_points : number of sample points
+        n_par :  3, 6, or 10,  6 is probably good
+        tx:  sample data independent variable 1
+        ty:  sample data independent variable 2
+        y:   sample data dependent result
+        p:   curve fit result coefficients
+        */
+{
+
+    int i;
+    lm_control_type control;
+    lm_data_type data;
+
+    lm_initialize_control( &control );
+
+
+    for(i=0 ; i<12 ; i++)
+        p[i] = 0.;
+
+//    memset(p, 0, 12 * sizeof(double));
+
+    //  Insert hints
+    p[0] = hintp0;
+    p[1] = hintp1;
+    p[2] = hintp2;
+
+    data.user_func = my_fit_function;
+    data.user_tx = tx;
+    data.user_ty = ty;
+    data.user_y = y;
+    data.n_par = n_par;
+    data.print_flag = 0;
+
+// perform the fit:
+
+            lm_minimize( n_points, n_par, p, lm_evaluate_default, lm_print_default,
+                         &data, &control );
+
+// print results:
+//            printf( "status: %s after %d evaluations\n",
+//                    lm_infmsg[control.info], control.nfev );
+
+            //      Control.info results [1,2,3] are success, other failure
+            return control.info;
+}
+
+int Georef_Calculate_Coefficients(struct GeoRef *cp)
+{
+    int  r1, r2, r3, r4;
+    int mp = 3;
+
+    switch (cp->order)
+    {
+    case 1:
+        mp = 3;
+        break;
+    case 2:
+        mp = 6;
+        break;
+    case 3:
+        mp = 10;
+        break;
+    }
+
+
+    //      pixel(tx,ty) to (lat,lon)
+    //      Calculate and use a linear equation for p[0..2] to hint the solver
+
+    r1 = Georef_Calculate_Coefficients_Onedir(cp->count, mp, cp->tx, cp->ty, cp->lon, cp->pwx,
+                                         cp->lonmin - (cp->txmin * (cp->lonmax - cp->lonmin) /(cp->txmax - cp->txmin)),
+                                         (cp->lonmax - cp->lonmin) /(cp->txmax - cp->txmin),
+                                         0.);
+    r2 = Georef_Calculate_Coefficients_Onedir(cp->count, mp, cp->tx, cp->ty, cp->lat, cp->pwy,
+                                         cp->latmin - (cp->tymin * (cp->latmax - cp->latmin) /(cp->tymax - cp->tymin)),
+                                         0.,
+                                         (cp->latmax - cp->latmin) /(cp->tymax - cp->tymin));
+
+    //      (lat,lon) to pixel(tx,ty)
+    //      Calculate and use a linear equation for p[0..2] to hint the solver
+
+    r3 = Georef_Calculate_Coefficients_Onedir(cp->count, mp, cp->lon, cp->lat, cp->tx, cp->wpx,
+                                         cp->txmin - ((cp->txmax - cp->txmin) * cp->lonmin / (cp->lonmax - cp->lonmin)),
+                                         (cp->txmax - cp->txmin) / (cp->lonmax - cp->lonmin),
+                                         0.0);
+
+    r4 = Georef_Calculate_Coefficients_Onedir(cp->count, mp, cp->lon, cp->lat, cp->ty, cp->wpy,
+                                         cp->tymin - ((cp->tymax - cp->tymin) * cp->latmin / (cp->latmax - cp->latmin)),
+                                        0.0,
+                                        (cp->tymax - cp->tymin) / (cp->latmax - cp->latmin));
+
+    if((r1) && (r1 < 4) && (r2) && (r2 < 4) && (r3) && (r3 < 4) && (r4) && (r4 < 4))
+        return 0;
+    else
+        return 1;
+
+}
+
+
+
+/*
+ * This file contains default implementation of the evaluate and printout
+ * routines. In most cases, customization of lmfit can be done by modifying
+ * these two routines. Either modify them here, or copy and rename them.
+ */
+
+void lm_evaluate_default( double* par, int m_dat, double* fvec,
+                          void *data, int *info )
+/*
+        *    par is an input array. At the end of the minimization, it contains
+        *        the approximate solution vector.
+        *
+        *    m_dat is a positive integer input variable set to the number
+        *      of functions.
+        *
+        *    fvec is an output array of length m_dat which contains the function
+        *        values the square sum of which ought to be minimized.
+        *
+        *    data is a read-only pointer to lm_data_type, as specified by lmuse.h.
+        *
+        *      info is an integer output variable. If set to a negative value, the
+        *        minimization procedure will stop.
+ */
+{
+    int i;
+    lm_data_type *mydata;
+    mydata = (lm_data_type*)data;
+
+    for (i=0; i<m_dat; i++)
+    {
+        fvec[i] = mydata->user_y[i] - mydata->user_func( mydata->user_tx[i], mydata->user_ty[i], mydata->n_par, par);
+    }
+    *info = *info; /* to prevent a 'unused variable' warning */
+    /* if <parameters drifted away> { *info = -1; } */
+}
+
+void lm_print_default( int n_par, double* par, int m_dat, double* fvec,
+                       void *data, int iflag, int iter, int nfev )
+/*
+        *       data  : for soft control of printout behaviour, add control
+        *                 variables to the data struct
+        *       iflag : 0 (init) 1 (outer loop) 2(inner loop) -1(terminated)
+        *       iter  : outer loop counter
+        *       nfev  : number of calls to *evaluate
+ */
+{
+    double f, y, tx, ty;
+    int i;
+    lm_data_type *mydata;
+    mydata = (lm_data_type*)data;
+
+    if(mydata->print_flag)
+    {
+        if (iflag==2) {
+            printf ("trying step in gradient direction\n");
+        } else if (iflag==1) {
+            printf ("determining gradient (iteration %d)\n", iter);
+        } else if (iflag==0) {
+            printf ("starting minimization\n");
+        } else if (iflag==-1) {
+            printf ("terminated after %d evaluations\n", nfev);
+        }
+
+        printf( "  par: " );
+        for( i=0; i<n_par; ++i )
+            printf( " %12g", par[i] );
+        printf ( " => norm: %12g\n", lm_enorm( m_dat, fvec ) );
+
+        if ( iflag == -1 ) {
+            printf( "  fitting data as follows:\n" );
+            for( i=0; i<m_dat; ++i ) {
+                tx = (mydata->user_tx)[i];
+                ty = (mydata->user_ty)[i];
+                y = (mydata->user_y)[i];
+                f = mydata->user_func( tx, ty, mydata->n_par, par );
+                printf( "    tx[%2d]=%8g     ty[%2d]=%8g     y=%12g fit=%12g     residue=%12g\n",
+                        i, tx, i, ty, y, f, y-f );
+            }
+        }
+    }       // if print_flag
+}
+
+
+
+
+
+///=================================================================================
+
+/* *********************** high-level interface **************************** */
+
+
+void lm_initialize_control( lm_control_type *control )
+{
+    control->maxcall = 100;
+    control->epsilon = 1.e-10; //1.e-14;
+    control->stepbound = 100; //100.;
+    control->ftol = 1.e-14;
+    control->xtol = 1.e-14;
+    control->gtol = 1.e-14;
+}
+
+void lm_minimize( int m_dat, int n_par, double* par,
+                  lm_evaluate_ftype *evaluate, lm_print_ftype *printout,
+                  void *data, lm_control_type *control )
+{
+
+// *** allocate work space.
+
+    double *fvec, *diag, *fjac, *qtf, *wa1, *wa2, *wa3, *wa4;
+    int *ipvt;
+
+    int n = n_par;
+    int m = m_dat;
+
+    if (!(fvec = (double*) malloc(  m*sizeof(double))) ||
+          !(diag = (double*) malloc(n*  sizeof(double))) ||
+          !(qtf =  (double*) malloc(n*  sizeof(double))) ||
+          !(fjac = (double*) malloc(n*m*sizeof(double))) ||
+          !(wa1 =  (double*) malloc(n*  sizeof(double))) ||
+          !(wa2 =  (double*) malloc(n*  sizeof(double))) ||
+          !(wa3 =  (double*) malloc(n*  sizeof(double))) ||
+          !(wa4 =  (double*) malloc(  m*sizeof(double))) ||
+          !(ipvt = (int*)    malloc(n*  sizeof(int)))) {
+        control->info = 9;
+        return;
+          }
+
+// *** perform fit.
+
+          control->info = 0;
+          control->nfev = 0;
+
+    // this goes through the modified legacy interface:
+          lm_lmdif( m, n, par, fvec, control->ftol, control->xtol, control->gtol,
+                    control->maxcall*(n+1), control->epsilon, diag, 1,
+                    control->stepbound, &(control->info),
+                    &(control->nfev), fjac, ipvt, qtf, wa1, wa2, wa3, wa4,
+                    evaluate, printout, data );
+
+          (*printout)( n, par, m, fvec, data, -1, 0, control->nfev );
+          control->fnorm = lm_enorm(m, fvec);
+          if (control->info < 0 ) control->info = 10;
+
+// *** clean up.
+
+          free(fvec);
+          free(diag);
+          free(qtf);
+          free(fjac);
+          free(wa1);
+          free(wa2);
+          free(wa3 );
+          free(wa4);
+          free(ipvt);
+}
+
+
+// ***** the following messages are referenced by the variable info.
+
+char *lm_infmsg[] = {
+    "improper input parameters",
+    "the relative error in the sum of squares is at most tol",
+    "the relative error between x and the solution is at most tol",
+    "both errors are at most tol",
+    "fvec is orthogonal to the columns of the jacobian to machine precision",
+    "number of calls to fcn has reached or exceeded 200*(n+1)",
+    "ftol is too small. no further reduction in the sum of squares is possible",
+    "xtol too small. no further improvement in approximate solution x possible",
+    "gtol too small. no further improvement in approximate solution x possible",
+    "not enough memory",
+    "break requested within function evaluation"
 };
 
-/* calculate offset into array based on r/c */
-
-#define M(row,col) m->v[(((row)-1)*(m->n))+(col)-1]
-
-/***************************************************************************/
-/*
- */
-/***************************************************************************/
-
-#define MSUCCESS     1        /* success */
-#define MNPTERR      0        /* not enough points */
-#define MUNSOLVABLE -1        /* not solvable */
-#define MMEMERR     -2        /* not enough memory */
-#define MPARMERR    -3        /* parameter error */
-#define MINTERR     -4        /* internal error */
-
-static int calccoef();
-static int calcls();
-static int exactdet();
-static int solvemat();
-static DOUBLE term();
+char *lm_shortmsg[] = {
+    "invalid input",
+    "success (f)",
+    "success (p)",
+    "success (f,p)",
+    "degenerate",
+    "call limit",
+    "failed (f)",
+    "failed (p)",
+    "failed (o)",
+    "no memory",
+    "user break"
+};
 
 
+/* ************************** implementation ******************************* */
 
-/*
-   transform a single coordinate pair.
- */
 
-int georef(double e1, double n1, double *e, double *n, double E[], double N[], int order)
+#define BUG 0
+#if BUG
+#include <stdio.h>
+#endif
+
+// the following values seem good for an x86:
+//#define LM_MACHEP .555e-16 /* resolution of arithmetic */
+//#define LM_DWARF  9.9e-324 /* smallest nonzero number */
+// the follwoing values should work on any machine:
+ #define LM_MACHEP 1.2e-16
+ #define LM_DWARF 1.0e-38
+
+// the squares of the following constants shall not under/overflow:
+// these values seem good for an x86:
+//#define LM_SQRT_DWARF 1.e-160
+//#define LM_SQRT_GIANT 1.e150
+// the following values should work on any machine:
+ #define LM_SQRT_DWARF 3.834e-20
+ #define LM_SQRT_GIANT 1.304e19
+
+
+void lm_qrfac( int m, int n, double* a, int pivot, int* ipvt,
+               double* rdiag, double* acnorm, double* wa);
+void lm_qrsolv(int n, double* r, int ldr, int* ipvt, double* diag,
+               double* qtb, double* x, double* sdiag, double* wa);
+void lm_lmpar( int n, double* r, int ldr, int* ipvt, double* diag, double* qtb,
+               double delta, double* par, double* x, double* sdiag,
+               double* wa1, double* wa2);
+
+#define MIN(a,b) (((a)<=(b)) ? (a) : (b))
+#define MAX(a,b) (((a)>=(b)) ? (a) : (b))
+#define SQR(x)   (x)*(x)
+
+
+// ***** the low-level legacy interface for full control.
+
+void lm_lmdif( int m, int n, double* x, double* fvec, double ftol, double xtol,
+               double gtol, int maxfev, double epsfcn, double* diag, int mode,
+               double factor, int *info, int *nfev,
+               double* fjac, int* ipvt, double* qtf,
+               double* wa1, double* wa2, double* wa3, double* wa4,
+               lm_evaluate_ftype *evaluate, lm_print_ftype *printout,
+               void *data )
 {
-    DOUBLE e3, e2n, en2, n3, e2, en, n2;
+/*
+    *   the purpose of lmdif is to minimize the sum of the squares of
+    *   m nonlinear functions in n variables by a modification of
+    *   the levenberg-marquardt algorithm. the user must provide a
+    *   subroutine evaluate which calculates the functions. the jacobian
+    *   is then calculated by a forward-difference approximation.
+    *
+    *   the multi-parameter interface lm_lmdif is for users who want
+    *   full control and flexibility. most users will be better off using
+    *   the simpler interface lmfit provided above.
+    *
+    *   the parameters are the same as in the legacy FORTRAN implementation,
+ *   with the following exceptions:
+    *      the old parameter ldfjac which gave leading dimension of fjac has
+    *        been deleted because this C translation makes no use of two-
+    *        dimensional arrays;
+    *      the old parameter nprint has been deleted; printout is now controlled
+    *        by the user-supplied routine *printout;
+    *      the parameter field *data and the function parameters *evaluate and
+    *        *printout have been added; they help avoiding global variables.
+    *
+ *   parameters:
+    *
+    *    m is a positive integer input variable set to the number
+    *      of functions.
+    *
+    *    n is a positive integer input variable set to the number
+    *      of variables. n must not exceed m.
+    *
+    *    x is an array of length n. on input x must contain
+    *      an initial estimate of the solution vector. on output x
+    *      contains the final estimate of the solution vector.
+    *
+    *    fvec is an output array of length m which contains
+    *      the functions evaluated at the output x.
+    *
+    *    ftol is a nonnegative input variable. termination
+    *      occurs when both the actual and predicted relative
+    *      reductions in the sum of squares are at most ftol.
+    *      therefore, ftol measures the relative error desired
+    *      in the sum of squares.
+    *
+    *    xtol is a nonnegative input variable. termination
+    *      occurs when the relative error between two consecutive
+    *      iterates is at most xtol. therefore, xtol measures the
+    *      relative error desired in the approximate solution.
+    *
+    *    gtol is a nonnegative input variable. termination
+    *      occurs when the cosine of the angle between fvec and
+    *      any column of the jacobian is at most gtol in absolute
+    *      value. therefore, gtol measures the orthogonality
+    *      desired between the function vector and the columns
+    *      of the jacobian.
+    *
+    *    maxfev is a positive integer input variable. termination
+    *      occurs when the number of calls to lm_fcn is at least
+    *      maxfev by the end of an iteration.
+    *
+    *    epsfcn is an input variable used in determining a suitable
+    *      step length for the forward-difference approximation. this
+    *      approximation assumes that the relative errors in the
+    *      functions are of the order of epsfcn. if epsfcn is less
+    *      than the machine precision, it is assumed that the relative
+    *      errors in the functions are of the order of the machine
+    *      precision.
+    *
+    *    diag is an array of length n. if mode = 1 (see below), diag is
+    *        internally set. if mode = 2, diag must contain positive entries
+    *        that serve as multiplicative scale factors for the variables.
+    *
+    *    mode is an integer input variable. if mode = 1, the
+    *      variables will be scaled internally. if mode = 2,
+    *      the scaling is specified by the input diag. other
+    *      values of mode are equivalent to mode = 1.
+    *
+    *    factor is a positive input variable used in determining the
+    *      initial step bound. this bound is set to the product of
+    *      factor and the euclidean norm of diag*x if nonzero, or else
+    *      to factor itself. in most cases factor should lie in the
+    *      interval (.1,100.). 100. is a generally recommended value.
+    *
+    *    info is an integer output variable that indicates the termination
+ *        status of lm_lmdif as follows:
+    *
+    *        info < 0  termination requested by user-supplied routine *evaluate;
+    *
+    *      info = 0  improper input parameters;
+    *
+    *      info = 1  both actual and predicted relative reductions
+    *              in the sum of squares are at most ftol;
+    *
+    *      info = 2  relative error between two consecutive iterates
+    *              is at most xtol;
+    *
+    *      info = 3  conditions for info = 1 and info = 2 both hold;
+    *
+    *      info = 4  the cosine of the angle between fvec and any
+    *              column of the jacobian is at most gtol in
+    *              absolute value;
+    *
+    *      info = 5  number of calls to lm_fcn has reached or
+    *              exceeded maxfev;
+    *
+    *      info = 6  ftol is too small. no further reduction in
+    *              the sum of squares is possible;
+    *
+    *      info = 7  xtol is too small. no further improvement in
+    *              the approximate solution x is possible;
+    *
+    *      info = 8  gtol is too small. fvec is orthogonal to the
+    *              columns of the jacobian to machine precision;
+    *
+    *    nfev is an output variable set to the number of calls to the
+    *        user-supplied routine *evaluate.
+    *
+    *    fjac is an output m by n array. the upper n by n submatrix
+    *      of fjac contains an upper triangular matrix r with
+    *      diagonal elements of nonincreasing magnitude such that
+    *
+    *           t     t       t
+    *          p *(jac *jac)*p = r *r,
+    *
+    *      where p is a permutation matrix and jac is the final
+    *      calculated jacobian. column j of p is column ipvt(j)
+    *      (see below) of the identity matrix. the lower trapezoidal
+    *      part of fjac contains information generated during
+    *      the computation of r.
+    *
+    *    ipvt is an integer output array of length n. ipvt
+    *      defines a permutation matrix p such that jac*p = q*r,
+    *      where jac is the final calculated jacobian, q is
+    *      orthogonal (not stored), and r is upper triangular
+    *      with diagonal elements of nonincreasing magnitude.
+    *      column j of p is column ipvt(j) of the identity matrix.
+    *
+    *    qtf is an output array of length n which contains
+    *      the first n elements of the vector (q transpose)*fvec.
+    *
+    *    wa1, wa2, and wa3 are work arrays of length n.
+    *
+    *    wa4 is a work array of length m.
+    *
+ *   the following parameters are newly introduced in this C translation:
+    *
+    *      evaluate is the name of the subroutine which calculates the functions.
+    *        a default implementation lm_evaluate_default is provided in lm_eval.c;
+    *        alternatively, evaluate can be provided by a user calling program.
+ *        it should be written as follows:
+    *
+    *        void evaluate ( double* par, int m_dat, double* fvec,
+    *                       void *data, int *info )
+    *        {
+    *           // for ( i=0; i<m_dat; ++i )
+    *           //     calculate fvec[i] for given parameters par;
+    *           // to stop the minimization,
+    *           //     set *info to a negative integer.
+    *        }
+    *
+    *      printout is the name of the subroutine which nforms about fit progress.
+    *        a default implementation lm_print_default is provided in lm_eval.c;
+    *        alternatively, printout can be provided by a user calling program.
+ *        it should be written as follows:
+    *
+    *        void printout ( int n_par, double* par, int m_dat, double* fvec,
+    *                       void *data, int iflag, int iter, int nfev )
+    *        {
+    *           // iflag : 0 (init) 1 (outer loop) 2(inner loop) -1(terminated)
+    *           // iter  : outer loop counter
+    *           // nfev  : number of calls to *evaluate
+    *        }
+    *
+    *      data is an input pointer to an arbitrary structure that is passed to
+    *        evaluate. typically, it contains experimental data to be fitted.
+    *
+ */
+    int i, iter, j;
+    double actred, delta, dirder, eps, fnorm, fnorm1, gnorm, par, pnorm,
+    prered, ratio, step, sum, temp, temp1, temp2, temp3, xnorm;
+    static double p1 = 0.1;
+    static double p5 = 0.5;
+    static double p25 = 0.25;
+    static double p75 = 0.75;
+    static double p0001 = 1.0e-4;
 
-    switch (order) {
-    case 1:
+    *nfev = 0; // function evaluation counter
+    iter = 1;  // outer loop counter
+    par = 0;   // levenberg-marquardt parameter
+    delta = 0; // just to prevent a warning (initialization within if-clause)
+    xnorm = 0; // dito
 
-      *e = E[0] + E[1] * e1 + E[2] * n1;
-      *n = N[0] + N[1] * e1 + N[2] * n1;
-      break;
+    temp = MAX(epsfcn,LM_MACHEP);
+    eps = sqrt(temp); // used in calculating the Jacobian by forward differences
 
-    case 2:
+// *** check the input parameters for errors.
 
-      e2 = e1 * e1;
-      n2 = n1 * n1;
-      en = e1 * n1;
+    if ( (n <= 0) || (m < n) || (ftol < 0.)
+          || (xtol < 0.) || (gtol < 0.) || (maxfev <= 0) || (factor <= 0.) )
+    {
+        *info = 0; // invalid parameter
+        return;
+    }
+    if ( mode == 2 )  /* scaling by diag[] */
+    {
+        for ( j=0; j<n; j++ )  /* check for nonpositive elements */
+        {
+            if ( diag[j] <= 0.0 )
+            {
+                *info = 0; // invalid parameter
+                return;
+            }
+        }
+    }
+#if BUG
+    printf( "lmdif\n" );
+#endif
 
-      *e = E[0] + E[1] * e1 + E[2] * n1 +
-          E[3] * e2 + E[4] * en + E[5] * n2;
-      *n = N[0] + N[1] * e1 + N[2] * n1 +
-          N[3] * e2 + N[4] * en + N[5] * n2;
-      break;
+// *** evaluate the function at the starting point and calculate its norm.
 
-    case 3:
+    *info = 0;
+    (*evaluate)( x, m, fvec, data, info );
+    (*printout)( n, x, m, fvec, data, 0, 0, ++(*nfev) );
+    if ( *info < 0 ) return;
+    fnorm = lm_enorm(m,fvec);
 
-      e2 = e1 * e1;
-      en = e1 * n1;
-      n2 = n1 * n1;
-      e3 = e1 * e2;
-      e2n = e2 * n1;
-      en2 = e1 * n2;
-      n3 = n1 * n2;
+// *** the outer loop.
 
-      *e = E[0] +
-          E[1] * e1 + E[2] * n1 +
-          E[3] * e2 + E[4] * en + E[5] * n2 +
-          E[6] * e3 + E[7] * e2n + E[8] * en2 + E[9] * n3;
-      *n = N[0] +
-          N[1] * e1 + N[2] * n1 +
-          N[3] * e2 + N[4] * en + N[5] * n2 +
-          N[6] * e3 + N[7] * e2n + N[8] * en2 + N[9] * n3;
-      break;
+    do {
+#if BUG
+        printf( "lmdif/ outer loop iter=%d nfev=%d fnorm=%.10e\n",
+                iter, *nfev, fnorm );
+#endif
 
-    default:
+// O** calculate the jacobian matrix.
 
-      return (MPARMERR);
-      break;
+        for ( j=0; j<n; j++ )
+{
+    temp = x[j];
+    step = eps * fabs(temp);
+    if (step == 0.) step = eps;
+    x[j] = temp + step;
+    *info = 0;
+    (*evaluate)( x, m, wa4, data, info );
+    (*printout)( n, x, m, wa4, data, 1, iter, ++(*nfev) );
+    if ( *info < 0 ) return;  // user requested break
+    x[j] = temp;
+    for ( i=0; i<m; i++ )
+        fjac[j*m+i] = (wa4[i] - fvec[i]) / step;
+}
+#if BUG>1
+        // DEBUG: print the entire matrix
+        for ( i=0; i<m; i++ )
+{
+    for ( j=0; j<n; j++ )
+        printf( "%.5e ", y[j*m+i] );
+    printf( "\n" );
+}
+#endif
+
+// O** compute the qr factorization of the jacobian.
+
+        lm_qrfac( m, n, fjac, 1, ipvt, wa1, wa2, wa3);
+
+// O** on the first iteration ...
+
+        if (iter == 1)
+{
+    if (mode != 2)
+//      ... scale according to the norms of the columns of the initial jacobian.
+    {
+        for ( j=0; j<n; j++ )
+        {
+            diag[j] = wa2[j];
+            if ( wa2[j] == 0. )
+                diag[j] = 1.;
+        }
     }
 
-    return (MSUCCESS);
+//      ... calculate the norm of the scaled x and
+//          initialize the step bound delta.
+
+    for ( j=0; j<n; j++ )
+        wa3[j] = diag[j] * x[j];
+
+    xnorm = lm_enorm( n, wa3 );
+    delta = factor*xnorm;
+    if (delta == 0.)
+        delta = factor;
 }
 
-/***************************************************************************/
-/*
-   compute the georefferencing coefficients based on a set of control points
- */
-/***************************************************************************/
+// O** form (q transpose)*fvec and store the first n components in qtf.
 
-int compute_georef_equations(struct GeoRef *cp, double E12[], double N12[],
-                              double E21[], double N21[])
+        for ( i=0; i<m; i++ )
+            wa4[i] = fvec[i];
+
+        for ( j=0; j<n; j++ )
 {
-    double *tempptr;
-    int status;
-
-    if (cp->order < 1 || cp->order > MAXORDER)
-      return (MPARMERR);
-
-    /* calculate the forward transformation coefficients */
-
-    status = calccoef(cp, E12, N12, cp->order);
-    if (status != MSUCCESS)
-      return (status);
-
-    /* switch the 1 and 2 easting and northing arrays */
-
-    tempptr = cp->e1;
-    cp->e1 = cp->e2;
-    cp->e2 = tempptr;
-    tempptr = cp->n1;
-    cp->n1 = cp->n2;
-    cp->n2 = tempptr;
-
-    /* calculate the backward transformation coefficients */
-
-    status = calccoef(cp, E21, N21, cp->order);
-
-    /* switch the 1 and 2 easting and northing arrays back */
-
-    tempptr = cp->e1;
-    cp->e1 = cp->e2;
-    cp->e2 = tempptr;
-    tempptr = cp->n1;
-    cp->n1 = cp->n2;
-    cp->n2 = tempptr;
-
-    return (status);
+    temp3 = fjac[j*m+j];
+    if (temp3 != 0.)
+    {
+        sum = 0;
+        for ( i=j; i<m; i++ )
+            sum += fjac[j*m+i] * wa4[i];
+        temp = -sum / temp3;
+        for ( i=j; i<m; i++ )
+            wa4[i] += fjac[j*m+i] * temp;
+    }
+    fjac[j*m+j] = wa1[j];
+    qtf[j] = wa4[j];
 }
 
-/***************************************************************************/
-/*
-   compute the georefferencing coefficients based on a set of control points
- */
-/***************************************************************************/
+// O** compute the norm of the scaled gradient and test for convergence.
 
-static int calccoef(cp, E, N, order)
-struct GeoRef *cp;
-double E[];
-double N[];
-int order;
+        gnorm = 0;
+        if ( fnorm != 0 )
 {
-    struct MATRIX m;
-    DOUBLE *a;
-    DOUBLE *b;
-    int numactive;            /* number of active control points */
-    int status;
+    for ( j=0; j<n; j++ )
+    {
+        if ( wa2[ ipvt[j] ] == 0 ) continue;
 
-    /* calculate the number of valid control points */
-
-    numactive = cp->count;
-
-    /* calculate the minimum number of control points needed to determine
-       a transformation of this order */
-
-    m.n = ((order + 1) * (order + 2)) / 2;
-
-    if (numactive < m.n)
-      return (MNPTERR);
-
-    /* INITIALIZE MATRIX */
-
-    m.v = (DOUBLE *) calloc(m.n * m.n, sizeof(DOUBLE));
-    if (m.v == NULL) {
-      return (MMEMERR);
+        sum = 0.;
+        for ( i=0; i<=j; i++ )
+            sum += fjac[j*m+i] * qtf[i] / fnorm;
+        gnorm = MAX( gnorm, fabs(sum/wa2[ ipvt[j] ]) );
     }
-    a = (DOUBLE *) calloc(m.n, sizeof(DOUBLE));
-    if (a == NULL) {
-      free((char *) m.v);
-      return (MMEMERR);
-    }
-    b = (DOUBLE *) calloc(m.n, sizeof(DOUBLE));
-    if (b == NULL) {
-      free((char *) m.v);
-      free((char *) a);
-      return (MMEMERR);
-    }
-    if (numactive == m.n)
-      status = exactdet(cp, &m, a, b, E, N);
+}
+
+        if ( gnorm <= gtol )
+{
+    *info = 4;
+    return;
+}
+
+// O** rescale if necessary.
+
+        if ( mode != 2 )
+{
+    for ( j=0; j<n; j++ )
+        diag[j] = MAX(diag[j],wa2[j]);
+}
+
+// O** the inner loop.
+
+        do {
+#if BUG
+            printf( "lmdif/ inner loop iter=%d nfev=%d\n", iter, *nfev );
+#endif
+
+// OI* determine the levenberg-marquardt parameter.
+
+            lm_lmpar( n,fjac,m,ipvt,diag,qtf,delta,&par,wa1,wa2,wa3,wa4 );
+
+// OI* store the direction p and x + p. calculate the norm of p.
+
+            for ( j=0; j<n; j++ )
+            {
+                wa1[j] = -wa1[j];
+                wa2[j] = x[j] + wa1[j];
+                wa3[j] = diag[j]*wa1[j];
+            }
+            pnorm = lm_enorm(n,wa3);
+
+// OI* on the first iteration, adjust the initial step bound.
+
+            if ( *nfev<= 1+n ) // bug corrected by J. Wuttke in 2004
+                delta = MIN(delta,pnorm);
+
+// OI* evaluate the function at x + p and calculate its norm.
+
+            *info = 0;
+            (*evaluate)( wa2, m, wa4, data, info );
+            (*printout)( n, x, m, wa4, data, 2, iter, ++(*nfev) );
+            if ( *info < 0 ) return;  // user requested break
+
+            fnorm1 = lm_enorm(m,wa4);
+#if BUG
+            printf( "lmdif/ pnorm %.10e  fnorm1 %.10e  fnorm %.10e"
+                    " delta=%.10e par=%.10e\n",
+                    pnorm, fnorm1, fnorm, delta, par );
+#endif
+
+// OI* compute the scaled actual reduction.
+
+            if ( p1*fnorm1 < fnorm )
+                actred = 1 - SQR( fnorm1/fnorm );
+            else
+                actred = -1;
+
+// OI* compute the scaled predicted reduction and
+//     the scaled directional derivative.
+
+            for ( j=0; j<n; j++ )
+            {
+                wa3[j] = 0;
+                for ( i=0; i<=j; i++ )
+                    wa3[i] += fjac[j*m+i]*wa1[ ipvt[j] ];
+            }
+            temp1 = lm_enorm(n,wa3) / fnorm;
+            temp2 = sqrt(par) * pnorm / fnorm;
+            prered = SQR(temp1) + 2 * SQR(temp2);
+            dirder = - ( SQR(temp1) + SQR(temp2) );
+
+// OI* compute the ratio of the actual to the predicted reduction.
+
+            ratio = prered!=0 ? actred/prered : 0;
+#if BUG
+            printf( "lmdif/ actred=%.10e prered=%.10e ratio=%.10e"
+                    " sq(1)=%.10e sq(2)=%.10e dd=%.10e\n",
+                    actred, prered, prered!=0 ? ratio : 0.,
+                    SQR(temp1), SQR(temp2), dirder );
+#endif
+
+// OI* update the step bound.
+
+            if (ratio <= p25)
+{
+    if (actred >= 0.)
+        temp = p5;
     else
-      status = calcls(cp, &m, a, b, E, N);
-
-    free((char *) m.v);
-    free((char *) a);
-    free((char *) b);
-
-    return (status);
+        temp = p5*dirder/(dirder + p5*actred);
+    if ( p1*fnorm1 >= fnorm || temp < p1 )
+        temp = p1;
+    delta = temp * MIN(delta,pnorm/p1);
+    par /= temp;
 }
-
-/***************************************************************************/
-/*
-   calculate the transformation coefficients with exactly the minimum
-   number of control points required for this transformation.
- */
-/***************************************************************************/
-
-static int exactdet(cp, m, a, b, E, N)
-struct GeoRef *cp;
-struct MATRIX *m;
-DOUBLE a[];
-DOUBLE b[];
-double E[];             /* easting coefficients */
-double N[];             /* northing coefficients */
+            else if ( par == 0. || ratio >= p75 )
 {
-    int pntnow, currow, j;
-
-    currow = 1;
-    for (pntnow = 0; pntnow < cp->count; pntnow++) {
-          /* POPULATE MATRIX M */
-
-          for (j = 1; j <= m->n; j++) {
-            M(currow, j) = term(j, cp->e1[pntnow], cp->n1[pntnow]);
-          }
-
-          /* populate matrix a and b */
-
-          a[currow - 1] = cp->e2[pntnow];
-          b[currow - 1] = cp->n2[pntnow];
-
-          currow++;
-    }
-
-    if (currow - 1 != m->n)
-      return (MINTERR);
-
-    return (solvemat(m, a, b, E, N));
+    delta = pnorm/p5;
+    par *= p5;
 }
 
-/***************************************************************************/
-/*
-   calculate the transformation coefficients with more than the minimum
-   number of control points required for this transformation.  this
-   routine uses the least squares method to compute the coefficients.
- */
-/***************************************************************************/
+// OI* test for successful iteration...
 
-static int calcls(cp, m, a, b, E, N)
-struct GeoRef *cp;
-struct MATRIX *m;
-DOUBLE a[];
-DOUBLE b[];
-double E[];             /* EASTING COEFFICIENTS */
-double N[];             /* NORTHING COEFFICIENTS */
+            if (ratio >= p0001)
 {
-    int i, j, n, numactive = 0;
 
-    /* initialize the upper half of the matrix and the two column vectors */
+//     ... successful iteration. update x, fvec, and their norms.
 
-    for (i = 1; i <= m->n; i++) {
-      for (j = i; j <= m->n; j++)
-          M(i, j) = 0.0;
-      a[i - 1] = b[i - 1] = 0.0;
+    for ( j=0; j<n; j++ )
+    {
+        x[j] = wa2[j];
+        wa2[j] = diag[j]*x[j];
     }
+    for ( i=0; i<m; i++ )
+        fvec[i] = wa4[i];
+    xnorm = lm_enorm(n,wa2);
+    fnorm = fnorm1;
+    iter++;
+}
+#if BUG
+            else {
+    printf( "ATTN: iteration considered unsuccessful\n" );
+            }
+#endif
 
-    /* sum the upper half of the matrix and the column vectors according to
-       the least squares method of solving over determined systems */
+// OI* tests for convergence ( otherwise *info = 1, 2, or 3 )
 
-    for (n = 0; n < cp->count; n++) {
-          numactive++;
-          for (i = 1; i <= m->n; i++) {
-            for (j = i; j <= m->n; j++)
-                M(i, j) += term(i, cp->e1[n], cp->n1[n]) * term(j, cp->e1[n], cp->n1[n]);
+            *info = 0; // do not terminate (unless overwritten by nonzero value)
+            if ( fabs(actred) <= ftol && prered <= ftol && p5*ratio <= 1 )
+                *info = 1;
+            if (delta <= xtol*xnorm)
+                *info += 2;
+            if ( *info != 0)
+                return;
 
-            a[i - 1] += cp->e2[n] * term(i, cp->e1[n], cp->n1[n]);
-            b[i - 1] += cp->n2[n] * term(i, cp->e1[n], cp->n1[n]);
-          }
-    }
+// OI* tests for termination and stringent tolerances.
 
-    if (numactive <= m->n)
-      return (MINTERR);
+            if ( *nfev >= maxfev)
+                *info = 5;
+            if ( fabs(actred) <= LM_MACHEP &&
+                 prered <= LM_MACHEP && p5*ratio <= 1 )
+                *info = 6;
+            if (delta <= LM_MACHEP*xnorm)
+                *info = 7;
+            if (gnorm <= LM_MACHEP)
+                *info = 8;
+            if ( *info != 0)
+                return;
 
-    /* transpose values in upper half of m to other half */
+// OI* end of the inner loop. repeat if iteration unsuccessful.
 
-    for (i = 2; i <= m->n; i++) {
-      for (j = 1; j < i; j++)
-          M(i, j) = M(j, i);
-    }
+        } while (ratio < p0001);
 
-    return (solvemat(m, a, b, E, N));
+// O** end of the outer loop.
+
+    } while (1);
+
 }
 
-/***************************************************************************/
-/*
-   calculate the x/y term based on the term number
 
-   ORDER\TERM   1    2    3    4    5    6    7    8    9   10
-   1        e0n0 e1n0 e0n1
-   2        e0n0 e1n0 e0n1 e2n0 e1n1 e0n2
-   3        e0n0 e1n0 e0n1 e2n0 e1n1 e0n2 e3n0 e2n1 e1n2 e0n3
- */
-/***************************************************************************/
 
-static DOUBLE term(term, e, n)
-int term;
-double e;
-double n;
+void lm_lmpar(int n, double* r, int ldr, int* ipvt, double* diag, double* qtb,
+              double delta, double* par, double* x, double* sdiag,
+              double* wa1, double* wa2)
 {
-    switch (term) {
-    case 1:
-      return ((DOUBLE) 1.0);
-    case 2:
-      return ((DOUBLE) e);
-    case 3:
-      return ((DOUBLE) n);
-    case 4:
-      return ((DOUBLE) (e * e));
-    case 5:
-      return ((DOUBLE) (e * n));
-    case 6:
-      return ((DOUBLE) (n * n));
-    case 7:
-      return ((DOUBLE) (e * e * e));
-    case 8:
-      return ((DOUBLE) (e * e * n));
-    case 9:
-      return ((DOUBLE) (e * n * n));
-    case 10:
-      return ((DOUBLE) (n * n * n));
-    }
-    return ((DOUBLE) 0.0);
-}
-
-/***************************************************************************/
-/*
-   solve for the 'E' and 'N' coefficients by using a somewhat modified
-   gaussian elimination method.
-
-   | M11 M12 ... M1n | | E0   |   | a0   |
-   | M21 M22 ... M2n | | E1   | = | a1   |
-   |  .   .   .   .  | | .    |   | .    |
-   | Mn1 Mn2 ... Mnn | | En-1 |   | an-1 |
-
-   and
-
-   | M11 M12 ... M1n | | N0   |   | b0   |
-   | M21 M22 ... M2n | | N1   | = | b1   |
-   |  .   .   .   .  | | .    |   | .    |
-   | Mn1 Mn2 ... Mnn | | Nn-1 |   | bn-1 |
+/*     given an m by n matrix a, an n by n nonsingular diagonal
+    *     matrix d, an m-vector b, and a positive number delta,
+    *     the problem is to determine a value for the parameter
+    *     par such that if x solves the system
+    *
+    *        a*x = b ,       sqrt(par)*d*x = 0 ,
+    *
+    *     in the least squares sense, and dxnorm is the euclidean
+    *     norm of d*x, then either par is 0. and
+    *
+    *        (dxnorm-delta) .le. 0.1*delta ,
+    *
+    *     or par is positive and
+    *
+    *        abs(dxnorm-delta) .le. 0.1*delta .
+    *
+    *     this subroutine completes the solution of the problem
+    *     if it is provided with the necessary information from the
+    *     qr factorization, with column pivoting, of a. that is, if
+    *     a*p = q*r, where p is a permutation matrix, q has orthogonal
+    *     columns, and r is an upper triangular matrix with diagonal
+    *     elements of nonincreasing magnitude, then lmpar expects
+    *     the full upper triangle of r, the permutation matrix p,
+    *     and the first n components of (q transpose)*b. on output
+    *     lmpar also provides an upper triangular matrix s such that
+    *
+    *         t       t               t
+    *        p *(a *a + par*d*d)*p = s *s .
+    *
+    *     s is employed within lmpar and may be of separate interest.
+    *
+    *     only a few iterations are generally needed for convergence
+    *     of the algorithm. if, however, the limit of 10 iterations
+    *     is reached, then the output par will contain the best
+    *     value obtained so far.
+    *
+ *     parameters:
+    *
+    *    n is a positive integer input variable set to the order of r.
+    *
+    *    r is an n by n array. on input the full upper triangle
+    *      must contain the full upper triangle of the matrix r.
+    *      on output the full upper triangle is unaltered, and the
+    *      strict lower triangle contains the strict upper triangle
+    *      (transposed) of the upper triangular matrix s.
+    *
+    *    ldr is a positive integer input variable not less than n
+    *      which specifies the leading dimension of the array r.
+    *
+    *    ipvt is an integer input array of length n which defines the
+    *      permutation matrix p such that a*p = q*r. column j of p
+    *      is column ipvt(j) of the identity matrix.
+    *
+    *    diag is an input array of length n which must contain the
+    *      diagonal elements of the matrix d.
+    *
+    *    qtb is an input array of length n which must contain the first
+    *      n elements of the vector (q transpose)*b.
+    *
+    *    delta is a positive input variable which specifies an upper
+    *      bound on the euclidean norm of d*x.
+    *
+    *    par is a nonnegative variable. on input par contains an
+    *      initial estimate of the levenberg-marquardt parameter.
+    *      on output par contains the final estimate.
+    *
+    *    x is an output array of length n which contains the least
+    *      squares solution of the system a*x = b, sqrt(par)*d*x = 0,
+    *      for the output par.
+    *
+    *    sdiag is an output array of length n which contains the
+    *      diagonal elements of the upper triangular matrix s.
+    *
+    *    wa1 and wa2 are work arrays of length n.
+    *
  */
-/***************************************************************************/
+    int i, iter, j, nsing;
+    double dxnorm, fp, fp_old, gnorm, parc, parl, paru;
+    double sum, temp;
+    static double p1 = 0.1;
+    static double p001 = 0.001;
 
-static int solvemat(m, a, b, E, N)
-struct MATRIX *m;
-DOUBLE a[];
-DOUBLE b[];
-double E[];
-double N[];
+#if BUG
+    printf( "lmpar\n" );
+#endif
+
+// *** compute and store in x the gauss-newton direction. if the
+//     jacobian is rank-deficient, obtain a least squares solution.
+
+    nsing = n;
+    for ( j=0; j<n; j++ )
+    {
+        wa1[j] = qtb[j];
+        if ( r[j*ldr+j] == 0 && nsing == n )
+            nsing = j;
+        if (nsing < n)
+            wa1[j] = 0;
+    }
+#if BUG
+    printf( "nsing %d ", nsing );
+#endif
+    for ( j=nsing-1; j>=0; j-- )
 {
-    int i, j, i2, j2, imark;
-    DOUBLE factor, temp;
-    DOUBLE pivot;       /* actual value of the largest pivot candidate */
-
-    for (i = 1; i <= m->n; i++) {
-      j = i;
-
-      /* find row with largest magnitude value for pivot value */
-
-      pivot = M(i, j);
-      imark = i;
-      for (i2 = i + 1; i2 <= m->n; i2++) {
-          temp = fabs(M(i2, j));
-          if (temp > fabs(pivot)) {
-            pivot = M(i2, j);
-            imark = i2;
-          }
-      }
-
-      /* if the pivot is very small then the points are nearly co-linear */
-      /* co-linear points result in an undefined matrix, and nearly */
-      /* co-linear points results in a solution with rounding error */
-
-      if (pivot == 0.0)
-          return (MUNSOLVABLE);
-
-      /* if row with highest pivot is not the current row, switch them */
-
-      if (imark != i) {
-          for (j2 = 1; j2 <= m->n; j2++) {
-            temp = M(imark, j2);
-            M(imark, j2) = M(i, j2);
-            M(i, j2) = temp;
-          }
-
-          temp = a[imark - 1];
-          a[imark - 1] = a[i - 1];
-          a[i - 1] = temp;
-
-          temp = b[imark - 1];
-          b[imark - 1] = b[i - 1];
-          b[i - 1] = temp;
-      }
-      /* compute zeros above and below the pivot, and compute
-         values for the rest of the row as well */
-
-      for (i2 = 1; i2 <= m->n; i2++) {
-          if (i2 != i) {
-            factor = M(i2, j) / pivot;
-            for (j2 = j; j2 <= m->n; j2++)
-                M(i2, j2) -= factor * M(i, j2);
-            a[i2 - 1] -= factor * a[i - 1];
-            b[i2 - 1] -= factor * b[i - 1];
-          }
-      }
-    }
-
-    /* since all other values in the matrix are zero now, calculate the
-       coefficients by dividing the column vectors by the diagonal values. */
-
-    for (i = 1; i <= m->n; i++) {
-      E[i - 1] = a[i - 1] / M(i, i);
-      N[i - 1] = b[i - 1] / M(i, i);
-    }
-
-    return (MSUCCESS);
+    wa1[j] = wa1[j]/r[j+ldr*j];
+    temp = wa1[j];
+    for ( i=0; i<j; i++ )
+        wa1[i] -= r[j*ldr+i]*temp;
 }
+
+    for ( j=0; j<n; j++ )
+        x[ ipvt[j] ] = wa1[j];
+
+// *** initialize the iteration counter.
+//     evaluate the function at the origin, and test
+//     for acceptance of the gauss-newton direction.
+
+    iter = 0;
+    for ( j=0; j<n; j++ )
+        wa2[j] = diag[j]*x[j];
+    dxnorm = lm_enorm(n,wa2);
+    fp = dxnorm - delta;
+    if (fp <= p1*delta)
+{
+#if BUG
+      printf( "lmpar/ terminate (fp<delta/10\n" );
+#endif
+        *par = 0;
+        return;
+}
+
+// *** if the jacobian is not rank deficient, the newton
+//     step provides a lower bound, parl, for the 0. of
+//     the function. otherwise set this bound to 0..
+
+    parl = 0;
+    if (nsing >= n)
+{
+    for ( j=0; j<n; j++ )
+        wa1[j] = diag[ ipvt[j] ] * wa2[ ipvt[j] ] / dxnorm;
+
+    for ( j=0; j<n; j++ )
+    {
+        sum = 0.;
+        for ( i=0; i<j; i++ )
+            sum += r[j*ldr+i]*wa1[i];
+        wa1[j] = (wa1[j] - sum)/r[j+ldr*j];
+    }
+    temp = lm_enorm(n,wa1);
+    parl = fp/delta/temp/temp;
+}
+
+// *** calculate an upper bound, paru, for the 0. of the function.
+
+    for ( j=0; j<n; j++ )
+{
+    sum = 0;
+    for ( i=0; i<=j; i++ )
+        sum += r[j*ldr+i]*qtb[i];
+    wa1[j] = sum/diag[ ipvt[j] ];
+}
+    gnorm = lm_enorm(n,wa1);
+    paru = gnorm/delta;
+    if (paru == 0.)
+        paru = LM_DWARF/MIN(delta,p1);
+
+// *** if the input par lies outside of the interval (parl,paru),
+//     set par to the closer endpoint.
+
+    *par = MAX( *par,parl);
+    *par = MIN( *par,paru);
+    if ( *par == 0.)
+        *par = gnorm/dxnorm;
+#if BUG
+    printf( "lmpar/ parl %.4e  par %.4e  paru %.4e\n", parl, *par, paru );
+#endif
+
+// *** iterate.
+
+    for ( ; ; iter++ ) {
+
+// *** evaluate the function at the current value of par.
+
+    if ( *par == 0.)
+        *par = MAX(LM_DWARF,p001*paru);
+    temp = sqrt( *par );
+    for ( j=0; j<n; j++ )
+        wa1[j] = temp*diag[j];
+    lm_qrsolv( n, r, ldr, ipvt, wa1, qtb, x, sdiag, wa2);
+    for ( j=0; j<n; j++ )
+        wa2[j] = diag[j]*x[j];
+    dxnorm = lm_enorm(n,wa2);
+    fp_old = fp;
+    fp = dxnorm - delta;
+
+// ***       if the function is small enough, accept the current value
+//     of par. also test for the exceptional cases where parl
+//     is 0. or the number of iterations has reached 10.
+
+    if ( fabs(fp) <= p1*delta
+         || (parl == 0. && fp <= fp_old && fp_old < 0.)
+         || iter == 10 )
+        break; // the only exit from this loop
+
+// *** compute the Newton correction.
+
+    for ( j=0; j<n; j++ )
+        wa1[j] = diag[ ipvt[j] ] * wa2[ ipvt[j] ] / dxnorm;
+
+    for ( j=0; j<n; j++ )
+    {
+        wa1[j] = wa1[j]/sdiag[j];
+        for ( i=j+1; i<n; i++ )
+            wa1[i] -= r[j*ldr+i]*wa1[j];
+    }
+    temp = lm_enorm( n, wa1);
+    parc = fp/delta/temp/temp;
+
+// *** depending on the sign of the function, update parl or paru.
+
+    if (fp > 0)
+        parl = MAX(parl, *par);
+    else if (fp < 0)
+        paru = MIN(paru, *par);
+        // the case fp==0 is precluded by the break condition
+
+// *** compute an improved estimate for par.
+
+    *par = MAX(parl, *par + parc);
+
+    }
+
+}
+
+
+
+void lm_qrfac(int m, int n, double* a, int pivot, int* ipvt,
+              double* rdiag, double* acnorm, double* wa)
+{
+/*
+    *     this subroutine uses householder transformations with column
+    *     pivoting (optional) to compute a qr factorization of the
+    *     m by n matrix a. that is, qrfac determines an orthogonal
+    *     matrix q, a permutation matrix p, and an upper trapezoidal
+    *     matrix r with diagonal elements of nonincreasing magnitude,
+    *     such that a*p = q*r. the householder transformation for
+    *     column k, k = 1,2,...,min(m,n), is of the form
+    *
+    *                    t
+    *        i - (1/u(k))*u*u
+    *
+    *     where u has 0.s in the first k-1 positions. the form of
+    *     this transformation and the method of pivoting first
+    *     appeared in the corresponding linpack subroutine.
+    *
+ *     parameters:
+    *
+    *    m is a positive integer input variable set to the number
+    *      of rows of a.
+    *
+    *    n is a positive integer input variable set to the number
+    *      of columns of a.
+    *
+    *    a is an m by n array. on input a contains the matrix for
+    *      which the qr factorization is to be computed. on output
+    *      the strict upper trapezoidal part of a contains the strict
+    *      upper trapezoidal part of r, and the lower trapezoidal
+    *      part of a contains a factored form of q (the non-trivial
+    *      elements of the u vectors described above).
+    *
+    *    pivot is a logical input variable. if pivot is set true,
+    *      then column pivoting is enforced. if pivot is set false,
+    *      then no column pivoting is done.
+    *
+    *    ipvt is an integer output array of length lipvt. ipvt
+    *      defines the permutation matrix p such that a*p = q*r.
+    *      column j of p is column ipvt(j) of the identity matrix.
+    *      if pivot is false, ipvt is not referenced.
+    *
+    *    rdiag is an output array of length n which contains the
+    *      diagonal elements of r.
+    *
+    *    acnorm is an output array of length n which contains the
+    *      norms of the corresponding columns of the input matrix a.
+    *      if this information is not needed, then acnorm can coincide
+    *      with rdiag.
+    *
+    *    wa is a work array of length n. if pivot is false, then wa
+    *      can coincide with rdiag.
+    *
+ */
+    int i, j, k, kmax, minmn;
+    double ajnorm, sum, temp;
+    static double p05 = 0.05;
+
+// *** compute the initial column norms and initialize several arrays.
+
+    for ( j=0; j<n; j++ )
+    {
+        acnorm[j] = lm_enorm(m, &a[j*m]);
+        rdiag[j] = acnorm[j];
+        wa[j] = rdiag[j];
+        if ( pivot )
+            ipvt[j] = j;
+    }
+#if BUG
+    printf( "qrfac\n" );
+#endif
+
+// *** reduce a to r with householder transformations.
+
+    minmn = MIN(m,n);
+    for ( j=0; j<minmn; j++ )
+    {
+        if ( !pivot ) goto pivot_ok;
+
+// *** bring the column of largest norm into the pivot position.
+
+        kmax = j;
+        for ( k=j+1; k<n; k++ )
+            if (rdiag[k] > rdiag[kmax])
+                kmax = k;
+        if (kmax == j) goto pivot_ok; // bug fixed in rel 2.1
+
+        for ( i=0; i<m; i++ )
+        {
+            temp        = a[j*m+i];
+            a[j*m+i]    = a[kmax*m+i];
+            a[kmax*m+i] = temp;
+        }
+        rdiag[kmax] = rdiag[j];
+        wa[kmax] = wa[j];
+        k = ipvt[j];
+        ipvt[j] = ipvt[kmax];
+        ipvt[kmax] = k;
+
+    pivot_ok:
+
+// *** compute the Householder transformation to reduce the
+//     j-th column of a to a multiple of the j-th unit vector.
+
+            ajnorm = lm_enorm( m-j, &a[j*m+j] );
+    if (ajnorm == 0.)
+    {
+        rdiag[j] = 0;
+        continue;
+    }
+
+    if (a[j*m+j] < 0.)
+        ajnorm = -ajnorm;
+    for ( i=j; i<m; i++ )
+        a[j*m+i] /= ajnorm;
+    a[j*m+j] += 1;
+
+// *** apply the transformation to the remaining columns
+//     and update the norms.
+
+    for ( k=j+1; k<n; k++ )
+    {
+        sum = 0;
+
+        for ( i=j; i<m; i++ )
+            sum += a[j*m+i]*a[k*m+i];
+
+        temp = sum/a[j+m*j];
+
+        for ( i=j; i<m; i++ )
+            a[k*m+i] -= temp * a[j*m+i];
+
+        if ( pivot && rdiag[k] != 0. )
+        {
+            temp = a[m*k+j]/rdiag[k];
+            temp = MAX( 0., 1-temp*temp );
+            rdiag[k] *= sqrt(temp);
+            temp = rdiag[k]/wa[k];
+            if ( p05*SQR(temp) <= LM_MACHEP )
+            {
+                rdiag[k] = lm_enorm( m-j-1, &a[m*k+j+1]);
+                wa[k] = rdiag[k];
+            }
+        }
+    }
+
+    rdiag[j] = -ajnorm;
+    }
+}
+
+
+
+void lm_qrsolv(int n, double* r, int ldr, int* ipvt, double* diag,
+               double* qtb, double* x, double* sdiag, double* wa)
+{
+/*
+    *     given an m by n matrix a, an n by n diagonal matrix d,
+    *     and an m-vector b, the problem is to determine an x which
+    *     solves the system
+    *
+    *        a*x = b ,       d*x = 0 ,
+    *
+    *     in the least squares sense.
+    *
+    *     this subroutine completes the solution of the problem
+    *     if it is provided with the necessary information from the
+    *     qr factorization, with column pivoting, of a. that is, if
+    *     a*p = q*r, where p is a permutation matrix, q has orthogonal
+    *     columns, and r is an upper triangular matrix with diagonal
+    *     elements of nonincreasing magnitude, then qrsolv expects
+    *     the full upper triangle of r, the permutation matrix p,
+    *     and the first n components of (q transpose)*b. the system
+    *     a*x = b, d*x = 0, is then equivalent to
+    *
+    *             t     t
+    *        r*z = q *b ,  p *d*p*z = 0 ,
+    *
+    *     where x = p*z. if this system does not have full rank,
+    *     then a least squares solution is obtained. on output qrsolv
+    *     also provides an upper triangular matrix s such that
+    *
+    *         t       t           t
+    *        p *(a *a + d*d)*p = s *s .
+    *
+    *     s is computed within qrsolv and may be of separate interest.
+    *
+    *     parameters
+    *
+    *    n is a positive integer input variable set to the order of r.
+    *
+    *    r is an n by n array. on input the full upper triangle
+    *      must contain the full upper triangle of the matrix r.
+    *      on output the full upper triangle is unaltered, and the
+    *      strict lower triangle contains the strict upper triangle
+    *      (transposed) of the upper triangular matrix s.
+    *
+    *    ldr is a positive integer input variable not less than n
+    *      which specifies the leading dimension of the array r.
+    *
+    *    ipvt is an integer input array of length n which defines the
+    *      permutation matrix p such that a*p = q*r. column j of p
+    *      is column ipvt(j) of the identity matrix.
+    *
+    *    diag is an input array of length n which must contain the
+    *      diagonal elements of the matrix d.
+    *
+    *    qtb is an input array of length n which must contain the first
+    *      n elements of the vector (q transpose)*b.
+    *
+    *    x is an output array of length n which contains the least
+    *      squares solution of the system a*x = b, d*x = 0.
+    *
+    *    sdiag is an output array of length n which contains the
+    *      diagonal elements of the upper triangular matrix s.
+    *
+    *    wa is a work array of length n.
+    *
+ */
+    int i, kk, j, k, nsing;
+    double qtbpj, sum, temp;
+    double sin, cos, tan, cotan; // these are local variables, not functions
+    static double p25 = 0.25;
+    static double p5 = 0.5;
+
+// *** copy r and (q transpose)*b to preserve input and initialize s.
+//     in particular, save the diagonal elements of r in x.
+
+    for ( j=0; j<n; j++ )
+    {
+        for ( i=j; i<n; i++ )
+            r[j*ldr+i] = r[i*ldr+j];
+        x[j] = r[j*ldr+j];
+        wa[j] = qtb[j];
+    }
+#if BUG
+    printf( "qrsolv\n" );
+#endif
+
+// *** eliminate the diagonal matrix d using a givens rotation.
+
+    for ( j=0; j<n; j++ )
+{
+
+// ***       prepare the row of d to be eliminated, locating the
+//     diagonal element using p from the qr factorization.
+
+    if (diag[ ipvt[j] ] == 0.)
+        goto L90;
+    for ( k=j; k<n; k++ )
+        sdiag[k] = 0.;
+    sdiag[j] = diag[ ipvt[j] ];
+
+// ***       the transformations to eliminate the row of d
+//     modify only a single element of (q transpose)*b
+//     beyond the first n, which is initially 0..
+
+    qtbpj = 0.;
+    for ( k=j; k<n; k++ )
+    {
+
+//        determine a givens rotation which eliminates the
+//        appropriate element in the current row of d.
+
+        if (sdiag[k] == 0.)
+            continue;
+        kk = k + ldr * k; // <! keep this shorthand !>
+        if ( fabs(r[kk]) < fabs(sdiag[k]) )
+        {
+            cotan = r[kk]/sdiag[k];
+            sin = p5/sqrt(p25+p25*SQR(cotan));
+            cos = sin*cotan;
+        }
+        else
+        {
+            tan = sdiag[k]/r[kk];
+            cos = p5/sqrt(p25+p25*SQR(tan));
+            sin = cos*tan;
+        }
+
+// ***          compute the modified diagonal element of r and
+//        the modified element of ((q transpose)*b,0).
+
+        r[kk] = cos*r[kk] + sin*sdiag[k];
+        temp = cos*wa[k] + sin*qtbpj;
+        qtbpj = -sin*wa[k] + cos*qtbpj;
+        wa[k] = temp;
+
+// *** accumulate the tranformation in the row of s.
+
+        for ( i=k+1; i<n; i++ )
+        {
+            temp = cos*r[k*ldr+i] + sin*sdiag[i];
+            sdiag[i] = -sin*r[k*ldr+i] + cos*sdiag[i];
+            r[k*ldr+i] = temp;
+        }
+    }
+    L90:
+
+// *** store the diagonal element of s and restore
+//     the corresponding diagonal element of r.
+
+            sdiag[j] = r[j*ldr+j];
+    r[j*ldr+j] = x[j];
+}
+
+// *** solve the triangular system for z. if the system is
+//     singular, then obtain a least squares solution.
+
+    nsing = n;
+    for ( j=0; j<n; j++ )
+{
+    if ( sdiag[j] == 0. && nsing == n )
+        nsing = j;
+    if (nsing < n)
+        wa[j] = 0;
+}
+
+    for ( j=nsing-1; j>=0; j-- )
+{
+    sum = 0;
+    for ( i=j+1; i<nsing; i++ )
+        sum += r[j*ldr+i]*wa[i];
+    wa[j] = (wa[j] - sum)/sdiag[j];
+}
+
+// *** permute the components of z back to components of x.
+
+    for ( j=0; j<n; j++ )
+        x[ ipvt[j] ] = wa[j];
+}
+
+
+
+double lm_enorm( int n, double *x )
+{
+/*     given an n-vector x, this function calculates the
+    *     euclidean norm of x.
+    *
+    *     the euclidean norm is computed by accumulating the sum of
+    *     squares in three different sums. the sums of squares for the
+    *     small and large components are scaled so that no overflows
+    *     occur. non-destructive underflows are permitted. underflows
+    *     and overflows do not occur in the computation of the unscaled
+    *     sum of squares for the intermediate components.
+    *     the definitions of small, intermediate and large components
+    *     depend on two constants, LM_SQRT_DWARF and LM_SQRT_GIANT. the main
+    *     restrictions on these constants are that LM_SQRT_DWARF**2 not
+    *     underflow and LM_SQRT_GIANT**2 not overflow.
+    *
+    *     parameters
+    *
+    *    n is a positive integer input variable.
+    *
+    *    x is an input array of length n.
+ */
+    int i;
+    double agiant, s1, s2, s3, xabs, x1max, x3max, temp;
+
+    s1 = 0;
+    s2 = 0;
+    s3 = 0;
+    x1max = 0;
+    x3max = 0;
+    agiant = LM_SQRT_GIANT/( (double) n);
+
+    for ( i=0; i<n; i++ )
+    {
+        xabs = fabs(x[i]);
+        if ( xabs > LM_SQRT_DWARF && xabs < agiant )
+        {
+// **  sum for intermediate components.
+            s2 += xabs*xabs;
+            continue;
+        }
+
+        if ( xabs >  LM_SQRT_DWARF )
+        {
+// **  sum for large components.
+            if (xabs > x1max)
+            {
+                temp = x1max/xabs;
+                s1 = 1 + s1*SQR(temp);
+                x1max = xabs;
+            }
+            else
+            {
+                temp = xabs/x1max;
+                s1 += SQR(temp);
+            }
+            continue;
+        }
+// **  sum for small components.
+        if (xabs > x3max)
+        {
+            temp = x3max/xabs;
+            s3 = 1 + s3*SQR(temp);
+            x3max = xabs;
+        }
+        else
+        {
+            if (xabs != 0.)
+            {
+                temp = xabs/x3max;
+                s3 += SQR(temp);
+            }
+        }
+    }
+
+// *** calculation of norm.
+
+    if (s1 != 0)
+        return x1max*sqrt(s1 + (s2/x1max)/x1max);
+    if (s2 != 0)
+    {
+        if (s2 >= x3max)
+            return sqrt( s2*(1+(x3max/s2)*(x3max*s3)) );
+        else
+            return sqrt( x3max*((s2/x3max)+(x3max*s3)) );
+    }
+
+    return x3max*sqrt(s3);
+}
+

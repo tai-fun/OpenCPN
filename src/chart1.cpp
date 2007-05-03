@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.11 2007/03/02 02:09:06 dsr Exp $
+ * $Id: chart1.cpp,v 1.12 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.12  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.11  2007/03/02 02:09:06  dsr
  * Cleanup, convert to UTM Projection
  *
@@ -59,59 +62,6 @@
  * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
  * Initial import as opencpn, GNU Automake compliant.
  *
- * Revision 1.8  2006/08/04 11:42:01  dsr
- * no message
- *
- * Revision 1.7  2006/07/28 20:31:00  dsr
- * Implement new NMEA/Autopilot code
- *
- * Revision 1.6  2006/07/05 02:32:06  dsr
- * Add WiFi Server
- *
- * Revision 1.5  2006/06/15 02:38:32  dsr
- * Support Database Update
- *
- * Revision 1.4  2006/05/19 19:16:09  dsr
- * New Thumbchart logic
- *
- * Revision 1.3  2006/04/23 03:56:31  dsr
- * Fix internal names
- *
- * Revision 1.2  2006/04/20 02:26:24  dsr
- * *** empty log message ***
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.17  2006/04/19 02:04:25  dsr
- * Use FontMgr
- *
- * Revision 1.16  2006/03/25 20:25:52  dsr
- * Cleanup for wx2.6.2
- *
- * Revision 1.15  2006/03/16 03:53:14  dsr
- * Cleanup
- *
- * Revision 1.14  2006/03/16 03:07:59  dsr
- * Cleanup tabs
- *
- * Revision 1.13  2006/03/13 05:48:44  dsr
- * Cleanup
- *
- * Revision 1.12  2006/03/13 05:03:15  dsr
- * Fussing with toolBar
- *
- * Revision 1.11  2006/03/04 21:14:11  dsr
- * Correct Chart Scale logic when shifting from S57 to BSB
- *
- * Revision 1.10  2006/02/24 18:02:22  dsr
- * Show PubDate and Name in toolbar info panel
- *
- * Revision 1.9  2006/02/24 03:01:33  dsr
- * Redefine pBitmap_Dir
- *
- * Revision 1.8  2006/02/23 01:32:10  dsr
- * Cleanup, fix toolbar for GTK, add Help button
  *
  *
  */
@@ -146,7 +96,7 @@
 #include "concanv.h"
 #include "nmea.h"
 #include "nmea0183/nmea0183.h"
-#include "dialog/options.h"
+#include "options.h"
 #include "about.h"
 #include "thumbwin.h"
 #include "tcmgr.h"
@@ -180,7 +130,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.11 2007/03/02 02:09:06 dsr Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.12 2007/05/03 13:23:55 dsr Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -222,7 +172,9 @@ Routeman        *pRouteMan;
 NMEA0183        *pNMEA0183;
 
 float           gLat, gLon, gCog, gSog, gHdg;
+float           kLat, kLon, kCog, kSog, kHdg;
 float           vLat, vLon;
+double          initial_scale_ppm;
 
 wxArrayString   *pChartDirArray;
 bool            bDBUpdateInProgress;
@@ -247,6 +199,8 @@ int             file_user_id;
 int             quitflag;
 int             g_tick;
 int             mem_total, mem_initial;
+
+bool            s_bSetSystemTime;
 
 wxString        *phost_name;
 
@@ -309,6 +263,11 @@ OCP_AIS_Thread  *pAIS_Thread;
 AIS_Decoder     *pAIS;
 wxString        *pAIS_Port;
 
+bool            s_socket_test_running;
+bool            s_socket_test_passed;
+wxSocketClient  *s_t_sock;
+wxSocketServer  *s_s_sock;
+
 //-----------------------------------------------------------------------------------------------------
 //      OCP_NMEA_Thread Static data store
 //-----------------------------------------------------------------------------------------------------
@@ -338,7 +297,7 @@ static int tick_idx;
 
 
 
-#ifdef __WXMSW__
+#ifdef __MSVC__
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -370,7 +329,7 @@ static int tick_idx;
 //-----------------------------------------------------------------------
 //      Signal Handlers
 //-----------------------------------------------------------------------
-
+#ifndef __WXMSW__
 //      SIGUSR1
 //      Raised externally to cause orderly termination of application
 //      Intended to act just like pushing the "EXIT" button
@@ -380,6 +339,7 @@ catch_sig_usr1(int signo)
 {
         quitflag++;                             // signal to the timer loop
 }
+#endif
 
 
 // `Main program' equivalent, creating windows and returning main app frame
@@ -393,9 +353,9 @@ bool MyApp::OnInit()
 {
 
 
-//      _CrtSetBreakAlloc(3788);
+//      _CrtSetBreakAlloc(3793);
 
-#ifdef __WXMSW__
+#ifdef __MSVC__
 _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
 _CrtSetReportFile( _CRT_WARN, _CRTDBG_FILE_STDOUT );
 _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_DEBUG );
@@ -427,7 +387,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         malloc_max = 0;
 
 //      wxHandleFatalExceptions(true);
-
 
 
 //      Init the private environment handler
@@ -529,7 +488,8 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      pSData_Locn->Append(::wxGetCwd());
         pSData_Locn->Append(wxString("\\Program Files\\opencpn\\"));
 #else
-        pSData_Locn->Append(wxString("/usr/local/share/opencpn/"));
+ //       pSData_Locn->Append(wxString("/usr/local/share/opencpn/"));
+        pSData_Locn->Append(wxString(INSTALL_PREFIX "/share/opencpn/"));    // ./configure script sets this
 #endif
 
 
@@ -575,7 +535,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      Init the s57 chart object, specifying the location of the required csv files
 //      and error log.
 
-//      If the config file contains the entry, use it.
+//      If the config file contains an entry for s57 .csv files, use it.
 //      Otherwise, default to [shared data dir]/s57_data
         if(pcsv_locn->IsEmpty())
         {
@@ -584,12 +544,31 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         }
 
 // Todo Maybe initialize only when an s57 chart is actually opened???
-        s57_initialize(*pcsv_locn, flog);
+//        s57_initialize(*pcsv_locn, flog);
 
         ps52plib = new s52plib(*pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
 
+        //  If the library load failed, try looking for the s57 data elsewhere
         if(!ps52plib->m_bOK)
+        {
+            delete ps52plib;
+
+            pcsv_locn->Clear();
+            pcsv_locn->Append(*pSData_Locn);
+            pcsv_locn->Append("s57data");
+
+            wxLogMessage("Looking for s57data in %s", pcsv_locn->c_str());
+            ps52plib = new s52plib(*pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
+
+            if(!ps52plib->m_bOK)
+            {
                 wxLogMessage("S52PLIB Initialization failed, disabling S57 charts...");
+            }
+        }
+
+// Todo Maybe initialize only when an s57 chart is actually opened???
+        s57_initialize(*pcsv_locn, flog);
+
 
 #endif  // S57
 
@@ -631,26 +610,24 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pConfig->LoadMyConfig(1);
 
 
-//      Hard code the frame size for now
-//      TODO??
-        int dis_w, dis_h;
-        wxDisplaySize(&dis_w, &dis_h);
-
+        //  Set up the frame initial visual parameters
+//      Default size, resized later
+        wxSize new_frame_size(-1, -1);
         int cx, cy, cw, ch;
         ::wxClientDisplayRect(&cx, &cy, &cw, &ch);
-        wxSize new_frame_size;
-        if(dis_w > 1024)
-            new_frame_size.Set(1182, 900);  //
-            //   new_frame_size.Set(800, 600);  // for window debug
-        else
-            new_frame_size.Set(cw, 735);
 
-//  For Windows, provide the expected application Minimize/Close bar
-#ifdef __WXMSW__
-        long app_style = wxDEFAULT_FRAME_STYLE;
+//  For Windows and GTK, provide the expected application Minimize/Close bar
+       long app_style = wxDEFAULT_FRAME_STYLE;
+
+#ifdef __WXX11__
+        app_style = (wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER);
+
+        //      Here is a specific size set for my (dsr) specific imbedded X11 environment
+        new_frame_size.Set(cw, 735);
 #else
-        long app_style = (wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER);
+        new_frame_size.Set(cw * 7/10, ch * 7/10);
 #endif
+
 
 // Create the main frame window
         gFrame = new MyFrame(NULL, _T("OpenCPN"), wxPoint(0, 0), new_frame_size, app_style );
@@ -663,7 +640,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         cc1 =  new ChartCanvas(gFrame);                         // the chart display canvas
         if(cc1)
+        {
             cc1->m_bFollow = pConfig->st_bFollow;               // set initial state
+            cc1->VPoint.view_scale_ppm = initial_scale_ppm;
+        }
 
         console = new ConsoleCanvas(gFrame);                    // the console
 
@@ -671,8 +651,9 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         nmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource);
 
-//        pAIS = new AIS_Decoder(gFrame, "GPSD:boat.milltechmarine.com");
+//        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, wxString("TCP/IP:66.235.48.168"));  // a test
         pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port);
+
         pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port);
 
 #ifdef USE_WIFI_CLIENT
@@ -687,6 +668,12 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 // Show the frame
         gFrame->Show(TRUE);
+
+
+
+
+
+
 
 #ifdef USE_S57
 //      Try to validate the ISO8211 library
@@ -800,6 +787,7 @@ int MyApp::OnExit()
 
         delete pNMEADataSource;
         delete pNMEA_AP_Port;
+        delete pAIS_Port;
 
         delete pWIFIServerName;
 
@@ -823,6 +811,71 @@ int MyApp::OnExit()
 }
 
 
+void MyApp::TestSockets(void)
+{
+//      wxWidgets for X11, starting with version 2.6 and extending however
+//      long, has a problem handling TCP/IP socket events.
+//      The problem relates to wxHashTable::Next()
+//      There is a workaround:  configure wxWidgets with --enable-compat24
+//      Anyway, we'll test here to be sure sockets work HERE.
+//      If they don't, we shall have to disable GPSD data input support
+
+
+//  Create a dynamic event handler in MyApp for wxSocketServer events
+        Connect( wxID_ANY, wxEVT_SOCKET, wxSocketEventHandler(MyApp::OnSocketEvent) );
+
+//      Make a localhost server
+        wxIPV4address serv_addr;
+        serv_addr.Service(3001);
+
+        s_s_sock = new wxSocketServer(serv_addr);
+        s_s_sock->SetEventHandler(*this, wxID_ANY);
+
+        s_s_sock->SetNotify(wxSOCKET_CONNECTION_FLAG);
+        s_s_sock->Notify(TRUE);
+
+// Create the test client socket
+        s_t_sock = new wxSocketClient();
+
+//      Connect() the test socket
+
+        wxIPV4address addr;
+        addr.AnyAddress();
+        addr.Service(3001);
+
+        s_socket_test_running = true;
+        s_socket_test_passed = false;
+
+        s_t_sock->Connect(addr, FALSE);       // Non-blocking connect
+
+//    Sleep and loop for N seconds
+#define SLEEP_TEST_SEC  1
+        for(int is=0 ; is<SLEEP_TEST_SEC * 10 ; is++)
+{
+    wxMilliSleep(100);
+}
+
+// Test requires at least one pass thru event loop.  Test will finish in first MyFrame::OnTimer
+
+}
+
+
+
+void MyApp::OnSocketEvent(wxSocketEvent& event)
+//  Used for testing wxSocketClient event handling
+{
+
+    switch(event.GetSocketEvent())
+    {
+        case wxSOCKET_CONNECTION :
+        case wxSOCKET_INPUT:
+        case wxSOCKET_OUTPUT:
+        case wxSOCKET_LOST:
+
+            s_socket_test_passed = true;
+            break;
+    }
+}
 
 
 
@@ -848,13 +901,10 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
   wxFrame(frame, -1, title, pos, size, style)  //wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER)
       //wxCAPTION | wxSYSTEM_MENU | wxRESIZE_BORDER
 {
-
         pStatusBar = NULL;
 
-//      Create the ToolBar
+        //      Create the ToolBar
         CreateMyToolbar();
-
-
 
         //      Redirect the global heartbeat timer to this frame
         FrameTimer1.SetOwner(this, FRAME_TIMER_1);
@@ -864,10 +914,22 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
         m_bTimeIsSet = false;
 
 //  Initialize the Printer data structures
-       g_printData = new wxPrintData;
-       g_printData->SetOrientation(wxLANDSCAPE);
 
-       g_pageSetupData = new wxPageSetupDialogData;
+//wxGTK 2.8.0 enables gnomeprint by default.  No workee under KDevelop....
+
+#ifdef __WXDEBUG
+        if( wxPORT_GTK != pPlatform->GetPortId())
+        {
+            g_printData = new wxPrintData;
+            g_printData->SetOrientation(wxLANDSCAPE);
+            g_pageSetupData = new wxPageSetupDialogData;
+        }
+#else
+        g_printData = new wxPrintData;
+        g_printData->SetOrientation(wxLANDSCAPE);
+        g_pageSetupData = new wxPageSetupDialogData;
+
+#endif
 
 }
 
@@ -883,15 +945,11 @@ MyFrame::~MyFrame()
         while(node)
         {
             Route *pRouteDelete = node->GetData();
-
-                delete pRouteDelete;
+            delete pRouteDelete;
 
             node = node->GetNext();
         }
         delete pRouteList;
-
-
-
 }
 
 
@@ -904,8 +962,7 @@ void MyFrame::OnActivate(wxActivateEvent& event)
             if(Current_Ch)
                 Current_Ch->InvalidateCache();
 
-        if(cc1)
-            cc1->m_bForceReDraw = true;
+        Refresh(false);
     }
 }
 
@@ -926,16 +983,13 @@ void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
 
 void MyFrame::DestroyMyToolbar()
 {
-
     delete ptool_ct_dummy;
     delete toolBar;
-
 }
 
 
 void MyFrame::CreateMyToolbar()
 {
-
 
 // Load up all the toolbar bitmap xpm data pointers into a hash map
       tool_xpm_hash.clear();
@@ -956,6 +1010,7 @@ void MyFrame::CreateMyToolbar()
 
     long style = 0;
     style |= wxTB_HORIZONTAL ;
+    ptool_ct_dummy = NULL;
 
     toolBar = CreateToolBar(style, ID_TOOLBAR);
     toolBar->SetBackgroundColour(wxColour(230,230,230));
@@ -963,7 +1018,6 @@ void MyFrame::CreateMyToolbar()
     toolBar->SetRows(1);
 
 //Set up the ToolBar
-
 
 //      Think about wxUNIV themes here....
 
@@ -995,7 +1049,7 @@ void MyFrame::CreateMyToolbar()
     pitch_sep =  tool_sep   + tool_packing + tool_margin.x;
     x =tool_packing + tool_margin.x;
 
-      // Some fixups needed here
+      // Some platform specific fixups needed here
 #ifdef __WXMSW__
       pitch_tool = toolsize.x;
       pitch_sep =  tool_sep + 1;
@@ -1003,10 +1057,15 @@ void MyFrame::CreateMyToolbar()
 #endif
 
 #ifdef __WXGTK__
-      pitch_tool += 2;
-      x -= 1;
-#endif
+    {
+        pitch_tool += 2;
+        x -= 1;
 
+      //    More hacks to this sorry class.
+        if((wxMAJOR_VERSION == 2) && (wxMINOR_VERSION >= 8))
+            x += 2;
+    }
+#endif
 
 
     MyAddTool(toolBar, ID_ZOOMIN, _T(""), _T("zoomin"), _T(""), wxITEM_NORMAL);
@@ -1057,11 +1116,9 @@ void MyFrame::CreateMyToolbar()
         x += pitch_tool;
     }
 
-    if(1)
-    {
-      MyAddTool(toolBar, ID_COLSCHEME, _T(""), _T("colorscheme"), _T("Change Color Scheme"), wxITEM_NORMAL);
-      x += pitch_tool;
-    }
+    MyAddTool(toolBar, ID_COLSCHEME, _T(""), _T("colorscheme"), _T("Change Color Scheme"), wxITEM_NORMAL);
+    x += pitch_tool;
+
 
     MyAddTool(toolBar, ID_HELP, _T(""), _T("help"), _T("About OpenCPN"), wxITEM_NORMAL);
     x += pitch_tool;
@@ -1078,22 +1135,28 @@ void MyFrame::CreateMyToolbar()
 
     toolbar_width_without_static = x + pitch_tool + filler_pad;     // used by Resize()
 
-    wxImage tool_image_dummy(filler_width,32);
+#define DUMMY_HEIGHT    40
+    tool_dummy_size_x = filler_width;
+    tool_dummy_size_y = DUMMY_HEIGHT;
+
+    //  Make sure to always create a resonable dummy
+    if(tool_dummy_size_x <= 0)
+        tool_dummy_size_x = 1;
+
+    wxImage tool_image_dummy(tool_dummy_size_x,32);
     tool_image_dummy.Replace(0,0,0,0,0,128);
     wxBitmap tool_bm_dummy(tool_image_dummy);
 
-#define DUMMY_HEIGHT    40
-    ptool_ct_dummy = new wxStaticBitmap(toolBar, ID_TBSTAT, tool_bm_dummy,
-                                        wxPoint(0,0), wxSize(filler_width,DUMMY_HEIGHT),wxSIMPLE_BORDER, _T("staticBitmap"));
+    ptool_ct_dummy = new wxStaticBitmap(toolBar, ID_TBSTAT, tool_bm_dummy, wxPoint(0,0),
+                                        wxSize(tool_dummy_size_x,DUMMY_HEIGHT),
+                                        wxSIMPLE_BORDER, _T("staticBitmap"));
 
-    tool_dummy_size_x = filler_width;
-    tool_dummy_size_y = DUMMY_HEIGHT;
 
     toolBar->AddControl(ptool_ct_dummy);
 
 //      And add the "Exit" tool
-    MyAddTool(toolBar, ID_TBEXIT, _T(""), _T("exitt"), _T("Exit"), wxITEM_NORMAL);
 
+    MyAddTool(toolBar, ID_TBEXIT, _T(""), _T("exitt"), _T("Exit"), wxITEM_NORMAL);
 
 // Realize() the toolbar
     toolBar->Realize();
@@ -1321,6 +1384,8 @@ void MyFrame::OnChar(wxKeyEvent &event)
 
 
 
+
+
 void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 {
 
@@ -1337,16 +1402,35 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_ZOOMIN:
     {
-            cc1->SetVPScale(cc1->GetVPScale() * 2);
-            cc1->Refresh(false);
-            break;
+        //      Bound the zoomin of raster charts to at most 2x overzoom
+        if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+        {
+            double target_scale = cc1->GetVPScale() * 2;
+            ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
+            double chart_1x_scale = Cur_BSB_Ch->GetPPM();
+            if(target_scale > 2.1 * chart_1x_scale)
+                break;
+        }
+
+        cc1->SetVPScale(cc1->GetVPScale() * 2);
+        cc1->Refresh(false);
+        break;
     }
 
     case ID_ZOOMOUT:
     {
-            cc1->SetVPScale(cc1->GetVPScale() / 2);
-            cc1->Refresh(false);
-            break;
+        //      Bound the zoomout of raster charts to at most 8x underzoom
+        if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+        {
+            double target_scale = cc1->GetVPScale() / 2;
+            ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
+            double chart_1x_scale = Cur_BSB_Ch->GetPPM();
+            if(target_scale < chart_1x_scale / 32)
+                break;
+        }
+        cc1->SetVPScale(cc1->GetVPScale() / 2);
+        cc1->Refresh(false);
+        break;
     }
 
     case ID_ROUTE:
@@ -1361,10 +1445,11 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             cc1->m_bFollow = true;
             toolBar->ToggleTool(ID_FOLLOW, true);
 //      Warp speed jump to current position
-            Current_Ch->InvalidateCache();            // Add back for wxx11 This might be needed??? 8/19/06
+//            Current_Ch->InvalidateCache();            // Add back for wxx11 This might be needed??? 8/19/06
             cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(),
                               Current_Ch->GetChartSkew() * PI / 180., 1, FORCE_SUBSAMPLE);     // set mod 4
             cc1->Refresh(false);
+//            cc1->Update();
             break;
         }
 
@@ -1497,43 +1582,43 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
  //             ShowDebugWindows
         if(pConfig->m_bShowDebugWindows)
         {
-                stats->m_rows = 1;
                 if(!pStatusBar)
-                        pStatusBar = CreateStatusBar(6);
-
-                Refresh();
+                {
+                    pStatusBar = CreateStatusBar(6);
+                    Refresh();
+                }
         }
         else
         {
-                stats->m_rows = 1;
-
                 if(pStatusBar)
                 {
                         pStatusBar->Destroy();
                         pStatusBar = NULL;
                         SetStatusBar(NULL);
+
+                        Refresh();
                 }
-                Refresh();
         }
 
-#ifdef __WXMSW__                          // This to recreate for Printer Icon
+//#ifdef __WXMSW__                          // This to recreate for Printer Icon
       if(bnewtoolbar)
       {
           DestroyMyToolbar();
           CreateMyToolbar();
       }
-#endif
+//#endif
 
       if(bFlyingUpdate)
       {
            wxSizeEvent sevt;
            OnSize(sevt);
       }
+
 }
 
 int MyFrame::DoOptionsDialog()
 {
-      options *pSetDlg = new options(this, -1, "Options", *pInit_Chart_Dir);
+    options *pSetDlg = new options(this, -1, "Options", *pInit_Chart_Dir);
 
 //      Pass two working pointers for Chart Dir Dialog
       pSetDlg->SetCurrentDirListPtr(pChartDirArray);
@@ -1554,9 +1639,18 @@ int MyFrame::DoOptionsDialog()
 
       bool bPrevPrintIcon = g_bShowPrintIcon;
 
+//    Grab copies of s57 Display Styles
+#ifdef USE_S57
+      int l_nSymbolStyle   = ps52plib->m_nSymbolStyle;
+      int l_nBoundaryStyle = ps52plib->m_nBoundaryStyle;
+#endif
+
 //    Pause all of the async classes
+#ifdef USE_WIFI_CLIENT
       if(pWIFI)
           pWIFI->Pause();
+#endif
+
       if(pAIS)
           pAIS->Pause();
       if(nmea)
@@ -1591,7 +1685,8 @@ int MyFrame::DoOptionsDialog()
 
             if(*pNMEADataSource != previous_NMEA_source)
             {
-                  nmea->Close();
+                  if(nmea)
+                      nmea->Close();
                   delete nmea;
                   nmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource );
             }
@@ -1599,25 +1694,51 @@ int MyFrame::DoOptionsDialog()
 
             if(*pNMEA_AP_Port != previous_NMEA_APPort)
             {
-                pAPilot->Close();
+                if(pAPilot)
+                    pAPilot->Close();
                 delete pAPilot;
                 pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port );
             }
 
             if(*pAIS_Port != previous_AIS_Port)
             {
-                pAIS->Close();
+                if(pAIS)
+                    pAIS->Close();
                 delete pAIS;
                 pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port );
             }
 
+#ifdef USE_S57
+            if((l_nSymbolStyle != ps52plib->m_nSymbolStyle) ||
+                   (l_nBoundaryStyle != ps52plib->m_nBoundaryStyle))
+            {
+                // Traverse the database of open charts.
+                // Finding S57 chart, execute UpdateLUPs to link objects
+                // to possibly new symbology style.
+                unsigned int nCache = ChartData->pChartCache->GetCount();
+                for(unsigned int i=0 ; i<nCache ; i++)
+                {
+                    CacheEntry *pce = (CacheEntry *)(ChartData->pChartCache->Item(i));
+                    ChartBase *Ch = (ChartBase *)pce->pChart;
+                    if(Ch->ChartType == CHART_TYPE_S57)
+                    {
+                        s57chart *S57_Ch = dynamic_cast<s57chart *>(Ch);
+                        S57_Ch->UpdateLUPs();
+                    }
+                }
+            }
+
+#endif
 
             pConfig->UpdateSettings();
       }
 
 //    Restart the async classes
+#ifdef USE_WIFI_CLIENT
       if(pWIFI)
           pWIFI->UnPause();
+#endif
+
       if(pAIS)
           pAIS->UnPause();
       if(nmea)
@@ -1627,7 +1748,7 @@ int MyFrame::DoOptionsDialog()
 
       bDBUpdateInProgress = false;
 
-      return(bPrevPrintIcon != g_bShowPrintIcon);       // indicate a change of toolbar is necessary
+      return((bPrevPrintIcon != g_bShowPrintIcon));    // indicate a refresh is necessary
 
 }
 
@@ -1658,8 +1779,34 @@ void MyFrame::DoStackUp(void)
 
 void MyFrame::OnFrameTimer1(wxTimerEvent& event)
 {
-
       g_tick++;
+
+//      Finish TCP/IP Sockets test
+// See the code in MyApp::TestSockets()
+/*
+      if(s_socket_test_running)
+      {
+          s_socket_test_running  = false;
+//  Clean up
+          wxTheApp->Disconnect(wxID_ANY, wxID_ANY, (wxEventType)wxEVT_SOCKET, (wxObjectEventFunction)NULL, NULL, NULL);
+          delete s_s_sock;
+          delete s_t_sock;
+
+          if(!s_socket_test_passed)
+          {
+              wxString msg1("\
+This version of wxWidgets cannot process TCP/IP socket traffic.\n\
+     So, NMEA TCP/IP data input support will be disabled.\n\
+            You may need a wxWidgets upgrade, or\n\
+    rebuild wxWidgets with --enable-compat24 config flag.");
+
+              wxMessageDialog mdlg(gFrame, msg1, wxString("OpenCPN"),wxICON_ERROR | wxOK );
+              int dlg_ret;
+              dlg_ret = mdlg.ShowModal();
+          }
+      }
+*/
+
 
 //      Listen for quitflag to be set, requesting application close
       if(quitflag)
@@ -1675,7 +1822,6 @@ void MyFrame::OnFrameTimer1(wxTimerEvent& event)
 
       FrameTimer1.Stop();
 
-
 //  Update and check watchdog timer for GPS data source
       gGPS_Watchdog--;
 
@@ -1687,11 +1833,16 @@ void MyFrame::OnFrameTimer1(wxTimerEvent& event)
           UpdateToolbarStatusWindow(Current_Ch);
 
 //      Update the chart database and displayed chart
-//      bool bnew_chart = DoChartUpdate(0);
-      DoChartUpdate(0);
+      bool bnew_chart = DoChartUpdate(0);
 
 //      Update the active route, if any
-      pRouteMan->UpdateProgress();
+      if(pRouteMan->UpdateProgress())
+      {
+          nBlinkerTick++;
+          //    This RefreshRect will cause any active routepoint to blink
+          if(pRouteMan->GetpActiveRoute())
+            cc1->RefreshRect(pRouteMan->GetpActiveRoute()->active_pt_rect, false);
+      }
 
 //      Update the memory status, and display
 #ifdef __LINUX__
@@ -1719,10 +1870,13 @@ void MyFrame::OnFrameTimer1(wxTimerEvent& event)
         cc1->Ship_Color = *wxRED;
         cc1->Ship_Size  = 10;
 
-        if(Current_Ch->Chart_Error_Factor > 0.01)
+        if(Current_Ch)
         {
-            cc1->Ship_Color = wxColor(255,255,0);
-            cc1->Ship_Size  = 20;
+           if(Current_Ch->Chart_Error_Factor > 0.02)
+            {
+                cc1->Ship_Color = wxColor(255,255,0);
+                cc1->Ship_Size  = 20;
+            }
         }
 
         if(!bGPSValid)
@@ -1734,14 +1888,23 @@ void MyFrame::OnFrameTimer1(wxTimerEvent& event)
 
         FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
 
-      if(1/*bnew_chart*/)
-        cc1->Refresh(false);
-      else
-        cc1->RefreshRect(wxRect(0,0,1,1), false);
+//        cc1->Refresh(false);
 
-      console->Refresh(false);
 
-      nBlinkerTick++;
+//  Invalidate the ChartCanvas window appropriately
+        cc1->UpdateShips();
+        cc1->UpdateAIS();
+
+//        worry about active point blink
+
+        if(bnew_chart || cc1->GetbNewVP())
+        {
+//            printf("Timer Refresh(false) bnew_chart: %d bNewVP:%d\n", bnew_chart,cc1->GetbNewVP());
+            cc1->Refresh(false);
+        }
+
+        console->Refresh(false);
+
 
 }
 
@@ -1749,24 +1912,19 @@ void MyFrame::OnFrameTimer1(wxTimerEvent& event)
 void MyFrame::UpdateChartStatusField(int i)
 {
         char buf[80], buf1[80];
-        ChartData->ChartDB::GetChartID(pCurrentStack, CurrentStackEntry, buf);
+        ChartData->ChartDB::GetChartID(pCurrentStack, CurrentStackEntry, buf, sizeof(buf));
         sprintf (buf1, "  %d/%d", CurrentStackEntry, pCurrentStack->nEntry-1);
         strcat(buf, "  ");
         strcat(buf, buf1);
         strcat(buf, "  ");
 
-        ChartData->GetStackChartScale(pCurrentStack, CurrentStackEntry, buf1);
+        ChartData->GetStackChartScale(pCurrentStack, CurrentStackEntry, buf1, sizeof(buf1));
         strcat(buf, buf1);
 
         if(pStatusBar)
                 SetStatusText(buf, i);
 
         stats->Refresh(false);
-
-//        ChartData->GetChartID(pCurrentStack, CurrentStackEntry, buf);
-
-//        stats->pTStat1->TextDraw(buf);
-
 }
 
 
@@ -1809,12 +1967,15 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
     if(NULL == pchart)
         return;
 
+    if(tool_dummy_size_x <= 0)
+        return;
+
 #ifdef __WXMSW__
-      int font1_size = 24;
+//      int font1_size = 24;
       int font2_size = 10;
       int font3_size = 14;
 #else
-      int font1_size = 22;
+//      int font1_size = 22;
       int font2_size = 12;
       int font3_size = 16;
 #endif
@@ -1836,11 +1997,16 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       wxBrush *p_brush;
       p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(200,220,200), wxSOLID);   // quiet green
 
-      if(Current_Ch->Chart_Error_Factor > .01)                                       // one percent error
+      if(Current_Ch->Chart_Error_Factor > .02)                                       // one percent error
           p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,0), wxSOLID);   // loud yellow
 
       if(!bGPSValid)
-          p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(220,200,200), wxSOLID);  // soft red
+      {
+          if(Current_Ch->Chart_Error_Factor > .02)                                       // one percent error
+              p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,108,0), wxSOLID);  // orange
+          else
+              p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(220,200,200), wxSOLID);  // soft red
+      }
 
       dc.SetBackground(*p_brush);
       dc.Clear();
@@ -1848,7 +2014,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 // Show Pub date
 // Get a Font
       wxFont *pSWFont1;
-      pSWFont1 = wxTheFontList->FindOrCreateFont(font1_size, wxDEFAULT,wxNORMAL, wxBOLD,
+      pSWFont1 = wxTheFontList->FindOrCreateFont(font3_size, wxDEFAULT,wxNORMAL, wxBOLD,
                   FALSE, wxString("Eurostile Extended"), wxFONTENCODING_SYSTEM );
       dc.SetFont(*pSWFont1);
 
@@ -1952,11 +2118,6 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 
       if(ct_pos != -1)
       {
-
-#ifdef __WXMSW__
-        delete pt;
-#endif
-
 #ifdef __WXMSW__
 //      Delete the EXIT tool
         toolBar->DeleteTool(ID_TBEXIT);
@@ -1974,7 +2135,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 #else
 //   Delete the current status tool
         toolBar->DeleteTool(ID_TBSTAT);
-      toolBar->Realize();
+        toolBar->Realize();
 
 //      Insert the new control
         toolBar->InsertControl(ct_pos, ptool_ct_dummy);
@@ -2012,7 +2173,7 @@ void MyFrame::SelectChartFromStack(int index)
 
 
 //      Update the Status Line
-            UpdateChartStatusField(2);
+            UpdateChartStatusField(0);
 
 //      Update the Toolbar Status window
             UpdateToolbarStatusWindow(Current_Ch);
@@ -2066,36 +2227,6 @@ void MyFrame::SelectChartFromStack(int index)
                 //  And set the new view
                 cc1->SetViewPoint(zLat, zLon, new_chart_1x_scale / binary_scale_factor,
                                   Current_Ch->GetChartSkew() * PI / 180., 1, new_sample_mode); //set mod 4
-
-                /*
-// calculate new chart conventional scale at 1x
-                  double slat, slon_left, slon_right;
-                  Current_Ch->pix_to_latlong(0, 0, &slat, &slon_left);
-                  Current_Ch->pix_to_latlong(cc1->GetCanvas_width(), 0, &slat, &slon_right);
-                  float ppdl = cc1->GetCanvas_width() / (slon_right - slon_left);
-                  int conv_scale_at_1x = (int)(cc1->canvas_scale_factor / ppdl);
-// try to match to the target when going to a smaller scale chart
-                  int binary_scale_factor = 1;
-                  if(conv_scale_at_1x < target_scale)
-                  {
-                    while(binary_scale_factor < 8)
-                    {
-                        if(fabs((conv_scale_at_1x * binary_scale_factor ) - target_scale) < (target_scale * 0.05))
-                            break;
-                        if((conv_scale_at_1x * binary_scale_factor ) > target_scale)
-                            break;
-                        else
-                            binary_scale_factor *= 2;
-                    }
-                  }
-
-                  else
-                      binary_scale_factor = 1;
-
-                  getPPM?
-                  cc1->SetViewPoint(zLat, zLon, Current_Ch->GetNativeScale() * binary_scale_factor,
-                                    Current_Ch->GetChartSkew() * PI / 180., 1, new_sample_mode); //set mod 4
-                */
              }
 
         cc1->SetbNewVP(true);
@@ -2120,10 +2251,10 @@ void MyFrame::SetChartThumbnail(int index)
 
         if(index == -1)
         {
-                pthumbwin->pThumbChart = NULL;
-                pthumbwin->Show(false);
-                cc1->m_bForceReDraw = true;
-                cc1->Refresh(FALSE);
+            wxRect thumb_rect_in_parent = pthumbwin->GetRect();;
+            pthumbwin->pThumbChart = NULL;
+            pthumbwin->Show(false);
+            cc1->RefreshRect(thumb_rect_in_parent, FALSE);
         }
 
         else if(index < pCurrentStack->nEntry)
@@ -2139,6 +2270,7 @@ void MyFrame::SetChartThumbnail(int index)
                                 {
                                         pthumbwin->pThumbChart = new_pThumbChart;
 
+                                        cc1->m_bForceReDraw = true;
 
                                         pthumbwin->Resize();
                                         pthumbwin->Show(true);
@@ -2151,7 +2283,7 @@ void MyFrame::SetChartThumbnail(int index)
                                 {
                                       //Todo Make this a safe wxString, need overload for GetFullPath()
                                         char pFullPath[100];
-                                        ChartData->GetFullPath(pCurrentStack, index, pFullPath);
+                                        ChartData->GetFullPath(pCurrentStack, index, pFullPath, sizeof(pFullPath));
 
                                         wxString msg(_T("Chart file corrupt.. disabling this chart \n"));
                                         msg.Append(wxString(pFullPath));
@@ -2171,8 +2303,8 @@ void MyFrame::SetChartThumbnail(int index)
                         }
                         else                            // some problem opening chart
                         {
-                char buf[80];
-                ChartData->GetFullPath(pCurrentStack, index, buf);
+                                char buf[80];
+                                ChartData->GetFullPath(pCurrentStack, index, buf, sizeof(buf));
                                 wxLogMessage("chart1.cpp:SetChartThumbnail...Could not open chart %s", buf);
                                 pthumbwin->pThumbChart = NULL;
                                 pthumbwin->Show(false);
@@ -2229,6 +2361,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
         float tLat, tLon;
         float new_binary_scale_factor;
         bool bNewChart = false;
+        bool bNewPiano = false;
 
         if(bDBUpdateInProgress)
                 return false;
@@ -2247,6 +2380,10 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                 tLon = vLon;
         }
 
+        //  Make sure the target stack is valid
+        if(NULL == pCurrentStack)
+               pCurrentStack = new ChartStack;
+
         // Build a chart stack based on tLat, tLon
         ChartStack *pWorkStack = new ChartStack;
         int l = ChartData->BuildChartStack(pWorkStack, tLat, tLon);
@@ -2255,18 +2392,21 @@ bool MyFrame::DoChartUpdate(int bSelectType)
         {
                 if(NULL == pDummyChart)
                 {
-                        pDummyChart = new ChartDummy;
-                        Current_Ch = pDummyChart;
-                        cc1->SetViewPoint(tLat, tLon, .001, 0, 0, CURRENT_RENDER);
+                    pDummyChart = new ChartDummy;
+                    bNewChart = true;
                 }
 
-                else
-                {
-                        Current_Ch = pDummyChart;
-                        cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(), 0, 0, CURRENT_RENDER);
-                }
+                if(Current_Ch)
+                    if(Current_Ch->ChartType != CHART_TYPE_DUMMY)
+                        bNewChart = true;
 
-                bNewChart = true;
+                Current_Ch = pDummyChart;
+                cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(), 0, 0, CURRENT_RENDER);
+                bNewPiano = true;
+
+        //      Copy the new (by definition empty) stack into the target stack
+                ChartData->CopyStack(pCurrentStack, pWorkStack);
+
                 goto update_finish;
         }
 
@@ -2277,9 +2417,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
         //      New chart stack, so...
 
-        //  Make sure the target stack is valid
-                if(NULL == pCurrentStack)
-                        pCurrentStack = new ChartStack;
+                bNewPiano = true;
 
         //      Copy the new stack into the target stack
                 ChartData->CopyStack(pCurrentStack, pWorkStack);
@@ -2314,7 +2452,9 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                   {
                         if(ChartData->GetCSChartType(pCurrentStack, CurrentStackEntry) != CHART_TYPE_S57)
                         {
-                              if ((ptc = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry)))
+                              ptc = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry);
+
+                              if (NULL != ptc)
                               {
                                   new_binary_scale_factor = current_binary_scale_factor;        // Try to set scale to current value
 
@@ -2364,20 +2504,21 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
                         gLat = START_LAT;                               // GPS position, as default
                         gLon = START_LON;
+                        cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(), 0, 0, CURRENT_RENDER);
 
                 }
 
                 if(NULL != Current_Ch)
                 {
 //    Chart stack has changed, and may be a new chart opened
-                  if(bNewChart)
-                  {
+//                  if(bNewChart)
+//                  {
 //    Update the Toolbar Status window
-                      UpdateToolbarStatusWindow(Current_Ch);
-                  }
+//                      UpdateToolbarStatusWindow(Current_Ch);
+//                  }
 
 //      Update the Status Line
-                  UpdateChartStatusField(2);
+                  UpdateChartStatusField(0);
 
 //      Setup the view using the current scale
                   double set_scale = cc1->GetVPScale();
@@ -2392,8 +2533,6 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
                   cc1->SetViewPoint(tLat, tLon, set_scale,
                                     Current_Ch->GetChartSkew() * PI / 180., 1, CURRENT_RENDER);
-
-                  stats->FormatStat();
                 }
         }
 
@@ -2407,6 +2546,11 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
 
 update_finish:
+        if(bNewChart)
+            UpdateToolbarStatusWindow(Current_Ch);
+
+        if(bNewPiano)
+            stats->FormatStat();
 
         //  Some debug
         //  Open the smallest scale vector chart available
@@ -2450,7 +2594,8 @@ bool MyFrame::GetMemoryStatus(int& mem_total, int& mem_used)
 
 //      Use filesystem /proc/meminfo to determine memory status
 
-    char *p, buf[2000];
+    char *p;
+    char buf[2000];
     int len;
 
 //      Open and read the file
@@ -2496,7 +2641,9 @@ Hugepagesize:     4096 kB
 */
 
         char *s;
-        char sbuf[100], stoken[20], skb[20];
+        char sbuf[100];
+        char stoken[20];
+        char skb[20];
         int sval, val_cnt;
 
         int m_total, m_active, m_inactive, m_buffers, m_cached, m_free;
@@ -2627,7 +2774,8 @@ void *x_malloc(size_t t)
 
                 // Cat the /proc/meminfo file
 
-                char *p, buf[2000];
+                char *p;
+                char buf[2000];
                 int len;
 
                 int     fd = open("/proc/meminfo", O_RDONLY);
@@ -2679,8 +2827,8 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
     {
         case EVT_NMEA_PARSE_RX:
         {
-            if(ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR )
-        {
+            if(ps_mutexProtectingTheRXBuffer->TryLock() == wxMUTEX_NO_ERROR )
+            {
                 if(RX_BUFFER_FULL == rx_share_buffer_state)
                 {
                     int nchar = strlen(rx_share_buffer);
@@ -2694,15 +2842,21 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                      wxLogMessage("Got NMEA Event with RX_BUFFER_EMPTY");
 
                 ps_mutexProtectingTheRXBuffer->Unlock();
-        }
+            }
+            else
+            {
+                AddPendingEvent(event);
+                break;
+            }
 
 
-/*
+
+/*  DEBUG
                 if(pStatusBar)
                 {
                     wxString buf_nolf(buf);
                     buf_nolf.RemoveLast();
-                    SetStatusText(buf_nolf.c_str(), 4);
+                    SetStatusText(buf_nolf.c_str(), 3);
                 }
 */
 
@@ -2744,10 +2898,18 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 
         case EVT_NMEA_DIRECT:
         {
+            gLat = kLat;
+            gLon = kLon;
+            gCog = kCog;
+            gSog = kSog;
+
             bool last_bGPSValid = bGPSValid;
             bGPSValid = true;
             if(!last_bGPSValid)
+            {
                 UpdateToolbarStatusWindow(Current_Ch);
+                cc1->Refresh(false);            // cause own-ship icon to redraw
+            }
 
             gGPS_Watchdog = GPS_TIMEOUT_SECONDS;
 
@@ -2799,7 +2961,7 @@ bool MyPrintout::OnPrintPage(int page)
     wxDC *dc = GetDC();
     if (dc)
     {
-        if (page == 1)
+        if (page == 0)
             DrawPageOne(dc);
 
         return true;
@@ -2826,7 +2988,7 @@ void MyPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 
 bool MyPrintout::HasPage(int pageNum)
 {
-    return (pageNum == 1);
+    return (pageNum == 0);
 }
 
 void MyPrintout::DrawPageOne(wxDC *dc)

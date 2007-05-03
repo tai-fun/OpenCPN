@@ -8,22 +8,9 @@
 
 //#include "dychart.h"
 
-//CPL_CVSID("$Id: dataum.c,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+//CPL_CVSID("$Id: dataum.c,v 1.2 2007/05/03 13:26:12 dsr Exp $");
 
 
-struct DATUM {
-        char *name;
-        short ellipsoid;
-        double dx;
-        double dy;
-        double dz;
-};
-
-struct ELLIPSOID {
-        char *name;             // name of ellipsoid
-        double a;               // semi-major axis, meters
-        double invf;            // 1/f
-};
 
 /* For NAD27 shift table */
 //extern struct CTABLE conus_ct[];

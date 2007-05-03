@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.7  2007/05/03 13:23:56  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.6  2007/01/19 02:19:52  dsr
  * Improve bar scaling
  *
@@ -87,7 +90,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.6 2007/01/19 02:19:52 dsr Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.7 2007/05/03 13:23:56 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -114,12 +117,6 @@ StatWin::StatWin(wxFrame *frame):
 
       pPiano = new PianoWin((wxFrame *)this);
       pPiano->SetSize(0, 0, x *6/10, y*1/m_rows);
-
-//      pTStat1 = new TStatWin((wxFrame *)this);
-//      pTStat1->SetSize(0, y * 1/m_rows, x , y * 1/m_rows);
-
-//      pTStat2 = new TStatWin((wxFrame *)this);
-//      pTStat2->SetSize(0, y * 2/m_rows, x , y * 1/m_rows);
 
 #ifdef USE_WIFI_CLIENT
       pWiFi = new WiFiStatWin((wxFrame *)this);
@@ -353,13 +350,9 @@ void PianoWin::FormatKeys(void)
             {
                   wxRegion r((i * kw) +3, 2, kw-6, height-4);
                   KeyRegion[i] = r;
-
             }
-            nRegions = nKeys;
-
-
       }
-
+      nRegions = nKeys;
 
 }
 

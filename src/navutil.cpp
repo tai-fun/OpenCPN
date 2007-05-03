@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.6  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.5  2007/03/02 02:01:06  dsr
  * Cleanup, improve horizontal route segment selection
  *
@@ -67,7 +70,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.5 2007/03/02 02:01:06 dsr Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $");
 
 //    Statics
 
@@ -82,6 +85,8 @@ extern Select           *pSelect;
 extern MyConfig         *pConfig;
 extern wxArrayString    *pChartDirArray;
 extern float            vLat, vLon, gLat, gLon;
+extern double           initial_scale_ppm;
+
 extern wxToolBarBase    *toolBar;
 extern wxString         *pNMEADataSource;
 extern wxString         *pNMEA_AP_Port;
@@ -91,6 +96,8 @@ extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
 extern wxString         *pAIS_Port;
 extern AIS_Decoder      *pAIS;
+
+extern bool             s_bSetSystemTime;
 
 #ifdef USE_S57
 extern s52plib          *ps52plib;
@@ -545,9 +552,10 @@ void Route::DrawPointLL(wxDC& dc, float rlat, float rlon, int iPoint, wxPoint *r
       wxPoint r;
       cc1->GetPointPix(rlat, rlon, &r);
 
+      int d = 8;                         // nominal routepoint render size metric
+
       if((r.x > 0) && (r.x < sx) && (r.y > 0) && (r.y < sy))
       {
-            int d = 8;
             dc.DrawLine(r.x, r.y+d, r.x+d, r.y);
             dc.DrawLine(r.x+d, r.y, r.x, r.y-d);
             dc.DrawLine(r.x, r.y-d, r.x-d, r.y);
@@ -557,9 +565,18 @@ void Route::DrawPointLL(wxDC& dc, float rlat, float rlon, int iPoint, wxPoint *r
             sprintf(buf, "%03d", iPoint);
             dc.DrawText(buf, r.x-10, r.y+8);
       }
-//    dc.DrawCircle(rpt, 5);
 
       *rpn = r;
+
+      //    Save the dc bounding rectangle if this is the active point
+      //    To be used to cause Invalidate/Blink
+      if(m_nRouteActivePoint == iPoint)
+      {
+          active_pt_rect.x = r.x - d - 1;
+          active_pt_rect.y = r.y - d - 1;
+          active_pt_rect.width  = d + d + 2;
+          active_pt_rect.height = d + d + 2;
+      }
 
       dc.SetPen(oldPen);                        // Restore last pen
 
@@ -760,6 +777,36 @@ void Route::CalculateBBox()
 
 }
 
+void Route::CalculateDCRect(wxDC& dc_route, wxRect *prect)
+{
+    //    Get input dc boundary
+//    int sx, sy;
+ //   dc_route.GetSize(&sx, &sy);
+
+    //  Need a bitmap
+//    wxBitmap test_bitmap(sx, sy,  -1);
+
+    // Create a memory DC
+//    wxMemoryDC temp_dc;
+//    temp_dc.SelectObject(test_bitmap);
+
+    dc_route.ResetBoundingBox();
+    dc_route.DestroyClippingRegion();
+//    dc_route.SetClippingRegion(wxRect(0,0,sx,sy));
+
+    // Draw the route on the dc
+    DrawRoute(dc_route);
+
+    //  Retrieve the drawing extents
+    prect->x = dc_route.MinX() - 1;
+    prect->y = dc_route.MinY() - 1;
+    prect->width  = dc_route.MaxX() - dc_route.MinX() + 2; // Mouse Poop?
+    prect->height = dc_route.MaxY() - dc_route.MinY() + 2;
+
+//    temp_dc.SelectObject(wxNullBitmap);
+}
+
+
 void Route::UpdateSegmentDistances()
 {
       wxPoint rpt, rptn;
@@ -834,6 +881,9 @@ int MyConfig::LoadMyConfig(int iteration)
 //    Global options and settings
       SetPath("/Settings");
 
+      s_bSetSystemTime = false;
+      Read("SetSystemTime", &s_bSetSystemTime);
+
       m_bShowDebugWindows = false;
       Read("ShowDebugWindows", &m_bShowDebugWindows);
 
@@ -857,11 +907,25 @@ int MyConfig::LoadMyConfig(int iteration)
 
       SetPath("/Settings/GlobalState");
       Read("nSymbolStyle", &m_nSymbolStyle, (enum _LUPname)PAPER_CHART);
-      ps52plib->m_nSymbolStyle = m_nSymbolStyle;
+      ps52plib->m_nSymbolStyle = (LUPname)m_nSymbolStyle;
 
       SetPath("/Settings/GlobalState");
       Read("nBoundaryStyle", &m_nBoundaryStyle, 0);
-      ps52plib->m_nBoundaryStyle = m_nBoundaryStyle;
+      ps52plib->m_nBoundaryStyle = (LUPname)m_nBoundaryStyle;
+
+      SetPath("/Settings/GlobalState");
+      Read("bShowSoundg", &m_bShowSoundg, 0);
+      ps52plib->m_bShowSoundg = m_bShowSoundg;
+
+      SetPath("/Settings/GlobalState");
+      Read("bShowMeta", &m_bShowMeta, 0);
+      ps52plib->m_bShowMeta = m_bShowMeta;
+
+      SetPath("/Settings/GlobalState");
+      Read("bUseSCAMIN", &m_bUseSCAMIN, 0);
+      ps52plib->m_bUseSCAMIN = m_bUseSCAMIN;
+
+      ps52plib->UpdateMarinerParams();
     }
 
     wxString strd("S57DataLocation");
@@ -872,8 +936,11 @@ int MyConfig::LoadMyConfig(int iteration)
     wxString dirname(val);
     if(!dirname.IsEmpty())
     {
-        pcsv_locn->Clear();
-        pcsv_locn->Append(val);
+        if(pcsv_locn->IsEmpty())      // on second pass, don't overwrite
+        {
+            pcsv_locn->Clear();
+            pcsv_locn->Append(val);
+        }
     }
 
 
@@ -925,12 +992,15 @@ int MyConfig::LoadMyConfig(int iteration)
 
       if(nr == 2)
       {
-//    Sanity check the lat/lon
+//    Sanity check the lat/lon/scale
             if((st_lat > 0.0) && (st_lat < 90.0))
                   vLat = st_lat;
 
             if((st_lon > -179.9) && (st_lon < 179.9))
                   vLon = st_lon;
+
+            st_view_scale = fmax(st_view_scale, .001/32);
+            initial_scale_ppm = st_view_scale;
       }
 
 
@@ -1033,9 +1103,11 @@ int MyConfig::LoadMyConfig(int iteration)
 #ifdef __WXX11__
       SetPath("/Settings/X11Fonts");
 #endif
+
 #ifdef __WXGTK__
       SetPath("/Settings/GTKFonts");
 #endif
+
 #ifdef __WXMSW__
       SetPath("/Settings/MSWFonts");
 #endif
@@ -1264,6 +1336,7 @@ void MyConfig::UpdateSettings()
 
       Write("ShowDebugWindows", m_bShowDebugWindows);
       Write("ShowPrintIcon", g_bShowPrintIcon);
+      Write("SetSystemTime", s_bSetSystemTime);
 
 
 //    S57 Object Filter Settings
@@ -1298,7 +1371,7 @@ void MyConfig::UpdateSettings()
       {
             sprintf(pv, "%10.4f,%10.4f", cc1->VPoint.clat, cc1->VPoint.clon);
             Write("VPLatLon", pv);
-            sprintf(pv, "%16.1f", cc1->VPoint.view_scale_ppm);
+            sprintf(pv, "%g", cc1->VPoint.view_scale_ppm);
             Write("VPScale", pv);
       }
 
@@ -1311,8 +1384,12 @@ void MyConfig::UpdateSettings()
 #ifdef USE_S57
       Write("bShowS57Text", ps52plib->GetShowS57Text());
       Write("nDisplayCategory", (long)ps52plib->m_nDisplayCategory);
-      Write("nSymbolStyle", ps52plib->m_nSymbolStyle);
-      Write("nBoundaryStyle", ps52plib->m_nBoundaryStyle);
+      Write("nSymbolStyle", (int)ps52plib->m_nSymbolStyle);
+      Write("nBoundaryStyle", (int)ps52plib->m_nBoundaryStyle);
+
+      Write("bShowSoundg", ps52plib->m_bShowSoundg);
+      Write("bShowMeta", ps52plib->m_bShowMeta);
+      Write("bUseSCAMIN", ps52plib->m_bUseSCAMIN);
 
       SetPath("/Directories");
       Write("S57DataLocation", *pcsv_locn);
@@ -1353,9 +1430,11 @@ void MyConfig::UpdateSettings()
 #ifdef __WXX11__
       SetPath("/Settings/X11Fonts");
 #endif
+
 #ifdef __WXGTK__
       SetPath("/Settings/GTKFonts");
 #endif
+
 #ifdef __WXMSW__
       SetPath("/Settings/MSWFonts");
 #endif
@@ -1448,17 +1527,19 @@ wxFont *FontMgr::GetFont(wxString &TextElement)
       }
 
       //    Now create a benign, always present native string
+      wxString nativefont;
+
 #ifdef __WXGTK__
-      wxString nativefont(_T("Fixed 12"));
+      nativefont = _T("Fixed 12");
 #endif
+
 #ifdef __WXX11__
-      wxString nativefont(_T("0;-*-fixed-*-*-*-*-*-120-*-*-*-*-iso8859-1"));
+      nativefont = _T("0;-*-fixed-*-*-*-*-*-120-*-*-*-*-iso8859-1");
 #endif
+
 #ifdef __WXMSW__
-      wxString nativefont(_T("0;-11;0;0;0;400;0;0;0;0;0;0;0;0;MS Sans Serif"));
+      nativefont = _T("0;-11;0;0;0;400;0;0;0;0;0;0;0;0;MS Sans Serif");
 #endif
-
-
 
 
       wxFont *nf0 = new wxFont();

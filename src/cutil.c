@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.4 2007/03/02 02:02:41 dsr Exp $
+ * $Id: cutil.c,v 1.5 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Extern C Linked Utilities
@@ -27,6 +27,9 @@
  *
  *
  * $Log: cutil.c,v $
+ * Revision 1.5  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.4  2007/03/02 02:02:41  dsr
  * Cleanup
  *
@@ -36,18 +39,7 @@
  * Revision 1.2  2006/10/01 03:22:58  dsr
  * no message
  *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.3  2006/08/04 11:42:00  dsr
- * no message
- *
- * Revision 1.2  2006/06/02 02:08:34  dsr
- * MyPoint becomes double
- *
- * Revision 1.1  2006/05/19 19:31:30  dsr
- * Initial
- *
+*
  *
  */
 
@@ -58,9 +50,34 @@
 #include <ctype.h>
 
 #include "cutil.h"
-#include "dychart.h"
 
-CPL_CVSID("$Id: cutil.c,v 1.4 2007/03/02 02:02:41 dsr Exp $");
+
+//      Fix up CPL_CVSID if not available
+//      This code block taken directly from <cpl_port.h>
+#ifndef CPL_CVSID
+#ifndef NULL
+#define NULL 0
+#endif
+
+/***********************************************************************
+ * Define CPL_CVSID() macro.  It can be disabled during a build by
+ * defining DISABLE_CPLID in the compiler options.
+ *
+ * The cvsid_aw() function is just there to prevent reports of cpl_cvsid()
+ * being unused.
+ */
+
+#ifndef DISABLE_CVSID
+#  define CPL_CVSID(string)     static char cpl_cvsid[] = string; \
+static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
+#else
+#  define CPL_CVSID(string)
+#endif
+
+#endif
+
+
+CPL_CVSID("$Id: cutil.c,v 1.5 2007/05/03 13:23:55 dsr Exp $");
 
 /*************************************************************************
 
@@ -94,7 +111,7 @@ CPL_CVSID("$Id: cutil.c,v 1.4 2007/03/02 02:02:41 dsr Exp $");
    pt0.y = y;
 
    pt1 = pt2 = pt0 ;
-   pt2.x = (float)180.;                    // Good east till Hong Kong?
+   pt2.x = 1.e6;
 
    // Now go through each of the lines in the polygon and see if it
    // intersects
@@ -286,4 +303,21 @@ ClipResult cohen_sutherland_line_clip_i (int *x0_, int *y0_, int *x1_, int *y1_,
     *x1_ = (int)x1;
     *y1_ = (int)y1;
     return ret;
+}
+
+
+double      round_msvc (double x)
+{
+    return(floor(x + 0.5));
+
+/*
+    int intgr ;
+
+    _asm
+    {     fld flt
+    fistp intgr
+} ;
+
+    return intgr ;
+*/
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.10 2007/01/18 03:19:50 dsr Exp $
+ * $Id: nmea.cpp,v 1.11 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.11  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.10  2007/01/18 03:19:50  dsr
  * Optimize date/time set logic and exec command
  *
@@ -56,26 +59,24 @@
 
 #include "nmea.h"
 #include "chart1.h"
-
+#include "georef.h"
+#include "nmea0183/nmea0183.h"
 
 #ifdef __WXMSW__
-    #ifdef dyUSE_MSW_SERCOMM
+    #ifdef ocpnUSE_MSW_SERCOMM
     #include "sercomm.h"
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.10 2007/01/18 03:19:50 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.11 2007/05/03 13:23:55 dsr Exp $");
 
 //    Forward Declarations
 
 extern NMEAWindow *nmea;
-extern float            gLat, gLon, gSog, gCog;
+extern float            kLat, kLon, kSog, kCog;
 extern bool             bAutoPilotOut;
 
 
-
-extern "C" void toDMS(double a, char *bufp, int bufplen);
-extern "C" void toDMM(double a, char *bufp, int bufplen);
 
 extern int    user_user_id;
 extern int    file_user_id;
@@ -83,6 +84,8 @@ extern int    file_user_id;
 extern wxString          *phost_name;
 
 extern OCP_NMEA_Thread   *pNMEA_Thread;
+extern bool   s_bSetSystemTime;
+extern NMEA0183          *pNMEA0183;
 
 int s_dns_test_flag;
 
@@ -123,82 +126,9 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
 //    Decide upon NMEA source
       wxLogMessage("NMEA Data Source is....%s",m_pdata_source_string->c_str());
 
-//      NMEA Data Source is private TCP/IP Server
-      if(m_pdata_source_string->Contains("GPSD"))
-      {
-            wxString NMEA_data_ip;
-            NMEA_data_ip = m_pdata_source_string->Mid(5);         // extract the IP
-
-// Create the socket
-            m_sock = new wxSocketClient();
-
-// Setup the event handler and subscribe to most events
-            m_sock->SetEventHandler(*this, SOCKET_ID);
-
-            m_sock->SetNotify(wxSOCKET_CONNECTION_FLAG |
-                    wxSOCKET_INPUT_FLAG |
-                    wxSOCKET_LOST_FLAG);
-            m_sock->Notify(TRUE);
-
-            m_busy = FALSE;
-
-
-//    Build the target address
-
-//    n.b. Win98
-//    wxIPV4address::Hostname() uses sockets function gethostbyname() for address resolution
-//    Implications...Either name target must exist in c:\windows\hosts, or
-//                            a DNS server must be active on the network.
-//    If neither true, then wxIPV4address::Hostname() will block (forever?)....
-//
-//    Workaround....
-//    Use a thread to try the name lookup, in case it hangs
-
-            DNSTestThread *ptest_thread = NULL;
-            ptest_thread = new DNSTestThread(NMEA_data_ip);
-
-            ptest_thread->Run();                      // Run the thread from ::Entry()
-
-
-//    Sleep and loop for N seconds
-#define SLEEP_TEST_SEC  2
-
-            for(int is=0 ; is<SLEEP_TEST_SEC * 10 ; is++)
-            {
-                  wxMilliSleep(100);
-                  if(s_dns_test_flag)
-                        break;
-            }
-
-            if(!s_dns_test_flag)
-            {
-
-                  wxString msg(NMEA_data_ip);
-                  msg.Prepend("Could not resolve TCP/IP host '");
-                  msg.Append("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation");
-                  wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
-                  md.ShowModal();
-
-                  m_sock->Notify(FALSE);
-                  m_sock->Destroy();
-                  m_sock = NULL;
-
-                  return;
-            }
-
-
-            //      Resolved the name, somehow, so Connect() the socket
-            addr.Hostname(NMEA_data_ip);
-            addr.Service(GPSD_PORT_NUMBER);
-            m_sock->Connect(addr, FALSE);       // Non-blocking connect
-
-            TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
-      }
-
 
 //    NMEA Data Source is specified serial port
-
-      else if(m_pdata_source_string->Contains("Serial"))
+      if(m_pdata_source_string->Contains("Serial"))
       {
           wxString comx;
           comx =  m_pdata_source_string->Mid(7);        // either "COM1" style or "/dev/ttyS0" style
@@ -242,6 +172,79 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
 
       }
 
+#ifndef OCPN_DISABLE_SOCKETS
+//      NMEA Data Source is private TCP/IP Server
+        else if(m_pdata_source_string->Contains("GPSD"))
+        {
+            wxString NMEA_data_ip;
+            NMEA_data_ip = m_pdata_source_string->Mid(5);         // extract the IP
+
+        // Create the socket
+            m_sock = new wxSocketClient();
+
+        // Setup the event handler and subscribe to most events
+            m_sock->SetEventHandler(*this, SOCKET_ID);
+
+            m_sock->SetNotify(wxSOCKET_CONNECTION_FLAG |
+                    wxSOCKET_INPUT_FLAG |
+                    wxSOCKET_LOST_FLAG);
+            m_sock->Notify(TRUE);
+
+            m_busy = FALSE;
+
+
+//    Build the target address
+
+//    n.b. Win98
+//    wxIPV4address::Hostname() uses sockets function gethostbyname() for address resolution
+//    Implications...Either name target must exist in c:\windows\hosts, or
+//                            a DNS server must be active on the network.
+//    If neither true, then wxIPV4address::Hostname() will block (forever?)....
+//
+//    Workaround....
+//    Use a thread to try the name lookup, in case it hangs
+
+            DNSTestThread *ptest_thread = NULL;
+            ptest_thread = new DNSTestThread(NMEA_data_ip);
+
+            ptest_thread->Run();                      // Run the thread from ::Entry()
+
+
+//    Sleep and loop for N seconds
+#define SLEEP_TEST_SEC  2
+
+            for(int is=0 ; is<SLEEP_TEST_SEC * 10 ; is++)
+            {
+                wxMilliSleep(100);
+                if(s_dns_test_flag)
+                    break;
+            }
+
+            if(!s_dns_test_flag)
+            {
+
+                wxString msg(NMEA_data_ip);
+                msg.Prepend("Could not resolve TCP/IP host '");
+                msg.Append("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation");
+                wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
+                md.ShowModal();
+
+                m_sock->Notify(FALSE);
+                m_sock->Destroy();
+                m_sock = NULL;
+
+                return;
+            }
+
+            //      Resolved the name, somehow, so Connect() the socket
+            addr.Hostname(NMEA_data_ip);
+            addr.Service(GPSD_PORT_NUMBER);
+            m_sock->Connect(addr, FALSE);       // Non-blocking connect
+
+            TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
+    }
+#endif
+
       Hide();
 }
 
@@ -266,11 +269,11 @@ void NMEAWindow::OnCloseWindow(wxCloseEvent& event)
 //    Kill off the NMEA RX Thread if alive
       if(pNMEA_Thread)
       {
-          pNMEA_Thread->Delete();         //was kill();
+          pNMEA_Thread->Delete();
 #ifdef __WXMSW__
-          wxSleep(2);
+//          wxSleep(2);
 #else
-          sleep(2);
+          sleep(1);
 #endif
       }
 
@@ -374,11 +377,11 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dglat))
-                        gLat = dglat;
+                        kLat = dglat;
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dglon))
-                        gLon = dglon;
+                        kLon = dglon;
 
                     token = tkz.GetNextToken();         // skip to tmg
                     token = tkz.GetNextToken();
@@ -386,14 +389,15 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dgcog))
-                        gCog = dgcog;
+                        kCog = dgcog;
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dgsog))
-                        gSog = dgsog;
+                        kSog = dgsog;
 
+#ifdef ocpnUPDATE_SYSTEM_TIME
 //      Use the fix time to update the local clock
-                    if(fix_time.IsValid())
+                    if(fix_time.IsValid() && s_bSetSystemTime)
                     {
 
 //          Compare the server (fix) time to the current system time
@@ -459,6 +463,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                         }           // if needs correction
                     }               // if valid time
 
+#endif
 
 //    Signal the main program thread
 
@@ -505,7 +510,7 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
       if(1)
       {
             gCog = 290.;
-            gSog = 7.;
+            gSog = 20.;
 
             float PI = 3.14159;
             float pred_lat = gLat +  (cos(gCog * PI / 180) * gSog * (1. / 60.) / 3600.)/(cos(gLat * PI/180.));
@@ -520,12 +525,12 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 
       char buf[80];
       strcpy(buf, "                        ");        // ugly
-      toDMM(gLat, buf, 20);
+      toDMM(kLat, buf, 20);
       int i = strlen(buf);
       buf[i++] = ' ';
       buf[i++] = ' ';
 
-      toDMM(gLon, &buf[i], 20);
+      toDMM(kLon, &buf[i], 20);
 
       if(parent_frame->pStatusBar)
             parent_frame->SetStatusText(buf, 3);
@@ -598,6 +603,8 @@ extern wxMutex                      *ps_mutexProtectingTheRXBuffer;
 OCP_NMEA_Thread::OCP_NMEA_Thread(wxWindow *MainWindow, const char *pszPortName)
 {
 
+      m_parent_frame = (MyFrame *)MainWindow;
+
       m_pMainEventHandler = MainWindow->GetEventHandler();
 
       rx_share_buffer_state = RX_BUFFER_EMPTY;
@@ -616,6 +623,8 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(wxWindow *MainWindow, const char *pszPortName)
 OCP_NMEA_Thread::~OCP_NMEA_Thread(void)
 {
       delete rx_buffer;
+      delete m_pPortName;
+      delete ps_mutexProtectingTheRXBuffer;
 }
 
 void OCP_NMEA_Thread::OnExit(void)
@@ -642,7 +651,6 @@ void OCP_NMEA_Thread::OnExit(void)
 //      in a very machine specific way....
 
 #ifdef __LINUX__
-#if 1
 //    Entry Point
 void *OCP_NMEA_Thread::Entry()
 {
@@ -654,13 +662,15 @@ void *OCP_NMEA_Thread::Entry()
     pttyset_old = (termios *)malloc(sizeof (termios));
 
     // Open the serial port.
-    //if ((m_gps_fd = open(m_pPortName->c_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
-    if ((m_gps_fd = open(m_pPortName->c_str(), O_RDWR|O_NOCTTY)) < 0)
+    if ((m_gps_fd = open(m_pPortName->c_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
+//    if ((m_gps_fd = open(m_pPortName->c_str(), O_RDWR|O_NOCTTY)) < 0)
     {
         wxLogMessage("NMEA input device open failed: %s\n", m_pPortName->c_str());
         return 0;
     }
 
+    //something like this may be needed???
+//    fcntl(m_gps_fd, F_SETFL, fcntl(m_gps_fd, F_GETFL) & !O_NONBLOCK);
 
     {
         (void)cfsetispeed(pttyset, B4800);
@@ -684,8 +694,7 @@ void *OCP_NMEA_Thread::Entry()
 
       // Set blocking/timeout behaviour
       memset(pttyset->c_cc,0,sizeof(pttyset->c_cc));
-//      pttyset->c_cc[VMIN] = 1;
-      pttyset->c_cc[VTIME] = 11;                        // 1.1 sec timeout
+      pttyset->c_cc[VTIME] = 5;                        // 0.5 sec timeout
 
       /*
       * No Flow Control
@@ -728,14 +737,14 @@ void *OCP_NMEA_Thread::Entry()
     bool nl_found;
 
 //    The main loop
-    printf("starting\n");
+//    printf("starting\n");
 
     while(not_done)
     {
         if(TestDestroy())
         {
             not_done = false;                               // smooth exit
-            printf("smooth exit\n");
+//            printf("smooth exit\n");
         }
 //    Blocking, timeout protected read of one character at a time
 //    Timeout value is set by c_cc[VTIME]
@@ -746,7 +755,7 @@ void *OCP_NMEA_Thread::Entry()
 
         char next_byte = 0;
         ssize_t newdata;
-        newdata = read(m_gps_fd, &next_byte, 1);            // blocking read of one char
+        newdata = read(m_gps_fd, &next_byte, 1);            // read of one char
                                                             // return (-1) if no data available, timeout
         if(newdata > 0)
         {
@@ -769,9 +778,9 @@ void *OCP_NMEA_Thread::Entry()
 
 
 //    If the shared buffer is available....
-                if(ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR )
+                if(1/*ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR */ )
                 {
-                    if(RX_BUFFER_EMPTY == rx_share_buffer_state)
+                    if(1/*RX_BUFFER_EMPTY == rx_share_buffer_state*/)
                     {
 
 //    Copy the message into the rx_shared_buffer
@@ -787,6 +796,53 @@ void *OCP_NMEA_Thread::Entry()
                                 tptr = rx_buffer;
                         }
 
+                        if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
+                        {
+                            *ptmpbuf++ = *tptr++;
+                            if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                                tptr = rx_buffer;
+
+                            *ptmpbuf = 0;
+
+                            tak_ptr = tptr;
+
+    // parse the message
+
+                            *pNMEA0183 << temp_buf;
+                            pNMEA0183->Parse();
+
+                            if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
+                            {
+                                if(pNMEA0183->Rmc.IsDataValid == NTrue)
+                                {
+                                    float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
+                                    int lat_deg_int = (int)(llt / 100);
+                                    float lat_deg = lat_deg_int;
+                                    float lat_min = llt - (lat_deg * 100);
+                                    kLat = lat_deg + (lat_min/60.);
+
+                                    float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
+                                    int lon_deg_int = (int)(lln / 100);
+                                    float lon_deg = lon_deg_int;
+                                    float lon_min = lln - (lon_deg * 100);
+                                    float tgLon = lon_deg + (lon_min/60.);
+                                    kLon = -tgLon;
+
+                                    kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
+                                    kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
+
+    //    Signal the main program thread
+                                    wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+                                    event.SetEventObject( (wxObject *)this );
+                                    event.SetExtraLong(EVT_NMEA_DIRECT);
+                                    m_pMainEventHandler->AddPendingEvent(event);
+                                }
+                            }
+
+                        }
+
+                        /////////////////////////////
+                        /*
                         if(*tptr == 0x0a)                                     // well formed sentence
                         {
                             *ptmpbuf++ = *tptr++;
@@ -808,12 +864,12 @@ void *OCP_NMEA_Thread::Entry()
                             event.SetExtraLong(EVT_NMEA_PARSE_RX);
                             m_pMainEventHandler->AddPendingEvent(event);
                         }
+                        */
                     }
-                }
-
 //    Release the MUTEX
-                ps_mutexProtectingTheRXBuffer->Unlock();
+//                ps_mutexProtectingTheRXBuffer->Unlock();
 
+                }
             }                   //if nl
         }                       // if newdata > 0
     }                          // the big while...
@@ -834,14 +890,14 @@ void *OCP_NMEA_Thread::Entry()
     return 0;
 
 }
-#endif
-
 
 
 #endif          //__LINUX__
 
 
-#ifdef __WXMSW__
+#ifdef __WXMSW_SINGLE__
+//  This is a non-overlapped serial I/O driver.  Not used....
+
 //    Entry Point
 void *OCP_NMEA_Thread::Entry()
 {
@@ -982,9 +1038,9 @@ void *OCP_NMEA_Thread::Entry()
                               {
 
 //    If the shared buffer is available....
-                                    if(ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR )
+                                  if(1/*ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR */)
                                     {
-                                          if(RX_BUFFER_EMPTY == rx_share_buffer_state)
+                                        if(1/*RX_BUFFER_EMPTY == rx_share_buffer_state*/)
                                           {
 
 //    Copy the message into the rx_shared_buffer
@@ -999,6 +1055,55 @@ void *OCP_NMEA_Thread::Entry()
                                                       if((tptr - rx_buffer) > RX_BUFFER_SIZE)
                                                             tptr = rx_buffer;
                                                 }
+
+                                                if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
+                                                {
+                                                    *ptmpbuf++ = *tptr++;
+                                                    if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                                                        tptr = rx_buffer;
+
+                                                    *ptmpbuf = 0;
+
+                                                    tak_ptr = tptr;
+
+    // parse the message
+
+                                                    *pNMEA0183 << temp_buf;
+                                                    pNMEA0183->Parse();
+
+                                                    if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
+                                                    {
+                                                        if(pNMEA0183->Rmc.IsDataValid == NTrue)
+                                                        {
+                                                            float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
+                                                            int lat_deg_int = (int)(llt / 100);
+                                                            float lat_deg = lat_deg_int;
+                                                            float lat_min = llt - (lat_deg * 100);
+                                                            kLat = lat_deg + (lat_min/60.);
+
+                                                            float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
+                                                            int lon_deg_int = (int)(lln / 100);
+                                                            float lon_deg = lon_deg_int;
+                                                            float lon_min = lln - (lon_deg * 100);
+                                                            float tgLon = lon_deg + (lon_min/60.);
+                                                            kLon = -tgLon;
+
+                                                            kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
+                                                            kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
+
+    //    Signal the main program thread
+                                                            wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+                                                            event.SetEventObject( (wxObject *)this );
+                                                            event.SetExtraLong(EVT_NMEA_DIRECT);
+                                                            m_pMainEventHandler->AddPendingEvent(event);
+                                                        }
+                                                    }
+
+                                                }
+
+
+
+                                                /*
 
                                                 if(*tptr == 0x0a)                                     // well formed sentence
                                                 {
@@ -1026,11 +1131,12 @@ void *OCP_NMEA_Thread::Entry()
                                                       partial = true;
 //                                                    wxLogMessage("partial");
                                                 }
+                                                */
                                           }
                                     }
 
 //    Release the MUTEX
-                                    ps_mutexProtectingTheRXBuffer->Unlock();
+//                                    ps_mutexProtectingTheRXBuffer->Unlock();
 
                               }                 // while
 
@@ -1040,6 +1146,268 @@ void *OCP_NMEA_Thread::Entry()
 
 //
             }
+
+
+      }           // the big while...
+
+
+fail_point:
+
+      return 0;
+
+}
+
+#endif
+
+#ifdef __WXMSW__
+//    Entry Point
+void *OCP_NMEA_Thread::Entry()
+{
+
+      bool not_done;
+      BOOL fWaitingOnRead = FALSE;
+      OVERLAPPED osReader = {0};
+
+//    Set up the serial port
+      m_hSerialComm = CreateFile(m_pPortName->c_str(),      // Port Name
+                                             GENERIC_READ,              // Desired Access
+                                             0,                               // Shared Mode
+                                             NULL,                            // Security
+                                             OPEN_EXISTING,             // Creation Disposition
+                                             FILE_FLAG_OVERLAPPED,
+                                             NULL);                           // Non Overlapped
+
+      if(m_hSerialComm == INVALID_HANDLE_VALUE)
+      {
+            error = ::GetLastError();
+            goto fail_point;
+      }
+
+
+      if(!SetupComm(m_hSerialComm, 1024, 1024))
+            goto fail_point;
+
+      DCB dcbConfig;
+
+      if(GetCommState(m_hSerialComm, &dcbConfig))           // Configuring Serial Port Settings
+      {
+            dcbConfig.BaudRate = 4800;
+            dcbConfig.ByteSize = 8;
+            dcbConfig.Parity = NOPARITY;
+            dcbConfig.StopBits = ONESTOPBIT;
+            dcbConfig.fBinary = TRUE;
+            dcbConfig.fParity = TRUE;
+      }
+
+      else
+            goto fail_point;
+
+      if(!SetCommState(m_hSerialComm, &dcbConfig))
+            goto fail_point;
+
+      COMMTIMEOUTS commTimeout;
+
+      if(GetCommTimeouts(m_hSerialComm, &commTimeout)) // Configuring Read & Write Time Outs
+      {
+            commTimeout.ReadIntervalTimeout = 1000*TimeOutInSec;
+            commTimeout.ReadTotalTimeoutConstant = 1000*TimeOutInSec;
+            commTimeout.ReadTotalTimeoutMultiplier = 0;
+            commTimeout.WriteTotalTimeoutConstant = 1000*TimeOutInSec;
+            commTimeout.WriteTotalTimeoutMultiplier = 0;
+      }
+
+      else
+            goto fail_point;
+
+      if(!SetCommTimeouts(m_hSerialComm, &commTimeout))
+            goto fail_point;
+
+
+//    Set up event specification
+
+      if(!SetCommMask(m_hSerialComm, EV_RXCHAR)) // Setting Event Type
+            goto fail_point;
+
+
+
+      DWORD dwRead;
+
+// Create the overlapped event. Must be closed before exiting
+// to avoid a handle leak.
+      osReader.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+      if (osReader.hEvent == NULL)
+            return 0;            // Error creating overlapped event; abort.
+
+
+      not_done = true;
+      bool nl_found;
+
+#define READ_BUF_SIZE 20
+      char szBuf[READ_BUF_SIZE];
+
+//    The main loop
+
+      while(not_done)
+      {
+            if(TestDestroy())
+                  not_done = false;                               // smooth exit
+
+
+            if (!fWaitingOnRead)
+            {
+   // Issue read operation.
+                if (!ReadFile(m_hSerialComm, szBuf, READ_BUF_SIZE, &dwRead, &osReader))
+                {
+                    if (GetLastError() != ERROR_IO_PENDING)     // read not delayed?
+                    {
+         // Error in communications; report it.
+                    }
+                    else
+                        fWaitingOnRead = TRUE;
+                }
+                else
+                {
+      // read completed immediately
+                    goto HandleASuccessfulRead;
+                }
+            }
+
+
+            // Read command has been issued, and did not return immediately
+
+#define READ_TIMEOUT      500      // milliseconds
+
+            DWORD dwRes;
+
+            if (fWaitingOnRead)
+            {
+                dwRes = WaitForSingleObject(osReader.hEvent, READ_TIMEOUT);
+                switch(dwRes)
+                {
+      // Read completed.
+                    case WAIT_OBJECT_0:
+                        if (!GetOverlappedResult(m_hSerialComm, &osReader, &dwRead, FALSE))
+                        {
+             // Error in communications; report it.
+                        }
+                        else
+             // Read completed successfully.
+                            goto HandleASuccessfulRead;
+
+                        break;
+
+                    case WAIT_TIMEOUT:
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+
+
+HandleASuccessfulRead:
+            if(dwRead > 0)
+            {
+                  int nchar = dwRead;
+                  char *pb = szBuf;
+
+                  while(nchar)
+                  {
+                        if(0x0a == *pb)
+                              nl_found = true;
+
+                        *put_ptr++ = *pb++;
+                        if((put_ptr - rx_buffer) > RX_BUFFER_SIZE)
+                              put_ptr = rx_buffer;
+
+                        nchar--;
+                  }
+            }
+
+
+
+//    Found a NL char, thus end of message?
+            if(nl_found)
+            {
+                  char *tptr;
+                  char *ptmpbuf;
+                  char temp_buf[RX_BUFFER_SIZE];
+
+                  bool partial = false;
+                  while (!partial)
+                  {
+
+
+            //    Copy the message into a temp buffer
+
+                    tptr = tak_ptr;
+                    ptmpbuf = temp_buf;
+
+                    while((*tptr != 0x0a) && (tptr != put_ptr))
+                    {
+                          *ptmpbuf++ = *tptr++;
+
+                          if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                                tptr = rx_buffer;
+                    }
+
+                    if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
+                    {
+                          *ptmpbuf++ = *tptr++;
+                          if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                                tptr = rx_buffer;
+
+                          *ptmpbuf = 0;
+
+                          tak_ptr = tptr;
+
+    // parse the message
+
+                        *pNMEA0183 << temp_buf;
+                        pNMEA0183->Parse();
+
+                        if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
+                        {
+                            if(pNMEA0183->Rmc.IsDataValid == NTrue)
+                            {
+                                float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
+                                int lat_deg_int = (int)(llt / 100);
+                                float lat_deg = lat_deg_int;
+                                float lat_min = llt - (lat_deg * 100);
+                                kLat = lat_deg + (lat_min/60.);
+
+                                float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
+                                int lon_deg_int = (int)(lln / 100);
+                                float lon_deg = lon_deg_int;
+                                float lon_min = lln - (lon_deg * 100);
+                                float tgLon = lon_deg + (lon_min/60.);
+                                kLon = -tgLon;
+
+                                kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
+                                kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
+
+    //    Signal the main program thread
+                                wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+                                event.SetEventObject( (wxObject *)this );
+                                event.SetExtraLong(EVT_NMEA_DIRECT);
+                                m_pMainEventHandler->AddPendingEvent(event);
+                            }
+                        }
+
+                }
+                else
+                {
+                      partial = true;
+//                    wxLogMessage("partial");
+                }
+
+              }                 // while !partial
+
+            }           // nl found
+
+       fWaitingOnRead = FALSE;
 
 
       }           // the big while...
@@ -1080,7 +1448,7 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
       {
 
 #ifdef __WXMSW__
-#ifdef dyUSE_MSW_SERCOMM
+#ifdef ocpnUSE_MSW_SERCOMM
             pWinComm = NULL;
             pWinComm = new CSyncSerialComm(m_pdata_ap_port_string->c_str());        //COM2
             pWinComm->Open();
@@ -1113,7 +1481,7 @@ void AutoPilotWindow::GetAP_Port(wxString& source)
 void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 {
 #ifdef __WXMSW__
-#if dyUSE_MSW_SERCOMM
+#if ocpnUSE_MSW_SERCOMM
       delete pWinComm;
 #endif
 #endif
@@ -1217,7 +1585,7 @@ void AutoPilotWindow::AutopilotOut(const char *Sentence)
     int char_count = strlen(Sentence);
 
 #ifdef __WXMSW__
-#ifdef dyUSE_MSW_SERCOMM
+#ifdef ocpnUSE_MSW_SERCOMM
       pWinComm->Write(Sentence, char_count);
 #endif
 #endif

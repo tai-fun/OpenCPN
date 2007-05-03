@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: thumbwin.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $
+ * $Id: thumbwin.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  Chart Thumbnail Object
  * Author:   David Register
  *
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: thumbwin.cpp,v $
+ * Revision 1.3  2007/05/03 13:23:56  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.2  2006/09/21 01:37:37  dsr
  * Major refactor/cleanup
  *
@@ -85,7 +88,7 @@ extern ChartBase        *Current_Ch;
 extern ChartCanvas      *cc1;
 
 
-CPL_CVSID("$Id: thumbwin.cpp,v 1.2 2006/09/21 01:37:37 dsr Exp $");
+CPL_CVSID("$Id: thumbwin.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $");
 
 //------------------------------------------------------------------------------
 //    Thumbwin Implementation
@@ -118,17 +121,17 @@ void ThumbWin::Resize(void)
 {
     if(pThumbChart)
     {
-      if(pThumbChart->GetThumbData()->pDIB)
+      if(pThumbChart->GetThumbData()->pDIBThumb)
       {
-            int newheight = __min(m_max_size.y, pThumbChart->GetThumbData()->pDIB->GetHeight());
-            int newwidth  = __min(m_max_size.x, pThumbChart->GetThumbData()->pDIB->GetWidth());
+            int newheight = __min(m_max_size.y, pThumbChart->GetThumbData()->pDIBThumb->GetHeight());
+            int newwidth  = __min(m_max_size.x, pThumbChart->GetThumbData()->pDIBThumb->GetWidth());
             SetSize(0,0,newwidth,newheight );
       }
     }
 
 }
 
-void ThumbWin::SetMaxSize(wxSize max_size)
+void ThumbWin::SetMaxSize(wxSize const &max_size)
 {
       m_max_size = max_size;
 }
@@ -143,8 +146,8 @@ void ThumbWin::OnPaint(wxPaintEvent& event)
     {
       if(pThumbChart->GetThumbData())
       {
-            if(pThumbChart->GetThumbData()->pDIB)
-                  dc.DrawBitmap(*(pThumbChart->GetThumbData()->pDIB), 0, 0, false);
+            if(pThumbChart->GetThumbData()->pDIBThumb)
+                  dc.DrawBitmap(*(pThumbChart->GetThumbData()->pDIBThumb), 0, 0, false);
 
             wxPen ppPen(wxColour(0,0,0), 1, wxSOLID);
             dc.SetPen(ppPen);

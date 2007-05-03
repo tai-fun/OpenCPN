@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.2 2006/10/05 03:49:31 dsr Exp $
+ * $Id: concanv.cpp,v 1.3 2007/05/03 13:23:55 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.3  2007/05/03 13:23:55  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.2  2006/10/05 03:49:31  dsr
  * cleanup
  *
@@ -78,13 +81,11 @@
 extern Routeman         *pRouteMan;
 extern FontMgr          *pFontMgr;
 
-extern      float gCog;
-extern      float gSog;
+extern                  float gCog;
+extern                  float gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.2 2006/10/05 03:49:31 dsr Exp $");
-
-
+CPL_CVSID("$Id: concanv.cpp,v 1.3 2007/05/03 13:23:55 dsr Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -296,12 +297,9 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
 
 void ConsoleCanvas::UpdateRouteData()
 {
-
       if(pRouteMan->GetpActiveRoute())
       {
-
             m_bRouteDataStale = true;
-
             Refresh(true);
       }
       else if(!IsShown())
@@ -319,14 +317,16 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
       int x,y;
       event.GetPosition(&x, &y);
 
-
+      ///TODO  Why is this necessary???
 #ifndef __WXGTK__
-      if(!HasCapture())
+      {
+        if(!HasCapture())
             CaptureMouse();
 
-      if(event.Leaving())
+        if(event.Leaving())
             if(HasCapture())
                   ReleaseMouse();
+      }
 #endif
 
       if(event.IsButton())

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.3 2007/03/02 01:59:01 dsr Exp $
+ * $Id: wvschart.cpp,v 1.4 2007/05/03 13:23:56 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.4  2007/05/03 13:23:56  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.3  2007/03/02 01:59:01  dsr
  * Convert to UTM Projection
  *
@@ -77,9 +80,10 @@
 #include "dychart.h"
 
 #include "wvschart.h"
+#include "cutil.h"
+#include "georef.h"
 
-
-CPL_CVSID("$Id: wvschart.cpp,v 1.3 2007/03/02 01:59:01 dsr Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.4 2007/05/03 13:23:56 dsr Exp $");
 
 //      Local Prototypes
 extern "C" int wvsrtv (char *file, int latd, int lond, float **latray, float **lonray, int **segray);
@@ -156,13 +160,16 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
         int lat_max = (int)ceil(VPoint.pref_a_lat);
         int lon_min = (int)floor(VPoint.pref_c_lon);
         int lon_max = (int)ceil(VPoint.pref_a_lon);
-//      Compute drawing scale factors
-/*
-        float pix_per_deg_lon = VPoint.view_scale_ppm * 1852 * 60;
-        float pix_per_deg_lat = VPoint.view_scale_ppm * 1852 * 60;
-        float lat_top  = VPoint.pref_a_lat;
-        float lon_left = VPoint.pref_c_lon;
-*/
+
+/// debug
+        lat_min = (int)floor(VPoint.vpBBox.GetMinY());
+        lat_max = (int)ceil(VPoint.vpBBox.GetMaxY());
+        lon_min = (int)floor(VPoint.vpBBox.GetMinX());
+        lon_max = (int)ceil(VPoint.vpBBox.GetMaxX());
+
+        if(lat_min < 0)
+            lat_min = 0;
+
 
 //      Loop around the lat/lon spec to get and draw the vector segments
         for(y = lat_min ; y < lat_max ; y++)
@@ -183,7 +190,8 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                                 platray = NULL;
                                 plonray = NULL;
                                 psegray = NULL;
-                                int nsegments = wvsrtv ((char *)pwvs_file_name->c_str(), y, x, &platray, &plonray, &psegray);
+                                int nsegments = wvsrtv ((char *)pwvs_file_name->c_str(),
+                                        y, x, &platray, &plonray, &psegray);
                                 plat_ray[ix][iy] = platray;
                                 plon_ray[ix][iy] = plonray;
                                 pseg_ray[ix][iy] = psegray;
@@ -208,11 +216,9 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                                         {
                                                 float plat = *plat_seg++;
                                                 float plon = *plon_seg++;
-//                                                p.x = (int)(((plon - lon_left) * pix_per_deg_lon) + 0.5);
-//                                                p.y = (int)(((lat_top - plat)  * pix_per_deg_lat) + 0.5);
 
                                                 double easting, northing;
-                                                toTM(plat, plon, VPoint.clat, VPoint.clon, 0.9996, &easting, &northing);
+                                                toSM(plat, plon, VPoint.clat, VPoint.clon, &easting, &northing);
                                                 double epix = easting  * VPoint.view_scale_ppm;
                                                 double npix = northing * VPoint.view_scale_ppm;
 
