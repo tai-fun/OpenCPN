@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.5 2007/03/02 02:03:38 dsr Exp $
+ * $Id: chartbase.h,v 1.6 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.6  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.5  2007/03/02 02:03:38  dsr
  * Remove geo-referencing methods from base class
  *
@@ -79,20 +82,11 @@
 
 #include "dychart.h"
 
-#include "bitmapo.h"
+#include "ocpn_pixel.h"
 #include "bbox.h"
-#include "dymemdc.h"
 #include "chcanv.h"         // for enums
 #include "chart1.h"
 
-#ifdef __WXX11__
-#include "wx/x11/private.h"
-
-//    For MIT-SHM Extensions
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <X11/extensions/XShm.h>
-#endif
 
 
 //----------------------------------------------------------------------------
@@ -110,7 +104,7 @@ typedef enum ChartInitFlag
       FULL_INIT = 0,
       HEADER_ONLY,
       THUMB_ONLY
-};
+}_ChartInitFlag;
 
 //    ChartType constants
 typedef enum ChartTypeEnum
@@ -119,21 +113,21 @@ typedef enum ChartTypeEnum
       CHART_TYPE_GEO,
       CHART_TYPE_S57,
       CHART_TYPE_DUMMY
-};
+}_ChartTypeEnum;
 
 typedef enum RenderTypeEnum
 {
       DC_RENDER_ONLY = 0,
       DC_RENDER_RETURN_DIB,
       DC_RENDER_RETURN_IMAGE
-};
+}_RenderTypeEnum;
 
 typedef enum InitReturn
 {
       INIT_OK = 0,
       INIT_FAIL_RETRY,        // Init failed, retry suggested
       INIT_FAIL_REMOVE        // Init Failed, suggest remove from further use
-};
+}_InitReturn;
 
 
 
@@ -143,17 +137,12 @@ public:
     ThumbData();
     virtual ~ThumbData();
 
-      wxBitmap    *pDIB;
+      wxBitmap    *pDIBThumb;
       int         ShipX;
       int         ShipY;
 };
 
 
- typedef enum RGBO
-{
-  RGB = 0,
-  BGR
-};
 
 typedef struct _Extent{
   double SLAT;
@@ -258,54 +247,6 @@ public:
 
 private:
       wxBitmap    *m_pBM;
-};
-
-// ============================================================================
-// PixelCache Definition
-// ============================================================================
-class PixelCache
-{
-  public:
-
-      //    Constructors
-
-    PixelCache(int width, int height, int depth);
-    ~PixelCache();
-
-    void SelectIntoDC(wxMemoryDC &dc);
-    RGBO GetRGBO(){return m_rgbo;}
-
-      //    Data storage
-    int               m_width;
-    int               m_height;
-    int               m_depth;
-    unsigned char     *pData;
-    int               line_pitch_bytes;
-    int               bytes_per_pixel;
-    RGBO               m_rgbo;
-
-#ifdef dyUSE_BITMAPO
-      wxBitmapo         *m_pbm;
-#else
-      wxBitmap          *m_pbm;
-#endif
-
-      wxImage           *m_pimage;
-
-#ifdef __PIX_CACHE_DIBSECTION__
-      wxDIB             *m_pDS;
-#endif
-
-#ifdef __PIX_CACHE_X11IMAGE__
-      XImage            *m_pxim;
-      Display           *xdisplay;
-
-#endif
-
-#ifdef ocpUSE_MITSHM
-      XShmSegmentInfo   *pshminfo;
-#endif
-
 };
 
 

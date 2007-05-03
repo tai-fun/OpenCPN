@@ -1,20 +1,88 @@
+dnl
+dnl opencpn configure.in script
+dnl
+dnl Dave Register
+dnl
+dnl  With portions extracted from Audacity project
+dnl   Authors Joshua Haberman, Dominic Mazzoni
+dnl
+
+dnl Process this file with autoconf to produce a configure script.
+
 dnl Disable configure caching ... it causes lots of hassles.
 define([AC_CACHE_LOAD], )
 define([AC_CACHE_SAVE], )
 
+
+dnl Init autoconf
 AC_INIT(src/chart1.cpp)
 AM_INIT_AUTOMAKE(opencpn, 0.1)
 #AC_CONFIG_HEADER(config.h)
 
-AC_PROG_CPP
+dnl Checks for required system programs.
+AC_PROG_CC
+AC_PROG_GCC_TRADITIONAL
+AC_LANG([C++])
 AC_PROG_CXX
+AC_PROG_CXXCPP
+AC_PROG_CPP
 AC_PROG_INSTALL
 AC_LIBTOOL_DLOPEN
 #AC_PROG_LIBTOOL
 
+dnl  Set default CXX flags
 CPPFLAGS="$CPPFLAGS -Wall -g -fexceptions"
 CXXFLAGS="$CPPFLAGS -Wall -g -fexceptions"
 
+
+dnl
+dnl Make the install prefix available to the program so that it
+dnl knows where to look for help files, plug-ins, etc.
+dnl
+
+AC_PREFIX_DEFAULT(/usr/local)
+if [[ $prefix = "NONE" ]] ; then
+	AC_DEFINE(INSTALL_PREFIX, "/usr/local",
+        [define as prefix where opencpn is installed])
+else
+	AC_DEFINE_UNQUOTED(INSTALL_PREFIX, "$prefix")
+fi
+
+
+
+dnl
+dnl  Use/Dont Use system GDAL library
+dnl
+gdal_internal=true
+gdal_system=false
+AC_ARG_WITH(gdal_system,
+          [[  --with-gdal-system    use system GDAL/OGR library]],
+          [gdal_system=true]
+           )
+
+if [[ "$gdal_system" = "true" ]] ; then
+dnl  Look for and qualify an external GDAL library
+ AC_CHECK_LIB(gdal, GDALVersionInfo, true, dnl here true is just a nop
+    AC_MSG_ERROR([*** libgdal not found.  Run configure without --with-gdal-system.]))
+
+ gdal_internal=false
+ GDALCONFIG=gdal-config
+ GDAL_LIBS="`$GDALCONFIG --libs`"
+ AC_SUBST(GDAL_LIBS)
+ GDAL_CFLAGS="`$GDALCONFIG --cflags`"
+ AC_SUBST(GDAL_CFLAGS)
+fi
+
+
+AM_CONDITIONAL(BUILD_WITH_INTERNAL_GDAL, test x$gdal_internal = xtrue)
+AC_SUBST(BUILD_WITH_INTERNAL_GDAL)
+
+AM_CONDITIONAL(BUILD_WITH_SHARED_GDAL, test x$gdal_system = xtrue)
+AC_SUBST(BUILD_WITH_SHARED_GDAL)
+
+dnl
+dnl Enable/Disable S57 ENC Support
+dnl
 AC_ARG_ENABLE(s57enc,
      [  --enable-s57enc    Enable S57 ENC Support],
      [case "${enableval}" in
@@ -25,37 +93,39 @@ AC_ARG_ENABLE(s57enc,
 AM_CONDITIONAL(BUILD_WITH_S57, test x$s57enc = xtrue)
 AC_SUBST(BUILD_WITH_S57)
 
-gdal_internal=false
-gdal_shared=true
-AC_ARG_WITH(gdal_internal,
-          [[  --with-gdal-internal    use Internal GDAL/OGR]],
-          [gdal_internal=true]
-           )
 
-AM_CONDITIONAL(BUILD_WITH_INTERNAL_GDAL, test x$gdal_internal = xtrue)
-AC_SUBST(BUILD_WITH_INTERNAL_GDAL)
-
-AM_CONDITIONAL(BUILD_WITH_SHARED_GDAL, test x$gdal_internal = xfalse)
-AC_SUBST(BUILD_WITH_SHARED_GDAL)
-
-GDALCONFIG=gdal-config
-GDAL_LIBS="`$GDALCONFIG --libs`"
-AC_SUBST(GDAL_LIBS)
-GDAL_CFLAGS="`$GDALCONFIG --cflags`"
-AC_SUBST(GDAL_CFLAGS)
-
+dnl
+dnl Use OpenGL tesselator or Internal tesselator
+dnl
 tess_internal=false
-test_glu=true
+tess_glu=true
 AC_ARG_WITH(tess_internal,
           [[  --with-tess-internal    use Internal Polygon Tesselator]],
           [tess_internal=true]
            )
+
+if [[ "$tess_internal" = "false" ]] ; then
+	dnl  Look for and qualify an external GLU library
+	echo "checking for useable OpenGLU Library"
+	AC_CHECK_LIB(GLU, gluNewTess, true, dnl here true is just a nop
+	   AC_MSG_ERROR([*** libGLU not found.  Run configure using --with-tess-internal.]))
+	
+	GL_LIBS="-lGL -lGLU"
+	AC_SUBST(GL_LIBS)
+
+	GL_CFLAGS="-DUSE_GLU_TESS"
+	AC_SUBST(GL_CFLAGS)
+fi
+
 
 AM_CONDITIONAL(BUILD_WITH_INTERNAL_TESS, test x$tess_internal = xtrue)
 AC_SUBST(BUILD_WITH_INTERNAL_TESS)
 AM_CONDITIONAL(BUILD_WITH_GLU_TESS, test x$tess_internal = xfalse)
 AC_SUBST(BUILD_WITH_GLU_TESS)
 
+dnl
+dnl Include (undocumented) special wifi client
+dnl
 wifi_client=false
 AC_ARG_WITH(wifi_client,
           [[  --with-wifi-client    Enable wifi client]],
@@ -66,6 +136,12 @@ AM_CONDITIONAL(BUILD_WITH_WIFI_CLIENT, test x$wifi_client = xtrue)
 AC_SUBST(BUILD_WITH_WIFI_CLIENT)
 
 
+dnl
+dnl Check wxWidgets configuration
+dnl
+dnl   config option --with-wx-config=FILE allows building opencpn against
+dnl   multiple wxWidgets models, such as GTK, X11, either statically or
+dnl   dynamically linked, etc.
 WXCONFIG=wx-config
 AC_ARG_WITH(wx-config,
 [[  --with-wx-config=FILE     Use the given path to wx-config when determining
@@ -75,7 +151,6 @@ AC_ARG_WITH(wx-config,
         WXCONFIG=$withval
     fi
 ])
-
 
 wxversion=0
 
@@ -93,21 +168,71 @@ AC_DEFUN([WXTEST],
 # Call WXTEST func
 WXTEST
 
-# Verify minimus requires
+# Verify minimum requirement
 vers=`echo $wxversion | $AWK 'BEGIN { FS = "."; } { printf "% d", ($1 * 1000 + $2) * 1000 + $3;}'`
-if test -n "$vers" && test "$vers" -ge 2006001; then
+if test -n "$vers" && test "$vers" -ge 2006002; then
       WX_CPPFLAGS="`$WXCONFIG --cppflags`"
       WX_CXXFLAGS="`$WXCONFIG --cxxflags | sed -e 's/-fno-exceptions//'`"
       WX_LIBS="`$WXCONFIG --libs`"
 else
-      AC_MSG_ERROR([wxWidgets 2.6.1 or newer is required])
+      AC_MSG_ERROR([wxWidgets 2.6.2 or newer is required])
 fi
-
 
 CPPFLAGS="$CPPFLAGS $WX_CPPFLAGS"
 CXXFLAGS="$CXXFLAGS $WX_CPPFLAGS"
-
-
 AC_SUBST(WX_LIBS)
 
+
+
+dnl __WXX11__ 2.6.X+ is broken in wxHashTable::Next().
+dnl Error occurs in wxSocketClient, and manifests as forever lost events,
+dnl and sometimes segmentation faults.  Ouch.
+dnl if using __WXX11__, check definition of WXWIN_COMPATIBILITY_2_4
+
+dnl For informational purposes, build the name of the relevent setup.h file
+WX_SETUP_H0="`$WXCONFIG --cxxflags | awk '/lib/{for(i=1;i<=NF;i++) print $i }' | grep lib | sed -e 's/-I//g'`"
+WX_SETUP_H=$WX_SETUP_H0'/wx/setup.h'
+AC_MSG_CHECKING([for wxWidgets setup header])
+AC_MSG_RESULT([$WX_SETUP_H])
+
+
+dnl Check for __WXX11__
+AC_MSG_CHECKING([for __WXX11__])
+AC_TRY_COMPILE([
+#include	"wx/setup.h"],
+[ #ifdef __WXX11__
+#else
+cause an error
+#endif],
+ac_buildfor_x11=yes, ac_buildfor_x11=no)
+
+AC_MSG_RESULT([$ac_buildfor_x11])
+
+dnl If compiled for __WXX11__, check wxWidgets 2.4 compatibility flag
+if test $ac_buildfor_x11 = yes; then
+	AC_MSG_CHECKING([for WXWIN_COMPATIBILITY_2_4])
+
+	AC_TRY_COMPILE([
+	#include	"wx/setup.h"],
+	[ #if WXWIN_COMPATIBILITY_2_4
+	#else
+	cause an error
+	#endif], compat_24=yes, compat_24=no)
+
+	AC_MSG_RESULT([$compat_24])
+
+	if test $compat_24 = no; then
+      		AC_MSG_WARN([!!!opencpn for X11 Universal Mode requires that
+wxWidgets (for X11) be compiled with Version 2.4 compatibility mode enabled.
+Please rebuild wxWidgets with "--enable-compat24" configuration option.
+Meanwhile, GPSD Network data input is being disabled.])
+        AC_DEFINE(OCPN_DISABLE_SOCKETS, 1,
+            [Define if you need to disable TCP/IP Socket utilization.])
+        fi
+fi
+
+
+dnl
+dnl  Create the output file
+dnl
 AC_OUTPUT(Makefile)

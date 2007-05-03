@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.7 2007/03/02 02:05:44 dsr Exp $
+ * $Id: chcanv.h,v 1.8 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.8  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.7  2007/03/02 02:05:44  dsr
  * Re-define ViewPort Class to better support skewed and UTM Vector charts
  *
@@ -43,45 +46,6 @@
  *
  * Revision 1.2  2006/10/05 03:52:54  dsr
  * no message
- *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.5  2006/07/28 20:47:50  dsr
- * Cleanup
- *
- * Revision 1.4  2006/05/28 00:50:01  dsr
- * Floats to Doubles in ViewPort
- *
- * Revision 1.3  2006/05/19 19:36:19  dsr
- * Cleanup
- *
- * Revision 1.2  2006/04/23 04:07:38  dsr
- * Implement S57 Query
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.11  2006/04/19 00:56:41  dsr
- * *** empty log message ***
- *
- * Revision 1.10  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.9  2006/03/13 05:10:09  dsr
- * Cleanup
- *
- * Revision 1.8  2006/03/04 21:24:45  dsr
- * Implement thread-based chart rescale logic
- *
- * Revision 1.7  2006/02/24 03:00:17  dsr
- * Cleanup
- *
- * Revision 1.6  2006/02/23 01:20:05  dsr
- * Cleanup, add ViewPort and some accessors
- *
- * Revision 1.5  2006/02/10 03:19:06  dsr
- * *** empty log message ***
  *
  *
  */
@@ -111,11 +75,11 @@
       class RoutePoint;
       class SelectItem;
       class wxBoundingBox;
-      class wxBitmapo;
+      class ocpnBitmap;
       class WVSChart;
       class MyFrame;
       class ChartBaseBSB;
-      class PixelCache;
+//      class PixelCache;
       class ChartBase;
       class AIS_Target_Data;
 
@@ -123,13 +87,14 @@
 //   constants
 //----------------------------------------------------------------------------
 #define     RESCALE_TIMER     1
-#define     PAN_TIMER 2
+#define     PAN_TIMER         2
+#define     CURTRACK_TIMER    3
 
 typedef enum ScaleTypeEnum
 {
   SCALE_SUBSAMP = 0,
   SCALE_BILINEAR,
-};
+}_ScaleTypeEnum;
 
 enum                                //  specify the render behaviour of SetViewPoint()
 {
@@ -224,9 +189,11 @@ public:
 
       void SetVPScale(double sc);
 
-      void GetPointPix(float rlat, float rlon, wxPoint *r);
-      void GetPixPoint(int x, int y, float &lat, float &lon);
+      void GetPointPix(double rlat, double rlon, wxPoint *r);
+      void GetPixPoint(int x, int y, double &lat, double &lon);
       void WarpPointerDeferred(int x, int y);
+      void UpdateShips();
+      void UpdateAIS();
 
       //    Accessors
       int GetCanvas_width(){ return canvas_width;}
@@ -236,6 +203,7 @@ public:
       double GetVPBinaryScaleFactor(){return VPoint.binary_scale_factor;}
 
       void  SetbNewVP(bool f){ bNewVP = f;}
+      bool  GetbNewVP(){ return bNewVP;}
 
       //Todo build more accessors
       bool        m_bFollow;
@@ -302,13 +270,16 @@ private:
       //    Methods
       void OnActivate(wxActivateEvent& event);
       void OnSize(wxSizeEvent& event);
-      void RescaleTimerEvent(wxTimerEvent& event);
       void MouseEvent(wxMouseEvent& event);
-      void ShipDraw(wxDC& dc, wxPoint& ShipPoint, wxPoint& PredPoint);
+      void ShipDraw(wxDC& dc);
       void DrawArrow(wxDC& dc, int x, int y, float rot_angle, float scale);
-      void OnEvtRescale(wxCommandEvent & event);
+      void OnEvtRescale(wxCommandEvent& event);
+      void OnIdleEvent(wxIdleEvent& event);
 
+      void RescaleTimerEvent(wxTimerEvent& event);
       void PanTimerEvent(wxTimerEvent& event);
+      void OnCursorTrackTimerEvent(wxTimerEvent& event);
+
       void DrawAllRoutesInBBox(wxDC& dc, wxBoundingBox& BltBBox);
 
       void DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSelList,
@@ -331,35 +302,44 @@ private:
       int         yb_margin;
 
       MyFrame     *parent_frame;
-      int         m_test;
 
       wxPoint     last_drag;
 
       wxMemoryDC  *pmemdc;
 
-      wxRect      latest_bfollow_overlay_rect;
-
       int         warp_x, warp_y;
       bool        warp_flag;
 
       ScaleTypeEnum  current_scale_method;
-      wxTimer     *pRescaleTimer;
 
       bool        m_bSubsamp;
-      int         m_rescale_timer_msec;
 
       wxBitmap    *pBM;
 
       float       current_draw_scaler;
 
 
-      wxTimer     *pPanTimer;
+      wxTimer     *pRescaleTimer;   // This timer used for bi-linear rescale
+      wxTimer     *pPanTimer;       // This timer used for auto panning on route creation and edit
+      wxTimer     *pCurTrackTimer;  // This timer used to update the status window on mouse idle
+
+      int         m_rescale_timer_msec;
+      int         m_curtrack_timer_msec;
 
       WVSChart    *pwvs_chart;
 
-      ChartBaseBSB            *pCBSB;
+      ChartBaseBSB *pCBSB;
       wxBitmap    *pss_overlay_bmp;
       wxMask      *pss_overlay_mask;
+
+      wxRect      ship_draw_rect;
+      wxRect      ais_draw_rect;
+
+      bool        m_bBackRender;
+      ChartBaseBSB *br_Ch;
+
+      wxBitmap    *proute_bm;       // a bitmap and dc used to calculate route bounding box
+      wxMemoryDC  dc_route;         // seen in mouse->edit->route
 
 DECLARE_EVENT_TABLE()
 };

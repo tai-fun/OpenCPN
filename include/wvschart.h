@@ -1,7 +1,7 @@
 /******************************************************************************
- * $Id: wvschart.h,v 1.2 2007/03/02 02:08:23 dsr Exp $
+ * $Id: wvschart.h,v 1.3 2007/05/03 13:31:19 dsr Exp $
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
  * Author:   David Register
  *
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.h,v $
+ * Revision 1.3  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.2  2007/03/02 02:08:23  dsr
  * Cleanup
  *
@@ -55,7 +58,6 @@
 // ----------------------------------------------------------------------------
 // Useful Prototypes
 // ----------------------------------------------------------------------------
-extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y);
 
 //----------------------------------------------------------------------------
 //   constants

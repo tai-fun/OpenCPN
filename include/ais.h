@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.3 2007/02/06 02:11:22 dsr Exp $
+ * $Id: ais.h,v 1.4 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.4  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.3  2007/02/06 02:11:22  dsr
  * Cleanup
  *
@@ -77,7 +80,7 @@ typedef enum AIS_Error
     AIS_NMEAVDM_BAD,
     AIS_NO_SERIAL,
     AIS_NO_TCP
-};
+}_AIS_Error;
 
 
 //      Describe NavStatus variable
@@ -93,7 +96,7 @@ typedef enum ais_nav_status
     A7,
     UNDERWAY_SAILING
 
-};
+}_ais_nav_status;
 
 //---------------------------------------------------------------------------------
 //

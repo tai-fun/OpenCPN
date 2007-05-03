@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.6 2006/12/03 21:22:01 dsr Exp $
+ * $Id: nmea.h,v 1.7 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.7  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.6  2006/12/03 21:22:01  dsr
  * Redefine NMEA window ctor to include explicit window ID specification.
  * Change NMEA timer tick rate away from exactly 1000 msec to avoid syncronization problems.
@@ -44,24 +47,6 @@
  *
  * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
  * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.3  2006/08/04 11:43:37  dsr
- * no message
- *
- * Revision 1.2  2006/07/28 20:47:50  dsr
- * Cleanup
- *
- * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.6  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.5  2006/03/13 05:10:10  dsr
- * Cleanup
- *
- * Revision 1.4  2006/02/23 01:23:39  dsr
- * Cleanup
  *
  *
  *
@@ -85,7 +70,7 @@
 #include "dychart.h"
 
 #ifdef __WXMSW__
-    #ifdef dyUSE_MSW_SERCOMM
+    #ifdef ocpnUSE_MSW_SERCOMM
             #include "sercomm.h"
             class CSyncSerialComm;
     #endif
@@ -196,7 +181,7 @@ typedef enum ENUM_BUFFER_STATE
 {
       RX_BUFFER_EMPTY,
       RX_BUFFER_FULL
-};
+}_ENUM_BUFFER_STATE;
 
 #define MAX_RX_MESSSAGE_SIZE  4096
 #define     RX_BUFFER_SIZE                4096
@@ -221,13 +206,14 @@ public:
 private:
       wxEvtHandler            *m_pMainEventHandler;
       wxString                *m_pPortName;
-      int                           TimeOutInSec;
+      int                     TimeOutInSec;
       char                    *put_ptr;
       char                    *tak_ptr;
 
       char                    *rx_buffer;
 
       unsigned long           error;
+      MyFrame                 *m_parent_frame;
 
 #ifdef __LINUX__
       termios                 *pttyset;
@@ -237,7 +223,7 @@ private:
 #endif
 
 #ifdef __WXMSW__
-      HANDLE                        m_hSerialComm;
+      HANDLE                  m_hSerialComm;
 #endif
 
 };

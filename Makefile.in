@@ -14,6 +14,7 @@
 
 @SET_MAKE@
 
+
 SOURCES = $(opencpn_SOURCES)
 
 srcdir = @srcdir@
@@ -42,15 +43,14 @@ POST_UNINSTALL = :
 @BUILD_WITH_S57_TRUE@am__append_2 = -DUSE_S57
 
 #	The variable BUILD_WITH_GLU_TESS comes from configure script AM_CONDITIONAL()
-@BUILD_WITH_GLU_TESS_TRUE@am__append_3 = -DUSE_GLU_TESS
-@BUILD_WITH_GLU_TESS_TRUE@am__append_4 = -DUSE_GLU_TESS
-@BUILD_WITH_GLU_TESS_TRUE@am__append_5 = -lGL -lGLU
+@BUILD_WITH_GLU_TESS_TRUE@am__append_3 = $(GL_CFLAGS)
+@BUILD_WITH_GLU_TESS_TRUE@am__append_4 = $(GL_CFLAGS)
+@BUILD_WITH_GLU_TESS_TRUE@am__append_5 = $(GL_LIBS)
 bin_PROGRAMS = opencpn$(EXEEXT)
 @BUILD_WITH_S57_TRUE@am__append_6 = src/s52cnsy.cpp \
 @BUILD_WITH_S57_TRUE@			src/s52plib.cpp \
 @BUILD_WITH_S57_TRUE@			src/s52utils.cpp \
 @BUILD_WITH_S57_TRUE@			src/s57chart.cpp \
-@BUILD_WITH_S57_TRUE@			src/gpc.c \
 @BUILD_WITH_S57_TRUE@			src/mygeom.cpp \
 @BUILD_WITH_S57_TRUE@			src/tri.c
 
@@ -124,13 +124,14 @@ bin_PROGRAMS = opencpn$(EXEEXT)
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/gml2ogrgeometry.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/gdal_misc.cpp
 
-@BUILD_WITH_INTERNAL_GDAL_TRUE@am__append_11 = -Isrc/mygdal
+@BUILD_WITH_INTERNAL_GDAL_TRUE@am__append_11 = -I./$(srcdir)/src/mygdal
 @BUILD_WITH_WIFI_CLIENT_TRUE@am__append_12 = -DUSE_WIFI_CLIENT
 @BUILD_WITH_WIFI_CLIENT_TRUE@am__append_13 = src/wificlient.cpp 
 subdir = .
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure AUTHORS COPYING \
-	ChangeLog INSTALL NEWS depcomp install-sh missing
+DIST_COMMON = README $(am__configure_deps) $(noinst_HEADERS) \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
+	depcomp install-sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -142,19 +143,19 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am__opencpn_SOURCES_DIST = src/bbox.cpp src/bitmapo.cpp src/chart1.cpp \
-	src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
-	src/concanv.cpp src/cutil.c src/dataum.c src/dymemdc.cpp \
-	src/georef.c src/navutil.cpp src/nmea.cpp src/routeman.cpp \
-	src/sercomm.cpp src/statwin.cpp src/tcmgr.cpp src/thumbwin.cpp \
-	src/dialog/options.cpp src/wvschart.cpp src/about.cpp \
+am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
+	src/chart1.cpp src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
+	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
+	src/nmea.cpp src/routeman.cpp src/sercomm.cpp src/statwin.cpp \
+	src/tcmgr.cpp src/thumbwin.cpp src/options.cpp \
+	src/wvschart.cpp src/about.cpp src/ais.cpp \
 	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
 	src/nmea0183/sentence.cpp src/nmea0183/talkerid.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
 	src/nmea0183/lat.cpp src/nmea0183/expid.cpp src/s52cnsy.cpp \
-	src/s52plib.cpp src/s52utils.cpp src/s57chart.cpp src/gpc.c \
+	src/s52plib.cpp src/s52utils.cpp src/s57chart.cpp \
 	src/mygeom.cpp src/tri.c src/myiso8211/ddffielddefn.cpp \
 	src/myiso8211/ddfmodule.cpp src/myiso8211/ddfrecord.cpp \
 	src/myiso8211/ddfsubfielddefn.cpp src/myiso8211/ddfutils.cpp \
@@ -190,8 +191,8 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/bitmapo.cpp src/chart1.cpp \
 	src/wificlient.cpp
 @BUILD_WITH_S57_TRUE@am__objects_1 = s52cnsy.$(OBJEXT) \
 @BUILD_WITH_S57_TRUE@	s52plib.$(OBJEXT) s52utils.$(OBJEXT) \
-@BUILD_WITH_S57_TRUE@	s57chart.$(OBJEXT) gpc.$(OBJEXT) \
-@BUILD_WITH_S57_TRUE@	mygeom.$(OBJEXT) tri.$(OBJEXT)
+@BUILD_WITH_S57_TRUE@	s57chart.$(OBJEXT) mygeom.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	tri.$(OBJEXT)
 @BUILD_WITH_SHARED_GDAL_TRUE@am__objects_2 = ddffielddefn.$(OBJEXT) \
 @BUILD_WITH_SHARED_GDAL_TRUE@	ddfmodule.$(OBJEXT) \
 @BUILD_WITH_SHARED_GDAL_TRUE@	ddfrecord.$(OBJEXT) \
@@ -259,13 +260,13 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/bitmapo.cpp src/chart1.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	gml2ogrgeometry.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	gdal_misc.$(OBJEXT)
 @BUILD_WITH_WIFI_CLIENT_TRUE@am__objects_4 = wificlient.$(OBJEXT)
-am_opencpn_OBJECTS = bbox.$(OBJEXT) bitmapo.$(OBJEXT) chart1.$(OBJEXT) \
-	chartdb.$(OBJEXT) chartimg.$(OBJEXT) chcanv.$(OBJEXT) \
-	concanv.$(OBJEXT) cutil.$(OBJEXT) dataum.$(OBJEXT) \
-	dymemdc.$(OBJEXT) georef.$(OBJEXT) navutil.$(OBJEXT) \
-	nmea.$(OBJEXT) routeman.$(OBJEXT) sercomm.$(OBJEXT) \
-	statwin.$(OBJEXT) tcmgr.$(OBJEXT) thumbwin.$(OBJEXT) \
-	options.$(OBJEXT) wvschart.$(OBJEXT) about.$(OBJEXT) \
+am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
+	chart1.$(OBJEXT) chartdb.$(OBJEXT) chartimg.$(OBJEXT) \
+	chcanv.$(OBJEXT) concanv.$(OBJEXT) cutil.$(OBJEXT) \
+	georef.$(OBJEXT) navutil.$(OBJEXT) nmea.$(OBJEXT) \
+	routeman.$(OBJEXT) sercomm.$(OBJEXT) statwin.$(OBJEXT) \
+	tcmgr.$(OBJEXT) thumbwin.$(OBJEXT) options.$(OBJEXT) \
+	wvschart.$(OBJEXT) about.$(OBJEXT) ais.$(OBJEXT) \
 	latlong.$(OBJEXT) long.$(OBJEXT) nmea0183.$(OBJEXT) \
 	response.$(OBJEXT) rmb.$(OBJEXT) sentence.$(OBJEXT) \
 	talkerid.$(OBJEXT) rmc.$(OBJEXT) hexvalue.$(OBJEXT) \
@@ -273,10 +274,11 @@ am_opencpn_OBJECTS = bbox.$(OBJEXT) bitmapo.$(OBJEXT) chart1.$(OBJEXT) \
 	$(am__objects_2) $(am__objects_3) $(am__objects_4)
 opencpn_OBJECTS = $(am_opencpn_OBJECTS)
 am__DEPENDENCIES_1 =
-@BUILD_WITH_SHARED_GDAL_TRUE@am__DEPENDENCIES_2 =  \
+@BUILD_WITH_GLU_TESS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
+@BUILD_WITH_SHARED_GDAL_TRUE@am__DEPENDENCIES_3 =  \
 @BUILD_WITH_SHARED_GDAL_TRUE@	$(am__DEPENDENCIES_1)
-opencpn_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
+opencpn_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
+	$(am__DEPENDENCIES_3)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -291,6 +293,7 @@ CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 SOURCES = $(opencpn_SOURCES)
 DIST_SOURCES = $(am__opencpn_SOURCES_DIST)
+HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -336,6 +339,7 @@ CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -344,9 +348,12 @@ DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 GDAL_CFLAGS = @GDAL_CFLAGS@
 GDAL_LIBS = @GDAL_LIBS@
+GL_CFLAGS = @GL_CFLAGS@
+GL_LIBS = @GL_LIBS@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -367,7 +374,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-VERSION = @VERSION@
+VERSION = 1.2.0
 WX_LIBS = @WX_LIBS@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
@@ -401,19 +408,24 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-INCLUDES = $(WX_CXXFLAGS) -Iinclude -Isrc/nmea0183 -Isrc/dialog \
+INCLUDES = $(WX_CXXFLAGS) -I./$(srcdir)/include \
+	-I./$(srcdir)/src/nmea0183 -I/usr/include/gtk-2.0 \
+	-I/usr/lib/gtk-2.0/include -I/usr/X11R6/include \
+	-I/usr/include/atk-1.0 -I/usr/include/pango-1.0 \
+	-I/usr/include/freetype2 -I/usr/include/freetype2/config \
+	-I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include \
 	$(am__append_11)
 AM_CFLAGS = -Wall -g $(am__append_1) $(am__append_3) $(am__append_9)
 AM_CXXFLAGS = -Wall -g $(am__append_2) $(am__append_4) \
 	$(am__append_12)
 opencpn_LDFLAGS = 
 opencpn_LDADD = $(WX_LIBS) $(am__append_5) $(am__append_8)
-opencpn_SOURCES = src/bbox.cpp src/bitmapo.cpp src/chart1.cpp \
+opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
-	src/concanv.cpp src/cutil.c src/dataum.c src/dymemdc.cpp \
-	src/georef.c src/navutil.cpp src/nmea.cpp src/routeman.cpp \
-	src/sercomm.cpp src/statwin.cpp src/tcmgr.cpp src/thumbwin.cpp \
-	src/dialog/options.cpp src/wvschart.cpp src/about.cpp \
+	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
+	src/nmea.cpp src/routeman.cpp src/sercomm.cpp src/statwin.cpp \
+	src/tcmgr.cpp src/thumbwin.cpp src/options.cpp \
+	src/wvschart.cpp src/about.cpp src/ais.cpp \
 	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
@@ -421,6 +433,113 @@ opencpn_SOURCES = src/bbox.cpp src/bitmapo.cpp src/chart1.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
 	src/nmea0183/lat.cpp src/nmea0183/expid.cpp $(am__append_6) \
 	$(am__append_7) $(am__append_10) $(am__append_13)
+noinst_HEADERS = \
+ 	include/about.h \
+ 	include/ais.h \
+ 	include/bbox.h \
+ 	include/chart1.h \
+ 	include/chartbase.h \
+ 	include/chartdb.h \
+ 	include/chartimg.h \
+ 	include/chcanv.h \
+ 	include/concanv.h \
+ 	include/cutil.h \
+ 	include/dychart.h \
+ 	include/georef.h \
+ 	include/iso8211.h \
+ 	include/mygeom.h \
+ 	include/navutil.h \
+ 	include/nmea.h \
+ 	include/ocpn_pixel.h \
+ 	include/options.h \
+ 	include/routeman.h \
+ 	include/s52plib.h \
+ 	include/s52s57.h \
+ 	include/s52utils.h \
+ 	include/s57chart.h \
+ 	include/s57mgr.h \
+ 	include/sercomm.h \
+ 	include/statwin.h \
+ 	include/tcmgr.h \
+ 	include/thumbwin.h \
+ 	include/triangulate.h \
+ 	include/wificlient.h \
+ 	include/wvschart.h \
+ 	src/mygdal/cpl_config.h \
+ 	src/mygdal/cpl_conv.h \
+ 	src/mygdal/cpl_csv.h \
+ 	src/mygdal/cpl_error.h \
+ 	src/mygdal/cpl_list.h \
+ 	src/mygdal/cpl_minixml.h \
+ 	src/mygdal/cpl_multiproc.h \
+ 	src/mygdal/cpl_odbc.h \
+ 	src/mygdal/cpl_port.h \
+ 	src/mygdal/cpl_string.h \
+ 	src/mygdal/cpl_vsi.h \
+ 	src/mygdal/gdal_alg.h \
+ 	src/mygdal/gdal_frmts.h \
+ 	src/mygdal/gdal.h \
+ 	src/mygdal/gdal_priv.h \
+ 	src/mygdal/gdalwarper.h \
+ 	src/mygdal/iso8211.h \
+ 	src/mygdal/ogr_api.h \
+ 	src/mygdal/ogr_attrind.h \
+ 	src/mygdal/ogr_core.h \
+ 	src/mygdal/ogr_feature.h \
+ 	src/mygdal/ogr_featurestyle.h \
+ 	src/mygdal/ogr_gensql.h \
+ 	src/mygdal/ogr_geometry.h \
+ 	src/mygdal/ogr_p.h \
+ 	src/mygdal/ogr_s57.h \
+ 	src/mygdal/ogrsf_frmts.h \
+ 	src/mygdal/ogr_spatialref.h \
+ 	src/mygdal/ogr_srs_api.h \
+ 	src/mygdal/s57.h \
+ 	src/mygdal/sfclsid.h \
+ 	src/mygdal/sfiiddef.h \
+ 	src/mygdal/swq.h \
+ 	src/nmea0183/nmea0183.h \
+ 	src/nmea0183/LatLong.hpp \
+ 	src/nmea0183/nmea0183.hpp \
+ 	src/nmea0183/Response.hpp \
+ 	src/nmea0183/RMB.hpp \
+ 	src/nmea0183/RMC.HPP \
+ 	src/nmea0183/Sentence.hpp
+
+EXTRA_DIST = \
+	data/wvsdata/readmewvs.txt \
+	data/wvsdata/wvs1.dat \
+	data/wvsdata/wvs43.dat \
+	data/s57data/attdecode.csv \
+	data/s57data/S52RAZDS.RLE \
+	data/s57data/S52RGB.TXT \
+	data/s57data/s57attributes.csv \
+	data/s57data/s57expectedinput.csv \
+	data/s57data/s57objectclasses.csv \
+	data/s57data/SP52COL.DAT \
+	data/tcdata/HARMONIC \
+	data/tcdata/HARMONIC.IDX \
+	src/bitmaps/down.xpm \
+	src/bitmaps/left.xpm \
+	src/bitmaps/pencil.xpm \
+	src/bitmaps/right.xpm \
+	src/bitmaps/up.xpm \
+	src/bitmaps/settings.xpm \
+	src/bitmaps/zoomin.xpm \
+	src/bitmaps/zoomout.xpm \
+	src/bitmaps/scin.xpm \
+	src/bitmaps/scout.xpm \
+	src/bitmaps/tide.xpm \
+	src/bitmaps/text.xpm \
+	src/bitmaps/route.xpm \
+	src/bitmaps/exitt.xpm \
+	src/bitmaps/follow.xpm \
+	src/bitmaps/current.xpm \
+	src/bitmaps/print.xpm \
+	src/bitmaps/help.xpm \
+	src/bitmaps/colscheme.xpm \
+	makefile.wat
+
 all: all-am
 
 .SUFFIXES:
@@ -492,8 +611,8 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/about.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ais.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bbox.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bitmapo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chart1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartdb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartimg.Po@am__quote@
@@ -510,7 +629,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpl_vsisimple.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cplgetsymbol.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cutil.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dataum.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddffield.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddffielddefn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddfmodule.Po@am__quote@
@@ -518,12 +636,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddfrecordindex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddfsubfielddefn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddfutils.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dymemdc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdal_misc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/georef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gml2ogrgeometry.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gpc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexvalue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/latlong.Po@am__quote@
@@ -532,6 +648,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/navutil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmea.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmea0183.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ocpn_pixel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr2gmlgeometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_attrind.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_fromepsg.Po@am__quote@
@@ -621,20 +738,6 @@ cutil.obj: src/cutil.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cutil.obj `if test -f 'src/cutil.c'; then $(CYGPATH_W) 'src/cutil.c'; else $(CYGPATH_W) '$(srcdir)/src/cutil.c'; fi`
 
-dataum.o: src/dataum.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT dataum.o -MD -MP -MF "$(DEPDIR)/dataum.Tpo" -c -o dataum.o `test -f 'src/dataum.c' || echo '$(srcdir)/'`src/dataum.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/dataum.Tpo" "$(DEPDIR)/dataum.Po"; else rm -f "$(DEPDIR)/dataum.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/dataum.c' object='dataum.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o dataum.o `test -f 'src/dataum.c' || echo '$(srcdir)/'`src/dataum.c
-
-dataum.obj: src/dataum.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT dataum.obj -MD -MP -MF "$(DEPDIR)/dataum.Tpo" -c -o dataum.obj `if test -f 'src/dataum.c'; then $(CYGPATH_W) 'src/dataum.c'; else $(CYGPATH_W) '$(srcdir)/src/dataum.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/dataum.Tpo" "$(DEPDIR)/dataum.Po"; else rm -f "$(DEPDIR)/dataum.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/dataum.c' object='dataum.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o dataum.obj `if test -f 'src/dataum.c'; then $(CYGPATH_W) 'src/dataum.c'; else $(CYGPATH_W) '$(srcdir)/src/dataum.c'; fi`
-
 georef.o: src/georef.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT georef.o -MD -MP -MF "$(DEPDIR)/georef.Tpo" -c -o georef.o `test -f 'src/georef.c' || echo '$(srcdir)/'`src/georef.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/georef.Tpo" "$(DEPDIR)/georef.Po"; else rm -f "$(DEPDIR)/georef.Tpo"; exit 1; fi
@@ -648,20 +751,6 @@ georef.obj: src/georef.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/georef.c' object='georef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o georef.obj `if test -f 'src/georef.c'; then $(CYGPATH_W) 'src/georef.c'; else $(CYGPATH_W) '$(srcdir)/src/georef.c'; fi`
-
-gpc.o: src/gpc.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gpc.o -MD -MP -MF "$(DEPDIR)/gpc.Tpo" -c -o gpc.o `test -f 'src/gpc.c' || echo '$(srcdir)/'`src/gpc.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gpc.Tpo" "$(DEPDIR)/gpc.Po"; else rm -f "$(DEPDIR)/gpc.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/gpc.c' object='gpc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gpc.o `test -f 'src/gpc.c' || echo '$(srcdir)/'`src/gpc.c
-
-gpc.obj: src/gpc.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gpc.obj -MD -MP -MF "$(DEPDIR)/gpc.Tpo" -c -o gpc.obj `if test -f 'src/gpc.c'; then $(CYGPATH_W) 'src/gpc.c'; else $(CYGPATH_W) '$(srcdir)/src/gpc.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/gpc.Tpo" "$(DEPDIR)/gpc.Po"; else rm -f "$(DEPDIR)/gpc.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/gpc.c' object='gpc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gpc.obj `if test -f 'src/gpc.c'; then $(CYGPATH_W) 'src/gpc.c'; else $(CYGPATH_W) '$(srcdir)/src/gpc.c'; fi`
 
 tri.o: src/tri.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tri.o -MD -MP -MF "$(DEPDIR)/tri.Tpo" -c -o tri.o `test -f 'src/tri.c' || echo '$(srcdir)/'`src/tri.c; \
@@ -719,19 +808,19 @@ bbox.obj: src/bbox.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bbox.obj `if test -f 'src/bbox.cpp'; then $(CYGPATH_W) 'src/bbox.cpp'; else $(CYGPATH_W) '$(srcdir)/src/bbox.cpp'; fi`
 
-bitmapo.o: src/bitmapo.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bitmapo.o -MD -MP -MF "$(DEPDIR)/bitmapo.Tpo" -c -o bitmapo.o `test -f 'src/bitmapo.cpp' || echo '$(srcdir)/'`src/bitmapo.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/bitmapo.Tpo" "$(DEPDIR)/bitmapo.Po"; else rm -f "$(DEPDIR)/bitmapo.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/bitmapo.cpp' object='bitmapo.o' libtool=no @AMDEPBACKSLASH@
+ocpn_pixel.o: src/ocpn_pixel.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ocpn_pixel.o -MD -MP -MF "$(DEPDIR)/ocpn_pixel.Tpo" -c -o ocpn_pixel.o `test -f 'src/ocpn_pixel.cpp' || echo '$(srcdir)/'`src/ocpn_pixel.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ocpn_pixel.Tpo" "$(DEPDIR)/ocpn_pixel.Po"; else rm -f "$(DEPDIR)/ocpn_pixel.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ocpn_pixel.cpp' object='ocpn_pixel.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bitmapo.o `test -f 'src/bitmapo.cpp' || echo '$(srcdir)/'`src/bitmapo.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ocpn_pixel.o `test -f 'src/ocpn_pixel.cpp' || echo '$(srcdir)/'`src/ocpn_pixel.cpp
 
-bitmapo.obj: src/bitmapo.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bitmapo.obj -MD -MP -MF "$(DEPDIR)/bitmapo.Tpo" -c -o bitmapo.obj `if test -f 'src/bitmapo.cpp'; then $(CYGPATH_W) 'src/bitmapo.cpp'; else $(CYGPATH_W) '$(srcdir)/src/bitmapo.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/bitmapo.Tpo" "$(DEPDIR)/bitmapo.Po"; else rm -f "$(DEPDIR)/bitmapo.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/bitmapo.cpp' object='bitmapo.obj' libtool=no @AMDEPBACKSLASH@
+ocpn_pixel.obj: src/ocpn_pixel.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ocpn_pixel.obj -MD -MP -MF "$(DEPDIR)/ocpn_pixel.Tpo" -c -o ocpn_pixel.obj `if test -f 'src/ocpn_pixel.cpp'; then $(CYGPATH_W) 'src/ocpn_pixel.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ocpn_pixel.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ocpn_pixel.Tpo" "$(DEPDIR)/ocpn_pixel.Po"; else rm -f "$(DEPDIR)/ocpn_pixel.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ocpn_pixel.cpp' object='ocpn_pixel.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bitmapo.obj `if test -f 'src/bitmapo.cpp'; then $(CYGPATH_W) 'src/bitmapo.cpp'; else $(CYGPATH_W) '$(srcdir)/src/bitmapo.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ocpn_pixel.obj `if test -f 'src/ocpn_pixel.cpp'; then $(CYGPATH_W) 'src/ocpn_pixel.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ocpn_pixel.cpp'; fi`
 
 chart1.o: src/chart1.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT chart1.o -MD -MP -MF "$(DEPDIR)/chart1.Tpo" -c -o chart1.o `test -f 'src/chart1.cpp' || echo '$(srcdir)/'`src/chart1.cpp; \
@@ -802,20 +891,6 @@ concanv.obj: src/concanv.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/concanv.cpp' object='concanv.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o concanv.obj `if test -f 'src/concanv.cpp'; then $(CYGPATH_W) 'src/concanv.cpp'; else $(CYGPATH_W) '$(srcdir)/src/concanv.cpp'; fi`
-
-dymemdc.o: src/dymemdc.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT dymemdc.o -MD -MP -MF "$(DEPDIR)/dymemdc.Tpo" -c -o dymemdc.o `test -f 'src/dymemdc.cpp' || echo '$(srcdir)/'`src/dymemdc.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/dymemdc.Tpo" "$(DEPDIR)/dymemdc.Po"; else rm -f "$(DEPDIR)/dymemdc.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/dymemdc.cpp' object='dymemdc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dymemdc.o `test -f 'src/dymemdc.cpp' || echo '$(srcdir)/'`src/dymemdc.cpp
-
-dymemdc.obj: src/dymemdc.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT dymemdc.obj -MD -MP -MF "$(DEPDIR)/dymemdc.Tpo" -c -o dymemdc.obj `if test -f 'src/dymemdc.cpp'; then $(CYGPATH_W) 'src/dymemdc.cpp'; else $(CYGPATH_W) '$(srcdir)/src/dymemdc.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/dymemdc.Tpo" "$(DEPDIR)/dymemdc.Po"; else rm -f "$(DEPDIR)/dymemdc.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/dymemdc.cpp' object='dymemdc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dymemdc.obj `if test -f 'src/dymemdc.cpp'; then $(CYGPATH_W) 'src/dymemdc.cpp'; else $(CYGPATH_W) '$(srcdir)/src/dymemdc.cpp'; fi`
 
 navutil.o: src/navutil.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT navutil.o -MD -MP -MF "$(DEPDIR)/navutil.Tpo" -c -o navutil.o `test -f 'src/navutil.cpp' || echo '$(srcdir)/'`src/navutil.cpp; \
@@ -915,19 +990,19 @@ thumbwin.obj: src/thumbwin.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o thumbwin.obj `if test -f 'src/thumbwin.cpp'; then $(CYGPATH_W) 'src/thumbwin.cpp'; else $(CYGPATH_W) '$(srcdir)/src/thumbwin.cpp'; fi`
 
-options.o: src/dialog/options.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT options.o -MD -MP -MF "$(DEPDIR)/options.Tpo" -c -o options.o `test -f 'src/dialog/options.cpp' || echo '$(srcdir)/'`src/dialog/options.cpp; \
+options.o: src/options.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT options.o -MD -MP -MF "$(DEPDIR)/options.Tpo" -c -o options.o `test -f 'src/options.cpp' || echo '$(srcdir)/'`src/options.cpp; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/options.Tpo" "$(DEPDIR)/options.Po"; else rm -f "$(DEPDIR)/options.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/dialog/options.cpp' object='options.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/options.cpp' object='options.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o options.o `test -f 'src/dialog/options.cpp' || echo '$(srcdir)/'`src/dialog/options.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o options.o `test -f 'src/options.cpp' || echo '$(srcdir)/'`src/options.cpp
 
-options.obj: src/dialog/options.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT options.obj -MD -MP -MF "$(DEPDIR)/options.Tpo" -c -o options.obj `if test -f 'src/dialog/options.cpp'; then $(CYGPATH_W) 'src/dialog/options.cpp'; else $(CYGPATH_W) '$(srcdir)/src/dialog/options.cpp'; fi`; \
+options.obj: src/options.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT options.obj -MD -MP -MF "$(DEPDIR)/options.Tpo" -c -o options.obj `if test -f 'src/options.cpp'; then $(CYGPATH_W) 'src/options.cpp'; else $(CYGPATH_W) '$(srcdir)/src/options.cpp'; fi`; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/options.Tpo" "$(DEPDIR)/options.Po"; else rm -f "$(DEPDIR)/options.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/dialog/options.cpp' object='options.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/options.cpp' object='options.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o options.obj `if test -f 'src/dialog/options.cpp'; then $(CYGPATH_W) 'src/dialog/options.cpp'; else $(CYGPATH_W) '$(srcdir)/src/dialog/options.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o options.obj `if test -f 'src/options.cpp'; then $(CYGPATH_W) 'src/options.cpp'; else $(CYGPATH_W) '$(srcdir)/src/options.cpp'; fi`
 
 wvschart.o: src/wvschart.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT wvschart.o -MD -MP -MF "$(DEPDIR)/wvschart.Tpo" -c -o wvschart.o `test -f 'src/wvschart.cpp' || echo '$(srcdir)/'`src/wvschart.cpp; \
@@ -956,6 +1031,20 @@ about.obj: src/about.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/about.cpp' object='about.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o about.obj `if test -f 'src/about.cpp'; then $(CYGPATH_W) 'src/about.cpp'; else $(CYGPATH_W) '$(srcdir)/src/about.cpp'; fi`
+
+ais.o: src/ais.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ais.o -MD -MP -MF "$(DEPDIR)/ais.Tpo" -c -o ais.o `test -f 'src/ais.cpp' || echo '$(srcdir)/'`src/ais.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ais.Tpo" "$(DEPDIR)/ais.Po"; else rm -f "$(DEPDIR)/ais.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ais.cpp' object='ais.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ais.o `test -f 'src/ais.cpp' || echo '$(srcdir)/'`src/ais.cpp
+
+ais.obj: src/ais.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ais.obj -MD -MP -MF "$(DEPDIR)/ais.Tpo" -c -o ais.obj `if test -f 'src/ais.cpp'; then $(CYGPATH_W) 'src/ais.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ais.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ais.Tpo" "$(DEPDIR)/ais.Po"; else rm -f "$(DEPDIR)/ais.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ais.cpp' object='ais.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ais.obj `if test -f 'src/ais.cpp'; then $(CYGPATH_W) 'src/ais.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ais.cpp'; fi`
 
 latlong.o: src/nmea0183/latlong.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT latlong.o -MD -MP -MF "$(DEPDIR)/latlong.Tpo" -c -o latlong.o `test -f 'src/nmea0183/latlong.cpp' || echo '$(srcdir)/'`src/nmea0183/latlong.cpp; \
@@ -2087,6 +2176,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
+	$(mkdir_p) $(distdir)/data/s57data $(distdir)/data/tcdata $(distdir)/data/wvsdata $(distdir)/include $(distdir)/src/bitmaps $(distdir)/src/mygdal $(distdir)/src/nmea0183
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -2212,7 +2302,7 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile $(PROGRAMS) $(HEADERS)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
@@ -2291,7 +2381,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-info-am
+uninstall-am: uninstall-binPROGRAMS uninstall-info-am uninstall-local
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
 	clean-binPROGRAMS clean-generic ctags dist dist-all dist-bzip2 \
@@ -2305,14 +2395,23 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-binPROGRAMS \
-	uninstall-info-am
+	uninstall-info-am uninstall-local
 
 
 install-data-local:
-	cp -r data/wvsdata $(pkgdatadir)
-	cp -r data/s57data $(pkgdatadir)
-	cp -r data/bitmaps $(pkgdatadir)
-	cp -r data/tcdata $(pkgdatadir)
+	mkdir -p $(pkgdatadir)
+	cp -r ./$(srcdir)/data/wvsdata $(pkgdatadir)
+	cp -r ./$(srcdir)/data/s57data $(pkgdatadir)
+	cp -r ./$(srcdir)/data/tcdata  $(pkgdatadir)
+
+uninstall-local:
+	rm -fr $(pkgdatadir)/wvsdata/*
+	rm -fr $(pkgdatadir)/s57data/* 
+	rm -fr $(pkgdatadir)/tcdata/* 
+	rmdir $(pkgdatadir)/wvsdata
+	rmdir $(pkgdatadir)/s57data 
+	rmdir $(pkgdatadir)/tcdata 
+	rmdir $(pkgdatadir)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

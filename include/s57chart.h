@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.6 2007/03/02 02:07:11 dsr Exp $
+ * $Id: s57chart.h,v 1.7 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.7  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.6  2007/03/02 02:07:11  dsr
  * Convert to UTM Projection
  *
@@ -40,54 +43,6 @@
  *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.8  2006/08/04 11:43:37  dsr
- * no message
- *
- * Revision 1.7  2006/07/28 20:47:51  dsr
- * Cleanup
- *
- * Revision 1.6  2006/06/02 02:08:06  dsr
- * Add Arrays of ATON objects
- *
- * Revision 1.5  2006/05/28 01:47:00  dsr
- * SENC Version 104
- *
- * Revision 1.4  2006/05/28 00:55:04  dsr
- * Implement PolyGeo
- *
- * Revision 1.3  2006/05/19 19:36:19  dsr
- * Cleanup
- *
- * Revision 1.2  2006/04/23 04:06:18  dsr
- * Implement S57 Query
- *
- * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.12  2006/04/19 00:59:12  dsr
- * Implement ColorScheme
- *
- * Revision 1.11  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.10  2006/03/13 05:10:10  dsr
- * Cleanup
- *
- * Revision 1.9  2006/03/04 21:25:38  dsr
- * Cleanup
- *
- * Revision 1.8  2006/02/24 17:59:56  dsr
- * Add GetNameFromTXT
- *
- * Revision 1.7  2006/02/23 01:25:49  dsr
- * Cleanup
- *
- * Revision 1.6  2006/02/09 14:01:39  dsr
- * Define ThumbData friends
  *
  *
  */
@@ -112,16 +67,12 @@
 #include "iso8211.h"
 
 #include "gdal.h"
-#include "dymemdc.h"
+
 #include "s52s57.h"                 //types
 
 // ----------------------------------------------------------------------------
 // Useful Prototypes
 // ----------------------------------------------------------------------------
-//extern "C" void UTMtoDeg(double long0, short southernHemisphere, double x, double y, double *lat, double *lon);
-//extern "C" void DegToUTM(float lat, float lon, char *zone, float *x, float *y, float lon0);
-extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y);
-extern "C" void fromTM(double x, double y, double lat0, double lon0, double k0, double *lat, double *lon);
 
 // ----------------------------------------------------------------------------
 // S57 Utility Prototypes
@@ -147,7 +98,7 @@ extern "C" bool s57_ddfrecord_test();
 
 class ChartBase;
 class ViewPort;
-class wxBitmapo;
+class ocpnBitmap;
 class PixelCache;
 
 #include <wx/dynarray.h>
@@ -192,8 +143,9 @@ public:
       void GetChartExtent(Extent *pext);
 
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
+      void UpdateLUPs();
 
-      ArrayOfS57Obj *GetObjArrayAtLatLon(float lat, float lon, float select_radius);
+      ArrayOfS57Obj *GetObjArrayAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint);
       bool DoesLatLonSelectObject(float lat, float lon, float select_radius, S57Obj *obj);
       bool IsPointInObjArea(float lat, float lon, float select_radius, S57Obj *obj);
       wxString *CreateObjDescription(const S57Obj& obj);
@@ -208,10 +160,10 @@ public:
       double        ref_lat, ref_lon;             // Common reference point, derived from FullExtent
 
 private:
-      void DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint,
-            RenderTypeEnum option, wxBitmap **ppDIB, wxImage **pImg);
+      void DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, RenderTypeEnum option);
 
-      int DCRender(wxDC& dcinput, ViewPort& vp, wxRect *rect);
+      int DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect *rect);
+      bool DCRenderLPB(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect);
 
       int BuildS57File(const char *pFullPath);
       int BuildRAZFromS57File(const char *pFullPath);
@@ -220,13 +172,11 @@ private:
 
       void GetChartNameFromTXT(const wxString& FullPath, wxString &Name);
 
-      int S57_done();
-      int S57_freeObj(S57Obj *obj);
+      void FreeObjectsAndRules();
       const char *getName(OGRFeature *feature);
       int GetUpdateFileArray(const wxString& DirName, wxArrayString *UpFiles);
       int CountUpdates( const wxString& DirName, wxString &LastUpdateDate);
 
-      int _linkObj2rules();
       int _insertRules(S57Obj *obj, LUPrec *LUP);
 
       int my_fgets( char *buf, int buf_len_max, wxBufferedInputStream& ifs );
@@ -248,17 +198,9 @@ private:
       Extent      FullExtent;
 
       wxArrayString *tmpup_array;
-
-#ifdef      S57USE_PIXELCACHE
       PixelCache   *pDIB;
-#else
-#ifdef dyUSE_BITMAPO_S57
-      wxBitmapo   *pDIB;
-#else
-      wxBitmap    *pDIB;
-#endif
-#endif
 
+      bool         bGLUWarningSent;
 
 //  UTM Projection parms
       double     easting_vp_center, northing_vp_center;

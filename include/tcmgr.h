@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tcmgr.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: tcmgr.h,v 1.2 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tide and Current Manager
@@ -27,8 +27,11 @@
  ***************************************************************************
  *
  * $Log: tcmgr.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.3  2006/08/04 11:43:37  dsr
  * no message
@@ -270,7 +273,8 @@ private:
 
 
       abbreviation_entry      **abbreviation_list;
-      IDX_entry               *pIDX_first, IDX;
+      IDX_entry               *pIDX_first;
+      IDX_entry               IDX;
       harmonic_file_entry *harmonic_file_list;
       FILE                    *IndexFile;
       char                    *hfile_name;

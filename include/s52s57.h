@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.4 2007/03/02 02:06:32 dsr Exp $
+ * $Id: s52s57.h,v 1.5 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.5  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.4  2007/03/02 02:06:32  dsr
  * Convert to UTM Projection
  *
@@ -50,22 +53,6 @@
  * Revision 1.2  2006/04/23 04:06:18  dsr
  * Implement S57 Query
  *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.5  2006/04/19 00:58:48  dsr
- * *** empty log message ***
- *
- * Revision 1.4  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.3  2006/02/24 17:59:13  dsr
- * ReAdd OGRGeometry *OGeo to S57obj
- *
- * Revision 1.2  2006/02/23 01:25:17  dsr
- * Cleanup
- *
- *
  *
  */
 
@@ -75,40 +62,26 @@
 
 #include "bbox.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  112
+#define CURRENT_SENC_FORMAT_VERSION  113
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
 class OGREnvelope;
 class OGRGeometry;
+class wxBoundingBox;
 
-typedef enum _S52_table_t{
-       //S52_PL_ID,                  // S52 Library Identification Module DB
-       //S52_PL_COL,                 // Colour Table (6)
-         S52_LUP_PT_SIMPL,    // Look-Up Table for simplified point symbol
-         S52_LUP_PT_PAPER,    // Look-Up Table for paper chart point symbol
-         S52_LUP_LINE,           // Look-Up Table for line
-         S52_LUP_AREA_PLN,    // Look-up Table for plain boundaries area
-         S52_LUP_AREA_SYM,    // Look-Up Table for symbolized bound. area
-         S52_LINE_SYM,           // Complex Linestyle Symbolisation Table
-         S52_PATT_SYM,           // Pattern Symbolisation Table
-         S52_SYMB_SYM,           // Symbol Symbolisation Table
-         S52_COND_SYM,        // Conditional Symbolisation Table
-         S52_TABLE_NUM        // number of Tables
-}S52_table_t;
+// name of the addressed look up table set (fifth letter)
+typedef enum _LUPname{
+    SIMPLIFIED                             = 'L', // points
+    PAPER_CHART                            = 'R', // points
+    LINES                                  = 'S', // lines
+    PLAIN_BOUNDARIES                       = 'N', // areas
+    SYMBOLIZED_BOUNDARIES                  = 'O', // areas
+    LUPNAME_NUM
+}LUPname;
 
 
 
-//    LUP Arrays
-typedef enum _S52_LUP_table_t{
-         S52_LUPARRAY_PT_SIMPL,     // Look-Up Table for simplified point symbol
-         S52_LUPARRAY_PT_PAPER,     // Look-Up Table for paper chart point symbol
-         S52_LUPARRAY_LINE,         // Look-Up Table for line
-         S52_LUPARRAY_AREA_PLN,     // Look-up Table for plain boundaries area
-         S52_LUPARRAY_AREA_SYM,     // Look-Up Table for symbolized bound. area
-         S52_LUPARRAY_COND_SYM,     // Dynamic Look-Up Table for Conditional Symbology
-         S52_LUPARRAY_TABLE_NUM           // number of Tables
-}S52_LUP_table_t;
 
 // Addressed Object Type
 typedef enum _Object_t{
@@ -130,7 +103,7 @@ typedef enum _DisPrio{
    PRIO_SYMB_AREA       = '6',                  // area symbol also traffic areas
    PRIO_ROUTEING        = '7',                  // routeing lines
    PRIO_HAZARDS         = '8',                  // hazards
-   PRIO_MARINERS        = '9',                  // VRM &amp; EBL, own ship
+   PRIO_MARINERS        = '9',                  // VRM, EBL, own ship
    PRIO_NUM             = 10                    // number of priority levels
 
 }DisPrio;
@@ -143,15 +116,6 @@ typedef enum _RadPrio{
 }RadPrio;
 
 
-// name of the addressed look up table set (fifth letter)
-typedef enum _LUPname{
-   SIMPLIFIED                             = 'L', // points
-   PAPER_CHART                            = 'R', // points
-   LINES                                  = 'S', // lines
-   PLAIN_BOUNDARIES                       = 'N', // areas
-   SYMBOLIZED_BOUNDARIES                  = 'O', // areas
-   LUPNAME_NUM
-}LUPname;
 
 // display category type
 typedef enum _DisCat{
@@ -381,6 +345,7 @@ public:
 
       int                     Scamin;                 // SCAMIN attribute decoded during load
       bool                    bIsClone;
+      int                     nRef;                   // Reference counter, to signal OK for deletion
 };
 
 
@@ -407,7 +372,6 @@ class render_canvas_parms
 {
 public:
       unsigned char           *pix_buff;
-      unsigned char           *mask_buff;
       int                     lclip;
       int                     rclip;
       int                     pb_pitch;
@@ -416,7 +380,6 @@ public:
       int                     width;
       int                     height;
       int                     depth;
-      void                    *PCPtr;      // PixelCache Pointer stored here, if used
 };
 
 

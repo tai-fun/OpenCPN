@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.h,v 1.2 2007/03/02 02:06:00 dsr Exp $
+ * $Id: cutil.h,v 1.3 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Extern C Linked Utilities
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cutil.h,v $
+ * Revision 1.3  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.2  2007/03/02 02:06:00  dsr
  * Cleanup
  *
@@ -50,6 +53,9 @@ typedef struct  {
       double y;
 } MyPoint;
 
+#ifdef __cplusplus
+extern "C" int G_PtInPolygon(MyPoint *, int, float, float) ;
+#endif /* __cplusplus */
 
 int Intersect(MyPoint, MyPoint, MyPoint, MyPoint) ;
 int CCW(MyPoint, MyPoint, MyPoint) ;
@@ -70,24 +76,18 @@ int CCW(MyPoint, MyPoint, MyPoint) ;
 typedef enum { Visible, Invisible } ClipResult;
 
 #ifdef __cplusplus
-             extern "C" {
-#endif /* __cplusplus */
-
- ClipResult cohen_sutherland_line_clip_d (double *x0, double *y0, double *x1, double *y1,
+extern "C"  ClipResult cohen_sutherland_line_clip_d (double *x0, double *y0, double *x1, double *y1,
                                          double xmin_, double xmax_, double ymin_, double ymax_);
-#ifdef __cplusplus
-             }
-#endif /* __cplusplus */
-
-#ifdef __cplusplus
-             extern "C" {
-#endif /* __cplusplus */
-
- ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
+extern "C"  ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
                                              int xmin_, int xmax_, int ymin_, int ymax_);
+#endif
+
+
+//      Replacement for round(x)???
 #ifdef __cplusplus
-             }
+extern "C"  double     round_msvc (double flt);
 #endif /* __cplusplus */
+
 
 
 #endif

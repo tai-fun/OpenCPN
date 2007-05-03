@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.5 2006/12/03 21:27:20 dsr Exp $
+ * $Id: chart1.h,v 1.6 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.6  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.5  2006/12/03 21:27:20  dsr
  * Implement global enum definition of some ID constants, to avoid inadvertent duplication of IDs which can create ambiguity in message passing.
  * Change gFrame timer tick rate away from exactly 1000 msec to avoid syncronization problems.
@@ -155,7 +158,7 @@ typedef enum ColorScheme
       PRC,
       PRG,
       N_COLOR_SCHEMES
-};
+}_ColorScheme;
 
 //      Define a constant GPS signal watchdog timeout value
 #define GPS_TIMEOUT_SECONDS  5
@@ -164,6 +167,7 @@ typedef enum ColorScheme
 // fwd class declarations
 //----------------------------------------------------------------------------
 class ChartBase;
+class wxSocketEvent;
 
 //----------------------------------------------------------------------------
 //   Classes
@@ -176,6 +180,9 @@ class MyApp: public wxApp
   public:
     bool OnInit();
     int OnExit();
+
+    void TestSockets(void);
+    void OnSocketEvent(wxSocketEvent& event);
 
 };
 

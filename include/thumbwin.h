@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: thumbwin.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: thumbwin.h,v 1.2 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Chart Thumbnail Object
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: thumbwin.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.2  2006/05/19 19:36:19  dsr
  * Cleanup
@@ -71,7 +74,7 @@
   #include "wx/wx.h"
 #endif //precompiled headers
 
-#include "bitmapo.h"
+#include "ocpn_pixel.h"
 
 //----------------------------------------------------------------------------
 //   constants
@@ -95,7 +98,7 @@ public:
       void OnPaint(wxPaintEvent& event);
       void MouseEvent(wxMouseEvent& event);
       void Resize(void);
-      void SetMaxSize(wxSize max_size);
+      void SetMaxSize(wxSize const &max_size);
 
 
       wxBitmap     *pThumbShowing;

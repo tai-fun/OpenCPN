@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dymemdc.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: dymemdc.h,v 1.2 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCP
  * Purpose:  Enhanced wxMemoryDC
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: dymemdc.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
  * Rename/Import to OpenCPN
@@ -58,7 +61,10 @@ class WXDLLEXPORT dyMemDC : public wxMemoryDC
 public:
       dyMemDC();
 
-      void SelectObject(const wxBitmap& bitmap){wxMemoryDC::SelectObject(bitmap);}
+//      void SelectObject(const wxBitmap& bitmap){wxMemoryDC::SelectObject(bitmap);}
+
+      //    Satisfy wxX11 2.8.0
+      void SelectObject(wxBitmap& bitmap){wxMemoryDC::SelectObject(bitmap);}
 
 //    Add a method to select a DIB section directly into the DC
 #ifdef dyUSE_DIBSECTION

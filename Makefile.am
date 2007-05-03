@@ -1,9 +1,13 @@
 ## Process this file with automake to produce Makefile.in
 
+VERSION=1.2.0
 
 INCLUDES = \
 	$(WX_CXXFLAGS)\
-	 -Iinclude -Isrc/nmea0183 -Isrc/dialog
+	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
+	-I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/X11R6/include\
+        -I/usr/include/atk-1.0 -I/usr/include/pango-1.0 -I/usr/include/freetype2\
+        -I/usr/include/freetype2/config -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
 
 AM_CFLAGS =\
 	 -Wall\
@@ -30,23 +34,21 @@ endif
 
 #	The variable BUILD_WITH_GLU_TESS comes from configure script AM_CONDITIONAL()
 if BUILD_WITH_GLU_TESS
-AM_CFLAGS += -DUSE_GLU_TESS
-AM_CXXFLAGS += -DUSE_GLU_TESS
-opencpn_LDADD += -lGL -lGLU
+AM_CFLAGS += $(GL_CFLAGS)
+AM_CXXFLAGS += $(GL_CFLAGS)
+opencpn_LDADD += $(GL_LIBS)
 endif
 
 bin_PROGRAMS = opencpn
 
 opencpn_SOURCES = 	src/bbox.cpp \
- 			src/bitmapo.cpp \
+ 			src/ocpn_pixel.cpp \
 			src/chart1.cpp \
 			src/chartdb.cpp \
 			src/chartimg.cpp \
 			src/chcanv.cpp \
 			src/concanv.cpp \
 			src/cutil.c \
-			src/dataum.c \
-			src/dymemdc.cpp \
 			src/georef.c \
 			src/navutil.cpp \
 			src/nmea.cpp \
@@ -55,9 +57,10 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/statwin.cpp \
 			src/tcmgr.cpp \
 			src/thumbwin.cpp \
-			src/dialog/options.cpp \
+			src/options.cpp \
 			src/wvschart.cpp \
 			src/about.cpp \
+			src/ais.cpp \
 			src/nmea0183/latlong.cpp \
 			src/nmea0183/long.cpp \
 			src/nmea0183/nmea0183.cpp \
@@ -154,24 +157,139 @@ opencpn_SOURCES +=	src/myiso8211/ddffielddefn.cpp \
 			src/mygdal/gml2ogrgeometry.cpp \
 			src/mygdal/gdal_misc.cpp
 
-INCLUDES += -Isrc/mygdal
+INCLUDES += -I./$(srcdir)/src/mygdal
 endif
 
 if BUILD_WITH_WIFI_CLIENT
 AM_CXXFLAGS += -DUSE_WIFI_CLIENT
-opencpn_SOURCES +=	src/wificlient.cpp 
+opencpn_SOURCES += src/wificlient.cpp 
 endif
+
+noinst_HEADERS = \
+ 	include/about.h \
+ 	include/ais.h \
+ 	include/bbox.h \
+ 	include/chart1.h \
+ 	include/chartbase.h \
+ 	include/chartdb.h \
+ 	include/chartimg.h \
+ 	include/chcanv.h \
+ 	include/concanv.h \
+ 	include/cutil.h \
+ 	include/dychart.h \
+ 	include/georef.h \
+ 	include/iso8211.h \
+ 	include/mygeom.h \
+ 	include/navutil.h \
+ 	include/nmea.h \
+ 	include/ocpn_pixel.h \
+ 	include/options.h \
+ 	include/routeman.h \
+ 	include/s52plib.h \
+ 	include/s52s57.h \
+ 	include/s52utils.h \
+ 	include/s57chart.h \
+ 	include/s57mgr.h \
+ 	include/sercomm.h \
+ 	include/statwin.h \
+ 	include/tcmgr.h \
+ 	include/thumbwin.h \
+ 	include/triangulate.h \
+ 	include/wificlient.h \
+ 	include/wvschart.h \
+ 	src/mygdal/cpl_config.h \
+ 	src/mygdal/cpl_conv.h \
+ 	src/mygdal/cpl_csv.h \
+ 	src/mygdal/cpl_error.h \
+ 	src/mygdal/cpl_list.h \
+ 	src/mygdal/cpl_minixml.h \
+ 	src/mygdal/cpl_multiproc.h \
+ 	src/mygdal/cpl_odbc.h \
+ 	src/mygdal/cpl_port.h \
+ 	src/mygdal/cpl_string.h \
+ 	src/mygdal/cpl_vsi.h \
+ 	src/mygdal/gdal_alg.h \
+ 	src/mygdal/gdal_frmts.h \
+ 	src/mygdal/gdal.h \
+ 	src/mygdal/gdal_priv.h \
+ 	src/mygdal/gdalwarper.h \
+ 	src/mygdal/iso8211.h \
+ 	src/mygdal/ogr_api.h \
+ 	src/mygdal/ogr_attrind.h \
+ 	src/mygdal/ogr_core.h \
+ 	src/mygdal/ogr_feature.h \
+ 	src/mygdal/ogr_featurestyle.h \
+ 	src/mygdal/ogr_gensql.h \
+ 	src/mygdal/ogr_geometry.h \
+ 	src/mygdal/ogr_p.h \
+ 	src/mygdal/ogr_s57.h \
+ 	src/mygdal/ogrsf_frmts.h \
+ 	src/mygdal/ogr_spatialref.h \
+ 	src/mygdal/ogr_srs_api.h \
+ 	src/mygdal/s57.h \
+ 	src/mygdal/sfclsid.h \
+ 	src/mygdal/sfiiddef.h \
+ 	src/mygdal/swq.h \
+ 	src/nmea0183/nmea0183.h \
+ 	src/nmea0183/LatLong.hpp \
+ 	src/nmea0183/nmea0183.hpp \
+ 	src/nmea0183/Response.hpp \
+ 	src/nmea0183/RMB.hpp \
+ 	src/nmea0183/RMC.HPP \
+ 	src/nmea0183/Sentence.hpp
+
+EXTRA_DIST = \
+	data/wvsdata/readmewvs.txt \
+	data/wvsdata/wvs1.dat \
+	data/wvsdata/wvs43.dat \
+	data/s57data/attdecode.csv \
+	data/s57data/S52RAZDS.RLE \
+	data/s57data/S52RGB.TXT \
+	data/s57data/s57attributes.csv \
+	data/s57data/s57expectedinput.csv \
+	data/s57data/s57objectclasses.csv \
+	data/s57data/SP52COL.DAT \
+	data/tcdata/HARMONIC \
+	data/tcdata/HARMONIC.IDX \
+	src/bitmaps/down.xpm \
+	src/bitmaps/left.xpm \
+	src/bitmaps/pencil.xpm \
+	src/bitmaps/right.xpm \
+	src/bitmaps/up.xpm \
+	src/bitmaps/settings.xpm \
+	src/bitmaps/zoomin.xpm \
+	src/bitmaps/zoomout.xpm \
+	src/bitmaps/scin.xpm \
+	src/bitmaps/scout.xpm \
+	src/bitmaps/tide.xpm \
+	src/bitmaps/text.xpm \
+	src/bitmaps/route.xpm \
+	src/bitmaps/exitt.xpm \
+	src/bitmaps/follow.xpm \
+	src/bitmaps/current.xpm \
+	src/bitmaps/print.xpm \
+	src/bitmaps/help.xpm \
+	src/bitmaps/colscheme.xpm \
+	makefile.wat
 
 
 ## Installation
+##  The static data files will go into @prefix@/share/opencpn, default is e.g. /usr/local/share/opencpn
 
 install-data-local:
-	cp -r data/wvsdata $(pkgdatadir)
-	cp -r data/s57data $(pkgdatadir)
-	cp -r data/bitmaps $(pkgdatadir)
-	cp -r data/tcdata $(pkgdatadir)
+	mkdir -p $(pkgdatadir)
+	cp -r ./$(srcdir)/data/wvsdata $(pkgdatadir)
+	cp -r ./$(srcdir)/data/s57data $(pkgdatadir)
+	cp -r ./$(srcdir)/data/tcdata  $(pkgdatadir)
 
-
+uninstall-local:
+	rm -fr $(pkgdatadir)/wvsdata/*
+	rm -fr $(pkgdatadir)/s57data/* 
+	rm -fr $(pkgdatadir)/tcdata/* 
+	rmdir $(pkgdatadir)/wvsdata
+	rmdir $(pkgdatadir)/s57data 
+	rmdir $(pkgdatadir)/tcdata 
+	rmdir $(pkgdatadir)
 
 
 

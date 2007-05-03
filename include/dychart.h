@@ -12,76 +12,8 @@
 //#define CACHE_MEM_LIMIT 60000                             // Free mem threshold for freeing a chart from cache
 
 
-//          Specify the Pixel Cache type
-//          Only one of the following must be selected
-//          with due regard for the system type
-
-//#define __PIX_CACHE_WXIMAGE__                               // a safe default
-//#define __PIX_CACHE_DIBSECTION__                            // for MSW
-//#define __PIX_CACHE_X11IMAGE__                              // for X11/Universal, requires dyUSE_BITMAPO
-//#define __PIX_CACHE_BMO__                                   // Bitmapo raw, goes to X11 Pixmap
-
-//  I use these shortcuts....
-#ifdef __WXX11__
-#define     __PIX_CACHE_X11IMAGE__
-#define     dyUSE_BITMAPO
-#define     S57USE_PIXELCACHE
-#define     dyUSE_BITMAPO_S57
-//#define __PIX_CACHE_WXIMAGE__
-#endif
-
-#ifdef __WXGTK__
-#define __PIX_CACHE_WXIMAGE__
-#endif
-
-#ifdef __WXMSW__
-#define __PIX_CACHE_DIBSECTION__
-#define     dyUSE_DIBSECTION
-#define     dyUSE_BITMAPO
-#define     dyUSE_BITMAPO_S57
-//#define     S57USE_PIXELCACHE
-#endif
-
-
-
-//          Use Bitmapo (Optimized wxBitmap)
-//          Required for X11 native systems and __PIX_CACHE_BMO__, optional on MSW
-
-#ifdef      __PIX_CACHE_X11IMAGE__
-#define     dyUSE_BITMAPO
-#define     dyUSE_BITMAPO_S57
-#endif
-
-#ifdef      __PIX_CACHE_BMO__
-#define     dyUSE_BITMAPO
-#define     dyUSE_BITMAPO_S57
-#endif
-
-
-//          For Optimized X11 systems, use MIT shared memory XImage, requires dyUSE_BITMAPO
-#ifdef __PIX_CACHE_X11IMAGE__
-#define ocpUSE_MITSHM
-#endif
-
-
-//          The BitsPerPixel value for chart data storage
-//          Todo get this during pixcache ctor
-#ifdef __PIX_CACHE_WXIMAGE__                               // a safe default
-      #define BPP 24
-#endif
-#ifdef __PIX_CACHE_DIBSECTION__                            // for MSW
-      #define BPP 24
-#endif
-#ifdef __PIX_CACHE_X11IMAGE__                              // for X11/Universal
-      #define BPP 32
-#endif
-#ifdef __PIX_CACHE_BMO__                                   // Bitmapo raw, goes to X11 Pixmap
-      #define BPP 24
-#endif
-
-
 //          MSWindows Autopilot Control output through Serial Comm Port
-#define     dyUSE_MSW_SERCOMM           1
+#define     ocpnUSE_MSW_SERCOMM           1
 
 
 // Optional
@@ -97,16 +29,32 @@
 #define AUTO_CONFIG_SAVE_MINUTES 5
 
 
+//          If defined, update the system time using GPS receiver data.
+//          Time update is applied if the system time and GPS time differ
+//          by more than one minute, and only once per session.
+//          On Linux, this option requires root privileges, obtained by sudo.
+//          Thus, the following line is required in etc/sudoers:
+//
+//              nav ALL=NOPASSWD:/bin/date -s *
+//
+//          Where "nav" is the user's user name.
+//
+//          Also, the opencpn configuration file must contain the key
+//          [Settings]
+//              SetSystemTime=1
+//          For security, this option is not available on the "Options" dialog
+#define ocpnUPDATE_SYSTEM_TIME
+
 
 //------------------------------------------------------------------------------
-//          Some private, app global tye definitions
+//          Some private, app global type definitions
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 //          Various compile time options
 //------------------------------------------------------------------------------
 
-#ifdef __WXMSW__
+#ifdef __MSVC__
 #pragma warning(disable:4114)
 #pragma warning(disable:4284)             // This one is to do with "reverse iterator UDT..." Huh?
 
@@ -133,8 +81,11 @@
 #ifdef __WXMSW__
       #define fmin __min
       #define fmax __max
+
+//      #define round(x) floor(x)
 #endif
 
+#define round(x) round_msvc(x)
 //------------------------------------------------------------------------------
 //          Some Build constants
 //------------------------------------------------------------------------------
@@ -142,8 +93,11 @@
 //    Home Base, used if the config file lat/lon seems bogus or missing
 
 
-#define START_LAT   35.1025              // New Bern
-#define START_LON  -77.0342
+//#define START_LAT   35.1025              // New Bern (Ver 1.0)
+//#define START_LON  -77.0342
+
+#define START_LAT   26.783               // Green Turtle Key  (Ver 1.2)
+#define START_LON  -77.333
 
 //------------------------------------------------------------------------------
 //          Some MSW and MSVCRT Specific Includes
@@ -158,7 +112,7 @@
 
 
 
-#ifdef __WXMSW__
+#ifdef __MSVC__
         #ifdef _DEBUG
             #define _CRTDBG_MAP_ALLOC
             #include <crtdbg.h>
@@ -167,7 +121,14 @@
         #endif
 #endif
 
-
+//----------------------------------------------------------------------------
+//		Environment Access functions
+//----------------------------------------------------------------------------
+#ifdef __MSVC__
+#define _putenv _putenv		// This is for MSVC
+#else
+#define _putenv putenv		// This is for other Windows compiler
+#endif
 
 //----------------------------------------------------------------------------
 //              Use and compile for S57 ENCs?

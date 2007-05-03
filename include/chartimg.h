@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.5 2007/03/02 02:04:49 dsr Exp $
+ * $Id: chartimg.h,v 1.6 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.6  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.5  2007/03/02 02:04:49  dsr
  * Cleanup
  *
@@ -41,9 +44,6 @@
 #include "georef.h"
 #include "s52s57.h"
 
-#ifdef __WXMSW__
-      #include "wx/msw/dib.h"
-#endif
 
 
 class WXDLLEXPORT ChartImg;
@@ -56,7 +56,7 @@ typedef enum PaletteDir
 {
       PaletteFwd,
       PaletteRev
-};
+}_PaletteDir;
 
 //-----------------------------------------------------------------------------
 //    Fwd Refs
@@ -65,7 +65,7 @@ typedef enum PaletteDir
 class ChartKAP;
 class ViewPort;
 class PixelCache;
-class wxBitmapo;
+class ocpnBitmap;
 
 class wxFileInputStream;
 
@@ -80,10 +80,8 @@ public:
       int         bYValid;
       float       xr;
       float       yr;
-      float       ltr;
-      float       lnr;
-      double      northing;
-      double      easting;
+      float       latr;
+      float       lonr;
       float       xpl_error;
       float       xlp_error;
       float       ypl_error;
@@ -111,12 +109,18 @@ public:
       bool              bValid;
 };
 
-#define PALETTE_SIZE 33
+
 class Palette
 {
 public:
-      unsigned char FwdPalette[PALETTE_SIZE][4];
-      unsigned char RevPalette[PALETTE_SIZE][4];
+    Palette();
+    ~Palette();
+
+    int *FwdPalette;
+    int *RevPalette;
+    int nFwd;
+    int nRev;
+
 };
 
 // ----------------------------------------------------------------------------
@@ -144,15 +148,17 @@ public:
       void InvalidateCache(){cached_image_ok = 0;}
       Plypoint *GetPlyTable(){ return pPlyTable;}
       int       GetnPlypoints(){ return nPlypoint;}
+      void GetSourceRect(wxRect *rect);
 
 
       virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
       virtual void InvalidateLineCache();
+      virtual bool CreateLineIndex(void);
 
-      virtual void latlong_to_pix(double lat, double lon, int &pixx, int &pixy);
-      virtual void latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp);
-      virtual void pix_to_latlong(int pixx, int pixy, double *lat, double *lon);
-      virtual void vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *lat, double *lon);
+      virtual int latlong_to_pix(double lat, double lon, int &pixx, int &pixy);
+      virtual int latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp);
+      virtual int pix_to_latlong(int pixx, int pixy, double *lat, double *lon);
+      virtual int vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *lat, double *lon);
 
       void RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
 
@@ -165,24 +171,21 @@ public:
       PaletteDir GetPaletteDir(void);
 
 
-
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
 
       int  *GetPalettePtr(ColorScheme);
 
+      bool InitializeBackgroundBilinearRender(ViewPort &VPoint);
+      bool AbortBackgroundRender(void);
+      bool ContinueBackgroundRender(void);
+      bool FinishBackgroundRender(void);
 
-//    Public interface for Alternate thread renderer
-      bool GetViewIntoPrivatePixelCache( wxRect& source, wxRect& dest, ScaleTypeEnum scale_type );
-      wxRect &GetCurrentRsrc(){return Rsrc;}
-      bool AssumeAlternateCacheParms();
       PixelCache        *pPixCache;
-      PixelCache        *pPixCacheAlternate;
-      wxRect            cache_rect_alt;
-      wxRect            cache_rect_scaled_alt;
 
       //Todo  Convert to accessors
       Plypoint    *pPlyTable;
       int         nPlypoint;
+
 
 protected:
 
@@ -191,8 +194,8 @@ protected:
       void CreatePaletteEntry(char *buffer, int palette_index);
 
       virtual wxBitmap *CreateThumbnail(int tnx, int tny);
-      virtual bool GetChartBits( wxRect& source, unsigned char *pPix, int mode, int sub_samp );
-      int   BSBGetScanline( unsigned char *,   int, int, int, int);
+      virtual bool GetChartBits( wxRect& source, unsigned char *pPix, int sub_samp );
+      virtual int BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int xl, int sub_samp);
 
       virtual bool GetAndScaleData(unsigned char **ppn,
                                    wxRect& source, int s_width, int d_width, ScaleTypeEnum scale_type);
@@ -206,9 +209,9 @@ protected:
       bool GetView( wxRect& source, wxRect& dest, ScaleTypeEnum scale_type );
 
 
+      virtual int BSBScanScanline(wxInputStream *pinStream);
       virtual int ReadBSBHdrLine( wxFileInputStream*, char *, int );
       virtual int AnalyzeRefpoints(void);
-      virtual wxImage *ShrinkImage(wxImage *src_image, int Factor );
       void UpdateViewPortParms(ViewPort &vp);
 
       InitReturn PreInit( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
@@ -220,6 +223,7 @@ protected:
 
       int         Size_X;                 // Chart native pixel dimensions
       int         Size_Y;
+      int         Chart_DU;
 
 
       wxRect      cache_rect;
@@ -228,26 +232,23 @@ protected:
       ScaleTypeEnum cache_scale_method;
 
 
-      wxRect      Rsrc;           // Current chart source rectangle
+      wxRect      Rsrc;                   // Current chart source rectangle
 
 
-      Refpoint    *pRefTable;
       int         nRefpoint;
+      int         m_i_ref_near_center;
+      Refpoint    *pRefTable;
 
-      float       long0;
+//      float       long0;
 
       int         nColorSize;
       int         *pline_table;           // pointer to Line offset table
 
-      double      xpix_to_longitude_coef[5];
-      double      ypix_to_latitude_coef[5];
-      double      xlongitude_to_pix_coef[5];
-      double      ylatitude_to_pix_coef[5];
-
       CachedLine  *pLineCache;
 
-      wxFileInputStream *ifs_hdr;
-      wxFileInputStream *ifs_bitmap;
+      wxFileInputStream     *ifs_hdr;
+      wxFileInputStream     *ifss_bitmap;
+      wxBufferedInputStream *ifs_bitmap;
 
       wxString          *pBitmapFilePath;
 
@@ -256,13 +257,17 @@ protected:
       int               ifs_bufsize;
       unsigned char     *ifs_lp;
       int               ifs_file_offset;
+      int               nFileOffsetDataStart;
+      int               m_nLineOffset;
 
       GeoRef            cPoints;
-      double            *E12, *E21, *N12, *N21;
 
-      float             ppd_lon_1x;
-      float             ppd_lat_1x;
-
+      double            wpx[12], wpy[12], pwx[12], pwy[12];     // Imbedded georef coefficients
+      int               wpx_type, wpy_type, pwx_type, pwy_type;
+      int               n_wpx, n_wpy, n_pwx, n_pwy;
+      bool              bUseGeoRef;
+      bool              bHaveImbeddedGeoref;
+      double            m_cph;
 
       Palette           *pPalettes[N_COLOR_SCHEMES];
 
@@ -285,6 +290,21 @@ protected:
 
       double      ppm_avg;              // Calculated true scale factor of the 1X chart,
                                         // pixels per meter
+
+      //    Storage for background render machine
+
+      PixelCache    *pPixCacheBackground;
+      unsigned char *background_work_buffer;
+      unsigned char *br_target_data;
+
+      int       br_y_source;
+      int       br_target_height;
+      int       br_target_width;
+      int       br_scounter;
+      int       br_Factor;
+      int       br_get_bits_submap;
+      int       br_target_y;
+      int       bwb_size;
 };
 
 
@@ -299,7 +319,7 @@ public:
       ChartKAP();
       ~ChartKAP();
 
-      InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );//Initialize a BSB 3.x Chart
+      InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );//Initialize a BSB 2.x+ Chart
 
 
 };

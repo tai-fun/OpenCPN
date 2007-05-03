@@ -101,6 +101,11 @@ typedef struct {
       void *poly_next;
 } polyout;
 
+#ifdef __cplusplus
+extern "C" polyout *triangulate_polygon(int, int[], double (*)[2]);
+#else /* __cplusplus */
+extern polyout *triangulate_polygon(int, int[], double (*)[2]);
+#endif
 
 //extern int triangulate_polygon(int, int *, double (*)[2], int (*)[3]);
 extern int is_point_inside_polygon(double *);
@@ -127,8 +132,8 @@ extern int is_point_inside_polygon(double *);
 #define LASTPT  2
 
 
-#ifndef INFINITY
- #define INFINITY 1<<30
+#ifndef TRI_INFINITY
+ #define TRI_INFINITY 1<<30
 #endif
 
 #define C_EPS 1.0e-8          /* tolerance value: Used for making */

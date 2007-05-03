@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.3 2006/11/01 02:18:45 dsr Exp $
+ * $Id: navutil.h,v 1.4 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.4  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.3  2006/11/01 02:18:45  dsr
  * AIS Support
  *
@@ -69,7 +72,7 @@
 #endif
 
 #include "bbox.h"
-
+#include "s52s57.h"
 
 
 
@@ -130,6 +133,7 @@ public:
       void CalculateBBox();
       void UpdateSegmentDistances();
       void DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb);
+      void CalculateDCRect(wxDC& dc_route, wxRect *prect);
 
 
 
@@ -144,6 +148,7 @@ public:
       RoutePointList    *pRoutePointList;
 
       wxBoundingBox     BBox;
+      wxRect      active_pt_rect;
 
 
 };
@@ -192,6 +197,10 @@ public:
       int   m_nSymbolStyle;
       int   m_nBoundaryStyle;
       int   m_nColorScheme;
+
+      bool  m_bShowSoundg;
+      bool  m_bShowMeta;
+      bool  m_bUseSCAMIN;
 
 };
 
@@ -259,7 +268,9 @@ public:
 //    Delete all selectable points in list by type
       bool DeleteAllSelectableTypePoints(int SeltypeToDelete);
 
+      //  Accessors
 
+      SelectableItemList *GetSelectList(){return pSelectList;}
 
 private:
 
@@ -356,8 +367,8 @@ class WXDLLEXPORT X11FontPicker : public wxFontDialogBase
 
 
     // deprecated, for backwards compatibility only
-            X11FontPicker(wxWindow *parent, const wxFontData *data)
-      : wxFontDialogBase(parent, data) { Init(); }
+//            X11FontPicker(wxWindow *parent, const wxFontData *data)
+//      : wxFontDialogBase(parent, data) { Init(); }
 
     // Internal functions
             void OnCloseWindow(wxCloseEvent& event);

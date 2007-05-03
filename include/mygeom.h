@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.4 2007/03/02 02:06:21 dsr Exp $
+ * $Id: mygeom.h,v 1.5 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselation of Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
+ * Revision 1.5  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.4  2007/03/02 02:06:21  dsr
  * Convert to UTM Projection
  *
@@ -80,8 +83,6 @@
 #define ERROR_NO_DLL            1
 
 //  Some external prototypes
-extern "C" void toTM(float lat, float lon, float lat0, float lon0, float k0, double *x, double *y);
-extern "C" void fromTM(double x, double y, double lat0, double lon0, double k0, double *lat, double *lon);
 
 
 //--------------------------------------------------------------------------------------------------
@@ -145,7 +146,9 @@ class PolyTessGeo
         ~PolyTessGeo();
 
         PolyTessGeo(unsigned char *polybuf, int nrecl, int index);      // Build this from SENC file record
-        PolyTessGeo(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon);  // Build this from OGRPolygon
+
+        PolyTessGeo(OGRPolygon *poly, bool bSENC_UTM,
+            double ref_lat, double ref_lon,  bool bUseInternalTess);  // Build this from OGRPolygon
 
         int Write_PolyTriGroup( FILE *ofs);
 

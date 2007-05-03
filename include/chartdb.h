@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.4 2007/03/02 02:04:09 dsr Exp $
+ * $Id: chartdb.h,v 1.5 2007/05/03 13:31:19 dsr Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.5  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+ *
  * Revision 1.4  2007/03/02 02:04:09  dsr
  * Cleanup
  *
@@ -34,30 +37,6 @@
  *
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.4  2006/07/05 02:33:48  dsr
- * DB Version 13
- *
- * Revision 1.3  2006/06/15 02:36:25  dsr
- * New Database Version
- *
- * Revision 1.2  2006/06/02 02:04:40  dsr
- * Localize MyFlPoint
- *
- * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.6  2006/04/19 00:55:10  dsr
- * Implement ColorScheme
- *
- * Revision 1.5  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.4  2006/02/23 01:17:32  dsr
- * Cleanup
  *
  *
  *
@@ -169,14 +148,15 @@ public:
       int  BuildChartStack(ChartStack * cstk, float lat, float lon);
       bool EqualStacks(ChartStack *, ChartStack *);
       bool CopyStack(ChartStack *pa, ChartStack *pb);
-      bool GetFullPath(ChartStack *ps, int stackindex, char *buf);
-      bool GetChartID(ChartStack *ps, int stackindex, char *buf);
-      int  GetStackChartScale(ChartStack *ps, int stackindex, char *buf);
+      bool GetFullPath(ChartStack *ps, int stackindex, char *buf, int nbuf);
+      bool GetChartID(ChartStack *ps, int stackindex, char *buf, int nbuf);
+      int  GetStackChartScale(ChartStack *ps, int stackindex, char *buf, int nbuf);
       int  GetCSPlyPoint(ChartStack *ps, int stackindex, int plyindex, float *lat, float *lon);
       int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);
       int  GetCSChartType(ChartStack *ps, int stackindex);
       int  GetDBChartType(int dbIndex);
       bool GetDBFullPath(int dbIndex, char *buf);
+      bool GetDBBoundingBox(int dbindex, wxBoundingBox *box);
 
       virtual int  GetStackEntry(ChartStack *ps, wxString *pfp);
       ChartBase *OpenChartFromStack(ChartStack *pStack, int StackEntry, ChartInitFlag iflag = FULL_INIT);
