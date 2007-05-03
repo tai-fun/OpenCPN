@@ -19,8 +19,11 @@
  ******************************************************************************
  *
  * $Log: swq.c,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:29:31  dsr
+ * Correct some compiler dependecies Windows compiler
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -1628,7 +1631,7 @@ static int swq_parse_table_def( swq_select *select_info,
 /* -------------------------------------------------------------------- */
 /*      Add a new entry to the tables table.                            */
 /* -------------------------------------------------------------------- */
-    select_info->table_defs = 
+    select_info->table_defs = (swq_table_def *)
         swq_realloc( select_info->table_defs, 
                      sizeof(swq_table_def) * (select_info->table_count),
                      sizeof(swq_table_def) * (select_info->table_count+1) );
@@ -2337,7 +2340,7 @@ const char *swq_reform_command( swq_select *select_info )
     int         cmd_size = 0;
     int         i;
 
-    command = SWQ_MALLOC(max_cmd_size);
+    command = (char *)SWQ_MALLOC(max_cmd_size);
 
     strcpy( command, "SELECT " );
 
@@ -2452,7 +2455,7 @@ static void grow_command( char **p_command, int *max_cmd_size, int *cmd_size,
     if( *max_cmd_size < *cmd_size + new_bytes )
         *max_cmd_size = *cmd_size + new_bytes + 100;
 
-    new_command = SWQ_MALLOC(*max_cmd_size);
+    new_command = (char *)SWQ_MALLOC(*max_cmd_size);
 
     strcpy( new_command, *p_command );
     SWQ_FREE( *p_command );

@@ -18,8 +18,11 @@
  ******************************************************************************
  *
  * $Log: swq.h,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2007/05/03 13:29:31  dsr
+ * Correct some compiler dependecies Windows compiler
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -52,6 +55,11 @@
 
 #ifndef _SWQ_H_INCLUDED_
 #define _SWQ_H_INCLUDED_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 typedef enum {
     SWQ_OR,
@@ -238,6 +246,10 @@ const char *swq_select_finish_summarize( swq_select *select_info );
 const char *swq_select_summarize( swq_select *select_info, 
                                   int dest_column, 
                                   const char *value );
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* def _SWQ_H_INCLUDED_ */
