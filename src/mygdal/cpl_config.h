@@ -16,7 +16,12 @@
 //DSR ....comment for MSW #define HAVE_SNPRINTF
 //#define vsnprintf _vsnprintf
 #ifdef __WXMSW__
-	#define snprintf _snprintf
+#undef HAVE_SNPRINTF
+//#define snprintf _snprintf
+#endif
+
+#ifdef WINDOWS		/*  This definition comes from cpl_port.h  */
+#undef HAVE_SNPRINTF
 #endif
 
 /* Define if you have the ANSI C header files.  */
