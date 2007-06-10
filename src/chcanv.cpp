@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.16 2007/05/03 13:23:55 dsr Exp $
+ * $Id: chcanv.cpp,v 1.17 2007/06/10 02:27:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.17  2007/06/10 02:27:11  bdbcat
+ * Improve background rendering logic
+ *
  * Revision 1.16  2007/05/03 13:23:55  dsr
  * Major refactor for 1.2.0
  *
@@ -95,7 +98,7 @@ extern ConsoleCanvas    *console;
 extern RouteList        *pRouteList;
 extern MyConfig         *pConfig;
 extern Select           *pSelect;
-extern wxToolBarBase    *toolBar;
+extern wxToolBar        *toolBar;
 extern Routeman         *pRouteMan;
 extern ThumbWin         *pthumbwin;
 extern TCMgr            *ptcmgr;
@@ -114,13 +117,15 @@ extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
 extern AIS_Decoder      *pAIS;
 
+extern bool             s_bNoDrawAIS;
+
 //  Todo why are these static?
 static int mouse_x;
 static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.16 2007/05/03 13:23:55 dsr Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.17 2007/06/10 02:27:11 bdbcat Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -221,6 +226,7 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
       pss_overlay_bmp = NULL;
       pss_overlay_mask = NULL;
       m_bBackRender = false;
+      m_bbr_paused = false;
 
 //    Build the cursors
 
@@ -368,15 +374,37 @@ ChartCanvas::~ChartCanvas()
 
 void ChartCanvas::RescaleTimerEvent(wxTimerEvent& event)
 {
-    if(SCALE_BILINEAR != current_scale_method)
+    if(m_bBackRender && !m_bbr_paused)
+    {
+///        printf("nested bbr\n");          // logical error
+        if(br_Ch)
+        {
+            br_Ch->AbortBackgroundRender();
+            br_Ch = NULL;
+            m_bBackRender = false;
+        }
+    }
+
+
+    if((SCALE_BILINEAR != current_scale_method) && !m_bBackRender)
     {
       //    Start a background render
       br_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
       if(br_Ch)
       {
           if(br_Ch->InitializeBackgroundBilinearRender(VPoint))
-           m_bBackRender = true;
+          {
+               m_bBackRender = true;
+               m_bbr_paused = false;
+          }
       }
+      return;
+    }
+
+    if((SCALE_BILINEAR != current_scale_method) && m_bBackRender && m_bbr_paused)
+    {
+       m_bbr_paused = false;
+       return;
     }
 }
 
@@ -386,17 +414,33 @@ void ChartCanvas::OnIdleEvent(wxIdleEvent& event)
     //  If a background render is in process, continue it along...
     if(m_bBackRender)
     {
-        if(br_Ch->ContinueBackgroundRender())       //done?
+
+        if(br_Ch != Current_Ch)                 // a logical error, happens on chart change
         {
-            br_Ch->FinishBackgroundRender();        // yes
-            current_scale_method = SCALE_BILINEAR;
-            m_bBackRender = false;
-            Refresh(false);
+///            printf("bbr != Current_Ch, aborting bbr\n");
+            if(br_Ch)
+            {
+                br_Ch->AbortBackgroundRender();
+                br_Ch = NULL;
+                m_bBackRender = false;
+                event.Skip();
+                return;
+            }
         }
-        else
-            event.RequestMore();
 
+        if(!m_bbr_paused)
+        {
+             if(br_Ch->ContinueBackgroundRender())       //done?
+            {
+                br_Ch->FinishBackgroundRender();        // yes
+                current_scale_method = SCALE_BILINEAR;
+                m_bBackRender = false;
+                Refresh(false);
+            }
+            else
+                event.RequestMore();
 
+        }
         event.Skip();
     }
     else
@@ -518,7 +562,7 @@ void ChartCanvas::GetPixPoint(int x, int y, double &lat, double &lon)
           //    if needed, use the Mercator scaling estimator
       if(bUseMercator)
       {
-      //    Use UTM estimator
+      //    Use SM estimator
         int dx = x - (VPoint.pix_width  / 2);
         int dy = (VPoint.pix_height / 2) - y;
 
@@ -535,6 +579,16 @@ void ChartCanvas::GetPixPoint(int x, int y, double &lat, double &lon)
         lon = slon;
       }
   }
+}
+
+void ChartCanvas::FlushBackgroundRender(void)
+{
+    if(m_bBackRender)
+    {
+        br_Ch->AbortBackgroundRender();
+        m_bBackRender = false;
+        m_bbr_paused = false;
+    }
 }
 
 
@@ -599,6 +653,9 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
                     }
                 }
             }
+
+            //  Always abort in background renderer on viewport change
+            FlushBackgroundRender();
         }
       }
 
@@ -630,7 +687,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
             double ref_lon = Cur_S57_Ch->ref_lon;
 
             //    Handle the first switch to an s57 chart
-            //    After the first time, use exact previous UTM coordinates of center point
+            //    After the first time, use exact previous SM coordinates of center point
             //    as stored in VPoint.c_north
             if((prev_easting_c == 0) || (prev_northing_c == 0))
             {
@@ -650,7 +707,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
             {
 
                 //  then require this viewport to be exact integral pixel difference from last
-                //  adjusting clat/clat and UTM accordingly
+                //  adjusting clat/clat and SM accordingly
 
                 double delta_pix_x = ( easting_c - prev_easting_c) * VPoint.view_scale_ppm;
                 int dpix_x = (int)round(delta_pix_x);
@@ -668,9 +725,6 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
                 VPoint.clat = xlat;
                 VPoint.c_east = c_east_d;
                 VPoint.c_north = c_north_d;
-
-    //              printf("\nchcanv dpx c_east_d  prev_easting_c %20.10f %20.10f %20.10f\n", dpx, c_east_d, prev_easting_c);
-    //              printf("chcanv last_lat, last_lon %20.10f %20.10f\n", last_lat, last_lon);
             }
 
 
@@ -827,7 +881,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
       if(parent_frame->pStatusBar)
       {
             char buf[20];
-            sprintf(buf, "Scale: %8.0f", VPoint.chart_scale);
+            sprintf(buf, "Scale: %8.0f %g", VPoint.chart_scale, VPoint.binary_scale_factor);
             parent_frame->SetStatusText(buf, 4);
       }
 
@@ -888,20 +942,24 @@ void ChartCanvas::ShipDraw(wxDC& dc)
 
 void ChartCanvas::AISDraw(wxDC& dc)
 {
+///debug
+    if(s_bNoDrawAIS)
+       return;
+
     if(!pAIS)
         return;
 
     wxBrush *p_yellow_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,000), wxSOLID);   // yellow
-    wxBrush *p_gray_brush = wxTheBrushList->FindOrCreateBrush(wxColour(180,180,180), wxSOLID);   // gray
-    wxBrush *p_orange_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,108,0), wxSOLID);   // orange
 
     //      Iterate over the AIS Target Hashmap
     AIS_Target_Hash::iterator it;
 
     AIS_Target_Hash *current_targets = pAIS->GetTargetList();
 
+    int ntargets = 0;
     for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
     {
+        ntargets++;
           AIS_Target_Data *td = it->second;
 
           int drawit = 0;
@@ -965,11 +1023,7 @@ void ChartCanvas::AISDraw(wxDC& dc)
 
                 // Default color is green
                 dc.SetBrush(wxBrush(*wxGREEN_BRUSH));
-                dc.SetPen(*wxGREEN_PEN);
-
-                //  except for....
-                if((td->NavStatus != UNDERWAY_USING_ENGINE) && (td->NavStatus != UNDERWAY_SAILING))
-                    dc.SetBrush(*p_gray_brush);
+                dc.SetPen(*wxBLACK_PEN);
 
                 //and....
                 if(!strncmp(td->ShipName, "UNKNOWN", 7))
@@ -988,8 +1042,6 @@ void ChartCanvas::AISDraw(wxDC& dc)
 
                 dc.DrawCircle(PredPoint.x, PredPoint.y, 6);
 
-
-                dc.SetPen(wxPen(*wxBLACK_PEN));
                 dc.DrawPolygon(3, &ais_tri_icon[0], TargetPoint.x, TargetPoint.y);
               }
               else                                      // SOG is near zero, use diamond icon
@@ -1004,9 +1056,9 @@ void ChartCanvas::AISDraw(wxDC& dc)
                   ais_dia_icon[3].x =  0;
                   ais_dia_icon[3].y = -6;
 
-                  // Default for slow target is orange
-                  dc.SetBrush(wxBrush(*p_orange_brush));
-                  dc.SetPen(wxPen(*wxBLACK_PEN));
+                // Default color is green
+                  dc.SetBrush(wxBrush(*wxGREEN_BRUSH));
+                  dc.SetPen(*wxBLACK_PEN);
 
                   // except....
                   if(!strncmp(td->ShipName, "UNKNOWN", 7))
@@ -1016,6 +1068,8 @@ void ChartCanvas::AISDraw(wxDC& dc)
               }
         }
     }
+
+///    printf("On AIS Draw, ntargets:%d\n", ntargets);
 }
 
 void ChartCanvas::UpdateShips()
@@ -1059,7 +1113,6 @@ void ChartCanvas::UpdateShips()
 
     //  Invalidate the rectangular region
         RefreshRect(own_ship_update_rect, false);
-//        printf("\n ship update x, y width, height %d %d %d %d\n", own_ship_update_rect.x, own_ship_update_rect.y, own_ship_update_rect.width, own_ship_update_rect.height);
     }
 
     //  Save this rectangle for next time
@@ -1100,10 +1153,13 @@ void ChartCanvas::UpdateAIS()
                      temp_dc.MinY(),
                      temp_dc.MaxX() - temp_dc.MinX(),
                      temp_dc.MaxY() - temp_dc.MinY());
+
     if(!ais_rect.IsEmpty())
-    {
         ais_rect.Inflate(2);                   // clear all drawing artifacts
 
+
+    if(!ais_rect.IsEmpty() || !ais_draw_rect.IsEmpty())
+    {
     //  The required invalidate rectangle is the union of the last drawn rectangle
     //  and this drawn rectangle
         wxRect ais_update_rect = ais_draw_rect;
@@ -1211,11 +1267,20 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
       if(!Current_Ch)
             return;
 
+      /*
       //    Abort any underway background rendering operation
       if(m_bBackRender)
       {
           br_Ch->AbortBackgroundRender();
           m_bBackRender = false;
+      }
+      */
+      //    pause any underway background rendering operation
+
+      if(m_bBackRender)
+      {
+          m_bbr_paused = true;
+          pRescaleTimer->Start(m_rescale_timer_msec, wxTIMER_ONE_SHOT);
       }
 
 
@@ -1565,8 +1630,8 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
 
                   //    Invalidate the union region
                   pre_rect.Union(post_rect);
-                  RefreshRect(pre_rect, false);
-//                  Refresh(false);
+//                  RefreshRect(pre_rect, false);
+                  Refresh(false);
             }     // if Route Editing
 
             else                                            // must be chart dragging...
@@ -1685,13 +1750,14 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                   {
                         pFoundAIS_Target_Data = (AIS_Target_Data *)pFind->m_pData1;
 
-//  Debug
+///  Debug
+/*
                         wxDateTime now = wxDateTime::Now();
                         now.MakeGMT();
                         int target_age = now.GetTicks() - pFoundAIS_Target_Data->ReportTicks;
                         if((target_age > 500) || (target_age < -500))
                             printf("AIS: Mouse rightclick found absurd target age\n");
-
+*/
                         CanvasPopupMenu(x,y, SELTYPE_AISTARGET);
 
                         m_bForceReDraw = true;
@@ -2432,7 +2498,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
           scratch_dc.Blit(rect.x, rect.y, rect.width, rect.height,
                                    &temp_dc, rect.x, rect.y);
- ///         printf("   Scratch Blit %d %d %d %d\n",rect.x, rect.y, rect.width, rect.height);
+///          printf("   Scratch Blit %d %d %d %d\n",rect.x, rect.y, rect.width, rect.height);
 ///          printf("   Scratch Blit %ldms\n", st.Time());
           upd ++ ;
       }
@@ -2447,7 +2513,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 
       if(g_bShowOutlines)
           RenderAllChartOutlines(&scratch_dc, VPoint) ;
-      
+
       if(parent_frame->nRoute_State >= 2)
       {
           wxPoint rpt;
@@ -3013,7 +3079,7 @@ WX_DEFINE_LIST(SplineList);
 
 // Define a constructor
 TCWin::TCWin(ChartCanvas *parent, int x, int y, void *pvIDX):
- wxDialog(parent, wxID_ANY,   wxString("Current"), wxPoint(x,y), wxSize(500,400),
+ wxDialog(parent, wxID_ANY,   wxString("test"), wxPoint(x,y), wxSize(500,400),
                   wxCLIP_CHILDREN | wxDEFAULT_DIALOG_STYLE )
  {
       pParent = parent;
@@ -3024,12 +3090,12 @@ TCWin::TCWin(ChartCanvas *parent, int x, int y, void *pvIDX):
       if(strchr("Tt", pIDX->IDX_type))
       {
             plot_type = TIDE_PLOT;
-            SetLabel(wxString("Tide"));
+            SetTitle(wxString("Tide"));
       }
       else
       {
             plot_type = CURRENT_PLOT;
-            SetLabel(wxString("Current"));
+            SetTitle(wxString("Current"));
       }
 
       int sx,sy;
@@ -3143,7 +3209,6 @@ void TCWin::OKEvent(wxCommandEvent& event)
       pParent->pCwin = NULL;
       pParent->m_bForceReDraw = true;
       pParent->Refresh(false);
-//    pParent->Update();
       Destroy();                          // that hurts
 }
 
@@ -3152,8 +3217,6 @@ void TCWin::OnCloseWindow(wxCloseEvent& event)
       Hide();
       pParent->pCwin = NULL;
       pParent->m_bForceReDraw = true;
-//    pParent->Refresh(false);
-//    pParent->Update();
       Destroy();                          // that hurts
 }
 
