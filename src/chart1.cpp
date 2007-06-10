@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.13 2007/06/10 02:24:17 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.14 2007/06/10 03:19:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.14  2007/06/10 03:19:29  bdbcat
+ * Fix Leaks
+ *
  * Revision 1.13  2007/06/10 02:24:17  bdbcat
  * Implement global color scheme
  *
@@ -133,7 +136,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.13 2007/06/10 02:24:17 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.14 2007/06/10 03:19:29 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -1265,7 +1268,6 @@ void MyFrame::MyAddTool(wxToolBarBase *pTB, int toolId, const wxString& label, c
 
 }
 
-
 void MyFrame::PrepareToolbarBitmaps(void)
 {
     // Load up all the toolbar bitmap xpm data pointers into a hash map
@@ -1294,7 +1296,6 @@ void MyFrame::PrepareToolbarBitmaps(void)
 
         wxString index = it->first;
         char **px1 = (char **)tool_xpm_hash[index];
-        pimg = new wxImage(px1);
 
 //  Build Day Bitmap
         pimg = new wxImage(px1);
@@ -1426,6 +1427,29 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
     delete pthumbwin;
 
     delete pAPilot;
+
+    // Delete the toolbar bitmaps
+
+    string_to_pbitmap_hash::iterator it;
+
+    for( it = tool_bitmap_hash_day.begin(); it != tool_bitmap_hash_day.end(); ++it )
+    {
+        wxBitmap *pbm = it->second;
+        delete pbm;
+    }
+
+    for( it = tool_bitmap_hash_dusk.begin(); it != tool_bitmap_hash_dusk.end(); ++it )
+    {
+        wxBitmap *pbm = it->second;
+        delete pbm;
+    }
+
+    for( it = tool_bitmap_hash_night.begin(); it != tool_bitmap_hash_night.end(); ++it )
+    {
+        wxBitmap *pbm = it->second;
+        delete pbm;
+    }
+
 
     this->Destroy();
 
