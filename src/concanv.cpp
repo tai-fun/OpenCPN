@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.3 2007/05/03 13:23:55 dsr Exp $
+ * $Id: concanv.cpp,v 1.4 2007/06/10 02:27:30 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.4  2007/06/10 02:27:30  bdbcat
+ * Color scheme support
+ *
  * Revision 1.3  2007/05/03 13:23:55  dsr
  * Major refactor for 1.2.0
  *
@@ -85,7 +88,7 @@ extern                  float gCog;
 extern                  float gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.3 2007/05/03 13:23:55 dsr Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.4 2007/06/10 02:27:30 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -129,14 +132,10 @@ ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
       pTTG->SetALabel("TTG");
 
 
-
-
-
 //    Create CDI Display Window
 
       pCDI = new CDI(this, -1, wxPoint(0,200), wxSize(100, 200), wxSIMPLE_BORDER, "CDI");
       pCDI->SetBackgroundColour(wxColour(192,192,192));
-
 
       m_bShowRouteTotal = false;
 
@@ -154,25 +153,54 @@ ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
 void ConsoleCanvas::OnSize(wxSizeEvent& event)
 {
       int canvas_width, canvas_height;
-      this->GetClientSize(&canvas_width, &canvas_height);
+      GetClientSize(&canvas_width, &canvas_height);
 
       pThisLegBox->SetSize(1,1,canvas_width-2,240);
 
       int CDIHeight = canvas_width /2;
       pCDI->SetSize(2, canvas_height - CDIHeight - 4, canvas_width-4, CDIHeight);
-
-
 }
 
+void ConsoleCanvas::SetColorScheme(ColorScheme cs)
+{
+    wxColour back_color;
+
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            back_color = wxColour(150,150,150);
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            back_color = wxColour(128,128,128);
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            back_color = wxColour(64,64,64);
+            break;
+        default:
+            back_color = wxColour(150,150,150);
+            break;
+    }
+
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+
+    //  Also apply color scheme to all known children
+
+    pXTE->SetColorScheme(cs);
+    pBRG->SetColorScheme(cs);
+    pRNG->SetColorScheme(cs);
+    pTTG->SetColorScheme(cs);
+
+    pCDI->SetColorScheme(cs);
+}
 
 
 void ConsoleCanvas::OnPaint(wxPaintEvent& event)
 {
       int x,y;
-      this->GetClientSize(&x, &y);
+      GetClientSize(&x, &y);
       char buf[40];
 
-    wxPaintDC dc(this);
+      wxPaintDC dc(this);
 
       if(pRouteMan->GetpActiveRoute())
       {
@@ -273,25 +301,8 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                         pXTE->SetAValue(seta.c_str());
                         pXTE->SetALabel("ETA          ");
                   }
-
-
-
-
-                  pBRG->Refresh(true);
-                  pXTE->Refresh(true);
-                  pTTG->Refresh(true);
-                  pRNG->Refresh(true);
-
-
-//    The CDI Display
-                  pCDI->Refresh(true);
             }
-
       }
-
-
-
-
 }
 
 
@@ -306,8 +317,6 @@ void ConsoleCanvas::UpdateRouteData()
       {
             m_bNeedClear = true;
       }
-
-
 }
 
 
@@ -364,7 +373,6 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
 
 void ConsoleCanvas::ShowWithFreshFonts(void)
 {
-
       pBRG->RefreshFonts();
       pXTE->RefreshFonts();
       pTTG->RefreshFonts();
@@ -385,7 +393,8 @@ END_EVENT_TABLE()
 
 
 AnnunText::AnnunText(wxWindow *parent, wxWindowID id,
-                               const wxPoint& pos, const wxSize& size, const char *LegendElement, const char *ValueElement):
+                               const wxPoint& pos, const wxSize& size, const char *LegendElement,
+                                const char *ValueElement):
             wxWindow(parent, id, pos, size, wxSUNKEN_BORDER, wxString(""))
 {
       SetBackgroundColour(wxColour(0,0,0));
@@ -404,6 +413,7 @@ AnnunText::AnnunText(wxWindow *parent, wxWindowID id,
 
       plabelFont = pFontMgr->GetFont(*pLegendTextElement);
       pvalueFont = pFontMgr->GetFont(*pValueTextElement);
+
 /*
       // Calculate font sizes
       int mmx, mmy;
@@ -487,6 +497,35 @@ AnnunText::~AnnunText()
       delete pValueTextElement;
 
 }
+void AnnunText::SetColorScheme(ColorScheme cs)
+{
+    wxColour back_color, text_color;
+
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            back_color = wxColour(0,0,0);
+            text_color = wxColour(0,255,0);
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            back_color = wxColour(0,0,0);
+            text_color = wxColour(0,128,0);
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            back_color = wxColour(0,0,0);
+            text_color = wxColour(0,100,0);
+            break;
+        default:
+            back_color = wxColour(0,0,0);
+            text_color = wxColour(0,255,0);
+            break;
+    }
+
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+    m_text_color = text_color;
+
+}
+
 
 
 void AnnunText::RefreshFonts()
@@ -523,31 +562,41 @@ void AnnunText::SetAValue(const wxString &v)
 
 void AnnunText::OnPaint(wxPaintEvent& event)
 {
-      wxPaintDC dc(this);
+      int sx,sy;
+      GetClientSize(&sx, &sy);
 
-      dc.SetTextForeground(wxColour(0,255,0));
+      //    Do the drawing on an off-screen memory DC, and blit into place
+      //    to avoid objectionable flashing
+      wxMemoryDC mdc;
+
+      wxBitmap m_bitmap(sx, sy, -1);
+      mdc.SelectObject(m_bitmap);
+      mdc.SetBackground(*pbackBrush);
+      mdc.Clear();
+
+      mdc.SetTextForeground(m_text_color);
 
       if(plabelFont)
       {
           wxString nfi = plabelFont->GetNativeFontInfoDesc();
-            dc.SetFont(*plabelFont);
-            dc.DrawText(*label, 5, 2);
+            mdc.SetFont(*plabelFont);
+            mdc.DrawText(*label, 5, 2);
       }
 
       if(pvalueFont)
       {
-            dc.SetFont(*pvalueFont);
+            mdc.SetFont(*pvalueFont);
 
             int w, h;
-            dc.GetTextExtent(*value, &w, &h);
+            mdc.GetTextExtent(*value, &w, &h);
             int cw, ch;
-            dc.GetSize(&cw, &ch);
+            mdc.GetSize(&cw, &ch);
 
-            dc.DrawText(*value, cw - w - 2, ch - h - 2);
+            mdc.DrawText(*value, cw - w - 2, ch - h - 2);
       }
 
-
-
+      wxPaintDC dc(this);
+      dc.Blit(0, 0, sx, sy, &mdc, 0, 0);
 
 }
 
@@ -568,23 +617,57 @@ CDI::CDI(wxWindow *parent, wxWindowID id,
             wxWindow(parent, id, pos, size, style, name)
 
 {
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(wxColour(254, 254, 254), wxSOLID);
 }
 
+void CDI::SetColorScheme(ColorScheme cs)
+{
+    wxColour back_color, road_color;
+
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            back_color = wxColour(150,150,150);
+            road_color = wxColour(254,254,254);
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            back_color = wxColour(128,128,128);
+            road_color = wxColour(200,200,200);
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            back_color = wxColour(64,64,64);
+            road_color = wxColour(100,100,100);
+            break;
+        default:
+            back_color = wxColour(150,150,150);
+            road_color = wxColour(100,100,100);
+            break;
+    }
+
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+    proadBrush = wxTheBrushList->FindOrCreateBrush(road_color, wxSOLID);
+
+}
 
 
 void CDI::OnPaint(wxPaintEvent& event)
 {
-      int x,y;
-      GetClientSize(&x, &y);
+      int sx,sy;
+      GetClientSize(&sx, &sy);
 
-      wxPaintDC dc(this);
-      dc.Clear();
+      //    Do the drawing on an off-screen memory DC, and blit into place
+      //    to avoid objectionable flashing
+      wxMemoryDC mdc;
 
-      int xp = x/2;
-      int yp = y*9/10;
+      wxBitmap m_bitmap(sx, sy, -1);
+      mdc.SelectObject(m_bitmap);
+      mdc.SetBackground(*pbackBrush);
+      mdc.Clear();
 
+      int xp = sx/2;
+      int yp = sy*9/10;
 
-      int path_length = y * 3;
+      int path_length = sy * 3;
       int pix_per_xte = 120;
 
       if(pRouteMan->GetpActiveRoute())
@@ -629,16 +712,18 @@ void CDI::OnPaint(wxPaintEvent& event)
             road[3].x = xc1 + (int)(road_bot_width * cos((90 - angle) *PI/180.));
             road[3].y = yc1 + (int)(road_bot_width * sin((90 - angle) *PI/180.));
 
-            dc.DrawPolygon(4, road,0,0,wxODDEVEN_RULE);
+            mdc.SetBrush(*proadBrush);
+            mdc.DrawPolygon(4, road,0,0,wxODDEVEN_RULE);
 
-            dc.DrawLine(xc1, yc1, xc2, yc2);
+            mdc.DrawLine(xc1, yc1, xc2, yc2);
 
-            dc.DrawLine(0, yp, x, yp);
-            dc.DrawCircle(xp,yp,6);
-            dc.DrawLine(xp, yp+5, xp, yp-5);
-
+            mdc.DrawLine(0, yp, sx, yp);
+            mdc.DrawCircle(xp,yp,6);
+            mdc.DrawLine(xp, yp+5, xp, yp-5);
       }
 
+      wxPaintDC dc(this);
+      dc.Blit(0, 0, sx, sy, &mdc, 0, 0);
 }
 
 

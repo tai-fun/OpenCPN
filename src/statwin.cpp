@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.8  2007/06/10 02:34:13  bdbcat
+ * Color scheme support
+ *
  * Revision 1.7  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -43,27 +46,6 @@
  *
  * Revision 1.2  2006/09/21 01:37:37  dsr
  * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.6  2006/08/04 11:42:03  dsr
- * no message
- *
- * Revision 1.5  2006/07/28 20:45:32  dsr
- * WiFi window status show.
- *
- * Revision 1.4  2006/07/06 23:14:59  dsr
- * Add WiFi Server Status Display
- *
- * Revision 1.3  2006/07/05 02:32:47  dsr
- * Add WiFi Client Status Window
- *
- * Revision 1.2  2006/05/19 19:29:33  dsr
- * Cleanup
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
  *
  *
  */
@@ -90,7 +72,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.7 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.8 2007/06/10 02:34:13 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -133,20 +115,18 @@ StatWin::~StatWin()
 
 void StatWin::OnPaint(wxPaintEvent& event)
 {
-      pPiano->Refresh(false);
-//      pTStat1->Refresh(false);
-//      pTStat2->Refresh(false);
-
       wxPaintDC dc(this);
+      dc.SetBackground(*pbackBrush);
+      dc.Clear();
 }
 
 
 void StatWin::OnSize(wxSizeEvent& event)
 {
       int width,height;
-      this->GetClientSize(&width, &height);
+      GetClientSize(&width, &height);
       int x,y;
-      this->GetPosition(&x, &y);
+      GetPosition(&x, &y);
 
       if(width) pPiano->SetSize(0,0, width *6/10, height*1/m_rows);
  //     if(width) pTStat1->SetSize(0,height * 1/m_rows, width, height*1/m_rows);
@@ -179,6 +159,35 @@ int StatWin::GetFontHeight()
       GetTextExtent("TEST", &w, &h);
 
       return(h);
+}
+
+void StatWin::SetColorScheme(ColorScheme cs)
+{
+    wxColour back_color;
+
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            back_color = wxColour(150,150,150);
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            back_color = wxColour(128,128,128);
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            back_color = wxColour(64,64,64);
+            break;
+        default:
+            back_color = wxColour(150,150,150);
+            break;
+    }
+
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+
+    //  Also apply color scheme to all known children
+    pPiano->SetColorScheme(cs);
+#ifdef USE_WIFI_CLIENT
+    pWiFi ->SetColorScheme(cs);
+#endif
 }
 
 
@@ -245,10 +254,9 @@ END_EVENT_TABLE()
 PianoWin::PianoWin(wxFrame *frame):
       wxWindow(frame, wxID_ANY, wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 {
-      SetBackgroundColour(wxColour(150,150,150));
-      index_last = -1;
+    index_last = -1;
 
- // Create/Get some brush pointers
+ // Create/Get some default brush pointers
     pbackBrush = wxTheBrushList->FindOrCreateBrush(wxColour(150,150,150), wxSOLID);    // Solid background
     ptBrush =    wxTheBrushList->FindOrCreateBrush(wxColour( 45, 45,170), wxSOLID);    // Raster Chart
     pslBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(170,170,255), wxSOLID);
@@ -272,6 +280,53 @@ void PianoWin::OnSize(wxSizeEvent& event)
 {
 }
 
+void PianoWin::SetColorScheme(ColorScheme cs)
+{
+    wxColour back_color;
+    wxColour raster_selected;
+    wxColour raster_unselected;
+    wxColour vector_selected;
+    wxColour vector_unselected;
+
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            back_color = wxColour(150,150,150);
+            raster_selected = wxColour(170,170,255);
+            raster_unselected = wxColour( 45, 45,170);
+            vector_unselected = wxColour( 45, 150,45);
+            vector_selected = wxColour(120,255,120);
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            back_color = wxColour(128,128,128);
+            raster_selected = wxColour(170,170,255);
+            raster_unselected = wxColour( 45, 45,170);
+            vector_unselected = wxColour( 45, 150,45);
+            vector_selected = wxColour(120,255,120);
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            back_color = wxColour(64,64,64);
+            raster_selected = wxColour(85,85,128);
+            raster_unselected = wxColour( 22, 22, 85);
+            vector_unselected = wxColour( 22, 75, 22);
+            vector_selected = wxColour(60,128,60);
+            break;
+        default:
+            back_color = wxColour(150,150,150);
+            break;
+    }
+
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+    ptBrush =    wxTheBrushList->FindOrCreateBrush(raster_unselected, wxSOLID);    // Raster Chart
+    pslBrush =   wxTheBrushList->FindOrCreateBrush(raster_selected, wxSOLID);
+
+    pvBrush =    wxTheBrushList->FindOrCreateBrush(vector_unselected, wxSOLID);    // Vector Chart
+    psvBrush =   wxTheBrushList->FindOrCreateBrush(vector_selected, wxSOLID);    // and selected
+    puvBrush =   wxTheBrushList->FindOrCreateBrush(wxColour( 96, 96, 96), wxSOLID);    // and unavailable
+
+}
+
+
 void PianoWin::OnPaint(wxPaintEvent& event)
 {
       int width, height;
@@ -292,12 +347,10 @@ void PianoWin::OnPaint(wxPaintEvent& event)
 
       if(nKeys)
       {
-
             wxPen ppPen(wxColour(0,0,0), 1, wxSOLID);
             dc.SetPen(ppPen);
 
             dc.SetBrush(*ptBrush);
-
 
 //      If no S57 support, mark the chart as "unavailable"
             for(int i=0 ; i<nKeys ; i++)
@@ -353,7 +406,6 @@ void PianoWin::FormatKeys(void)
             }
       }
       nRegions = nKeys;
-
 }
 
 void PianoWin::MouseEvent(wxMouseEvent& event)
@@ -428,7 +480,7 @@ BEGIN_EVENT_TABLE(WiFiStatWin, wxWindow)
 WiFiStatWin::WiFiStatWin(wxFrame *frame):
         wxWindow(frame, wxID_ANY,wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 {
-    SetBackgroundColour(wxColour(150,150,150));
+//    SetBackgroundColour(wxColour(150,150,150));
     pbackBrush = wxTheBrushList->FindOrCreateBrush(wxColour(150,150,150), wxSOLID);    // Solid background
 
     pqual_hiBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(240,240,000), wxSOLID);    //Yellow
@@ -451,6 +503,29 @@ WiFiStatWin::~WiFiStatWin(void)
 
 void WiFiStatWin::OnSize(wxSizeEvent& event)
 {
+}
+
+void WiFiStatWin::SetColorScheme(ColorScheme cs)
+{
+    wxColour back_color;
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            back_color = wxColour(150,150,150);
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            back_color = wxColour(128,128,128);
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            back_color = wxColour(64,64,64);
+            break;
+        default:
+            back_color = wxColour(150,150,150);
+            break;
+    }
+
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+
 }
 
 void WiFiStatWin::OnPaint(wxPaintEvent& event)

@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.7  2007/06/10 02:29:34  bdbcat
+ * Color scheme support
+ *
  * Revision 1.6  2007/05/03 13:23:55  dsr
  * Major refactor for 1.2.0
  *
@@ -70,7 +73,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.7 2007/06/10 02:29:34 bdbcat Exp $");
 
 //    Statics
 
@@ -85,7 +88,9 @@ extern Select           *pSelect;
 extern MyConfig         *pConfig;
 extern wxArrayString    *pChartDirArray;
 extern float            vLat, vLon, gLat, gLon;
+extern float            kLat, kLon;
 extern double           initial_scale_ppm;
+extern ColorScheme      global_color_scheme;
 
 extern wxToolBarBase    *toolBar;
 extern wxString         *pNMEADataSource;
@@ -228,8 +233,6 @@ bool Select::DeleteAllSelectableRoutePoints(Route *pr)
 got_next_node:
                         continue;
                   }
-
-
       return true;
 }
 
@@ -280,8 +283,6 @@ bool Select::AddAllSelectableRouteSegments(Route *pr)
 
             node = node->GetNext();
       }
-
-
       return true;
 }
 
@@ -499,7 +500,6 @@ RoutePoint *Route::GetPoint(int nWhichPoint, float *prlat, float *prlon)
       }
 
       node = node->GetNext();
-
   }
 
 
@@ -624,7 +624,6 @@ void Route::DrawRoute(wxDC& dc)
 
             node = node->GetNext();
       }
-
 }
 
 void Route::DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb)
@@ -721,7 +720,6 @@ void Route::DeletePoint(RoutePoint *rp)
 
       CalculateBBox();
       UpdateSegmentDistances();
-
 }
 
 void Route::DeSelectRoute()
@@ -766,7 +764,6 @@ void Route::CalculateBBox()
             if(data->rlat < bbox_ymin)
                   bbox_ymin = data->rlat;
 
-
             node = node->GetNext();
       }
 
@@ -779,20 +776,9 @@ void Route::CalculateBBox()
 
 void Route::CalculateDCRect(wxDC& dc_route, wxRect *prect)
 {
-    //    Get input dc boundary
-//    int sx, sy;
- //   dc_route.GetSize(&sx, &sy);
-
-    //  Need a bitmap
-//    wxBitmap test_bitmap(sx, sy,  -1);
-
-    // Create a memory DC
-//    wxMemoryDC temp_dc;
-//    temp_dc.SelectObject(test_bitmap);
 
     dc_route.ResetBoundingBox();
     dc_route.DestroyClippingRegion();
-//    dc_route.SetClippingRegion(wxRect(0,0,sx,sy));
 
     // Draw the route on the dc
     DrawRoute(dc_route);
@@ -803,7 +789,6 @@ void Route::CalculateDCRect(wxDC& dc_route, wxRect *prect)
     prect->width  = dc_route.MaxX() - dc_route.MinX() + 2; // Mouse Poop?
     prect->height = dc_route.MaxY() - dc_route.MinY() + 2;
 
-//    temp_dc.SelectObject(wxNullBitmap);
 }
 
 
@@ -842,8 +827,6 @@ void Route::UpdateSegmentDistances()
 
                   float d5 = (180. * 60. / PI) * d4;
 
-
-
 //    And store in Point 2
                   prp->m_seg_len = d5;
 
@@ -854,7 +837,6 @@ void Route::UpdateSegmentDistances()
                   node = node->GetNext();
             }
       }
-
 }
 
 
@@ -867,7 +849,6 @@ void Route::UpdateSegmentDistances()
 
 MyConfig::MyConfig(const wxString &appName, const wxString &vendorName, const wxString &LocalFileName)
       :wxFileConfig(appName, vendorName, LocalFileName)
-
 {
 }
 
@@ -949,9 +930,7 @@ int MyConfig::LoadMyConfig(int iteration)
 
       SetPath("/Settings/GlobalState");
       Read("nColorScheme", &m_nColorScheme, 0);
-      gFrame->SetAndApplyColorScheme((ColorScheme)m_nColorScheme);
-
-
+      global_color_scheme = (ColorScheme)m_nColorScheme;
 
       SetPath("/Settings/NMEADataSource");
       Read(_T("Source"), pNMEADataSource, _T("NONE"));
@@ -971,6 +950,9 @@ int MyConfig::LoadMyConfig(int iteration)
 
       gLat = START_LAT;                   // GPS position, as default
       gLon = START_LON;
+
+      kLat = START_LAT;                   // and the transfer ll
+      kLon = START_LON;
 
       SetPath("/Settings/GlobalState");
       int nr = 0;
@@ -1002,10 +984,6 @@ int MyConfig::LoadMyConfig(int iteration)
             st_view_scale = fmax(st_view_scale, .001/32);
             initial_scale_ppm = st_view_scale;
       }
-
-
-
-
 
 
 
@@ -1055,8 +1033,6 @@ int MyConfig::LoadMyConfig(int iteration)
 
                                        ps52plib->pOBJLArray->Add((void *)pOLE);
                                  }
-
-
                         }
                         bCont = pConfig->GetNextEntry(str, dummy);
                   }
@@ -1197,15 +1173,12 @@ int MyConfig::LoadMyConfig(int iteration)
                             sscanf((char *)str.c_str(), "RouteDefn%d", &rnt);
                             if(rnt > routenum)
                                 routenum = rnt;
-
                     }
         }
 
         NextRouteNum = routenum + 1;
       }
-
       return(0);
-
 }
 
 
@@ -1451,7 +1424,6 @@ void MyConfig::UpdateSettings()
       }
 
       Flush();
-
 }
 //---------------------------------------------------------------------------------
 //          Private Font Manager and Helpers
@@ -1581,7 +1553,6 @@ bool FontMgr::SetFont(wxString &TextElement, wxFont *pFont)
       }
 
       return false;
-
 }
 
 

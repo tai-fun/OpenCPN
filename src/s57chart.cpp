@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.8 2007/05/03 13:23:56 dsr Exp $
+ * $Id: s57chart.cpp,v 1.9 2007/06/10 02:33:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.9  2007/06/10 02:33:59  bdbcat
+ * Color scheme support
+ *
  * Revision 1.8  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -80,7 +83,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.8 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.9 2007/06/10 02:33:59 bdbcat Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -106,13 +109,14 @@ static jmp_buf env_ogrf;                    // the context saved by setjmp();
 WX_DEFINE_OBJARRAY(ArrayOfS57Obj);
 
 //  This needs to be temporarily static so that S57OBJ ctor can use it to
-//  convert SENC UTM data to lat/lon for bounding boxes.
+//  convert SENC SM data to lat/lon for bounding boxes.
 //  Eventually, goes into private data when chart rendering is done by
-//  UTM methods only.
-//  At that point, S57OBJ works only in UTM
+//  SM methods only.
+//  At that point, S57OBJ works only in SM
 
 static double s_ref_lat, s_ref_lon;
 
+#define S57_THUMB_SIZE  200
 
 
 //----------------------------------------------------------------------------------
@@ -463,10 +467,10 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                         easting = *pfs++;
                         northing = *pfs;
 
-                        x = easting;                                    // and save as UTM
+                        x = easting;                                    // and save as SM
                         y = northing;
 
-                        //  Convert from UTM to lat/lon for bbox
+                        //  Convert from SM to lat/lon for bbox
                         double xll, yll;
                         fromSM(easting, northing, s_ref_lat, s_ref_lon, &yll, &xll);
 
@@ -502,7 +506,7 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                             *pdd++ = northing;
                             *pdd++ = depth;
 
-                        //  Convert point from UTM to lat/lon for later use in decomposed bboxes
+                        //  Convert point from SM to lat/lon for later use in decomposed bboxes
                             double xll, yll;
                             fromSM(easting, northing, s_ref_lat, s_ref_lon, &yll, &xll);
 
@@ -540,7 +544,7 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
                     pt *ppt = geoPt;
                     float *pf = (float *)(buft + 9);
 
-                        // Capture UTM points
+                        // Capture SM points
                     for(int ip = 0 ; ip < npt ; ip++)
                     {
                         ppt->x = *pf++;
@@ -863,10 +867,29 @@ void s57chart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegi
 
 void s57chart::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
 {
-      m_color_scheme = cs;
+    //  Here we convert (subjectively) the Global ColorScheme
+    //  to an appropriate S52 Col_Scheme_t index.
 
-      if(bApplyImmediate)
-            InvalidateCache();
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            m_S52_color_index = S52_DAY_BRIGHT;
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            m_S52_color_index = S52_DUSK;
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            m_S52_color_index = S52_NIGHT;
+            break;
+        default:
+            m_S52_color_index = S52_DAY_BRIGHT;
+            break;
+    }
+
+    m_global_color_scheme = cs;
+
+    if(bApplyImmediate)
+        InvalidateCache();
 }
 
 void s57chart::GetChartExtent(Extent *pext)
@@ -937,7 +960,7 @@ void s57chart::GetPixPoint(int pixx, int pixy, double *plat, double *plon, ViewP
 
 void s57chart::SetVPParms(ViewPort *vpt)
 {
-    //  Set up local UTM rendering constants
+    //  Set up local SM rendering constants
     x_vp_center = vpt->pix_width / 2;
     y_vp_center = vpt->pix_height / 2;
     view_scale_ppm = vpt->view_scale_ppm;
@@ -954,7 +977,6 @@ ThumbData *s57chart::GetThumbData(int tnx, int tny, float lat, float lon)
     //  Using simple linear algorithm.
         if( pThumbData->pDIBThumb)
         {
-
                 float lat_top =   FullExtent.NLAT;
                 float lat_bot =   FullExtent.SLAT;
                 float lon_left =  FullExtent.WLON;
@@ -963,12 +985,13 @@ ThumbData *s57chart::GetThumbData(int tnx, int tny, float lat, float lon)
                 // Build the scale factors just as the thumbnail was built
                 float ext_max = fmax((lat_top - lat_bot), (lon_right - lon_left));
 
-                float pix_per_deg_lat = pThumbData->pDIBThumb->GetHeight()/ ext_max;
-                float pix_per_deg_lon = pix_per_deg_lat;
+                float thumb_view_scale_ppm = (S57_THUMB_SIZE/ ext_max) / (1852 * 60);
+                double east, north;
+                toSM(lat, lon, (lat_top + lat_bot) / 2., (lon_left + lon_right) / 2., &east, &north);
 
+                pThumbData->ShipX = pThumbData->pDIBThumb->GetWidth()  / 2 + (int)(east  * thumb_view_scale_ppm);
+                pThumbData->ShipY = pThumbData->pDIBThumb->GetHeight() / 2 - (int)(north * thumb_view_scale_ppm);
 
-                pThumbData->ShipX = (int)(((lon - lon_left) * pix_per_deg_lon) + 0.5);
-                pThumbData->ShipY = (int)(((lat_top - lat)  * pix_per_deg_lat) + 0.5);
         }
         else
         {
@@ -990,7 +1013,7 @@ void s57chart::SetFullExtent(Extent& ext)
 
 void s57chart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type)
 {
-    ps52plib->SetColorScheme((Col_Scheme_t)m_color_scheme);
+    ps52plib->SetColorScheme(m_S52_color_index);
 
     DoRenderViewOnDC(dc, VPoint, DC_RENDER_ONLY);
 }
@@ -1483,7 +1506,6 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 
         if(!ThumbFileName.FileExists() || bbuild_new_senc)
         {
-#define S57_THUMB_SIZE  200
 
                 //      Set up a private ViewPort
                 ViewPort vp;
@@ -1496,12 +1518,6 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                 vp.lon_right = FullExtent.ELON;
 
                 float ext_max = fmax((vp.lat_top - vp.lat_bot), (vp.lon_right - vp.lon_left));
-
-/*
-                vp.ppd_lat = S57_THUMB_SIZE/ ext_max;
-                vp.ppd_lon = vp.ppd_lat;
-                vp.view_scale_ppm = vp.ppd_lat / (1852 * 60);
-*/
 
                 vp.view_scale_ppm = (S57_THUMB_SIZE/ ext_max) / (1852 * 60);
 
@@ -1554,6 +1570,9 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                 wxMemoryDC memdc, dc_org;
 #endif
 
+//      set the color scheme
+                ps52plib->SetColorScheme(S52_DAY_BRIGHT);
+
 //      Do the render
                 DoRenderViewOnDC(memdc, vp, DC_RENDER_ONLY);
 
@@ -1569,6 +1588,9 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                 }
 
                 ps52plib->m_nDisplayCategory = dsave;
+
+//      Reset the color scheme
+                ps52plib->SetColorScheme(m_S52_color_index);
 
                 delete psave_viz;
 
@@ -1623,7 +1645,9 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
         }
         delete pS57FileName;
 
-        m_color_scheme = cs;
+        m_global_color_scheme = cs;
+        SetColorScheme(cs, false);
+
         bReadyToRender = true;
 
         return INIT_OK;
@@ -2696,7 +2720,7 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                         float lon = (float)*psd++;
                         float lat = (float)*psd++;
 
-                        //  Calculate UTM from chart common reference point
+                        //  Calculate SM from chart common reference point
                         double easting, northing;
                         toSM(lat, lon, ref_lat, ref_lon, &easting, &northing);
 
@@ -2749,7 +2773,7 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                     lon = *psd++;                                      // fetch the point
                     lat = *psd;
 
-                    //  Calculate UTM from chart common reference point
+                    //  Calculate SM from chart common reference point
                     double easting, northing;
                     toSM(lat, lon, ref_lat, ref_lon, &easting, &northing);
 
@@ -2767,8 +2791,8 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                     ps += 5;
                     nPoints = *((int *)ps);                     // point count
 
-                    sb_len = (9 + nPoints * 3 * sizeof(float)) + 16;        // GTYPE and count, points as floats
-                                                                            // and trailing bbox
+                    sb_len = (9 + nPoints * 3 * sizeof(float)) + 16;     // GTYPE and count, points as floats
+                                                                         // and trailing bbox
                     fprintf( fpOut, "  %d\n", sb_len);
 
                     psb_buffer = (unsigned char *)malloc(sb_len);
@@ -2784,14 +2808,32 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
 
                     for(ip=0 ; ip < nPoints ; ip++)
                     {
+
+                        // Workaround a bug?? in OGRGeometryCollection
+                        // While exporting point geometries serially, OGRPoint->exportToWkb assumes that
+                        // if Z is identically 0, then the point must be a 2D point only.
+                        // So, the collection Wkb is corrupted with some 3D, and some 2D points.
+                        // Workaround:  Get reference to the points serially, and explicitly read X,Y,Z
+                        // Ignore the previously read Wkb buffer
+
+                        OGRGeometryCollection *temp_geometry_collection = (OGRGeometryCollection *)pGeo;
+                        OGRGeometry *temp_geometry = temp_geometry_collection->getGeometryRef( ip );
+                        OGRPoint *pt_geom = (OGRPoint *)temp_geometry;
+
+                        lon = pt_geom->getX();
+                        lat = pt_geom->getY();
+                        double depth = pt_geom->getZ();
+
+                        /*
                         ps += 5;
                         psd = (double *)ps;
 
                         lon = *psd++;
                         lat = *psd++;
                         double depth = *psd;
+                        */
 
-                        //  Calculate UTM from chart common reference point
+                        //  Calculate SM from chart common reference point
                         double easting, northing;
                         toSM(lat, lon, ref_lat, ref_lon, &easting, &northing);
 
@@ -2799,7 +2841,7 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                         *pdf++ = northing;
                         *pdf++ = (float)depth;
 
-                        ps += 3 * sizeof(double);
+//                        ps += 3 * sizeof(double);
 
                         //  Keep a running calculation of min/max
                         lonmax = fmax(lon, lonmax);
@@ -3271,7 +3313,7 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
 
         MyPoint pvert_list[3];
 
-        //  Polygon geometry is carried in UTM coordinates, so...
+        //  Polygon geometry is carried in SM coordinates, so...
         //  make the hit test thus.
         double easting, northing;
         toSM(lat, lon, ref_lat, ref_lon, &easting, &northing);
