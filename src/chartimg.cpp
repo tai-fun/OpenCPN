@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $
+ * $Id: chartimg.cpp,v 1.7 2007/06/10 02:26:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,47 +26,11 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.7  2007/06/10 02:26:16  bdbcat
+ * Implement  color scheme capability
+ *
  * Revision 1.6  2007/05/03 13:23:55  dsr
  * Major refactor for 1.2.0
- *
- * Revision 1.5  2007/03/02 02:09:06  dsr
- * Cleanup, convert to UTM Projection
- *
- * Revision 1.4  2006/10/08 14:15:00  dsr
- * no message
- *
- * Revision 1.3  2006/10/08 00:36:44  dsr
- * no message
- *
- * Revision 1.2  2006/10/07 03:50:27  dsr
- * *** empty log message ***
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.8  2006/08/04 11:42:01  dsr
- * no message
- *
- * Revision 1.7  2006/07/28 20:33:47  dsr
- * Fix render abort logic
- *
- * Revision 1.6  2006/07/06 23:14:31  dsr
- * Cleanup
- *
- * Revision 1.5  2006/07/05 02:30:49  dsr
- * PeekMessage in Renderer, for better response
- *
- * Revision 1.4  2006/06/02 02:09:59  dsr
- * Add PeekMessage
- *
- * Revision 1.3  2006/05/28 00:47:44  dsr
- * Fix Duplicate palette creation/deletion
- *
- * Revision 1.2  2006/05/19 19:19:01  dsr
- * New Thumbchart logic
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
  *
  */
 
@@ -105,16 +69,6 @@
 
 #include <sys/stat.h>
 
-#ifdef __WXX11__
-#include "wx/x11/private.h"
-
-
-//    For MIT-SHM Extensions
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <X11/extensions/XShm.h>
-#endif
-
 // ----------------------------------------------------------------------------
 // Random Prototypes
 // ----------------------------------------------------------------------------
@@ -122,7 +76,7 @@
 extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.7 2007/06/10 02:26:16 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -183,7 +137,7 @@ ChartBase::ChartBase()
       pName = new wxString;
       pName->Clear();
 
-      m_color_scheme = COLOR_SCHEME_DEFAULT;
+      m_global_color_scheme = GLOBAL_COLOR_SCHEME_DAY;
 
       bReadyToRender = false;
 
@@ -201,8 +155,6 @@ ChartBase::~ChartBase()
       delete pThumbData;
 
       delete pName;
-
-
 }
 
 
@@ -258,45 +210,6 @@ void ChartDummy::InvalidateCache(void)
       m_pBM = NULL;
 }
 
-/*
-void ChartDummy::pix_to_latlong(int pixx, int pixy, double *lat, double *lon)
-{
-}
-
-
-void ChartDummy::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
-{
-}
-
-
-void ChartDummy::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp)
-{
-
-    pixx = (int)floor((lon - vp.pref_c_lon) * vp.view_scale_ppm * 1852 * 60);
-    pixy = (int)floor((vp.pref_a_lat - lat)  * vp.view_scale_ppm * 1852 * 60);
-
-}
-
-void ChartDummy::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
-{
-//        float pix_per_deg_lon = vp.pix_width / (vp.lon_right - vp.lon_left);
-//        float pix_per_deg_lat = vp.pix_height / (vp.lat_top - vp.lat_bot);
-//        printf("57 ppd %f %f\n",pix_per_deg_lon, pix_per_deg_lat);
-
-//        float lat_top  = vp.lat_top;
-//        float lon_left = vp.lon_left;
-
-//        double pix_per_deg_lon = vp.ppd_lon;
-//        double pix_per_deg_lat = vp.ppd_lat;
-
-    double lat = vp.pref_a_lat  - pixy / (vp.view_scale_ppm * 1852 * 60);
-    double lon = vp.pref_c_lon  + pixx / (vp.view_scale_ppm * 1852 * 60);
-
-    *plat = lat;
-    *plon = lon;
-
-}
-*/
 void ChartDummy::GetChartExtent(Extent *pext)
 {
     pext->NLAT = 80;
@@ -629,7 +542,7 @@ found_uclc_file:
             }
 
             else if (!strncmp(buffer, "RGB", 3))
-                  CreatePaletteEntry(buffer, COLOR_SCHEME_DEFAULT);
+                  CreatePaletteEntry(buffer, COLOR_RGB_DEFAULT);
 
             else if (!strncmp(buffer, "DAY", 3))
                   CreatePaletteEntry(buffer, DAY);
@@ -681,6 +594,52 @@ found_uclc_file:
                   LatMin = ppp->ltp;
 
             ppp++;
+      }
+
+      //    Check for special cases
+
+      //    Case 1:  Chart spans International Date Line, Longitude min/max is non-obvious.
+      if((LonMax * LonMin) < 0)              // min/max are opposite signs
+      {
+      //    Georeferencing is unavailable, so find the reference points closest to min/max ply points
+
+            //    for LonMax
+          double min_dist_x = 360;
+          int imaxclose;
+          for(int ic=0 ; ic<nRefpoint ; ic++)
+          {
+              double dist = sqrt(((LatMax - pRefTable[ic].latr) * (LatMax - pRefTable[ic].latr))
+                          + ((LonMax - pRefTable[ic].lonr) * (LonMax - pRefTable[ic].lonr)));
+
+              if(dist < min_dist_x)
+              {
+                  min_dist_x = dist;
+                  imaxclose = ic;
+              }
+          }
+
+            //    for LonMin
+          double min_dist_n = 360;
+          int iminclose;
+          for(int id=0 ; id<nRefpoint ; id++)
+          {
+              double dist = sqrt(((LatMin - pRefTable[id].latr) * (LatMin - pRefTable[id].latr))
+                          + ((LonMin - pRefTable[id].lonr) * (LonMin - pRefTable[id].lonr)));
+
+              if(dist < min_dist_n)
+              {
+                  min_dist_n = dist;
+                  iminclose = id;
+              }
+          }
+
+            // Make the check
+          if(pRefTable[imaxclose].xr < pRefTable[iminclose].xr)
+          {
+              float t_lonmin = LonMin;
+              LonMin = LonMax;
+              LonMax = t_lonmin;
+          }
       }
 
 
@@ -879,7 +838,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 
 
             else if (!strncmp(buffer, "RGB", 3))
-                  CreatePaletteEntry(buffer, COLOR_SCHEME_DEFAULT);
+                  CreatePaletteEntry(buffer, COLOR_RGB_DEFAULT);
 
             else if (!strncmp(buffer, "DAY", 3))
                   CreatePaletteEntry(buffer, DAY);
@@ -1098,15 +1057,60 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                   LonMax = ppp->lnp;
             if(ppp->lnp < LonMin)
                   LonMin = ppp->lnp;
+
             if(ppp->ltp > LatMax)
                   LatMax = ppp->ltp;
             if(ppp->ltp < LatMin)
                   LatMin = ppp->ltp;
 
-
             ppp++;
       }
 
+      //    Check for special cases
+
+      //    Case 1:  Chart spans International Date Line, Longitude min/max is non-obvious.
+      if((LonMax * LonMin) < 0)              // min/max are opposite signs
+      {
+      //    Georeferencing is unavailable, so find the reference points closest to min/max ply points
+
+            //    for LonMax
+            double min_dist_x = 360;
+            int imaxclose;
+            for(int ic=0 ; ic<nRefpoint ; ic++)
+            {
+                double dist = sqrt(((LatMax - pRefTable[ic].latr) * (LatMax - pRefTable[ic].latr))
+                            + ((LonMax - pRefTable[ic].lonr) * (LonMax - pRefTable[ic].lonr)));
+
+                if(dist < min_dist_x)
+                {
+                    min_dist_x = dist;
+                    imaxclose = ic;
+                }
+            }
+
+            //    for LonMin
+            double min_dist_n = 360;
+            int iminclose;
+            for(int id=0 ; id<nRefpoint ; id++)
+            {
+                double dist = sqrt(((LatMin - pRefTable[id].latr) * (LatMin - pRefTable[id].latr))
+                            + ((LonMin - pRefTable[id].lonr) * (LonMin - pRefTable[id].lonr)));
+
+                if(dist < min_dist_n)
+                {
+                    min_dist_n = dist;
+                    iminclose = id;
+                }
+            }
+
+            // Make the check
+            if(pRefTable[imaxclose].xr < pRefTable[iminclose].xr)
+            {
+                float t_lonmin = LonMin;
+                LonMin = LonMax;
+                LonMax = t_lonmin;
+            }
+      }
 
       if(init_flags == HEADER_ONLY)
             return INIT_OK;
@@ -1167,7 +1171,7 @@ ChartBaseBSB::ChartBaseBSB()
       pPlyTable = (Plypoint *)x_malloc(sizeof(Plypoint));
       nPlypoint = 0;
 
-      bUseLineCache = true;
+      bUseLineCache = false;
       Chart_Skew = 0.0;
 
       pPixCache = NULL;
@@ -1175,19 +1179,20 @@ ChartBaseBSB::ChartBaseBSB()
       pLineCache = NULL;
 
 
-      m_bilinear_limit = 8;         // bilinear scaling only up to 4
+      m_bilinear_limit = 8;         // bilinear scaling only up to n
 
       ifs_bitmap = NULL;
       ifss_bitmap = NULL;
       ifs_hdr = NULL;
 
-      for(int i = 0 ; i < N_COLOR_SCHEMES ; i++)
+      for(int i = 0 ; i < N_BSB_COLORS ; i++)
             pPalettes[i] = NULL;
 
       bGeoErrorSent = false;
       Chart_DU = 0;
       m_cph = 0.;
 
+      m_mapped_color_index = COLOR_RGB_DEFAULT;
 
 }
 
@@ -1244,7 +1249,7 @@ ChartBaseBSB::~ChartBaseBSB()
       if(pPixCache)
             delete pPixCache;
 
-      for(int i = 0 ; i < N_COLOR_SCHEMES ; i++)
+      for(int i = 0 ; i < N_BSB_COLORS ; i++)
             delete pPalettes[i];
 
 
@@ -1254,18 +1259,20 @@ ChartBaseBSB::~ChartBaseBSB()
 
 InitReturn ChartBaseBSB::Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs )
 {
-      m_color_scheme = cs;
+      m_global_color_scheme = cs;
       return INIT_OK;
 }
 
 InitReturn ChartBaseBSB::PreInit( const wxString& name, ChartInitFlag init_flags, ColorScheme cs )
 {
-      m_color_scheme = cs;
+      m_global_color_scheme = cs;
       return INIT_OK;
 }
 
 void ChartBaseBSB::CreatePaletteEntry(char *buffer, int palette_index)
 {
+    if(palette_index < N_BSB_COLORS)
+    {
       if(!pPalettes[palette_index])
             pPalettes[palette_index] = new Palette;
 
@@ -1288,24 +1295,7 @@ void ChartBaseBSB::CreatePaletteEntry(char *buffer, int palette_index)
 
       pp->RevPalette[i] = rcolor;
       pp->FwdPalette[i] = fcolor;
-
-/*
-      if(i < PALETTE_SIZE)
-      {
-            pp->FwdPalette[i][0] = (unsigned char)r;
-            pp->FwdPalette[i][1] = (unsigned char)g;
-            pp->FwdPalette[i][2] = (unsigned char)b;
-            pp->FwdPalette[i][3] = 255;
-
-            pp->RevPalette[i][0] = (unsigned char)b;
-            pp->RevPalette[i][1] = (unsigned char)g;
-            pp->RevPalette[i][2] = (unsigned char)r;
-            pp->RevPalette[i][3] = 255;
-      }
-      else
-          wxLogMessage("Palette has more than PALETTE_SIZE entries, %d:%d", i, PALETTE_SIZE);
-*/
-
+    }
 }
 
 
@@ -1313,21 +1303,21 @@ void ChartBaseBSB::CreatePaletteEntry(char *buffer, int palette_index)
 InitReturn ChartBaseBSB::PostInit(void)
 {
      //    Validate the palette array, substituting DEFAULT for missing entries
-      for(int i = 0 ; i < N_COLOR_SCHEMES ; i++)
+      for(int i = 0 ; i < N_BSB_COLORS ; i++)
       {
             if(pPalettes[i] == NULL)
             {
                 Palette *pNullSubPal = new Palette;
-                pNullSubPal->nFwd = pPalettes[COLOR_SCHEME_DEFAULT]->nFwd;        // copy the palette count
-                pNullSubPal->nRev = pPalettes[COLOR_SCHEME_DEFAULT]->nRev;        // copy the palette count
+                pNullSubPal->nFwd = pPalettes[COLOR_RGB_DEFAULT]->nFwd;        // copy the palette count
+                pNullSubPal->nRev = pPalettes[COLOR_RGB_DEFAULT]->nRev;        // copy the palette count
                 //  Deep copy the palette rgb tables
                 free( pNullSubPal->FwdPalette );
                 pNullSubPal->FwdPalette = (int *)malloc(pNullSubPal->nFwd * sizeof(int));
-                memcpy(pNullSubPal->FwdPalette, pPalettes[COLOR_SCHEME_DEFAULT]->FwdPalette, pNullSubPal->nFwd * sizeof(int));
+                memcpy(pNullSubPal->FwdPalette, pPalettes[COLOR_RGB_DEFAULT]->FwdPalette, pNullSubPal->nFwd * sizeof(int));
 
                 free( pNullSubPal->RevPalette );
                 pNullSubPal->RevPalette = (int *)malloc(pNullSubPal->nRev * sizeof(int));
-                memcpy(pNullSubPal->RevPalette, pPalettes[COLOR_SCHEME_DEFAULT]->RevPalette, pNullSubPal->nRev * sizeof(int));
+                memcpy(pNullSubPal->RevPalette, pPalettes[COLOR_RGB_DEFAULT]->RevPalette, pNullSubPal->nRev * sizeof(int));
 
                 pPalettes[i] = pNullSubPal;
             }
@@ -1336,8 +1326,8 @@ InitReturn ChartBaseBSB::PostInit(void)
       // Establish the palette type and default palette
       palette_direction = GetPaletteDir();
 
-      pPalette = GetPalettePtr(m_color_scheme);
-
+//      pPalette = GetPalettePtr(m_global_color_scheme);
+      SetColorScheme(m_global_color_scheme, false);
 
       //    Allocate memory for ifs file buffering
       ifs_bufsize = Size_X * 4;
@@ -1524,12 +1514,32 @@ void ChartBaseBSB::GetChartExtent(Extent *pext)
 
 void ChartBaseBSB::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
 {
-      pPalette = GetPalettePtr(cs);
+    //  Here we convert (subjectively) the Global ColorScheme
+    //  to an appropriate BSB_Color_Capability index.
 
-      m_color_scheme = cs;
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            m_mapped_color_index = DAY;
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            m_mapped_color_index = DUSK;
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            m_mapped_color_index = NIGHT;
+            break;
+        default:
+            m_mapped_color_index = DAY;
+            break;
+    }
 
-      if(bApplyImmediate)
-            cached_image_ok = false;
+
+    pPalette = GetPalettePtr(m_mapped_color_index);
+
+    m_global_color_scheme = cs;
+
+    if(bApplyImmediate)
+        cached_image_ok = false;
 }
 
 
@@ -1654,7 +1664,6 @@ ThumbData *ChartBaseBSB::GetThumbData(int tnx, int tny, float lat, float lon)
 void ChartBaseBSB::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type)
 
 {
-
 //    Get the view into the pixel buffer
       wxRect dest(0,0,VPoint.pix_width, VPoint.pix_height);
       GetViewUsingCache(Rsrc, dest, scale_type);
@@ -1670,15 +1679,8 @@ void ChartBaseBSB::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnu
       if(pPixCache == NULL)
           GetViewUsingCache(Rsrc, dest, SCALE_SUBSAMP);
 
-///      wxStopWatch st;
-
 //    Select the data into the dc
       pPixCache->SelectIntoDC(dc);
-
-///      int time = st.Time();
-///      if(time > 1)
-///          printf("   Pix CacheSelect %ldms\n", st.Time());
-
 }
 
 
@@ -1703,14 +1705,6 @@ int ChartBaseBSB::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
             *plon = lon;
             *plat = polytrans( pwy, pixx, pixy );
 
-    /*        double  northing, easting;
-
-            double px = pixx;
-            double py = pixy;
-            georef(px, py, &easting, &northing, this->E12, this->N12, cPoints.order);
-
-            UTMtoDeg(long0, 0, easting, northing, plat, plon);
-            */
         }
         else                                            // use calculated coefficients
         {
@@ -1728,7 +1722,6 @@ int ChartBaseBSB::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
 
 int ChartBaseBSB::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
 {
-//    float raster_scale = GetNativeScale() / vp.view_scale;
     float raster_scale = vp.binary_scale_factor;
 
     return(pix_to_latlong((int)(pixx*raster_scale) + Rsrc.x, (int)(pixy*raster_scale) + Rsrc.y, plat, plon));
@@ -1743,15 +1736,6 @@ int ChartBaseBSB::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
     {
         if(bHaveImbeddedGeoref)
         {
-    /*        DegToUTM(lat, lon, NULL, &easting, &northing, long0);
-
-            double dpix, dpiy;
-            float  northing, easting;
-
-            georef(easting, northing, &dpix, &dpiy, this->E21, this->N21, cPoints.order);
-            pixx = (int)floor((dpix + 0.5));                // rounding
-            pixy = (int)floor((dpiy+ 0.5));
-    */
             /* change longitude phase (CPH) */
             double lonp = (lon < 0) ? lon + m_cph : lon - m_cph;
             double xd = polytrans( wpx, lonp, lat );
@@ -1784,8 +1768,8 @@ int ChartBaseBSB::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy
 
     float raster_scale = vp.binary_scale_factor;
 
-    pixx = (int)((px - Rsrc.x) / raster_scale);
-    pixy = (int)((py - Rsrc.y) / raster_scale);
+    pixx = (int)(((px - Rsrc.x) / raster_scale) + 0.5);
+    pixy = (int)(((py - Rsrc.y) / raster_scale) + 0.5);
 
     return ret_val;
 }
@@ -2417,44 +2401,6 @@ bool ChartBaseBSB::GetAndScaleData(unsigned char **ppn, wxRect& source, int s_wi
                         GetChartBits(s1, s_data, get_bits_submap);
                         yr += Factor;
 
-//      Take a peek into the message queue for mouse movements.
-//      If found, abort this render operation
-//      Profuse apologies for the direct hardware hack....
-#ifdef __RENDER_PEEK__
-#ifdef __WXMSW__
-    MSG msg;
-    if(::PeekMessage(&msg, (HWND)0,  WM_MOUSEFIRST, WM_MOUSELAST,  PM_NOREMOVE))
-    {
-        free( s_data );
-        return false;
-    }
-#endif
-#ifdef __WXX11__
-XEvent *xevt = new XEvent;
-if(XCheckTypedEvent( wxGlobalDisplay(), MotionNotify, xevt))
-  {
-      free(s_data);
-      return false;
-  }
-  delete xevt;
-#endif
-
-#ifdef __WXGTK__PEEK            // untested............
-GdkEvent *pevt = gdk_event_peek();
-GdkEvent *peek_event = gdk_event_peek();
-if (peek_event)
-   {
-       if ((peek_event->type == GDK_MOTION_NOTIFY))
-            {
-                gdk_event_free( peek_event );
-                free(s_data);
-                return false;
-            }
-            else
-              gdk_event_free( peek_event );
-   }
-#endif
-#endif
                         int y_off0 = 0;
                         for (int x = 0; x < target_width; x++)
                         {
@@ -2664,6 +2610,7 @@ if (peek_event)
 
 bool ChartBaseBSB::InitializeBackgroundBilinearRender(ViewPort &VPoint)
 {
+///    printf("Init bbr\n");
     wxRect dest(0,0,VPoint.pix_width, VPoint.pix_height);
 
     float factor = ((float)Rsrc.width)/((float)dest.width);
@@ -2717,6 +2664,7 @@ bool ChartBaseBSB::InitializeBackgroundBilinearRender(ViewPort &VPoint)
 
 bool ChartBaseBSB::AbortBackgroundRender(void)
 {
+///    printf("Abort bbr\n");
     free(background_work_buffer);
     background_work_buffer = NULL;
 
@@ -2727,9 +2675,9 @@ bool ChartBaseBSB::AbortBackgroundRender(void)
 
 bool ChartBaseBSB::FinishBackgroundRender(void)
 {
+///    printf("Finish bbr\n");
     cache_scale_method= SCALE_BILINEAR;             // the cache is set
     cache_rect = Rsrc;
-//    cache_rect_scaled = dest;
 
     cached_image_ok = 1;
 
@@ -2824,7 +2772,7 @@ bool ChartBaseBSB::GetChartBits(wxRect& source, unsigned char *pPix, int sub_sam
 {
 
       int iy;
-#define FILL_BYTE 0
+#define FILL_BYTE 128
 
 //    Decode the KAP file RLL stream into image pPix
 
@@ -2848,7 +2796,7 @@ bool ChartBaseBSB::GetChartBits(wxRect& source, unsigned char *pPix, int sub_sam
 
                                         BSBGetScanline( pCP,  iy, source.x, Size_X, sub_samp);
                                         memset(pCP + (Size_X - source.x) * BPP/8, FILL_BYTE,
-                                            source.x + source.width - Size_X);
+                                               (source.x + source.width - Size_X) * BPP/8);
                                 }
                             }
                             else
@@ -2865,6 +2813,7 @@ bool ChartBaseBSB::GetChartBits(wxRect& source, unsigned char *pPix, int sub_sam
                                 memset(pCP, FILL_BYTE, (xfill_corrected * BPP/8));
                                 BSBGetScanline( pCP + (xfill_corrected * BPP/8),  iy, 0,
                                         source.width + source.x , sub_samp);
+
                             }
                             else
                             {
@@ -2979,8 +2928,6 @@ int ChartBaseBSB::ReadBSBHdrLine(wxFileInputStream* ifs, char* buf, int buf_len_
 }
 
 
-//static wxMutex s_mutexProtectingIFS_Bitmap;
-
 //-----------------------------------------------------------------------
 //    Scan a BSB Scan Line from raw data
 //      Leaving stream pointer at start of next line
@@ -2992,7 +2939,7 @@ int   ChartBaseBSB::BSBScanScanline(wxInputStream *pinStream )
       unsigned char byNext;
       int coffset;
 
-      if(1)
+//      if(1)
       {
 //      Read the line number.
             nLineMarker = 0;
@@ -3140,14 +3087,11 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
                   memset(pCL, nPixValue, nRunCount+1);
                   pCL += nRunCount+1;
                   iPixel += nRunCount+1;
-
             }
-
       }
 
       if(bUseLineCache)
             pt->bValid = true;
-
 
 //          Line is valid, de-reference thru proper pallete directly to target
 
@@ -3192,6 +3136,9 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
         *prgb_last = a;
       }
 
+      if(!bUseLineCache)
+          free (xtemp_line);
+
       return 1;
 }
 
@@ -3201,19 +3148,18 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
 
 
 
-int  *ChartBaseBSB::GetPalettePtr(ColorScheme cs)
+int  *ChartBaseBSB::GetPalettePtr(BSB_Color_Capability color_index)
 {
 
       if(palette_direction == PaletteFwd)
-            return (int *)(pPalettes[cs]->FwdPalette);
+          return (int *)(pPalettes[color_index]->FwdPalette);
       else
-            return (int *)(pPalettes[cs]->RevPalette);
+          return (int *)(pPalettes[color_index]->RevPalette);
  }
 
 
 PaletteDir ChartBaseBSB::GetPaletteDir(void)
  {
-
   // make a pixel cache
        PixelCache *pc = new PixelCache(4,4,BPP);
        RGBO r = pc->GetRGBO();
@@ -3229,7 +3175,6 @@ PaletteDir ChartBaseBSB::GetPaletteDir(void)
 
 int   ChartBaseBSB::AnalyzeRefpoints(void)
 {
-
       int i,n;
       double elt, elg;
 
@@ -3500,7 +3445,6 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
                     if(0.0 != ppm_avg)
                         break;
                 }
-
             }
 
                 // Last chance
@@ -3529,8 +3473,6 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
                 }
             }
         }
-
-
 
 
              // cannot use georef at all
@@ -3569,7 +3511,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $
+*  $Id: chartimg.cpp,v 1.7 2007/06/10 02:26:16 bdbcat Exp $
 *
 */
 
