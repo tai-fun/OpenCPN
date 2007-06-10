@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.5 2007/05/03 13:23:55 dsr Exp $
+ * $Id: chartdb.cpp,v 1.6 2007/06/10 02:25:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.6  2007/06/10 02:25:09  bdbcat
+ * Fix leaks
+ *
  * Revision 1.5  2007/05/03 13:23:55  dsr
  * Major refactor for 1.2.0
  *
@@ -67,7 +70,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.5 2007/05/03 13:23:55 dsr Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.6 2007/06/10 02:25:09 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -375,7 +378,6 @@ bool ChartDB::Update(wxArrayString *dir_list, bool bshow_prog)
     {
         wxString dir_name = dir_list->Item(j);
 
-//        SearchDirAndAddS57FromCatalog(dir_name, bshow_prog);
         TraverseDirAndAddS57(dir_name, bshow_prog, true);
 
         TraverseDirAndAddBSB(dir_name, bshow_prog, true);
@@ -421,7 +423,9 @@ bool ChartDB::Update(wxArrayString *dir_list, bool bshow_prog)
     ChartTableEntry *pTempChartTable = (ChartTableEntry *)malloc((iValid) * sizeof(ChartTableEntry));
     ChartTableEntry *pEntry = pTempChartTable;
 
-    // compress the existing table into the new table
+    // compress the existing table into the new table, and while we are at it
+    // free the imbedded pointers in invalid entries
+
     int nNewEntry = 0;
     for(i=0 ; i<nEntry ; i++)
     {
@@ -432,7 +436,28 @@ bool ChartDB::Update(wxArrayString *dir_list, bool bshow_prog)
             pEntry++;
             nNewEntry++;
         }
+
+        if(!pChartTable[i].bValid)
+        {
+            free (pChartTable[i].pPlyTable);
+            free (pChartTable[i].pFullPath);
+
+            //  Free Aux Ply Table Entries
+            if(pChartTable[i].nAuxPlyEntries)
+            {
+                float **pfp = pChartTable[i].pAuxPlyTable;
+
+                for(int j=0 ; j<pChartTable[i].nAuxPlyEntries ; j++)
+                {
+                    free (pfp[j]);
+                }
+
+                free(pChartTable[i].pAuxPlyTable);
+                free(pChartTable[i].pAuxCntTable);
+             }
+        }
     }
+
 
     free(pChartTable);
     pChartTable = pTempChartTable;
@@ -627,7 +652,7 @@ bool ChartDB::CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEnt
             pEntry->ChartType = CHART_TYPE_GEO;
       }
 
-      pch->Init(full_name, HEADER_ONLY, COLOR_SCHEME_DEFAULT);
+      pch->Init(full_name, HEADER_ONLY, GLOBAL_COLOR_SCHEME_DAY);
 
       char *pt = (char *)malloc(full_name.Length() + 1);
       strcpy(pt, full_name.GetData());
@@ -788,9 +813,15 @@ int ChartDB::SearchDirAndAddS57(wxString& dir_name, bool bshow_prog, bool bupdat
                                 wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME);
                         pprog->Update(iProg, file.GetFullPath());
                   }
-                  CreateS57ChartTableEntry(file.GetFullPath(), pEntry, NULL);
-                  n000Entry++;
-                  pEntry++;
+                  //    Don't add the chart to database if CreateS57ChartTableEntry method fails
+                  if(CreateS57ChartTableEntry(file.GetFullPath(), pEntry, NULL))
+                  {
+                    n000Entry++;
+                    pEntry++;
+                  }
+                  else
+                      wxLogMessage("CreateS57ChartTableEntry() failed for file: %s", file.GetFullPath().c_str());
+
               }
               iProg++;
           }
@@ -1099,328 +1130,6 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
 
 }
 
-
-// ----------------------------------------------------------------------------
-// Update Chart Table by Catalog File search for s57 charts
-// ----------------------------------------------------------------------------
-
-bool ChartDB::SearchDirAndAddS57FromCatalog(wxString& dir_name, bool bshow_prog)
-{
-#if 0
-    wxString filename;
-    wxDir dir(dir_name);
-
-    wxProgressDialog *pprog = NULL;
-    wxProgressDialog *pprogA = NULL;
-
-//    Count the files to setup progress dialog
-
-    wxArrayString *pFileList = new wxArrayString();
-
-    dir.GetAllFiles(dir_name, pFileList);
-    int nFile = 0;
-
-    for(unsigned int j=0 ; j<pFileList->GetCount() ; j++)
-    {
-        wxFileName file(pFileList->Item(j));
-        if(file.GetExt() == "031")
-        {
-            nFile++;
-        }
-    }
-
-    if(!nFile)
-    {
-        delete pFileList;
-        return false;
-    }
-
-    if(bshow_prog)
-        pprog = new wxProgressDialog (  _T("OpenCPN Chart Install"),
-                                        _T("Message"),
-                                        nFile, NULL,
-                                        wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME
-                                     );
-
-
-      //    Create two lists to accumulate files/extents
-    wxArrayString *pS57FileList = new wxArrayString();
-    wxArrayPtrVoid *pS57ExtList = new wxArrayPtrVoid();
-
-      // Read the list of Catalog files, parsing as we go
-
-    int i031file = 0;
-    for(unsigned int i=0 ; i<pFileList->GetCount() ; i++)
-    {
-        wxFileName file(pFileList->Item(i));
-        if(file.GetExt() == "031")
-        {
-            i031file++;
-            if(bshow_prog)
-                pprog->Update(i031file, file.GetFullPath());
-
-      // Read the ISO8211 Catalog file, looking for....
-
-            DDFModule   oModule;
-            DDFRecord   *poRecord;
-
-            if( !oModule.Open(file.GetFullPath().c_str()) )
-                return false;
-
-            poRecord = oModule.ReadRecord();
-            if( poRecord == NULL )
-                return false;
-
-
-
-            /* -------------------------------------------------------------------- */
-            /*      We presumably have a catalog.  It contains paths to files       */
-            /*      that generally lack the ENC_ROOT component.  Try to find the    */
-            /*      correct name for the ENC_ROOT directory if available and        */
-            /*      build a base path for our purposes.                             */
-            /* -------------------------------------------------------------------- */
-/*
-            char        *pszCatDir = CPLStrdup( CPLGetPath( pszDataset ) );
-            char        *pszRootDir = NULL;
-
-            if( CPLStat( CPLFormFilename(pszCatDir,"ENC_ROOT",NULL), &sStatBuf ) == 0
-            && VSI_ISDIR(sStatBuf.st_mode) )
-            {
-            pszRootDir = CPLStrdup(CPLFormFilename( pszCatDir, "ENC_ROOT", NULL ));
-        }
-            else if( CPLStat( CPLFormFilename( pszCatDir, "enc_root", NULL ),
-            &sStatBuf ) == 0 && VSI_ISDIR(sStatBuf.st_mode) )
-            {
-            pszRootDir = CPLStrdup(CPLFormFilename( pszCatDir, "enc_root", NULL ));
-        }
-
-            if( pszRootDir )
-            CPLDebug( "S57", "Found root directory to be %s.",
-            pszRootDir );
-*/
-            /* -------------------------------------------------------------------- */
-            /*      We have a catalog.  Scan it for data files, those with an       */
-            /*      IMPL of BIN.  Shouldn't there be a better way of testing        */
-            /*      whether a file is a data file or another catalog file?          */
-            /* -------------------------------------------------------------------- */
-            const char *pszNLAT, *pszSLAT, *pszELON, *pszWLON;
-
-            for( ; poRecord != NULL; poRecord = oModule.ReadRecord() )
-            {
-                if( poRecord->FindField( "CATD" ) != NULL
-                    && EQUAL(poRecord->GetStringSubfield("CATD",0,"IMPL",0),"BIN") )
-                {
-                    const char  *pszFile;
-
-                    pszFile = poRecord->GetStringSubfield("CATD",0,"FILE",0);
-
-                    pszNLAT = poRecord->GetStringSubfield("CATD",0,"NLAT",0);
-                    pszSLAT = poRecord->GetStringSubfield("CATD",0,"SLAT",0);
-                    pszELON = poRecord->GetStringSubfield("CATD",0,"ELON",0);
-                    pszWLON = poRecord->GetStringSubfield("CATD",0,"WLON",0);
-
-/*
-           // Often there is an extra ENC_ROOT in the path, try finding
-            // this file.
-
-                    const char *pszWholePath;
-                    pszWholePath = CPLFormFilename( pszCatDir, pszFile, NULL );
-                    if( CPLStat( pszWholePath, &sStatBuf ) != 0
-                    && pszRootDir != NULL )
-                    {
-                    pszWholePath = CPLFormFilename( pszRootDir, pszFile, NULL );
-                }
-
-                    if( CPLStat( pszWholePath, &sStatBuf ) != 0 )
-                    {
-                    CPLError( CE_Warning, CPLE_OpenFailed,
-                    "Can't find file %s from catalog %s.",
-                    pszFile, pszDataset );
-                    continue;
-                }
-
-  */
-
-
-//            papszRetList = CSLAddString( papszRetList, pszWholePath );
-//            CPLDebug( "S57", "Got path %s from CATALOG.", pszWholePath );
-
-
-                    Extent *pext = new Extent();
-
-                    float NLAT, SLAT, ELON, WLON;
-
-                    sscanf(pszNLAT, "%f", &NLAT);
-                    sscanf(pszSLAT, "%f", &SLAT);
-                    sscanf(pszELON, "%f", &ELON);
-                    sscanf(pszWLON, "%f", &WLON);
-
-                    pext->NLAT = NLAT;
-                    pext->SLAT = SLAT;
-                    pext->ELON = ELON;
-                    pext->WLON = WLON;
-
-
-                    pS57ExtList->Add((void *)pext);
-
-                        // Check for Dos file name separator
-
-                    wxString sfn(pszFile);
-                    if(sfn.Contains("\\"))
-                    {
-                        sfn.Replace("\\", "/");
-                    }
-
-
-                    wxString S57FileString(dir_name);
-                    S57FileString += sfn;
-                    pS57FileList->Add(S57FileString);
-
-//                      wxFileName S57FileName(S57FileString);
-//                      CreateS57ChartTableEntry(S57FileName.GetFullPath(), pEntry, &ext);
-
-                }           // if
-
-
-            }                 // for
-
-
-            oModule.Close();
-
-            ////////////////////////////////////////////
-
-
-
-
-
-
-        }
-    }
-
-      //    Get count of all files in list, which will include the 001,002 updates
-    int nPotentialFiles = pS57FileList->GetCount();
-
-    if(bshow_prog)
-        pprogA = new wxProgressDialog (  _T("OpenCPN Add Chart"),
-                                         _T("Message"),
-                                         nPotentialFiles, NULL,
-                                         wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME
-                                      );
-
-
-
-    ChartTableEntry *pTempChartTable = (ChartTableEntry *)malloc((nPotentialFiles ) * sizeof(ChartTableEntry));
-    ChartTableEntry *pEntry = pTempChartTable;
-    int n000Entry = 0;
-
-      // Iterate over the accumulated lists, building ChartTable Entries
-
-    for(unsigned int k=0 ; k<pS57FileList->GetCount() ; k++)
-    {
-        wxFileName file(pS57FileList->Item(k));
-        if(file.GetExt() == "000")
-        {
-//                Extent *pext = (Extent *)pS57ExtList->Item(k);
-
-//                wxLogMessage("Adding S57 Chart: %s, Extent is: %f, %f, %f, %f",
-//                             file.GetFullPath().c_str(),
-//                                        pext->NLAT,pext->SLAT,pext->ELON,pext->WLON);
-            if(CreateS57ChartTableEntry(file.GetFullPath(), pEntry, (Extent *)(pS57ExtList->Item(k))))
-            {
-                n000Entry++;
-                pEntry++;
-            }
-
-            if(bshow_prog)
-                pprogA->Update(k/2, file.GetFullPath());
-
-        }
-    }
-
-      //    Look for and mark any duplicates
-
-    ChartTableEntry *pe = pTempChartTable;
-    for(int iEntry = 0 ; iEntry < n000Entry ; iEntry++)
-    {
-        wxString nProto(pe->pFullPath);
-
-        ChartTableEntry *pts = pe;
-        pts++;
-        for(int iTest = iEntry+1 ; iTest < n000Entry ; iTest++)
-        {
-            wxString nTest(pts->pFullPath);
-            if(nTest == nProto)
-            {
-//                      wxLogMessage("Duplicate  %s", nTest.c_str());
-                strcpy(pts->pFullPath, "DUP");
-
-            }
-            pts++;
-        }
-        pe++;
-
-        if(bshow_prog)
-            pprogA->Update(nPotentialFiles/2 + iEntry/2, "Removing Duplicates");
-
-    }
-
-      //now remove the "DUP"s
-
-    pe = pTempChartTable;
-
-    ChartTableEntry *pNewChartTable = (ChartTableEntry *)malloc((nPotentialFiles ) * sizeof(ChartTableEntry));
-    ChartTableEntry *pNew = pNewChartTable;
-
-    int   nNoDup000Entry = 0;
-
-    for(int iRemove = 0 ; iRemove < n000Entry ; iRemove++)
-    {
-        if(strcmp(pe->pFullPath, "DUP"))                      // not a duplicate
-        {
-            memcpy(pNew, pe, sizeof(ChartTableEntry));
-            pNew++;
-            nNoDup000Entry++;
-        }
-
-        pe++;
-
-
-    }
-
-
-
-
-
-
-      //Re-allocate the master ChartTable, copy, and append new items
-
-    ChartTableEntry *pt = (ChartTableEntry *)malloc( (nEntry + nNoDup000Entry)*sizeof(ChartTableEntry));
-    memcpy(pt, pChartTable, nEntry * sizeof(ChartTableEntry));
-    memcpy((char *)pt + (nEntry * sizeof(ChartTableEntry)), pNewChartTable,
-            nNoDup000Entry * sizeof(ChartTableEntry));
-
-    free(pChartTable);
-    free(pTempChartTable);
-    free(pNewChartTable);
-
-    pChartTable = pt;
-    nEntry += nNoDup000Entry;
-
-
-    delete pS57FileList;
-    pS57ExtList->Clear();
-    delete pS57ExtList;
-
-    delete pFileList;
-
-    if(pprog)
-        delete pprog;
-
-    if(pprogA)
-        delete pprogA;
-#endif          //0
-    return true;
-}
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -1803,7 +1512,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
             unsigned int nCache = pChartCache->GetCount();
             if(nCache >= N_CACHE)
             {
-//                wxLogMessage("Searching chart cache for oldest entry");
+///                  wxLogMessage("Searching chart cache for oldest entry");
                   int LRUTime = now.GetTicks();
                   int iOldest = 0;
                   for(unsigned int i=0 ; i<nCache ; i++)
@@ -1824,8 +1533,8 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 
                   if(Current_Ch != pDeleteCandidate)
                   {
-//                      wxLogMessage("Deleting/Removing oldest chart from cache");
-//                      wxLogMessage("oMem_Free before chart removal is %d", omem_free);
+///                      wxLogMessage("Deleting/Removing oldest chart from cache");
+///                      wxLogMessage("oMem_Free before chart removal is %d", omem_free);
 
                    //    Delete the chart
                         delete pDeleteCandidate;
@@ -1872,10 +1581,11 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
             {
                   InitReturn ir;
                   ir = Ch->Init(buf, init_flag, pParent->GetColorScheme());    // using the passed flag
+
                   if(INIT_OK == ir)
                   {
 //    Only add to cache if requesting a full init
-//                        if(1/*FULL_INIT == init_flag*/)
+                        if(FULL_INIT == init_flag)
                         {
                               pce = new CacheEntry;
                               pce->FullPath = wxString(buf);
