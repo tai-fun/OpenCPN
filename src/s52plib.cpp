@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.8 2007/05/03 13:23:56 dsr Exp $
+ * $Id: s52plib.cpp,v 1.9 2007/06/10 02:33:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.9  2007/06/10 02:33:11  bdbcat
+ * Cleanup
+ *
  * Revision 1.8  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -79,7 +82,7 @@
 
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.8 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.9 2007/06/10 02:33:11 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -91,7 +94,6 @@ s52plib::s52plib(const wxString& PLPath, const wxString& PLLib, const wxString& 
       pBuf = buffer;
       n_colTables = 0;
 
-      pAlloc = new wxArrayPtrVoid;
       pOBJLArray = new wxArrayPtrVoid;
 
       m_bOK = S52_load_Plib(PLPath, PLLib, PLCol);
@@ -121,16 +123,15 @@ s52plib::s52plib(const wxString& PLPath, const wxString& PLLib, const wxString& 
 
 s52plib::~s52plib()
 {
-        if(m_bOK)
-        {
-                S52_flush_Plib();
+      if(m_bOK)
+         S52_flush_Plib();
 
 //      Free the OBJL Array Elements
-                for(unsigned int iPtr = 0 ; iPtr < pOBJLArray->GetCount() ; iPtr++)
-                   free(pOBJLArray->Item(iPtr));
+      for(unsigned int iPtr = 0 ; iPtr < pOBJLArray->GetCount() ; iPtr++)
+          free(pOBJLArray->Item(iPtr));
 
-                delete pOBJLArray;
-        }
+      delete pOBJLArray;
+
 
       delete ledge;
       delete redge;
@@ -1254,6 +1255,7 @@ int s52plib::S52_load_Plib(const wxString& PLPath, const wxString& PLLib, const 
    }
 
    _colTables = new wxArrayPtrVoid;
+   pAlloc = new wxArrayPtrVoid;
 
 
    //   Create the Rule Lookup Hash Tables
@@ -1523,13 +1525,13 @@ bool s52plib::S52_flush_Plib()
                 DestroyRules(_symb_symR);
 
 //      Special case for CS
-    RuleHash::iterator it;
+        RuleHash::iterator it;
         Rule *pR;
         for( it = (*_cond_sym).begin(); it != (*_cond_sym).end(); ++it )
-    {
+        {
                 pR = it->second;
 //              delete pR;
-    }
+        }
         delete  (_cond_sym);
 
 
@@ -2969,7 +2971,7 @@ int s52plib::RenderMPS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
     int npt = rzRules->obj->npt;
 
     wxPoint p;
-    double *pd = rzRules->obj->geoPtz;            // the UTM points
+    double *pd = rzRules->obj->geoPtz;            // the SM points
     double *pdl = rzRules->obj->geoPtMulti;       // and corresponding lat/lon
 
     for(int ip=0 ; ip<npt ; ip++)

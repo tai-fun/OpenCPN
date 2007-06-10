@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.7 2007/05/03 13:31:19 dsr Exp $
+ * $Id: s57chart.h,v 1.8 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.8  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.7  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -201,8 +204,9 @@ private:
       PixelCache   *pDIB;
 
       bool         bGLUWarningSent;
+      Col_Scheme_t m_S52_color_index;
 
-//  UTM Projection parms
+//  SM Projection parms
       double     easting_vp_center, northing_vp_center;
       double    x_vp_center, y_vp_center;
       double    view_scale_ppm;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.h,v 1.1 2007/06/03 16:19:42 dsr Exp $
+ * $Id: ocpn_pixel.h,v 1.2 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Optimized wxBitmap Object
@@ -51,6 +51,7 @@ void *x_malloc(size_t t);
 
 //  I use these shortcuts....
 #ifdef __WXX11__
+//#define __PIX_CACHE_WXIMAGE__
 #define     __PIX_CACHE_X11IMAGE__
 #define     ocpnUSE_ocpnBitmap
 #endif
@@ -211,16 +212,6 @@ class PixelCache
 };
 
 
-
-
-
-
-
-
-
-
-
-
 #ifdef ocpnUSE_ocpnBitmap
 
 //-------------------------------------------------------------------------------
@@ -279,9 +270,6 @@ public:
             {CreateFromocpnXImage( ocpn_Ximage, width, height, depth );}
 #endif
 
-///#ifdef __WXGTK__
-///    GdkPixbuf* GetPixbuf();
-///#endif
 
 
     // Implementation

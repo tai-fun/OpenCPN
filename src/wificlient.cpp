@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.5 2007/02/06 02:08:24 dsr Exp $
+ * $Id: wificlient.cpp,v 1.6 2007/06/10 02:35:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.cpp,v $
+ * Revision 1.6  2007/06/10 02:35:09  bdbcat
+ * Cleanup
+ *
  * Revision 1.5  2007/02/06 02:08:24  dsr
  * Correct timer interval on UnPause()
  *
@@ -37,22 +40,6 @@
  *
  * Revision 1.2  2006/09/21 01:37:37  dsr
  * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.4  2006/08/04 11:42:03  dsr
- * no message
- *
- * Revision 1.3  2006/07/28 20:43:39  dsr
- * Implement watchdog
- *
- * Revision 1.2  2006/07/06 23:14:59  dsr
- * Add WiFi Server Status Display
- *
- * Revision 1.1  2006/07/05 02:36:21  dsr
- * Add WiFi Client
- *
  *
  */
 
@@ -78,7 +65,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.5 2007/02/06 02:08:24 dsr Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.6 2007/06/10 02:35:09 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -104,6 +91,7 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
     m_pdata_server_string = new wxString(WiFiServerName);
 
     m_watchtick = 0;
+    m_timer_active = false;
 
 //    Decide upon Server source
       wxLogMessage("WiFi Server is....%s",m_pdata_server_string->c_str());
@@ -113,18 +101,20 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
           wxString WIFI_data_ip;
           WIFI_data_ip = m_pdata_server_string->Mid(7);         // extract the IP
 
+          if(!WIFI_data_ip.IsEmpty())
+          {
 // Create the socket
-          m_sock = new wxSocketClient();
+                  m_sock = new wxSocketClient();
 
 // Setup the event handler and subscribe to most events
-          m_sock->SetEventHandler(*this, WIFI_SOCKET_ID);
+                m_sock->SetEventHandler(*this, WIFI_SOCKET_ID);
 
-          m_sock->SetNotify(wxSOCKET_CONNECTION_FLAG |
-                  wxSOCKET_INPUT_FLAG |
-                  wxSOCKET_LOST_FLAG);
-          m_sock->Notify(TRUE);
+                m_sock->SetNotify(wxSOCKET_CONNECTION_FLAG |
+                    wxSOCKET_INPUT_FLAG |
+                    wxSOCKET_LOST_FLAG);
+                m_sock->Notify(TRUE);
 
-          m_busy = FALSE;
+                m_busy = FALSE;
 
 //    Build the target address
 
@@ -137,50 +127,55 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
 //    Workaround....
 //    Use a thread to try the name lookup, in case it hangs
 
-          WIFIDNSTestThread *ptest_thread = NULL;
-          ptest_thread = new WIFIDNSTestThread(WIFI_data_ip);
+                WIFIDNSTestThread *ptest_thread = NULL;
+                ptest_thread = new WIFIDNSTestThread(WIFI_data_ip);
 
-          ptest_thread->Run();                      // Run the thread from ::Entry()
+                ptest_thread->Run();                      // Run the thread from ::Entry()
 
 
 //    Sleep and loop for N seconds
 #define SLEEP_TEST_SEC  2
 
-          for(int is=0 ; is<SLEEP_TEST_SEC * 10 ; is++)
-          {
-            wxMilliSleep(100);
-            if(wifi_s_dns_test_flag)
-            break;
-          }
+                for(int is=0 ; is<SLEEP_TEST_SEC * 10 ; is++)
+                {
+                    wxMilliSleep(100);
+                    if(wifi_s_dns_test_flag)
+                    break;
+                }
 
-          if(!wifi_s_dns_test_flag)
-          {
+                if(!wifi_s_dns_test_flag)
+                {
 
-            wxString msg(WIFI_data_ip);
-            msg.Prepend("Could not resolve TCP/IP host '");
-            msg.Append("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation");
-            wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
-            md.ShowModal();
+                    wxString msg(WIFI_data_ip);
+                    msg.Prepend("Could not resolve TCP/IP host '");
+                    msg.Append("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation");
+                    wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
+                    md.ShowModal();
 
-            m_sock->Notify(FALSE);
-            m_sock->Destroy();
+                    m_sock->Notify(FALSE);
+                    m_sock->Destroy();
 
-            return;
-          }
+                    return;
+                }
 
-          addr.Hostname(WIFI_data_ip);
-          addr.Service(SERVER_PORT);
-          m_sock->Connect(addr, FALSE);       // Non-blocking connect
+                addr.Hostname(WIFI_data_ip);
+                addr.Service(SERVER_PORT);
 
-            //  Initialize local data stores
-          for(int ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
-          {
-               station_data[ilocal].bisvalid = false;
-          }
+        // It is considered safe to block GUI during socket IO, since WIFI data activity is infrequent
+                m_sock->SetFlags(wxSOCKET_WAITALL | wxSOCKET_BLOCK );
+                m_sock->Connect(addr, FALSE);       // Non-blocking connect
 
-          Timer1.SetOwner(this, TIMER_WIFI1);
-          m_scan_interval_msec = 10000;
-          Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
+                    //  Initialize local data stores
+                for(int ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
+                {
+                    station_data[ilocal].bisvalid = false;
+                }
+
+                Timer1.SetOwner(this, TIMER_WIFI1);
+                m_scan_interval_msec = 10000;
+                Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
+                m_timer_active = true;
+          }         // !Isempty()
       }
 
       Hide();
@@ -222,7 +217,8 @@ void WIFIWindow::OnPaint(wxPaintEvent& event)
 
 void WIFIWindow::Pause(void)
 {
-    Timer1.Stop();
+    if(m_timer_active)
+        Timer1.Stop();
 
     if(m_sock)
         m_sock->Notify(FALSE);
@@ -230,7 +226,8 @@ void WIFIWindow::Pause(void)
 
 void WIFIWindow::UnPause(void)
 {
-    Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
+    if(m_timer_active)
+        Timer1.Start(m_scan_interval_msec,wxTIMER_CONTINUOUS);
 
     if(m_sock)
         m_sock->Notify(TRUE);
@@ -248,7 +245,6 @@ void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
 
     if(event.GetSocketEvent() == wxSOCKET_INPUT)
     {
-        m_sock->SetFlags(wxSOCKET_WAITALL); // | wxSOCKET_BLOCK );
 
 //          Read the first 5 bytes of the reply, getting its total type and total length
         m_sock->Read(buf, 5);
@@ -443,7 +439,7 @@ void WIFIWindow::OnTimer1(wxTimerEvent& event)
 {
     Timer1.Stop();
 
-       if(m_sock->IsConnected())
+    if(m_sock->IsConnected())
     {
         //      Keep a watchdog on received data
         if(stats)

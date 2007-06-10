@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.8 2007/05/03 13:31:19 dsr Exp $
+ * $Id: chcanv.h,v 1.9 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,26 +26,14 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
- * Revision 1.8  2007/05/03 13:31:19  dsr
- * Major refactor for 1.2.0
+ * Revision 1.9  2007/06/10 02:37:18  bdbcat
+ * Cleanup
  *
  * Revision 1.7  2007/03/02 02:05:44  dsr
  * Re-define ViewPort Class to better support skewed and UTM Vector charts
  *
  * Revision 1.6  2006/11/01 02:18:45  dsr
  * AIS Support
- *
- * Revision 1.5  2006/10/08 14:15:15  dsr
- * no message
- *
- * Revision 1.4  2006/10/08 04:37:51  dsr
- * no message
- *
- * Revision 1.3  2006/10/08 00:36:25  dsr
- * no message
- *
- * Revision 1.2  2006/10/05 03:52:54  dsr
- * no message
  *
  *
  */
@@ -55,8 +43,6 @@
 
 #ifndef __CHCANV_H__
 #define __CHCANV_H__
-
-#include "dychart.h"
 
 #include "tcmgr.h"                     // for pIDX
 
@@ -79,7 +65,6 @@
       class WVSChart;
       class MyFrame;
       class ChartBaseBSB;
-//      class PixelCache;
       class ChartBase;
       class AIS_Target_Data;
 
@@ -130,7 +115,7 @@ class ViewPort
     double   view_scale_ppm;
     double   binary_scale_factor;    // Meaningful for Raster Charts only
     double   skew;
-    double   c_east, c_north;       // UTM co-ordinates of ViewPort center
+    double   c_east, c_north;       // SM co-ordinates of ViewPort center
                                     // relative to (near) chart centroid
 
 
@@ -194,6 +179,7 @@ public:
       void WarpPointerDeferred(int x, int y);
       void UpdateShips();
       void UpdateAIS();
+      void FlushBackgroundRender(void);
 
       //    Accessors
       int GetCanvas_width(){ return canvas_width;}
@@ -336,6 +322,7 @@ private:
       wxRect      ais_draw_rect;
 
       bool        m_bBackRender;
+      bool        m_bbr_paused;
       ChartBaseBSB *br_Ch;
 
       wxBitmap    *proute_bm;       // a bitmap and dc used to calculate route bounding box

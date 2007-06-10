@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.4 2007/02/06 02:11:47 dsr Exp $
+ * $Id: statwin.h,v 1.5 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Status Window
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.h,v $
+ * Revision 1.5  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.4  2007/02/06 02:11:47  dsr
  * Cleanup
  *
@@ -35,18 +38,6 @@
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.4  2006/08/04 11:43:37  dsr
- * no message
- *
- * Revision 1.3  2006/07/06 23:15:13  dsr
- * Add WiFi Server Status Display
- *
- * Revision 1.2  2006/07/05 02:34:32  dsr
- * Add WiFi Client Status Window
- *
  *
  */
 
@@ -54,7 +45,7 @@
 #ifndef __statwin_H__
 #define __statwin_H__
 
-
+#include "chart1.h"
 
 //----------------------------------------------------------------------------
 //   constants
@@ -99,6 +90,7 @@ public:
       void OnPaint(wxPaintEvent& event);
       void FormatKeys(void);
       void MouseEvent(wxMouseEvent& event);
+      void SetColorScheme(ColorScheme cs);
 
       int         Size_X, Size_Y, Pos_X, Pos_Y;
 
@@ -139,6 +131,7 @@ class WiFiStatWin: public wxWindow
         void SetStationAge(int istation, int age);
         void SetServerStatus(bool stat) { m_bserverstat = stat; }
         void DrawBars(wxDC &dc, int x, int y, int box_width, int box_height, int val, int val_max);
+        void SetColorScheme(ColorScheme cs);
 
 
         wxBrush     *pqual_hiBrush;
@@ -173,12 +166,14 @@ public:
       void MouseEvent(wxMouseEvent& event);
       int  GetFontHeight();
       int  GetRows(){ return(m_rows);}
+      void SetColorScheme(ColorScheme cs);
 
       void FormatStat(void);
 
       int         Size_X, Size_Y, Pos_X, Pos_Y;
 
       int         m_rows;
+      wxBrush     *pbackBrush;
 
       PianoWin    *pPiano;
       TStatWin    *pTStat1;

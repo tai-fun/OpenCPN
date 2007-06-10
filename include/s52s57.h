@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.5 2007/05/03 13:31:19 dsr Exp $
+ * $Id: s52s57.h,v 1.6 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.6  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.5  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -330,7 +333,7 @@ public:
       double                  z;
       int                     npt;                    // number of points as needed by arrays
       pt                      *geoPt;                 // for LINE & AREA not described by PolyTessGeo
-      double                  *geoPtz;                // an array[3] for MultiPoint, UTM with Z, i.e. depth
+      double                  *geoPtz;                // an array[3] for MultiPoint, SM with Z, i.e. depth
       double                  *geoPtMulti;            // an array[2] for MultiPoint, lat/lon to make bbox
                                                       // of decomposed points
       PolyTessGeo             *pPolyTessGeo;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.6 2007/05/03 13:31:19 dsr Exp $
+ * $Id: chartbase.h,v 1.7 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.7  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.6  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -40,40 +43,6 @@
  *
  * Revision 1.2  2006/10/07 03:50:54  dsr
  * *** empty log message ***
- *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.2  2006/05/19 19:36:18  dsr
- * Cleanup
- *
- * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
- * Rename/Import to OpenCPN
- *
- * Revision 1.10  2006/04/19 00:54:52  dsr
- * Implement ColorScheme
- *
- * Revision 1.9  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.8  2006/03/04 21:23:25  dsr
- * Move PixelCache definition here
- *
- * Revision 1.7  2006/02/24 17:56:05  dsr
- * Add some new accessors
- *
- * Revision 1.6  2006/02/24 02:59:06  dsr
- * Cleanup
- *
- * Revision 1.5  2006/02/23 01:17:00  dsr
- * Cleanup, moved Viewport definition to chcanv
- *
- * Revision 1.4  2006/02/09 13:55:39  dsr
- * Define ThumbData class, and friends
- *
- * Revision 1.3  2006/02/10 03:19:06  dsr
- * *** empty log message ***
- *
  *
  */
 
@@ -188,8 +157,6 @@ public:
 
       virtual void SetColorScheme(ColorScheme cs, bool bApplyImmediate) = 0;
 
-      virtual ColorScheme GetColorScheme(void) { return m_color_scheme; }
-
       virtual bool IsCacheValid(void) = 0;
 
       ChartTypeEnum     ChartType;
@@ -203,7 +170,7 @@ public:
 
       ThumbData         *pThumbData;
 
-      ColorScheme       m_color_scheme;
+      ColorScheme       m_global_color_scheme;
       bool              bReadyToRender;
 
       double            Chart_Error_Factor;

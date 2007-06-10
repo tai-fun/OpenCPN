@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.6 2007/05/03 13:31:19 dsr Exp $
+ * $Id: chart1.h,v 1.7 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,11 +26,15 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.7  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.6  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
  * Revision 1.5  2006/12/03 21:27:20  dsr
- * Implement global enum definition of some ID constants, to avoid inadvertent duplication of IDs which can create ambiguity in message passing.
+ * Implement global enum definition of some ID constants,
+ * to avoid inadvertent duplication of IDs which can create ambiguity in message passing.
  * Change gFrame timer tick rate away from exactly 1000 msec to avoid syncronization problems.
  *
  * Revision 1.4  2006/10/08 00:36:25  dsr
@@ -42,12 +46,7 @@
  * Revision 1.2  2006/09/21 01:38:23  dsr
  * Major refactor/cleanup
  *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.3  2006/07/28 20:47:50  dsr
- * Cleanup
- *
+*
  *
  */
 
@@ -94,7 +93,7 @@ extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
 //   constants
 //----------------------------------------------------------------------------
 
-#define TIMER_GFRAME_1 999
+#define TIMER_GFRAME_1 499
 
 #define ID_QUIT     101
 
@@ -149,14 +148,9 @@ enum
 
 typedef enum ColorScheme
 {
-      COLOR_SCHEME_DEFAULT = 0,
-      DAY,
-      DUSK,
-      NIGHT,
-      NIGHTRED,
-      GRAY,
-      PRC,
-      PRG,
+      GLOBAL_COLOR_SCHEME_DAY,
+      GLOBAL_COLOR_SCHEME_DUSK,
+      GLOBAL_COLOR_SCHEME_NIGHT,
       N_COLOR_SCHEMES
 }_ColorScheme;
 
@@ -173,6 +167,7 @@ class wxSocketEvent;
 //   Classes
 //----------------------------------------------------------------------------
 WX_DECLARE_STRING_HASH_MAP(char*, string_to_pchar_hash);
+WX_DECLARE_STRING_HASH_MAP(wxBitmap*, string_to_pbitmap_hash);
 
 
 class MyApp: public wxApp
@@ -202,7 +197,6 @@ class MyFrame: public wxFrame
     void OnEvtNMEA(wxCommandEvent& event);
     void OnChar(wxKeyEvent &event);
 
-
     void OnToolLeftClick(wxCommandEvent& event);
     void ClearRouteTool();
     void DoStackUp(void);
@@ -213,8 +207,10 @@ class MyFrame: public wxFrame
     void SelectChartFromStack(int index);
     void ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar);
     void SetChartThumbnail(int index);
-    int DoOptionsDialog();
+    int  DoOptionsDialog();
     void DoPrint(void);
+    void StopSockets(void);
+    void ResumeSockets(void);
 
     ColorScheme GetColorScheme();
     void SetAndApplyColorScheme(ColorScheme cs);
@@ -238,16 +234,23 @@ class MyFrame: public wxFrame
     int                 tool_dummy_size_x, tool_dummy_size_y;
 
   private:
-    void CreateMyToolbar();
+    wxToolBar *CreateAToolbar();
     void DestroyMyToolbar();
     void MyAddTool(wxToolBarBase *pTB, int toolId, const wxString& label, const wxString& bmpFile,
                    const wxString& shortHelpString, wxItemKind kind);
     void ReSizeToolbar(void);
+    void PrepareToolbarBitmaps(void);
+    void BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index, string_to_pbitmap_hash &hash);
+
     int  toolbar_width_without_static;
 
     string_to_pchar_hash tool_xpm_hash;         // hash map of [static] toolbar xpm bitmaps
 
     int                 tool_dummy_size_x_last;
+
+    string_to_pbitmap_hash tool_bitmap_hash_day;
+    string_to_pbitmap_hash tool_bitmap_hash_dusk;
+    string_to_pbitmap_hash tool_bitmap_hash_night;
 
     DECLARE_EVENT_TABLE()
 };

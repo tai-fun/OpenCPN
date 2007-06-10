@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.1 2007/06/03 16:19:42 dsr Exp $
+ * $Id: options.h,v 1.2 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
- * Revision 1.1  2007/06/03 16:19:42  dsr
- * Create/Move for 1.2.0
+ * Revision 1.2  2007/06/10 02:37:18  bdbcat
+ * Cleanup
  *
  * Revision 1.4  2006/11/01 02:19:08  dsr
  * AIS Support
@@ -81,6 +81,7 @@ enum {
         ID_CLEARLIST,
         ID_SELECTLIST,
         ID_CHOICE_AIS,
+        ID_CHOICE_AP,
         ID_SOUNDGCHECKBOX,
         ID_METACHECKBOX,
         ID_TEXTCHECKBOX,
@@ -171,7 +172,7 @@ public:
     wxStaticBoxSizer        *m_itemNMEA_TCPIP_StaticBoxSizer;
     wxTextCtrl              *m_itemNMEA_TCPIP_Source;
     wxComboBox              *m_itemNMEAListBox;
-    wxChoice                *m_itemNMEAAutoListBox;
+    wxComboBox              *m_itemNMEAAutoListBox;
 
 #ifdef USE_WIFI_CLIENT
 //    For "WiFi Options" Box
@@ -181,10 +182,10 @@ public:
 #endif
 
 //    For Fonts page
-    wxChoice                *m_itemFontElementListBox;
+    wxComboBox              *m_itemFontElementListBox;
 
 //    For "AIS Options"
-    wxChoice                *m_itemAISListBox;
+    wxComboBox              *m_itemAISListBox;
 
     wxCheckBox*             pSettingsCB1;
 
@@ -196,19 +197,7 @@ public:
     wxArrayPtrVoid          OBJLBoxArray;
     wxString                *m_pinit_chart_dir;
     wxWindow                *pParent;
-
 };
-
-
-
-
- class OptionSetup
- {
-public:
-
-      OptionSetup();
- };
-
 
 
 #endif

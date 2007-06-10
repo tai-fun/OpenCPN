@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.6 2007/05/03 13:31:19 dsr Exp $
+ * $Id: chartimg.h,v 1.7 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.7  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.6  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -57,6 +60,20 @@ typedef enum PaletteDir
       PaletteFwd,
       PaletteRev
 }_PaletteDir;
+
+
+typedef enum BSB_Color_Capability
+{
+    COLOR_RGB_DEFAULT = 0,                   // Default corresponds to bsb entries "RGB"
+    DAY,
+    DUSK,
+    NIGHT,
+    NIGHTRED,
+    GRAY,
+    PRC,
+    PRG,
+    N_BSB_COLORS
+}_BSB_Color_Capability;
 
 //-----------------------------------------------------------------------------
 //    Fwd Refs
@@ -168,12 +185,11 @@ public:
 
       virtual void GetChartExtent(Extent *pext);
 
-      PaletteDir GetPaletteDir(void);
-
 
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
 
-      int  *GetPalettePtr(ColorScheme);
+      PaletteDir GetPaletteDir(void);
+      int  *GetPalettePtr(BSB_Color_Capability);
 
       bool InitializeBackgroundBilinearRender(ViewPort &VPoint);
       bool AbortBackgroundRender(void);
@@ -269,7 +285,8 @@ protected:
       bool              bHaveImbeddedGeoref;
       double            m_cph;
 
-      Palette           *pPalettes[N_COLOR_SCHEMES];
+      Palette           *pPalettes[N_BSB_COLORS];
+      BSB_Color_Capability m_mapped_color_index;
 
 //    Integer digital scale value above which bilinear scaling is not allowed,
 //      and subsampled scaling must be performed
@@ -319,7 +336,7 @@ public:
       ChartKAP();
       ~ChartKAP();
 
-      InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );//Initialize a BSB 2.x+ Chart
+      InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
 
 
 };

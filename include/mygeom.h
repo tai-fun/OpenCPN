@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.5 2007/05/03 13:31:19 dsr Exp $
+ * $Id: mygeom.h,v 1.6 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselation of Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
+ * Revision 1.6  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.5  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -147,7 +150,7 @@ class PolyTessGeo
 
         PolyTessGeo(unsigned char *polybuf, int nrecl, int index);      // Build this from SENC file record
 
-        PolyTessGeo(OGRPolygon *poly, bool bSENC_UTM,
+        PolyTessGeo(OGRPolygon *poly, bool bSENC_SM,
             double ref_lat, double ref_lon,  bool bUseInternalTess);  // Build this from OGRPolygon
 
         int Write_PolyTriGroup( FILE *ofs);
@@ -162,8 +165,8 @@ class PolyTessGeo
 
 
     private:
-        int PolyTessGeoGL(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon);
-        int PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon);
+        int PolyTessGeoGL(OGRPolygon *poly, bool bSENC_SM, double ref_lat, double ref_lon);
+        int PolyTessGeoTri(OGRPolygon *poly, bool bSENC_SM, double ref_lat, double ref_lon);
         int my_bufgets( char *buf, int buf_len_max );
 
 

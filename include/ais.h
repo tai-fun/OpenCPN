@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.4 2007/05/03 13:31:19 dsr Exp $
+ * $Id: ais.h,v 1.5 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.5  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.4  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -109,8 +112,6 @@ class AIS_Target_Data
 public:
 
     AIS_Target_Data();
-
-
 
     int         MID;
     int         MMSI;
@@ -216,12 +217,10 @@ private:
     wxString          *m_pdata_ap_port_string;
     wxEvtHandler      *m_pParentEventHandler;
 
-//    int               istr;
-//    int               itime;
     int               nsentences;
     int               isentence;
     wxString          sentence_accumulator;
-
+    bool              m_OK;
 
 DECLARE_EVENT_TABLE()
 
@@ -241,17 +240,6 @@ DECLARE_EVENT_TABLE()
 #endif
 
 //    Constants
-/*typedef enum ENUM_BUFFER_STATE
-{
-      RX_BUFFER_EMPTY,
-      RX_BUFFER_FULL
-};
-*/
-
-
-#define MAX_RX_MESSSAGE_SIZE  4096
-#define     RX_BUFFER_SIZE                4096
-
 
 
 //          Inter-thread communication event declaration
@@ -270,7 +258,7 @@ public:
       void OnExit(void);
 
 private:
-      bool HandleASuccessfulRead(char *buf, int IncomingReadSize);
+      bool HandleRead(char *buf, int character_count);
 
       wxEvtHandler            *m_pMainEventHandler;
       wxString                *m_pPortName;
@@ -281,6 +269,7 @@ private:
       char                    *rx_buffer;
 
       unsigned long           error;
+      int                     nl_count;
 
 #ifdef __LINUX__
       termios                 *pttyset;

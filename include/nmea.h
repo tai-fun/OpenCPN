@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.7 2007/05/03 13:31:19 dsr Exp $
+ * $Id: nmea.h,v 1.8 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,27 +26,15 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.8  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.7  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
  * Revision 1.6  2006/12/03 21:22:01  dsr
  * Redefine NMEA window ctor to include explicit window ID specification.
  * Change NMEA timer tick rate away from exactly 1000 msec to avoid syncronization problems.
- *
- * Revision 1.5  2006/10/08 00:36:25  dsr
- * no message
- *
- * Revision 1.4  2006/10/07 03:50:54  dsr
- * *** empty log message ***
- *
- * Revision 1.3  2006/10/05 03:52:54  dsr
- * no message
- *
- * Revision 1.2  2006/10/01 03:24:40  dsr
- * no message
- *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
  *
  *
  *
@@ -67,7 +55,6 @@
   #include "wx/wx.h"
 #endif //precompiled header
 
-#include "dychart.h"
 
 #ifdef __WXMSW__
     #ifdef ocpnUSE_MSW_SERCOMM
@@ -265,7 +252,7 @@ public:
     void AutopilotOut(const char *Sentence);
 
 private:
-    bool            OpenPort(void);
+    bool            OpenPort(wxString &port);
 
 
     wxString        *m_pdata_ap_port_string;

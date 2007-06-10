@@ -8,7 +8,7 @@
 
 //  Chart cacheing policy
 //  n.b. use only one of the following policy options....
-#define CACHE_N_LIMIT 3                                     // Cache no more than n charts
+#define CACHE_N_LIMIT 2                                     // Cache no more than n charts
 //#define CACHE_MEM_LIMIT 60000                             // Free mem threshold for freeing a chart from cache
 
 
@@ -122,12 +122,12 @@
 #endif
 
 //----------------------------------------------------------------------------
-//		Environment Access functions
+//          Environment Access functions
 //----------------------------------------------------------------------------
 #ifdef __MSVC__
-#define _putenv _putenv		// This is for MSVC
+#define _putenv _putenv       // This is for MSVC
 #else
-#define _putenv putenv		// This is for other Windows compiler
+#define _putenv putenv        // This is for other Windows compiler
 #endif
 
 //----------------------------------------------------------------------------

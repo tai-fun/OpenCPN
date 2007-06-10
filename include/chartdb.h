@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.5 2007/05/03 13:31:19 dsr Exp $
+ * $Id: chartdb.h,v 1.6 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.6  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.5  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -177,7 +180,6 @@ private:
       int SearchDirAndAddBSB(wxString& dir, const wxString& filespec, bool bshow_prog, bool bupdate);
       int TraverseDirAndAddS57(wxString dir_name, bool bshow_prog, bool bupdate);
       int SearchDirAndAddS57(wxString& dir, bool bshow_prog, bool bupdate);
-      bool SearchDirAndAddS57FromCatalog(wxString& dir_name, bool bshow_prog);
 
 
       MyFrame           *pParent;

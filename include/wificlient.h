@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.h,v 1.4 2007/02/06 02:12:08 dsr Exp $
+ * $Id: wificlient.h,v 1.5 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  wifi Client Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.h,v $
+ * Revision 1.5  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
  * Revision 1.4  2007/02/06 02:12:08  dsr
  * Cleanup
  *
@@ -34,18 +37,6 @@
  *
  * Revision 1.2  2006/10/08 00:36:25  dsr
  * no message
- *
- * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
- * Revision 1.3  2006/07/28 20:47:51  dsr
- * Cleanup
- *
- * Revision 1.2  2006/07/06 23:15:13  dsr
- * Add WiFi Server Status Display
- *
- * Revision 1.1  2006/07/05 02:39:11  dsr
- * Add WiFi Client
  *
  *
  */
@@ -143,6 +134,7 @@ class WIFIWindow: public wxWindow
         wxString          *m_pdata_server_string;
         int               m_watchtick;
         int               m_scan_interval_msec;
+        bool              m_timer_active;
 
         wifi_local_scan_data    station_data[NLOCALSTORE];
 

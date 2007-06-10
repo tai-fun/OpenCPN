@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: concanv.h,v 1.2 2007/06/10 02:37:18 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Console Canvas
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: concanv.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2007/06/10 02:37:18  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -53,11 +56,11 @@
 //   constants
 //----------------------------------------------------------------------------
 
+#include "chart1.h"             // for ColorScheme
 
-
-class Routeman;
 
 // Class declarations
+class Routeman;
 
 //----------------------------------------------------------------------------
 // CDI
@@ -70,6 +73,10 @@ public:
              const wxPoint& pos, const wxSize& size, long style, const wxString& name);
 
       void OnPaint(wxPaintEvent& event);
+      void SetColorScheme(ColorScheme cs);
+
+      wxBrush *pbackBrush;
+      wxBrush *proadBrush;
 
 DECLARE_EVENT_TABLE()
 
@@ -92,7 +99,10 @@ public:
       void RefreshFonts(void);
       void SetLegendElement(const wxString &element);
       void SetValueElement(const wxString &element);
+      void SetColorScheme(ColorScheme cs);
 
+      wxBrush     *pbackBrush;
+      wxColour    m_text_color;
 
       wxString    *label;
       wxString    *value;
@@ -123,6 +133,7 @@ public:
       void UpdateRouteData();
       void MouseEvent(wxMouseEvent& event);
       void ShowWithFreshFonts(void);
+      void SetColorScheme(ColorScheme cs);
 
       wxStaticBox       *pThisLegBox;
       AnnunText         *pXTE;
@@ -138,6 +149,7 @@ public:
       bool              m_bShowRouteTotal;
 
       wxRegion          *pSBoxRgn;
+      wxBrush *pbackBrush;
 
 private:
       void OnPaint(wxPaintEvent& event);
