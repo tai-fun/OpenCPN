@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.7 2007/06/10 02:26:16 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.8 2007/06/10 03:49:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.8  2007/06/10 03:49:20  bdbcat
+ * Fix background color
+ *
  * Revision 1.7  2007/06/10 02:26:16  bdbcat
  * Implement  color scheme capability
  *
@@ -76,7 +79,7 @@
 extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.7 2007/06/10 02:26:16 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.8 2007/06/10 03:49:20 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -2772,7 +2775,7 @@ bool ChartBaseBSB::GetChartBits(wxRect& source, unsigned char *pPix, int sub_sam
 {
 
       int iy;
-#define FILL_BYTE 128
+#define FILL_BYTE 0
 
 //    Decode the KAP file RLL stream into image pPix
 
@@ -3511,7 +3514,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.7 2007/06/10 02:26:16 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.8 2007/06/10 03:49:20 bdbcat Exp $
 *
 */
 
