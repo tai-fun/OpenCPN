@@ -52,7 +52,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: georef.c,v 1.4 2007/05/03 13:23:55 dsr Exp $");
+CPL_CVSID("$Id: georef.c,v 1.5 2007/06/10 02:27:52 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -768,15 +768,25 @@ void lm_minimize( int m_dat, int n_par, double* par,
     int n = n_par;
     int m = m_dat;
 
-    if (!(fvec = (double*) malloc(  m*sizeof(double))) ||
-          !(diag = (double*) malloc(n*  sizeof(double))) ||
-          !(qtf =  (double*) malloc(n*  sizeof(double))) ||
-          !(fjac = (double*) malloc(n*m*sizeof(double))) ||
-          !(wa1 =  (double*) malloc(n*  sizeof(double))) ||
-          !(wa2 =  (double*) malloc(n*  sizeof(double))) ||
-          !(wa3 =  (double*) malloc(n*  sizeof(double))) ||
-          !(wa4 =  (double*) malloc(  m*sizeof(double))) ||
-          !(ipvt = (int*)    malloc(n*  sizeof(int)))) {
+    fvec = (double*) malloc(  m*sizeof(double));
+    diag = (double*) malloc(n*  sizeof(double));
+    qtf =  (double*) malloc(n*  sizeof(double));
+    fjac = (double*) malloc(n*m*sizeof(double));
+    wa1 =  (double*) malloc(n*  sizeof(double));
+    wa2 =  (double*) malloc(n*  sizeof(double));
+    wa3 =  (double*) malloc(n*  sizeof(double));
+    wa4 =  (double*) malloc(  m*sizeof(double));
+    ipvt = (int*)    malloc(n*  sizeof(int));
+
+    if (!(fvec)    ||
+          !(diag ) ||
+          !(qtf )  ||
+          !(fjac ) ||
+          !(wa1 )  ||
+          !(wa2 )  ||
+          !(wa3 )  ||
+          !(wa4 )  ||
+          !(ipvt )) {
         control->info = 9;
         return;
           }

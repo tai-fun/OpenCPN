@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.11 2007/05/03 13:23:55 dsr Exp $
+ * $Id: nmea.cpp,v 1.12 2007/06/10 02:30:19 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.12  2007/06/10 02:30:19  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2007/05/03 13:23:55  dsr
  * Major refactor for 1.2.0
  *
@@ -68,11 +71,11 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.11 2007/05/03 13:23:55 dsr Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.12 2007/06/10 02:30:19 bdbcat Exp $");
 
 //    Forward Declarations
 
-extern NMEAWindow *nmea;
+extern NMEAWindow       *nmea;
 extern float            kLat, kLon, kSog, kCog;
 extern bool             bAutoPilotOut;
 
@@ -84,10 +87,10 @@ extern int    file_user_id;
 extern wxString          *phost_name;
 
 extern OCP_NMEA_Thread   *pNMEA_Thread;
-extern bool   s_bSetSystemTime;
+extern bool              s_bSetSystemTime;
 extern NMEA0183          *pNMEA0183;
 
-int s_dns_test_flag;
+int                      s_dns_test_flag;
 
 
 //------------------------------------------------------------------------------
@@ -481,7 +484,6 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
     default                  :
           break;
   }
-
 }
 
 
@@ -507,20 +509,26 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 
 //--------------TEST
 #if(0)
-      if(1)
+//      if(0)
       {
-            gCog = 290.;
-            gSog = 20.;
+            kCog = 290.;
+            kSog = 20.;
 
-            float PI = 3.14159;
-            float pred_lat = gLat +  (cos(gCog * PI / 180) * gSog * (1. / 60.) / 3600.)/(cos(gLat * PI/180.));
-            float pred_lon = gLon +  (sin(gCog * PI / 180) * gSog * (1. / 60.) / 3600.)/(cos(gLat * PI/180.));
+//            float PI = 3.14159;
+            float pred_lat = kLat +  (cos(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
+            float pred_lon = kLon +  (sin(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
 
-            gLat = pred_lat;
-            gLon = pred_lon;
+            kLat = pred_lat;
+            kLon = pred_lon;
+
+    //    Signal the main program thread
+
+            wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+            event.SetEventObject( (wxObject *)this );
+            event.SetExtraLong(EVT_NMEA_DIRECT);
+            m_pParentEventHandler->AddPendingEvent(event);
+
       }
-
-
 #endif
 
       char buf[80];
@@ -1139,15 +1147,9 @@ void *OCP_NMEA_Thread::Entry()
 //                                    ps_mutexProtectingTheRXBuffer->Unlock();
 
                               }                 // while
-
                         }
-
                   } while(dwIncommingReadSize > 0);
-
-//
             }
-
-
       }           // the big while...
 
 
@@ -1409,14 +1411,12 @@ HandleASuccessfulRead:
 
        fWaitingOnRead = FALSE;
 
-
       }           // the big while...
 
 
 fail_point:
 
       return 0;
-
 }
 
 #endif
@@ -1444,13 +1444,16 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 
       wxLogMessage("NMEA AutoPilot Port is....%s",m_pdata_ap_port_string->c_str());
 
-      if(!m_pdata_ap_port_string->IsSameAs("None", false))
+      if((!m_pdata_ap_port_string->IsEmpty()) && (!m_pdata_ap_port_string->IsSameAs("None", false)))
       {
+
+            wxString port(m_pdata_ap_port_string->AfterFirst(':'));    // Strip "Serial"
+
 
 #ifdef __WXMSW__
 #ifdef ocpnUSE_MSW_SERCOMM
             pWinComm = NULL;
-            pWinComm = new CSyncSerialComm(m_pdata_ap_port_string->c_str());        //COM2
+            pWinComm = new CSyncSerialComm(port.c_str());
             pWinComm->Open();
             pWinComm->ConfigPort(4800, 5);
             bAutoPilotOut = true;
@@ -1459,7 +1462,7 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 
 #ifdef __LINUX__
 
-            bOK = OpenPort();
+            bOK = OpenPort(port);
 
             if(bOK)
                  bAutoPilotOut = true;
@@ -1497,7 +1500,7 @@ void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 #endif
 }
 
-bool AutoPilotWindow::OpenPort(void)
+bool AutoPilotWindow::OpenPort(wxString &port)
 {
 #ifdef __LINUX__
     // Allocate the termios data structures
@@ -1506,9 +1509,9 @@ bool AutoPilotWindow::OpenPort(void)
     pttyset_old = (termios *)malloc(sizeof (termios));
 
             // Open the serial port.
-    if ((m_ap_fd = open(m_pdata_ap_port_string->c_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
+    if ((m_ap_fd = open(port.c_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
     {
-        wxLogMessage("Autopilot output device open failed: %s\n", m_pdata_ap_port_string->c_str());
+        wxLogMessage("Autopilot output device open failed: %s\n", port.c_str());
         return false;
     }
 
@@ -1525,7 +1528,7 @@ bool AutoPilotWindow::OpenPort(void)
         /* Save original terminal parameters */
         if (tcgetattr(m_ap_fd,pttyset_old) != 0)
         {
-            wxLogMessage("Autopilot output device getattr failed: %s\n", m_pdata_ap_port_string->c_str());
+            wxLogMessage("Autopilot output device getattr failed: %s\n", port.c_str());
             return false;
         }
         (void)memcpy(pttyset, pttyset_old, sizeof(termios));
@@ -1562,7 +1565,7 @@ bool AutoPilotWindow::OpenPort(void)
         pttyset->c_cflag |= (CSIZE & (stopbits==2 ? CS7 : CS8));
         if (tcsetattr(m_ap_fd, TCSANOW, pttyset) != 0)
         {
-            wxLogMessage("Autopilot output device setattr failed: %s\n", m_pdata_ap_port_string->c_str());
+            wxLogMessage("Autopilot output device setattr failed: %s\n", port.c_str());
             return false;
         }
 
@@ -1594,11 +1597,8 @@ void AutoPilotWindow::AutopilotOut(const char *Sentence)
 
      ssize_t status;
      status = write(m_ap_fd, Sentence, char_count);
-//     ok = (status == (ssize_t)len);
-//     (void)tcdrain(m_ap_fd);
 
 #endif
-
 }
 
 

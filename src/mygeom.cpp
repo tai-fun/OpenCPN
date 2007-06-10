@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $
+ * $Id: mygeom.cpp,v 1.7 2007/06/10 02:28:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.7  2007/06/10 02:28:15  bdbcat
+ * Cleanup
+ *
  * Revision 1.6  2007/05/03 13:23:55  dsr
  * Major refactor for 1.2.0
  *
@@ -60,7 +63,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.6 2007/05/03 13:23:55 dsr Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.7 2007/06/10 02:28:15 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -154,7 +157,7 @@ TriPrim               *s_pTPG_Last;
 static GLUtesselator  *GLUtessobj;
 static double         s_ref_lat;
 static double         s_ref_lon;
-static bool           s_bSENC_UTM;
+static bool           s_bSENC_SM;
 #endif
 
 static int            tess_orient;
@@ -255,18 +258,18 @@ PolyTessGeo::PolyTessGeo()
 }
 
 //      Build PolyTessGeo Object from OGR Polygon
-PolyTessGeo::PolyTessGeo(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon, bool bUseInternalTess)
+PolyTessGeo::PolyTessGeo(OGRPolygon *poly, bool bSENC_SM, double ref_lat, double ref_lon, bool bUseInternalTess)
 {
     ErrorCode = 0;
     m_ppg_head = NULL;
 
     if(bUseInternalTess)
-        ErrorCode = PolyTessGeoTri(poly, bSENC_UTM, ref_lat, ref_lon);
+        ErrorCode = PolyTessGeoTri(poly, bSENC_SM, ref_lat, ref_lon);
     else
 #ifdef USE_GLU_TESS
-        ErrorCode = PolyTessGeoGL(poly, bSENC_UTM, ref_lat, ref_lon);
+        ErrorCode = PolyTessGeoGL(poly, bSENC_SM, ref_lat, ref_lon);
 #else
-        ErrorCode = PolyTessGeoTri(poly, bSENC_UTM, ref_lat, ref_lon);
+        ErrorCode = PolyTessGeoTri(poly, bSENC_SM, ref_lat, ref_lon);
 #endif
 
 }
@@ -393,7 +396,7 @@ PolyTessGeo::PolyTessGeo(unsigned char *polybuf, int nrecl, int index)
 
 //      Build PolyTessGeo Object from OGR Polygon
 //      Using internal Triangle tesselator
-int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon)
+int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_SM, double ref_lat, double ref_lon)
 {
 
     int iir, ip;
@@ -651,9 +654,9 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat
             ty = geoPt[ip].y;
         }
 
-        if(bSENC_UTM)
+        if(bSENC_SM)
         {
-            //  Calculate UTM from chart common reference point
+            //  Calculate SM from chart common reference point
             double easting, northing;
             toSM(ty, tx, ref_lat, ref_lon, &easting, &northing);
             *vro++ = easting;              // x
@@ -696,11 +699,11 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_UTM, double ref_lat
             pTP->type = PTG_TRIANGLES;
             pTP->nVert = pr->nvert;
 
-            //  Convert to UTM
+            //  Convert to SM
             pTP->p_vertex = (double *)malloc(pr->nvert * 2 * sizeof(double));
             double *pdd = pTP->p_vertex;
             int *ivr = pr->vertex_index_list;
-            if(bSENC_UTM)
+            if(bSENC_SM)
             {
                 for(int i=0 ; i<pr->nvert ; i++)
                 {
@@ -955,7 +958,7 @@ void __CALL_CONVENTION combineCallback(GLdouble coords[3],
                      GLfloat weight[4], GLdouble **dataOut );
 
 
-int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_UTM, double ref_lat, double ref_lon)
+int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_SM, double ref_lat, double ref_lon)
 {
     int iir, ip;
     int *cntr;
@@ -1228,11 +1231,11 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_UTM, double ref_lat,
         gluTessEndContour(GLUtessobj);
     }
 
-    //  Store some UTM conversion data in static store,
+    //  Store some SM conversion data in static store,
     //  for callback access
     s_ref_lat = ref_lat;
     s_ref_lon = ref_lon;
-    s_bSENC_UTM = bSENC_UTM;
+    s_bSENC_SM = bSENC_SM;
 
 
 
@@ -1259,7 +1262,7 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_UTM, double ref_lat,
 //  Transcribe the raw geometry buffer
 //  Converting to float as we go, and
 //  allowing for tess_orient
-//  Also, convert to UTM if requested
+//  Also, convert to SM if requested
 
     nwkb = (npta +1) * 2 * sizeof(float);
     m_ppg_head->pgroup_geom = (float *)malloc(nwkb);
@@ -1280,9 +1283,9 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_UTM, double ref_lat,
             ty = *ppt++;
         }
 
-        if(bSENC_UTM)
+        if(bSENC_SM)
         {
-            //  Calculate UTM from chart common reference point
+            //  Calculate SM from chart common reference point
             double easting, northing;
             toSM(ty, tx, ref_lat, ref_lon, &easting, &northing);
             *vro++ = easting;              // x
@@ -1388,9 +1391,9 @@ void __CALL_CONVENTION endCallback(void)
             pTPG->p_bbox->SetMax(sxmax, symax);
 
 
-            //  Transcribe this geometry to TriPrim, converting to UTM if called for
+            //  Transcribe this geometry to TriPrim, converting to SM if called for
 
-            if(s_bSENC_UTM)
+            if(s_bSENC_SM)
             {
                 double *pds = s_pwork_buf;
                 pTPG->p_vertex = (double *)malloc(s_nvcall * 2 * sizeof(double));

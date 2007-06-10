@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.1 2007/06/03 16:03:59 dsr Exp $
+ * $Id: options.cpp,v 1.2 2007/06/10 02:31:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
- * Revision 1.1  2007/06/03 16:03:59  dsr
- * Create/Move for 1.2.0
+ * Revision 1.2  2007/06/10 02:31:21  bdbcat
+ * Cleanup
  *
  * Revision 1.8  2006/12/03 21:29:03  dsr
  * Cleanup AIS options.
@@ -308,7 +308,7 @@ void options::CreateControls()
       wxStaticBoxSizer* itemNMEAAutoStaticBoxSizer = new wxStaticBoxSizer(itemNMEAAutoStaticBox, wxVERTICAL);
       itemNMEAStaticBoxSizer->Add(itemNMEAAutoStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
-      m_itemNMEAAutoListBox = new wxChoice(itemPanel5, ID_CHOICE_NMEA);
+      m_itemNMEAAutoListBox = new wxComboBox(itemPanel5, ID_CHOICE_AP);
       m_itemNMEAAutoListBox->Append( _T("None"));
 
 
@@ -329,7 +329,8 @@ void options::CreateControls()
       else
           ap_com = "None";
 
-      m_itemNMEAAutoListBox->SetStringSelection(ap_com);
+      sidx = m_itemNMEAAutoListBox->FindString(ap_com);
+      m_itemNMEAAutoListBox->SetSelection(sidx);
 
       itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxGROW|wxALL, 5);
 
@@ -338,7 +339,7 @@ void options::CreateControls()
       wxStaticBoxSizer* itemAISStaticBoxSizer = new wxStaticBoxSizer(itemAISStaticBox, wxVERTICAL);
       itemNMEAStaticBoxSizer->Add(itemAISStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
-      m_itemAISListBox = new wxChoice(itemPanel5, ID_CHOICE_AIS);
+      m_itemAISListBox = new wxComboBox(itemPanel5, ID_CHOICE_AIS);
       m_itemAISListBox->Append( _T("None"));
 
 #ifdef __WXMSW__
@@ -496,11 +497,7 @@ void options::CreateControls()
                                               2, pBoundStyleStrings, 1, wxRA_SPECIFY_COLS );
     itemStaticBoxSizer83->Add(pBoundStyle, 0, wxTOP|wxALL| 5);
 
-
-
     itemNotebook4->AddPage(ps57Ctl, _("S52 Options"));
-
-
 
 
     //      Build Fonts panel
@@ -517,7 +514,7 @@ void options::CreateControls()
     wxStaticBoxSizer* itemFontElementStaticBoxSizer = new wxStaticBoxSizer(itemFontElementStaticBox, wxVERTICAL);
     itemFontStaticBoxSizer->Add(itemFontElementStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
-    m_itemFontElementListBox = new wxChoice(itemPanelFont, ID_CHOICE_FONTELEMENT);
+    m_itemFontElementListBox = new wxComboBox(itemPanelFont, ID_CHOICE_FONTELEMENT);
 
     int nFonts = pFontMgr->GetNumFonts();
     for( int it = 0 ; it < nFonts ; it++)
@@ -632,11 +629,8 @@ void options::SetInitialSettings()
           pBoundStyle->SetSelection(0);
       else
           pBoundStyle->SetSelection(1);
-
-
     }
 #endif
-
 }
 
 
@@ -659,7 +653,6 @@ void options::OnDisplayCategoryRadioButton( wxCommandEvent& event)
     }
 
     event.Skip();
-
 }
 
 void options::OnButtonClearClick( wxCommandEvent& event )
@@ -684,7 +677,6 @@ void options::OnButtonSelectClick( wxCommandEvent& event )
 
 void options::OnDirctrlSelChanged( wxTreeEvent& event )
 {
-
     if(pDirCtl)
       {
             wxString SelDir;
@@ -720,7 +712,6 @@ void options::OnButtonaddClick( wxCommandEvent& event )
 
 void options::OnXidOkClick( wxCommandEvent& event )
 {
-
 //    Handle Chart Tab
       wxString dirname;
 
@@ -929,7 +920,6 @@ void options::OnRadioboxSelected( wxCommandEvent& event )
 
 void options::OnChooseFont( wxCommandEvent& event )
 {
-
       wxString sel_text_element = m_itemFontElementListBox->GetStringSelection();
 
       wxFont *psfont;
@@ -954,16 +944,12 @@ void options::OnChooseFont( wxCommandEvent& event )
             pFontMgr->SetFont(sel_text_element, psfont);
       }
 
-
       event.Skip();
 }
 
 
 void options::OnPageChange(wxNotebookEvent& event)
 {
-
-//#ifdef __LINUX__ // __WXX11__
-
       int i = event.GetSelection();
 
       //    User selected Chart Page?
@@ -973,28 +959,14 @@ void options::OnPageChange(wxNotebookEvent& event)
       if(1 == i)                        // 1 is the index of "Charts" page
       {
 
-//          wxSize s = itemPanel9->GetSize();
-//          int ctl_width = s.GetWidth() - 20;
-
-/*
-          wxProgressDialog *pprog_dlg = new wxProgressDialog(_T("OpenCPN Message"), _T("Reading Chart Folders"),
-                  100, itemPanel9, wxPD_AUTO_HIDE );
-          pprog_dlg->Update( 50);
-
-          wxGenericDirCtrl *pTmpCtl = new wxGenericDirCtrl( itemPanel9, ID_DIRCTRL, *m_pinit_chart_dir, wxDefaultPosition,
-                  wxSize(ctl_width, 100), 0, _T("All files (*.*)|*.*"), 0 );
-
-          pprog_dlg->Update( 100);
-          delete pTmpCtl;
-          delete pprog_dlg;
-*/
 
           itemBoxSizer10->Clear(true);
           pSelCtl = NULL;
           pDirCtl = NULL;
 
           //    "Available" tree control and selection
-          wxStaticBox* itemStaticBoxSizer11Static = new wxStaticBox(itemPanel9, wxID_ANY, _("Available Chart Directories"));
+          wxStaticBox* itemStaticBoxSizer11Static = new wxStaticBox(itemPanel9, wxID_ANY,
+                  _("Available Chart Directories"));
           itemStaticBoxSizer11 = new wxStaticBoxSizer(itemStaticBoxSizer11Static, wxVERTICAL);
           itemBoxSizer10->Add(itemStaticBoxSizer11, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
           pDirCtl = new wxGenericDirCtrl( itemPanel9, ID_DIRCTRL, *m_pinit_chart_dir, wxDefaultPosition,
@@ -1016,19 +988,23 @@ void options::OnPageChange(wxNotebookEvent& event)
           itemActiveChartStaticBox = new wxStaticBox(itemPanel9, wxID_ANY, _("Active Chart Directories"));
           wxStaticBoxSizer* itemStaticBoxSizer16 = new wxStaticBoxSizer(itemActiveChartStaticBox, wxVERTICAL);
           itemBoxSizer10->Add(itemStaticBoxSizer16, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
+
+
+          int tc_flags = wxTE_MULTILINE;
+          //    wxX11 has some trouble with wxTextCtrl....
+          //    In this case, wxTE_DONTWRAP causes corruption of the control's parent data structures....
+          //    So, dont do that...
+#ifndef __WXX11__
+          tc_flags |= wxTE_DONTWRAP;
+#endif
+
           pTextCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL, _T(""),
-                                     wxDefaultPosition, wxSize(-1, -1), wxTE_MULTILINE | wxTE_DONTWRAP  );
+                                     wxDefaultPosition, wxSize(-1, -1), tc_flags  );
           pTextCtl->SetMinSize(wxSize(-1, 100));
           itemStaticBoxSizer16->Add(pTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
 
           wxButton* itemButton18 = new wxButton( itemPanel9, ID_BUTTONDELETE, _("Delete Selection"), wxDefaultPosition, wxDefaultSize, 0 );
           itemStaticBoxSizer16->Add(itemButton18, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-
-//          wxStaticBox* itemStaticBoxSizer19Static = new wxStaticBox(itemPanel9, wxID_ANY, _("Chart List"));
-//          wxStaticBoxSizer* itemStaticBoxSizer19 = new wxStaticBoxSizer(itemStaticBoxSizer19Static, wxVERTICAL);
-//          itemBoxSizer10->Add(itemStaticBoxSizer19, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-//          wxButton* itemButton20 = new wxButton( itemPanel9, ID_BUTTONREBUILD, _("Rebuild..."), wxDefaultPosition, wxDefaultSize, 0 );
-//          itemStaticBoxSizer19->Add(itemButton20, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
           //        Fill in the control variable data
 
@@ -1093,53 +1069,5 @@ void options::OnNMEASourceChoice(wxCommandEvent& event)
         m_itemNMEA_TCPIP_StaticBox->Disable();
         m_itemNMEA_TCPIP_Source->Disable();
     }
-
-}
-
-//--------------------------------------------------------------------------------------------------------
-//    Options Dialog Pre-Setup
-//--------------------------------------------------------------------------------------------------------
-#include "wx/artprov.h"
-
-//    Ask the ::wxArtProvider to preload the icons required for a wxGenericDirCtrl
-//    Thereby accelerating the Options dialog creation.
-OptionSetup::OptionSetup()
-{
-
-      wxBitmap btmp;
-
-     // folder:
-      btmp = wxArtProvider::GetBitmap(wxART_FOLDER,
-                              wxART_CMN_DIALOG,
-                              wxSize(16, 15));
-    // folder_open
-      btmp = wxArtProvider::GetBitmap(wxART_FOLDER_OPEN,
-                              wxART_CMN_DIALOG,
-                              wxSize(16, 15));
-    // drive
-      btmp = wxArtProvider::GetBitmap(wxART_HARDDISK,
-                              wxART_CMN_DIALOG,
-                              wxSize(16, 15));
-    // cdrom
-      btmp = wxArtProvider::GetBitmap(wxART_CDROM,
-                              wxART_CMN_DIALOG,
-                              wxSize(16, 15));
-    // floppy
-      btmp = wxArtProvider::GetBitmap(wxART_FLOPPY,
-                              wxART_CMN_DIALOG,
-                              wxSize(16, 15));
-    // removeable
-      btmp = wxArtProvider::GetBitmap(wxART_REMOVABLE,
-                              wxART_CMN_DIALOG,
-                              wxSize(16, 15));
-    // file
-      btmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE,
-                              wxART_CMN_DIALOG,
-                              wxSize(16, 15));
-    // exe file
-      btmp = wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE,
-                              wxART_CMN_DIALOG,
-                              wxSize(16, 15));
-
 }
 
