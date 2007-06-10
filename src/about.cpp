@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.4 2007/05/03 13:23:54 dsr Exp $
+ * $Id: about.cpp,v 1.5 2007/06/10 02:21:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.5  2007/06/10 02:21:53  bdbcat
+ * Bump to 1.2.1
+ *
  * Revision 1.4  2007/05/03 13:23:54  dsr
  * Major refactor for 1.2.0
  *
@@ -51,12 +54,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.4 2007/05/03 13:23:54 dsr Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.5 2007/06/10 02:21:53 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.2.0"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.2.1"};
 
 
 char AboutText[] =
@@ -270,18 +273,6 @@ void about::CreateControls()
   itemBoxSizer28->Add(itemButton29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 }
 
-
-
-/*void about::SetInitialSettings()
-{
-}
-*/
-
-/*bool about::ShowToolTips()
-{
-  return TRUE;
-}
-*/
 
 void about::OnXidOkClick( wxCommandEvent& event )
 {
