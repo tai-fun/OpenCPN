@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $
+ * $Id: routeman.cpp,v 1.4 2007/06/10 02:32:30 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.4  2007/06/10 02:32:30  bdbcat
+ * Improve mercator bearing calculation
+ *
  * Revision 1.3  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -83,6 +86,7 @@
 #include "nmea0183/nmea0183.h"
 #include "navutil.h"
 #include "chartbase.h"
+#include "georef.h"
 
 static float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
@@ -104,7 +108,7 @@ extern bool             bAutoPilotOut;
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: routeman.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.4 2007/06/10 02:32:30 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -115,7 +119,6 @@ Routeman::Routeman()
         pActiveRoute = NULL;
         pActivePoint = NULL;
         pRouteActivatePoint = NULL;
-
 }
 
 Routeman::~Routeman()
@@ -176,7 +179,6 @@ bool Routeman::ActivateRoutePoint(Route *pA, RoutePoint *pRP)
 
         else
         {
-
                 while(node)
                 {
                         RoutePoint *np = node->GetData();
@@ -188,7 +190,6 @@ bool Routeman::ActivateRoutePoint(Route *pA, RoutePoint *pRP)
 
                         node = node->GetNext();
                 }
-
         }
         m_bArrival = false;
         return true;
@@ -223,22 +224,15 @@ bool Routeman::UpdateProgress()
         if(pActiveRoute)
         {
 //      Update bearing, range, and crosstrack error
-
-                double a = atan((pActivePoint->rlat - gLat) / (pActivePoint->rlon - gLon));
+                double north, east;
+                toSM(pActivePoint->rlat, pActivePoint->rlon, gLat, gLon, &east, &north);
+                double a = atan(north / east);
                 if(pActivePoint->rlon > gLon)
-                        CurrentBrgToActivePoint = 90. - (a * 180/PI);
+                    CurrentBrgToActivePoint = 90. - (a * 180/PI);
                 else
-                        CurrentBrgToActivePoint = 270. - (a * 180/PI);
+                    CurrentBrgToActivePoint = 270. - (a * 180/PI);
 
-//      Calculate Range using UTM coordinates
-/*
-                float east1, north1;
-
-                toUTM(gLat, gLon, pActivePoint->rlat, pActivePoint->rlon, .9996, &east1, &north1);
-
-                float d3 = sqrt((east1 * east1) + (north1 * north1));
-                CurrentRngToActivePoint = d3 / 1852.0;
-*/
+//      Calculate Range using SM coordinates
 
 //      Or, Calculate using Great Circle Formula
 
