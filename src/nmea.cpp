@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.12 2007/06/10 02:30:19 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.13 2007/06/13 22:46:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.13  2007/06/13 22:46:44  bdbcat
+ * Cleanup
+ *
  * Revision 1.12  2007/06/10 02:30:19  bdbcat
  * Cleanup
  *
@@ -71,7 +74,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.12 2007/06/10 02:30:19 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.13 2007/06/13 22:46:44 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -540,7 +543,7 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 
       toDMM(kLon, &buf[i], 20);
 
-      if(parent_frame->pStatusBar)
+      if(parent_frame->m_pStatusBar)
             parent_frame->SetStatusText(buf, 3);
 
 
