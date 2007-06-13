@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.6 2007/06/10 02:35:09 bdbcat Exp $
+ * $Id: wificlient.cpp,v 1.7 2007/06/13 22:48:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.cpp,v $
+ * Revision 1.7  2007/06/13 22:48:35  bdbcat
+ * Reset GPSD client socket on error/timeout
+ *
  * Revision 1.6  2007/06/10 02:35:09  bdbcat
  * Cleanup
  *
@@ -65,7 +68,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.6 2007/06/10 02:35:09 bdbcat Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.7 2007/06/13 22:48:35 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -448,6 +451,20 @@ void WIFIWindow::OnTimer1(wxTimerEvent& event)
             {
                 stats->pWiFi->SetServerStatus(false);
                 stats->Refresh(true);
+
+                // Try to totally reset the socket
+                m_sock->Destroy();
+
+                m_sock = new wxSocketClient();
+                m_sock->SetEventHandler(*this, WIFI_SOCKET_ID);
+
+                m_sock->SetNotify(wxSOCKET_CONNECTION_FLAG |
+                        wxSOCKET_INPUT_FLAG |
+                        wxSOCKET_LOST_FLAG);
+                m_sock->Notify(TRUE);
+                m_sock->SetFlags(wxSOCKET_WAITALL | wxSOCKET_BLOCK );
+
+                m_watchtick = 0;
             }
             else
                 stats->pWiFi->SetServerStatus(true);
