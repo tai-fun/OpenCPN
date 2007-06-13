@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.9  2007/06/13 22:47:36  bdbcat
+ * Refresh on SetColorScheme()
+ *
  * Revision 1.8  2007/06/10 02:34:13  bdbcat
  * Color scheme support
  *
@@ -72,7 +75,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.8 2007/06/10 02:34:13 bdbcat Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.9 2007/06/13 22:47:36 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -188,6 +191,8 @@ void StatWin::SetColorScheme(ColorScheme cs)
 #ifdef USE_WIFI_CLIENT
     pWiFi ->SetColorScheme(cs);
 #endif
+
+    Refresh();
 }
 
 
