@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.7 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: chart1.h,v 1.8 2007/06/15 03:08:07 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.8  2007/06/15 03:08:07  bdbcat
+ * Cleanup
+ *
  * Revision 1.7  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -69,31 +72,11 @@ extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
                              const char * pszErrorMsg );
 
 
-
-
-
-// define this to 1 to use wxToolBarSimple instead of the native one
-//#define USE_GENERIC_TBAR 1
-
-// define this to use XPMs everywhere (
-#define USE_XPM_BITMAPS 1
-
-/*
-#if USE_GENERIC_TBAR
-      #if !wxUSE_TOOLBAR_SIMPLE
-        #error wxToolBarSimple is not compiled in, set wxUSE_TOOLBAR_SIMPLE \
-               to 1 in setup.h and recompile the library.
-    #else
-        #include <wx/tbarsmpl.h>
-    #endif
-#endif // USE_GENERIC_TBAR
-*/
-
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
 
-#define TIMER_GFRAME_1 499
+#define TIMER_GFRAME_1 999
 
 #define ID_QUIT     101
 
@@ -221,23 +204,21 @@ class MyFrame: public wxFrame
     int                 nBlinkerTick;
     bool                m_bTimeIsSet;
 
-    wxStatusBar         *pStatusBar;
+    wxStatusBar         *m_pStatusBar;
 
     wxTimer             FrameTimer1;
 
     wxTextCtrl          *m_textWindow;
 
-    wxToolBar           *m_tbar;
-
-    wxStaticBitmap      *ptool_ct_dummy;           // part of toolbar
-    wxBitmapButton      *ptool_ct_dummy_bb;        // part of toolbar
-    int                 tool_dummy_size_x, tool_dummy_size_y;
+    wxStaticBitmap      *m_ptool_ct_dummy;           // part of toolbar
+    wxBitmapButton      *m_ptool_ct_dummy_bb;        // part of toolbar
+    int                 m_tool_dummy_size_x, m_tool_dummy_size_y;
+    int                 m_statTool_pos;
 
   private:
     wxToolBar *CreateAToolbar();
     void DestroyMyToolbar();
-    void MyAddTool(wxToolBarBase *pTB, int toolId, const wxString& label, const wxString& bmpFile,
-                   const wxString& shortHelpString, wxItemKind kind);
+    void UpdateToolbar(ColorScheme cs);
     void ReSizeToolbar(void);
     void PrepareToolbarBitmaps(void);
     void BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index, string_to_pbitmap_hash &hash);
