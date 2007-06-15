@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.17 2007/06/10 02:27:11 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.18 2007/06/15 02:49:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.18  2007/06/15 02:49:42  bdbcat
+ * Improve background render logic
+ *
  * Revision 1.17  2007/06/10 02:27:11  bdbcat
  * Improve background rendering logic
  *
@@ -117,15 +120,13 @@ extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
 extern AIS_Decoder      *pAIS;
 
-extern bool             s_bNoDrawAIS;
-
 //  Todo why are these static?
 static int mouse_x;
 static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.17 2007/06/10 02:27:11 bdbcat Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.18 2007/06/15 02:49:42 bdbcat Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -376,7 +377,7 @@ void ChartCanvas::RescaleTimerEvent(wxTimerEvent& event)
 {
     if(m_bBackRender && !m_bbr_paused)
     {
-///        printf("nested bbr\n");          // logical error
+//        printf("nested bbr\n");          // logical error
         if(br_Ch)
         {
             br_Ch->AbortBackgroundRender();
@@ -394,8 +395,8 @@ void ChartCanvas::RescaleTimerEvent(wxTimerEvent& event)
       {
           if(br_Ch->InitializeBackgroundBilinearRender(VPoint))
           {
-               m_bBackRender = true;
-               m_bbr_paused = false;
+              m_bBackRender = true;
+              m_bbr_paused = false;
           }
       }
       return;
@@ -417,7 +418,7 @@ void ChartCanvas::OnIdleEvent(wxIdleEvent& event)
 
         if(br_Ch != Current_Ch)                 // a logical error, happens on chart change
         {
-///            printf("bbr != Current_Ch, aborting bbr\n");
+ //           printf("bbr != Current_Ch, aborting bbr\n");
             if(br_Ch)
             {
                 br_Ch->AbortBackgroundRender();
@@ -431,12 +432,12 @@ void ChartCanvas::OnIdleEvent(wxIdleEvent& event)
         if(!m_bbr_paused)
         {
              if(br_Ch->ContinueBackgroundRender())       //done?
-            {
+             {
                 br_Ch->FinishBackgroundRender();        // yes
                 current_scale_method = SCALE_BILINEAR;
                 m_bBackRender = false;
                 Refresh(false);
-            }
+             }
             else
                 event.RequestMore();
 
@@ -469,12 +470,12 @@ void ChartCanvas::OnCursorTrackTimerEvent(wxTimerEvent& event)
                 toDMM(cursor_lon, &buf[i], 20);
 
                 wxString t(buf);
-                if(parent_frame->pStatusBar)
+                if(parent_frame->m_pStatusBar)
                     parent_frame->SetStatusText(t, 1);
             }
 
             sprintf(buf, "%d %d", mouse_x, mouse_y);
-            if(parent_frame->pStatusBar)
+            if(parent_frame->m_pStatusBar)
                 parent_frame->SetStatusText(buf, 2);
         }
 #endif
@@ -653,9 +654,6 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
                     }
                 }
             }
-
-            //  Always abort in background renderer on viewport change
-            FlushBackgroundRender();
         }
       }
 
@@ -787,11 +785,15 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 
                 //  Check to see if source rectangle has changed....
                 //  If not, then override the bNewVP flag.  Don't need a full chart blit.
+                //  If so, abort in background renderer.
+
                 Current_Ch->SetVPParms(&VPoint);
                 wxRect new_source;
                 Cur_BSB_Ch->GetSourceRect(&new_source);
                 if((old_source.x == new_source.x) && (old_source.y == new_source.y))
                     bNewVP = false;
+                else
+                    FlushBackgroundRender();
         }
 
         else if(Current_Ch->ChartType == CHART_TYPE_DUMMY)
@@ -878,7 +880,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
       if(Current_Ch)
           Current_Ch->SetVPParms(&VPoint);
 
-      if(parent_frame->pStatusBar)
+      if(parent_frame->m_pStatusBar)
       {
             char buf[20];
             sprintf(buf, "Scale: %8.0f %g", VPoint.chart_scale, VPoint.binary_scale_factor);
@@ -942,10 +944,6 @@ void ChartCanvas::ShipDraw(wxDC& dc)
 
 void ChartCanvas::AISDraw(wxDC& dc)
 {
-///debug
-    if(s_bNoDrawAIS)
-       return;
-
     if(!pAIS)
         return;
 
@@ -1338,11 +1336,11 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
             buf[i++] = ' ';
             toDMM(cursor_lon, &buf[i], 20);
 
-            if(parent_frame->pStatusBar)
+            if(parent_frame->m_pStatusBar)
                 parent_frame->SetStatusText(wxString(buf), 1);
 
             sprintf(buf, "%d %d", mouse_x, mouse_y);
-            if(parent_frame->pStatusBar)
+            if(parent_frame->m_pStatusBar)
                 parent_frame->SetStatusText(buf, 2);
         }
 #endif
@@ -1751,6 +1749,7 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                         pFoundAIS_Target_Data = (AIS_Target_Data *)pFind->m_pData1;
 
 ///  Debug
+///                        printf("On Mouse, AIS target data ReportTicks is: %ld\n",pFoundAIS_Target_Data->ReportTicks);
 /*
                         wxDateTime now = wxDateTime::Now();
                         now.MakeGMT();
