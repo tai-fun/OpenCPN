@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.14 2007/06/10 03:19:29 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.15 2007/06/15 03:07:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.15  2007/06/15 03:07:15  bdbcat
+ * Improve toolbar color scheme support
+ *
  * Revision 1.14  2007/06/10 03:19:29  bdbcat
  * Fix Leaks
  *
@@ -43,31 +46,6 @@
  *
  * Revision 1.9  2006/11/01 02:15:58  dsr
  * AIS Support
- *
- * Revision 1.8  2006/10/08 14:15:00  dsr
- * no message
- *
- * Revision 1.7  2006/10/08 02:40:58  dsr
- * *** empty log message ***
- *
- * Revision 1.6  2006/10/08 00:36:44  dsr
- * no message
- *
- * Revision 1.5  2006/10/07 03:50:27  dsr
- * *** empty log message ***
- *
- * Revision 1.4  2006/10/05 03:48:07  dsr
- * Toolbar updae
- *
- * Revision 1.3  2006/10/01 03:22:58  dsr
- * no message
- *
- * Revision 1.2  2006/09/21 01:37:36  dsr
- * Major refactor/cleanup
- *
- * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
- * Initial import as opencpn, GNU Automake compliant.
- *
  *
  *
  */
@@ -125,18 +103,13 @@
 #include "wificlient.h"
 #endif
 
-//#ifdef __WXMSW__
-//    #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
-//    #define new DEBUG_NEW
-//#endif
-
 //#include <mcheck.h>
 
 
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.14 2007/06/10 03:19:29 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.15 2007/06/15 03:07:15 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -159,7 +132,6 @@ NMEAWindow      *nmea;
 StatWin         *stats;
 
 wxToolBar       *toolBar;
-bool            b_toolbar_update;
 
 MyConfig        *pConfig;
 
@@ -295,8 +267,6 @@ struct sigaction sa_usr1_old;
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
 
-bool    s_bNoDrawAIS;
-
 #ifdef __MSVC__
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -393,6 +363,15 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 #ifndef __WXMSW__
 //        mtrace();
 #endif
+
+//      Here is some experimental code for wxTheme support
+//      Not also these lines included above....
+//      They are necessary to ensure that the themes are statically loaded
+
+//      #ifdef __WXUNIVERSAL__
+//      WX_USE_THEME(gtk);
+//      WX_USE_THEME(Metal);
+//      #endif
 
 #ifdef __WXUNIVERSAL__
 //        wxTheme* theme = wxTheme::Create("gtk");
@@ -930,13 +909,13 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
   wxFrame(frame, -1, title, pos, size, style)  //wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER)
       //wxCAPTION | wxSYSTEM_MENU | wxRESIZE_BORDER
 {
-        pStatusBar = NULL;
+        m_pStatusBar = NULL;
 
         PrepareToolbarBitmaps();
 
         //      Create the ToolBar
         toolBar = CreateAToolbar();
-        SetToolBar(toolBar);
+        SetToolBar((wxToolBar *)toolBar);
 
         //      Redirect the global heartbeat timer to this frame
         FrameTimer1.SetOwner(this, FRAME_TIMER_1);
@@ -1008,6 +987,23 @@ void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
 {
       global_color_scheme = cs;
 
+      wxColour back_color;
+      switch(cs)
+      {
+          case GLOBAL_COLOR_SCHEME_DAY:
+              back_color = wxColour(150,150,150);
+              break;
+          case GLOBAL_COLOR_SCHEME_DUSK:
+              back_color = wxColour(128,128,128);
+              break;
+          case GLOBAL_COLOR_SCHEME_NIGHT:
+              back_color = wxColour(64,64,64);
+              break;
+          default:
+              back_color = wxColour(150,150,150);
+              break;
+      }
+
       if(ChartData)
             ChartData->ApplyColorSchemeToCachedCharts(cs);
 
@@ -1017,66 +1013,39 @@ void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
       if(console)
           console->SetColorScheme(cs);
 
-      if(pStatusBar != NULL)
+      if(m_pStatusBar != NULL)
       {
-        wxColour back_color;
-        switch(cs)
-        {
-            case GLOBAL_COLOR_SCHEME_DAY:
-              back_color = wxColour(150,150,150);
-              break;
-            case GLOBAL_COLOR_SCHEME_DUSK:
-              back_color = wxColour(128,128,128);
-              break;
-            case GLOBAL_COLOR_SCHEME_NIGHT:
-              back_color = wxColour(64,64,64);
-              break;
-            default:
-              back_color = wxColour(150,150,150);
-              break;
-        }
-
-        pStatusBar->SetBackgroundColour(back_color);
-        pStatusBar->Refresh();
+          m_pStatusBar->SetBackgroundColour(back_color);
+          m_pStatusBar->Refresh();
       }
+
+      UpdateToolbar(cs);
+      UpdateToolbarStatusWindow(Current_Ch, true);
+      toolBar->Refresh();
+      toolBar->Update();            // Invoke immediate redraw of the toolbar
 
 }
 
 void MyFrame::DestroyMyToolbar()
 {
-    delete ptool_ct_dummy;
+    delete m_ptool_ct_dummy;
     delete toolBar;
 }
 
 
 wxToolBar *MyFrame::CreateAToolbar()
 {
-   wxToolBar *toolBar;
+   wxToolBar *tb;
 
     long style = 0;
     style |= wxTB_HORIZONTAL ;
-    ptool_ct_dummy = NULL;
+    m_ptool_ct_dummy = NULL;
 
-    toolBar = new wxToolBar(this, -1, wxPoint(-1, -1), wxSize(-1, -1), wxTB_HORIZONTAL | wxNO_BORDER);
+    tb = new wxToolBar(this, -1, wxPoint(-1, -1), wxSize(-1, -1), wxTB_HORIZONTAL | wxNO_BORDER);
 
-    toolBar->SetToolBitmapSize(wxSize(32,32));
-    toolBar->SetRows(1);
+    tb->SetToolBitmapSize(wxSize(32,32));
+    tb->SetRows(1);
 
-    switch(global_color_scheme)
-    {
-        case GLOBAL_COLOR_SCHEME_DAY:
-            toolBar->SetBackgroundColour(wxColour(230,230,230));
-            break;
-        case GLOBAL_COLOR_SCHEME_DUSK:
-            toolBar->SetBackgroundColour(wxColour(128,128,128));
-            break;
-        case GLOBAL_COLOR_SCHEME_NIGHT:
-            toolBar->SetBackgroundColour(wxColour(64,64,64));
-            break;
-        default:
-            toolBar->SetBackgroundColour(wxColour(230,230,230));
-            break;
-    }
 
 //Set up the ToolBar
 
@@ -1088,21 +1057,22 @@ wxToolBar *MyFrame::CreateAToolbar()
 //      see the wx src files
 
 //  On MSW, ToolPacking does nothing
-    toolBar->SetToolPacking(1);
-    int tool_packing = toolBar->GetToolPacking();
+    tb->SetToolPacking(1);
+    int tool_packing = tb->GetToolPacking();
 
 
 //  On MSW, ToolMargins does nothing
-    wxSize defMargins = toolBar->GetMargins();
-    toolBar->SetMargins(wxSize(6, defMargins.y));
-    wxSize tool_margin = toolBar->GetMargins();
+    wxSize defMargins = tb->GetMargins();
+//    toolBar->SetMargins(wxSize(6, defMargins.y));
+    tb->SetMargins(6, defMargins.y);
+    wxSize tool_margin = tb->GetMargins();
 
 
-    toolBar->SetToolSeparation(5);                  // width of separator
-    int tool_sep = toolBar->GetToolSeparation();
+    tb->SetToolSeparation(5);                  // width of separator
+    int tool_sep = tb->GetToolSeparation();
 
 //      Calculate the tool and separator pitches
-    wxSize toolsize = toolBar->GetToolSize();
+    wxSize toolsize = tb->GetToolSize();
 
     int x;                                          // running position
     int pitch_tool, pitch_sep;
@@ -1127,64 +1097,65 @@ wxToolBar *MyFrame::CreateAToolbar()
             x += 2;
     }
 #endif
+    //  Fetch a sample bitmap for a placeholder
+    string_to_pbitmap_hash *phash;
+    phash = &tool_bitmap_hash_day;
+    wxBitmap *pbm = (*phash)[wxString("zoomin")];
 
-
-    MyAddTool(toolBar, ID_ZOOMIN, _T(""), _T("zoomin"), _T(""), wxITEM_NORMAL);
+    tb->AddTool( ID_ZOOMIN, _T(""), *pbm, _T(""), wxITEM_NORMAL);
     x += pitch_tool;
-    MyAddTool(toolBar, ID_ZOOMOUT, _T(""), _T("zoomout"), _T(""), wxITEM_NORMAL);
+    tb->AddTool( ID_ZOOMOUT, _T(""), *pbm, _T(""), wxITEM_NORMAL);
     x += pitch_tool;
 
-    toolBar->AddSeparator();
+    tb->AddSeparator();
     x += pitch_sep;
 
-    MyAddTool(toolBar, ID_STKDN, _T(""), _T("scin"), _T("Stack +"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKDN, _T(""), *pbm, _T("Stack +"), wxITEM_NORMAL);
     x += pitch_tool;
-    MyAddTool(toolBar, ID_STKUP, _T(""), _T("scout"), _T("Stack -"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKUP, _T(""),*pbm, _T("Stack -"), wxITEM_NORMAL);
     x += pitch_tool;
 
-    toolBar->AddSeparator();
+    tb->AddSeparator();
     x += pitch_sep;
 
-    MyAddTool(toolBar, ID_ROUTE, _T(""), _T("route"), _T("Create Route"), wxITEM_NORMAL);
+    tb->AddTool( ID_ROUTE, _T(""), *pbm, _T("Create Route"), wxITEM_NORMAL);
     x += pitch_tool;
-    MyAddTool(toolBar, ID_FOLLOW, _T(""), _T("follow"), _T("Auto Follow"), wxITEM_CHECK);
+    tb->AddTool( ID_FOLLOW, _T(""), *pbm, _T("Auto Follow"), wxITEM_CHECK);
     x += pitch_tool;
 
-    toolBar->AddSeparator();
+    tb->AddSeparator();
     x += pitch_sep;
 
-    MyAddTool(toolBar, ID_SETTINGS, _T(""), _T("settings"), _T("Settings"), wxITEM_NORMAL);
+    tb->AddTool( ID_SETTINGS, _T(""), *pbm, _T("Settings"), wxITEM_NORMAL);
+    x += pitch_tool;
+    tb->AddTool( ID_TEXT, _T(""), *pbm, _T("Enable S57 Text"), wxITEM_NORMAL);
     x += pitch_tool;
 
-    MyAddTool(toolBar, ID_TEXT, _T(""), _T("text"), _T("Enable S57 Text"), wxITEM_NORMAL);
-    x += pitch_tool;
-
-    toolBar->AddSeparator();
+    tb->AddSeparator();
     x += pitch_sep;
 
-    MyAddTool(toolBar, ID_CURRENT, _T(""), _T("current"), _T("Show Currents"), wxITEM_CHECK);
+    tb->AddTool( ID_CURRENT, _T(""), *pbm, _T("Show Currents"), wxITEM_CHECK);
+    x += pitch_tool;
+    tb->AddTool( ID_TIDE, _T(""), *pbm, *pbm, wxITEM_CHECK);
     x += pitch_tool;
 
-    MyAddTool(toolBar, ID_TIDE, _T(""), _T("tide"), _T("Show Tides"), wxITEM_CHECK);
-    x += pitch_tool;
-
-    toolBar->AddSeparator();
+    tb->AddSeparator();
     x += pitch_sep;
 
     if(g_bShowPrintIcon)
     {
-        MyAddTool(toolBar, ID_PRINT, _T(""), _T("print"), _T("Print Chart"), wxITEM_NORMAL);
+        tb->AddTool( ID_PRINT, _T(""), *pbm, _T("Print Chart"), wxITEM_NORMAL);
         x += pitch_tool;
         x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
 
-    MyAddTool(toolBar, ID_COLSCHEME, _T(""), _T("colorscheme"), _T("Change Color Scheme"), wxITEM_CHECK);
+    tb->AddTool( ID_COLSCHEME, _T(""), *pbm, _T("Change Color Scheme"), wxITEM_CHECK);
+    x += pitch_tool;
+    tb->AddTool( ID_HELP, _T(""), *pbm, _T("About OpenCPN"), wxITEM_NORMAL);
     x += pitch_tool;
 
-
-    MyAddTool(toolBar, ID_HELP, _T(""), _T("help"), _T("About OpenCPN"), wxITEM_NORMAL);
-    x += pitch_tool;
-
+    // The status tool will be here
+    m_statTool_pos = tb->GetToolPos(ID_HELP) + 1;
 
 //      Create and add a dummy control, to arrange for the "exit" tool to be
 //      at right margin
@@ -1198,76 +1169,48 @@ wxToolBar *MyFrame::CreateAToolbar()
     toolbar_width_without_static = x + pitch_tool + filler_pad;     // used by Resize()
 
 #define DUMMY_HEIGHT    40
-    tool_dummy_size_x = filler_width;
-    tool_dummy_size_y = DUMMY_HEIGHT;
+    m_tool_dummy_size_x = filler_width;
+    m_tool_dummy_size_y = DUMMY_HEIGHT;
 
-    //  Make sure to always create a resonable dummy
-    if(tool_dummy_size_x <= 0)
-        tool_dummy_size_x = 1;
+    //  Make sure to always create a reasonable dummy
+    if(m_tool_dummy_size_x <= 0)
+        m_tool_dummy_size_x = 1;
 
-    wxImage tool_image_dummy(tool_dummy_size_x,32);
-//    tool_image_dummy.Replace(0,0,0,0,0,128);
+    wxImage tool_image_dummy(m_tool_dummy_size_x,32);
     wxBitmap tool_bm_dummy(tool_image_dummy);
 
-    ptool_ct_dummy = new wxStaticBitmap(toolBar, ID_TBSTAT, tool_bm_dummy, wxPoint(0,0),
-                                        wxSize(tool_dummy_size_x,DUMMY_HEIGHT),
+    delete m_ptool_ct_dummy;
+    m_ptool_ct_dummy = new wxStaticBitmap(tb, ID_TBSTAT, tool_bm_dummy, wxPoint(2000,0),
+                                        wxSize(m_tool_dummy_size_x,DUMMY_HEIGHT),
                                         wxSIMPLE_BORDER, _T("staticBitmap"));
 
-    ptool_ct_dummy->Hide();         // Not sure why to hide this one
-
-    toolBar->AddControl(ptool_ct_dummy);
+    tb->AddControl(m_ptool_ct_dummy);
 
 //      And add the "Exit" tool
-
-    MyAddTool(toolBar, ID_TBEXIT, _T(""), _T("exitt"), _T("Exit"), wxITEM_NORMAL);
+    tb->AddTool( ID_TBEXIT, _T(""), *pbm, _T("Exit"), wxITEM_NORMAL);
 
 // Realize() the toolbar
-    toolBar->Realize();
+// will defer to UpdateToolbar()
+//    tb->Realize();
+
 
 //      Set up the toggle states
     if(pConfig)
-        toolBar->ToggleTool(ID_FOLLOW, pConfig->st_bFollow);
+        tb->ToggleTool(ID_FOLLOW, pConfig->st_bFollow);
 
 #ifdef USE_S57
     if((pConfig) && (ps52plib))
         if(ps52plib->m_bOK)
-            toolBar->ToggleTool(ID_TEXT, ps52plib->GetShowS57Text());
+            tb->ToggleTool(ID_TEXT, ps52plib->GetShowS57Text());
 #endif
 
         SetStatusBarPane(-1);                   // don't show help on status bar
 
-        return toolBar;
+        return tb;
 }
 
 
 //      Some helpers functions for Toolbar support
-
-void MyFrame::MyAddTool(wxToolBarBase *pTB, int toolId, const wxString& label, const wxString& bmpFile,
-                        const wxString& shortHelpString, wxItemKind kind)
-{
-
-    wxBitmap *pbm;
-
-    switch(global_color_scheme)
-    {
-        case GLOBAL_COLOR_SCHEME_DAY:
-            pbm = tool_bitmap_hash_day[bmpFile];
-            break;
-        case GLOBAL_COLOR_SCHEME_DUSK:
-            pbm = tool_bitmap_hash_dusk[bmpFile];
-            break;
-        case GLOBAL_COLOR_SCHEME_NIGHT:
-            pbm = tool_bitmap_hash_night[bmpFile];
-            break;
-        default:
-            pbm = tool_bitmap_hash_day[bmpFile];
-            break;
-    }
-
-    pTB->AddTool(toolId , _T(""), *pbm, shortHelpString, kind);
-
-}
-
 void MyFrame::PrepareToolbarBitmaps(void)
 {
     // Load up all the toolbar bitmap xpm data pointers into a hash map
@@ -1361,19 +1304,114 @@ void MyFrame::ReSizeToolbar(void)
     int tx, ty;
     GetClientSize(&tx, &ty);                    // of the frame
 
-    tool_dummy_size_x = tx - toolbar_width_without_static;
+    m_tool_dummy_size_x = tx - toolbar_width_without_static;
 
     if(Current_Ch)
     {
-        if(tool_dummy_size_x != tool_dummy_size_x_last)     // only update if size has changed
+        if(m_tool_dummy_size_x != tool_dummy_size_x_last)     // only update if size has changed
         {
-            UpdateToolbarStatusWindow(Current_Ch);
+            UpdateToolbarStatusWindow(Current_Ch, true);
         }
     }
 
 
 }
 
+//      Update inplace the current toolbar with bitmaps corresponding to the current color scheme
+void MyFrame::UpdateToolbar(ColorScheme cs)
+{
+    string_to_pbitmap_hash *phash;
+    wxColour back_color;
+
+    //  Select the correct bitmap hash table and background color
+    switch(cs)
+    {
+        case GLOBAL_COLOR_SCHEME_DAY:
+            phash = &tool_bitmap_hash_day;
+            back_color = wxColour(230,230,230);
+            break;
+        case GLOBAL_COLOR_SCHEME_DUSK:
+            phash = &tool_bitmap_hash_dusk;
+            back_color = wxColour(128,128,128);
+            break;
+        case GLOBAL_COLOR_SCHEME_NIGHT:
+            phash = &tool_bitmap_hash_night;
+            back_color = wxColour(64,64,64);
+            break;
+        default:
+            back_color = wxColour(150,150,150);
+            phash = &tool_bitmap_hash_day;
+            break;
+    }
+
+    //  Set background
+    toolBar->SetBackgroundColour(back_color);
+
+       //  Replace all the tools
+    int pos;
+
+    pos = toolBar->GetToolPos(ID_ZOOMIN);
+    toolBar->DeleteTool(ID_ZOOMIN);
+    toolBar->InsertTool(pos, ID_ZOOMIN, *(*phash)[wxString("zoomin")], wxNullBitmap, false, NULL,  "",  "");
+
+    pos = toolBar->GetToolPos(ID_ZOOMOUT);
+    toolBar->DeleteTool(ID_ZOOMOUT);
+    toolBar->InsertTool(pos, ID_ZOOMOUT, *(*phash)[wxString("zoomout")], wxNullBitmap, false, NULL,  "",  "");
+
+    pos = toolBar->GetToolPos(ID_STKDN);
+    toolBar->DeleteTool(ID_STKDN);
+    toolBar->InsertTool(pos, ID_STKDN, *(*phash)[wxString("scin")], wxNullBitmap, false, NULL,  _T("Stack +"),  "");
+
+    pos = toolBar->GetToolPos(ID_STKUP);
+    toolBar->DeleteTool(ID_STKUP);
+    toolBar->InsertTool(pos, ID_STKUP, *(*phash)[wxString("scout")], wxNullBitmap, false, NULL,  _T("Stack -"),  "");
+
+    pos = toolBar->GetToolPos(ID_ROUTE);
+    toolBar->DeleteTool(ID_ROUTE);
+    toolBar->InsertTool(pos, ID_ROUTE, *(*phash)[wxString("route")], wxNullBitmap, false, NULL,  _T("Create Route"),  "");
+
+    pos = toolBar->GetToolPos(ID_FOLLOW);
+    toolBar->DeleteTool(ID_FOLLOW);
+    toolBar->InsertTool(pos, ID_FOLLOW, *(*phash)[wxString("follow")], wxNullBitmap, false, NULL,  _T("Auto Follow"),  "");
+
+    pos = toolBar->GetToolPos(ID_SETTINGS);
+    toolBar->DeleteTool(ID_SETTINGS);
+    toolBar->InsertTool(pos, ID_SETTINGS, *(*phash)[wxString("settings")], wxNullBitmap, false, NULL,  _T("Settings"),  "");
+
+    pos = toolBar->GetToolPos(ID_TEXT);
+    toolBar->DeleteTool(ID_TEXT);
+    toolBar->InsertTool(pos, ID_TEXT, *(*phash)[wxString("text")], wxNullBitmap, false, NULL,  _T("Enable S57 Text"),  "");
+
+    pos = toolBar->GetToolPos(ID_CURRENT);
+    toolBar->DeleteTool(ID_CURRENT);
+    toolBar->InsertTool(pos, ID_CURRENT, *(*phash)[wxString("current")], wxNullBitmap, false, NULL,  _T("Show Currents"),  "");
+
+    pos = toolBar->GetToolPos(ID_TIDE);
+    toolBar->DeleteTool(ID_TIDE);
+    toolBar->InsertTool(pos, ID_TIDE, *(*phash)[wxString("tide")], wxNullBitmap, false, NULL,  _T("Show Tides"),  "");
+
+    if(g_bShowPrintIcon)
+    {
+        pos = toolBar->GetToolPos(ID_PRINT);
+        toolBar->DeleteTool(ID_PRINT);
+        toolBar->InsertTool(pos, ID_PRINT, *(*phash)[wxString("print")], wxNullBitmap, false, NULL,  _T("Print Chart"),  "");
+    }
+
+    pos = toolBar->GetToolPos(ID_COLSCHEME);
+    toolBar->DeleteTool(ID_COLSCHEME);
+    toolBar->InsertTool(pos, ID_COLSCHEME, *(*phash)[wxString("colorscheme")], wxNullBitmap, false, NULL,  _T("Change Color Scheme"),  "");
+
+    pos = toolBar->GetToolPos(ID_HELP);
+    toolBar->DeleteTool(ID_HELP);
+    toolBar->InsertTool(pos, ID_HELP, *(*phash)[wxString("help")], wxNullBitmap, false, NULL, _T("About OpenCPN"),  "");
+
+
+    pos = toolBar->GetToolPos(ID_TBEXIT);
+    toolBar->DeleteTool(ID_TBEXIT);
+    toolBar->InsertTool(pos, ID_TBEXIT, *(*phash)[wxString("exitt")], wxNullBitmap, false, NULL, _T("Exit"),  "");
+
+    toolBar->Realize();
+}
 
 
 
@@ -1419,7 +1457,6 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
         pAIS = NULL;
     }
 
-
     console->Destroy();
     stats->Destroy();
 
@@ -1450,9 +1487,7 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
         delete pbm;
     }
 
-
     this->Destroy();
-
 }
 
 void MyFrame::OnSize(wxSizeEvent& event)
@@ -1612,8 +1647,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             Current_Ch->InvalidateCache();
             cc1->m_bForceReDraw = true;
             cc1->Refresh(false);
-///debug
-            s_bNoDrawAIS = ps52plib->GetShowS57Text();
             break;
         }
 #endif
@@ -1711,14 +1744,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
             SetAndApplyColorScheme(s);
 
-            //  Defer the toolbar update till the next timer tick,
-            //  otherwise the toolbar mouse logic gets confused by
-            //  pulling the (toolbar) rug out from under it.
-            if(toolBar)
-            {
-                b_toolbar_update = true;
-            }
-
             if(cc1)
             {
                 cc1->FlushBackgroundRender();
@@ -1744,37 +1769,37 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
  //             ShowDebugWindows
         if(pConfig->m_bShowDebugWindows)
         {
-                if(!pStatusBar)
+                if(!m_pStatusBar)
                 {
-                    pStatusBar = CreateStatusBar(6);
+                    m_pStatusBar = CreateStatusBar(6);
                     Refresh();
                 }
         }
         else
         {
-                if(pStatusBar)
+                if(m_pStatusBar)
                 {
-                        pStatusBar->Destroy();
-                        pStatusBar = NULL;
-                        SetStatusBar(NULL);
+                    m_pStatusBar->Destroy();
+                    m_pStatusBar = NULL;
+                    SetStatusBar(NULL);
 
-                        Refresh();
+                    Refresh();
                 }
         }
 
-//#ifdef __WXMSW__                          // This to recreate for Printer Icon
       if(bnewtoolbar)
       {
           DestroyMyToolbar();
           toolBar = CreateAToolbar();
-          SetToolBar(toolBar);
+          UpdateToolbar(global_color_scheme);
+//          UpdateToolbarStatusWindow(Current_Ch, true);
+          SetToolBar((wxToolBar *)toolBar);
       }
-//#endif
 
       if(bFlyingUpdate)
       {
            wxSizeEvent sevt;
-           OnSize(sevt);
+//           OnSize(sevt);
       }
 
 }
@@ -1911,10 +1936,10 @@ int MyFrame::DoOptionsDialog()
 
       bDBUpdateInProgress = false;
 
+      delete pSetDlg;
+
       return((bPrevPrintIcon != g_bShowPrintIcon));    // indicate a refresh is necessary
-
 }
-
 
 
 
@@ -1931,13 +1956,11 @@ void MyFrame::DoStackDown(void)
 }
 
 
-
 void MyFrame::DoStackUp(void)
 {
         if(CurrentStackEntry < pCurrentStack->nEntry-1)
                 SelectChartFromStack(CurrentStackEntry + 1);
 }
-
 
 
 void MyFrame::OnFrameTimer1(wxTimerEvent& event)
@@ -1985,20 +2008,6 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 
       FrameTimer1.Stop();
 
-      // Check for deferred toolbar update
-      if(b_toolbar_update)
-      {
-            if(toolBar)
-            {
-                    DestroyMyToolbar();
-                    toolBar = CreateAToolbar();
-                    SetToolBar(toolBar);
-                    UpdateToolbarStatusWindow(Current_Ch, false);
-            }
-            b_toolbar_update = false;
-      }
-
-
 //  Update and check watchdog timer for GPS data source
       gGPS_Watchdog--;
 
@@ -2007,7 +2016,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 
 //      Update the Toolbar Status window the first time watchdog times out
       if(gGPS_Watchdog == 0)
-          UpdateToolbarStatusWindow(Current_Ch);
+          UpdateToolbarStatusWindow(Current_Ch, false);
 
 //      Update the chart database and displayed chart
       bool bnew_chart = DoChartUpdate(0);
@@ -2026,7 +2035,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
       int mem_current;
       GetMemoryStatus(mem_total, mem_current);
 
-      if(pStatusBar)
+      if(m_pStatusBar)
       {
             char buf[40];
             sprintf(buf, "%3d/%3d/%3d", mem_initial/1024, mem_current/1024, mem_total/1024);
@@ -2071,9 +2080,8 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 
 //  Invalidate the ChartCanvas window appropriately
         cc1->UpdateShips();
-///debug
-        if(!s_bNoDrawAIS)
-               cc1->UpdateAIS();
+
+        cc1->UpdateAIS();
 
 //        worry about active point blink
 
@@ -2102,7 +2110,7 @@ void MyFrame::UpdateChartStatusField(int i)
         ChartData->GetStackChartScale(pCurrentStack, CurrentStackEntry, buf1, sizeof(buf1));
         strcat(buf, buf1);
 
-        if(pStatusBar)
+        if(m_pStatusBar)
                 SetStatusText(buf, i);
 
         stats->Refresh(false);
@@ -2148,7 +2156,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
     if(NULL == pchart)
         return;
 
-    if(tool_dummy_size_x <= 0)
+    if(m_tool_dummy_size_x <= 0)
         return;
 
 #ifdef __WXMSW__
@@ -2163,11 +2171,11 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 
 
 //      Create a wxBitmap for the window
-      wxBitmap tool_bm_dummy(tool_dummy_size_x, tool_dummy_size_y);
-      tool_dummy_size_x_last = tool_dummy_size_x;       // record for change tracking during resize
+      wxBitmap tool_bm_dummy(m_tool_dummy_size_x, m_tool_dummy_size_y);
+      tool_dummy_size_x_last = m_tool_dummy_size_x;       // record for change tracking during resize
 
-      int size_x = tool_dummy_size_x;
-      int size_y = tool_dummy_size_y;
+      int size_x = m_tool_dummy_size_x;
+      int size_y = m_tool_dummy_size_y;
 
 //      Draw the graphics
       wxMemoryDC dc;
@@ -2284,53 +2292,28 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
             }
             else
                   dc.DrawText(name, 0, size_y - h);
-
       }
       else
         dc.DrawText(name, 0, size_y - h);
 
-
-
-//    Record the control's current position
+//   Delete the current status tool, if present
       int ct_pos = toolBar->GetToolPos(ID_TBSTAT);
-#ifdef __WXMSW__
-      wxStaticBitmap *pt = ptool_ct_dummy;
-#endif
-
-//      Create the control
-      ptool_ct_dummy = new wxStaticBitmap(toolBar, ID_TBSTAT, tool_bm_dummy,
-                wxPoint(100,10), wxSize(size_x, size_y),wxSIMPLE_BORDER, _T("staticBitmap"));
-
       if(ct_pos != -1)
-      {
+          toolBar->DeleteTool(ID_TBSTAT);
+
+
+//      Create the new control tool
 #ifdef __WXMSW__
-//      Delete the EXIT tool
-        toolBar->DeleteTool(ID_TBEXIT);
-
-//      Delete the current status tool
-        toolBar->DeleteTool(ID_TBSTAT);
-
-//      Add the new control
-        toolBar->AddControl(ptool_ct_dummy);
-
-//      Re-insert the EXIT tool
-        MyAddTool(toolBar, ID_TBEXIT, _T(""), _T("exitt"), _T("Exit"), wxITEM_NORMAL);
-
-
-#else
-//   Delete the current status tool
-        toolBar->DeleteTool(ID_TBSTAT);
-        toolBar->Realize();
-
-//      Insert the new control
-        toolBar->InsertControl(ct_pos, ptool_ct_dummy);
-
+      delete m_ptool_ct_dummy;
 #endif
+      m_ptool_ct_dummy = new wxStaticBitmap(toolBar, ID_TBSTAT, tool_bm_dummy,
+                                            wxPoint(2000,10), wxSize(size_x, size_y),wxSIMPLE_BORDER, _T("staticBitmap"));
+//      Insert the new control
+      toolBar->InsertControl(m_statTool_pos, m_ptool_ct_dummy);
+
 
  //     Realize the toolbar to reflect changes
-        toolBar->Realize();
-
-      }
+      toolBar->Realize();
 
       if(bUpdate)
         SendSizeEvent();
@@ -2362,7 +2345,7 @@ void MyFrame::SelectChartFromStack(int index)
             UpdateChartStatusField(0);
 
 //      Update the Toolbar Status window
-            UpdateToolbarStatusWindow(Current_Ch);
+            UpdateToolbarStatusWindow(Current_Ch, false);
 
 //      Setup the view
             float zLat, zLon;
@@ -2748,7 +2731,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
 update_finish:
         if(bNewChart)
-            UpdateToolbarStatusWindow(Current_Ch);
+            UpdateToolbarStatusWindow(Current_Ch, false);
 
         if(bNewPiano)
             stats->FormatStat();
@@ -3087,7 +3070,7 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                     bool last_bGPSValid = bGPSValid;
                     bGPSValid = true;
                     if(!last_bGPSValid)
-                        UpdateToolbarStatusWindow(Current_Ch);
+                        UpdateToolbarStatusWindow(Current_Ch, false);
 
                     gGPS_Watchdog = gsp_watchdog_timeout_ticks;
 
@@ -3108,7 +3091,7 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
             bGPSValid = true;
             if(!last_bGPSValid)
             {
-                UpdateToolbarStatusWindow(Current_Ch);
+                UpdateToolbarStatusWindow(Current_Ch, false);
                 cc1->Refresh(false);            // cause own-ship icon to redraw
             }
 
