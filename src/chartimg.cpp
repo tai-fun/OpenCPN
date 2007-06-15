@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.8 2007/06/10 03:49:20 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.9 2007/06/15 02:45:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.9  2007/06/15 02:45:31  bdbcat
+ * Use line cache by default
+ *
  * Revision 1.8  2007/06/10 03:49:20  bdbcat
  * Fix background color
  *
@@ -79,7 +82,7 @@
 extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.8 2007/06/10 03:49:20 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.9 2007/06/15 02:45:31 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1174,7 +1177,7 @@ ChartBaseBSB::ChartBaseBSB()
       pPlyTable = (Plypoint *)x_malloc(sizeof(Plypoint));
       nPlypoint = 0;
 
-      bUseLineCache = false;
+      bUseLineCache = true;
       Chart_Skew = 0.0;
 
       pPixCache = NULL;
@@ -3514,7 +3517,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.8 2007/06/10 03:49:20 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.9 2007/06/15 02:45:31 bdbcat Exp $
 *
 */
 
