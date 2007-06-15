@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.4 2007/06/10 02:23:14 bdbcat Exp $
+ * $Id: ais.cpp,v 1.5 2007/06/15 02:47:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.5  2007/06/15 02:47:41  bdbcat
+ * Remove (some) debug printf
+ *
  * Revision 1.4  2007/06/10 02:23:14  bdbcat
  * Improve message handling
  *
@@ -66,7 +69,7 @@ extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 
-CPL_CVSID("$Id: ais.cpp,v 1.4 2007/06/10 02:23:14 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.5 2007/06/15 02:47:41 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -427,14 +430,13 @@ AIS_Error AIS_Decoder::Decode(char *str)
                 wxDateTime now = wxDateTime::Now();
                 now.MakeGMT();
                 int target_age = now.GetTicks() - tm->ReportTicks;
-                if((target_age > 500) || (target_age < -500))
-                    printf("AIS:Found very high/absurd target age after add\n");
+                if((target_age > 600) || (target_age < -500))
+                    printf("AIS:Found very high/absurd target age after add: %d\n", target_age);
             }
             else
             {
                 temp = (*AISTargetList)[td->MMSI];          // find current entry
                 tm = Merge(temp, td);                       // merge in new data
-//                printf("update MMSI %d\n", td->MMSI);
 
                 (*AISTargetList)[td->MMSI] = tm;            // replace the current entry
                 delete temp;                                // and kill the old one
@@ -444,13 +446,17 @@ AIS_Error AIS_Decoder::Decode(char *str)
                 wxDateTime now = wxDateTime::Now();
                 now.MakeGMT();
                 int target_age = now.GetTicks() - tm->ReportTicks;
-                if((target_age > 500) || (target_age < -500))
-                    printf("AIS:Found very high/absurd target age after merge\n");
+                if((target_age > 600) || (target_age < -500))
+                    printf("AIS:Found very high/absurd target age after merge: %d\n", target_age);
+
             }
 
         //  Update the AIS Target Selectable list
 
-            pSelectAIS->DeleteSelectablePoint((void *)temp, SELTYPE_AISTARGET);
+            if(!pSelectAIS->DeleteSelectablePoint((void *)temp, SELTYPE_AISTARGET))
+                if(temp != NULL)
+                    printf("Delete AIS Selectable point failed\n");
+
             pSelectAIS->AddSelectablePoint(tm->Lat, tm->Lon, (void *)tm, SELTYPE_AISTARGET);
 
             ret = AIS_NoError;
@@ -655,6 +661,8 @@ bool AIS_Decoder::NMEACheckSumOK(char *str)
 //  Resulting string to OWNED BY CALLER
 wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
 {
+//    printf("On BuildQueryResult, AIS target data ReportTicks is: %ld\n",td->ReportTicks);
+
     wxString *res = new wxString;
     wxString line;
 
@@ -682,7 +690,7 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     int target_age = now.GetTicks() - td->ReportTicks;
 
 ///  Debug
-    if((target_age > 500) || (target_age < -500))
+    if((target_age > 600) || (target_age < -500))
     {
         printf("\nAIS:Found absurd target age\n");
         printf("Here is the hash map\n");
