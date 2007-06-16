@@ -4546,7 +4546,7 @@ rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 echo "$as_me:$LINENO: result: $ac_buildfor_x11" >&5
 echo "${ECHO_T}$ac_buildfor_x11" >&6
 
-if test $ac_buildfor_x11 = yes; then
+if test $ac_buildfor_x11 = yes &&  test -n "$vers" && test "$vers" -lt 2008004; then
 	echo "$as_me:$LINENO: checking for WXWIN_COMPATIBILITY_2_4" >&5
 echo $ECHO_N "checking for WXWIN_COMPATIBILITY_2_4... $ECHO_C" >&6
 
@@ -4605,11 +4605,13 @@ echo "${ECHO_T}$compat_24" >&6
 
 	if test $compat_24 = no; then
       		{ echo "$as_me:$LINENO: WARNING: !!!opencpn for X11 Universal Mode requires that
-wxWidgets (for X11) be compiled with Version 2.4 compatibility mode enabled.
+wxWidgets (for X11) prior to Release 2.8.4 be compiled with
+Version 2.4 compatibility mode enabled.
 Please rebuild wxWidgets with \"--enable-compat24\" configuration option.
 Meanwhile, GPSD Network data input is being disabled." >&5
 echo "$as_me: WARNING: !!!opencpn for X11 Universal Mode requires that
-wxWidgets (for X11) be compiled with Version 2.4 compatibility mode enabled.
+wxWidgets (for X11) prior to Release 2.8.4 be compiled with
+Version 2.4 compatibility mode enabled.
 Please rebuild wxWidgets with \"--enable-compat24\" configuration option.
 Meanwhile, GPSD Network data input is being disabled." >&2;}
 

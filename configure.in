@@ -184,7 +184,7 @@ AC_SUBST(WX_LIBS)
 
 
 
-dnl __WXX11__ 2.6.X+ is broken in wxHashTable::Next().
+dnl __WXX11__ 2.6.X...2.8.3 is broken in wxHashTable::Next().
 dnl Error occurs in wxSocketClient, and manifests as forever lost events,
 dnl and sometimes segmentation faults.  Ouch.
 dnl if using __WXX11__, check definition of WXWIN_COMPATIBILITY_2_4
@@ -208,8 +208,8 @@ ac_buildfor_x11=yes, ac_buildfor_x11=no)
 
 AC_MSG_RESULT([$ac_buildfor_x11])
 
-dnl If compiled for __WXX11__, check wxWidgets 2.4 compatibility flag
-if test $ac_buildfor_x11 = yes; then
+dnl If compiled for __WXX11__ and wx Version is less than 2.8.4, check wxWidgets 2.4 compatibility flag
+if test $ac_buildfor_x11 = yes &&  test -n "$vers" && test "$vers" -lt 2008004; then
 	AC_MSG_CHECKING([for WXWIN_COMPATIBILITY_2_4])
 
 	AC_TRY_COMPILE([
@@ -223,7 +223,8 @@ if test $ac_buildfor_x11 = yes; then
 
 	if test $compat_24 = no; then
       		AC_MSG_WARN([!!!opencpn for X11 Universal Mode requires that
-wxWidgets (for X11) be compiled with Version 2.4 compatibility mode enabled.
+wxWidgets (for X11) prior to Release 2.8.4 be compiled with
+Version 2.4 compatibility mode enabled.
 Please rebuild wxWidgets with "--enable-compat24" configuration option.
 Meanwhile, GPSD Network data input is being disabled.])
         AC_DEFINE(OCPN_DISABLE_SOCKETS, 1,
