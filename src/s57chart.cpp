@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.9 2007/06/10 02:33:59 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.10 2008/01/02 20:57:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.10  2008/01/02 20:57:46  bdbcat
+ * Extract/Support Depth Units
+ *
  * Revision 1.9  2007/06/10 02:33:59  bdbcat
  * Color scheme support
  *
@@ -83,7 +86,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.9 2007/06/10 02:33:59 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.10 2008/01/02 20:57:46 bdbcat Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -824,6 +827,9 @@ s57chart::s57chart()
     tmpup_array = NULL;
     m_pcsv_locn = NULL;
 
+    pDepthUnits->Append("METERS");
+    m_depth_unit_id = DEPTH_UNIT_METERS;
+
     wxString csv_dir;
     if(wxGetEnv("S57_CSV", &csv_dir))
         m_pcsv_locn = new wxString(csv_dir);
@@ -972,7 +978,6 @@ void s57chart::SetVPParms(ViewPort *vpt)
 
 ThumbData *s57chart::GetThumbData(int tnx, int tny, float lat, float lon)
 {
-
     //  Plot the passed lat/lon at the thumbnail bitmap scale
     //  Using simple linear algorithm.
         if( pThumbData->pDIBThumb)
@@ -1001,6 +1006,47 @@ ThumbData *s57chart::GetThumbData(int tnx, int tny, float lat, float lon)
 
         return pThumbData;
 }
+
+bool s57chart::UpdateThumbData(float lat, float lon)
+{
+    //  Plot the passed lat/lon at the thumbnail bitmap scale
+    //  Using simple linear algorithm.
+    int test_x, test_y;
+    if( pThumbData->pDIBThumb)
+    {
+        float lat_top =   FullExtent.NLAT;
+        float lat_bot =   FullExtent.SLAT;
+        float lon_left =  FullExtent.WLON;
+        float lon_right = FullExtent.ELON;
+
+                // Build the scale factors just as the thumbnail was built
+        float ext_max = fmax((lat_top - lat_bot), (lon_right - lon_left));
+
+        float thumb_view_scale_ppm = (S57_THUMB_SIZE/ ext_max) / (1852 * 60);
+        double east, north;
+        toSM(lat, lon, (lat_top + lat_bot) / 2., (lon_left + lon_right) / 2., &east, &north);
+
+        test_x = pThumbData->pDIBThumb->GetWidth()  / 2 + (int)(east  * thumb_view_scale_ppm);
+        test_y = pThumbData->pDIBThumb->GetHeight() / 2 - (int)(north * thumb_view_scale_ppm);
+
+    }
+    else
+    {
+        test_x = 0;
+        test_y = 0;
+    }
+
+    if((test_x != pThumbData->ShipX) || (test_y != pThumbData->ShipY))
+    {
+        pThumbData->ShipX = test_x;
+        pThumbData->ShipY = test_y;
+        return TRUE;
+    }
+    else
+        return FALSE;
+}
+
+
 
 void s57chart::SetFullExtent(Extent& ext)
 {
@@ -2081,6 +2127,10 @@ int s57chart::BuildS57File(const char *pFullPath)
             if(objectDef == NULL)
                 break;
 
+//  Debug Hook, can safely go away
+//            if(objectDef->GetFID() == 3867)
+//                int hhd = 4;
+
             sobj = wxString(objectDef->GetDefnRef()->GetName());
             wxString idx;
             idx.Printf("  %d/%d       ", iObj, nGeoRecords);
@@ -2321,8 +2371,8 @@ int s57chart::BuildRAZFromS57File( const char *pFullPath )
                          }
 
  // Debug hook
-//        if(!strncmp(obj->FeatureName, "TOPMAR", 6))
-//            int ffl = 4;
+ //       if(!strncmp(obj->FeatureName, "DEPCNT", 6))
+ //           int ffl = 4;
                          LUP = ps52plib->S52_LUPLookup(LUP_Name, obj->FeatureName, obj);
 
                          if(NULL == LUP)
@@ -2625,6 +2675,10 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
 
         fprintf( fpOut, "OGRFeature(%s):%ld\n", pFeature->GetDefnRef()->GetName(),
                   pFeature->GetFID() );
+
+        // DEBUG
+//        if(pFeature->GetFID() == 3868)
+//          int hhl = 5;
 
 //      In the interests of output file size, DO NOT report fields that are not set.
         for( int iField = 0; iField < pFeature->GetFieldCount(); iField++ )
