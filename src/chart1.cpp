@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.15 2007/06/15 03:07:15 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.16 2008/01/02 20:43:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.16  2008/01/02 20:43:22  bdbcat
+ * Improve toolbar color scheme support
+ *
  * Revision 1.15  2007/06/15 03:07:15  bdbcat
  * Improve toolbar color scheme support
  *
@@ -58,6 +61,8 @@
 #include "wx/print.h"
 #include "wx/printdlg.h"
 #include "wx/artprov.h"
+#include "wx/stdpaths.h"
+
 
 #include "dychart.h"
 
@@ -109,7 +114,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.15 2007/06/15 03:07:15 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.16 2008/01/02 20:43:22 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -206,6 +211,7 @@ wxPageSetupData* g_pageSetupData = (wxPageSetupData*) NULL;
 
 bool            g_bShowPrintIcon;
 bool            g_bShowOutlines;
+bool            g_bShowDepthUnits;
 
 FontMgr         *pFontMgr;
 
@@ -279,6 +285,10 @@ WX_USE_THEME(gtk);
 WX_USE_THEME(Metal);
 #endif
 
+#ifdef __WXMSW__
+     extern  long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
+#endif
+
 // ----------------------------------------------------------------------------
 // Icon resources
 // ----------------------------------------------------------------------------
@@ -327,6 +337,19 @@ IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit()
 {
+
+#ifdef __WXMSW__
+    //testing
+//    _controlfp( _EM_INVALID | _EM_DENORMAL /*| _EM_ZERODIVIDE*/
+//    | _EM_OVERFLOW | _EM_UNDERFLOW |_EM_INEXACT, _MCW_EM );
+
+      //    Handle any Floating Point Exceptions which may leak thru from other
+      //    processes.  The exception filter is in cutil.c
+    //  Dunno why it wont link in MSVC.....
+#ifndef __MSVC__
+    SetUnhandledExceptionFilter( &MyUnhandledExceptionFilter );
+#endif
+#endif
 
 
 //      _CrtSetBreakAlloc(3868);
@@ -403,7 +426,12 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      Establish a "home" location
         pHome_Locn= new wxString;
 #ifdef __WXMSW__
-        pHome_Locn->Append(wxString("C:\\Program Files\\opencpn\\"));
+///   This will point to the application (opencpn.exe) directory in Windows
+        wxStandardPaths std_path;
+        std_path.Get();
+        pHome_Locn->Append(std_path.GetDataDir());
+        pHome_Locn->Append("\\");
+//        pHome_Locn->Append(wxString("C:\\Program Files\\opencpn\\"));
 #else
         pHome_Locn->Append(::wxGetHomeDir());                   // in the current users home
         pHome_Locn->Append("/");
@@ -481,8 +509,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      Establish a "shared data" location
         pSData_Locn= new wxString;
 #ifdef __WXMSW__
+        pSData_Locn->Append(std_path.GetDataDir());
+        pSData_Locn->Append("\\");
 //      pSData_Locn->Append(::wxGetCwd());
-        pSData_Locn->Append(wxString("\\Program Files\\opencpn\\"));
+//        pSData_Locn->Append(wxString("\\Program Files\\opencpn\\"));
 #else
  //       pSData_Locn->Append(wxString("/usr/local/share/opencpn/"));
         pSData_Locn->Append(wxString(INSTALL_PREFIX "/share/opencpn/"));    // ./configure script sets this
@@ -627,6 +657,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         //      Here is a specific size set for my (dsr) specific imbedded X11 environment
         new_frame_size.Set(cw, 735);
+///        new_frame_size.Set(cw, ch);
 #else
         new_frame_size.Set(cw * 7/10, ch * 7/10);
 #endif
@@ -674,10 +705,9 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 // Show the frame
         gFrame->Show(TRUE);
 
-
-
-
-
+#ifndef __WXMSW__
+        gFrame->Maximize(true);
+#endif
 
 
 #ifdef USE_S57
@@ -913,16 +943,15 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 
         PrepareToolbarBitmaps();
 
-        //      Create the ToolBar
-        toolBar = CreateAToolbar();
-        SetToolBar((wxToolBar *)toolBar);
-
         //      Redirect the global heartbeat timer to this frame
         FrameTimer1.SetOwner(this, FRAME_TIMER_1);
 
         //      Set up some assorted member variables
         nRoute_State = 0;
         m_bTimeIsSet = false;
+
+        m_ptool_ct_dummy = NULL;
+        m_phash = NULL;
 
 //  Initialize the Printer data structures
 
@@ -1016,14 +1045,31 @@ void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
       if(m_pStatusBar != NULL)
       {
           m_pStatusBar->SetBackgroundColour(back_color);
+
+          //    As an optimization, if color scheme is anything other than GLOBAL_COLOR_SCHEME_DAY,
+          //    adjust the status bar field styles to be simple flat fields, with no unmanageable 3-D
+          //    effects.
+
+          int sb_style;
+          if(cs == GLOBAL_COLOR_SCHEME_DAY)
+              sb_style = wxSB_NORMAL;
+          else
+              sb_style = wxSB_FLAT;
+
+          int sb_styles[N_STATUS_BAR_FIELDS_MAX];
+          for(int i=0 ; i<m_StatusBarFieldCount ; i++)
+          {
+              if(i < N_STATUS_BAR_FIELDS_MAX)
+                  sb_styles[i] = sb_style;
+          }
+
+          m_pStatusBar->SetStatusStyles(m_StatusBarFieldCount, (const int *)&sb_styles[0]);
+
           m_pStatusBar->Refresh();
       }
 
       UpdateToolbar(cs);
       UpdateToolbarStatusWindow(Current_Ch, true);
-      toolBar->Refresh();
-      toolBar->Update();            // Invoke immediate redraw of the toolbar
-
 }
 
 void MyFrame::DestroyMyToolbar()
@@ -1097,46 +1143,46 @@ wxToolBar *MyFrame::CreateAToolbar()
             x += 2;
     }
 #endif
+
     //  Fetch a sample bitmap for a placeholder
     string_to_pbitmap_hash *phash;
-    phash = &tool_bitmap_hash_day;
-    wxBitmap *pbm = (*phash)[wxString("zoomin")];
+    phash = m_phash;
 
-    tb->AddTool( ID_ZOOMIN, _T(""), *pbm, _T(""), wxITEM_NORMAL);
+    tb->AddTool( ID_ZOOMIN, _T(""), *(*phash)[wxString("zoomin")], _T(""), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_ZOOMOUT, _T(""), *pbm, _T(""), wxITEM_NORMAL);
-    x += pitch_tool;
-
-    tb->AddSeparator();
-    x += pitch_sep;
-
-    tb->AddTool( ID_STKDN, _T(""), *pbm, _T("Stack +"), wxITEM_NORMAL);
-    x += pitch_tool;
-    tb->AddTool( ID_STKUP, _T(""),*pbm, _T("Stack -"), wxITEM_NORMAL);
+    tb->AddTool( ID_ZOOMOUT, _T(""), *(*phash)[wxString("zoomout")], _T(""), wxITEM_NORMAL);
     x += pitch_tool;
 
     tb->AddSeparator();
     x += pitch_sep;
 
-    tb->AddTool( ID_ROUTE, _T(""), *pbm, _T("Create Route"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKDN, _T(""), *(*phash)[wxString("scin")], _T("Stack +"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_FOLLOW, _T(""), *pbm, _T("Auto Follow"), wxITEM_CHECK);
-    x += pitch_tool;
-
-    tb->AddSeparator();
-    x += pitch_sep;
-
-    tb->AddTool( ID_SETTINGS, _T(""), *pbm, _T("Settings"), wxITEM_NORMAL);
-    x += pitch_tool;
-    tb->AddTool( ID_TEXT, _T(""), *pbm, _T("Enable S57 Text"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKUP, _T(""),*(*phash)[wxString("scout")], _T("Stack -"), wxITEM_NORMAL);
     x += pitch_tool;
 
     tb->AddSeparator();
     x += pitch_sep;
 
-    tb->AddTool( ID_CURRENT, _T(""), *pbm, _T("Show Currents"), wxITEM_CHECK);
+    tb->AddTool( ID_ROUTE, _T(""), *(*phash)[wxString("route")], _T("Create Route"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_TIDE, _T(""), *pbm, *pbm, wxITEM_CHECK);
+    tb->AddTool( ID_FOLLOW, _T(""), *(*phash)[wxString("follow")], _T("Auto Follow"), wxITEM_CHECK);
+    x += pitch_tool;
+
+    tb->AddSeparator();
+    x += pitch_sep;
+
+    tb->AddTool( ID_SETTINGS, _T(""), *(*phash)[wxString("settings")], _T("Settings"), wxITEM_NORMAL);
+    x += pitch_tool;
+    tb->AddTool( ID_TEXT, _T(""), *(*phash)[wxString("text")], _T("Enable S57 Text"), wxITEM_CHECK);
+    x += pitch_tool;
+
+    tb->AddSeparator();
+    x += pitch_sep;
+
+    tb->AddTool( ID_CURRENT, _T(""), *(*phash)[wxString("current")], _T("Show Currents"), wxITEM_CHECK);
+    x += pitch_tool;
+    tb->AddTool( ID_TIDE, _T(""), *(*phash)[wxString("tide")], _T("Show Tides"), wxITEM_CHECK);
     x += pitch_tool;
 
     tb->AddSeparator();
@@ -1144,14 +1190,14 @@ wxToolBar *MyFrame::CreateAToolbar()
 
     if(g_bShowPrintIcon)
     {
-        tb->AddTool( ID_PRINT, _T(""), *pbm, _T("Print Chart"), wxITEM_NORMAL);
+        tb->AddTool( ID_PRINT, _T(""), *(*phash)[wxString("print")], _T("Print Chart"), wxITEM_NORMAL);
         x += pitch_tool;
         x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
 
-    tb->AddTool( ID_COLSCHEME, _T(""), *pbm, _T("Change Color Scheme"), wxITEM_CHECK);
+    tb->AddTool( ID_COLSCHEME, _T(""), *(*phash)[wxString("colorscheme")], _T("Change Color Scheme"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_HELP, _T(""), *pbm, _T("About OpenCPN"), wxITEM_NORMAL);
+    tb->AddTool( ID_HELP, _T(""), *(*phash)[wxString("help")], _T("About OpenCPN"), wxITEM_NORMAL);
     x += pitch_tool;
 
     // The status tool will be here
@@ -1187,11 +1233,10 @@ wxToolBar *MyFrame::CreateAToolbar()
     tb->AddControl(m_ptool_ct_dummy);
 
 //      And add the "Exit" tool
-    tb->AddTool( ID_TBEXIT, _T(""), *pbm, _T("Exit"), wxITEM_NORMAL);
+    tb->AddTool( ID_TBEXIT, _T(""), *(*phash)[wxString("exitt")], _T("Exit"), wxITEM_NORMAL);
 
 // Realize() the toolbar
-// will defer to UpdateToolbar()
-//    tb->Realize();
+    tb->Realize();
 
 
 //      Set up the toggle states
@@ -1260,19 +1305,6 @@ void MyFrame::PrepareToolbarBitmaps(void)
 void MyFrame::BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index, string_to_pbitmap_hash &hash)
 {
 
-/*        unsigned char v = 64;
-        unsigned char mask_r, mask_g, mask_b;
-        pimg->GetOrFindMaskColour(&mask_r, &mask_g, &mask_b);
-
-        for(int i=0 ; i<pimg->GetHeight() ; i++)
-{
-            for(int j=0 ; j<pimg->GetWidth() ; j++)
-{
-                if((pimg->GetRed(j, i) != mask_r) && (pimg->GetGreen(j, i) != mask_g) && (pimg->GetBlue(j, i) != mask_b))
-                    pimg->SetRGB(j, i, pimg->GetRed(j, i) * v / 256, pimg->GetGreen(j, i) * v / 256, pimg->GetBlue(j, i) * v / 256);
-}
-}
-*/
         // Substitute the mask color with a fixed background color
         unsigned char mask_r, mask_g, mask_b;
         pimg->GetOrFindMaskColour(&mask_r, &mask_g, &mask_b);
@@ -1320,97 +1352,53 @@ void MyFrame::ReSizeToolbar(void)
 //      Update inplace the current toolbar with bitmaps corresponding to the current color scheme
 void MyFrame::UpdateToolbar(ColorScheme cs)
 {
-    string_to_pbitmap_hash *phash;
     wxColour back_color;
 
     //  Select the correct bitmap hash table and background color
     switch(cs)
     {
         case GLOBAL_COLOR_SCHEME_DAY:
-            phash = &tool_bitmap_hash_day;
+            m_phash = &tool_bitmap_hash_day;
             back_color = wxColour(230,230,230);
             break;
         case GLOBAL_COLOR_SCHEME_DUSK:
-            phash = &tool_bitmap_hash_dusk;
+            m_phash = &tool_bitmap_hash_dusk;
             back_color = wxColour(128,128,128);
             break;
         case GLOBAL_COLOR_SCHEME_NIGHT:
-            phash = &tool_bitmap_hash_night;
+            m_phash = &tool_bitmap_hash_night;
             back_color = wxColour(64,64,64);
             break;
         default:
             back_color = wxColour(150,150,150);
-            phash = &tool_bitmap_hash_day;
+            m_phash = &tool_bitmap_hash_day;
             break;
     }
+
+    DestroyMyToolbar();
+    toolBar = CreateAToolbar();
+    SetToolBar((wxToolBar *)toolBar);
 
     //  Set background
     toolBar->SetBackgroundColour(back_color);
 
-       //  Replace all the tools
-    int pos;
+#ifdef __WXGTK__
+    //  On GTK, need to be more explicit
+    GdkColor color;
 
-    pos = toolBar->GetToolPos(ID_ZOOMIN);
-    toolBar->DeleteTool(ID_ZOOMIN);
-    toolBar->InsertTool(pos, ID_ZOOMIN, *(*phash)[wxString("zoomin")], wxNullBitmap, false, NULL,  "",  "");
+    color.red = back_color.Red() << 8;
+    color.green = back_color.Green() << 8;
+    color.blue = back_color.Blue() << 8;
 
-    pos = toolBar->GetToolPos(ID_ZOOMOUT);
-    toolBar->DeleteTool(ID_ZOOMOUT);
-    toolBar->InsertTool(pos, ID_ZOOMOUT, *(*phash)[wxString("zoomout")], wxNullBitmap, false, NULL,  "",  "");
+    gtk_widget_modify_bg (GTK_WIDGET(toolBar->m_toolbar), GTK_STATE_NORMAL, &color);
+#endif
 
-    pos = toolBar->GetToolPos(ID_STKDN);
-    toolBar->DeleteTool(ID_STKDN);
-    toolBar->InsertTool(pos, ID_STKDN, *(*phash)[wxString("scin")], wxNullBitmap, false, NULL,  _T("Stack +"),  "");
+    //  Re-establish toggle states
+    toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
+    toolBar->ToggleTool(ID_CURRENT, cc1->bShowCurrent);
+    toolBar->ToggleTool(ID_TIDE, cc1->bShowTide);
 
-    pos = toolBar->GetToolPos(ID_STKUP);
-    toolBar->DeleteTool(ID_STKUP);
-    toolBar->InsertTool(pos, ID_STKUP, *(*phash)[wxString("scout")], wxNullBitmap, false, NULL,  _T("Stack -"),  "");
-
-    pos = toolBar->GetToolPos(ID_ROUTE);
-    toolBar->DeleteTool(ID_ROUTE);
-    toolBar->InsertTool(pos, ID_ROUTE, *(*phash)[wxString("route")], wxNullBitmap, false, NULL,  _T("Create Route"),  "");
-
-    pos = toolBar->GetToolPos(ID_FOLLOW);
-    toolBar->DeleteTool(ID_FOLLOW);
-    toolBar->InsertTool(pos, ID_FOLLOW, *(*phash)[wxString("follow")], wxNullBitmap, false, NULL,  _T("Auto Follow"),  "");
-
-    pos = toolBar->GetToolPos(ID_SETTINGS);
-    toolBar->DeleteTool(ID_SETTINGS);
-    toolBar->InsertTool(pos, ID_SETTINGS, *(*phash)[wxString("settings")], wxNullBitmap, false, NULL,  _T("Settings"),  "");
-
-    pos = toolBar->GetToolPos(ID_TEXT);
-    toolBar->DeleteTool(ID_TEXT);
-    toolBar->InsertTool(pos, ID_TEXT, *(*phash)[wxString("text")], wxNullBitmap, false, NULL,  _T("Enable S57 Text"),  "");
-
-    pos = toolBar->GetToolPos(ID_CURRENT);
-    toolBar->DeleteTool(ID_CURRENT);
-    toolBar->InsertTool(pos, ID_CURRENT, *(*phash)[wxString("current")], wxNullBitmap, false, NULL,  _T("Show Currents"),  "");
-
-    pos = toolBar->GetToolPos(ID_TIDE);
-    toolBar->DeleteTool(ID_TIDE);
-    toolBar->InsertTool(pos, ID_TIDE, *(*phash)[wxString("tide")], wxNullBitmap, false, NULL,  _T("Show Tides"),  "");
-
-    if(g_bShowPrintIcon)
-    {
-        pos = toolBar->GetToolPos(ID_PRINT);
-        toolBar->DeleteTool(ID_PRINT);
-        toolBar->InsertTool(pos, ID_PRINT, *(*phash)[wxString("print")], wxNullBitmap, false, NULL,  _T("Print Chart"),  "");
-    }
-
-    pos = toolBar->GetToolPos(ID_COLSCHEME);
-    toolBar->DeleteTool(ID_COLSCHEME);
-    toolBar->InsertTool(pos, ID_COLSCHEME, *(*phash)[wxString("colorscheme")], wxNullBitmap, false, NULL,  _T("Change Color Scheme"),  "");
-
-    pos = toolBar->GetToolPos(ID_HELP);
-    toolBar->DeleteTool(ID_HELP);
-    toolBar->InsertTool(pos, ID_HELP, *(*phash)[wxString("help")], wxNullBitmap, false, NULL, _T("About OpenCPN"),  "");
-
-
-    pos = toolBar->GetToolPos(ID_TBEXIT);
-    toolBar->DeleteTool(ID_TBEXIT);
-    toolBar->InsertTool(pos, ID_TBEXIT, *(*phash)[wxString("exitt")], wxNullBitmap, false, NULL, _T("Exit"),  "");
-
-    toolBar->Realize();
+    return;
 }
 
 
@@ -1534,7 +1522,6 @@ void MyFrame::OnSize(wxSizeEvent& event)
                 console->Pos_X = cccw - console->Size_X;
                 console->Pos_Y = 0;
                 console->SetSize(console->Pos_X,console->Pos_Y,console->Size_X, console->Size_Y);
-//                console->Show(false);
 
         }
 
@@ -1627,14 +1614,22 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_FOLLOW:
         {
-            cc1->m_bFollow = true;
-            toolBar->ToggleTool(ID_FOLLOW, true);
+            if(!cc1->m_bFollow)
+            {
+                cc1->m_bFollow = true;
 //      Warp speed jump to current position
 //            Current_Ch->InvalidateCache();            // Add back for wxx11 This might be needed??? 8/19/06
-            cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(),
+                cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(),
                               Current_Ch->GetChartSkew() * PI / 180., 1, FORCE_SUBSAMPLE);     // set mod 4
-            cc1->Refresh(false);
-//            cc1->Update();
+                cc1->Refresh(false);
+            }
+            else
+            {
+                cc1->m_bFollow = false;
+            }
+
+            toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
+
             break;
         }
 
@@ -1766,14 +1761,12 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
 void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 {
- //             ShowDebugWindows
+ //             ShowDebugWindow as a wxStatusBar
+    m_StatusBarFieldCount = 6;
         if(pConfig->m_bShowDebugWindows)
         {
                 if(!m_pStatusBar)
-                {
-                    m_pStatusBar = CreateStatusBar(6);
-                    Refresh();
-                }
+                    m_pStatusBar = CreateStatusBar(m_StatusBarFieldCount, 0);       // No wxST_SIZEGRIP needed
         }
         else
         {
@@ -1789,11 +1782,7 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 
       if(bnewtoolbar)
       {
-          DestroyMyToolbar();
-          toolBar = CreateAToolbar();
           UpdateToolbar(global_color_scheme);
-//          UpdateToolbarStatusWindow(Current_Ch, true);
-          SetToolBar((wxToolBar *)toolBar);
       }
 
       if(bFlyingUpdate)
@@ -2299,24 +2288,31 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 //   Delete the current status tool, if present
       int ct_pos = toolBar->GetToolPos(ID_TBSTAT);
       if(ct_pos != -1)
-          toolBar->DeleteTool(ID_TBSTAT);
+      {
+//      Delete the EXIT tool
+        toolBar->DeleteTool(ID_TBEXIT);
 
+//      Delete the current status tool
+        toolBar->DeleteTool(ID_TBSTAT);
+       }
 
 //      Create the new control tool
 #ifdef __WXMSW__
-      delete m_ptool_ct_dummy;
+//      delete m_ptool_ct_dummy;        // Gets deleted by DeleteTool?
 #endif
       m_ptool_ct_dummy = new wxStaticBitmap(toolBar, ID_TBSTAT, tool_bm_dummy,
                                             wxPoint(2000,10), wxSize(size_x, size_y),wxSIMPLE_BORDER, _T("staticBitmap"));
 //      Insert the new control
       toolBar->InsertControl(m_statTool_pos, m_ptool_ct_dummy);
 
+//      Re-insert the EXIT tool
+      toolBar->AddTool( ID_TBEXIT, _T(""), *(*m_phash)[wxString("exitt")], _T("Exit"), wxITEM_NORMAL);
 
  //     Realize the toolbar to reflect changes
       toolBar->Realize();
 
-      if(bUpdate)
-        SendSizeEvent();
+//      if(bUpdate)
+      SendSizeEvent();
 }
 
 
@@ -2401,8 +2397,6 @@ void MyFrame::SelectChartFromStack(int index)
         cc1->SetbNewVP(true);
         cc1->Refresh(FALSE);
 
-//        if(nmea)
- //           nmea->UnPause();
         }
 }
 
@@ -2570,7 +2564,13 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                         bNewChart = true;
 
                 Current_Ch = pDummyChart;
-                cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(), 0, 0, CURRENT_RENDER);
+
+//    If the current viewpoint is invalid, set the default scale to something reasonable.
+                double set_scale = cc1->GetVPScale();
+                if(!cc1->VPoint.bValid)
+                    set_scale = 1./20000.;
+
+                cc1->SetViewPoint(tLat, tLon, set_scale, 0, 0, CURRENT_RENDER);
                 bNewPiano = true;
 
         //      Copy the new (by definition empty) stack into the target stack
@@ -2694,12 +2694,6 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
                 if(NULL != Current_Ch)
                 {
-//    Chart stack has changed, and may be a new chart opened
-//                  if(bNewChart)
-//                  {
-//    Update the Toolbar Status window
-//                      UpdateToolbarStatusWindow(Current_Ch);
-//                  }
 
 //      Update the Status Line
                   UpdateChartStatusField(0);
@@ -2735,6 +2729,14 @@ update_finish:
 
         if(bNewPiano)
             stats->FormatStat();
+
+        //  Update the ownship position on thumbnail chart, if shown
+        if(pthumbwin->IsShown())
+        {
+            if(pthumbwin->pThumbChart->UpdateThumbData(gLat, gLon))
+                pthumbwin->Refresh(TRUE);
+        }
+
 
         //  Some debug
         //  Open the smallest scale vector chart available
