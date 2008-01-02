@@ -52,7 +52,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: georef.c,v 1.5 2007/06/10 02:27:52 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.6 2008/01/02 20:47:48 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -355,8 +355,11 @@ double fromDMM(char *dms)
 
 /* --------------------------------------------------------------------------------- */
 
+static const float k0 = 0.9996;
+static double M(double phi, double a, double es);
+
 /****************************************************************************/
-/* Convert Lat/Lon <-> Simple Mercater                                      */
+/* Convert Lat/Lon <-> Simple Mercator                                      */
 /****************************************************************************/
 void
 toSM(float lat, float lon, float lat0, float lon0, double *x, double *y)
@@ -366,7 +369,7 @@ toSM(float lat, float lon, float lat0, float lon0, double *x, double *y)
     //  x = lambda - lambda0
 
     double x1 = (lon - lon0) * DEGREE * z;
-    
+
      // y =.5 ln( (1 + sin t) / (1 - sin t) )
     double s = sin(lat * DEGREE);
     double y3 = (.5 * log((1 + s) / (1 - s))) * z;
@@ -384,30 +387,32 @@ fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon)
 {
       double z = 6378137.0 * PI / 2.;
 
-      // lat = arcsin((e^2(y+y0) - 1)/(e^2(y+y0) + 1))
+// lat = arcsin((e^2(y+y0) - 1)/(e^2(y+y0) + 1))
+/*
       double s0 = sin(lat0 * DEGREE);
       double y0 = (.5 * log((1 + s0) / (1 - s0))) * z;
 
       double e = exp(2 * (y0 + y) / z);
       double e11 = (e - 1)/(e + 1);
       double lat2 =(atan2(e11, sqrt(1 - e11 * e11))) / DEGREE;
-      
+*/
+//    which is the same as....
+      double s0 = sin(lat0 * DEGREE);
+      double y0 = (.5 * log((1 + s0) / (1 - s0))) * z;
+
+      double lat3 = (2.0 * atan(exp((y0+y)/z)) - PI/2.) / DEGREE;
 
       // lon = x + lon0
       double lon1 = lon0 + (x / (DEGREE * z));
 
-      *lat = lat2;
+      *lat = lat3;
       *lon = lon1;
 }
 
 
 /****************************************************************************/
-/* Convert Lat/Lon <-> Transverse Mercater                                                                  */
+/* Convert Lat/Lon <-> Transverse Mercator                                                                  */
 /****************************************************************************/
-static const float k0 = 0.9996;
-
-
-static double M(double phi, double a, double es);
 
 
 void
@@ -505,6 +510,135 @@ static double M(double phi, double a, double es)
 }
 
 
+/* --------------------------------------------------------------------------------- */
+/*
+// Given the lat/long of starting point, and traveling a specified distance,
+// at an initial bearing, calculates the lat/long of the resulting location.
+//
+//  Assumes spheirical earth shape.  There are more accurate ellipsoidal
+//  algorithms available, c.f. below.
+//
+//  Algorithm extracted from:
+//      Aviation Formulary V1.43
+//      By Ed Williams
+//      http://williams.best.vwh.net/avform.htm
+//
+//      From the source:
+//      quote:
+A point {lat,lon} is a distance d out on the tc radial from point 1 if:
+
+        lat=asin(sin(lat1)*cos(d)+cos(lat1)*sin(d)*cos(tc))
+        IF (cos(lat)=0)
+        lon=lon1      // endpoint a pole
+        ELSE
+        lon=mod(lon1-asin(sin(tc)*sin(d)/cos(lat))+pi,2*pi)-pi
+        ENDIF
+
+This algorithm is limited to distances such that dlon <pi/2, i.e those that extend around less than one quarter of the circumference of the earth in longitude. A completely general, but more complicated algorithm is necessary if greater distances are allowed:
+
+        lat =asin(sin(lat1)*cos(d)+cos(lat1)*sin(d)*cos(tc))
+        dlon=atan2(sin(tc)*sin(d)*cos(lat1),cos(d)-sin(lat1)*sin(lat))
+        lon=mod( lon1-dlon +pi,2*pi )-pi
+//      enquote
+
+//  Implementers notes:
+//         a)    mod(y,x) = y - x*floor(y/x)
+//         b)   N.B. author's definition of positive longitude as westerly is
+//              corrected to nautical navigation convention by inverting the sense of
+//              sin(brg) where found.
+//
+//         c)   brg is expressed in conventional degrees, dist in Nautical Miles
+//              example:
+//                  ll_gc_ll(45, 0,, 180., 60, &lat, &lon);         //i.e. 60 miles due south
+//                  yields  lat=44, lon=0
+*/
+
+
+void ll_gc_ll(double lat, double lon, double brg, double dist, double *dlat, double *dlon)
+{
+    //  Express distance as radians, knowing that there are (180*60) nautical miles in PI radians
+    double d = dist * PI / (180*60);
+
+    double dlat_rad = asin((sin(lat * PI/180.) * cos(d)) + (cos(lat * PI/180.) * sin(d) * cos(brg * PI/180.)));
+
+    double dlon1_rad = atan2(-sin(brg * PI/180.) * sin(d) * cos(lat * PI/180.) , cos(d) - (sin(lat * PI/180.) * sin(dlat_rad)));
+    double dlon2_rad = (lon * PI/180.) - dlon1_rad + PI;
+    double dlon_rad = dlon2_rad - (2 * PI * floor(dlon2_rad / (2 * PI))) - PI;
+    *dlat = dlat_rad * 180./PI;
+    *dlon = dlon_rad * 180./PI;
+}
+
+
+
+
+
+/*
+// Given the lat/long of starting point, and traveling a specified distance,
+// at an initial bearing, calculates the lat/long of the resulting location.
+// This corrects for the ellipsoidal shape of the earth to very high accuracy.
+// This is based on a paper by T. Vincenty:
+// "Direct and Inverse Solutions of Geodesics on the Ellipsoid with Application
+// of Nested Equations", Survey Review XXII, 176, April 1975.
+// http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf
+// This implements the "direct formula."
+//
+// Returns:
+//  [lat, long]
+resultantLatLong[lat1, lon1, dist, bearing] :=
+{
+    f = earth_flattening
+   // Calculate "reduced" latitude
+            U1 = arctan[(1-f) tan[lat1]]
+            cU1 = cos[U1]
+            sU1 = sin[U1]
+            a = earthradius_equatorial
+            b = earthradius_polar
+
+            cosalpha1 = cos[bearing]
+            sinalpha1 = sin[bearing]
+
+            sigma1 = arctan[tan[U1],cosalpha1]                              // Eq. 1
+            sinalpha = cU1 sinalpha1                                        // Eq. 2
+                    calpha2 = 1 - sinalpha^2
+                    u2 = calpha2 (a^2-b^2)/b^2
+
+                    A = 1 + u2/16384 (4096 + u2 (-768 + u2 (320 - 175 u2)))         // Eq. 3
+                    B = u2/1024 (256 + u2 ( -128 + u2 (74 - 47 u2)))                // Eq. 4
+                    baseS = dist/(b A)
+                    sigma = baseS
+                    do
+            {
+                lastsigma = sigma
+                        twoSigmam = 2 sigma1 + sigma                                 // Eq. 5
+                        cos2sigmam = cos[twoSigmam]
+                        sinSigma = sin[sigma]
+                        deltaSigma = B sinSigma ( cos2sigmam +
+                        1/4 B (cos[sigma](-1 + 2 cos2sigmam) -
+                        1/6 B cos2sigmam (-3 + 4 sinSigma^2)(-3+4 cos2sigmam)))
+                                                                   // Eq. 6
+                        sigma = baseS + deltaSigma                                   // Eq. 7
+            } while (abs[lastsigma - sigma] > 1e-6 arcsec)
+
+                sinSigma = sin[sigma]
+                        cosSigma = cos[sigma]
+                        twoSigmam = 2 sigma1 + sigma                                 // Eq. 5
+                        cos2sigmam = cos[twoSigmam]
+                        lat2 = arctan[sU1 cosSigma + cU1 sinSigma cosalpha1,
+                (1-f)sqrt[sinalpha^2 + (sU1 sinSigma - cU1 cosSigma cosalpha1)^2]]
+                                                                  // Eq. 8
+                        lambda = arctan[sinSigma sinalpha1, cU1 cosSigma - sU1 sinSigma cosalpha1]
+                                                                  //Eq.9
+                        C = f/16 calpha2 (4 + f (4-3 calpha2))                         // Eq. 10
+                                L = lambda - (1-C) f sinalpha (sigma +
+                                C sinSigma ( cos2sigmam + C cosSigma (-1 + 2 cos2sigmam^2)))
+
+   // TODO:  Calculate final azimuth? (eq. 12)
+
+                                return [lat2, lon1+L]
+}
+
+
+*/
 
 /* --------------------------------------------------------------------------------- */
 /*
