@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.7 2007/06/13 22:48:35 bdbcat Exp $
+ * $Id: wificlient.cpp,v 1.8 2008/01/02 20:57:14 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.cpp,v $
+ * Revision 1.8  2008/01/02 20:57:14  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.7  2007/06/13 22:48:35  bdbcat
  * Reset GPSD client socket on error/timeout
  *
@@ -68,7 +71,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.7 2007/06/13 22:48:35 bdbcat Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.8 2008/01/02 20:57:14 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -244,7 +247,11 @@ void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
     unsigned char response_type;
 
     int i, ilocal;
-    unsigned char buf[2048];
+    unsigned char *pbuffer;
+    int *pcnt;
+    int cnt;
+    unsigned char buf[100];
+    int pt_eaten[64];
 
     if(event.GetSocketEvent() == wxSOCKET_INPUT)
     {
@@ -256,7 +263,11 @@ void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
         response_type = buf[0];
         int *pint =(int *)(&buf[1]);
         int total_length = *pint;
-        m_sock->Read(&buf[5], total_length-5);
+
+//  get some memory to read the rest
+        pbuffer = new unsigned char[total_length];
+
+        m_sock->Read(pbuffer, total_length-5);
 
         switch(response_type - 0x80)
         {
@@ -264,22 +275,25 @@ void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
                 m_bRX = true;                       // reset watchdog
                 m_watchtick = 0;
 
+            //  Get the scan results station count
+                pcnt = (int *)&pbuffer[0];
+                cnt = *pcnt;
+
+                if(cnt > 64)
+                    cnt = 64;                       // be safe
 
             //  Manage the data input
-                int pt_eaten[NSCAN_DATA_STRUCT];
-
-                //  Some setup
-                for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
+            //  Some setup
+                for(i=0 ; i < cnt ; i++)
                     pt_eaten[i] = false;
-
 
             //  First, check to see if any input station data is already present in local store
             //  If it is (ESSID matches), then simply update the signal quality, and refresh the age.
             //  Also, flag the fact that the input data has been eaten.
 
-                for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
+                for(i=0 ; i < cnt ; i++)
                 {
-                    pt = (wifi_scan_data *)(&buf[(5 + i * 256)]);           // skipping the first 5 bytes
+                    pt = (wifi_scan_data *)(&pbuffer[(sizeof(int) + i * 256)]);           // skipping the first int
                     if(strlen(pt->ESSID))
                     {
                         for(int ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
@@ -312,11 +326,11 @@ void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
 
             //  Now, check to see if any input data is un-eaten
             //  If found, then try to allocate to a local store item
-                for(i=0 ; i < NSCAN_DATA_STRUCT ; i++)
+                for(i=0 ; i < cnt ; i++)
                 {
                     if(pt_eaten[i] == false)
                     {
-                        pt = (wifi_scan_data *)(&buf[(5 + i * 256)]);
+                        pt = (wifi_scan_data *)(&pbuffer[(sizeof(int) + i * 256)]);
                         if(strlen(pt->ESSID))
                         {
                             for(ilocal = 0 ; ilocal < NLOCALSTORE ; ilocal++)
@@ -431,6 +445,9 @@ void WIFIWindow::OnSocketEvent(wxSocketEvent& event)
             default:
                 break;
         }       //switch
+
+        delete pbuffer;
+
     }       // if
 
 

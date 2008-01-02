@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.2 2007/06/10 02:31:21 bdbcat Exp $
+ * $Id: options.cpp,v 1.3 2008/01/02 20:56:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.3  2008/01/02 20:56:18  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.2  2007/06/10 02:31:21  bdbcat
  * Cleanup
  *
@@ -63,6 +66,7 @@
 
 extern bool             g_bShowPrintIcon;
 extern bool             g_bShowOutlines;
+extern bool             g_bShowDepthUnits;
 extern wxString         *pNMEADataSource;
 extern wxString         *pNMEA_AP_Port;
 extern FontMgr          *pFontMgr;
@@ -206,14 +210,24 @@ void options::CreateControls()
     pPrintShowIcon->SetValue(FALSE);
     itemStaticBoxSizerPrint->Add(pPrintShowIcon, 1, wxALIGN_LEFT|wxALL, 5);
 
-    //  Chart Outlines checkbox
+    // Chart Display Options Box
     wxStaticBox* itemStaticBoxSizerCDOStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Chart Display Options"));
     wxStaticBoxSizer* itemStaticBoxSizerCDO = new wxStaticBoxSizer(itemStaticBoxSizerCDOStatic, wxVERTICAL);
     itemBoxSizer6->Add(itemStaticBoxSizerCDO, 0, wxGROW|wxALL, 5);
+
+    //  Chart Outlines checkbox
     pCDOOutlines = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Chart Outlines"), wxDefaultPosition,
                              wxSize(-1, -1), 0 );
     pCDOOutlines->SetValue(FALSE);
     itemStaticBoxSizerCDO->Add(pCDOOutlines, 1, wxALIGN_LEFT|wxALL, 5);
+
+
+    //  Depth Unit checkbox
+    pSDepthUnits = new wxCheckBox( itemPanel5, ID_SHOWDEPTHUNITSBOX1, _("Show DepthUnits"), wxDefaultPosition,
+                                   wxSize(-1, -1), 0 );
+    pSDepthUnits->SetValue(FALSE);
+    itemStaticBoxSizerCDO->Add(pSDepthUnits, 1, wxALIGN_LEFT|wxALL, 5);
+
 
 
 
@@ -568,7 +582,7 @@ void options::SetInitialSettings()
       pSettingsCB1->SetValue(m_pConfig->m_bShowDebugWindows);
       pPrintShowIcon->SetValue(g_bShowPrintIcon);
       pCDOOutlines->SetValue(g_bShowOutlines);
-
+      pSDepthUnits->SetValue(g_bShowDepthUnits);
 
 #ifdef USE_S57
 //    S52 Primary Filters
@@ -755,6 +769,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
     g_bShowPrintIcon = pPrintShowIcon->GetValue();
     g_bShowOutlines = pCDOOutlines->GetValue();
+    g_bShowDepthUnits = pSDepthUnits->GetValue();
 
 
 //    NMEA Options

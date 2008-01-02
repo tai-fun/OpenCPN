@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.9 2007/06/10 02:33:11 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.10 2008/01/02 20:56:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.10  2008/01/02 20:56:52  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.9  2007/06/10 02:33:11  bdbcat
  * Cleanup
  *
@@ -82,7 +85,7 @@
 
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.9 2007/06/10 02:33:11 bdbcat Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.10 2008/01/02 20:56:52 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -3954,6 +3957,10 @@ bool s52plib::ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp)
 {
     if (rzRules->obj==NULL)
         return false;
+
+    // Debug for testing US5FL51.000 slcons
+//    if((rzRules->obj->Index == 3868) || (rzRules->obj->Index == 3870))
+//        return false;
 
     bool b_catfilter = true;
 

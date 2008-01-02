@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.13 2007/06/13 22:46:44 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.14 2008/01/02 20:53:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.14  2008/01/02 20:53:41  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.13  2007/06/13 22:46:44  bdbcat
  * Cleanup
  *
@@ -74,7 +77,7 @@
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.13 2007/06/13 22:46:44 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.14 2008/01/02 20:53:41 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -512,12 +515,10 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 
 //--------------TEST
 #if(0)
-//      if(0)
       {
-            kCog = 290.;
-            kSog = 20.;
+            kCog = 180.;
+            kSog = 12.;
 
-//            float PI = 3.14159;
             float pred_lat = kLat +  (cos(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
             float pred_lon = kLon +  (sin(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
 
@@ -1443,6 +1444,12 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
       m_pdata_ap_port_string = new wxString(AP_Port);
       bOK = false;
 
+#ifdef __WXMSW__
+#ifdef ocpnUSE_MSW_SERCOMM
+            pWinComm = NULL;
+#endif
+#endif
+
 //    Create and init the Serial Port for Autopilot control
 
       wxLogMessage("NMEA AutoPilot Port is....%s",m_pdata_ap_port_string->c_str());
@@ -1455,7 +1462,6 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 
 #ifdef __WXMSW__
 #ifdef ocpnUSE_MSW_SERCOMM
-            pWinComm = NULL;
             pWinComm = new CSyncSerialComm(port.c_str());
             pWinComm->Open();
             pWinComm->ConfigPort(4800, 5);
