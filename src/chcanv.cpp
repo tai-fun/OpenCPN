@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.18 2007/06/15 02:49:42 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.19 2008/01/02 20:46:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.19  2008/01/02 20:46:36  bdbcat
+ * Show embossed depth units on chart
+ *
  * Revision 1.18  2007/06/15 02:49:42  bdbcat
  * Improve background render logic
  *
@@ -118,6 +121,7 @@ extern s52plib          *ps52plib;
 
 extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
+extern bool             g_bShowDepthUnits;
 extern AIS_Decoder      *pAIS;
 
 //  Todo why are these static?
@@ -126,7 +130,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.18 2007/06/15 02:49:42 bdbcat Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.19 2008/01/02 20:46:36 bdbcat Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -338,8 +342,16 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
 
       canvas_scale_factor = 1000.;
 
+      m_ownship_predictor_minutes = 5.;     // Minutes shown on ownship position predictor graphic
+      m_ais_predictor_minutes     = 5.;     // Minutes shown on AIS target position predictor graphic
+
+
 //    Create the default wvs chart
       pwvs_chart = new WVSChart(this, (char *)pWVS_Locn->c_str());
+
+      //    Create the depth unit emboss maps
+      CreateDepthUnitEmbossMaps();
+
 
 }
 
@@ -375,6 +387,7 @@ ChartCanvas::~ChartCanvas()
 
 void ChartCanvas::RescaleTimerEvent(wxTimerEvent& event)
 {
+//    printf("rescale timer event\n");
     if(m_bBackRender && !m_bbr_paused)
     {
 //        printf("nested bbr\n");          // logical error
@@ -607,6 +620,20 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 
 //      printf("Scale: %.1f %.1f\n", scale, VPoint.view_scale);
 
+      // Useability optimization...
+      //    If a backgroung bi-linear render is in process, and the chart scale
+      //    has not changed, and a render at current sample mode is requested, simply
+      //    ignore this viewpoint change.  The background render --WILL-- finish,
+      //    and the next in-sequence call to this method will proceed normally.
+      //    This logic resolves the problem wherein the background render takes
+      //    more time than is allowed between chart redraws, as in the case of
+      //    high zoom, auto-follow operation.  The inital rescale is aborted,
+      //    and is not restarted until the chart scale has changed manually.
+      //    Thus, the chart is always shown as subsampled.  Not good...
+
+      if((m_bBackRender) && (VPoint.view_scale_ppm == scale_ppm) && (sample_mode == CURRENT_RENDER))
+          return;
+
       VPoint.skew = skew;
 
       bNewVP = false;
@@ -645,12 +672,14 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 
             if(sc < 1)                                           //((int)rint(sc) != 1)
             {
+//                printf("bNeedRescale: %d, m_bSubsamp: %d, sample_mode %d\n",bNeedRescale, m_bSubsamp, sample_mode);
                 if(bNeedRescale)
                 {
                     if(m_bSubsamp)
                     {
                         current_scale_method = SCALE_SUBSAMP;
                         pRescaleTimer->Start(m_rescale_timer_msec, wxTIMER_ONE_SHOT);
+//                        printf("start br timer\n");
                     }
                 }
             }
@@ -793,7 +822,10 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
                 if((old_source.x == new_source.x) && (old_source.y == new_source.y))
                     bNewVP = false;
                 else
+                {
                     FlushBackgroundRender();
+  //                  printf("flush br due to new rect\n");
+                }
         }
 
         else if(Current_Ch->ChartType == CHART_TYPE_DUMMY)
@@ -902,20 +934,12 @@ void ChartCanvas::ShipDraw(wxDC& dc)
             drawit++;                                 // yep
 
 
-//    Calculate 5 Minute Position Predictor
+//    Calculate ownshipe Position Predictor
 
-      double east, north;
-      double plat, plon;
-      float pred_lat, pred_lon;
+      double pred_lat, pred_lon;
 
-      toSM(gLat, gLon, VPoint.clat, VPoint.clon,  &east, &north);
 
-      east += (sin(gCog * PI / 180) * gSog * (1852.) / 12.);  // 5 mins, 1852 m/nmi
-      north += (cos(gCog * PI / 180) * gSog * (1852.) / 12.);  // 5 mins
-
-      fromSM(east, north, VPoint.clat, VPoint.clon, &plat, &plon);
-      pred_lat = plat;
-      pred_lon = plon;
+      ll_gc_ll(gLat, gLon, gCog, gSog * m_ownship_predictor_minutes / 60., &pred_lat, &pred_lon);
 
 //    Is predicted point in the VPoint?
       if(VPoint.vpBBox.PointInBox(pred_lon, pred_lat, 0))
@@ -968,20 +992,11 @@ void ChartCanvas::AISDraw(wxDC& dc)
                 drawit++;                                 // yep
 
 
-    //    Calculate 5 Minute Position Predictor
+    //    Calculate AIS target Position Predictor
 
-          double east, north;
-          double plat, plon;
-          float pred_lat, pred_lon;
+          double pred_lat, pred_lon;
 
-          toSM(td->Lat, td->Lon, VPoint.clat, VPoint.clon, &east, &north);
-
-          east += (sin(td->COG * PI / 180) * td->SOG * (1852.) / 12.);  // 5 mins, 1852 m/nmi
-          north += (cos(td->COG * PI / 180) * td->SOG * (1852.) / 12.);  // 5 mins
-
-          fromSM(east, north, VPoint.clat, VPoint.clon, &plat, &plon);
-          pred_lat = plat;
-          pred_lon = plon;
+          ll_gc_ll(td->Lat, td->Lon, td->COG, td->SOG * m_ais_predictor_minutes / 60., &pred_lat, &pred_lon);
 
     //    Is predicted point in the VPoint?
           if(VPoint.vpBBox.PointInBox(pred_lon, pred_lat, 0))
@@ -1038,9 +1053,25 @@ void ChartCanvas::AISDraw(wxDC& dc)
                 if(res != Invisible)
                     dc.DrawLine(pixx, pixy, pixx1, pixy1);
 
-                dc.DrawCircle(PredPoint.x, PredPoint.y, 6);
+                dc.DrawCircle(PredPoint.x, PredPoint.y, 5);
 
                 dc.DrawPolygon(3, &ais_tri_icon[0], TargetPoint.x, TargetPoint.y);
+
+                //      Draw RateOfTurn Vector
+                if(td->ROTAIS)
+                {
+                    double nv = 10;
+                    double theta2 = theta;
+                    if(td->ROTAIS > 0)
+                        theta2 += PI/2.;
+                    else
+                        theta2 -= PI/2.;
+
+                    int xrot = (int)round(pixx1 + (nv * cos(theta2)));
+                    int yrot = (int)round(pixy1 + (nv * sin(theta2)));
+                    dc.DrawLine(pixx1, pixy1, xrot, yrot);
+                }
+
               }
               else                                      // SOG is near zero, use diamond icon
               {
@@ -1748,15 +1779,16 @@ void ChartCanvas::MouseEvent(wxMouseEvent& event)
                   {
                         pFoundAIS_Target_Data = (AIS_Target_Data *)pFind->m_pData1;
 
-///  Debug
-///                        printf("On Mouse, AIS target data ReportTicks is: %ld\n",pFoundAIS_Target_Data->ReportTicks);
-/*
-                        wxDateTime now = wxDateTime::Now();
-                        now.MakeGMT();
-                        int target_age = now.GetTicks() - pFoundAIS_Target_Data->ReportTicks;
-                        if((target_age > 500) || (target_age < -500))
-                            printf("AIS: Mouse rightclick found absurd target age\n");
-*/
+                  /*    Take a copy of the found target, for use by dialog later.
+                        This is important, since the event loop and all other threads run
+                        while the popup menu is displayed, and the found pointer could be
+                        stale due to an AIS packet reception event before the dialog is created.
+                        The copy will be deleted after use by the dialog.
+                  */
+
+                        pSnapshotAIS_Target_Data = new AIS_Target_Data();
+                        *pSnapshotAIS_Target_Data = *pFoundAIS_Target_Data;
+
                         CanvasPopupMenu(x,y, SELTYPE_AISTARGET);
 
                         m_bForceReDraw = true;
@@ -2066,8 +2098,8 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
           }
 #endif
       case ID_DEF_MENU_AIS_QUERY:
-
-            QueryResult = pAIS->BuildQueryResult(pFoundAIS_Target_Data);
+            QueryResult = pAIS->BuildQueryResult(pSnapshotAIS_Target_Data);
+            delete pSnapshotAIS_Target_Data;                // no longer needed
 
             pAISdialog = new AISTargetQueryDialog();
             pAISdialog->SetText(*QueryResult);
@@ -2552,17 +2584,20 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
           ssdc_r.SelectObject(wxNullBitmap);
       }
 
+//      If Depth Unit Display is selected, emboss it
+      if(g_bShowDepthUnits)
+      {
+          EmbossDepthScale(&temp_dc, &scratch_dc, Current_Ch->GetDepthUnitType());
+      }
+
 
 //    And finally, blit the scratch dc onto the physical dc
       wxRegionIterator upd_final(rgn_blit);
       while (upd_final)
       {
           wxRect rect = upd_final.GetRect();
-          wxStopWatch st;
           dc.Blit(rect.x, rect.y, rect.width, rect.height,
                   &scratch_dc, rect.x, rect.y);
-///          printf("   Final Blit %d %d %d %d\n",rect.x, rect.y, rect.width, rect.height);
-///          printf("   Final Blit %ldms\n\n", st.Time());
           upd_final ++ ;
       }
 
@@ -2570,7 +2605,6 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
       temp_dc.SelectObject(wxNullBitmap);
 //    And for the scratch bitmap
       scratch_dc.SelectObject(wxNullBitmap);
-
 
 
 //    Handle the current graphic window, if present
@@ -2610,6 +2644,149 @@ void ChartCanvas::SetMyCursor(wxCursor *c)
       SetCursor(*c);
 }
 
+
+void ChartCanvas::EmbossDepthScale(wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, int emboss_ident)
+{
+    if(emboss_ident == DEPTH_UNIT_UNKNOWN)
+        return;
+
+    int chart_width = VPoint.pix_width;
+
+    //Grab an snipped image out of the chart
+    wxMemoryDC snip_dc;
+    wxBitmap snip_bmp(emboss_width, emboss_height, -1);
+    snip_dc.SelectObject(snip_bmp);
+
+    snip_dc.Blit(0,0, emboss_width, emboss_height, psource_dc, chart_width - emboss_width, 0);
+
+    wxImage snip_img = snip_bmp.ConvertToImage();
+
+    double factor = 200;
+
+    int *pmap = NULL;
+    switch (emboss_ident)
+    {
+        case DEPTH_UNIT_FEET:
+            pmap = pEM_Feet;
+            break;
+        case DEPTH_UNIT_METERS:
+            pmap = pEM_Meters;
+            break;
+        case DEPTH_UNIT_FATHOMS:
+            pmap = pEM_Fathoms;
+            break;
+    }
+
+    //  Apply emboss map to the snip image
+    if(pmap != NULL)
+    {
+        unsigned char* pdata = snip_img.GetData();
+
+        for(int y=0 ; y < emboss_height ; y++)
+        {
+            int map_index = (y * emboss_width);
+            for(int x=0 ; x < emboss_width ; x++)
+            {
+                double val = (pmap[map_index] * factor) / 256.;
+
+                int nred = (int)((*pdata) +  val);
+                nred = nred > 255 ? 255 : (nred < 0 ? 0 : nred);
+                *pdata++ = (unsigned char) nred;
+
+                int ngreen = (int)((*pdata) +  val);
+                ngreen = ngreen > 255 ? 255 : (ngreen < 0 ? 0 : ngreen);
+                *pdata++ = (unsigned char) ngreen;
+
+                int nblue = (int)((*pdata) +  val);
+                nblue = nblue > 255 ? 255 : (nblue < 0 ? 0 : nblue);
+                *pdata++ = (unsigned char) nblue;
+
+                map_index++;
+            }
+        }
+    }
+
+
+    //  Convert embossed snip to a bitmap
+    wxBitmap emb_bmp(snip_img);
+
+    //  Map to another memoryDC
+    wxMemoryDC result_dc;
+    result_dc.SelectObject(emb_bmp);
+
+    //  Blit to target
+    pdest_dc->Blit(chart_width - emboss_width, 0, emboss_width, emboss_height, &result_dc, 0, 0);
+
+    result_dc.SelectObject(wxNullBitmap);
+    snip_dc.SelectObject(wxNullBitmap);
+}
+
+
+
+void ChartCanvas::CreateDepthUnitEmbossMaps(void)
+{
+    wxFont font(60, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+
+    emboss_width = 400;
+    emboss_height = 100;
+
+    // Create the 3 DepthUnit emboss maps
+    pEM_Feet    = CreateEmbossMap(font, emboss_width, emboss_height, "Feet");
+    pEM_Meters  = CreateEmbossMap(font, emboss_width, emboss_height, "Meters");
+    pEM_Fathoms = CreateEmbossMap(font, emboss_width, emboss_height, "Fathoms");
+}
+
+
+int *ChartCanvas::CreateEmbossMap(wxFont &font, int width, int height, char *str)
+{
+    int *pmap;
+
+    //  Create a temporary bitmap
+    wxBitmap bmp(width, height, -1);
+
+    // Create a memory DC
+    wxMemoryDC temp_dc;
+    temp_dc.SelectObject(bmp);
+
+    //  Paint on it
+    temp_dc.SetBackground(*wxWHITE_BRUSH);
+    temp_dc.SetTextBackground(*wxWHITE);
+    temp_dc.SetTextForeground(*wxBLACK);
+
+    temp_dc.Clear();
+
+    temp_dc.SetFont(font);
+
+    int str_w, str_h;
+    temp_dc.GetTextExtent(wxString(str), &str_w, &str_h);
+    temp_dc.DrawText(wxString(str), width - str_w - 10, 10);
+
+    //  Deselect the bitmap
+    temp_dc.SelectObject(wxNullBitmap);
+
+    //  Convert bitmap the wxImage for manipulation
+    wxImage img = bmp.ConvertToImage();
+
+    int val;
+    int index;
+    pmap = (int *)calloc(width * height * sizeof(int), 1);
+    //  Create emboss map by differentiating the emboss image
+    //  and storing integer results in pmap
+    //  n.b. since the image is B/W, it is sufficient to check
+    //  one channel (i.e. red) only
+    for(int y=1 ; y < height-1 ; y++)
+    {
+        for(int x=1 ; x < width-1 ; x++)
+        {
+            val = img.GetRed(x+1,y+1) - img.GetRed(x-1, y-1);  // range +/- 256
+            index = (y * width) + x;
+            pmap[index] = val;
+
+        }
+    }
+
+    return pmap;
+}
 
 //----------------------------------------------------------------------------
 //  Get a wxBitmap with wxMask associated containing the semi-static overlays
@@ -2663,13 +2840,13 @@ wxBitmap *ChartCanvas::DrawTCCBitmap(bool bAddNewSelpoints)
             {
                                                       // Rebuild Selpoints list on new map
                                                       // and force redraw
-                  DrawAllCurrentsInBBox(ssdc,      VPoint.vpBBox, bAddNewSelpoints, true);
-                  DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, false,            true, true);  // onto the mask
+                DrawAllCurrentsInBBox(ssdc,      VPoint.vpBBox, VPoint.skew, bAddNewSelpoints, true);
+                DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, VPoint.skew, false,            true, true);  // onto the mask
             }
             else
             {
-                  DrawAllCurrentsInBBox(ssdc, VPoint.vpBBox, true, true); // Force Selpoints add first time after
-                  DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, false, true, true);       // onto the mask
+                DrawAllCurrentsInBBox(ssdc,      VPoint.vpBBox, VPoint.skew, true, true); // Force Selpoints add first time after
+                DrawAllCurrentsInBBox(ssdc_mask, VPoint.vpBBox, VPoint.skew, false, true, true);       // onto the mask
             }
             bShowingCurrent = true;
       }
@@ -2867,7 +3044,7 @@ void ChartCanvas::DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox,
 //------------------------------------------------------------------------------------------
 
 
-void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
+void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox, double skew_angle,
                               bool bRebuildSelList,   bool bforce_redraw_currents, bool bdraw_mono)
 {
       float tcvalue, dir;
@@ -2920,8 +3097,6 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
                   if((type == 'c'))             // only subordinate currents are useful
                   {                             // with directions known
 
-
-
 //  This is a ---HACK---
 //  try to avoid double current arrows.  Select the first in the list only
 //  Proper fix is to correct the TCDATA index file for depth indication
@@ -2929,8 +3104,6 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
                       if((BBox.PointInBox(lon, lat, 0)) && (lat != lat_last) && (lon != lon_last))
                         {
 
-                          lon_last = lon;
-                          lat_last = lat;
 
 //    Manage the point selection list
                               if(bRebuildSelList)
@@ -2972,7 +3145,7 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
 
                                                 porange_pen->SetWidth(2);
                                                 dc.SetPen(*porange_pen);
-                                                DrawArrow(dc, pixxc, pixyc, dir - 90, scale/100);
+                                                DrawArrow(dc, pixxc, pixyc, dir - 90 + (skew_angle * 180. / PI), scale/100);
 
 
 
@@ -2989,13 +3162,16 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
                               }
                               else
                               {
-                                    dc.SetPen(*porange_pen);
-                                    dc.SetBrush(*pgray_brush);
-                                    dc.DrawPolygon(4, d);
+                                  dc.SetPen(*porange_pen);
+                                  dc.SetBrush(*pgray_brush);
+                                  dc.DrawPolygon(4, d);
                               }
 
 
                         }
+                        lon_last = lon;
+                        lat_last = lat;
+
                   }
             }
       }
