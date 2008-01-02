@@ -136,7 +136,7 @@ You will need this later.
 
 
 ------------------------
-MSVC++ STEP 2:  Build wxWidgets
+STEP 2:  Build wxWidgets
 ------------------------
 When you have downloaded and installed wxWidgets, you must
 build it.   The standard wxWidgets build procedures work fine,
@@ -157,7 +157,7 @@ configurations.  OpenCPN can use either multithreaded static or
 multithreaded dynamic libraries. Choose...
 
 ------------------------
-MSVC++ STEP3:  Set OpenCPN Options
+STEP3:  Set OpenCPN Options
 ------------------------
 Set the required build options in file:
 	makefile.wat
@@ -168,7 +168,7 @@ libraries. e.g.
 		WX_BASE = c:\wxWidgets-2.8.3
 
 ------------------------
-MSVC++ STEP4:  Build OpenCPN 
+STEP4:  Build OpenCPN 
 ------------------------
 From an MS-Dos command line window, in the opencpn base directory, do:
 
