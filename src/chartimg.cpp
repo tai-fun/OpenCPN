@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.9 2007/06/15 02:45:31 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.10 2008/01/02 20:45:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.10  2008/01/02 20:45:46  bdbcat
+ * Extract/Support Depth Units
+ *
  * Revision 1.9  2007/06/15 02:45:31  bdbcat
  * Use line cache by default
  *
@@ -82,7 +85,7 @@
 extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.9 2007/06/15 02:45:31 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.10 2008/01/02 20:45:46 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -138,6 +141,11 @@ ChartBase::ChartBase()
       pPubYear = new wxString;
       pPubYear->Clear();
 
+      pDepthUnits = new wxString;
+      pDepthUnits->Clear();
+      m_depth_unit_id = DEPTH_UNIT_UNKNOWN;
+
+
       pThumbData = new ThumbData;
 
       pName = new wxString;
@@ -157,6 +165,7 @@ ChartBase::~ChartBase()
              delete pcached_bitmap;
 
       delete pPubYear;
+      delete pDepthUnits;
 
       delete pThumbData;
 
@@ -198,6 +207,12 @@ ThumbData *ChartDummy::GetThumbData(int tnx, int tny, float lat, float lon)
 {
       return (ThumbData *)NULL;
 }
+
+bool ChartDummy::UpdateThumbData(float lat, float lon)
+{
+      return FALSE;
+}
+
 
 float ChartDummy::GetNativeScale()
 {
@@ -331,6 +346,18 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
                   }
             }
 
+            else if(!strncmp(buffer, "Depth", 5))
+            {
+                wxStringTokenizer tkz(buffer, "=");
+                wxString token = tkz.GetNextToken();
+                if(token.IsSameAs("Depth Units", FALSE))               // extract Depth Units
+                {
+                    int i;
+                    i = tkz.GetPosition();
+                    wxString str(&buffer[i]);
+                    pDepthUnits->Append(str.Trim());
+                }
+            }
 
             else if (!strncmp(buffer, "Point", 5))                // Extract RefPoints
             {
@@ -838,6 +865,13 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                               i = tkz.GetPosition();
                               sscanf(&buffer[i], "%f,", &Chart_Skew);
                         }
+                        if(token.IsSameAs("UN", TRUE))                  // extract Depth Units
+                        {
+                            int i;
+                            i = tkz.GetPosition();
+                            wxString str(&buffer[i]);
+                            pDepthUnits->Append(str.BeforeFirst(','));
+                        }
 
                  }
             }
@@ -1184,7 +1218,6 @@ ChartBaseBSB::ChartBaseBSB()
 
       pLineCache = NULL;
 
-
       m_bilinear_limit = 8;         // bilinear scaling only up to n
 
       ifs_bitmap = NULL;
@@ -1437,6 +1470,18 @@ InitReturn ChartBaseBSB::PostInit(void)
             pLineCache = NULL;
 
 
+      //    Validate/Set Depth Unit Type
+      wxString test_str = pDepthUnits->Upper();
+      if(test_str.IsSameAs("FEET", FALSE))
+          m_depth_unit_id = DEPTH_UNIT_FEET;
+      else if(test_str.IsSameAs("METERS", FALSE))
+          m_depth_unit_id = DEPTH_UNIT_METERS;
+      else if(test_str.IsSameAs("FATHOMS", FALSE))
+          m_depth_unit_id = DEPTH_UNIT_FATHOMS;
+      else if(test_str.Find("FATHOMS") != wxNOT_FOUND)             // Special case for "Fathoms and Feet"
+          m_depth_unit_id = DEPTH_UNIT_FATHOMS;
+
+
       //   Analyze Refpoints
       int analyze_ret_val = AnalyzeRefpoints();
       if(0 != analyze_ret_val)
@@ -1648,6 +1693,8 @@ ThumbData *ChartBaseBSB::GetThumbData(int tnx, int tny, float lat, float lon)
       if(!pThumbData->pDIBThumb)
             pThumbData->pDIBThumb = CreateThumbnail(tnx, tny);
 
+      pThumbData->Thumb_Size_X = tnx;
+      pThumbData->Thumb_Size_Y = tny;
 
 //    Plot the supplied Lat/Lon on the thumbnail
       int divx = Size_X / tnx;
@@ -1664,6 +1711,32 @@ ThumbData *ChartBaseBSB::GetThumbData(int tnx, int tny, float lat, float lon)
 
 
       return pThumbData;
+}
+
+bool ChartBaseBSB::UpdateThumbData(float lat, float lon)
+{
+//    Plot the supplied Lat/Lon on the thumbnail
+//  Return TRUE if the pixel location of ownship has changed
+
+    int divx = Size_X / pThumbData->Thumb_Size_X;
+    int divy = Size_Y / pThumbData->Thumb_Size_Y;
+
+    int div_factor = __min(divx, divy);
+
+    int pixx, pixy, pixx_test, pixy_test;
+
+    latlong_to_pix(lat, lon, pixx, pixy);
+    pixx_test = pixx / div_factor;
+    pixy_test = pixy / div_factor;
+
+    if((pixx_test != pThumbData->ShipX) || (pixy_test != pThumbData->ShipY))
+    {
+        pThumbData->ShipX = pixx_test;
+        pThumbData->ShipY = pixy_test;
+        return TRUE;
+    }
+    else
+        return FALSE;
 }
 
 
@@ -3517,7 +3590,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.9 2007/06/15 02:45:31 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.10 2008/01/02 20:45:46 bdbcat Exp $
 *
 */
 
