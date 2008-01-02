@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.5 2007/06/10 02:21:53 bdbcat Exp $
+ * $Id: about.cpp,v 1.6 2008/01/02 20:41:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.6  2008/01/02 20:41:39  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.5  2007/06/10 02:21:53  bdbcat
  * Bump to 1.2.1
  *
@@ -54,18 +57,18 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.5 2007/06/10 02:21:53 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.6 2008/01/02 20:41:39 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.2.1"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.2.2"};
 
 
 char AboutText[] =
 {
   "\n\n\n\n                       OpenCPN\n\n\
-      (c) 2000-2007 The OpenCPN Authors\n"
+      (c) 2000-2008 The OpenCPN Authors\n"
 };
 
 char AuthorText[] =
@@ -108,8 +111,10 @@ char AuthorText[] =
       UTM Conversion Algorithms\n\n\
    Carsten Tschach\n\
       tschach@zedat.fu-berlin.de\n\
-      UTM Conversion Algorithms\n\n"
-
+      UTM Conversion Algorithms\n\n\
+   Ed Williams\n\
+      http://williams.best.vwh.net/avform.htm\n\
+      Great Circle Formulary"
 };
 
 
