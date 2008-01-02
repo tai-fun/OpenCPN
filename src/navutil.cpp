@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.8  2008/01/02 20:48:31  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.7  2007/06/10 02:29:34  bdbcat
  * Color scheme support
  *
@@ -73,7 +76,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.7 2007/06/10 02:29:34 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.8 2008/01/02 20:48:31 bdbcat Exp $");
 
 //    Statics
 
@@ -101,8 +104,10 @@ extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
 extern wxString         *pAIS_Port;
 extern AIS_Decoder      *pAIS;
+extern wxString         *pSData_Locn;
 
 extern bool             s_bSetSystemTime;
+extern bool             g_bShowDepthUnits;
 
 #ifdef USE_S57
 extern s52plib          *ps52plib;
@@ -370,7 +375,6 @@ SelectItem *Select::FindSelection(float slat, float slon, int fseltype, float Se
       float a,b,c,d;
       SelectItem *pFindSel;
 
-
 //    Iterate on the list
       wxSelectableItemListNode *node = pSelectList->GetFirst();
 
@@ -426,7 +430,6 @@ SelectItem *Select::FindSelection(float slat, float slon, int fseltype, float Se
                   }
 
                   return NULL;
-
 find_ok:
                   return pFindSel;
 }
@@ -871,6 +874,9 @@ int MyConfig::LoadMyConfig(int iteration)
       g_bShowPrintIcon = false;
       Read("ShowPrintIcon", &g_bShowPrintIcon);
 
+      g_bShowDepthUnits = false;
+      Read("ShowDepthUnits", &g_bShowDepthUnits);
+
       SetPath("/Settings/GlobalState");
       Read("bFollow", &st_bFollow);
 
@@ -1048,7 +1054,7 @@ int MyConfig::LoadMyConfig(int iteration)
           pChartDirArray->Empty();
           wxString str, val;
           long dummy;
-
+          int nAdjustChartDirs = 0;
           int iDir = 0;
           bool bCont = pConfig->GetFirstEntry(str, dummy);
           while ( bCont )
@@ -1057,14 +1063,45 @@ int MyConfig::LoadMyConfig(int iteration)
 
                 wxString dirname(val);
                 if(!dirname.IsEmpty())
+                {
+
+ /*     Special case for first time run after Windows install with sample chart data...
+        We desire that the sample configuration file opencpn.ini should not contain any
+        installation dependencies, so...
+        Detect and update the sample [ChartDirectories] entries to point to the Shared Data directory
+        For instance, if the (sample) opencpn.ini file should contain shortcut coded entries like:
+
+        [ChartDirectories]
+        ChartDir1=SampleCharts\\MaptechRegion7
+
+        then this entry will be updated to be something like:
+        ChartDir1=c:\Program Files\opencpn\SampleCharts\\MaptechRegion7
+
+ */
+                    if(dirname.Find("SampleCharts") == 0)    // only update entries starting with "SampleCharts"
+                    {
+                        nAdjustChartDirs++;
+
+                        pConfig->DeleteEntry(str);
+                        wxString new_dir = dirname.Mid(dirname.Find("SampleCharts"));
+                        new_dir.Prepend(*pSData_Locn);
+                        dirname=new_dir;
+                    }
+
                     if(NULL != pChartDirArray)
-                    pChartDirArray->Add(dirname);
-                iDir++;
+                    {
+                        pChartDirArray->Add(dirname);
+                        iDir++;
+                    }
+                }
 
                 bCont = pConfig->GetNextEntry(str, dummy);
           }
 
+          if(nAdjustChartDirs)
+              pConfig->UpdateChartDirs(pChartDirArray);
       }
+
 
 //    Pens and Colors
       pRoutePen =             wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
@@ -1310,6 +1347,7 @@ void MyConfig::UpdateSettings()
       Write("ShowDebugWindows", m_bShowDebugWindows);
       Write("ShowPrintIcon", g_bShowPrintIcon);
       Write("SetSystemTime", s_bSetSystemTime);
+      Write("ShowDepthUnits", g_bShowDepthUnits);
 
 
 //    S57 Object Filter Settings
