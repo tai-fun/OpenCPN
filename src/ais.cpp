@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.5 2007/06/15 02:47:41 bdbcat Exp $
+ * $Id: ais.cpp,v 1.6 2008/01/02 20:42:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.6  2008/01/02 20:42:27  bdbcat
+ * Add ROT Decode, cleanup
+ *
  * Revision 1.5  2007/06/15 02:47:41  bdbcat
  * Remove (some) debug printf
  *
@@ -69,7 +72,7 @@ extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 
-CPL_CVSID("$Id: ais.cpp,v 1.5 2007/06/15 02:47:41 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.6 2008/01/02 20:42:27 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -110,7 +113,20 @@ char test_str[24][79] = {
 //---------------------------------------------------------------------------------
 AIS_Target_Data::AIS_Target_Data()
 {
-    strcpy(&ShipName[0], "UNKNOWN             ");
+    strncpy(ShipName, "UNKNOWN             ", 21);
+    strncpy(CallSign, "UnDef  ", 8);
+
+    SOG = 555.;
+    COG = 666.;
+
+    ReportTicks = (time_t)1;
+
+    MID = 555;
+    MMSI = 666;
+    NavStatus = 777;
+    SyncState = 888;
+    SlotTO = 999;
+
 }
 
 //---------------------------------------------------------------------------------
@@ -412,52 +428,41 @@ AIS_Error AIS_Decoder::Decode(char *str)
         AIS_Bitstring strbit(string_to_parse.c_str());
 
         //  And create a provisional target
-        AIS_Target_Data *td = Parse_VDMBitstring(&strbit);
-        AIS_Target_Data *temp = NULL;
-        AIS_Target_Data *tm = NULL;
+        AIS_Target_Data *pNewTargetData = Parse_VDMBitstring(&strbit);
+        AIS_Target_Data *pStaleTarget = NULL;
+        AIS_Target_Data *pUpdatedTarget = NULL;
 
-        if(td)
+        if(pNewTargetData)
         {
-            ///
+
         //  Search the current AISTargetList for an MMSI match
-            AIS_Target_Hash::iterator it = AISTargetList->find( td->MMSI );
+            AIS_Target_Hash::iterator it = AISTargetList->find( pNewTargetData->MMSI );
             if(it == AISTargetList->end())                  // not found
             {
-                (*AISTargetList)[td->MMSI] = td;            // so insert this entry
-                tm = td;
+                (*AISTargetList)[pNewTargetData->MMSI] = pNewTargetData;            // so insert this entry
+                pUpdatedTarget = pNewTargetData;
 
-                ///  Debug
-                wxDateTime now = wxDateTime::Now();
-                now.MakeGMT();
-                int target_age = now.GetTicks() - tm->ReportTicks;
-                if((target_age > 600) || (target_age < -500))
-                    printf("AIS:Found very high/absurd target age after add: %d\n", target_age);
             }
             else
             {
-                temp = (*AISTargetList)[td->MMSI];          // find current entry
-                tm = Merge(temp, td);                       // merge in new data
+                pStaleTarget = (*AISTargetList)[pNewTargetData->MMSI];          // find current entry
+                pUpdatedTarget = Merge(pStaleTarget, pNewTargetData);           // merge in new data
 
-                (*AISTargetList)[td->MMSI] = tm;            // replace the current entry
-                delete temp;                                // and kill the old one
-                delete td;
-
-                ///  Debug
-                wxDateTime now = wxDateTime::Now();
-                now.MakeGMT();
-                int target_age = now.GetTicks() - tm->ReportTicks;
-                if((target_age > 600) || (target_age < -500))
-                    printf("AIS:Found very high/absurd target age after merge: %d\n", target_age);
+                (*AISTargetList)[pNewTargetData->MMSI] = pUpdatedTarget;  // replace the current entry
+                delete pNewTargetData;
 
             }
 
         //  Update the AIS Target Selectable list
 
-            if(!pSelectAIS->DeleteSelectablePoint((void *)temp, SELTYPE_AISTARGET))
-                if(temp != NULL)
+            if(!pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget, SELTYPE_AISTARGET))
+                if(pStaleTarget != NULL)
                     printf("Delete AIS Selectable point failed\n");
 
-            pSelectAIS->AddSelectablePoint(tm->Lat, tm->Lon, (void *)tm, SELTYPE_AISTARGET);
+            pSelectAIS->AddSelectablePoint(pUpdatedTarget->Lat, pUpdatedTarget->Lon,
+                                           (void *)pUpdatedTarget, SELTYPE_AISTARGET);
+
+            delete pStaleTarget;                            // kill old entry entirely
 
             ret = AIS_NoError;
         }
@@ -468,6 +473,35 @@ AIS_Error AIS_Decoder::Decode(char *str)
     else
         ret = AIS_Partial;
 
+    ///Debug
+    /// Scrub the selectable list
+    /*
+//    Iterate on the list
+    SelectItem *pFindSel;
+    AIS_Target_Data *test_target;
+    wxSelectableItemListNode *node = pSelectAIS->GetSelectList()->GetFirst();
+
+    while(node)
+    {
+        pFindSel = node->GetData();
+        if(pFindSel->m_seltype == SELTYPE_AISTARGET)
+        {
+            switch(SELTYPE_AISTARGET)
+            {
+                case SELTYPE_AISTARGET:
+                    test_target = (AIS_Target_Data *)pFindSel->m_pData1;
+                    printf("Target Name / MMSI: %s %d\n", test_target->ShipName, test_target->MMSI);
+                    break;
+
+            }
+        }
+
+
+        node = node->GetNext();
+    }
+    printf("\n");
+
+    */
 
     return ret;
 }
@@ -493,7 +527,10 @@ AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tth
      }
 
      else
+     {
+//         printf("Copying with unexpected MID= %d\n", tthis->MID);
          *result = *tlast;                  // default
+     }
 
 
 
@@ -525,6 +562,10 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
 
     int message_ID = bstr->GetInt(1, 6);        // Parse on message ID
 
+    /// Debug
+//    if(message_ID > 5)
+//        printf("message_ID bogus: %d\n", message_ID);
+
     ///
     switch (message_ID)
     {
@@ -534,9 +575,6 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
         {
             atd.MID = message_ID;
             atd.MMSI = bstr->GetInt(9, 30);
-/// Debug
-///            if(atd.MMSI && (atd.MMSI < 100000000))
-///                atd.MMSI = bstr->GetInt(9, 30);
 
             atd.NavStatus = bstr->GetInt(39, 4);
             atd.SOG = 0.1 * (bstr->GetInt(51, 10));
@@ -553,6 +591,13 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
 
             atd.COG = 0.1 * (bstr->GetInt(117, 12));
             atd.HDG = 1.0 * (bstr->GetInt(129, 9));
+
+            atd.ROTAIS = bstr->GetInt(43, 8);
+            if(atd.ROTAIS == 128)
+                atd.ROTAIS = 0;                      // not available codes as zero
+            if((atd.ROTAIS & 0x80) == 0x80)
+                atd.ROTAIS = atd.ROTAIS - 256;       // convert to twos complement
+
             utc_sec = bstr->GetInt(138, 6);
 
             if((1 == message_ID) || (2 == message_ID))      // decode SOTDMA per 7.6.7.2.2
@@ -661,8 +706,6 @@ bool AIS_Decoder::NMEACheckSumOK(char *str)
 //  Resulting string to OWNED BY CALLER
 wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
 {
-//    printf("On BuildQueryResult, AIS target data ReportTicks is: %ld\n",td->ReportTicks);
-
     wxString *res = new wxString;
     wxString line;
 
@@ -690,6 +733,18 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     int target_age = now.GetTicks() - td->ReportTicks;
 
 ///  Debug
+/*
+    line.Printf("MID: %d\n", td->MID);
+    res->Append(line);
+
+    line.Printf("NavStatus: %d\n", td->NavStatus);
+    res->Append(line);
+
+    line.Printf("ReportTicks: %d\n", (int)td->ReportTicks);
+    res->Append(line);
+*/
+
+
     if((target_age > 600) || (target_age < -500))
     {
         printf("\nAIS:Found absurd target age\n");
@@ -1201,41 +1256,76 @@ void *OCP_AIS_Thread::Entry()
 
     // Allocate the termios data structures
 
-    pttyset = (termios *)malloc(sizeof (termios));
+    pttyset = (termios *)calloc(sizeof (termios), 1);
     pttyset_old = (termios *)malloc(sizeof (termios));
 
     // Open the serial port.
-    if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
+    //   using O_NDELAY to force ignore of DCD (carrier detect) MODEM line
+    if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
     {
-        wxLogMessage("AIS NMEA input device open failed: %s\n", m_pPortName->c_str());
+        wxLogMessage("AIS tty input device open failed: %s\n", m_pPortName->c_str());
         return 0;
     }
 
 
+//    {
+//      (void)cfsetispeed(pttyset, B38400);
+//      (void)cfsetospeed(pttyset, (speed_t)B38400);
+      tcsetattr(m_ais_fd, TCSANOW, pttyset);
+//      (void)tcflush(m_ais_fd, TCIOFLUSH);
+//    }
+
+    if (isatty(m_ais_fd) == 0)
     {
-        (void)cfsetispeed(pttyset, B38400);
-        (void)cfsetospeed(pttyset, (speed_t)B38400);
-        (void)tcsetattr(m_ais_fd, TCSANOW, pttyset);
-        (void)tcflush(m_ais_fd, TCIOFLUSH);
+           wxLogMessage("AIS tty input device isatty() failed for %s, retrying open()...\n", m_pPortName->c_str());
+
+           close(m_ais_fd);
+         if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
+           {
+                wxLogMessage("AIS tty input device open failed for %s on retry, aborting.\n", m_pPortName->c_str());
+                close(m_ais_fd);
+                return(0);
+           }
+
+           if (isatty(m_ais_fd) == 0)
+           {
+               wxLogMessage("AIS tty input device isatty() failed for %s on retyr, aborting.\n", m_pPortName->c_str());
+               close(m_ais_fd);
+               return(0);
+           }
     }
 
-    if (isatty(m_ais_fd)!=0)
+    if (1/*isatty(m_ais_fd) != 0*/)
     {
 
       /* Save original terminal parameters */
       if (tcgetattr(m_ais_fd,pttyset_old) != 0)
       {
-          wxLogMessage("AIS NMEA input device getattr failed: %s\n", m_pPortName->c_str());
-          return 0;
+          wxLogMessage("AIS tty input device getattr failed for %s, retrying...\n", m_pPortName->c_str());
+
+        close(m_ais_fd);
+        if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
+          {
+              wxLogMessage("AIS tty input device open failed on retry for %s, aborting.\n", m_pPortName->c_str());
+              return 0;
+          }
+
+        if (tcgetattr(m_ais_fd,pttyset_old) != 0)
+          {
+            wxLogMessage("AIS tty input device getattr failed on retry for %s, aborting.\n", m_pPortName->c_str());
+                return 0;
+          }
       }
-      (void)memcpy(pttyset, pttyset_old, sizeof(termios));
+
+      memcpy(pttyset, pttyset_old, sizeof(termios));
 
       //  Build the new parms off the old
 
       // Set blocking/timeout behaviour
       memset(pttyset->c_cc,0,sizeof(pttyset->c_cc));
-//      pttyset->c_cc[VMIN] = 1;
+
       pttyset->c_cc[VTIME] = 11;                        // 1.1 sec timeout
+      pttyset->c_cc[VEOF]  = 4;                         // EOF Character
 
       /*
       * No Flow Control
@@ -1262,12 +1352,15 @@ void *OCP_AIS_Thread::Entry()
       }
       pttyset->c_cflag &=~ CSIZE;
       pttyset->c_cflag |= (CSIZE & (stopbits==2 ? CS7 : CS8));
+
+      cfsetispeed(pttyset, B38400);
+      cfsetospeed(pttyset, B38400);
+
       if (tcsetattr(m_ais_fd, TCSANOW, pttyset) != 0)
       {
-          wxLogMessage("NMEA input device setattr failed: %s\n", m_pPortName->c_str());
+          wxLogMessage("AIS tty input device setattr failed: %s\n", m_pPortName->c_str());
           return 0;
       }
-
 
       (void)tcflush(m_ais_fd, TCIOFLUSH);
     }
@@ -1275,7 +1368,6 @@ void *OCP_AIS_Thread::Entry()
 
 
     bool not_done = true;
-//    bool nl_found;
     char next_byte = 0;
     ssize_t newdata = 0;
 
@@ -1336,7 +1428,7 @@ void *OCP_AIS_Thread::Entry()
 // this is the clean way to do it
 //    pttyset_old->c_cflag |= HUPCL;
 //    (void)tcsetattr(m_ais_fd,TCSANOW,pttyset_old);
-    (void)close(m_ais_fd);
+    close(m_ais_fd);
 
     free (pttyset);
     free (pttyset_old);
