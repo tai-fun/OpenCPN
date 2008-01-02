@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.8 2007/06/15 03:08:07 bdbcat Exp $
+ * $Id: chart1.h,v 1.9 2008/01/02 21:04:16 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.9  2008/01/02 21:04:16  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.8  2007/06/15 03:08:07  bdbcat
  * Cleanup
  *
@@ -86,7 +89,7 @@ const int ID_TOOLBAR = 500;
 
 enum
 {
-      ID_WEST = 550,
+      ID_WEST = 1550,
       ID_EAST,
       ID_ZOOMIN,
       ID_ZOOMOUT,
@@ -136,6 +139,8 @@ typedef enum ColorScheme
       GLOBAL_COLOR_SCHEME_NIGHT,
       N_COLOR_SCHEMES
 }_ColorScheme;
+
+#define N_STATUS_BAR_FIELDS_MAX     20
 
 //      Define a constant GPS signal watchdog timeout value
 #define GPS_TIMEOUT_SECONDS  5
@@ -200,20 +205,19 @@ class MyFrame: public wxFrame
 
     bool GetMemoryStatus(int& mem_total, int& mem_used);
 
+    wxStatusBar         *m_pStatusBar;
     int                 nRoute_State;
     int                 nBlinkerTick;
     bool                m_bTimeIsSet;
 
-    wxStatusBar         *m_pStatusBar;
-
     wxTimer             FrameTimer1;
-
     wxTextCtrl          *m_textWindow;
 
     wxStaticBitmap      *m_ptool_ct_dummy;           // part of toolbar
     wxBitmapButton      *m_ptool_ct_dummy_bb;        // part of toolbar
     int                 m_tool_dummy_size_x, m_tool_dummy_size_y;
     int                 m_statTool_pos;
+    string_to_pbitmap_hash *m_phash;
 
   private:
     wxToolBar *CreateAToolbar();
@@ -232,6 +236,8 @@ class MyFrame: public wxFrame
     string_to_pbitmap_hash tool_bitmap_hash_day;
     string_to_pbitmap_hash tool_bitmap_hash_dusk;
     string_to_pbitmap_hash tool_bitmap_hash_night;
+
+    int                 m_StatusBarFieldCount;
 
     DECLARE_EVENT_TABLE()
 };

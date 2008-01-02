@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.h,v 1.5 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: wificlient.h,v 1.6 2008/01/02 21:06:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  wifi Client Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.h,v $
+ * Revision 1.6  2008/01/02 21:06:12  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.5  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -34,10 +37,6 @@
  *
  * Revision 1.3  2006/12/03 21:19:07  dsr
  * Redefine some ID constants from global enum list
- *
- * Revision 1.2  2006/10/08 00:36:25  dsr
- * no message
- *
  *
  */
 
@@ -56,12 +55,12 @@
 
 #include "dychart.h"
 
-
 #include "wx/socket.h"
 
 #ifdef __WXMSW__
 #include <wx/datetime.h>
 #endif
+
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
@@ -87,7 +86,7 @@ typedef struct  {
 
 class MyFrame;
 
-//  A local structure fo managing station scanning
+//  A local structure for managing station scanning
 typedef struct
 {
     char        ESSID[64];
@@ -156,20 +155,23 @@ typedef struct _WIFI_DATA_MSG1
 //
 //-------------------------------------------------------------------------------------------------------------
 
-//      WiFi server produces messages composed of exactly 4 wifi_scan_data structures
-//      in a 1024 byte buffer, on 256 byte boundaries.
+//      WiFi server produces messages composed of wifi_scan_data structures
+//      in a byte buffer, on 256 byte boundaries.
 //      This allows extension of the data structures without radical changes to server protocol
 
-#define NSCAN_DATA_STRUCT                   4
-#define WIFI_SCAN_RESULT_BUFFER_LENGTH      256 * 4
+
 typedef struct
 {
     char        ESSID[64];
     int         sig_quality;
     int         secure;
+    int         channel;
+    sockaddr    ap_addr;
+    int         key_flags;
+    unsigned char mode;
 } wifi_scan_data;
 
-#define SERVER_PORT                         3000
+#define SERVER_PORT          3000           // the wifid tcp/ip socket server port
 
 #define WIFI_DOG_TIMEOUT 5
 
@@ -191,8 +193,6 @@ class WIFIDNSTestThread: public wxThread
     private:
         wxString *m_pip;
 };
-
-
 
 
 #endif

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.2 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: options.h,v 1.3 2008/01/02 21:05:30 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.3  2008/01/02 21:05:30  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.2  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -85,7 +88,8 @@ enum {
         ID_SOUNDGCHECKBOX,
         ID_METACHECKBOX,
         ID_TEXTCHECKBOX,
-        ID_SCAMINCHECKBOX
+        ID_SCAMINCHECKBOX,
+        ID_SHOWDEPTHUNITSBOX1
 };
 
 
@@ -144,6 +148,7 @@ public:
     wxCheckBox              *pDebugShowStat;
     wxCheckBox              *pPrintShowIcon;
     wxCheckBox              *pCDOOutlines;
+    wxCheckBox              *pSDepthUnits;
 
 //    For "S57" page
     wxPanel                 *ps57Ctl;

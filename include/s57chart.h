@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.8 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: s57chart.h,v 1.9 2008/01/02 21:06:00 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.9  2008/01/02 21:06:00  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.8  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -125,6 +128,7 @@ public:
 
       ThumbData *GetThumbData(int tnx, int tny, float lat, float lon);
       ThumbData *GetThumbData() {return pThumbData;}
+      bool UpdateThumbData(float lat, float lon);
 
       float GetNativeScale(){return NativeScale;}
       float GetChartSkew(){return 0.0;}

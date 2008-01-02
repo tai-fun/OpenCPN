@@ -51,8 +51,11 @@
         <envvars/>
         <configargs>--enable-debug=full --with-gdal-internal --with-wx-config=/home/dsr/Projects/wxWidgets/wxGTK-2.6.2/build_gtk_debug/wx-config</configargs>
         <builddir/>
-        <topsourcedir>/home/dsr/Projects/opencpn</topsourcedir>
-        <cppflags/>
+        <topsourcedir>/home/dsr/Projects/opencpn_sf/opencpn</topsourcedir>
+        <cppflags>	 -I./include -I./src/nmea0183
+	-I/usr/X11R6/include -I/usr/include/atk-1.0 -I/usr/include/pango-1.0 -I/usr/include/freetype2
+   -I/usr/include/freetype2/config -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
+</cppflags>
         <ldflags>-lGL -lGLU</ldflags>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
@@ -70,6 +73,11 @@
         <envvar value="1" name="WANT_AUTOCONF_2_5" />
         <envvar value="1" name="WANT_AUTOMAKE_1_6" />
       </envvars>
+      <abortonerror>true</abortonerror>
+      <numberofjobs>1</numberofjobs>
+      <dontact>false</dontact>
+      <makebin/>
+      <prio>0</prio>
     </make>
   </kdevautoproject>
   <kdevfileview>

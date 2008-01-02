@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.7 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: chartbase.h,v 1.8 2008/01/02 21:04:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.8  2008/01/02 21:04:29  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.7  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -109,6 +112,8 @@ public:
       wxBitmap    *pDIBThumb;
       int         ShipX;
       int         ShipY;
+      int         Thumb_Size_X;
+      int         Thumb_Size_Y;
 };
 
 
@@ -120,6 +125,14 @@ typedef struct _Extent{
   double ELON;
 }Extent;
 
+//          Depth unit type enum
+typedef enum ChartDepthUnitType
+{
+    DEPTH_UNIT_UNKNOWN,
+    DEPTH_UNIT_FEET,
+    DEPTH_UNIT_METERS,
+    DEPTH_UNIT_FATHOMS
+}_ChartDepthUnitType;
 
 
 // ----------------------------------------------------------------------------
@@ -138,6 +151,8 @@ public:
 //    Accessors
       virtual ThumbData *GetThumbData(int tnx, int tny, float lat, float lon) = 0;
       virtual ThumbData *GetThumbData() = 0;
+      virtual bool UpdateThumbData(float lat, float lon) = 0;
+
       virtual float GetNativeScale() = 0;
       virtual float GetChartSkew() = 0;
       virtual void GetChartExtent(Extent *pext) = 0;
@@ -145,6 +160,8 @@ public:
       virtual void GetPubDate(wxString &data){ data = *pPubYear;}
       virtual void GetFullPath(wxString &data){ data = *pFullPath;}
       virtual void GetName(wxString &data){ data = *pName;}
+      virtual ChartDepthUnitType GetDepthUnitType(void) { return m_depth_unit_id;}
+
       virtual bool IsReadyToRender(){ return bReadyToRender;}
 
       virtual void InvalidateCache(void) = 0;
@@ -165,6 +182,7 @@ public:
       wxString          *pName;
 
       wxString          *pPubYear;
+      wxString          *pDepthUnits;
 
       wxBitmap          *pcached_bitmap;
 
@@ -174,6 +192,8 @@ public:
       bool              bReadyToRender;
 
       double            Chart_Error_Factor;
+
+      ChartDepthUnitType m_depth_unit_id;
 };
 
 
@@ -193,6 +213,7 @@ public:
 //    Accessors
       virtual ThumbData *GetThumbData(int tnx, int tny, float lat, float lon);
       virtual ThumbData *GetThumbData() {return pThumbData;}
+      virtual bool UpdateThumbData(float lat, float lon);
 
       virtual float GetNativeScale();
       virtual void GetPubDate(wxString &data);

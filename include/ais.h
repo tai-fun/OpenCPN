@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.5 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: ais.h,v 1.6 2008/01/02 21:04:07 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.6  2008/01/02 21:04:07  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.5  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -123,6 +126,7 @@ public:
     double      HDG;
     double      Lon;
     double      Lat;
+    int         ROTAIS;
     char        CallSign[8];                // includes terminator
     char        ShipName[21];
     unsigned char ShipType;

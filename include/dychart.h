@@ -92,12 +92,14 @@
 
 //    Home Base, used if the config file lat/lon seems bogus or missing
 
-
 //#define START_LAT   35.1025              // New Bern (Ver 1.0)
 //#define START_LON  -77.0342
 
-#define START_LAT   26.783               // Green Turtle Key  (Ver 1.2)
-#define START_LON  -77.333
+//#define START_LAT   26.783               // Green Turtle Key  (Ver 1.2)
+//#define START_LON  -77.333
+
+#define START_LAT   25.786               //  Miami Beach (Ver 1.2.2)
+#define START_LON  -80.148
 
 //------------------------------------------------------------------------------
 //          Some MSW and MSVCRT Specific Includes

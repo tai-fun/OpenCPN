@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.9 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: chcanv.h,v 1.10 2008/01/02 21:04:51 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.10  2008/01/02 21:04:51  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.9  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -97,6 +100,7 @@ enum
       MID_BOT,
 };
 
+
 //----------------------------------------------------------------------------
 // ViewPort
 //----------------------------------------------------------------------------
@@ -145,7 +149,6 @@ class ViewPort
     double   lat_bot;
     double   lon_left;
     double   lon_right;
-
 
 };
 
@@ -229,6 +232,7 @@ private:
       RoutePoint  *pFoundRoutePoint;
 
       AIS_Target_Data *pFoundAIS_Target_Data;
+      AIS_Target_Data *pSnapshotAIS_Target_Data;
 
       wxCursor    *pCursorLeft;
       wxCursor    *pCursorRight;
@@ -270,13 +274,17 @@ private:
 
       void DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSelList,
                         bool bdraw_mono = false);
-      void DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox,
+      void DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox, double skew_angle,
                            bool bRebuildSelList, bool bforce_redraw_currents, bool bdraw_mono = false);
       void DrawTCWindow(int x, int y, void *pIDX);
       void RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool bdraw_mono = false);
       void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono = false);
       wxBitmap *DrawTCCBitmap(bool bAddNewSelpoints);
       void AISDraw(wxDC& dc);
+
+      void EmbossDepthScale(wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, int emboss_ident);
+      int *CreateEmbossMap(wxFont &font, int width, int height, char *str);
+      void CreateDepthUnitEmbossMaps(void);
 
 
       //    Data
@@ -327,6 +335,16 @@ private:
 
       wxBitmap    *proute_bm;       // a bitmap and dc used to calculate route bounding box
       wxMemoryDC  dc_route;         // seen in mouse->edit->route
+
+      double   m_ownship_predictor_minutes;      // Minutes shown on ownship position predictor graphic
+                                                // defaults to 5
+      double   m_ais_predictor_minutes;          // Minutes shown on AIS target position predictor graphic
+                                                // defaults to 5
+
+      int emboss_width, emboss_height;
+      int *pEM_Feet;                // maps for depth unit emboss pattern
+      int *pEM_Meters;
+      int *pEM_Fathoms;
 
 DECLARE_EVENT_TABLE()
 };

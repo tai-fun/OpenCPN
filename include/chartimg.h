@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.7 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: chartimg.h,v 1.8 2008/01/02 21:04:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.8  2008/01/02 21:04:39  bdbcat
+ * Update for Version 1.2.2
+ *
  * Revision 1.7  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -155,6 +158,7 @@ public:
       //    Accessors
       virtual ThumbData *GetThumbData(int tnx, int tny, float lat, float lon);
       virtual ThumbData *GetThumbData() {return pThumbData;}
+      virtual bool UpdateThumbData(float lat, float lon);
 
       float GetNativeScale(){return (float)Chart_Scale;}
       float GetChartSkew(){return Chart_Skew;}

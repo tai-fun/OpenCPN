@@ -87,6 +87,9 @@ extern "C" void fromTM(double x, double y, double lat0, double lon0, double *lat
 extern "C" void toSM(float lat, float lon, float lat0, float lon0, double *x, double *y);
 extern "C" void fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon);
 
+extern "C" void ll_gc_ll(double lat, double lon, double crs, double dist, double *dlat, double *dlon);
+
+
 #else
 void toDMS(double a, char *bufp, int bufplen);
 void toDMM(double a, char *bufp, int bufplen);
