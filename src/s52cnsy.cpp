@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.4 2007/05/03 13:23:56 dsr Exp $
+ * $Id: s52cnsy.cpp,v 1.5 2008/01/10 03:37:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.5  2008/01/10 03:37:31  bdbcat
+ * Update for Mac OSX
+ *
  * Revision 1.4  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -77,10 +80,9 @@ extern bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val);
 // size of attributes value list buffer
 #define LISTSIZE   16   // list size
 
-
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.4 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.5 2008/01/10 03:37:31 bdbcat Exp $");
 
 static void *CLRLIN01(void *param)
 {
@@ -1665,8 +1667,6 @@ Cond condTable[] = {
    {"SOUNDG03",SOUNDG03},                   // special case for MPS
    {"########",NULL}
 };
-
-
 
 #if 0
 // S52CS.c : Conditional Symbologie procedure 3.2 (CS)

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.10 2008/01/02 21:04:51 bdbcat Exp $
+ * $Id: chcanv.h,v 1.11 2008/01/10 03:39:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
- * Revision 1.10  2008/01/02 21:04:51  bdbcat
- * Update for Version 1.2.2
+ * Revision 1.11  2008/01/10 03:39:06  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.9  2007/06/10 02:37:18  bdbcat
  * Cleanup
@@ -55,6 +55,9 @@
 #include <wx/datetime.h>
 #endif
 
+#ifdef __WXOSX__              // begin rms
+#include <wx/datetime.h>
+#endif                        // end rms
 
 //----------------------------------------------------------------------------
 //    Forward Declarations

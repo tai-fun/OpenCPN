@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.6 2008/01/02 20:42:27 bdbcat Exp $
+ * $Id: ais.cpp,v 1.7 2008/01/10 03:35:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
- * Revision 1.6  2008/01/02 20:42:27  bdbcat
- * Add ROT Decode, cleanup
+ * Revision 1.7  2008/01/10 03:35:31  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.5  2007/06/15 02:47:41  bdbcat
  * Remove (some) debug printf
@@ -46,15 +46,16 @@
  *
  */
 
+#ifdef __WXMAC__  // begin rms
+#define __LINUX__
+#endif                        // end rms
 
-//#include "wx/wxprec.h"
-
-//#ifndef  WX_PRECOMP
-  #include "wx/wx.h"
-//#endif //precompiled headers
-
+#include "wx/wx.h"
 #include "wx/tokenzr.h"
-//#include "wx/datetime.h"
+
+#ifdef __WXMAC__  //begin rms
+#include "wx/datetime.h"
+#endif                        // end rms
 
 #include <stdlib.h>
 #include <math.h>
@@ -72,7 +73,7 @@ extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 
-CPL_CVSID("$Id: ais.cpp,v 1.6 2008/01/02 20:42:27 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.7 2008/01/10 03:35:31 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 

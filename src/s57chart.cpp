@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.10 2008/01/02 20:57:46 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.11 2008/01/10 03:38:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
- * Revision 1.10  2008/01/02 20:57:46  bdbcat
- * Extract/Support Depth Units
+ * Revision 1.11  2008/01/10 03:38:32  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.9  2007/06/10 02:33:59  bdbcat
  * Color scheme support
@@ -86,7 +86,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.10 2008/01/02 20:57:46 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.11 2008/01/10 03:38:32 bdbcat Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -3681,6 +3681,10 @@ bool s57_GetChartFirstM_COVR(char *pFullPath, OGRDataSource **pDS, OGRFeature **
     }
 
     OGRLayer *pLay = poDS->GetLayerByName("M_COVR");
+//begin rms
+    if (NULL == pLay)
+        return false ;
+// end rms
     *pLayer = pLay;                         // Give to caller
     pLay->ResetReading();
     OGRFeature *objectDef = pLay->GetNextFeature();

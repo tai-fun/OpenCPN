@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.10 2008/01/02 20:56:52 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.11 2008/01/10 03:37:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
- * Revision 1.10  2008/01/02 20:56:52  bdbcat
- * Update for Version 1.2.2
+ * Revision 1.11  2008/01/10 03:37:47  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.9  2007/06/10 02:33:11  bdbcat
  * Cleanup
@@ -83,9 +83,11 @@
 #include <malloc.h>
 #endif
 
+#ifndef __WXOSX__			// begin rms
 extern s52plib          *ps52plib;
+#endif						// end rms
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.10 2008/01/02 20:56:52 bdbcat Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.11 2008/01/10 03:37:47 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.8 2008/01/02 21:04:39 bdbcat Exp $
+ * $Id: chartimg.h,v 1.9 2008/01/10 03:38:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
- * Revision 1.8  2008/01/02 21:04:39  bdbcat
- * Update for Version 1.2.2
+ * Revision 1.9  2008/01/10 03:38:55  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.7  2007/06/10 02:37:18  bdbcat
  * Cleanup
@@ -129,19 +129,31 @@ public:
       bool              bValid;
 };
 
-
+#ifndef __WXOSX__ // begin rms
 class Palette
 {
 public:
     Palette();
     ~Palette();
-
     int *FwdPalette;
     int *RevPalette;
     int nFwd;
     int nRev;
 
 };
+#else
+class opncpnPalette
+{
+    public:
+        opncpnPalette();
+        ~opncpnPalette();
+
+        int *FwdPalette;
+        int *RevPalette;
+        int nFwd;
+        int nRev;
+};
+#endif // end rms
 
 // ----------------------------------------------------------------------------
 // ChartBaseBSB
@@ -149,7 +161,7 @@ public:
 
 class  ChartBaseBSB     :public ChartBase
 {
-public:
+    public:
       //    Public methods
 
       ChartBaseBSB();
@@ -289,12 +301,18 @@ protected:
       bool              bHaveImbeddedGeoref;
       double            m_cph;
 
+#ifndef __WXMAC__ // begin rms
       Palette           *pPalettes[N_BSB_COLORS];
+#else
+      opncpnPalette     *pPalettes[N_BSB_COLORS];
+#endif // end rms
+
       BSB_Color_Capability m_mapped_color_index;
 
 //    Integer digital scale value above which bilinear scaling is not allowed,
 //      and subsampled scaling must be performed
       int         m_bilinear_limit;
+
 
       bool        bUseLineCache;
       float       Chart_Skew;

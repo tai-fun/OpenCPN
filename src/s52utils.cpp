@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52utils.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $
+ * $Id: s52utils.cpp,v 1.3 2008/01/10 03:38:08 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Utility Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52utils.cpp,v $
+ * Revision 1.3  2008/01/10 03:38:08  bdbcat
+ * Update for Mac OSX
+ *
  * Revision 1.2  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -58,7 +61,7 @@
  */
 
 #include "dychart.h"
-CPL_CVSID("$Id: s52utils.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: s52utils.cpp,v 1.3 2008/01/10 03:38:08 bdbcat Exp $");
 
 #include "s52utils.h"
 #include <stdio.h>        // FILE
@@ -194,7 +197,7 @@ static double _MARparamVal[] = {
     16.0      // NUM
 };
 
-
+#ifndef __XCODE_BUILD__		// begin rms
 int isblank(char c){
 
   if (c == ' ' || c == 0x09)
@@ -203,6 +206,7 @@ int isblank(char c){
 
 
 }
+#endif						// end rms
 
 //////////////////////////////////////////////////////////////////
 

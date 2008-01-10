@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.10 2008/01/02 20:45:46 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.11 2008/01/10 03:35:57 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
- * Revision 1.10  2008/01/02 20:45:46  bdbcat
- * Extract/Support Depth Units
+ * Revision 1.11  2008/01/10 03:35:57  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.9  2007/06/15 02:45:31  bdbcat
  * Use line cache by default
@@ -77,7 +77,9 @@
 
 
 #include <sys/stat.h>
-
+#ifdef __WXOSX__  // begin rms
+#include <wx/image.h>
+#endif                        // end rms
 // ----------------------------------------------------------------------------
 // Random Prototypes
 // ----------------------------------------------------------------------------
@@ -85,7 +87,7 @@
 extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.10 2008/01/02 20:45:46 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.11 2008/01/10 03:35:57 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -109,6 +111,7 @@ ThumbData::~ThumbData()
 // ============================================================================
 // Palette implementation
 // ============================================================================
+#ifndef __WXMAC__ // begin rms
 Palette::Palette()
 {
     // Index into palette is 1-based, so predefine the first entry as null
@@ -131,7 +134,30 @@ Palette::~Palette()
 
 
 
+#else
 // ============================================================================
+// Palette implementation
+// ============================================================================
+opncpnPalette::opncpnPalette()
+{
+    // Index into palette is 1-based, so predefine the first entry as null
+    nFwd = 1;
+    nRev = 1;
+    FwdPalette =(int *)malloc( sizeof(int));
+    RevPalette =(int *)malloc( sizeof(int));
+    FwdPalette[0] = 0;
+    RevPalette[0] = 0;
+}
+
+opncpnPalette::~opncpnPalette()
+{
+    if(NULL != FwdPalette)
+        free( FwdPalette );
+    if(NULL != RevPalette)
+        free( RevPalette ) ;
+// ============================================================================
+}
+#endif // end rms
 // ChartBase implementation
 // ============================================================================
 ChartBase::ChartBase()
@@ -1312,10 +1338,15 @@ void ChartBaseBSB::CreatePaletteEntry(char *buffer, int palette_index)
 {
     if(palette_index < N_BSB_COLORS)
     {
+#ifndef __WXMAC__ // begin rms
       if(!pPalettes[palette_index])
             pPalettes[palette_index] = new Palette;
-
       Palette *pp = pPalettes[palette_index];
+#else
+      if(!pPalettes[palette_index])
+            pPalettes[palette_index] = new opncpnPalette;
+      opncpnPalette *pp = pPalettes[palette_index];
+#endif // emd rms
 
       pp->FwdPalette = (int *)realloc(pp->FwdPalette, (pp->nFwd + 1) * sizeof(int));
       pp->RevPalette = (int *)realloc(pp->RevPalette, (pp->nRev + 1) * sizeof(int));
@@ -1346,7 +1377,11 @@ InitReturn ChartBaseBSB::PostInit(void)
       {
             if(pPalettes[i] == NULL)
             {
+#ifndef __WXMAC__ // begin rms
                 Palette *pNullSubPal = new Palette;
+#else
+                opncpnPalette *pNullSubPal = new opncpnPalette;
+#endif // end rms
                 pNullSubPal->nFwd = pPalettes[COLOR_RGB_DEFAULT]->nFwd;        // copy the palette count
                 pNullSubPal->nRev = pPalettes[COLOR_RGB_DEFAULT]->nRev;        // copy the palette count
                 //  Deep copy the palette rgb tables
@@ -3590,7 +3625,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.10 2008/01/02 20:45:46 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.11 2008/01/10 03:35:57 bdbcat Exp $
 *
 */
 

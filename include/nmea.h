@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.8 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: nmea.h,v 1.9 2008/01/10 03:39:33 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.9  2008/01/10 03:39:33  bdbcat
+ * Update for Mac OSX
+ *
  * Revision 1.8  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -44,6 +47,11 @@
 #ifndef __NMEA_H__
 #define __NMEA_H__
 
+// begin rms // use same threading as Linux, i.e. POSIX, probably should change most of __LINUX__ to __POSIX__
+// for legibility
+#ifdef __WXOSX__
+#define __LINUX__
+#endif
 
 // Include wxWindows' headers
 
@@ -202,7 +210,7 @@ private:
       unsigned long           error;
       MyFrame                 *m_parent_frame;
 
-#ifdef __LINUX__
+#if defined ( __LINUX__ ) || defined ( __WXOSX__)
       termios                 *pttyset;
       termios                 *pttyset_old;
 
@@ -266,7 +274,11 @@ private:
 #ifdef __WXMSW__
     CSyncSerialComm   *pWinComm;
 #endif
-
+// begin rms
+#ifdef __WXOSX__
+    CSyncSerialComm   *pWinComm;
+#endif
+//end rms
     bool            bOK;
 
 DECLARE_EVENT_TABLE()

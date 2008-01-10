@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
- * Revision 1.8  2008/01/02 20:48:31  bdbcat
- * Update for Version 1.2.2
+ * Revision 1.9  2008/01/10 03:36:33  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.7  2007/06/10 02:29:34  bdbcat
  * Color scheme support
@@ -76,7 +76,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.8 2008/01/02 20:48:31 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.9 2008/01/10 03:36:33 bdbcat Exp $");
 
 //    Statics
 
@@ -864,6 +864,11 @@ int MyConfig::LoadMyConfig(int iteration)
 
 //    Global options and settings
       SetPath("/Settings");
+// begin rms
+#ifdef __WXOSX__
+	  st_bFollow = false ;
+#endif
+// end rms
 
       s_bSetSystemTime = false;
       Read("SetSystemTime", &s_bSetSystemTime);
@@ -1065,6 +1070,12 @@ int MyConfig::LoadMyConfig(int iteration)
                 if(!dirname.IsEmpty())
                 {
 
+// begin rms
+#ifdef __WXOSX__
+				while ((dirname.Last() == 0x0a) || (dirname.Last() == 0x0d ))
+					dirname.RemoveLast() ;
+#endif
+// end rms
  /*     Special case for first time run after Windows install with sample chart data...
         We desire that the sample configuration file opencpn.ini should not contain any
         installation dependencies, so...

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.19 2008/01/02 20:46:36 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.20 2008/01/10 03:36:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
- * Revision 1.19  2008/01/02 20:46:36  bdbcat
- * Show embossed depth units on chart
+ * Revision 1.20  2008/01/10 03:36:09  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.18  2007/06/15 02:49:42  bdbcat
  * Improve background render logic
@@ -130,7 +130,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.19 2008/01/02 20:46:36 bdbcat Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.20 2008/01/10 03:36:09 bdbcat Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -235,9 +235,7 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
 
 //    Build the cursors
 
-
-
-#ifdef __WXGTK__
+#if defined( __WXGTK__) || defined(__WXOSX__) /* inline rms */
         {
             wxImage ICursorLeft(left);
             wxImage ICursorRight(right);
@@ -300,7 +298,7 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
             pCursorPencil =  new ocpCursor(pencil, 0, 00, 20);
         }
 #endif
-
+		
       pCursorArrow = new wxCursor(wxCURSOR_ARROW);
 
       SetMyCursor(pCursorArrow);
@@ -341,6 +339,12 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
       VPoint.view_scale_ppm = 0;
 
       canvas_scale_factor = 1000.;
+//begin rms debug
+#ifdef __WXOSX__
+      VPoint.clat = 29.50;
+      VPoint.clon = -81.2;
+#endif
+// end rms
 
       m_ownship_predictor_minutes = 5.;     // Minutes shown on ownship position predictor graphic
       m_ais_predictor_minutes     = 5.;     // Minutes shown on AIS target position predictor graphic
@@ -2473,6 +2477,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 //    Arrange to render the WVSChart vector data ..BEHIND.. the rendered current chart
 //    So that uncovered canvas areas show at least the WVS chart
 
+
 //    Make a region covering the current chart on the canvas
       wxRegion CValidRegion;
       Current_Ch->GetValidCanvasRegion(VPoint, &CValidRegion);
@@ -4212,6 +4217,86 @@ ocpCursor::ocpCursor(char **xpm_data, long type,
 
 
 
+#ifdef __WXOSX__	// begin rms
+
+ /*
+//----------------------------------------------------------------------------------------------
+//      ocpCursorRefData Definition/Implementation
+//----------------------------------------------------------------------------------------------
+class ocpCursorRefData: public wxObjectRefData
+{
+      public:
+            ocpCursorRefData();
+            ocpCursorRefData(HCURSOR);
+            ~ocpCursorRefData();
+};
+
+ocpCursorRefData::ocpCursorRefData()
+{
+
+}
+
+ocpCursorRefData::ocpCursorRefData(HCURSOR hcursor)
+{
+}
+
+
+ocpCursorRefData::~ocpCursorRefData()
+{
+}
+*/
+
+//----------------------------------------------------------------------------------------------
+//      ocpCursor Implementation
+//
+//----------------------------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------------------------
+//      A new constructor taking a file name to load and assign as a cursor
+//----------------------------------------------------------------------------------------------
+
+
+ocpCursor::ocpCursor(const wxString& cursorName, long type,
+                     int hotSpotX, int hotSpotY): wxCursor(wxCURSOR_ARROW )
+
+{
+    wxImage cImage;
+
+    if(!cImage.CanRead(cursorName))
+            ::wxInitAllImageHandlers();
+
+    cImage.LoadFile(cursorName);
+
+
+
+//      wxMSW Bug???
+//      On Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
+//      unless a "compatible" dc is provided.  Why??
+//      As a workaround, just make a simple wxDC for temporary use
+
+    wxBitmap tbmp(cImage.GetWidth(),cImage.GetHeight(),-1);
+}
+
+
+//----------------------------------------------------------------------------------------------
+//      A new constructor taking a static char ** of XPM data and assign as a cursor
+//----------------------------------------------------------------------------------------------
+
+
+ocpCursor::ocpCursor(char **xpm_data, long type,
+                     int hotSpotX, int hotSpotY): wxCursor(wxCURSOR_ARROW )
+
+{
+    wxImage cImage(xpm_data);
+
+    wxBitmap tbmp(cImage.GetWidth(),cImage.GetHeight(),-1);
+}
+
+
+
+
+#endif   // __WXOSX__ end rms
 
 //---------------------------------------------------------------------------------------
 //          S57QueryDialog Implementation

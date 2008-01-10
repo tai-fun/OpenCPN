@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.h,v 1.2 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: ocpn_pixel.h,v 1.3 2008/01/10 03:40:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Optimized wxBitmap Object
@@ -68,6 +68,9 @@ void *x_malloc(size_t t);
 #define     ocpnUSE_ocpnBitmap
 #endif
 
+//#ifdef __WXOSX__										   // begin rms
+//#define     ocpnUSE_ocpnBitmap
+//#endif													   // end rms
 
 
 //          Use ocpnBitmap (Optimized wxBitmap)

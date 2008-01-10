@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.4 2007/06/10 02:27:30 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.5 2008/01/10 03:36:19 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.5  2008/01/10 03:36:19  bdbcat
+ * Update for Mac OSX
+ *
  * Revision 1.4  2007/06/10 02:27:30  bdbcat
  * Color scheme support
  *
@@ -76,6 +79,13 @@
   #include "wx/datetime.h"
 #endif
 
+#ifdef __WXOSX__		// begin rms
+  #include <stdlib.h>
+  #include <math.h>
+  #include <time.h>
+  #include "wx/datetime.h"
+#endif					// end rms
+
 #include "chart1.h"
 #include "concanv.h"
 #include "routeman.h"
@@ -88,7 +98,7 @@ extern                  float gCog;
 extern                  float gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.4 2007/06/10 02:27:30 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.5 2008/01/10 03:36:19 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------

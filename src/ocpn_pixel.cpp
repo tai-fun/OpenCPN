@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.cpp,v 1.2 2007/06/10 02:30:28 bdbcat Exp $
+ * $Id: ocpn_pixel.cpp,v 1.3 2008/01/10 03:37:02 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Optimized wxBitmap Object
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: ocpn_pixel.cpp,v $
- * Revision 1.2  2007/06/10 02:30:28  bdbcat
- * Cleanup
+ * Revision 1.3  2008/01/10 03:37:02  bdbcat
+ * Update for Mac OSX
  *
  *
  */
@@ -112,7 +112,7 @@
 #endif
 
 
-CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.2 2007/06/10 02:30:28 bdbcat Exp $");
+CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.3 2008/01/10 03:37:02 bdbcat Exp $");
 
 
 #ifdef  __WXX11__

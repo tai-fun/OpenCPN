@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.9 2008/01/02 21:04:16 bdbcat Exp $
+ * $Id: chart1.h,v 1.10 2008/01/10 03:38:47 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
- * Revision 1.9  2008/01/02 21:04:16  bdbcat
- * Update for Version 1.2.2
+ * Revision 1.10  2008/01/10 03:38:47  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.8  2007/06/15 03:08:07  bdbcat
  * Cleanup
@@ -70,6 +70,17 @@
 
 #include "cpl_error.h"
 
+
+// begin rms
+#if defined(__WXOSX__) || defined(__LINUX__)
+enum NMEA_EVENT_STATE
+{
+      NMEA_STATE_NONE = 0 ,
+      NMEA_STATE_RDY,
+      NMEA_STATE_DONE
+} ;
+#endif
+// end rms
 
 extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
                              const char * pszErrorMsg );
@@ -279,7 +290,5 @@ enum {
     TIMER_WIFI1,
     FRAME_TIMER_DOG
 };
-
-
 
 #endif

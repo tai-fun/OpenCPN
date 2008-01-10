@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.3 2008/01/02 20:56:18 bdbcat Exp $
+ * $Id: options.cpp,v 1.4 2008/01/10 03:37:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
- * Revision 1.3  2008/01/02 20:56:18  bdbcat
- * Update for Version 1.2.2
+ * Revision 1.4  2008/01/10 03:37:18  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.2  2007/06/10 02:31:21  bdbcat
  * Cleanup
@@ -82,6 +82,14 @@ extern s52plib          *ps52plib;
 
 //    Some constants
 #define ID_CHOICE_NMEA  wxID_HIGHEST + 1
+
+//begin rms
+#ifdef __WXOSX__
+#include "macutils.h"
+      char* paPortNames[MAX_SERIAL_PORTS] ;
+      int iPortNameCount ;
+#endif
+//end rms
 
 
 IMPLEMENT_DYNAMIC_CLASS( options, wxDialog )
@@ -251,6 +259,16 @@ void options::CreateControls()
       m_itemNMEAListBox->Append( _T("COM2"));
       m_itemNMEAListBox->Append( _T("COM3"));
       m_itemNMEAListBox->Append( _T("COM4"));
+//begin rms
+#elif defined (__WXOSX__)
+      memset(paPortNames,0x00,sizeof(paPortNames)) ;
+      iPortNameCount = FindSerialPortNames(&paPortNames[0],MAX_SERIAL_PORTS) ;
+      for (int iPortIndex=0;iPortIndex<iPortNameCount;iPortIndex++)
+      {
+          m_itemNMEAListBox->Append( _T(paPortNames[iPortIndex]));
+          free(paPortNames[iPortIndex]) ;
+      }
+// end rms
 #else
       m_itemNMEAListBox->Append( _T("/dev/ttyS0"));
       m_itemNMEAListBox->Append( _T("/dev/ttyS1"));
@@ -332,6 +350,16 @@ void options::CreateControls()
       m_itemNMEAAutoListBox->Append( _T("COM3"));
       m_itemNMEAAutoListBox->Append( _T("COM4"));
 
+//begin rms
+#elif defined (__WXOSX__)
+      memset(paPortNames,0x00,sizeof(paPortNames)) ;
+      iPortNameCount = FindSerialPortNames(&paPortNames[0],MAX_SERIAL_PORTS) ;
+      for (int iPortIndex=0;iPortIndex<iPortNameCount;iPortIndex++)
+      {
+          m_itemNMEAAutoListBox->Append( _T(paPortNames[iPortIndex]));
+          free(paPortNames[iPortIndex]) ;
+      }
+// end rms
 #else
       m_itemNMEAAutoListBox->Append( _T("/dev/ttyS0"));
       m_itemNMEAAutoListBox->Append( _T("/dev/ttyS1"));
@@ -362,6 +390,16 @@ void options::CreateControls()
       m_itemAISListBox->Append( _T("COM3"));
       m_itemAISListBox->Append( _T("COM4"));
 
+//begin rms
+#elif defined (__WXOSX__)
+      memset(paPortNames,0x00,sizeof(paPortNames)) ;
+      iPortNameCount = FindSerialPortNames(&paPortNames[0],MAX_SERIAL_PORTS) ;
+      for (int iPortIndex=0;iPortIndex<iPortNameCount;iPortIndex++)
+      {
+          m_itemAISListBox->Append( _T(paPortNames[iPortIndex]));
+          free(paPortNames[iPortIndex]) ;
+      }
+// end rms
 #else
       m_itemAISListBox->Append( _T("/dev/ttyS0"));
       m_itemAISListBox->Append( _T("/dev/ttyS1"));

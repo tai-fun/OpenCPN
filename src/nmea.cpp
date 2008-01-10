@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.14 2008/01/02 20:53:41 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.15 2008/01/10 03:36:48 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
- * Revision 1.14  2008/01/02 20:53:41  bdbcat
- * Update for Version 1.2.2
+ * Revision 1.15  2008/01/10 03:36:48  bdbcat
+ * Update for Mac OSX
  *
  * Revision 1.13  2007/06/13 22:46:44  bdbcat
  * Cleanup
@@ -50,8 +50,6 @@
  *
 
  */
-
-
 #include "wx/wxprec.h"
 
 #ifndef  WX_PRECOMP
@@ -71,13 +69,27 @@
 #include "georef.h"
 #include "nmea0183/nmea0183.h"
 
+#ifdef __WXOSX__              // begin rms
+#include <wx/datetime.h>
+#include "macsercomm.h"
+#endif                                    // end rms
+
+#ifdef __WXOSX__
+#define __LINUX__
+#endif
+
+#ifdef __LINUX__ // begin rms
+extern wxMutex    s_pmutexNMEAEventState;
+extern int        g_iNMEAEventState ;
+#endif                        // end rms
+
 #ifdef __WXMSW__
     #ifdef ocpnUSE_MSW_SERCOMM
     #include "sercomm.h"
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.14 2008/01/02 20:53:41 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.15 2008/01/10 03:36:48 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -171,7 +183,6 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
             pNMEA_Thread = new OCP_NMEA_Thread(frame, comx);
             pNMEA_Thread->Run();
 #endif
-
 
 #ifdef __LINUX__
 //    Kick off the NMEA RX thread
@@ -669,7 +680,6 @@ void *OCP_NMEA_Thread::Entry()
 
 
     // Allocate the termios data structures
-
     pttyset = (termios *)malloc(sizeof (termios));
     pttyset_old = (termios *)malloc(sizeof (termios));
 
@@ -682,6 +692,7 @@ void *OCP_NMEA_Thread::Entry()
     }
 
     //something like this may be needed???
+      wxLogMessage("NMEA input device opened: %s\n", m_pPortName->c_str());
 //    fcntl(m_gps_fd, F_SETFL, fcntl(m_gps_fd, F_GETFL) & !O_NONBLOCK);
 
     {
@@ -764,12 +775,17 @@ void *OCP_NMEA_Thread::Entry()
 //    And watching for new line character
 //     On new line character, send notification to parent
 
-
         char next_byte = 0;
         ssize_t newdata;
         newdata = read(m_gps_fd, &next_byte, 1);            // read of one char
                                                             // return (-1) if no data available, timeout
         if(newdata > 0)
+            // begin rms
+#ifdef __WXOSX__
+            if (newdata < 0 )
+                  wxThread::Sleep(100) ;
+#endif
+            // end rms
         {
             nl_found = false;
 
@@ -821,8 +837,11 @@ void *OCP_NMEA_Thread::Entry()
     // parse the message
 
                             *pNMEA0183 << temp_buf;
-                            pNMEA0183->Parse();
-
+                                          // begin rms
+                                          // we must check the return from parse, as some usb to serial adaptors on the MAC spew
+                                          // junk if there is not a serial data cable connected.
+                            if (true == pNMEA0183->Parse())
+                                          {
                             if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
                             {
                                 if(pNMEA0183->Rmc.IsDataValid == NTrue)
@@ -842,17 +861,24 @@ void *OCP_NMEA_Thread::Entry()
 
                                     kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
                                     kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
-
-    //    Signal the main program thread
-                                    wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
-                                    event.SetEventObject( (wxObject *)this );
-                                    event.SetExtraLong(EVT_NMEA_DIRECT);
-                                    m_pMainEventHandler->AddPendingEvent(event);
+                                                      // begin rms
+                                                      // avoid signal to the main window if the last one has not been used.
+                                                      wxMutexLocker* pstateLocker = new wxMutexLocker(s_pmutexNMEAEventState) ;
+                                                      if ( NMEA_STATE_RDY != g_iNMEAEventState )
+                                                      {
+                                                            g_iNMEAEventState = NMEA_STATE_RDY ;
+                                                            //    Signal the main program thread
+                                                            wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+                                                            event.SetEventObject( (wxObject *)this );
+                                                            event.SetExtraLong(EVT_NMEA_DIRECT);
+                                                            m_pMainEventHandler->AddPendingEvent(event);
+                                                      }
+                                                      delete (pstateLocker) ;
                                 }
                             }
 
                         }
-
+                                          } // end rms
                         /////////////////////////////
                         /*
                         if(*tptr == 0x0a)                                     // well formed sentence
@@ -1472,6 +1498,15 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 #ifdef __LINUX__
 
             bOK = OpenPort(port);
+// begin rms
+#ifdef __WXOSX__
+            pWinComm = NULL;
+            pWinComm = new CSyncSerialComm(port.c_str());
+            pWinComm->Open();
+            pWinComm->ConfigPort(4800, 5);
+            bAutoPilotOut = true;
+#endif
+// end rms
 
             if(bOK)
                  bAutoPilotOut = true;
@@ -1501,6 +1536,11 @@ void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 #ifdef __LINUX__
     bAutoPilotOut = false;
     if(bOK)
+//begin rms
+#ifdef __WXOSX__
+      delete pWinComm;
+#endif
+// end rms
     {
         (void)close(m_ap_fd);
         free (pttyset);
@@ -1606,6 +1646,13 @@ void AutoPilotWindow::AutopilotOut(const char *Sentence)
 
      ssize_t status;
      status = write(m_ap_fd, Sentence, char_count);
+// begin rms
+#ifdef __WXOSX__
+NOTE this doesn't look right.  Wont it write twice if __LINUX__ and __WXOSX__ are defined?
+      pWinComm->Write(Sentence, char_count);
+#endif
+// end rms
+
 
 #endif
 }
