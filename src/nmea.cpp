@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.15 2008/01/10 03:36:48 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.16 2008/01/11 01:39:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.16  2008/01/11 01:39:46  bdbcat
+ * Update for Mac OSX
+ *
  * Revision 1.15  2008/01/10 03:36:48  bdbcat
  * Update for Mac OSX
  *
@@ -89,7 +92,7 @@ extern int        g_iNMEAEventState ;
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.15 2008/01/10 03:36:48 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.16 2008/01/11 01:39:46 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -1642,19 +1645,20 @@ void AutoPilotWindow::AutopilotOut(const char *Sentence)
 #endif
 #endif
 
+      // begin rms
+#ifdef __WXOSX__
+      pWinComm->Write(Sentence, char_count);
+#else
 #ifdef __LINUX__
 
-     ssize_t status;
-     status = write(m_ap_fd, Sentence, char_count);
-// begin rms
-#ifdef __WXOSX__
-NOTE this doesn't look right.  Wont it write twice if __LINUX__ and __WXOSX__ are defined?
-      pWinComm->Write(Sentence, char_count);
-#endif
-// end rms
+      ssize_t status;
+      status = write(m_ap_fd, Sentence, char_count);
 
 
 #endif
+#endif
+      // end rms
+
 }
 
 

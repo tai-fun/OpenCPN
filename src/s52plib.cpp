@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.11 2008/01/10 03:37:47 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.12 2008/01/11 01:39:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.12  2008/01/11 01:39:59  bdbcat
+ * Update for Mac OSX
+ *
  * Revision 1.11  2008/01/10 03:37:47  bdbcat
  * Update for Mac OSX
  *
@@ -80,14 +83,14 @@
 #include "wx/image.h"                   // Missing from wxprec.h
 
 #ifndef __WXMSW__
+#ifndef __WXOSX__             // begin rms
 #include <malloc.h>
+#endif                                    // end rms
 #endif
 
-#ifndef __WXOSX__			// begin rms
 extern s52plib          *ps52plib;
-#endif						// end rms
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.11 2008/01/10 03:37:47 bdbcat Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.12 2008/01/11 01:39:59 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation

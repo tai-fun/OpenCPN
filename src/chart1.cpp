@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.17 2008/01/10 03:35:45 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.18 2008/01/11 01:39:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.18  2008/01/11 01:39:32  bdbcat
+ * Update for Mac OSX
+ *
  * Revision 1.17  2008/01/10 03:35:45  bdbcat
  * Update for Mac OSX
  *
@@ -122,7 +125,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.17 2008/01/10 03:35:45 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.18 2008/01/11 01:39:32 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -246,7 +249,7 @@ WIFIWindow      *pWIFI;
 static wxString *pval;          // Private environment temp storage
 
 #ifdef __WXOSX__
-NOTE   Something wrong with the diff patch here.  Looks odd, please check
+#include "macutils.h"
 #endif
 
 // begin rms
@@ -587,20 +590,20 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
               if(mdlg.ShowModal() == wxID_YES)
               {
                    wxLogMessage("Creating new Config_File: %s", Config_File.c_str());
-                   if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
-                       wxLogMessage("Cannot create config file directory for %s", Config_File.c_str());
-              }
-// begin rms
+                          // begin rms
 #ifdef __WXMAC__
-                   if(true != config_test_file_name.DirExists(config_test_file_name.GetPath()))
+                          if(true != config_test_file_name.DirExists(config_test_file_name.GetPath()))
                                 if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
-                         wxLogMessage("Cannot create config file directory for %s", Config_File.c_str());
+                                      wxLogMessage("Cannot create config file directory for %s", Config_File.c_str());
 #else
+                          if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
+                                wxLogMessage("Cannot create config file directory for %s", Config_File.c_str());
+#endif // end rms
+              }
               else
               {
-#endif // end rms
-                   Config_File.Clear();
-                   return false;                    // Probably will provoke some memory leakage....
+                          Config_File.Clear();
+                          return false;                    // Probably will provoke some memory leakage....
               }
         }
 
@@ -1486,12 +1489,12 @@ void MyFrame::OnExit(wxCommandEvent& event)
 }
 
 void MyFrame::OnCloseWindow(wxCloseEvent& event)
+{
 // begin rms
 #ifdef __WXOSX__
       quitflag++ ;
 #endif // __WXOSX__
 // end rms
-{
    FrameTimer1.Stop();
 
    pConfig->UpdateSettings();
@@ -3241,10 +3244,10 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
         if(NULL != GetStatusBar())
             SetStatusText(tick_buf, 0);
     }
+#endif
+      // end rms
 
 }
-#endif
-// end rms
 void MyFrame::StopSockets(void)
 {
 #ifdef USE_WIFI_CLIENT
