@@ -11,7 +11,7 @@
 
 RMC::RMC()
 {
-   Mnemonic = "RMC";
+    Mnemonic = _T("RMC");
    Empty();
 }
 
@@ -45,7 +45,7 @@ bool RMC::Parse( const SENTENCE& sentence )
    **        |         | |       | |        | |   |   |    |   | |
    ** $--RMC,hhmmss.ss,A,llll.ll,a,yyyyy.yy,a,x.x,x.x,xxxx,x.x,a*hh<CR><LF>
    **
-   ** Field Number: 
+   ** Field Number:
    **  1) UTC Time
    **  2) Status, V = Navigation receiver warning
    **  3) Latitude
@@ -68,15 +68,15 @@ bool RMC::Parse( const SENTENCE& sentence )
 
    if ( check == NTrue )
    {
-      SetErrorMessage( "Invalid Checksum" );
+       SetErrorMessage( _T("Invalid Checksum") );
       return( FALSE );
    }
-   
+
    if ( check == Unknown0183 )
    {
-      SetErrorMessage( "Missing Checksum" );
+       SetErrorMessage( _T("Missing Checksum") );
       return( FALSE );
-   } 
+   }
 
    UTCTime                    = sentence.Field( 1 );
    IsDataValid                = sentence.Boolean( 2 );
@@ -97,7 +97,7 @@ bool RMC::Write( SENTENCE& sentence )
    /*
    ** Let the parent do its thing
    */
-   
+
    RESPONSE::Write( sentence );
 
    sentence += UTCTime;

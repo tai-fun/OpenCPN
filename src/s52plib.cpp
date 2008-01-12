@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.12 2008/01/11 01:39:59 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.13 2008/01/12 06:24:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.13  2008/01/12 06:24:20  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.12  2008/01/11 01:39:59  bdbcat
  * Update for Mac OSX
  *
@@ -90,7 +93,7 @@
 
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.12 2008/01/11 01:39:59 bdbcat Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.13 2008/01/12 06:24:20 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -107,7 +110,7 @@ s52plib::s52plib(const wxString& PLPath, const wxString& PLLib, const wxString& 
       m_bOK = S52_load_Plib(PLPath, PLLib, PLCol);
 
       pSmallFont = wxTheFontList->FindOrCreateFont(16, wxDEFAULT,wxNORMAL, wxBOLD,
-                                                FALSE, wxString("Eurostile Extended"));
+              FALSE, wxString(_T("Eurostile Extended")));
 
       m_bShowS57Text = false;
       m_ColorScheme = S52_DAY_BRIGHT;
@@ -248,7 +251,7 @@ int s52plib::_CIE2RGB()
 
 //      Read private file to associate CIE colors to decent RGB values
 
-int s52plib::LoadColors(char *pColorFile)
+int s52plib::LoadColors(const wxString& ColorFile)
 {
    FILE         *fp;
    int  ret = 0;
@@ -265,9 +268,12 @@ int s52plib::LoadColors(char *pColorFile)
    float x, y, Y;
         char *pBuft;
 
-   fp = fopen(pColorFile, "r");
-   if (fp == NULL){
-       wxLogMessage("ERROR unable to open color file %s",pColorFile);
+        fp = fopen(ColorFile.mb_str(), "r");
+   if (fp == NULL)
+   {
+       wxString msg(_T("ERROR unable to open color file:"));
+       msg.Append(*ColorFile);
+       wxLogMessage(msg);
       return 0;
    }
 
@@ -282,7 +288,7 @@ int s52plib::LoadColors(char *pColorFile)
                   for(unsigned int it=0 ; it < _colTables->GetCount() ; it++)
                   {
                    ctp = (colTable *)(_colTables->Item(it));
-                   if(!strcmp(TableName, ctp->tableName->c_str()))
+                   if(!strcmp(TableName, ctp->tableName->mb_str()))
                    {
                            ct = ctp;
                            colIdx = 0;
@@ -325,8 +331,11 @@ int s52plib::LoadColors(char *pColorFile)
 
                 if(!colMatch)
                 {
-                    wxLogMessage("Color translation failed...file:%s, RGB Color name:%s",
-                                        pColorFile, c1.colName);
+                    wxString msg(_T("Color translation failed...file, ColorName"));
+                    msg.Append(*ColorFile);
+                    msg.Append(_T("  "));
+                    msg.Append(wxString(c1.colName, wxConvUTF8));
+                    wxLogMessage(msg);
                 }
 
       }         //if valid color line
@@ -390,90 +399,21 @@ wxArrayOfLUPrec *s52plib::SelectLUPARRAY(LUPname TNAM)
       case LINES:                       return lineLUPArray;
       case PLAIN_BOUNDARIES:            return areaPlaineLUPArray;
       case SYMBOLIZED_BOUNDARIES:       return areaSymbolLUPArray;
-      default:
-          wxLogMessage("S52:_selctLUP() ERROR");
+      default:                          return NULL;
+//          wxLogMessage("S52:_selctLUP() ERROR");
    }
 
    return NULL;
 }
 
 
-/*
-gint _compareLUP(gconstpointer keyA, gconstpointer keyB)
-{
-   int comp;
-   GString *A = (GString*)keyA;
-   GString *B = (GString*)keyB;
-
-   comp = strcmp(A->str, B->str);
-   return comp;
-}
-
-gint _compareRules(gconstpointer keyA, gconstpointer keyB)
-{
-   int comp;
-
-   comp = strncmp((char*)keyA,(char*)keyB,8);
-   return comp;
-}
-*/
-
-// see S52cond.c
-/*
-static Cond condTable[];
-static int _loadCondSymb()
-{
-   int i = 0;
-   for(i=0; condTable[i].condInst != NULL; ++i)
-   {
- //     g_tree_insert(_cond_sym, (gpointer*)condTable[i].name,
- //                                                              (gpointer*)condTable[i].condInst);
-
-           wxString index = condTable[i].name;
-
-           (*_cond_sym)[index] = (Rule *)(condTable[i].condInst);
-   }
-   return 1;
-}
-*/
 
 extern Cond condTable[];
-/*
-int s52plib::_loadCondSymb()
-{
-        for(int i=0 ; condTable[i].condInst != NULL; ++i)
-        {
-           wxString index = condTable[i].name;
-
-           (*_cond_sym)[index] = (Rule *)(condTable[i].condInst);
-   }
-   return 1;
-}
-*/
 
 
-/*
-int s52plib::CollectLUP(void *key, void *LUP, void *objName)
-{
-   int comp;
-   wxString *LUPobjName = (wxString*)key;
-
-   comp = strncmp(LUPobjName->c_str(),(char*)objName, 6);
-
-   if(comp < 0)
-      return FALSE;
-   if(comp > 0)
-      return TRUE;      // stop searching
-
-   nameMatch->Add(LUP);                 //g_ptr_array_add(nameMatch,LUP);
-
-   return FALSE;
-}
-
-*/
 
 // get LUP with "best" Object attribute match
-LUPrec *s52plib::FindBestLUP(wxArrayPtrVoid *nameMatch,char *objAtt,
+LUPrec *s52plib::FindBestLUP(wxArrayPtrVoid *nameMatch, char *objAtt,
                               wxArrayOfS57attVal *objAttVal, bool bStrict)
 {
    LUPrec *LUP = NULL;
@@ -514,7 +454,7 @@ LUPrec *s52plib::FindBestLUP(wxArrayPtrVoid *nameMatch,char *objAtt,
                         LATTC = LUPtmp->ATTCArray->Item(iLUPAtt);
 
                           while (*currATT != '\0'){
-                                 if (0 == strncmp(LATTC.c_str(), currATT,6)){
+                                 if (0 == strncmp(LATTC.mb_str(), currATT,6)){
                                         //OK we have an attribute match
                                         //checking attribute value
                                         S57attVal *v;
@@ -522,13 +462,13 @@ LUPrec *s52plib::FindBestLUP(wxArrayPtrVoid *nameMatch,char *objAtt,
                                          BOOL attValMatch = FALSE;
 
                                         // special case (i)
-                                        if ((LATTC.c_str())[6] == ' ')  // use any value
+                                        if (LATTC[6] == ' ')  // use any value
                                            attValMatch = TRUE;
 
                                         // special case (ii)
                               if ( strncmp(LUPtmp->OBCL, "DEPARE", 6))
                                   {
-                                        if ((LATTC.c_str())[6] == '?')  // match if value is unknown
+                                        if (LATTC[6] == '?')  // match if value is unknown
                                            attValMatch = TRUE;          // OGR bug here ???
                                   }
 
@@ -538,7 +478,7 @@ LUPrec *s52plib::FindBestLUP(wxArrayPtrVoid *nameMatch,char *objAtt,
                                         switch(v->valType){
                                            case OGR_INT:{    // S57 attribute type 'E' enumerated, 'I' integer
                                         int a;
-                                                         sscanf(LATTC.c_str() + 6, "%d", &a);
+                                                         sscanf(LATTC.mb_str() + 6, "%d", &a);
                                                          if (a == *(int*)(v->value))
                                                                 attValMatch = TRUE;
                                         break;
@@ -546,7 +486,7 @@ LUPrec *s52plib::FindBestLUP(wxArrayPtrVoid *nameMatch,char *objAtt,
 
                                            case OGR_INT_LST:{   // S57 attribute type 'L' list: comma separated integer
                                         int a;
-                                                         char *s = (char *)(LATTC.c_str() + 6);
+                                                         char *s = (char *)(LATTC.mb_str() + 6);
                                                          int *b = (int*)v->value;
                                                          sscanf(s, "%d", &a);
 
@@ -563,9 +503,9 @@ LUPrec *s52plib::FindBestLUP(wxArrayPtrVoid *nameMatch,char *objAtt,
                                                   }
                                            case OGR_REAL:{              // S57 attribute type'F' float
                                                         float a;
-                                                        if ((LATTC.c_str())[6] != '?')
+                                                        if (LATTC[6] != '?')
                                                         {
-                                                                sscanf(LATTC.c_str() + 6, "%f", &a);
+                                                                sscanf(LATTC.mb_str() + 6, "%f", &a);
                                                                 if (a == *(float*)(v->value))
                                                                         attValMatch = TRUE;
                                                         }
@@ -574,7 +514,7 @@ LUPrec *s52plib::FindBestLUP(wxArrayPtrVoid *nameMatch,char *objAtt,
 
                                            case OGR_STR:{   // S57 attribute type'A' code string, 'S' free text
                                                         int a;                // Attribute value from LUP
-                                                        char *s = (char *)(LATTC.c_str() + 6);
+                                                        char *s = (char *)(LATTC.mb_str() + 6);
                                                         sscanf(s, "%d", &a);
 
                                                         char *c = (char *)v->value;    // Attribute from object
@@ -665,16 +605,22 @@ next_LUP_Attr:
                               r->ruleType = t;\
                               r->INSTstr  = str;
 
-Rules *s52plib::StringToRules(const char *str_in)
+Rules *s52plib::StringToRules(const wxString& str_in)
 {
-    char *str = (char *)str_in;
+    char *str0 = (char *)calloc(str_in.Len()+1, 1);
+    strncpy(str0, str_in.mb_str(), str_in.Len());
+    char *str = str0;
+//    char *str = (char *)str_in;
+
        Rules *top;
        Rules *last;
+       char strk[20];
 
        Rules *r = (Rules*)calloc(1, sizeof(Rules));
        top = r;
        last = top;
 
+       r->INST0 = str0;                 // save the head for later free
 
        while (*str != '\0')
        {
@@ -704,12 +650,14 @@ Rules *s52plib::StringToRules(const char *str_in)
                 r->ruleType = RUL_SYM_PT;
                 r->INSTstr  = str;
 
-                wxString key(str,8);
+                strncpy(strk, str, 8);
+                strk[8]=0;
+                wxString key(strk,wxConvUTF8);
 
                 r->razRule = (*_symb_sym)[key];
 
                 if (r->razRule == NULL)
-                        r->razRule = (*_symb_sym)["QUESMRK1"];
+                    r->razRule = (*_symb_sym)[_T("QUESMRK1")];
 
                 SCANFWRD
             }
@@ -719,10 +667,14 @@ Rules *s52plib::StringToRules(const char *str_in)
             INSTRUCTION("LS",RUL_SIM_LN) SCANFWRD }
 
             INSTRUCTION("LC",RUL_COM_LN)
-                  wxString key(str,8);
+                    strncpy(strk, str, 8);
+                    strk[8]=0;
+                    wxString key(strk,wxConvUTF8);
+
                   r->razRule = (*_line_sym)[key];
+
                   if (r->razRule == NULL)
-                    r->razRule = (*_symb_sym)["QUESMRK1"];
+                        r->razRule = (*_symb_sym)[_T("QUESMRK1")];
             SCANFWRD
             }
 
@@ -730,12 +682,14 @@ Rules *s52plib::StringToRules(const char *str_in)
             INSTRUCTION("AC",RUL_ARE_CO) SCANFWRD }
 
             INSTRUCTION("AP",RUL_ARE_PA)
-                    wxString key(str,8);
+                    strncpy(strk, str, 8);
+                    strk[8]=0;
+                    wxString key(strk,wxConvUTF8);
                     key += 'R';
 
                     r->razRule = (*_patt_sym)[key];
                     if (r->razRule == NULL)
-                        r->razRule = (*_patt_sym)["QUESMRK1V"];
+                        r->razRule = (*_patt_sym)[_T("QUESMRK1V")];
             SCANFWRD
             }
 
@@ -751,10 +705,10 @@ Rules *s52plib::StringToRules(const char *str_in)
                 char stt[9];
                 strncpy(stt, str, 8);
                 stt[8] = 0;
-                wxString index(stt);
+                wxString index(stt, wxConvUTF8);
                 r->razRule = (*_cond_sym)[index];
                 if (r->razRule == NULL)
-                    r->razRule = (*_cond_sym)["QUESMRK1"];
+                    r->razRule = (*_cond_sym)[_T("QUESMRK1")];
                 SCANFWRD
             }
 
@@ -764,7 +718,11 @@ Rules *s52plib::StringToRules(const char *str_in)
 //  If it should happen that no rule is built, delete the initially allocated rule
    if(0 == top->ruleType)
     {
+        if(top->INST0)
+            free(top->INST0);
+
         free(top);
+
         top = NULL;
     }
 
@@ -785,6 +743,7 @@ Rules *s52plib::StringToRules(const char *str_in)
     }
 
 
+//    free(str0);
    return top;
 }
 
@@ -802,8 +761,7 @@ int s52plib::_LUP2rules(LUPrec *LUP, S57Obj *pObj)
 
    if(LUP->INST != NULL)
    {
-        char  *str  = (char *)(LUP->INST->c_str());
-        Rules *top  = StringToRules(str);
+       Rules *top  = StringToRules(*LUP->INST);
         LUP->ruleList = top;
 
         return 1;
@@ -879,7 +837,7 @@ int s52plib::ParseCOLS(FILE *fp)
    // get color table name
     ChopS52Line( pBuf, '\0' );
 
-   ct->tableName = new wxString(pBuf+19);
+    ct->tableName = new wxString(pBuf+19,  wxConvUTF8);
    ct->color     = new wxArrayPtrVoid;
 
    _colTables->Add((void *)ct);
@@ -960,11 +918,11 @@ int s52plib::ParseLUPT(FILE *fp)
                 LUP->ATTCArray = pAS;
 
                 ChopS52Line( pBuf, ' ' );
-                LUP->ATTC = new wxString(pBuf+9);
+                LUP->ATTC = new wxString(pBuf+9, wxConvUTF8);
          }
       }
 
-      MOD_REC(INST) LUP->INST = new wxString(pBuf+9);
+      MOD_REC(INST) LUP->INST = new wxString(pBuf+9, wxConvUTF8);
       MOD_REC(DISC) LUP->DISC = (enum _DisCat)pBuf[9];
       MOD_REC(LUCM) sscanf(pBuf+9, "%d",&LUP->LUCM);
 
@@ -1011,14 +969,16 @@ int s52plib::ParseLNST(FILE *fp)
 {
    int  ret;
 
+   char strk[20];
+
    BOOL inserted = FALSE;
    Rule *lnstmp  = NULL;
    Rule *lnst = (Rule*)calloc(1, sizeof(Rule));
    pAlloc->Add(lnst);
 
    lnst->exposition.LXPO = new wxString;
-   lnst->vector.LVCT     = new wxString;
-   lnst->colRef.LCRF     = new wxString;
+   wxString LVCT;
+   wxString LCRF;
 
    sscanf(pBuf+11, "%d", &lnst->RCID);
 
@@ -1029,12 +989,23 @@ int s52plib::ParseLNST(FILE *fp)
          ParsePos(&lnst->pos.line, pBuf+17, FALSE);
       }
 
-      MOD_REC(LXPO) lnst->exposition.LXPO->Append(pBuf+9 );
-      MOD_REC(LCRF) lnst->colRef.LCRF->Append( pBuf+9);       // CIDX + CTOK
-      MOD_REC(LVCT) lnst->vector.LVCT->Append( pBuf+9 );
+      MOD_REC(LXPO) lnst->exposition.LXPO->Append(wxString(pBuf+9, wxConvUTF8 ));
+      MOD_REC(LCRF) LCRF.Append( wxString(pBuf+9, wxConvUTF8 ));       // CIDX + CTOK
+      MOD_REC(LVCT) LVCT.Append( wxString(pBuf+9, wxConvUTF8 ));
         MOD_REC(****){
+
+            lnst->vector.LVCT = (char *)calloc(LVCT.Len()+1, 1);
+            strncpy(lnst->vector.LVCT, LVCT.mb_str(), LVCT.Len());
+
+            lnst->colRef.LCRF = (char *)calloc(LCRF.Len()+1, 1);
+            strncpy(lnst->colRef.LCRF, LCRF.mb_str(), LCRF.Len());
+
          // check if key already there
-                        wxString key((lnst->name.LINM), 8);
+                 strncpy(strk, lnst->name.LINM, 8);
+                 strk[8]=0;
+                 wxString key(strk,wxConvUTF8);
+
+                   //wxString key((lnst->name.LINM), 8);
                  lnstmp  = (*_line_sym)[key];
 
          // insert in Hash Table
@@ -1063,15 +1034,17 @@ int s52plib::ParsePATT(FILE *fp)
 
    int bitmap_width;
    char pbm_line[200];                  // max bitmap width...
+   char strk[20];
+
    BOOL inserted = FALSE;
    Rule *pattmp  = NULL;
    Rule *patt = (Rule*)calloc(1,sizeof(Rule));
    pAlloc->Add(patt);
 
    patt->exposition.PXPO  = new wxString;
-   patt->vector.PVCT      = new wxString;
-   patt->colRef.PCRF      = new wxString;
    patt->bitmap.PBTM     = new wxString;
+   wxString PVCT;
+   wxString PCRF;
 
    sscanf(pBuf+11, "%d", &patt->RCID);
 
@@ -1079,36 +1052,44 @@ int s52plib::ParsePATT(FILE *fp)
 
    do{
       MOD_REC(PATD){
-                strncpy(patt->name.PANM, pBuf+9, 8);
+            strncpy(patt->name.PANM, pBuf+9, 8);
             patt->definition.PADF = pBuf[17];
             patt->fillType.PATP  = pBuf[18];
             patt->spacing.PASP   = pBuf[21];
             ParsePos(&patt->pos.patt, pBuf+24, TRUE);
       }
 
-      MOD_REC(PXPO) patt->exposition.PXPO->Append( pBuf+9 );
-      MOD_REC(PCRF) patt->colRef.PCRF->Append( pBuf+9 );  // CIDX+CTOK
-      MOD_REC(PVCT) patt->vector.PVCT->Append( pBuf+9 );
+      MOD_REC(PXPO) patt->exposition.PXPO->Append( wxString(pBuf+9, wxConvUTF8) );
+      MOD_REC(PCRF) PCRF.Append( wxString(pBuf+9, wxConvUTF8) );  // CIDX+CTOK
+      MOD_REC(PVCT) PVCT.Append( wxString(pBuf+9, wxConvUTF8) );
 
       MOD_REC(PBTM){
                 bitmap_width = patt->pos.patt.bnbox_w.SYHL;
-                if(bitmap_width > 200)
-                        wxLogMessage("ParsePatt....bitmap too wide.");
+//                if(bitmap_width > 200)
+//                        wxLogMessage("ParsePatt....bitmap too wide.");
                 strncpy(pbm_line, pBuf+9, bitmap_width);
                 pbm_line[bitmap_width] = 0;
-                patt->bitmap.SBTM->Append( pbm_line );
+                patt->bitmap.SBTM->Append( wxString(pbm_line, wxConvUTF8) );
         }
-
-
-
-
 
 
       MOD_REC(****){
 
+          patt->vector.PVCT = (char *)calloc(PVCT.Len()+1, 1);
+          strncpy(patt->vector.PVCT, PVCT.mb_str(), PVCT.Len());
+
+          patt->colRef.PCRF = (char *)calloc(PCRF.Len()+1, 1);
+          strncpy(patt->colRef.PCRF, PCRF.mb_str(), PCRF.Len());
+
          // check if key already there
-         wxString key((patt->name.PANM), 8);
-         key += wxString(patt->definition.SYDF, 1);
+          strncpy(strk, patt->name.PANM, 8);
+          strk[8]=0;
+          wxString key(strk, wxConvUTF8);
+
+          char key_plus[20];
+          strncpy(key_plus, &patt->definition.SYDF, 1);
+          key_plus[1] = 0;
+          key += wxString(key_plus, wxConvUTF8);
 
          pattmp  = (*_patt_sym)[key];
 
@@ -1152,9 +1133,9 @@ int s52plib::ParseSYMB(FILE *fp, RuleHash *pHash)
    Rule *symbtmp = NULL;
 
    symb->exposition.SXPO = new wxString;
-   symb->vector.SVCT     = new wxString;
    symb->bitmap.SBTM     = new wxString;
-   symb->colRef.SCRF     = new wxString;
+   wxString SVCT;
+   wxString SCRF;
 
    sscanf(pBuf+11, "%d", &symb->RCID);
 
@@ -1171,25 +1152,34 @@ int s52plib::ParseSYMB(FILE *fp, RuleHash *pHash)
             ParsePos(&symb->pos.symb, pBuf+18, FALSE);
         }
 
-      MOD_REC(SXPO) symb->exposition.SXPO->Append( pBuf+9 );
+        MOD_REC(SXPO) symb->exposition.SXPO->Append( wxString(pBuf+9, wxConvUTF8) );
 
         MOD_REC(SBTM){
                 bitmap_width = symb->pos.symb.bnbox_w.SYHL;
                 if(bitmap_width > 200)
-                        wxLogMessage("ParseSymb....bitmap too wide.");
+                    wxLogMessage(_T("ParseSymb....bitmap too wide."));
                 strncpy(pbm_line, pBuf+9, bitmap_width);
                 pbm_line[bitmap_width] = 0;
-                symb->bitmap.SBTM->Append( pbm_line );
+                symb->bitmap.SBTM->Append( wxString(pbm_line, wxConvUTF8) );
         }
 
-      MOD_REC(SCRF)     symb->colRef.SCRF->Append( pBuf+9 );  // CIDX+CTOK
+        MOD_REC(SCRF)     SCRF.Append( wxString(pBuf+9, wxConvUTF8) );  // CIDX+CTOK
 
-      MOD_REC(SVCT) symb->vector.SVCT->Append( pBuf+9 );
+        MOD_REC(SVCT)     SVCT.Append( wxString(pBuf+9, wxConvUTF8) );
 
           if((0==strncmp("****",pBuf,4)) || (ret == -1))
           {
+              symb->vector.SVCT = (char *)calloc(SVCT.Len()+1, 1);
+              strncpy(symb->vector.SVCT, SVCT.mb_str(), SVCT.Len());
+
+              symb->colRef.SCRF = (char *)calloc(SCRF.Len()+1, 1);
+              strncpy(symb->colRef.SCRF, SCRF.mb_str(), SCRF.Len());
+
             // Create a key
-                wxString key((symb->name.SYNM), 8);
+              char keyt[20];
+              strncpy(keyt, symb->name.SYNM, 8);
+              keyt[8]=0;
+              wxString key(keyt, wxConvUTF8);
 
                 symbtmp  = (*pHash)[key];
 
@@ -1254,11 +1244,13 @@ int s52plib::S52_load_Plib(const wxString& PLPath, const wxString& PLLib, const 
    int  nRead;
 
 
-   fp = fopen(PLib.c_str(), "r");
+   fp = fopen(PLib.mb_str(), "r");
 
    if (fp == NULL)
    {
-       wxLogMessage("S52PLIB: Cannot open S52 rules file: %s", PLib.c_str());
+       wxString msg(_T("S52PLIB: Cannot open S52 rules file:"));
+       msg.Append(*PLib);
+       wxLogMessage(msg);
        return 0;
    }
 
@@ -1306,7 +1298,7 @@ int s52plib::S52_load_Plib(const wxString& PLPath, const wxString& PLLib, const 
 
    for(int i=0 ; condTable[i].condInst != NULL; ++i)
    {
-       wxString index = condTable[i].name;
+       wxString index(condTable[i].name, wxConvUTF8);
        (*_cond_sym)[index] = (Rule *)(condTable[i].condInst);
    }
 
@@ -1314,7 +1306,7 @@ int s52plib::S52_load_Plib(const wxString& PLPath, const wxString& PLLib, const 
 
 //   _CIE2RGB();
 
-   LoadColors((char *)PCol.c_str());
+   LoadColors(PCol);
 //      RGBFROMDAT();
 
    return 1;                    //_table_size;
@@ -1327,14 +1319,12 @@ void s52plib::DestroyPatternRuleNode(Rule *pR)
             if(pR->exposition.LXPO)
                     delete pR->exposition.LXPO;
 
-            if(pR->vector.LVCT)
-                    delete pR->vector.LVCT;
+            free( pR->vector.LVCT );
 
             if(pR->bitmap.SBTM)
                     delete pR->bitmap.SBTM;
 
-            if(pR->colRef.SCRF)
-                    delete pR->colRef.SCRF;
+            free( pR->colRef.SCRF);
 
             if(pR->pixelPtr)
             {
@@ -1361,12 +1351,14 @@ void s52plib::DestroyRuleNode(Rule *pR)
 
         if(pR->exposition.LXPO)
             delete pR->exposition.LXPO;
-        if(pR->vector.LVCT)
-            delete pR->vector.LVCT;
+
+        free( pR->vector.LVCT);
+
         if(pR->bitmap.SBTM)
             delete pR->bitmap.SBTM;
-        if(pR->colRef.SCRF)
-            delete pR->colRef.SCRF;
+
+        free( pR->colRef.SCRF);
+
         if(pR->pixelPtr)
         {
             if(pR->definition.PADF == 'R')
@@ -1395,12 +1387,13 @@ void s52plib::DestroyRules(RuleHash *rh)
 
             if(pR->exposition.LXPO)
                 delete pR->exposition.LXPO;
-            if(pR->vector.LVCT)
-                delete pR->vector.LVCT;
+
+            free( pR->vector.LVCT );
+
             if(pR->bitmap.SBTM)
                 delete pR->bitmap.SBTM;
-            if(pR->colRef.SCRF)
-                delete pR->colRef.SCRF;
+
+            free( pR->colRef.SCRF );
 
             if(pR->pixelPtr)
             {
@@ -1436,14 +1429,12 @@ void s52plib::DestroyPattRules(RuleHash *rh)
                         if(pR->exposition.LXPO)
                                 delete pR->exposition.LXPO;
 
-                        if(pR->vector.LVCT)
-                                delete pR->vector.LVCT;
+                        free( pR->vector.LVCT );
 
                         if(pR->bitmap.SBTM)
                                 delete pR->bitmap.SBTM;
 
-                        if(pR->colRef.SCRF)
-                                delete pR->colRef.SCRF;
+                        free( pR->colRef.SCRF );
 
                         if(pR->pixelPtr)
                         {
@@ -1474,6 +1465,10 @@ void s52plib::DestroyLUP(LUPrec *pLUP)
         while(top != NULL)
         {
             Rules *Rtmp = top->next;
+
+            if(top->INST0)
+                free(top->INST0);           // free the Instruction string head
+
             free(top);
             top = Rtmp;
         }
@@ -1606,11 +1601,17 @@ LUPrec *s52plib::S52_LUPLookup(LUPname LUP_Name, const char * objectName, S57Obj
         }
 
 
+        char *temp;
 
         if(ocnt == 0)
                 goto BAILOUT;
 
-        LUP = FindBestLUP(nameMatch,(char *)pObj->attList->c_str(), pObj->attVal, bStrict);
+        temp = (char *)calloc(pObj->attList->Len()+1, 1);
+        strncpy(temp, pObj->attList->mb_str(), pObj->attList->Len());
+
+        LUP = FindBestLUP(nameMatch,temp, pObj->attVal, bStrict);
+
+        free(temp);
 
 
 BAILOUT:
@@ -1678,7 +1679,9 @@ color *s52plib::S52_getColor(char *colorName)
 wxString GetStringAttr(S57Obj *obj, char *AttrName)
 {
         wxString str;
-        char *attList = (char *)(obj->attList->c_str());        //attList is wxString
+        char *attList = (char *)calloc(obj->attList->Len()+1, 1);
+        strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
+//        char *attList = (char *)(obj->attList->);        //attList is wxString
 
         char *patl = attList;
         char *patr;
@@ -1697,7 +1700,10 @@ wxString GetStringAttr(S57Obj *obj, char *AttrName)
         }
 
         if(!*patl)
+        {
+            free(attList);
                 return str;
+        }
 
 //      using idx to get the attribute value
         wxArrayOfS57attVal      *pattrVal = obj->attVal;
@@ -1706,14 +1712,17 @@ wxString GetStringAttr(S57Obj *obj, char *AttrName)
 
         char *val = (char *)(v->value);
 
-        str.Append(val);
+        str.Append(wxString(val,wxConvUTF8));
 
+        free(attList);
         return str;
 }
 
 bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
 {
-    char *attList = (char *)(obj->attList->c_str());        //attList is wxString
+    char *attList = (char *)calloc(obj->attList->Len()+1, 1);
+    strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
+//    char *attList = (char *)(obj->attList->);        //attList is wxString
 
     char *patl = attList;
     char *patr;
@@ -1733,6 +1742,7 @@ bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
 
     if(!*patl)                                                      // Requested Attribute not found
     {
+        free(attList);
         return false;                                           // so don't return a value
     }
 
@@ -1742,6 +1752,7 @@ bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
     S57attVal *v = pattrVal->Item(idx);
     val = *(float*)(v->value);
 
+    free(attList);
     return true;
 }
 
@@ -1818,10 +1829,10 @@ char      *_getParamVal(ObjRazRules *rzRules, char *str, char *buf, int bsz)
         if (!strncmp(buf, "NATSUR", 6))
         {
 
-            wxString att("NATSUR");
+            wxString att(_T("NATSUR"));
 //            wxString *pnat = rzRules->chart->GetAttributeDecode(att, 17);
 
-//            int i = atoi(value.c_str());
+//            int i = atoi(value.mb_str());
 
 //            if ( 0 < i && i <= MAX_NATSUR)
 //                strcpy(buf, natsur[i]);
@@ -1830,7 +1841,7 @@ char      *_getParamVal(ObjRazRules *rzRules, char *str, char *buf, int bsz)
         }
         else
         {
-            strncpy(buf, value.c_str(), vallen);            // value from ENC
+            strncpy(buf, value.mb_str(), vallen);            // value from ENC
             buf[vallen] = '\0';
         }
     }
@@ -1895,7 +1906,7 @@ S52_Text   *S52_PL_parseTX(ObjRazRules *rzRules, Rules *rules, char *cmd)
 
         text = _parseTEXT(rzRules, str);
     if (NULL != text)
-        text->frmtd = new wxString(buf);
+        text->frmtd = new wxString(buf, wxConvUTF8);
 
     return text;
 }
@@ -1964,7 +1975,7 @@ S52_Text   *S52_PL_parseTE(ObjRazRules *rzRules, Rules *rules, char *cmd)
 
     text = _parseTEXT(rzRules, str);
     if (NULL != text)
-        text->frmtd = new wxString(buf);
+        text->frmtd = new wxString(buf, wxConvUTF8);
 
     return text;
 }
@@ -1991,7 +2002,7 @@ gint        S52_PL_doneTXT(S52_Text *text)
 
 */
 
-void RenderText(wxDC *pdc, wxFont *pFont, char *str, int x, int y, int &dx, int &dy)
+void RenderText(wxDC *pdc, wxFont *pFont, const wxString& str, int x, int y, int &dx, int &dy)
 {
 #ifdef DrawText
 #undef DrawText
@@ -2055,9 +2066,8 @@ int s52plib::RenderTX(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
         text = S52_PL_parseTX(rzRules, rules, NULL);
         if(text)
         {
-                char *str = (char *)text->frmtd->c_str();
-                RenderText(pdc, pSmallFont, str,
-                        r.x + text->xoffs, r.y + text->yoffs, dx, dy);
+            wxString str(*text->frmtd);
+            RenderText(pdc, pSmallFont, str, r.x + text->xoffs, r.y + text->yoffs, dx, dy);
 
                 //  Update the object Bounding box if this object is a POINT object,
                 //  so that subsequent drawing operations will redraw the item fully
@@ -2098,9 +2108,8 @@ int s52plib::RenderTE(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
         text = S52_PL_parseTE(rzRules, rules, NULL);
         if(text)
         {
-                char *str = (char *)text->frmtd->c_str();
-                RenderText(pdc, pSmallFont, str,
-                        r.x + text->xoffs, r.y + text->yoffs, dx, dy);
+                wxString str(*text->frmtd);
+                RenderText(pdc, pSmallFont, str, r.x + text->xoffs, r.y + text->yoffs, dx, dy);
 
                 //  Update the object Bounding box if this object is a POINT object,
                 //  so that subsequent drawing operations will redraw the item fully
@@ -2167,8 +2176,13 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
 //   struct _vertex vertexV[256];
 
    Rule *rule           = (Rule *)rule_in;
-   char *str            = (char *)(rule->vector.LVCT->c_str()); //->str;
-   char *col            = (char *)(rule->colRef.LCRF)->c_str();
+
+   char *str = rule->vector.LVCT;
+   char *col = rule->colRef.LCRF;
+
+//   char *str            = (char *)(rule->vector.LVCT->mb_str()); //->str;
+//   char *col            = (char *)(rule->colRef.LCRF)->mb_str();
+
 //   int bbx            = rule->pos.line.bnbox_x.LBXC ;
 //   int bby            = rule->pos.line.bnbox_y.LBXR ;
 //   int w                      = rule->pos.line.bnbox_w.LIHL / scaleFac;
@@ -2235,7 +2249,7 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
          width = atoi(str++);
 
          if (inBegEnd){
-             wxLogMessage("bogus BegEnd in SW");
+             wxLogMessage(_T("bogus BegEnd in SW"));
             inBegEnd = FALSE;
          }
 
@@ -2245,7 +2259,7 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
       else INST(PU)
 
          if (inBegEnd){
-          wxLogMessage("bogus BegEnd in PU");
+          wxLogMessage(_T("bogus BegEnd in PU"));
             inBegEnd = FALSE;
          }
 
@@ -2367,7 +2381,7 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
 
                // Arc Angle --never used!
                }else INST(AA)
-                           wxLogMessage("SEQuencer:_renderHPGL(): fixme AA instruction not implemented");
+                           wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme AA instruction not implemented"));
 
                   //centerX = (double)atoi(str++);
                   //centerY = (double)atoi(str++);
@@ -2448,7 +2462,7 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
       // never called --not tested
       else INST(EP)
          if(tessObj){
-          wxLogMessage("SEQuencer:_renderHPGL(): fixme EP instruction not implemented ");
+          wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme EP instruction not implemented "));
          }
 
       }
@@ -2467,7 +2481,7 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
 
       // Symbol Call    --never used
       else INST(SC)
-                  wxLogMessage("SEQuencer:_renderHPGL(): fixme SC instruction not implemented ");
+                  wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme SC instruction not implemented "));
       }
       ++str;
 
@@ -2485,20 +2499,44 @@ wxImage *s52plib::RuleXBMToImage(Rule *prule)
     //      Decode the color definitions
     wxArrayPtrVoid *pColorArray = new wxArrayPtrVoid;
 
+/*
     wxString cstr(*prule->colRef.SCRF);
     unsigned int i = 0;
 
+    char colname[6];
     while(i < (unsigned int)cstr.Len())
     {
             i++;
             wxString thiscolor = cstr(i, 5);
 
-            color *pColor =  S52_getColor((char *)thiscolor.c_str());
+            strncpy(colname, thiscolor.mb_str(), 5);
+            colname[5]=0;
+            color *pColor =  S52_getColor(colname);
 
             pColorArray->Add((void *) pColor);
 
             i+=5;
     }
+*/
+    int i = 0;
+    char *cstr = prule->colRef.SCRF;
+
+    char colname[6];
+    int nl = strlen(cstr);
+
+    while(i < nl)
+    {
+        i++;
+
+        strncpy(colname, &cstr[i], 5);
+        colname[5]=0;
+        color *pColor =  S52_getColor(colname);
+
+        pColorArray->Add((void *) pColor);
+
+        i+=5;
+    }
+
 
 
     //      Get geometry
@@ -2836,7 +2874,10 @@ int s52plib::RenderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 
 
 //      Create a pen for drawing adjustments outside of HPGL renderer
-        char *tcolptr = (char *)(rules->razRule->colRef.LCRF->c_str());
+        char *tcolptr = rules->razRule->colRef.LCRF;
+//        strncpy(tcolptr,rules->razRule->colRef.LCRF->mb_str(), 7);
+//        tcolptr[8]=0;
+//        char *tcolptr = (char *)(rules->razRule->colRef.LCRF->mb_str());
         c = S52_getColor(tcolptr + 1);          // +1 skips "n" in HPGL SPn format
         w = 1;
         wxColour color(c->R, c->G, c->B);
@@ -3006,7 +3047,7 @@ int s52plib::RenderMPS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
         point_rzRules->obj->bIsClone = true;
 
         point_rzRules->next = NULL;
-        Rules *ru = StringToRules("CS(SOUNDG03");
+        Rules *ru = StringToRules(_T("CS(SOUNDG03;"));
         point_rzRules->LUP->ruleList = ru;
 
         point_obj->x = east;
@@ -3460,7 +3501,7 @@ int s52plib::dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, rende
 
                                                 ix++;
                                                 if((px - pb_spec->pix_buff) > ((pb_spec->pb_pitch * pb_spec->height) * pb_spec->depth))
-                                                     wxLogMessage("pix 2");
+                                                    wxLogMessage(_T("pix 2"));
 
                                             }
                                         }
@@ -3768,9 +3809,12 @@ int s52plib::RenderArea(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp,
     pdc = pdcin;                    // use this DC
     Rules *rules = rzRules->LUP->ruleList;
 
-    //Debug Hook
+    //Debug Hooks
 //    if(!strncmp(rzRules->LUP->OBCL, "M_COVR", 6))
 //        int yyrt = 4;
+
+//    if(rzRules->obj->Index == 2009)
+//        int rrt = 5;
 
     while (rules != NULL)
     {
@@ -3835,7 +3879,7 @@ void s52plib::GetAndAddCSRules(ObjRazRules *rzRules, Rules *rules)
 //  b) was LUP created earlier by exactly the same INSTruction string?
 
                     char *rule_str1 = RenderCS(rzRules, rules);
-                    wxString cs_string(rule_str1);
+                    wxString cs_string(rule_str1, wxConvUTF8);
                     delete rule_str1;
 
 
@@ -3897,7 +3941,7 @@ void s52plib::GetAndAddCSRules(ObjRazRules *rzRules, Rules *rules)
                             wxString *LUPATTC = new wxString;
 
                             wxArrayString *pAS = new wxArrayString();
-                            char *p = (char *)pobj_attList->c_str();
+                            char *p = (char *)pobj_attList->mb_str();
 
                             wxString *st1 = new wxString;
                             int attIdx = 0;

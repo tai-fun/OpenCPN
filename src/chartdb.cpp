@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.6 2007/06/10 02:25:09 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.7 2008/01/12 06:23:19 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.7  2008/01/12 06:23:19  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.6  2007/06/10 02:25:09  bdbcat
  * Fix leaks
  *
@@ -70,7 +73,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.6 2007/06/10 02:25:09 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.7 2008/01/12 06:23:19 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -283,7 +286,7 @@ bool ChartDB::SaveBinary(wxString *filename, wxArrayString *pChartDirArray)
             wxString dir = pChartDirArray->Item(iDir);
             int ldir = dir.Len();
             ofs->Write(&ldir, sizeof(int));                 // length
-            ofs->Write(dir.c_str(), ldir);                  // name
+            ofs->Write(dir.mb_str(), ldir);                  // name
       }
 
 
@@ -504,9 +507,9 @@ int ChartDB::TraverseDirAndAddBSB(wxString dir_name, bool bshow_prog, bool bupda
     {
         wxString this_dir(dirs[id]);
         this_dir.Append('/');
-        nAdd += SearchDirAndAddBSB(this_dir, wxString("*.geo"), bshow_prog, bupdate);
+        nAdd += SearchDirAndAddBSB(this_dir, wxString(_T("*.geo")), bshow_prog, bupdate);
 
-        nAdd += SearchDirAndAddBSB(this_dir, wxString("*.KAP"), bshow_prog, bupdate);
+        nAdd += SearchDirAndAddBSB(this_dir, wxString(_T("*.KAP")), bshow_prog, bupdate);
     }
 //          wxString filespec_geo("*.geo");
 //          SearchDirAndAddBSB(dir_name, filespec_geo, bshow_prog);
@@ -571,7 +574,7 @@ int ChartDB::SearchDirAndAddBSB(wxString& dir_name, const wxString& filespec,
             {
                 for(int i=0 ; i<nEntry ; i++)
                 {
-                    if(!strcmp(full_name.c_str(), pChartTable[i].pFullPath))
+                    if(full_name.IsSameAs(wxString(pChartTable[i].pFullPath, wxConvUTF8)))
                     {
                         pChartTable[i].bValid = true;
                         bAdd = false;
@@ -580,11 +583,11 @@ int ChartDB::SearchDirAndAddBSB(wxString& dir_name, const wxString& filespec,
 
                     //  Look at the chart name itself for a further check
                     //  Todo  think about comparing publish dates?
-/*                    wxFileName base(full_name.c_str());
+/*                    wxFileName base(full_name.mb_str());
                     wxFileName target(pChartTable[i].pFullPath);
                     if(base.GetFullName() == target.GetFullName())
                     {
-//                    printf("Comparing %s to %s\n",full_name.c_str(), pChartTable[i].pFullPath);
+//                    printf("Comparing %s to %s\n",full_name.mb_str(), pChartTable[i].pFullPath);
                         pChartTable[i].bValid = true;
                         bAdd = false;
                         break;
@@ -641,12 +644,12 @@ bool ChartDB::CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEnt
       wxString charttype = fn.GetExt();
       ChartBaseBSB *pch = NULL;
 
-      if(charttype.Upper() == "KAP")
+      if(charttype.Upper() == _T("KAP"))
       {
             pch = new ChartKAP;
             pEntry->ChartType = CHART_TYPE_KAP;
       }
-      if(charttype.Upper() == "GEO")
+      if(charttype.Upper() == _T("GEO"))
       {
             pch = new ChartGEO;
             pEntry->ChartType = CHART_TYPE_GEO;
@@ -655,10 +658,10 @@ bool ChartDB::CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEnt
       pch->Init(full_name, HEADER_ONLY, GLOBAL_COLOR_SCHEME_DAY);
 
       char *pt = (char *)malloc(full_name.Length() + 1);
-      strcpy(pt, full_name.GetData());
+      strcpy(pt, full_name.mb_str( wxConvUTF8));
       pEntry->pFullPath = pt;
 
-      strncpy(pEntry->ChartID, fn.GetName(), sizeof(pEntry->ChartID));
+      strncpy(pEntry->ChartID, fn.GetName().mb_str( wxConvUTF8), sizeof(pEntry->ChartID));
       pEntry->ChartID[sizeof(pEntry->ChartID)-1] = 0;
 
       pEntry->Scale = pch->Chart_Scale;
@@ -766,7 +769,7 @@ int ChartDB::SearchDirAndAddS57(wxString& dir_name, bool bshow_prog, bool bupdat
       for(unsigned int j=0 ; j<pFileList->GetCount() ; j++)
       {
             wxFileName file(pFileList->Item(j));
-            if(file.GetExt() == "000")
+            if(file.GetExt() == _T("000"))
             {
                   nFile++;
             }
@@ -787,14 +790,14 @@ int ChartDB::SearchDirAndAddS57(wxString& dir_name, bool bshow_prog, bool bupdat
       for(unsigned int ifile=0 ; ifile < pFileList->GetCount() ; ifile++)
       {
           wxFileName file(pFileList->Item(ifile));
-          if(file.GetExt() == "000")
+          if(file.GetExt() == _T("000"))
           {
               bool bAdd = true;
               if(bupdate)
               {
                   for(int i=0 ; i<nEntry ; i++)
                   {
-                      if(!strcmp(file.GetFullPath(), pChartTable[i].pFullPath))
+                      if(file.GetFullPath().IsSameAs(wxString(pChartTable[i].pFullPath, wxConvUTF8)))
                       {
                           pChartTable[i].bValid = true;
                           bAdd = false;
@@ -820,7 +823,11 @@ int ChartDB::SearchDirAndAddS57(wxString& dir_name, bool bshow_prog, bool bupdat
                     pEntry++;
                   }
                   else
-                      wxLogMessage("CreateS57ChartTableEntry() failed for file: %s", file.GetFullPath().c_str());
+                  {
+                      wxString msg = _T("CreateS57ChartTableEntry() failed for file: ");
+                      msg.Append(file.GetFullPath());
+                      wxLogMessage(msg);
+                  }
 
               }
               iProg++;
@@ -865,12 +872,13 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
       pEntry->ChartType = CHART_TYPE_S57;
 
       char *pt = (char *)malloc(full_name.Length() + 1);
-      strcpy(pt, full_name.GetData());
+      strcpy(pt, full_name.mb_str( wxConvUTF8));
       pEntry->pFullPath = pt;
 
-      strcpy(pEntry->ChartID, fn.GetName());
+      strncpy(pEntry->ChartID, fn.GetName().mb_str( wxConvUTF8), sizeof(pEntry->ChartID));
+      pEntry->ChartID[sizeof(pEntry->ChartID)-1] = 0;
 
-      pEntry->Scale = s57_GetChartScale((char *)full_name.c_str());
+      pEntry->Scale = s57_GetChartScale(full_name);
 
       OGRDataSource *pDS;
       OGRFeature *pFeat;
@@ -883,7 +891,7 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
       {
 
           //Get the first M_COVR object
-          if(   s57_GetChartFirstM_COVR((char *)full_name.c_str(), &pDS, &pFeat, &pLayer, catcov))
+          if(   s57_GetChartFirstM_COVR(full_name, &pDS, &pFeat, &pLayer, catcov))
             {
 
                 OGRPolygon *poly;
@@ -1062,29 +1070,34 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
             else
             {
                   Extent ext;
-                  s57_GetChartExtent((char *)full_name.c_str(), &ext);
+                  if(s57_GetChartExtent(full_name, &ext))
+                  {
+                    pEntry->LatMax = ext.NLAT;
+                    pEntry->LatMin = ext.SLAT;
+                    pEntry->LonMin = ext.WLON;
+                    pEntry->LonMax = ext.ELON;
 
-                  pEntry->LatMax = ext.NLAT;
-                  pEntry->LatMin = ext.SLAT;
-                  pEntry->LonMin = ext.WLON;
-                  pEntry->LonMax = ext.ELON;
+                    pEntry->nPlyEntries = 4;
+                    float *pf = (float *)malloc(2 * 4 * sizeof(float));
+                    pEntry->pPlyTable = pf;
+                    float *pfe = pf;
 
-                  pEntry->nPlyEntries = 4;
-                  float *pf = (float *)malloc(2 * 4 * sizeof(float));
-                  pEntry->pPlyTable = pf;
-                  float *pfe = pf;
+                    *pfe++ = ext.NLAT;
+                    *pfe++ = ext.WLON;
 
-                  *pfe++ = ext.NLAT;
-                  *pfe++ = ext.WLON;
+                    *pfe++ = ext.NLAT;
+                    *pfe++ = ext.ELON;
 
-                  *pfe++ = ext.NLAT;
-                  *pfe++ = ext.ELON;
+                    *pfe++ = ext.SLAT;
+                    *pfe++ = ext.ELON;
 
-                  *pfe++ = ext.SLAT;
-                  *pfe++ = ext.ELON;
-
-                  *pfe++ = ext.SLAT;
-                  *pfe++ = ext.WLON;
+                    *pfe++ = ext.SLAT;
+                    *pfe++ = ext.WLON;
+                  }
+                  else
+                  {
+                      return false;                     // chart is completely unusable
+                  }
 
             }
       }
@@ -1172,7 +1185,7 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
 
       for(i=0 ; i<nEntry ; i++)
       {
-          wxString tt(pChartTable[i].pFullPath);
+          wxString tt(wxString(pChartTable[i].pFullPath,  wxConvUTF8));
 
 //    First check on rough Bounding box
             if((lat < pChartTable[i].LatMax) &&
@@ -1279,13 +1292,10 @@ bool ChartDB::CopyStack(ChartStack *pa, ChartStack *pb)
 //-------------------------------------------------------------------
 //    Get Full Path
 //-------------------------------------------------------------------
-bool ChartDB::GetFullPath(ChartStack *ps, int stackindex, char *buf, int nbuf)
+wxString ChartDB::GetFullPath(ChartStack *ps, int stackindex)
 {
       int dbIndex = ps->DBIndex[stackindex];
-      strncpy(buf, pChartTable[dbIndex].pFullPath, nbuf);
-      buf[nbuf-1] = 0;
-
-      return true;
+      return wxString(pChartTable[dbIndex].pFullPath,  wxConvUTF8);
 }
 
 //-------------------------------------------------------------------
@@ -1353,7 +1363,7 @@ int ChartDB::GetStackEntry(ChartStack *ps, wxString *pfp)
       for(int i=0 ; i<ps->nEntry ; i++)
       {
             int dbIndex = ps->DBIndex[i];
-            if(pfp->IsSameAs( pChartTable[dbIndex].pFullPath) )
+            if(pfp->IsSameAs( wxString(pChartTable[dbIndex].pFullPath,  wxConvUTF8)) )
                   return i;
       }
 
@@ -1393,10 +1403,9 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 {
 
       ChartBase *Ch;
-      char buf[80];
       CacheEntry *pce;
 
-      GetFullPath(pStack, StackEntry, buf, sizeof(buf));
+      wxString ChartFullPath = GetFullPath(pStack, StackEntry);
 
       wxDateTime now = wxDateTime::Now();                   // get time for LRU use
 
@@ -1408,7 +1417,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
       for(unsigned int i=0 ; i<nCache ; i++)
       {
             pce = (CacheEntry *)(pChartCache->Item(i));
-            if(pce->FullPath == wxString(buf))
+            if(pce->FullPath == ChartFullPath)
             {
                   Ch = (ChartBase *)pce->pChart;
                   bInCache = true;
@@ -1580,7 +1589,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
             if(Ch)
             {
                   InitReturn ir;
-                  ir = Ch->Init(buf, init_flag, pParent->GetColorScheme());    // using the passed flag
+                  ir = Ch->Init(ChartFullPath, init_flag, pParent->GetColorScheme());    // using the passed flag
 
                   if(INIT_OK == ir)
                   {
@@ -1588,7 +1597,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                         if(FULL_INIT == init_flag)
                         {
                               pce = new CacheEntry;
-                              pce->FullPath = wxString(buf);
+                              pce->FullPath = ChartFullPath;
                               pce->pChart = Ch;
                               pce->RecentTime = now.GetTicks();
 
@@ -1602,8 +1611,8 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 
 //          Mark this chart in the database, so that it will not be seen during this run
                         int dbIndex = pStack->DBIndex[StackEntry];
-                        const char *pChartToDisable = pChartTable[dbIndex].pFullPath;
-                        DisableChart(pChartToDisable);
+                        wxString ChartToDisable = wxString(pChartTable[dbIndex].pFullPath,  wxConvUTF8);
+                        DisableChart(ChartToDisable);
 
 
                   }
@@ -1626,12 +1635,12 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 //    Disable Chart
 //-------------------------------------------------------------------
 
-int ChartDB::DisableChart(const char *pPathToDisable)
+int ChartDB::DisableChart(wxString& PathToDisable)
 {
       //    Find the chart
       for(int i=0 ; i<nEntry ; i++)
       {
-            if(!strcmp(pChartTable[i].pFullPath, pPathToDisable))
+          if(PathToDisable.IsSameAs(wxString(pChartTable[i].pFullPath, wxConvUTF8)))
             {
 //          Mark this chart in the database, so that it will not be seen during this run
 //          How?  By setting the chart bounding box to an absurd value

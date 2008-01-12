@@ -27,11 +27,11 @@ NMEA0183_BOOLEAN SENTENCE::Boolean( int field_number ) const
 
    field_data = Field( field_number );
 
-   if ( field_data == "A" )
+   if ( field_data == _T("A") )
    {
       return( NTrue );
    }
-   else if ( field_data == "V" )
+   else if ( field_data == _T("V") )
    {
       return( NFalse );
    }
@@ -49,43 +49,43 @@ COMMUNICATIONS_MODE SENTENCE::CommunicationsMode( int field_number ) const
 
    field_data = Field( field_number );
 
-   if ( field_data == "d" )
+   if ( field_data == _T("d") )
    {
       return( F3E_G3E_SimplexTelephone );
    }
-   else if ( field_data == "e" )
+   else if ( field_data == _T("e") )
    {
       return( F3E_G3E_DuplexTelephone );
    }
-   else if ( field_data == "m" )
+   else if ( field_data == _T("m") )
    {
       return( J3E_Telephone );
    }
-   else if ( field_data == "o" )
+   else if ( field_data == _T("o") )
    {
       return( H3E_Telephone );
    }
-   else if ( field_data == "q" )
+   else if ( field_data == _T("q") )
    {
       return( F1B_J2B_FEC_NBDP_TelexTeleprinter );
    }
-   else if ( field_data == "s" )
+   else if ( field_data == _T("s") )
    {
       return( F1B_J2B_ARQ_NBDP_TelexTeleprinter );
    }
-   else if ( field_data == "w" )
+   else if ( field_data == _T("w") )
    {
       return( F1B_J2B_ReceiveOnlyTeleprinterDSC );
    }
-   else if ( field_data == "x" )
+   else if ( field_data == _T("x") )
    {
       return( A1A_MorseTapeRecorder );
    }
-   else if ( field_data == "{" )
+   else if ( field_data == _T("{") )
    {
       return( A1A_MorseKeyHeadset );
    }
-   else if ( field_data == "|" )
+   else if ( field_data == _T("|") )
    {
       return( F1C_F2C_F3C_FaxMachine );
    }
@@ -120,7 +120,7 @@ double SENTENCE::Double( int field_number ) const
 {
  //  ASSERT_VALID( this );
 
-   return( ::atof( Field( field_number ) ) );
+    return( ::atof( Field( field_number ).mb_str() ) );
 }
 
 
@@ -132,11 +132,11 @@ EASTWEST SENTENCE::EastOrWest( int field_number ) const
 
    field_data = Field( field_number );
 
-   if ( field_data == "E" )
+   if ( field_data == _T("E") )
    {
       return( East );
    }
-   else if ( field_data == "W" )
+   else if ( field_data == _T("W") )
    {
       return( West );
    }
@@ -219,9 +219,9 @@ void SENTENCE::Finish( void )
 
    unsigned char checksum = ComputeChecksum();
 
-   char temp_string[ 10 ];
+   wxString temp_string;
 
-   sprintf( temp_string, "*%02X%c%c", (int) checksum, CARRIAGE_RETURN, LINE_FEED );
+   temp_string.Printf(_T("*%02X%c%c"), (int) checksum, CARRIAGE_RETURN, LINE_FEED );
    Sentence += temp_string;
 }
 
@@ -229,7 +229,7 @@ int SENTENCE::Integer( int field_number ) const
 {
 //   ASSERT_VALID( this );
 
-   return( ::atoi( Field( field_number ) ) );
+    return( ::atoi( Field( field_number ).mb_str() ) );
 }
 
 NMEA0183_BOOLEAN SENTENCE::IsChecksumBad( int checksum_field_number ) const
@@ -242,7 +242,7 @@ NMEA0183_BOOLEAN SENTENCE::IsChecksumBad( int checksum_field_number ) const
 
    wxString checksum_in_sentence = Field( checksum_field_number );
 
-   if ( checksum_in_sentence == "" )
+   if ( checksum_in_sentence == _T("") )
    {
       return( Unknown0183 );
    }
@@ -263,11 +263,11 @@ LEFTRIGHT SENTENCE::LeftOrRight( int field_number ) const
 
    field_data = Field( field_number );
 
-   if ( field_data == "L" )
+   if ( field_data == _T("L") )
    {
       return( Left );
    }
-   else if ( field_data == "R" )
+   else if ( field_data == _T("R") )
    {
       return( Right );
    }
@@ -285,11 +285,11 @@ NORTHSOUTH SENTENCE::NorthOrSouth( int field_number ) const
 
    field_data = Field( field_number );
 
-   if ( field_data == "N" )
+   if ( field_data == _T("N") )
    {
       return( North );
    }
-   else if ( field_data == "S" )
+   else if ( field_data == _T("S") )
    {
       return( South );
    }
@@ -307,23 +307,23 @@ REFERENCE SENTENCE::Reference( int field_number ) const
 
    field_data = Field( field_number );
 
-   if ( field_data == "B" )
+   if ( field_data == _T("B") )
    {
       return( BottomTrackingLog );
    }
-   else if ( field_data == "M" )
+   else if ( field_data == _T("M") )
    {
       return( ManuallyEntered );
    }
-   else if ( field_data == "W" )
+   else if ( field_data == _T("W") )
    {
       return( WaterReferenced );
    }
-   else if ( field_data == "R" )
+   else if ( field_data == _T("R") )
    {
       return( RadarTrackingOfFixedTarget );
    }
-   else if ( field_data == "P" )
+   else if ( field_data == _T("P") )
    {
       return( PositioningSystemGroundReference );
    }
@@ -341,43 +341,43 @@ TRANSDUCER_TYPE SENTENCE::TransducerType( int field_number ) const
 
    field_data = Field( field_number );
 
-   if ( field_data == "A" )
+   if ( field_data == _T("A") )
    {
       return( AngularDisplacementTransducer );
    }
-   else if ( field_data == "D" )
+   else if ( field_data == _T("D") )
    {
       return( LinearDisplacementTransducer );
    }
-   else if ( field_data == "C" )
+   else if ( field_data == _T("C") )
    {
       return( TemperatureTransducer );
    }
-   else if ( field_data == "F" )
+   else if ( field_data == _T("F") )
    {
       return( FrequencyTransducer );
    }
-   else if ( field_data == "N" )
+   else if ( field_data == _T("N") )
    {
       return( ForceTransducer );
    }
-   else if ( field_data == "P" )
+   else if ( field_data == _T("P") )
    {
       return( PressureTransducer );
    }
-   else if ( field_data == "R" )
+   else if ( field_data == _T("R") )
    {
       return( FlowRateTransducer );
    }
-   else if ( field_data == "T" )
+   else if ( field_data == _T("T") )
    {
       return( TachometerTransducer );
    }
-   else if ( field_data == "H" )
+   else if ( field_data == _T("H") )
    {
       return( HumidityTransducer );
    }
-   else if ( field_data == "V" )
+   else if ( field_data == _T("V") )
    {
       return( VolumeTransducer );
    }
@@ -420,7 +420,7 @@ const SENTENCE& SENTENCE::operator += ( const wxString& source )
 {
 //   ASSERT_VALID( this );
 
-   Sentence += ",";
+    Sentence += _T(",");
    Sentence += source;
 
    return( *this );
@@ -430,11 +430,11 @@ const SENTENCE& SENTENCE::operator += ( double value )
 {
 //   ASSERT_VALID( this );
 
-   char temp_string[ 80 ];
+   wxString temp_string;
 
-   sprintf( temp_string, "%.3f", value );
+   temp_string.Printf(_T("%.3f"), value );
 
-   Sentence += ",";
+   Sentence += _T(",");
    Sentence += temp_string;
 
    return( *this );
@@ -444,58 +444,58 @@ const SENTENCE& SENTENCE::operator += ( COMMUNICATIONS_MODE mode )
 {
 //   ASSERT_VALID( this );
 
-   Sentence += ",";
+    Sentence += _T(",");
 
    switch( mode )
    {
       case F3E_G3E_SimplexTelephone:
 
-            Sentence += "d";
+          Sentence += _T("d");
                break;
 
       case F3E_G3E_DuplexTelephone:
 
-            Sentence += "e";
+          Sentence += _T("e");
                break;
 
       case J3E_Telephone:
 
-            Sentence += "m";
+          Sentence += _T("m");
                break;
 
       case H3E_Telephone:
 
-            Sentence += "o";
+          Sentence += _T("o");
                break;
 
       case F1B_J2B_FEC_NBDP_TelexTeleprinter:
 
-            Sentence += "q";
+          Sentence += _T("q");
                break;
 
       case F1B_J2B_ARQ_NBDP_TelexTeleprinter:
 
-            Sentence += "s";
+          Sentence += _T("s");
                break;
 
       case F1B_J2B_ReceiveOnlyTeleprinterDSC:
 
-            Sentence += "w";
+          Sentence += _T("w");
                break;
 
       case A1A_MorseTapeRecorder:
 
-            Sentence += "x";
+          Sentence += _T("x");
                break;
 
       case A1A_MorseKeyHeadset:
 
-            Sentence += "{";
+          Sentence += _T("{");
                break;
 
        case F1C_F2C_F3C_FaxMachine:
 
-           Sentence += "|";
+           Sentence += _T("|");
            break;
 
        case CommunicationsModeUnknown:
@@ -510,63 +510,63 @@ const SENTENCE& SENTENCE::operator += ( TRANSDUCER_TYPE transducer )
 {
 //   ASSERT_VALID( this );
 
-   Sentence += ",";
+    Sentence += _T(",");
 
    switch( transducer )
    {
       case TemperatureTransducer:
 
-            Sentence += "C";
+          Sentence += _T("C");
                break;
 
       case AngularDisplacementTransducer:
 
-            Sentence += "A";
+          Sentence += _T("A");
                break;
 
       case LinearDisplacementTransducer:
 
-            Sentence += "D";
+          Sentence += _T("D");
                break;
 
       case FrequencyTransducer:
 
-            Sentence += "F";
+          Sentence += _T("F");
                break;
 
       case ForceTransducer:
 
-            Sentence += "N";
+          Sentence += _T("N");
                break;
 
       case PressureTransducer:
 
-            Sentence += "P";
+          Sentence += _T("P");
                break;
 
       case FlowRateTransducer:
 
-            Sentence += "R";
+          Sentence += _T("R");
                break;
 
       case TachometerTransducer:
 
-            Sentence += "T";
+          Sentence += _T("T");
                break;
 
       case HumidityTransducer:
 
-            Sentence += "H";
+          Sentence += _T("H");
                break;
 
       case VolumeTransducer:
 
-            Sentence += "V";
+          Sentence += _T("V");
                break;
 
       case TransducerUnknown:
 
-            Sentence += "?";
+          Sentence += _T("?");
                break;
 
    }
@@ -578,15 +578,15 @@ const SENTENCE& SENTENCE::operator += ( NORTHSOUTH northing )
 {
 //   ASSERT_VALID( this );
 
-   Sentence += ",";
+    Sentence += _T(",");
 
    if ( northing == North )
    {
-      Sentence += "N";
+       Sentence += _T("N");
    }
    else if ( northing == South )
    {
-      Sentence += "S";
+       Sentence += _T("S");
    }
 
    return( *this );
@@ -596,11 +596,11 @@ const SENTENCE& SENTENCE::operator += ( int value )
 {
 //   ASSERT_VALID( this );
 
-   char temp_string[ 80 ];
+   wxString temp_string;
 
-   sprintf( temp_string, "%d", value );
+   temp_string.Printf(_T("%d"), value );
 
-   Sentence += ",";
+   Sentence += _T(",");
    Sentence += temp_string;
 
    return( *this );
@@ -610,15 +610,15 @@ const SENTENCE& SENTENCE::operator += ( EASTWEST easting )
 {
 //   ASSERT_VALID( this );
 
-   Sentence += ",";
+    Sentence += _T(",");
 
    if ( easting == East )
    {
-      Sentence += "E";
+       Sentence += _T("E");
    }
    else if ( easting == West )
    {
-      Sentence += "W";
+       Sentence += _T("W");
    }
 
    return( *this );
@@ -628,15 +628,15 @@ const SENTENCE& SENTENCE::operator += ( NMEA0183_BOOLEAN boolean )
 {
 //   ASSERT_VALID( this );
 
-   Sentence += ",";
+    Sentence += _T(",");
 
    if ( boolean == NTrue )
    {
-      Sentence += "A";
+       Sentence += _T("A");
    }
    else if ( boolean == NFalse )
    {
-      Sentence += "V";
+       Sentence += _T("V");
    }
 
    return( *this );

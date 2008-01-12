@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.8 2008/01/02 20:57:14 bdbcat Exp $
+ * $Id: wificlient.cpp,v 1.9 2008/01/12 06:22:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wificlient.cpp,v $
+ * Revision 1.9  2008/01/12 06:22:04  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.8  2008/01/02 20:57:14  bdbcat
  * Update for Version 1.2.2
  *
@@ -71,7 +74,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.8 2008/01/02 20:57:14 bdbcat Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.9 2008/01/12 06:22:04 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -100,9 +103,11 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
     m_timer_active = false;
 
 //    Decide upon Server source
-      wxLogMessage("WiFi Server is....%s",m_pdata_server_string->c_str());
+    wxString msg(_T("WiFi Server is...."));
+    msg.Append(*m_pdata_server_string);
+    wxLogMessage(msg);
 
-      if(m_pdata_server_string->Contains("TCP/IP"))
+    if(m_pdata_server_string->Contains(_T("TCP/IP")))
       {
           wxString WIFI_data_ip;
           WIFI_data_ip = m_pdata_server_string->Mid(7);         // extract the IP

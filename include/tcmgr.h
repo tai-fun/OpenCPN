@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tcmgr.h,v 1.2 2007/05/03 13:31:19 dsr Exp $
+ * $Id: tcmgr.h,v 1.3 2008/01/12 06:19:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tide and Current Manager
@@ -27,6 +27,9 @@
  ***************************************************************************
  *
  * $Log: tcmgr.h,v $
+ * Revision 1.3  2008/01/12 06:19:53  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.2  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -167,7 +170,7 @@ class Station_Data
 {
 public:
       char        *station_name;
-      char        station_type;            // T or C
+      wxChar      station_type;            // T or C
       double      *amplitude;
       double      *epoch;
       double      DATUM;
@@ -222,7 +225,7 @@ private:
       void free_harmonic_file_list();
       void free_abbreviation_list();
       void clean_string(char *str);
-      int allocate_copy_string(char **dst, char *string);
+      int allocate_copy_string(char **dst, const char *string);
       void skipnl (FILE *fp);
       int next_line (FILE *fp, char linrec[linelen], int end_ok);
       int slackcmp (char *a, char *b);

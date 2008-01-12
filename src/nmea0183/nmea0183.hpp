@@ -183,7 +183,7 @@ class NMEA0183
       virtual bool IsGood( void ) const;
       virtual bool Parse( void );
 
-      NMEA0183& operator << ( const char *source );
+      NMEA0183& operator << ( wxString& source );
       NMEA0183& operator >> ( wxString& destination );
 };
 

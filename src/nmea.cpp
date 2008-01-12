@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.16 2008/01/11 01:39:46 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.17 2008/01/12 06:24:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.17  2008/01/12 06:24:20  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.16  2008/01/11 01:39:46  bdbcat
  * Update for Mac OSX
  *
@@ -81,10 +84,10 @@
 #define __LINUX__
 #endif
 
-#ifdef __LINUX__ // begin rms
+//#ifdef __LINUX__ // begin rms
 extern wxMutex    s_pmutexNMEAEventState;
 extern int        g_iNMEAEventState ;
-#endif                        // end rms
+//#endif                        // end rms
 
 #ifdef __WXMSW__
     #ifdef ocpnUSE_MSW_SERCOMM
@@ -92,7 +95,7 @@ extern int        g_iNMEAEventState ;
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.16 2008/01/11 01:39:46 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.17 2008/01/12 06:24:20 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -148,11 +151,13 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
 //      Create and manage NMEA data stream source
 
 //    Decide upon NMEA source
-      wxLogMessage("NMEA Data Source is....%s",m_pdata_source_string->c_str());
+      wxString msg(_T("NMEA Data Source is...."));
+      msg.Append(*m_pdata_source_string);
+      wxLogMessage(msg);
 
 
 //    NMEA Data Source is specified serial port
-      if(m_pdata_source_string->Contains("Serial"))
+      if(m_pdata_source_string->Contains(_T("Serial")))
       {
           wxString comx;
           comx =  m_pdata_source_string->Mid(7);        // either "COM1" style or "/dev/ttyS0" style
@@ -160,7 +165,7 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
 #ifdef __WXMSW__
 
 //  As a quick check, verify that the specified port is available
-            HANDLE m_hSerialComm = CreateFile(comx.c_str(),       // Port Name
+            HANDLE m_hSerialComm = CreateFile(comx.mb_str(),       // Port Name
                                              GENERIC_READ,
                                              0,
                                              NULL,
@@ -171,9 +176,9 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
             if(m_hSerialComm == INVALID_HANDLE_VALUE)
             {
                   wxString msg(comx);
-                  msg.Prepend("  Could not open serial port '");
-                  msg.Append("'\nSuggestion: Try closing other applications.");
-                  wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
+                  msg.Prepend(_T("  Could not open serial port '"));
+                  msg.Append(_T("'\nSuggestion: Try closing other applications."));
+                  wxMessageDialog md(this, msg, _T("OpenCPN Message"), wxICON_ERROR );
                   md.ShowModal();
 
                   return;
@@ -197,7 +202,7 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
 
 #ifndef OCPN_DISABLE_SOCKETS
 //      NMEA Data Source is private TCP/IP Server
-        else if(m_pdata_source_string->Contains("GPSD"))
+        else if(m_pdata_source_string->Contains(_T("GPSD")))
         {
             wxString NMEA_data_ip;
             NMEA_data_ip = m_pdata_source_string->Mid(5);         // extract the IP
@@ -247,9 +252,9 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
             {
 
                 wxString msg(NMEA_data_ip);
-                msg.Prepend("Could not resolve TCP/IP host '");
-                msg.Append("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation");
-                wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
+                msg.Prepend(_T("Could not resolve TCP/IP host '"));
+                msg.Append(_T("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation"));
+                wxMessageDialog md(this, msg, _T("OpenCPN Message"), wxICON_ERROR );
                 md.ShowModal();
 
                 m_sock->Notify(FALSE);
@@ -382,17 +387,18 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
             if(!strncmp((const char *)buf, "GPSD", 4))
             {
+                wxString str_buf(wxString((const char *)buf, wxConvUTF8));
 
                 if(buf[7] != '?')           // valid data?
                 {
-                    wxStringTokenizer tkz(buf, " ");
+                    wxStringTokenizer tkz(str_buf, _T(" "));
                     token = tkz.GetNextToken();
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dtime))
                     {
                         fix_time.Set((time_t) floor(dtime));
-                        wxString fix_time_format = fix_time.Format("%Y-%m-%dT%H:%M:%S");  // this should show as LOCAL
+                        wxString fix_time_format = fix_time.Format(_T("%Y-%m-%dT%H:%M:%S"));  // this should show as LOCAL
                     }
 
 
@@ -467,15 +473,17 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 //      Requires the following line in /etc/sudoers
 //          nav ALL=NOPASSWD:/bin/date -s *
 
-                            wxLogMessage("Setting system time, delta t is %d", b);
+                            wxString msg;
+                            msg.Printf(_T("Setting system time, delta t is %d"), b);
+                            wxLogMessage(msg);
 
-                            wxString sdate(fix_time.Format("%D"));
-                            sdate.Prepend("sudo /bin/date -s \"");
+                            wxString sdate(fix_time.Format(_T("%D")));
+                            sdate.Prepend(_T("sudo /bin/date -s \""));
 
-                            wxString stime(fix_time.Format("%T"));
-                            stime.Prepend(" ");
+                            wxString stime(fix_time.Format(_T("%T")));
+                            stime.Prepend(_T(" "));
                             sdate.Append(stime);
-                            sdate.Append("\"");
+                            sdate.Append(_T("\""));
 
                             wxExecute(sdate, wxEXEC_ASYNC);
 
@@ -490,6 +498,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
 //    Signal the main program thread
 
+                    g_iNMEAEventState = NMEA_STATE_RDY ;
                     wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
                     event.SetEventObject( (wxObject *)this );
                     event.SetExtraLong(EVT_NMEA_DIRECT);
@@ -559,7 +568,7 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
       toDMM(kLon, &buf[i], 20);
 
       if(parent_frame->m_pStatusBar)
-            parent_frame->SetStatusText(buf, 3);
+          parent_frame->SetStatusText(wxString(buf, wxConvUTF8), 3);
 
 
       TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
@@ -626,7 +635,7 @@ extern wxMutex                      *ps_mutexProtectingTheRXBuffer;
 
 //    ctor
 
-OCP_NMEA_Thread::OCP_NMEA_Thread(wxWindow *MainWindow, const char *pszPortName)
+OCP_NMEA_Thread::OCP_NMEA_Thread(wxWindow *MainWindow, const wxString& PortName)
 {
 
       m_parent_frame = (MyFrame *)MainWindow;
@@ -635,7 +644,7 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(wxWindow *MainWindow, const char *pszPortName)
 
       rx_share_buffer_state = RX_BUFFER_EMPTY;
 
-      m_pPortName = new wxString(pszPortName);
+      m_pPortName = new wxString(PortName);
 
       rx_buffer = new char[RX_BUFFER_SIZE + 1];
       put_ptr = rx_buffer;
@@ -687,15 +696,20 @@ void *OCP_NMEA_Thread::Entry()
     pttyset_old = (termios *)malloc(sizeof (termios));
 
     // Open the serial port.
-    if ((m_gps_fd = open(m_pPortName->c_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
-//    if ((m_gps_fd = open(m_pPortName->c_str(), O_RDWR|O_NOCTTY)) < 0)
+    if ((m_gps_fd = open(m_pPortName->mb_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
+//    if ((m_gps_fd = open(m_pPortName->mb_str(), O_RDWR|O_NOCTTY)) < 0)
     {
-        wxLogMessage("NMEA input device open failed: %s\n", m_pPortName->c_str());
+        wxString msg(_T("NMEA input device open failed: "));
+        msg.Append(*m_pPortName);
+        wxLogMessage(msg);
         return 0;
     }
 
+    wxString msg(_T("NMEA input device opened: "));
+    msg.Append(*m_pPortName);
+    wxLogMessage(msg);
+
     //something like this may be needed???
-      wxLogMessage("NMEA input device opened: %s\n", m_pPortName->c_str());
 //    fcntl(m_gps_fd, F_SETFL, fcntl(m_gps_fd, F_GETFL) & !O_NONBLOCK);
 
     {
@@ -711,7 +725,9 @@ void *OCP_NMEA_Thread::Entry()
       /* Save original terminal parameters */
       if (tcgetattr(m_gps_fd,pttyset_old) != 0)
       {
-          wxLogMessage("NMEA input device getattr failed: %s\n", m_pPortName->c_str());
+          wxString msg(_T("NMEA input device getattr failed: "));
+          msg.Append(*m_pPortName);
+          wxLogMessage(msg);
           return 0;
       }
       (void)memcpy(pttyset, pttyset_old, sizeof(termios));
@@ -749,7 +765,9 @@ void *OCP_NMEA_Thread::Entry()
       pttyset->c_cflag |= (CSIZE & (stopbits==2 ? CS7 : CS8));
       if (tcsetattr(m_gps_fd, TCSANOW, pttyset) != 0)
       {
-          wxLogMessage("NMEA input device setattr failed: %s\n", m_pPortName->c_str());
+          wxString msg(_T("NMEA input device setattr failed: "));
+          msg.Append(*m_pPortName);
+          wxLogMessage(msg);
           return 0;
       }
 
@@ -782,13 +800,17 @@ void *OCP_NMEA_Thread::Entry()
         ssize_t newdata;
         newdata = read(m_gps_fd, &next_byte, 1);            // read of one char
                                                             // return (-1) if no data available, timeout
-        if(newdata > 0)
-            // begin rms
+//        if (newdata < 0 )
+//            wxThread::Sleep(100) ;
+
+        // begin rms
 #ifdef __WXOSX__
             if (newdata < 0 )
                   wxThread::Sleep(100) ;
 #endif
             // end rms
+
+        if(newdata > 0)
         {
             nl_found = false;
 
@@ -806,7 +828,6 @@ void *OCP_NMEA_Thread::Entry()
                 char *tptr;
                 char *ptmpbuf;
                 char temp_buf[RX_BUFFER_SIZE];
-
 
 //    If the shared buffer is available....
                 if(1/*ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR */ )
@@ -839,13 +860,14 @@ void *OCP_NMEA_Thread::Entry()
 
     // parse the message
 
-                            *pNMEA0183 << temp_buf;
+                            wxString str_temp_buf(temp_buf, wxConvUTF8);
+                            *pNMEA0183 << str_temp_buf;
                                           // begin rms
                                           // we must check the return from parse, as some usb to serial adaptors on the MAC spew
                                           // junk if there is not a serial data cable connected.
                             if (true == pNMEA0183->Parse())
-                                          {
-                            if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
+                            {
+                                if(pNMEA0183->LastSentenceIDReceived == wxString(_T("RMC")))
                             {
                                 if(pNMEA0183->Rmc.IsDataValid == NTrue)
                                 {
@@ -947,7 +969,7 @@ void *OCP_NMEA_Thread::Entry()
 
 //    Set up the serial port
 
-      m_hSerialComm = CreateFile(m_pPortName->c_str(),      // Port Name
+      m_hSerialComm = CreateFile(m_pPortName->mb_str(),      // Port Name
                                              GENERIC_READ,              // Desired Access
                                              0,                               // Shared Mode
                                              NULL,                            // Security
@@ -1204,7 +1226,7 @@ void *OCP_NMEA_Thread::Entry()
       OVERLAPPED osReader = {0};
 
 //    Set up the serial port
-      m_hSerialComm = CreateFile(m_pPortName->c_str(),      // Port Name
+      m_hSerialComm = CreateFile(m_pPortName->mb_str(),      // Port Name
                                              GENERIC_READ,              // Desired Access
                                              0,                               // Shared Mode
                                              NULL,                            // Security
@@ -1400,7 +1422,8 @@ HandleASuccessfulRead:
 
     // parse the message
 
-                        *pNMEA0183 << temp_buf;
+                        wxString str_temp_buf(temp_buf, wxConvUTF8);
+                        *pNMEA0183 << str_temp_buf;
                         pNMEA0183->Parse();
 
                         if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
@@ -1423,11 +1446,18 @@ HandleASuccessfulRead:
                                 kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
                                 kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
 
+     // avoid signal to the main window if the last one has not been used.
+                                wxMutexLocker* pstateLocker = new wxMutexLocker(s_pmutexNMEAEventState) ;
+                                if ( NMEA_STATE_RDY != g_iNMEAEventState )
+                                {
+                                    g_iNMEAEventState = NMEA_STATE_RDY ;
     //    Signal the main program thread
-                                wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
-                                event.SetEventObject( (wxObject *)this );
-                                event.SetExtraLong(EVT_NMEA_DIRECT);
-                                m_pMainEventHandler->AddPendingEvent(event);
+                                    wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+                                    event.SetEventObject( (wxObject *)this );
+                                    event.SetExtraLong(EVT_NMEA_DIRECT);
+                                    m_pMainEventHandler->AddPendingEvent(event);
+                                }
+                                delete (pstateLocker) ;
                             }
                         }
 
@@ -1481,9 +1511,11 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 
 //    Create and init the Serial Port for Autopilot control
 
-      wxLogMessage("NMEA AutoPilot Port is....%s",m_pdata_ap_port_string->c_str());
+          wxString msg(_T("NMEA AutoPilot Port is...."));
+          msg.Append(*m_pdata_ap_port_string);
+          wxLogMessage(msg);
 
-      if((!m_pdata_ap_port_string->IsEmpty()) && (!m_pdata_ap_port_string->IsSameAs("None", false)))
+          if((!m_pdata_ap_port_string->IsEmpty()) && (!m_pdata_ap_port_string->IsSameAs(_T("None"), false)))
       {
 
             wxString port(m_pdata_ap_port_string->AfterFirst(':'));    // Strip "Serial"
@@ -1491,7 +1523,7 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 
 #ifdef __WXMSW__
 #ifdef ocpnUSE_MSW_SERCOMM
-            pWinComm = new CSyncSerialComm(port.c_str());
+            pWinComm = new CSyncSerialComm(port.mb_str());
             pWinComm->Open();
             pWinComm->ConfigPort(4800, 5);
             bAutoPilotOut = true;
@@ -1504,7 +1536,7 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 // begin rms
 #ifdef __WXOSX__
             pWinComm = NULL;
-            pWinComm = new CSyncSerialComm(port.c_str());
+            pWinComm = new CSyncSerialComm(port.mb_str());
             pWinComm->Open();
             pWinComm->ConfigPort(4800, 5);
             bAutoPilotOut = true;
@@ -1561,9 +1593,11 @@ bool AutoPilotWindow::OpenPort(wxString &port)
     pttyset_old = (termios *)malloc(sizeof (termios));
 
             // Open the serial port.
-    if ((m_ap_fd = open(port.c_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
+    if ((m_ap_fd = open(port.mb_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
     {
-        wxLogMessage("Autopilot output device open failed: %s\n", port.c_str());
+        wxString msg(_T("Autopilot output device open failed: "));
+        msg.Append(port);
+        wxLogMessage(msg);
         return false;
     }
 
@@ -1580,7 +1614,9 @@ bool AutoPilotWindow::OpenPort(wxString &port)
         /* Save original terminal parameters */
         if (tcgetattr(m_ap_fd,pttyset_old) != 0)
         {
-            wxLogMessage("Autopilot output device getattr failed: %s\n", port.c_str());
+            wxString msg(_T("Autopilot output device getattr failed: "));
+            msg.Append(port);
+            wxLogMessage(msg);
             return false;
         }
         (void)memcpy(pttyset, pttyset_old, sizeof(termios));
@@ -1617,7 +1653,9 @@ bool AutoPilotWindow::OpenPort(wxString &port)
         pttyset->c_cflag |= (CSIZE & (stopbits==2 ? CS7 : CS8));
         if (tcsetattr(m_ap_fd, TCSANOW, pttyset) != 0)
         {
-            wxLogMessage("Autopilot output device setattr failed: %s\n", port.c_str());
+            wxString msg(_T("Autopilot output device getattr failed: "));
+            msg.Append(port);
+            wxLogMessage(msg);
             return false;
         }
 
@@ -1635,9 +1673,9 @@ bool AutoPilotWindow::OpenPort(wxString &port)
 
 
 
-void AutoPilotWindow::AutopilotOut(const char *Sentence)
+void AutoPilotWindow::AutopilotOut(const wxString& Sentence)
 {
-    int char_count = strlen(Sentence);
+    int char_count = Sentence.Len();
 
 #ifdef __WXMSW__
 #ifdef ocpnUSE_MSW_SERCOMM
@@ -1653,7 +1691,6 @@ void AutoPilotWindow::AutopilotOut(const char *Sentence)
 
       ssize_t status;
       status = write(m_ap_fd, Sentence, char_count);
-
 
 #endif
 #endif

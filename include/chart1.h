@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.10 2008/01/10 03:38:47 bdbcat Exp $
+ * $Id: chart1.h,v 1.11 2008/01/12 06:18:10 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.11  2008/01/12 06:18:10  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.10  2008/01/10 03:38:47  bdbcat
  * Update for Mac OSX
  *
@@ -72,14 +75,14 @@
 
 
 // begin rms
-#if defined(__WXOSX__) || defined(__LINUX__)
+//#if defined(__WXOSX__) || defined(__LINUX__)
 enum NMEA_EVENT_STATE
 {
       NMEA_STATE_NONE = 0 ,
       NMEA_STATE_RDY,
       NMEA_STATE_DONE
 } ;
-#endif
+//#endif
 // end rms
 
 extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,

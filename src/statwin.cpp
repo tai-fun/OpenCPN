@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.10  2008/01/12 06:21:42  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.9  2007/06/13 22:47:36  bdbcat
  * Refresh on SetColorScheme()
  *
@@ -75,7 +78,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.9 2007/06/13 22:47:36 bdbcat Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.10 2008/01/12 06:21:42 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -159,7 +162,7 @@ int StatWin::GetFontHeight()
       wxClientDC dc(this);
 
       wxCoord w,h;
-      GetTextExtent("TEST", &w, &h);
+      GetTextExtent(_T("TEST"), &w, &h);
 
       return(h);
 }
@@ -209,15 +212,14 @@ TStatWin::TStatWin(wxFrame *frame):
       wxWindow(frame, wxID_ANY,wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 {
       SetBackgroundColour(wxColour(150,150,150));
-      pText = NULL;
+      pText = new wxString();
       bTextSet = false;
 
 }
 
 TStatWin::~TStatWin(void)
 {
-      if(bTextSet && pText)
-            free(pText);
+      delete pText;
 }
 
 
@@ -228,18 +230,13 @@ void TStatWin::OnSize(wxSizeEvent& event)
 void TStatWin::OnPaint(wxPaintEvent& event)
 {
       wxPaintDC dc(this);
-      dc.DrawText(pText, 0, 0);
+      dc.DrawText(*pText, 0, 0);
 }
 
-void TStatWin::TextDraw(const char *text)
+void TStatWin::TextDraw(const wxString& text)
 {
-      if(bTextSet && pText)
-            free(pText);
-
-      pText = (char *)malloc(strlen(text) + 1);
+      *pText = text;
       bTextSet = true;
-
-      strcpy(pText, text);
       Refresh(true);
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57mgr.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $
+ * $Id: s57mgr.cpp,v 1.3 2008/01/12 06:21:28 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S57 Chart Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57mgr.cpp,v $
+ * Revision 1.3  2008/01/12 06:21:28  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.2  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -82,7 +85,7 @@
 
 //#include "../mygdal/include/iso8211.h"
 
-CPL_CVSID("$Id: s57mgr.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: s57mgr.cpp,v 1.3 2008/01/12 06:21:28 bdbcat Exp $");
 
 static wxString *pval;
 
@@ -107,7 +110,7 @@ extern "C" char *mygetenv(char *pvar)
         {
                 pval->Empty();
                 pval->Append(wxString(test_val));
-                return((char *)pval->c_str());
+                return((char *)pval->mb_str());
 
         }
         else
@@ -117,7 +120,7 @@ extern "C" char *mygetenv(char *pvar)
                 env[key] = val;
                 pval->Empty();
                 pval->Append(wxString(val));
-                return((char *)pval->c_str());
+                return((char *)pval->mb_str());
         }
 
 }
@@ -156,9 +159,9 @@ s57mgr::s57mgr(const wxString& csv_dir)
 #ifdef __WXMSW__
     wxString envs1("S57_CSV=");
     envs1.Append(csv_dir);
-    _putenv( envs1.c_str());
+    _putenv( envs1.mb_str());
 #else
-    wxSetEnv( "S57_CSV", csv_dir.c_str());
+    wxSetEnv( "S57_CSV", csv_dir.mb_str());
 #endif
 
 
@@ -193,10 +196,10 @@ s57mgr::s57mgr(const wxString& csv_dir)
 #ifdef __WXMSW__
     wxString envs2("OGR_S57_OPTIONS=");
     envs2.Append(set1);
-    _putenv( envs2.c_str());
+    _putenv( envs2.mb_str());
 
 #else
-    wxSetEnv("OGR_S57_OPTIONS",set1.c_str());
+    wxSetEnv("OGR_S57_OPTIONS",set1.mb_str());
 #endif
 
     pcsv_locn = new wxString(csv_dir);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.5 2007/05/03 13:31:19 dsr Exp $
+ * $Id: s52plib.h,v 1.6 2008/01/12 06:18:50 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.6  2008/01/12 06:18:50  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.5  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -154,12 +157,12 @@ public:
 
 
       int dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec);
-      int LoadColors(char *pColorFile);
+      int LoadColors(const wxString& ColorFile);
 
       wxArrayOfLUPrec *SelectLUPARRAY(LUPname TNAM);
 
       LUPrec *FindBestLUP(wxArrayPtrVoid *nameMatch,char *objAtt, wxArrayOfS57attVal *objAttVal, bool bStrict);
-      Rules *StringToRules(const char *str_in);
+      Rules *StringToRules(const wxString& str_in);
       void GetAndAddCSRules(ObjRazRules *rzRules, Rules *rules);
 
 

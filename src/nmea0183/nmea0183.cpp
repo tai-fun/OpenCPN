@@ -209,7 +209,7 @@ bool NMEA0183::Parse( void )
 
       if ( mnemonic.Left( 1 ) == 'P' )
       {
-         mnemonic = "P";
+          mnemonic = _T("P");
       }
       else
       {
@@ -221,48 +221,48 @@ bool NMEA0183::Parse( void )
       */
 
       ErrorMessage = mnemonic;
-      ErrorMessage += " is an unknown type of sentence";
+      ErrorMessage += _T(" is an unknown type of sentence");
 
       LastSentenceIDReceived = mnemonic;
 
 
-//		Traverse the response list to find a mnemonic match
-      
-		wxMRLNode *node = response_table.GetFirst();
+//          Traverse the response list to find a mnemonic match
 
-	  while(node)
-	  {
-		  RESPONSE *resp = node->GetData();
+            wxMRLNode *node = response_table.GetFirst();
 
-	      comparison = mnemonic.Cmp( resp->Mnemonic );
+        while(node)
+        {
+              RESPONSE *resp = node->GetData();
 
-			 if ( comparison == 0 )
-			 {
-				response_p = (RESPONSE *) resp;
-				return_value = response_p->Parse( sentence );
+            comparison = mnemonic.Cmp( resp->Mnemonic );
 
-				/*
-				** Set your ErrorMessage
-				*/
+                   if ( comparison == 0 )
+                   {
+                        response_p = (RESPONSE *) resp;
+                        return_value = response_p->Parse( sentence );
 
-				if ( return_value == TRUE )
-				{
-				   ErrorMessage = "No Error";
-				   LastSentenceIDParsed = response_p->Mnemonic;
-				   TalkerID = talker_id( sentence );
-				   ExpandedTalkerID = expand_talker_id( TalkerID );
-				}
-				else
-				{
-				   ErrorMessage = response_p->ErrorMessage;
-				}
+                        /*
+                        ** Set your ErrorMessage
+                        */
 
-				break;
-			 }
+                        if ( return_value == TRUE )
+                        {
+        ErrorMessage = _T("No Error");
+                           LastSentenceIDParsed = response_p->Mnemonic;
+                           TalkerID = talker_id( sentence );
+                           ExpandedTalkerID = expand_talker_id( TalkerID );
+                        }
+                        else
+                        {
+                           ErrorMessage = response_p->ErrorMessage;
+                        }
 
-		  node = node->GetNext();
-	  }
-	  
+                        break;
+                   }
+
+              node = node->GetNext();
+        }
+
    }
    else
    {
@@ -272,7 +272,7 @@ bool NMEA0183::Parse( void )
    return( return_value );
 }
 
-NMEA0183& NMEA0183::operator << ( const char *source )
+NMEA0183& NMEA0183::operator << ( wxString & source )
 {
 //   ASSERT_VALID( this );
 

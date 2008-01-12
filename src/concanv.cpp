@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.5 2008/01/10 03:36:19 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.6 2008/01/12 06:23:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.6  2008/01/12 06:23:42  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.5  2008/01/10 03:36:19  bdbcat
  * Update for Mac OSX
  *
@@ -79,12 +82,12 @@
   #include "wx/datetime.h"
 #endif
 
-#ifdef __WXOSX__		// begin rms
+#ifdef __WXOSX__        // begin rms
   #include <stdlib.h>
   #include <math.h>
   #include <time.h>
   #include "wx/datetime.h"
-#endif					// end rms
+#endif                              // end rms
 
 #include "chart1.h"
 #include "concanv.h"
@@ -98,7 +101,7 @@ extern                  float gCog;
 extern                  float gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.5 2008/01/10 03:36:19 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.6 2008/01/12 06:23:42 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -119,32 +122,32 @@ ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
 {
       SetBackgroundColour(wxColour(128,128,128));
 
-      pThisLegBox = new wxStaticBox(this, -1, "This Leg", wxPoint(1,1),
-            wxSize(170,200), 0, "staticBox");
+      pThisLegBox = new wxStaticBox(this, -1, _T("This Leg"), wxPoint(1,1),
+                                    wxSize(170,200), 0, _T("staticBox"));
 
       pSBoxRgn = new wxRegion(pThisLegBox->GetRect() );
 
       pThisLegFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD, FALSE,
-                                                                        wxString("Eurostile Extended"));
+              wxString(_T("Eurostile Extended")));
 
       pThisLegBox->SetFont(*pThisLegFont);
 
       pXTE = new AnnunText(this, -1,wxPoint(10,20), wxSize(140,50), _T("Console Legend"), _T("Console Value"));
-      pXTE->SetALabel("XTE");
+      pXTE->SetALabel(_T("XTE"));
 
       pBRG = new AnnunText(this, -1,wxPoint(10,75), wxSize(140,50), _T("Console Legend"), _T("Console Value"));
-      pBRG->SetALabel("BRG");
+      pBRG->SetALabel(_T("BRG"));
 
       pRNG = new AnnunText(this, -1,wxPoint(10,130), wxSize(140,50), _T("Console Legend"), _T("Console Value"));
-      pRNG->SetALabel("RNG");
+      pRNG->SetALabel(_T("RNG"));
 
       pTTG = new AnnunText(this, -1,wxPoint(10,185), wxSize(140,50), _T("Console Legend"), _T("Console Value"));
-      pTTG->SetALabel("TTG");
+      pTTG->SetALabel(_T("TTG"));
 
 
 //    Create CDI Display Window
 
-      pCDI = new CDI(this, -1, wxPoint(0,200), wxSize(100, 200), wxSIMPLE_BORDER, "CDI");
+      pCDI = new CDI(this, -1, wxPoint(0,200), wxSize(100, 200), wxSIMPLE_BORDER, _T("CDI"));
       pCDI->SetBackgroundColour(wxColour(192,192,192));
 
       m_bShowRouteTotal = false;
@@ -208,7 +211,7 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
 {
       int x,y;
       GetClientSize(&x, &y);
-      char buf[40];
+      wxString str_buf;
 
       wxPaintDC dc(this);
 
@@ -232,40 +235,40 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                   if(fabs(rng - nrng) > .01)
                   {
                         if(nrng < 10.0)
-                              srng.Printf("%5.2f/%5.2f", rng, nrng );
+                            srng.Printf(_T("%5.2f/%5.2f"), rng, nrng );
                         else
-                              srng.Printf("%5.1f/%5.1f", rng, nrng );
+                            srng.Printf(_T("%5.1f/%5.1f"), rng, nrng );
                   }
                   else
                   {
                         if(rng < 10.0)
-                              srng.Printf("%6.2f", rng );
+                            srng.Printf(_T("%6.2f"), rng );
                         else
-                              srng.Printf("%6.1f", rng );
+                            srng.Printf(_T("%6.1f"), rng );
                   }
 
 
                   if(!m_bShowRouteTotal)
-                        pRNG->SetAValue(srng.c_str());
+                        pRNG->SetAValue(srng);
 
 //    Brg
-                  sprintf(buf, "%6.0f", pRouteMan->GetCurrentBrgToActivePoint());
-                  pBRG->SetAValue(buf);
+                  str_buf.Printf(_T("%6.0f"), pRouteMan->GetCurrentBrgToActivePoint());
+                  pBRG->SetAValue(str_buf);
 
 //    XTE
-                  sprintf(buf, "%6.2f", pRouteMan->GetCurrentXTEToActivePoint());
-                  pXTE->SetAValue(buf);
+                  str_buf.Printf(_T("%6.2f"), pRouteMan->GetCurrentXTEToActivePoint());
+                  pXTE->SetAValue(str_buf);
                   if(pRouteMan->GetXTEDir() < 0)
-                        pXTE->SetALabel("XTE         L");
+                      pXTE->SetALabel(wxString(_T("XTE         L")));
                   else
-                        pXTE->SetALabel("XTE         R");
+                      pXTE->SetALabel(wxString(_T("XTE         R")));
 
 //    TTG
                   float ttg_sec = (rng / gSog) * 3600.;
                   wxTimeSpan ttg_span(0, 0, long(ttg_sec), 0);
                   wxString ttg_s = ttg_span.Format();
                   if(!m_bShowRouteTotal)
-                        pTTG->SetAValue(ttg_s.c_str());
+                        pTTG->SetAValue(ttg_s);
 
       //    Remainder of route
                   float trng = rng;
@@ -285,20 +288,21 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                   }
 
 //                total rng
+                  wxString strng;
                   if(trng < 10.0)
-                        sprintf(&buf[0], "%6.2f", trng );
+                      strng.Printf(_T("%6.2f"), trng );
                   else
-                        sprintf(&buf[0], "%6.1f", trng );
+                      strng.Printf(_T("%6.1f"), trng );
 
                   if(m_bShowRouteTotal)
-                        pRNG->SetAValue(buf);
+                        pRNG->SetAValue(strng);
 
 //                total ttg
                   float tttg_sec = (trng / gSog) * 3600.;
                   wxTimeSpan tttg_span(0, 0, long(tttg_sec), 0);
                   wxString tttg_s = tttg_span.Format();
                   if(m_bShowRouteTotal)
-                        pTTG->SetAValue(tttg_s.c_str());
+                        pTTG->SetAValue(tttg_s);
 
 //                total ETA to be shown on XTE panel
                   wxDateTime dtnow, eta;
@@ -308,8 +312,8 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
 
                   if(m_bShowRouteTotal)
                   {
-                        pXTE->SetAValue(seta.c_str());
-                        pXTE->SetALabel("ETA          ");
+                        pXTE->SetAValue(seta);
+                        pXTE->SetALabel(wxString(_T("ETA          ")));
                   }
             }
       }
@@ -349,7 +353,7 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
 #endif
 
       if(event.IsButton())
-            wxLogMessage("concanv::MouseEvent Button");
+            wxLogMessage(_T("concanv::MouseEvent Button"));
 //    Check the regions
 
       if(event.LeftDown())
@@ -359,9 +363,9 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
             {
                   m_bShowRouteTotal = !m_bShowRouteTotal;
                   if(m_bShowRouteTotal)
-                        pThisLegBox->SetLabel(wxString("Route"));
+                        pThisLegBox->SetLabel(_T("Route"));
                   else
-                        pThisLegBox->SetLabel(wxString("This Leg"));
+                        pThisLegBox->SetLabel(_T("This Leg"));
 
                   pThisLegBox->Refresh(true);
             }
@@ -403,19 +407,18 @@ END_EVENT_TABLE()
 
 
 AnnunText::AnnunText(wxWindow *parent, wxWindowID id,
-                               const wxPoint& pos, const wxSize& size, const char *LegendElement,
-                                const char *ValueElement):
-            wxWindow(parent, id, pos, size, wxSUNKEN_BORDER, wxString(""))
+                               const wxPoint& pos, const wxSize& size, const wxString& LegendElement, const wxString& ValueElement):
+        wxWindow(parent, id, pos, size, wxSUNKEN_BORDER, wxString(_T("")))
 {
       SetBackgroundColour(wxColour(0,0,0));
 
-      label = new wxString("Label");
-      value = new wxString("-----");
+      label = new wxString(_T("Label"));
+      value = new wxString(_T("-----"));
 
       plabelFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_SWISS,wxNORMAL, wxBOLD, FALSE,
-                                                                        wxString("Arial Bold"));
+              wxString(_T("Arial Bold")));
       pvalueFont = wxTheFontList->FindOrCreateFont(24, wxFONTFAMILY_DEFAULT,wxNORMAL, wxBOLD, FALSE,
-                  wxString("helvetica"), wxFONTENCODING_ISO8859_1);
+              wxString(_T("helvetica")), wxFONTENCODING_ISO8859_1);
 
 
       pLegendTextElement = new wxString( LegendElement );
@@ -465,10 +468,10 @@ AnnunText::AnnunText(wxWindow *parent, wxWindowID id,
 //                     "utopia");
 
 //      pattern.Printf(wxT("-*-*-*-*-*-*-*-*-*-*-*-*-*-*"));
-      pattern.Printf(wxT("-*-%s-*-r-normal-*-*-*-*-*-*-*-%s-%s"),
+      pattern.Printf(wxT("-*-%s-*-r-normal-*-*-*-*-*-*-*-%s-%s"),  ///CANNOT Printf %s
                         "utopia",
-                     info.xregistry.c_str(),
-                     info.xencoding.c_str());
+                     info.xregistry.mb_str(),
+                     info.xencoding.mb_str());
 
     // get the list of all fonts
       int nFonts;
@@ -490,7 +493,7 @@ AnnunText::AnnunText(wxWindow *parent, wxWindowID id,
       for(int i=0 ; i < nNames ; i++)
       {
             wxString name = Names.Item(i);
-            printf("%s\n", name.c_str());
+            printf("%s\n", name.mb_str());
       }
 
 //      wxString fd = pvalueFont->GetNativeFontInfoDesc();

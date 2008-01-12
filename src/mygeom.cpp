@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.7 2007/06/10 02:28:15 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.8 2008/01/12 06:20:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.8  2008/01/12 06:20:27  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.7  2007/06/10 02:28:15  bdbcat
  * Cleanup
  *
@@ -63,7 +66,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.7 2007/06/10 02:28:15 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.8 2008/01/12 06:20:27 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -305,7 +308,7 @@ PolyTessGeo::PolyTessGeo(unsigned char *polybuf, int nrecl, int index)
 
     my_bufgets( buf, POLY_LINE_MAX );                       // contour nVert
 
-    wxString ivc_str(buf + 10);
+    wxString ivc_str(buf + 10,  wxConvUTF8);
     wxStringTokenizer tkc(ivc_str, wxT(" ,\n"));
     int icvert = 0;
     while ( tkc.HasMoreTokens() )
@@ -313,7 +316,7 @@ PolyTessGeo::PolyTessGeo(unsigned char *polybuf, int nrecl, int index)
         wxString token = tkc.GetNextToken();
         if(token.IsNumber())
         {
-            icvert = atoi(token.c_str());
+            icvert = atoi(token.mb_str());
             if(icvert)
             {
                 *pctr = icvert;
@@ -796,38 +799,38 @@ int PolyTessGeo::Write_PolyTriGroup( FILE *ofs)
 //  Create initial known part of the output record
 
 
-    stemp.sprintf( "  POLYTESSGEOPROP %f %f %f %f\n",
+    stemp.sprintf( _T("  POLYTESSGEOPROP %f %f %f %f\n"),
                    xmin, ymin, xmax, ymax);            // PolyTessGeo Properties
     sout += stemp;
 
 //  Transcribe the true number of  contours, and the raw geometry wkb size
-    stemp.sprintf( "Contours/nWKB %d %d\n",  ncnt, nwkb);
+    stemp.sprintf( _T("Contours/nWKB %d %d\n"),  ncnt, nwkb);
     sout += stemp;
 
 
 //  Transcribe the contour counts
-    stemp.sprintf("Contour nV");
+    stemp.sprintf(_T("Contour nV"));
     sout += stemp;
     for(int i=0 ; i<ncnt ; i++)
     {
-        stemp.sprintf( " %d", pPTG->pn_vertex[i]);
+        stemp.sprintf( _T(" %d"), pPTG->pn_vertex[i]);
         sout += stemp;
     }
-    stemp.sprintf( "\n");
+    stemp.sprintf( _T("\n"));
     sout += stemp;
-    ostream1->Write(sout.c_str(), sout.Len());
+    ostream1->Write(sout.mb_str(), sout.Len());
 
 //  Transcribe the raw geometry buffer
     ostream1->Write(pPTG->pgroup_geom,nwkb);
-    stemp.sprintf( "\n");
-    ostream1->Write(stemp.c_str(), stemp.Len());
+    stemp.sprintf( _T("\n"));
+    ostream1->Write(stemp.mb_str(), stemp.Len());
 
 
 //  Transcribe the TriPrim chain
 
     TriPrim *pTP = pPTG->tri_prim_head;         // head of linked list of TriPrims
 
-    stemp.sprintf( "\n");
+    stemp.sprintf( _T("\n"));
 
     while(pTP)
     {
@@ -850,20 +853,20 @@ int PolyTessGeo::Write_PolyTriGroup( FILE *ofs)
         ostream2->Write(&maxy, sizeof(double));
 
 
-        ostream2->Write(stemp.c_str(), stemp.Len());
+        ostream2->Write(stemp.mb_str(), stemp.Len());
 
         pTP = pTP->p_next;
     }
 
 
-    stemp.sprintf( "POLYEND\n");
-    ostream2->Write(stemp.c_str(), stemp.Len());
+    stemp.sprintf( _T("POLYEND\n"));
+    ostream2->Write(stemp.mb_str(), stemp.Len());
 
 
     int nrecl = ostream1->GetSize() + ostream2->GetSize();
-    stemp.sprintf( "  POLYTESSGEO  %08d\n", nrecl);
+    stemp.sprintf( _T("  POLYTESSGEO  %08d\n"), nrecl);
 
-    fwrite(stemp.c_str(), 1, stemp.Len(), ofs);                 // Header, + record length
+    fwrite(stemp.mb_str(), 1, stemp.Len(), ofs);                 // Header, + record length
 
     char *tb = (char *)malloc(ostream1->GetSize());
     ostream1->CopyTo(tb, ostream1->GetSize());

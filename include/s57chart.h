@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.9 2008/01/02 21:06:00 bdbcat Exp $
+ * $Id: s57chart.h,v 1.10 2008/01/12 06:19:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.10  2008/01/12 06:19:18  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.9  2008/01/02 21:06:00  bdbcat
  * Update for Version 1.2.2
  *
@@ -84,9 +87,9 @@
 // S57 Utility Prototypes
 // ----------------------------------------------------------------------------
 extern "C" int  s57_initialize(const wxString& csv_dir, FILE *flog);
-extern "C" int  s57_GetChartScale(char *pFullPath);
-extern "C" bool s57_GetChartExtent(char *pFullPath, Extent *pext);
-extern "C" bool s57_GetChartFirstM_COVR(char *pFullPath, OGRDataSource **pDS, OGRFeature **pFeature,
+extern "C" int  s57_GetChartScale(const wxString& FullPath);
+extern "C" bool s57_GetChartExtent(const wxString& FullPath, Extent *pext);
+extern "C" bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRDataSource **pDS, OGRFeature **pFeature,
                                OGRLayer **pLayer, int &catcov);
 extern "C" bool s57_GetChartNextM_COVR(OGRDataSource *pDS, OGRLayer *pLayer, OGRFeature *pLastFeature,
                               OGRFeature **pFeature, int &catcov);
@@ -172,8 +175,8 @@ private:
       int DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect *rect);
       bool DCRenderLPB(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect);
 
-      int BuildS57File(const char *pFullPath);
-      int BuildRAZFromS57File(const char *pFullPath);
+      int BuildS57File(const wxString& FullPath);
+      int BuildRAZFromS57File(const wxString& FullPath);
 
       void CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode );
 

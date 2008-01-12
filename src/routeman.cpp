@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.4 2007/06/10 02:32:30 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.5 2008/01/12 06:20:56 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.5  2008/01/12 06:20:56  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.4  2007/06/10 02:32:30  bdbcat
  * Improve mercator bearing calculation
  *
@@ -108,7 +111,7 @@ extern bool             bAutoPilotOut;
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: routeman.cpp,v 1.4 2007/06/10 02:32:30 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.5 2008/01/12 06:20:56 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -357,7 +360,7 @@ bool Routeman::DeactivateRoute()
 
 bool Routeman::UpdateAutopilot()
 {
-        char buf[50];
+        wxString str_buf;
 
         if(bAutoPilotOut)
         {
@@ -371,12 +374,12 @@ bool Routeman::UpdateAutopilot()
                         pNMEA0183->Rmb.DirectionToSteer = Right;
 
 
-                sprintf(buf, "%03d", pActiveRouteSegmentBeginPoint->nPoint);
-                wxString from(buf);
+                str_buf.Printf(_T("%03d"), pActiveRouteSegmentBeginPoint->nPoint);
+                wxString from = str_buf;
                 pNMEA0183->Rmb.From = from;
 
-                sprintf(buf, "%03d", pActivePoint->nPoint);
-                wxString to(&buf[0]);
+                str_buf.Printf(_T("%03d"), pActivePoint->nPoint);
+                wxString to = str_buf;
                 pNMEA0183->Rmb.To = to;
 
                 pNMEA0183->Rmb.DestinationPosition.Latitude.Latitude = pActivePoint->rlat;

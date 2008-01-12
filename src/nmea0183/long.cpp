@@ -42,9 +42,9 @@ void LONGITUDE::Parse( int position_field_number, int east_or_west_field_number,
    Set( sentence.Double( position_field_number ), sentence.Field( east_or_west_field_number ) );
 }
 
-void LONGITUDE::Set( double position, const char *east_or_west )
+void LONGITUDE::Set( double position, const wxString& east_or_west )
 {
-   assert( east_or_west != NULL );
+//   assert( east_or_west != NULL );
 
    Longitude = position;
 
@@ -65,36 +65,36 @@ void LONGITUDE::Set( double position, const char *east_or_west )
 void LONGITUDE::Write( SENTENCE& sentence )
 {
 
-   char temp_string[ 80 ];
+    wxString temp_string;
     int neg = 0;
     int d;
     int m;
 
     if (Longitude < 0.0) {
-		Longitude = -Longitude;
-		neg = 1;
-		}
+            Longitude = -Longitude;
+            neg = 1;
+            }
     d = (int) Longitude;
     m = (int) ((Longitude - (double) d) * 60000.0);
 
     if (neg)
-		d = -d;
+            d = -d;
 
-	float f = (m % 1000)/10. + 0.5;
+      float f = (m % 1000)/10. + 0.5;
       int g = (int)f;
 
-	sprintf(temp_string, "%03d%02d.%02d", d, m / 1000, g);
+      temp_string.Printf(_T("%03d%02d.%02d"), d, m / 1000, g);
 
-   
+
    sentence += temp_string;
-   
+
    if ( Easting == East )
    {
-      sentence += "E";
+       sentence += _T("E");
    }
    else if ( Easting == West )
    {
-      sentence += "W";
+       sentence += _T("W");
    }
    else
    {

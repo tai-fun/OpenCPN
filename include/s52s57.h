@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.6 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: s52s57.h,v 1.7 2008/01/12 06:19:11 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.7  2008/01/12 06:19:11  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.6  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -176,8 +179,8 @@ typedef struct _Rule{
    union          {position   line,       patt,       symb;       } pos;
    union          {wxString   *LXPO,      *PXPO,      *SXPO;      } exposition;
    union          {wxString   *dummy,     *PBTM,      *SBTM;      } bitmap;
-   union          {wxString   *LCRF,      *PCRF,      *SCRF;      } colRef;
-   union          {wxString   *LVCT,      *PVCT,      *SVCT;      } vector;
+   union          {char       *LCRF,      *PCRF,      *SCRF;      } colRef;
+   union          {char       *LVCT,      *PVCT,      *SVCT;      } vector;
 
    // Private data
    int     parm1;                      // integer parameter
@@ -189,6 +192,7 @@ typedef struct _Rules{
    Rules_t  ruleType;
    char    *INSTstr;          // Symbology Instruction string
    Rule    *razRule;          // rule
+   char    *INST0;            // Head of the entire object Instruction string
    struct _Rules *next;
 }Rules;
 

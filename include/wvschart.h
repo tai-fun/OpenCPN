@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.h,v 1.3 2007/05/03 13:31:19 dsr Exp $
+ * $Id: wvschart.h,v 1.4 2008/01/12 06:20:07 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.h,v $
+ * Revision 1.4  2008/01/12 06:20:07  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.3  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -69,7 +72,7 @@
 class WVSChart
 {
 public:
-      WVSChart(wxWindow *parent, char * wvs_home_dir);
+      WVSChart(wxWindow *parent, const wxString& wvs_home_dir);
       ~WVSChart();
 
       void RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint);

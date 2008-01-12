@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.7 2008/01/10 03:35:31 bdbcat Exp $
+ * $Id: ais.cpp,v 1.8 2008/01/12 06:23:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.8  2008/01/12 06:23:11  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.7  2008/01/10 03:35:31  bdbcat
  * Update for Mac OSX
  *
@@ -73,7 +76,7 @@ extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 
-CPL_CVSID("$Id: ais.cpp,v 1.7 2008/01/10 03:35:31 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.8 2008/01/12 06:23:11 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -296,7 +299,7 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
                 {
                     wxString buf_nolf(buf);
                     buf_nolf.RemoveLast();
-                    SetStatusText(buf_nolf.c_str(), 4);
+                    SetStatusText(buf_nolf, 4);
                 }
 */
 
@@ -304,14 +307,14 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
 
             int nr = 0;
             if(!message.IsEmpty())
-                nr = Decode((char*)message.c_str());
+                nr = Decode(message);
 
             /*
             ///debug
             wxString imsg(_T(" AIS Event:"));
             wxDateTime now = wxDateTime::Now();
             imsg.Prepend(now.FormatISOTime());
-            printf("%s ", imsg.c_str());
+            printf("%s ", imsg.mb_str());
             printf(" %d %d\n", s_mmsi, s_mid);
 
             ///debug
@@ -347,48 +350,48 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
 //----------------------------------------------------------------------------------
 //      Decode NMEA VDM sentence to AIS Target(s)
 //----------------------------------------------------------------------------------
-AIS_Error AIS_Decoder::Decode(char *str)
+AIS_Error AIS_Decoder::Decode(const wxString& str)
 {
     AIS_Error ret;
     wxString string_to_parse;
 
     //  Make some simple tests for validity
 
-    if(strlen(str) > 82)
+    if(str.Len() > 82)
         return AIS_NMEAVDM_TOO_LONG;
 
     if(!NMEACheckSumOK(str))
         return AIS_NMEAVDM_CHECKSUM_BAD;
 
-    if(strncmp(&str[3], "VDM", 3))
+    if(!str.Mid(3,3).IsSameAs(_T("VDM")))
         return AIS_NMEAVDM_BAD;
 
     //  OK, looks like the sentence is OK
 
     //  Use a tokenizer to pull out the first 4 fields
     wxString string(str);
-    wxStringTokenizer tkz(string, ",");
+    wxStringTokenizer tkz(string, _T(","));
 
     wxString token;
     token = tkz.GetNextToken();         // !xxVDM
 
     token = tkz.GetNextToken();
-    nsentences = atoi(token.c_str());
+    nsentences = atoi(token.mb_str());
 
     token = tkz.GetNextToken();
-    isentence = atoi(token.c_str());
+    isentence = atoi(token.mb_str());
 
     token = tkz.GetNextToken();
     int sequence_id;
     if(token.IsNumber())
-        sequence_id = atoi(token.c_str());
+        sequence_id = atoi(token.mb_str());
     else
         sequence_id = 0;
 
     token = tkz.GetNextToken();
     int channel;
     if(token.IsNumber())
-        channel = atoi(token.c_str());
+        channel = atoi(token.mb_str());
     else
         channel = 0;
 
@@ -426,7 +429,7 @@ AIS_Error AIS_Decoder::Decode(char *str)
     if(!string_to_parse.IsEmpty())
     {
         //  Create the bit accessible string
-        AIS_Bitstring strbit(string_to_parse.c_str());
+        AIS_Bitstring strbit(string_to_parse.mb_str());
 
         //  And create a provisional target
         AIS_Target_Data *pNewTargetData = Parse_VDMBitstring(&strbit);
@@ -665,13 +668,13 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
 
 
 
-bool AIS_Decoder::NMEACheckSumOK(char *str)
+bool AIS_Decoder::NMEACheckSumOK(const wxString& str)
 {
 
    unsigned char checksum_value = 0;
    int sentence_hex_sum;
 
-   int string_length = strlen(str);;
+   int string_length = str.Len();
    int index = 1; // Skip over the $ at the begining of the sentence
 
    while( index < string_length    &&
@@ -710,7 +713,7 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     wxString *res = new wxString;
     wxString line;
 
-    line.Printf("MMSI:  %d\n", td->MMSI);
+    line.Printf(_T("MMSI:  %d\n"), td->MMSI);
     res->Append(line);
 
     //  Clip any unused characters (@) from the name
@@ -718,15 +721,17 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     char *tp = &td->ShipName[0];
     while((*tp) && (*tp != '@'))
        ts.Append(*tp++);
-    ts.Append((char)0);
+//    ts.Append((wxChar)0);
 
-    line.Printf("ShipName:  %s\n\n", ts.c_str());
+    line.Printf(_T("ShipName:  "));
+    line.Append( ts );
+    line.Append(_T("\n\n"));
     res->Append(line);
 
-    line.Printf("Course: %6.0f Deg.\n", td->COG);
+    line.Printf(_T("Course: %6.0f Deg.\n"), td->COG);
     res->Append(line);
 
-    line.Printf("Speed: %5.2f Kts.\n", td->SOG);
+    line.Printf(_T("Speed: %5.2f Kts.\n"), td->SOG);
     res->Append(line);
 
     wxDateTime now = wxDateTime::Now();
@@ -761,11 +766,7 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
         }
     }
 
-///debug
-///    printf("On Query, targets: %d\n", ntargets);
-
-
-    line.Printf("Report Age: %d Sec.\n", target_age);
+    line.Printf(_T("Report Age: %d Sec.\n"), target_age);
     res->Append(line);
 
     return res;
@@ -796,10 +797,12 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
 //      Create and manage AIS data stream source
 
 //    Decide upon source
-      wxLogMessage("AIS Data Source is....%s",m_pdata_source_string->c_str());
+      wxString msg(_T("AIS Data Source is...."));
+      msg.Append(*m_pdata_source_string);
+      wxLogMessage(msg);
 
 //      Data Source is private TCP/IP Server
-      if(m_pdata_source_string->Contains("TCP/IP"))
+      if(m_pdata_source_string->Contains(_T("TCP/IP")))
       {
             wxString AIS_data_ip;
             AIS_data_ip = m_pdata_source_string->Mid(7);         // extract the IP
@@ -849,9 +852,9 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
             {
 
                   wxString msg(AIS_data_ip);
-                  msg.Prepend("Could not resolve TCP/IP host '");
-                  msg.Append("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation");
-                  wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
+                  msg.Prepend(_T("Could not resolve TCP/IP host '"));
+                  msg.Append(_T("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation"));
+                  wxMessageDialog md(this, msg, _T("OpenCPN Message"), wxICON_ERROR );
                   md.ShowModal();
 
                   m_sock->Notify(FALSE);
@@ -872,7 +875,7 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
 
 //    AIS Data Source is specified serial port
 
-      else if(m_pdata_source_string->Contains("Serial"))
+      else if(m_pdata_source_string->Contains(_T("Serial")))
       {
           wxString comx;
 //          comx =  m_pdata_source_string->Mid(7);        // either "COM1" style or "/dev/ttyS0" style
@@ -881,7 +884,7 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
 #ifdef __WXMSW__
 
 //  As a quick check, verify that the specified port is available
-            HANDLE m_hSerialComm = CreateFile(comx.c_str(),       // Port Name
+            HANDLE m_hSerialComm = CreateFile(comx.mb_str(),       // Port Name
                                              GENERIC_READ,
                                              0,
                                              NULL,
@@ -892,9 +895,9 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
             if(m_hSerialComm == INVALID_HANDLE_VALUE)
             {
                   wxString msg(comx);
-                  msg.Prepend("  Could not open AIS serial port '");
-                  msg.Append("'\nSuggestion: Try closing other applications.");
-                  wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
+                  msg.Prepend(_T("  Could not open AIS serial port '"));
+                  msg.Append(_T("'\nSuggestion: Try closing other applications."));
+                  wxMessageDialog md(this, msg, _T("OpenCPN Message"), wxICON_ERROR );
                   md.ShowModal();
 
                   return AIS_NO_SERIAL;
@@ -1023,7 +1026,7 @@ void AIS_Decoder::OnSocketEvent(wxSocketEvent& event)
 
             if(!strncmp((const char *)buf, "!AIVDM", 6))
             {
-                  Decode(buf);
+//                  Decode(buf);
 
 //    Signal the main program thread
 
@@ -1120,12 +1123,12 @@ DEFINE_EVENT_TYPE(EVT_AIS)
 
 //    ctor
 
-OCP_AIS_Thread::OCP_AIS_Thread(wxWindow *MainWindow, const char *pszPortName)
+OCP_AIS_Thread::OCP_AIS_Thread(wxWindow *MainWindow, const wxString& PortName)
 {
 
       m_pMainEventHandler = MainWindow->GetEventHandler();
 
-      m_pPortName = new wxString(pszPortName);
+      m_pPortName = new wxString(PortName);
 
       rx_buffer = new char[RX_BUFFER_SIZE + 1];
       put_ptr = rx_buffer;
@@ -1228,7 +1231,7 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
                     wxCommandEvent event( EVT_AIS, ID_AIS_WINDOW );
                     event.SetEventObject( (wxObject *)this );
                     event.SetExtraLong(EVT_AIS_PARSE_RX);
-                    event.SetString(wxString(temp_buf));
+                    event.SetString(wxString(temp_buf,  wxConvUTF8));
                     m_pMainEventHandler->AddPendingEvent(event);
 
 
@@ -1262,9 +1265,11 @@ void *OCP_AIS_Thread::Entry()
 
     // Open the serial port.
     //   using O_NDELAY to force ignore of DCD (carrier detect) MODEM line
-    if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
+    if ((m_ais_fd = open(m_pPortName->mb_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
     {
-        wxLogMessage("AIS tty input device open failed: %s\n", m_pPortName->c_str());
+        wxString msg(_T("AIS tty input device open failed: "));
+        msg.Append(*m_pPortName);
+        wxLogMessage(msg);
         return 0;
     }
 
@@ -1278,19 +1283,25 @@ void *OCP_AIS_Thread::Entry()
 
     if (isatty(m_ais_fd) == 0)
     {
-           wxLogMessage("AIS tty input device isatty() failed for %s, retrying open()...\n", m_pPortName->c_str());
+        wxString msg(_T("AIS tty input device isatty() failed, retrying open()...  "));
+        msg.Append(*m_pPortName);
+        wxLogMessage(msg);
 
            close(m_ais_fd);
-         if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
+         if ((m_ais_fd = open(m_pPortName->mb_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
            {
-                wxLogMessage("AIS tty input device open failed for %s on retry, aborting.\n", m_pPortName->c_str());
-                close(m_ais_fd);
-                return(0);
+               wxString msg(_T("AIS tty input device open failed on retry, aborting.  "));
+               msg.Append(*m_pPortName);
+               wxLogMessage(msg);
+               close(m_ais_fd);
+               return(0);
            }
 
            if (isatty(m_ais_fd) == 0)
            {
-               wxLogMessage("AIS tty input device isatty() failed for %s on retyr, aborting.\n", m_pPortName->c_str());
+               wxString msg(_T("AIS tty input device isatty() failed on retry, aborting.  "));
+               msg.Append(*m_pPortName);
+               wxLogMessage(msg);
                close(m_ais_fd);
                return(0);
            }
@@ -1302,19 +1313,25 @@ void *OCP_AIS_Thread::Entry()
       /* Save original terminal parameters */
       if (tcgetattr(m_ais_fd,pttyset_old) != 0)
       {
-          wxLogMessage("AIS tty input device getattr failed for %s, retrying...\n", m_pPortName->c_str());
+          wxString msg(_T("AIS tty input device getattr() failed, retrying...  "));
+          msg.Append(*m_pPortName);
+          wxLogMessage(msg);
 
         close(m_ais_fd);
-        if ((m_ais_fd = open(m_pPortName->c_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
+        if ((m_ais_fd = open(m_pPortName->mb_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
           {
-              wxLogMessage("AIS tty input device open failed on retry for %s, aborting.\n", m_pPortName->c_str());
+              wxString msg(_T("AIS tty input device open failed on retry, aborting.  "));
+              msg.Append(*m_pPortName);
+              wxLogMessage(msg);
               return 0;
           }
 
         if (tcgetattr(m_ais_fd,pttyset_old) != 0)
           {
-            wxLogMessage("AIS tty input device getattr failed on retry for %s, aborting.\n", m_pPortName->c_str());
-                return 0;
+              wxString msg(_T("AIS tty input device getattr failed on retry, aborting.  "));
+              msg.Append(*m_pPortName);
+              wxLogMessage(msg);
+              return 0;
           }
       }
 
@@ -1359,7 +1376,9 @@ void *OCP_AIS_Thread::Entry()
 
       if (tcsetattr(m_ais_fd, TCSANOW, pttyset) != 0)
       {
-          wxLogMessage("AIS tty input device setattr failed: %s\n", m_pPortName->c_str());
+          wxString msg(_T("AIS tty input device setattr() failed  "));
+          msg.Append(*m_pPortName);
+          wxLogMessage(msg);
           return 0;
       }
 
@@ -1462,7 +1481,7 @@ void *OCP_AIS_Thread::Entry()
 
 //    Set up the serial port
 
-      m_hSerialComm = CreateFile(m_pPortName->c_str(),      // Port Name
+      m_hSerialComm = CreateFile(m_pPortName->mb_str(),      // Port Name
                                              GENERIC_READ,              // Desired Access
                                              0,                         // Shared Mode
                                              NULL,                      // Security

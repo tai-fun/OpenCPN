@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.7 2008/01/10 03:35:19 bdbcat Exp $
+ * $Id: about.cpp,v 1.8 2008/01/12 06:23:02 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.8  2008/01/12 06:23:02  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.7  2008/01/10 03:35:19  bdbcat
  * Update for Mac OSX
  *
@@ -57,12 +60,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.7 2008/01/10 03:35:19 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.8 2008/01/12 06:23:02 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.2.2"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.2.3"};
 
 
 char AboutText[] =
@@ -184,8 +187,8 @@ void about::CreateControls()
   itemDialog1->SetSizer(itemBoxSizer2);
 
 
-  wxStaticText *pST1 = new wxStaticText(this, -1, "Label", wxDefaultPosition, wxSize(400, 100));
-  pST1->SetLabel("OpenCPN...A Nice Little Open Source Chart Plotter/Navigator");
+  wxStaticText *pST1 = new wxStaticText(this, -1, _T("Label"), wxDefaultPosition, wxSize(400, 100));
+  pST1->SetLabel(_T("OpenCPN...A Nice Little Open Source Chart Plotter/Navigator"));
   itemBoxSizer2->Add(pST1);
 
 
@@ -194,7 +197,7 @@ void about::CreateControls()
 
   //    About Panel
   wxPanel* itemPanelAbout = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-  itemNotebook4->AddPage(itemPanelAbout, "About");
+  itemNotebook4->AddPage(itemPanelAbout, _T("About"));
 
   wxBoxSizer* itemBoxSizer6 = new wxBoxSizer(wxVERTICAL);
   itemPanelAbout->SetSizer(itemBoxSizer6);
@@ -204,16 +207,16 @@ void about::CreateControls()
   itemBoxSizer6->Add(pAboutTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
 
 
-  wxString *pAboutString = new wxString(AboutText);
+  wxString *pAboutString = new wxString(AboutText,  wxConvUTF8);
 
-  pAboutString->Append(OpenCPNVersion);
+  pAboutString->Append(wxString(OpenCPNVersion,  wxConvUTF8));
 
   pAboutTextCtl->WriteText(*pAboutString);
   delete pAboutString;
 
   //     Authors Panel
   wxPanel* itemPanelAuthors = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-  itemNotebook4->AddPage(itemPanelAuthors, _("Authors"));
+  itemNotebook4->AddPage(itemPanelAuthors, _T("Authors"));
 
   wxBoxSizer* itemBoxSizer7 = new wxBoxSizer(wxVERTICAL);
   itemPanelAuthors->SetSizer(itemBoxSizer7);
@@ -222,14 +225,14 @@ void about::CreateControls()
                                                wxTE_MULTILINE | wxTE_READONLY );
   itemBoxSizer7->Add(pAuthorTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
 
-  wxString *pAuthorsString = new wxString(AuthorText);
+  wxString *pAuthorsString = new wxString(AuthorText,  wxConvUTF8);
   pAuthorTextCtl->WriteText(*pAuthorsString);
   delete pAuthorsString;
 
 
   //  License Panel
   wxPanel* itemPanelLicense = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-  itemNotebook4->AddPage(itemPanelLicense, _("License"));
+  itemNotebook4->AddPage(itemPanelLicense, _T("License"));
 
   wxBoxSizer* itemBoxSizer8 = new wxBoxSizer(wxVERTICAL);
   itemPanelLicense->SetSizer(itemBoxSizer8);
@@ -248,7 +251,7 @@ void about::CreateControls()
   itemBoxSizer8->Add(pLicenseTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
 
   wxString license_loc(*pLicenseLocn);
-  license_loc.Append("license.txt");
+  license_loc.Append(_T("license.txt"));
 
   wxTextFile license_file(license_loc);
 
@@ -261,14 +264,17 @@ void about::CreateControls()
       while (!license_file.Eof())
       {
             str = license_file.GetNextLine();
-            str.Append("\n");
+            str.Append(_T("\n"));
             pLicenseTextCtl->AppendText(str);
       }
       license_file.Close();
   }
   else
-    wxLogMessage("Could not open License file %s", license_loc.c_str());
-
+  {
+      wxString msg(_T("Could not open License file: "));
+      msg.Append(license_loc);
+      wxLogMessage(msg);
+  }
   pLicenseTextCtl->SetInsertionPoint(0);
 
   //    Close Button

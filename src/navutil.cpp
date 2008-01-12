@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.10  2008/01/12 06:20:35  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.9  2008/01/10 03:36:33  bdbcat
  * Update for Mac OSX
  *
@@ -76,7 +79,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.9 2008/01/10 03:36:33 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.10 2008/01/12 06:20:35 bdbcat Exp $");
 
 //    Statics
 
@@ -105,9 +108,14 @@ extern AutoPilotWindow  *pAPilot;
 extern wxString         *pAIS_Port;
 extern AIS_Decoder      *pAIS;
 extern wxString         *pSData_Locn;
+extern wxString         *pInit_Chart_Dir;
 
 extern bool             s_bSetSystemTime;
 extern bool             g_bShowDepthUnits;
+
+extern int              g_nframewin_x;
+extern int              g_nframewin_y;
+extern bool             g_bframemax;
 
 #ifdef USE_S57
 extern s52plib          *ps52plib;
@@ -506,7 +514,9 @@ RoutePoint *Route::GetPoint(int nWhichPoint, float *prlat, float *prlon)
   }
 
 
-  wxLogError("Error in Route::GetPoint, nWhichPoint=%d", nWhichPoint);
+  wxString msg;
+  msg.Printf(_T("Error in Route::GetPoint, nWhichPoint=%d"), nWhichPoint);
+  wxLogError(msg);
 
       return(NULL);
 }
@@ -564,9 +574,9 @@ void Route::DrawPointLL(wxDC& dc, float rlat, float rlon, int iPoint, wxPoint *r
             dc.DrawLine(r.x, r.y-d, r.x-d, r.y);
             dc.DrawLine(r.x-d, r.y, r.x, r.y+d);
 
-            char buf[8];
-            sprintf(buf, "%03d", iPoint);
-            dc.DrawText(buf, r.x-10, r.y+8);
+            wxString str;
+            str.Printf(_T("%03d"), iPoint);
+            dc.DrawText(str, r.x-10, r.y+8);
       }
 
       *rpn = r;
@@ -863,66 +873,70 @@ int MyConfig::LoadMyConfig(int iteration)
 
 
 //    Global options and settings
-      SetPath("/Settings");
+      SetPath(_T("/Settings"));
 // begin rms
 #ifdef __WXOSX__
-	  st_bFollow = false ;
+        st_bFollow = false ;
 #endif
 // end rms
 
       s_bSetSystemTime = false;
-      Read("SetSystemTime", &s_bSetSystemTime);
+      Read(_T("SetSystemTime"), &s_bSetSystemTime);
 
       m_bShowDebugWindows = false;
-      Read("ShowDebugWindows", &m_bShowDebugWindows);
+      Read(_T("ShowDebugWindows"), &m_bShowDebugWindows);
 
       g_bShowPrintIcon = false;
-      Read("ShowPrintIcon", &g_bShowPrintIcon);
+      Read(_T("ShowPrintIcon"), &g_bShowPrintIcon);
 
       g_bShowDepthUnits = false;
-      Read("ShowDepthUnits", &g_bShowDepthUnits);
+      Read(_T("ShowDepthUnits"), &g_bShowDepthUnits);
 
-      SetPath("/Settings/GlobalState");
-      Read("bFollow", &st_bFollow);
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("bFollow"), &st_bFollow);
+
+      Read(_T("FrameWinX"), &g_nframewin_x);
+      Read(_T("FrameWinY"), &g_nframewin_y);
+      Read(_T("FrameMax"),  &g_bframemax);
 
 
 #ifdef USE_S57
     if(NULL != ps52plib)
     {
-      SetPath("/Settings/GlobalState");
-      Read("bShowS57Text", &st_bShowS57Text, 0);
+        SetPath(_T("/Settings/GlobalState"));
+        Read(_T("bShowS57Text"), &st_bShowS57Text, 0);
       ps52plib->SetShowS57Text(st_bShowS57Text);
 
-      SetPath("/Settings/GlobalState");
-      Read("nDisplayCategory", &m_nDisplayCategory, (enum _DisCat)OTHER);
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("nDisplayCategory"), &m_nDisplayCategory, (enum _DisCat)OTHER);
       ps52plib->m_nDisplayCategory = (enum _DisCat)m_nDisplayCategory;
 
-      SetPath("/Settings/GlobalState");
-      Read("nSymbolStyle", &m_nSymbolStyle, (enum _LUPname)PAPER_CHART);
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("nSymbolStyle"), &m_nSymbolStyle, (enum _LUPname)PAPER_CHART);
       ps52plib->m_nSymbolStyle = (LUPname)m_nSymbolStyle;
 
-      SetPath("/Settings/GlobalState");
-      Read("nBoundaryStyle", &m_nBoundaryStyle, 0);
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("nBoundaryStyle"), &m_nBoundaryStyle, 0);
       ps52plib->m_nBoundaryStyle = (LUPname)m_nBoundaryStyle;
 
-      SetPath("/Settings/GlobalState");
-      Read("bShowSoundg", &m_bShowSoundg, 0);
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("bShowSoundg"), &m_bShowSoundg, 0);
       ps52plib->m_bShowSoundg = m_bShowSoundg;
 
-      SetPath("/Settings/GlobalState");
-      Read("bShowMeta", &m_bShowMeta, 0);
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("bShowMeta"), &m_bShowMeta, 0);
       ps52plib->m_bShowMeta = m_bShowMeta;
 
-      SetPath("/Settings/GlobalState");
-      Read("bUseSCAMIN", &m_bUseSCAMIN, 0);
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("bUseSCAMIN"), &m_bUseSCAMIN, 0);
       ps52plib->m_bUseSCAMIN = m_bUseSCAMIN;
 
       ps52plib->UpdateMarinerParams();
     }
 
-    wxString strd("S57DataLocation");
+    wxString strd(_T("S57DataLocation"));
     wxString val;
-    SetPath("/Directories");
+    SetPath(_T("/Directories"));
     Read(strd, &val);                 // Get the Directory name
 
     wxString dirname(val);
@@ -939,20 +953,36 @@ int MyConfig::LoadMyConfig(int iteration)
 
 #endif
 
-      SetPath("/Settings/GlobalState");
-      Read("nColorScheme", &m_nColorScheme, 0);
+     SetPath(_T("/Directories"));
+     wxString vald;
+
+     Read(_T("InitChartDir"), &vald);                 // Get the Directory name
+
+     wxString dirnamed(vald);
+     if(!dirnamed.IsEmpty())
+     {
+         if(pInit_Chart_Dir->IsEmpty())      // on second pass, don't overwrite
+         {
+             pInit_Chart_Dir->Clear();
+             pInit_Chart_Dir->Append(vald);
+         }
+     }
+
+
+     SetPath(_T("/Settings/GlobalState"));
+     Read(_T("nColorScheme"), &m_nColorScheme, 0);
       global_color_scheme = (ColorScheme)m_nColorScheme;
 
-      SetPath("/Settings/NMEADataSource");
+      SetPath(_T("/Settings/NMEADataSource"));
       Read(_T("Source"), pNMEADataSource, _T("NONE"));
 
-      SetPath("/Settings/NMEAAutoPilotPort");
+      SetPath(_T("/Settings/NMEAAutoPilotPort"));
       Read(_T("Port"), pNMEA_AP_Port, _T("NONE"));
 
-      SetPath("/Settings/WiFiServer");
+      SetPath(_T("/Settings/WiFiServer"));
       Read(_T("Server"), pWIFIServerName, _T("NONE"));
 
-      SetPath("/Settings/AISPort");
+      SetPath(_T("/Settings/AISPort"));
       Read(_T("Port"), pAIS_Port, _T("NONE"));
 
 //    Reasonable starting point
@@ -965,20 +995,20 @@ int MyConfig::LoadMyConfig(int iteration)
       kLat = START_LAT;                   // and the transfer ll
       kLon = START_LON;
 
-      SetPath("/Settings/GlobalState");
+      SetPath(_T("/Settings/GlobalState"));
       int nr = 0;
       wxString *st = new wxString;
 
-      if(Read(wxString("VPLatLon"), st))
+      if(Read(_T("VPLatLon"), st))
       {
             nr++;
-            sscanf(st->c_str(), "%f,%f", &st_lat, &st_lon);
+            sscanf(st->mb_str(wxConvUTF8), "%f,%f", &st_lat, &st_lon);
       }
 
-      if(Read(wxString("VPScale"), st))
+      if(Read(wxString(_T("VPScale")), st))
       {
             nr++;
-            sscanf(st->c_str(), "%f", &st_view_scale);
+            sscanf(st->mb_str(wxConvUTF8), "%f", &st_view_scale);
       }
 
       delete st;
@@ -1004,7 +1034,7 @@ int MyConfig::LoadMyConfig(int iteration)
       bool bNeedNew = true;
       OBJLElement *pOLE;
 
-      SetPath("/Settings/ObjectFilter");
+      SetPath(_T("/Settings/ObjectFilter"));
 
       if(ps52plib)
       {
@@ -1023,12 +1053,12 @@ int MyConfig::LoadMyConfig(int iteration)
                   {
                         pConfig->Read(str, &val);                 // Get an Object Viz
 
-                        if(str.StartsWith("viz", &sObj))
+                        if(str.StartsWith(_T("viz"), &sObj))
                         {
                                  for(unsigned int iPtr = 0 ; iPtr < ps52plib->pOBJLArray->GetCount() ; iPtr++)
                                  {
                                        pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
-                                       if(!strncmp(pOLE->OBJLName, sObj.c_str(), 6))
+                                       if(!strncmp(pOLE->OBJLName, sObj.mb_str(), 6))
                                        {
                                              pOLE->nViz = val;
                                              bNeedNew = false;
@@ -1039,7 +1069,7 @@ int MyConfig::LoadMyConfig(int iteration)
                                  if(bNeedNew)
                                  {
                                        pOLE = (OBJLElement *)malloc(sizeof(OBJLElement));
-                                       strcpy(pOLE->OBJLName, sObj.c_str());
+                                       strcpy(pOLE->OBJLName, sObj.mb_str());
                                        pOLE->nViz = val;
 
                                        ps52plib->pOBJLArray->Add((void *)pOLE);
@@ -1052,7 +1082,7 @@ int MyConfig::LoadMyConfig(int iteration)
 #endif
 
 //    Chart Directories
-      SetPath("/ChartDirectories");
+      SetPath(_T("/ChartDirectories"));
       int iDirMax = GetNumberOfEntries();
       if(iDirMax)
       {
@@ -1072,8 +1102,8 @@ int MyConfig::LoadMyConfig(int iteration)
 
 // begin rms
 #ifdef __WXOSX__
-				while ((dirname.Last() == 0x0a) || (dirname.Last() == 0x0d ))
-					dirname.RemoveLast() ;
+                        while ((dirname.Last() == 0x0a) || (dirname.Last() == 0x0d ))
+                              dirname.RemoveLast() ;
 #endif
 // end rms
  /*     Special case for first time run after Windows install with sample chart data...
@@ -1089,12 +1119,12 @@ int MyConfig::LoadMyConfig(int iteration)
         ChartDir1=c:\Program Files\opencpn\SampleCharts\\MaptechRegion7
 
  */
-                    if(dirname.Find("SampleCharts") == 0)    // only update entries starting with "SampleCharts"
+                    if(dirname.Find(_T("SampleCharts")) == 0)    // only update entries starting with "SampleCharts"
                     {
                         nAdjustChartDirs++;
 
                         pConfig->DeleteEntry(str);
-                        wxString new_dir = dirname.Mid(dirname.Find("SampleCharts"));
+                        wxString new_dir = dirname.Mid(dirname.Find(_T("SampleCharts")));
                         new_dir.Prepend(*pSData_Locn);
                         dirname=new_dir;
                     }
@@ -1125,15 +1155,15 @@ int MyConfig::LoadMyConfig(int iteration)
 //    Fonts
 
 #ifdef __WXX11__
-      SetPath("/Settings/X11Fonts");
+      SetPath(_T("/Settings/X11Fonts"));
 #endif
 
 #ifdef __WXGTK__
-      SetPath("/Settings/GTKFonts");
+      SetPath(_T("/Settings/GTKFonts"));
 #endif
 
 #ifdef __WXMSW__
-      SetPath("/Settings/MSWFonts");
+      SetPath(_T("/Settings/MSWFonts"));
 #endif
 
       if(0 == iteration)
@@ -1162,7 +1192,7 @@ int MyConfig::LoadMyConfig(int iteration)
         int routenum = 0;
         pRouteList = new RouteList;
 
-        SetPath("/Routes");
+        SetPath(_T("/Routes"));
         int iRoutes = GetNumberOfGroups();
         if(iRoutes)
         {
@@ -1180,32 +1210,27 @@ int MyConfig::LoadMyConfig(int iteration)
                             pRouteList->Append(pConfRoute);
 
                             int RouteNum;
-                            sscanf(str.c_str(), "RouteDefn%d", &RouteNum);
+                            sscanf(str.mb_str(), "RouteDefn%d", &RouteNum);
                             pConfRoute->ConfigRouteNum = RouteNum;
 
                             SetPath(str);
-                            Read("RoutePoints", &val);                // nPoints
-                            int nPoints = atoi(val);
+                            Read(_T("RoutePoints"), &val);                // nPoints
+                            int nPoints = atoi(val.mb_str());
 
                             pConfRoute->m_nPoints = nPoints;
                             for(int ip = 0 ; ip < nPoints ; ip++)
                             {
-                                char ipb[20];
-                                sprintf(ipb, "RoutePoint%d", ip+1);
-                                wxString rps(ipb);
-                                Read(rps, &val);                          // Point lat/lon
-                                strcpy(buf,(char *)val.c_str());
+                                wxString sipb;
+                                sipb.Printf(_T("RoutePoint%d"), ip+1);
+                                Read(sipb, &val);                          // Point lat/lon
+                                strcpy(buf,val.mb_str());
                                 sscanf(buf, "%f,%f", &rlat, &rlon);
 
                                 pConfPoint = pConfRoute->AddPoint(rlat, rlon);
                                 pSelect->AddSelectablePoint(rlat, rlon, pConfPoint);
-
                                 if(ip)
-                                {
                                         pSelect->AddSelectableRouteSegment(prev_rlat, prev_rlon, rlat, rlon,
                                                                                 prev_pConfPoint, pConfPoint);
-                                }
-
 
                                 prev_rlat = rlat;
                                 prev_rlon = rlon;
@@ -1214,11 +1239,11 @@ int MyConfig::LoadMyConfig(int iteration)
                             }
 
 
-                            SetPath("..");
+                            SetPath(_T(".."));
                             bCont = GetNextGroup(str, dummy);
 
         //    Get next available RouteDefnx number
-                            sscanf((char *)str.c_str(), "RouteDefn%d", &rnt);
+                            sscanf(str.mb_str(), "RouteDefn%d", &rnt);
                             if(rnt > routenum)
                                 routenum = rnt;
                     }
@@ -1232,8 +1257,7 @@ int MyConfig::LoadMyConfig(int iteration)
 
 bool MyConfig::AddNewRoute(Route *pr, int crm)
 {
-      char buf[20];
-      char buf1[40];
+      wxString str_buf;
       float rlat, rlon;
       int acrm;
 
@@ -1245,24 +1269,25 @@ bool MyConfig::AddNewRoute(Route *pr, int crm)
       assert(abs(acrm < 1000));
 
 //    Build the Group Name
-      wxString t("/Routes/RouteDefn");
-      sprintf(buf, "%d", acrm);
-      t.Append(wxString(buf));
+      wxString t(_T("/Routes/RouteDefn"));
+      str_buf.Printf(_T("%d"), acrm);
+      t.Append(str_buf);
 
       SetPath(t);
 
-      sprintf(buf, "%d", pr->m_nPoints);
-      Write(wxString("RoutePoints"), buf);
+      str_buf.Printf(_T("%d"), pr->m_nPoints);
+      Write(_T("RoutePoints"), str_buf);
 
       for(int ip=1 ; ip < pr->m_nPoints+1 ; ip++)
       {
 
-            sprintf(buf, "RoutePoint%d", ip);
+          str_buf.Printf(_T("RoutePoint%d"), ip);
 
             pr->GetPoint(ip , &rlat, &rlon);
-            sprintf(buf1, "%f,%f", rlat, rlon);
+            wxString str_buf1;
+            str_buf1.Printf(_T("%f,%f"), rlat, rlon);
 
-            Write(wxString(buf), wxString(buf1));
+            Write(str_buf, str_buf1);
       }
 
       Flush();
@@ -1278,14 +1303,14 @@ bool MyConfig::AddNewRoute(Route *pr, int crm)
 
 bool MyConfig::UpdateRoute(Route *pr)
 {
-      char buf[20];
+      wxString str_buf;
 
       assert(pr->ConfigRouteNum);
 
 //    Build the Group Name
-      wxString t("/Routes/RouteDefn");
-      sprintf(buf, "%d", pr->ConfigRouteNum);
-      t.Append(wxString(buf));
+      wxString t(_T("/Routes/RouteDefn"));
+      str_buf.Printf(_T("%d"), pr->ConfigRouteNum);
+      t.Append(str_buf);
 
       DeleteGroup(t);
 
@@ -1297,14 +1322,13 @@ bool MyConfig::UpdateRoute(Route *pr)
 
 bool MyConfig::DeleteRoute(Route *pr)
 {
-      char buf[20];
-
+      wxString str_buf;
       assert(pr->ConfigRouteNum);
 
 //    Build the Group Name
-      wxString t("/Routes/RouteDefn");
-      sprintf(buf, "%d", pr->ConfigRouteNum);
-      t.Append(wxString(buf));
+      wxString t(_T("/Routes/RouteDefn"));
+      str_buf.Printf(_T("%d"), pr->ConfigRouteNum);
+      t.Append(str_buf);
 
       DeleteGroup(t);
 
@@ -1317,9 +1341,9 @@ bool MyConfig::DeleteRoute(Route *pr)
 bool MyConfig::UpdateChartDirs(wxArrayString *pdirlist)
 {
       wxString key, dir;
-      char buf[80];
+      wxString str_buf;
 
-      SetPath("/ChartDirectories");
+      SetPath(_T("/ChartDirectories"));
       int iDirMax = GetNumberOfEntries();
       if(iDirMax)
       {
@@ -1338,9 +1362,9 @@ bool MyConfig::UpdateChartDirs(wxArrayString *pdirlist)
       for(int iDir = 0 ; iDir <iDirMax ; iDir++)
       {
             wxString dirn = pdirlist->Item(iDir);
-            sprintf(buf, "ChartDir%d", iDir+1);
+            str_buf.Printf(_T("ChartDir%d"), iDir+1);
 
-            Write(wxString(buf), dirn);
+            Write(str_buf, dirn);
 
       }
 
@@ -1353,17 +1377,17 @@ bool MyConfig::UpdateChartDirs(wxArrayString *pdirlist)
 void MyConfig::UpdateSettings()
 {
 //    Global options and settings
-      SetPath("/Settings");
+    SetPath(_T("/Settings"));
 
-      Write("ShowDebugWindows", m_bShowDebugWindows);
-      Write("ShowPrintIcon", g_bShowPrintIcon);
-      Write("SetSystemTime", s_bSetSystemTime);
-      Write("ShowDepthUnits", g_bShowDepthUnits);
+    Write(_T("ShowDebugWindows"), m_bShowDebugWindows);
+    Write(_T("ShowPrintIcon"), g_bShowPrintIcon);
+    Write(_T("SetSystemTime"), s_bSetSystemTime);
+    Write(_T("ShowDepthUnits"), g_bShowDepthUnits);
 
 
 //    S57 Object Filter Settings
 
-      SetPath("/Settings/ObjectFilter");
+    SetPath(_T("/Settings/ObjectFilter"));
 
 #ifdef USE_S57
       if(ps52plib)
@@ -1372,56 +1396,60 @@ void MyConfig::UpdateSettings()
             {
                   OBJLElement *pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
 
-                  char st1[20];
-                  char *pv = st1;
-                  strcpy(pv, "viz");
-
-                  strcat(pv, pOLE->OBJLName);
-                  Write(pv, pOLE->nViz);
+                  wxString st1(_T("viz"));
+                  st1.Append(wxString(pOLE->OBJLName,  wxConvUTF8));
+                  Write(st1, pOLE->nViz);
             }
       }
 #endif
 
 //    Global State
 
-      SetPath("/Settings/GlobalState");
+      SetPath(_T("/Settings/GlobalState"));
 
-      char st1[40];
-      char *pv = st1;
+      wxString st1;
 
       if(cc1->VPoint.bValid)
       {
-            sprintf(pv, "%10.4f,%10.4f", cc1->VPoint.clat, cc1->VPoint.clon);
-            Write("VPLatLon", pv);
-            sprintf(pv, "%g", cc1->VPoint.view_scale_ppm);
-            Write("VPScale", pv);
+          st1.Printf(_T("%10.4f,%10.4f"), cc1->VPoint.clat, cc1->VPoint.clon);
+          Write(_T("VPLatLon"), st1);
+          st1.Printf(_T("%g"), cc1->VPoint.view_scale_ppm);
+          Write(_T("VPScale"), st1);
+
       }
 
 
       //    Various Options
-      SetPath("/Settings/GlobalState");
-      Write("bFollow", cc1->m_bFollow);
-      Write("nColorScheme", (int)gFrame->GetColorScheme());
+      SetPath(_T("/Settings/GlobalState"));
+      Write(_T("bFollow"), cc1->m_bFollow);
+      Write(_T("nColorScheme"), (int)gFrame->GetColorScheme());
+
+      Write(_T("FrameWinX"), g_nframewin_x);
+      Write(_T("FrameWinY"), g_nframewin_y);
+      Write(_T("FrameMax"),  g_bframemax);
+
 
 #ifdef USE_S57
-      Write("bShowS57Text", ps52plib->GetShowS57Text());
-      Write("nDisplayCategory", (long)ps52plib->m_nDisplayCategory);
-      Write("nSymbolStyle", (int)ps52plib->m_nSymbolStyle);
-      Write("nBoundaryStyle", (int)ps52plib->m_nBoundaryStyle);
+      Write(_T("bShowS57Text"), ps52plib->GetShowS57Text());
+      Write(_T("nDisplayCategory"), (long)ps52plib->m_nDisplayCategory);
+      Write(_T("nSymbolStyle"), (int)ps52plib->m_nSymbolStyle);
+      Write(_T("nBoundaryStyle"), (int)ps52plib->m_nBoundaryStyle);
 
-      Write("bShowSoundg", ps52plib->m_bShowSoundg);
-      Write("bShowMeta", ps52plib->m_bShowMeta);
-      Write("bUseSCAMIN", ps52plib->m_bUseSCAMIN);
+      Write(_T("bShowSoundg"), ps52plib->m_bShowSoundg);
+      Write(_T("bShowMeta"), ps52plib->m_bShowMeta);
+      Write(_T("bUseSCAMIN"), ps52plib->m_bUseSCAMIN);
 
-      SetPath("/Directories");
-      Write("S57DataLocation", *pcsv_locn);
+      SetPath(_T("/Directories"));
+      Write(_T("S57DataLocation"), *pcsv_locn);
 
 #endif
 
+      SetPath(_T("/Directories"));
+      Write(_T("InitChartDir"), *pInit_Chart_Dir);
 
       if(nmea)
       {
-          SetPath("/Settings/NMEADataSource");
+          SetPath(_T("/Settings/NMEADataSource"));
           wxString source;
           nmea->GetSource(source);
           Write(_T("Source"), source);
@@ -1429,19 +1457,19 @@ void MyConfig::UpdateSettings()
 
       if(pAPilot)
       {
-        SetPath("/Settings/NMEAAutoPilotPort");
+          SetPath(_T("/Settings/NMEAAutoPilotPort"));
         wxString ap_port;
         pAPilot->GetAP_Port(ap_port);
         Write(_T("Port"), ap_port);
       }
 
-      SetPath("/Settings/WiFiServer");
+      SetPath(_T("/Settings/WiFiServer"));
       Write(_T("Server"), *pWIFIServerName);
 
 
       if(pAIS)
       {
-        SetPath("/Settings/AISPort");
+          SetPath(_T("/Settings/AISPort"));
         wxString ais_port;
         pAIS->GetSource(ais_port);
         Write(_T("Port"), ais_port);
@@ -1450,15 +1478,15 @@ void MyConfig::UpdateSettings()
 
 //    Fonts
 #ifdef __WXX11__
-      SetPath("/Settings/X11Fonts");
+      SetPath(_T("/Settings/X11Fonts"));
 #endif
 
 #ifdef __WXGTK__
-      SetPath("/Settings/GTKFonts");
+      SetPath(_T("/Settings/GTKFonts"));
 #endif
 
 #ifdef __WXMSW__
-      SetPath("/Settings/MSWFonts");
+      SetPath(_T("/Settings/MSWFonts"));
 #endif
 
       int nFonts = pFontMgr->GetNumFonts();
@@ -1467,7 +1495,7 @@ void MyConfig::UpdateSettings()
       {
             wxString cfstring(*pFontMgr->GetConfigString(i));
             wxString valstring(*pFontMgr->GetDialogString(i));
-            valstring.Append(":");
+            valstring.Append(_T(":"));
             valstring.Append(*pFontMgr->GetNativeDesc(i));
             Write(cfstring, valstring);
       }
@@ -1484,8 +1512,8 @@ void MyConfig::UpdateSettings()
 
 MyFontDesc::MyFontDesc(const char *DialogString, const char *ConfigString, wxFont *pFont)
 {
-      m_dialogstring = new wxString(DialogString);
-      m_configstring = new wxString(ConfigString);
+    m_dialogstring = new wxString(DialogString,  wxConvUTF8);
+    m_configstring = new wxString(ConfigString,  wxConvUTF8);
 
       m_nativeInfo = new wxString(pFont->GetNativeFontInfoDesc());
 
@@ -1513,7 +1541,7 @@ FontMgr::FontMgr()
 
       //    Get a nice generic font as default
       pDefFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD,
-                  FALSE, wxString(""), wxFONTENCODING_SYSTEM );
+              FALSE, wxString(_T("")), wxFONTENCODING_SYSTEM );
 
 
 }
@@ -1566,7 +1594,7 @@ wxFont *FontMgr::GetFont(wxString &TextElement)
       wxFont *nf0 = new wxFont();
       wxFont *nf = nf0->New(nativefont);
 
-      MyFontDesc *pnewfd = new MyFontDesc(TextElement.c_str(), configstring.c_str(), nf);
+      MyFontDesc *pnewfd = new MyFontDesc(TextElement.mb_str(), configstring.mb_str(), nf);
       m_fontlist->Append(pnewfd);
 
       return pnewfd->m_font;
@@ -1665,7 +1693,7 @@ void FontMgr::LoadFontNative(wxString *pConfigString, wxString *pNativeDesc)
             wxFont *nf = nf0->New(nativefont);
             delete nf0;
 
-            MyFontDesc *pnewfd = new MyFontDesc(dialogstring.c_str(), pConfigString->c_str(), nf);
+            MyFontDesc *pnewfd = new MyFontDesc(dialogstring.mb_str(), pConfigString->mb_str(), nf);
             m_fontlist->Append(pnewfd);
 
       }
@@ -2071,7 +2099,7 @@ void X11FontPicker::CreateWidgets()
     st.GetNextToken();
     wxString pointsize = st.GetNextToken();
 
-    int ptsz = atoi(pointsize.c_str());
+    int ptsz = atoi(pointsize.mb_str());
     pointsize.Printf("%d", ptsz / 10);
 
     SetChoiceOptionsFromFacename(facename);
@@ -2151,11 +2179,16 @@ void X11FontPicker::OnChangeFace(wxCommandEvent& WXUNUSED(event))
 void X11FontPicker::SetChoiceOptionsFromFacename(wxString &facename)
 {
       //    Get a list of matching fonts
-      wxString pattern;
-      pattern.Printf(wxT("-*-%s-*-*-*-*-*-*-*-*-*-*-iso8859-1"), facename.c_str());
+    char face[100];
+    strncpy(face, facename.mb_str(), 100);
+
+    char pattern[100];
+    sprintf(pattern, "-*-%s-*-*-*-*-*-*-*-*-*-*-iso8859-1", face);
+//    wxString pattern;
+//    pattern.Printf(wxT("-*-%s-*-*-*-*-*-*-*-*-*-*-iso8859-1"), facename.mb_str());
 
       int nFonts;
-      char ** list = XListFonts((Display *)wxGetDisplay(), pattern.mb_str(), 32767, &nFonts);
+      char ** list = XListFonts((Display *)wxGetDisplay(), pattern, 32767, &nFonts);
 
       //    First, look thru all the point sizes looking for "0" to indicate scaleable (e.g. TrueType) font
       bool scaleable = false;
@@ -2204,7 +2237,7 @@ void X11FontPicker::SetChoiceOptionsFromFacename(wxString &facename)
                   st.GetNextToken();
                   st.GetNextToken();
                   wxString pointsize = st.GetNextToken();
-      //           printf("%s\n",facename.c_str());
+      //           printf("%s\n",facename.mb_str());
                   for(jname=0 ; jname<PointSizeArray.GetCount() ; jname++)
                   {
                         if(pointsize == PointSizeArray.Item(jname))
@@ -2213,7 +2246,7 @@ void X11FontPicker::SetChoiceOptionsFromFacename(wxString &facename)
                   if(jname >= PointSizeArray.GetCount())
                   {
                         PointSizeArray.Add(pointsize);
-//                        printf("Added %s\n", pointsize.c_str());
+//                        printf("Added %s\n", pointsize.mb_str());
                   }
             }
       }
@@ -2231,7 +2264,7 @@ void X11FontPicker::SetChoiceOptionsFromFacename(wxString &facename)
             st.GetNextToken();
             st.GetNextToken();
             wxString weight = st.GetNextToken();
-      //           printf("%s\n",facename.c_str());
+      //           printf("%s\n",facename.mb_str());
             unsigned int jname;
             for(jname=0 ; jname<WeightArray.GetCount() ; jname++)
             {
@@ -2241,7 +2274,7 @@ void X11FontPicker::SetChoiceOptionsFromFacename(wxString &facename)
             if(jname >= WeightArray.GetCount())
             {
                   WeightArray.Add(weight);
-//                  printf("Added weight %s\n", weight.c_str());
+//                  printf("Added weight %s\n", weight.mb_str());
             }
       }
 
@@ -2274,7 +2307,7 @@ void X11FontPicker::InitializeFont()
             fontUnderline = m_fontData.m_initialFont.GetUnderlined();
       }
 
-//      printf("Init Fetching    %s\n", fontnative.c_str());
+//      printf("Init Fetching    %s\n", fontnative.mb_str());
 
       wxFont tFont = wxFont(fontSize, fontFamily, fontStyle,
                               fontWeight, fontUnderline);
@@ -2310,13 +2343,14 @@ void X11FontPicker::DoFontChange(void)
       wxString pointsize = pointSizeChoice->GetStringSelection();
       wxString weight = weightChoice->GetStringSelection();
 
-      wxString font_xlfd;
-      font_xlfd.Printf((wxT("-*-%s-%s-r-normal-*-*-%s0-*-*-*-*-iso8859-1")),
-                        facename.c_str(), weight.c_str(), pointsize.c_str());
+      char font_x[200];
+      sprintf(font_x,"-*-%s-%s-r-normal-*-*-%s0-*-*-*-*-iso8859-1", facename.mb_str(), weight.mb_str(), pointsize.mb_str());
+      wxString font_xlfd(font_x,  wxConvUTF8);
 
-//                  printf("Fetching    %s\n", font_xlfd.c_str());
 
-      XFontStruct *test = XLoadQueryFont((Display *)wxGetDisplay(),font_xlfd.c_str());
+//                  printf("Fetching    %s\n", font_xlfd.mb_str());
+
+      XFontStruct *test = XLoadQueryFont((Display *)wxGetDisplay(),font_xlfd.mb_str());
 
                   //    Confirm
 /*

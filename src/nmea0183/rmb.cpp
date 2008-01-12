@@ -11,7 +11,7 @@
 
 RMB::RMB()
 {
-   Mnemonic = "RMB";
+    Mnemonic = _T("RMB");
    Empty();
 }
 
@@ -71,13 +71,13 @@ bool RMB::Parse( const SENTENCE& sentence )
 
    if ( check == NTrue )
    {
-      SetErrorMessage( "Invalid Checksum" );
+       SetErrorMessage( _T("Invalid Checksum") );
       return( FALSE );
    }
 
    if ( check == Unknown0183 )
    {
-      SetErrorMessage( "Missing Checksum" );
+       SetErrorMessage( _T("Missing Checksum") );
       return( FALSE );
    }
 
@@ -107,9 +107,9 @@ bool RMB::Write( SENTENCE& sentence )
    sentence += IsDataValid;
    sentence += CrossTrackError;
    if(DirectionToSteer == Left)
-         sentence += "L";
+       sentence += _T("L");
    else
-         sentence += "R";
+       sentence += _T("R");
 
    sentence += From;
    sentence += To;

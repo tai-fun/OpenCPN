@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.5 2008/01/10 03:37:31 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.6 2008/01/12 06:21:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.6  2008/01/12 06:21:06  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.5  2008/01/10 03:37:31  bdbcat
  * Update for Mac OSX
  *
@@ -82,7 +85,7 @@ extern bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.5 2008/01/10 03:37:31 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.6 2008/01/12 06:21:06 bdbcat Exp $");
 
 static void *CLRLIN01(void *param)
 {
@@ -121,7 +124,7 @@ static void *DATCVR01(void *param)
        //
     // 2.1- Limit of ENC coverage
     //datcvr01 = g_string_new(";OP(3OD11060);LC(HODATA01)");
-    rule_str.Append("LC(HODATA01)");
+    rule_str.Append(_T("LC(HODATA01)"));
 //    rule_str.Append("AC(DEPDW)");
     // FIXME: get cell extend
 
@@ -172,7 +175,7 @@ static void *DATCVR01(void *param)
    datcvr01.Append('\037');
 
    char *r = (char *)malloc(datcvr01.Len() + 1);
-   strcpy(r, datcvr01.c_str());
+   strcpy(r, datcvr01.mb_str());
 
    return r;
 
@@ -180,7 +183,9 @@ static void *DATCVR01(void *param)
 
 bool GetIntAttr(S57Obj *obj, char *AttrName, int &val)
 {
-        char *attList = (char *)(obj->attList->c_str());        //attList is wxString
+    char *attList = (char *)calloc(obj->attList->Len()+1, 1);
+    strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
+//        char *attList = (char *)(obj->attList->mb_str());        //attList is wxString
 
         char *patl = attList;
         char *patr;
@@ -209,13 +214,14 @@ bool GetIntAttr(S57Obj *obj, char *AttrName, int &val)
         S57attVal *v = pattrVal->Item(idx);
         val = *(int*)(v->value);
 
+        free(attList);
         return true;
 }
 
 /*
 bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
 {
-        char *attList = (char *)(obj->attList->c_str());        //attList is wxString
+        char *attList = (char *)(obj->attList->mb_str());        //attList is wxString
 
         char *patl = attList;
         char *patr;
@@ -250,7 +256,9 @@ bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
 */
 bool GetStringAttr(S57Obj *obj, char *AttrName, char *pval, int nc)
 {
-        char *attList = (char *)(obj->attList->c_str());        //attList is wxString
+    char *attList = (char *)calloc(obj->attList->Len()+1, 1);
+    strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
+//        char *attList = (char *)(obj->attList->);        //attList is wxString
 
         char *patl = attList;
         char *patr;
@@ -280,13 +288,16 @@ bool GetStringAttr(S57Obj *obj, char *AttrName, char *pval, int nc)
 
         strncpy(pval, val, nc);
 
+        free(attList);
         return true;
 }
 
 wxString *GetStringAttrWXS(S57Obj *obj, char *AttrName)
 {
 
-        char *attList = (char *)(obj->attList->c_str());        //attList is wxString
+    char *attList = (char *)calloc(obj->attList->Len()+1, 1);
+    strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
+//        char *attList = (char *)(obj->attList->);        //attList is wxString
 
         char *patl = attList;
         char *patr;
@@ -314,8 +325,9 @@ wxString *GetStringAttrWXS(S57Obj *obj, char *AttrName)
 
         char *val = (char *)(v->value);
 
-        wxString *ret = new wxString(val);
+        wxString *ret = new wxString(val,  wxConvUTF8);
 
+        free(attList);
         return ret;
 }
 
@@ -452,18 +464,18 @@ static void *DEPARE01(void *param)
    //   Create a string of the proper color reference
 
     bool shallow  = TRUE;
-    wxString rule_str ="AC(DEPIT)";
+    wxString rule_str =_T("AC(DEPIT)");
 
 
     if (drval1 >= 0.0 && drval2 > 0.0)
-        rule_str  = "AC(DEPVS)";
+        rule_str  = _T("AC(DEPVS)");
 
     if (TRUE == S52_getMarinerParam(S52_MAR_TWO_SHADES))
     {
         if (drval1 >= S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR)  &&
             drval2 >  S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR))
         {
-            rule_str  = "AC(DEPDW)";
+            rule_str  = _T("AC(DEPDW)");
             shallow = FALSE;
         }
     }
@@ -471,19 +483,19 @@ static void *DEPARE01(void *param)
     {
         if (drval1 >= S52_getMarinerParam(S52_MAR_SHALLOW_CONTOUR) &&
             drval2 >  S52_getMarinerParam(S52_MAR_SHALLOW_CONTOUR))
-            rule_str  = "AC(DEPMS)";
+            rule_str  = _T("AC(DEPMS)");
 
         if (drval1 >= S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR)  &&
                 drval2 >  S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR))
         {
-            rule_str  = "AC(DEPMD)";
+            rule_str  = _T("AC(DEPMD)");
             shallow = FALSE;
         }
 
         if (drval1 >= S52_getMarinerParam(S52_MAR_DEEP_CONTOUR)  &&
                 drval2 >  S52_getMarinerParam(S52_MAR_DEEP_CONTOUR))
         {
-            rule_str  = "AC(DEPDW)";
+            rule_str  = _T("AC(DEPDW)");
             shallow = FALSE;
         }
 
@@ -494,8 +506,8 @@ static void *DEPARE01(void *param)
 
     if(!strncmp(rzRules->LUP->OBCL, "DRGARE", 6))
     {
-        rule_str.Append(";AP(DRGARE01)");
-        rule_str.Append(";LS(DASH,1,CHGRF)");
+        rule_str.Append(_T(";AP(DRGARE01)"));
+        rule_str.Append(_T(";LS(DASH,1,CHGRF)"));
 
 // Todo Restrictions
 /*
@@ -516,7 +528,7 @@ static void *DEPARE01(void *param)
     rule_str.Append('\037');
 
     char *r = (char *)malloc(rule_str.Len() + 1);
-    strcpy(r, rule_str.c_str());
+    strcpy(r, rule_str.mb_str());
     return r;
 
 }
@@ -583,13 +595,13 @@ static void *LIGHTS04(void *param)
             {                                                                       // red
                     if(height_val)
                     {
-                            key = "LIGHTS93";                       // all round
-                            rule_str = "SY(LIGHTS93)";
+                        key = _T("LIGHTS93");                       // all round
+                        rule_str = _T("SY(LIGHTS93)");
                     }
                     else
                     {
-                            key = "LIGHTS01";                       // flare
-                            rule_str = "SY(LIGHTS01)";
+                        key = _T("LIGHTS01");                       // flare
+                        rule_str = _T("SY(LIGHTS01)");
                     }
             }
 
@@ -597,13 +609,13 @@ static void *LIGHTS04(void *param)
             {
                     if(height_val)
                     {
-                            key = "LIGHTS92";                       // all round
-                            rule_str = "SY(LIGHTS92)";
+                        key = _T("LIGHTS92");                       // all round
+                        rule_str = _T("SY(LIGHTS92)");
                     }
                     else
                     {
-                            key = "LIGHTS02";                       // flare
-                            rule_str = "SY(LIGHTS02)";
+                        key = _T("LIGHTS02");                       // flare
+                        rule_str = _T("SY(LIGHTS02)");
                     }
             }
 
@@ -611,13 +623,13 @@ static void *LIGHTS04(void *param)
             {
                     if(height_val)
                     {
-                            key = "LIGHTS91";                       // all round
-                            rule_str = "SY(LIGHTS91)";
+                        key = _T("LIGHTS91");                       // all round
+                        rule_str = _T("SY(LIGHTS91)");
                     }
                     else
                     {
-                            key = "LIGHTS03";                       // flare
-                            rule_str = "SY(LIGHTS03)";
+                        key = _T("LIGHTS03");                       // flare
+                        rule_str = _T("SY(LIGHTS03)");
                     }
             }
     }
@@ -626,20 +638,20 @@ static void *LIGHTS04(void *param)
     {
             if(col_str[0] == '3')
             {                                                                       // red
-                    key = "LIGHTS01";
-                    rule_str = "SY(LIGHTS01)";
+                key = _T("LIGHTS01");
+                rule_str = _T("SY(LIGHTS01)");
             }
 
             else if(col_str[0] == '4')                      // green
             {
-                    key = "LIGHTS02";
-                    rule_str = "SY(LIGHTS02)";
+                key = _T("LIGHTS02");
+                rule_str = _T("SY(LIGHTS02)");
             }
 
             else                                                            // generic, shows as yellow
             {
-                    key = "LIGHTS03";
-                    rule_str = "SY(LIGHTS03)";
+                key = _T("LIGHTS03");
+                rule_str = _T("SY(LIGHTS03)");
             }
     }
 
@@ -648,7 +660,7 @@ static void *LIGHTS04(void *param)
     rule_str.Append('\037');
 
     char *r = (char *)malloc(rule_str.Len() + 1);
-    strcpy(r, rule_str.c_str());
+    strcpy(r, rule_str.mb_str());
     return r;
 }
 
@@ -753,12 +765,12 @@ static void *QUALIN01(void *param)
     }
 
     if (NULL != line)
-        qualino1.Append(line);
+        qualino1.Append(wxString(line,  wxConvUTF8));
 
     qualino1.Append('\037');
 
     char *r = (char *)malloc(qualino1.Len() + 1);
-    strcpy(r, qualino1.c_str());
+    strcpy(r, qualino1.mb_str());
 
 
     return r;
@@ -785,13 +797,13 @@ static void *QUAPNT01(void *param)
     }
 
     if (!accurate)
-        quapnt01.Append("SY(LOWACC01)");
+        quapnt01.Append(_T("SY(LOWACC01)"));
 
 
     quapnt01.Append('\037');
 
     char *r = (char *)malloc(quapnt01.Len() + 1);
-    strcpy(r, quapnt01.c_str());
+    strcpy(r, quapnt01.mb_str());
 
 
     return r;
@@ -836,18 +848,18 @@ static void *SLCONS03(void *param)
             bvalstr = GetIntAttr(obj, "CONDTN", ival);
 
             if (bvalstr && ( 1 == ival || 2 == ival))
-                    cmdw = "LS(DASH,1,CSTLN)";
+                cmdw = "LS(DASH,1,CSTLN)";
             else {
                 ival = 0;
                 bvalstr  = GetIntAttr(obj, "CATSLC", ival);
 
                 if (bvalstr && ( 6  == ival || 15 == ival || 16 == ival ))
-                        cmdw = "LS(SOLD,4,CSTLN)";
+                    cmdw = "LS(SOLD,4,CSTLN)";
                 else {
                     bvalstr = GetIntAttr(obj, "WATLEV", ival);
 
                     if (bvalstr && 2 == ival)
-                            cmdw = "LS(SOLD,2,CSTLN)";
+                        cmdw = "LS(SOLD,2,CSTLN)";
                     else
                         if (bvalstr && (3 == ival || 4 == ival))
                             cmdw = "LS(DASH,2,CSTLN)";
@@ -883,12 +895,12 @@ static void *SLCONS03(void *param)
     */
 
     if (NULL != cmdw)
-        slcons03.Append(cmdw);
+        slcons03.Append(wxString(cmdw,  wxConvUTF8));
 
     slcons03.Append('\037');
 
     char *r = (char *)malloc(slcons03.Len() + 1);
-    strcpy(r, slcons03.c_str());
+    strcpy(r, slcons03.mb_str());
 
 
     return r;
@@ -927,101 +939,101 @@ static void *RESARE02(void *param)
     wxString *catreastr = GetStringAttrWXS(obj, "CATREA");
 
     char     catrea[LISTSIZE] = {'\0'};
-    char    *symb             = NULL;
-    char    *line             = NULL;
-    char    *prio             = NULL;
+    wxString symb;
+    wxString line;
+    wxString prio;
 
     if ( NULL != restrnstr) {
-        _parseList(restrnstr->c_str(), restrn);
+        _parseList(restrnstr->mb_str(), restrn);
 
-        if (NULL != catreastr) _parseList(catreastr->c_str(), catrea);
+        if (NULL != catreastr) _parseList(catreastr->mb_str(), catrea);
 
         if (strpbrk(restrn, "\007\010\016")) {                          // entry restrictions
             // Continuation A
             if (strpbrk(restrn, "\001\002\003\004\005\006"))            // anchoring, fishing, trawling
-                symb = ";SY(ENTRES61)";
+                symb = _T(";SY(ENTRES61)");
             else {
                 if (NULL != catreastr && strpbrk(catrea, "\001\010\011\014\016\023\025\031"))
-                        symb = ";SY(ENTRES61)";
+                    symb = _T(";SY(ENTRES61)");
                 else {
                     if (strpbrk(restrn, "\011\012\013\014\015"))
-                        symb = ";SY(ENTRES71)";
+                        symb = _T(";SY(ENTRES71)");
                     else {
                         if (NULL != catreastr && strpbrk(catrea, "\004\005\006\007\012\022\024\026\027\030"))
-                            symb = ";SY(ENTRES71)";
+                            symb = _T(";SY(ENTRES71)");
                         else
-                            symb = ";SY(ENTRES51)";
+                            symb = _T(";SY(ENTRES51)");
                     }
                 }
             }
 
             if (TRUE == S52_getMarinerParam(S52_MAR_SYMBOLIZED_BND))
-                line = ";LC(RESARE51)";
+                line = _T(";LC(RESARE51)");
             else
-                line = ";LS(DASH,2,CHMGD)";
+                line =_T( ";LS(DASH,2,CHMGD)");
 
-            prio = ";OP(6---)";  // display prio set to 6
+            prio = _T(";OP(6---)");  // display prio set to 6
 
         } else {
             if (strpbrk(restrn, "\001\002")) {                          // anchoring
                 // Continuation B
                 if (strpbrk(restrn, "\003\004\005\006"))
-                    symb = ";SY(ACHRES61)";
+                    symb = _T(";SY(ACHRES61)");
                 else {
                     if (NULL != catreastr && strpbrk(catrea, "\001\010\011\014\016\023\025\031"))
-                            symb = ";SY(ACHRES61)";
+                        symb = _T(";SY(ACHRES61)");
                     else {
                         if (strpbrk(restrn, "\011\012\013\014\015"))
-                            symb = ";SY(ACHRES71)";
+                            symb = _T(";SY(ACHRES71)");
                         else {
                             if (NULL != catreastr && strpbrk(catrea, "\004\005\006\007\012\022\024\026\027\030"))
-                                symb = ";SY(ACHRES71)";
+                                symb =_T( ";SY(ACHRES71)");
                             else
-                                symb = ";SY(RESTRN51)";
+                                symb = _T(";SY(RESTRN51)");
                         }
                     }
                 }
 
                 if (TRUE == S52_getMarinerParam(S52_MAR_SYMBOLIZED_BND))
-                    line = ";LC(RESARE51)";                // could be ACHRES51 when _drawLC is implemented fully
+                    line = _T(";LC(RESARE51)");                // could be ACHRES51 when _drawLC is implemented fully
                 else
-                    line = ";LS(DASH,2,CHMGD)";
+                    line = _T(";LS(DASH,2,CHMGD)");
 
-                prio = ";OP(6---)";  // display prio set to 6
+                prio = _T(";OP(6---)");  // display prio set to 6
 
             } else {
                 if (strpbrk(restrn, "\003\004\005\006")) {              // fishing/trawling
                     // Continuation C
                     if (NULL != catreastr && strpbrk(catrea, "\001\010\011\014\016\023\025\031"))
-                            symb = ";SY(FSHRES51)";
+                        symb = _T(";SY(FSHRES51)");
                     else {
                         if (strpbrk(restrn, "\011\012\013\014\015"))
-                            symb = ";SY(FSHRES71)";
+                            symb = _T(";SY(FSHRES71)");
                         else{
                             if (NULL != catreastr && strpbrk(catrea, "\004\005\006\007\012\022\024\026\027\030"))
-                                symb = ";SY(FSHRES71)";
+                                symb = _T(";SY(FSHRES71)");
                             else
-                                symb = ";SY(FSHRES51)";
+                                symb = _T(";SY(FSHRES51)");
                         }
                     }
 
                     if (TRUE == S52_getMarinerParam(S52_MAR_SYMBOLIZED_BND))
-                        line = ";LC(FSHRES51)";
+                        line = _T(";LC(FSHRES51)");
                     else
-                        line = ";LS(DASH,2,CHMGD)";
+                        line = _T(";LS(DASH,2,CHMGD)");
 
-                    prio = ";OP(6---)";  // display prio set to 6
+                    prio = _T(";OP(6---)");  // display prio set to 6
 
                 } else {
                     if (strpbrk(restrn, "\011\012\013\014\015"))        // diving, dredging, waking...
-                        symb = ";SY(INFARE51)";
+                        symb = _T(";SY(INFARE51)");
                     else
-                        symb = ";SY(RSRDEF51)";
+                        symb = _T(";SY(RSRDEF51)");
 
                     if (TRUE == S52_getMarinerParam(S52_MAR_SYMBOLIZED_BND))
-                        line = ";LC(CTYARE51)";
+                        line = _T(";LC(CTYARE51)");
                     else
-                        line = ";LS(DASH,2,CHMGD)";
+                        line = _T(";LS(DASH,2,CHMGD)");
 
                 }
                 //  Todo more for s57 3.1  Look at caris catalog ATTR::RESARE
@@ -1034,34 +1046,34 @@ static void *RESARE02(void *param)
         if (NULL != catreastr) {
             if (strpbrk(catrea, "\001\010\011\014\016\023\025\031")) {
                 if (strpbrk(catrea, "\004\005\006\007\012\022\024\026\027\030"))
-                    symb = ";SY(CTYARE71)";
+                    symb = _T(";SY(CTYARE71)");
                 else
-                    symb = ";SY(CTYARE51)";
+                    symb = _T(";SY(CTYARE51)");
             } else {
                 if (strpbrk(catrea, "\004\005\006\007\012\022\024\026\027\030"))
-                    symb = ";SY(INFARE71)";
+                    symb = _T(";SY(INFARE71)");
                 else
-                    symb = ";SY(RSRDEF51)";
+                    symb = _T(";SY(RSRDEF51)");
             }
         } else
-            symb = ";SY(RSRDEF51)";
+            symb = _T(";SY(RSRDEF51)");
 
         if (TRUE == S52_getMarinerParam(S52_MAR_SYMBOLIZED_BND))
-            line = ";LC(CTYARE51)";
+            line = _T(";LC(CTYARE51)");
         else
-            line = ";LS(DASH,2,CHMGD)";
+            line = _T(";LS(DASH,2,CHMGD)");
     }
 
     // create command word
-    if (NULL != prio)
-        resare02.Append(prio);          //g_string_append(resare02, prio);
-    resare02.Append(line);              //g_string_append(resare02, line);
-    resare02.Append(symb);              //g_string_append(resare02, symb);
+    if (prio.Len())
+        resare02.Append(prio);
+    resare02.Append(line);
+    resare02.Append(symb);
 
     resare02.Append('\037');
 
     char *r = (char *)malloc(resare02.Len() + 1);
-    strcpy(r, resare02.c_str());
+    strcpy(r, resare02.mb_str());
 
     delete restrnstr;
     delete catreastr;
@@ -1127,33 +1139,33 @@ static void *_RESCSP01(void *param)
     wxString *restrnstr = GetStringAttrWXS(obj, "RESTRN");
 //    GString *restrnstr        = S57_getAttVal(geo, "RESTRN");
     char     restrn[LISTSIZE] = {'\0'};   // restriction list
-    char    *symb             = NULL;
+    wxString symb;
     char    *r;
 
     if ( restrnstr->Len()) {
-        _parseList(restrnstr->c_str(), restrn);
+        _parseList(restrnstr->mb_str(), restrn);
 
         if (strpbrk(restrn, "\007\010\016")) {
             // continuation A
             if (strpbrk(restrn, "\001\002\003\004\005\006"))
-                symb = ";SY(ENTRES61)";
+                symb = _T(";SY(ENTRES61)");
             else {
                 if (strpbrk(restrn, "\011\012\013\014\015"))
-                    symb = ";SY(ENTRES71)";
+                    symb = _T(";SY(ENTRES71)");
                 else
-                    symb = ";SY(ENTRES51)";
+                    symb = _T(";SY(ENTRES51)");
 
             }
         } else {
             if (strpbrk(restrn, "\001\002")) {
                 // continuation B
                 if (strpbrk(restrn, "\003\004\005\006"))
-                    symb = ";SY(ACHRES61)";
+                    symb = _T(";SY(ACHRES61)");
                 else {
                     if (strpbrk(restrn, "\011\012\013\014\015"))
-                        symb = ";SY(ACHRES71)";
+                        symb =_T( ";SY(ACHRES71)");
                     else
-                        symb = ";SY(ACHRES51)";
+                        symb = _T(";SY(ACHRES51)");
                 }
 
 
@@ -1161,16 +1173,16 @@ static void *_RESCSP01(void *param)
                 if (strpbrk(restrn, "\003\004\005\006")) {
                     // continuation C
                     if (strpbrk(restrn, "\011\012\013\014\015"))
-                        symb = ";SY(FSHRES71)";
+                        symb = _T(";SY(FSHRES71)");
                     else
-                        symb = ";SY(FSHRES51)";
+                        symb = _T(";SY(FSHRES51)");
 
 
                 } else {
                     if (strpbrk(restrn, "\011\012\013\014\015"))
-                        symb = ";SY(INFARE51)";
+                        symb = _T(";SY(INFARE51)");
                     else
-                        symb = ";SY(RSRDEF51)";
+                        symb = _T(";SY(RSRDEF51)");
 
                 }
             }
@@ -1180,7 +1192,7 @@ static void *_RESCSP01(void *param)
         rescsp01.Append('\037');
 
         r = (char *)malloc(rescsp01.Len() + 1);
-        strcpy(r, rescsp01.c_str());
+        strcpy(r, rescsp01.mb_str());
 
         delete restrnstr;
     }
@@ -1254,7 +1266,9 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
     wxString sndfrm02;
     char     temp_str[LISTSIZE] = {'\0'};
 
-    char    *symbol_prefix    = NULL;
+    wxString symbol_prefix;
+
+    char symbol_prefix_a[200];
 
     wxString *tecsoustr = GetStringAttrWXS(obj, "TECSOU");
     char     tecsou[LISTSIZE] = {'\0'};
@@ -1272,40 +1286,42 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
     leading_digit = (int) depth_value;
 
     if (depth_value <= S52_getMarinerParam(S52_MAR_SAFETY_DEPTH))
-        symbol_prefix = "SOUNDS";
+        symbol_prefix = _T("SOUNDS");
     else
-        symbol_prefix = "SOUNDG";
+        symbol_prefix = _T("SOUNDG");
+
+    strcpy(symbol_prefix_a,symbol_prefix.mb_str());
 
     if (NULL != tecsoustr)
     {
-        _parseList(tecsoustr->c_str(), tecsou);
+        _parseList(tecsoustr->mb_str(), tecsou);
         if (strpbrk(tecsou, "\006"))
         {
-            sprintf(temp_str, ";SY(%sB1)", symbol_prefix);
-            sndfrm02.Append(temp_str);
+            sprintf(temp_str, ";SY(%sB1)", symbol_prefix_a);
+            sndfrm02.Append(wxString(temp_str, wxConvUTF8));
         }
     }
 
-    if (NULL != quasoustr) _parseList(quasoustr->c_str(), quasou);
-    if (NULL != statusstr) _parseList(statusstr->c_str(), status);
+    if (NULL != quasoustr) _parseList(quasoustr->mb_str(), quasou);
+    if (NULL != statusstr) _parseList(statusstr->mb_str(), status);
 
     if (strpbrk(quasou, "\003\004\005\010\011") || strpbrk(status, "\022"))
     {
-        sprintf(temp_str, ";SY(%sC2)", symbol_prefix);
-        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%sC2)", symbol_prefix_a);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
     }
     else
     {
         wxString *quaposstr = GetStringAttrWXS(obj, "QUAPOS");
-        int quapos    = (NULL == quaposstr)? 0 : atoi(quaposstr->c_str());
+        int quapos = (NULL == quaposstr)? 0 : atoi(quaposstr->mb_str());
 
         if (NULL != quaposstr)
         {
             if (2 <= quapos && quapos < 10)
             {
-                sprintf(temp_str, ";SY(%sC2)", symbol_prefix);
-                sndfrm02.Append(temp_str);
+                sprintf(temp_str, ";SY(%sC2)", symbol_prefix_a);
+                sndfrm02.Append(wxString(temp_str, wxConvUTF8));
             }
         }
         delete quaposstr;
@@ -1316,16 +1332,17 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
         // can be above water (negative)
         int fraction = (int)ABS((depth_value - leading_digit)*10);
 
-        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)ABS(leading_digit));
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix, fraction);
-        sndfrm02.Append(temp_str);
+
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, (int)ABS(leading_digit));
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix_a, fraction);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
         // above sea level (negative)
         if (depth_value < 0.0)
         {
-            sprintf(temp_str, ";SY(%sA1)", symbol_prefix);
-            sndfrm02.Append(temp_str);
+            sprintf(temp_str, ";SY(%sA1)", symbol_prefix_a);
+            sndfrm02.Append(wxString(temp_str, wxConvUTF8));
         }
         goto return_point;
     }
@@ -1337,14 +1354,14 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
             fraction = fraction * 10;
             if (leading_digit >= 10.0)
             {
-                sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)leading_digit/10);
-                sndfrm02.Append(temp_str);
+                sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix_a, (int)leading_digit/10);
+                sndfrm02.Append(wxString(temp_str, wxConvUTF8));
             }
 
-            sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)leading_digit);
-            sndfrm02.Append(temp_str);
-            sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix, (int)fraction);
-            sndfrm02.Append(temp_str);
+            sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, (int)leading_digit);
+            sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+            sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix_a, (int)fraction);
+            sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
             goto return_point;
         }
@@ -1357,10 +1374,10 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
         double first_digit = floor(leading_digit / 10);
         double secnd_digit = floor(leading_digit - (first_digit * 10));
 
-        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)first_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix, (int)secnd_digit);
-        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, (int)first_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix_a, (int)secnd_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
         goto return_point;
     }
@@ -1371,12 +1388,12 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
         double secnd_digit = floor((leading_digit - (first_digit * 100)) / 10);
         double third_digit = floor(leading_digit - (first_digit * 100) - (secnd_digit * 10));
 
-        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)first_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)secnd_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix, (int)third_digit);
-        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix_a, (int)first_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, (int)secnd_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix_a, (int)third_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
         goto return_point;
     }
@@ -1388,14 +1405,14 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
         double third_digit = floor((leading_digit - (first_digit * 1000) - (secnd_digit * 100)) / 10);
         double last_digit  = floor(leading_digit - (first_digit * 1000) - (secnd_digit * 100) - (third_digit * 10)) ;
 
-        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)first_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)secnd_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix, (int)third_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s4%1i)", symbol_prefix, (int)last_digit);
-        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix_a, (int)first_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, (int)secnd_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix_a, (int)third_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s4%1i)", symbol_prefix_a, (int)last_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
         goto return_point;
     }
@@ -1408,16 +1425,16 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
         double fourth_digit = floor((leading_digit - (first_digit * 10000) - (secnd_digit * 1000) - (third_digit * 100)) / 10 ) ;
         double last_digit   = floor(leading_digit - (first_digit * 10000) - (secnd_digit * 1000) - (third_digit * 100) - (fourth_digit * 10)) ;
 
-        sprintf(temp_str, ";SY(%s3%1i)", symbol_prefix, (int)first_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix, (int)secnd_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix, (int)third_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix, (int)fourth_digit);
-        sndfrm02.Append(temp_str);
-        sprintf(temp_str, ";SY(%s4%1i)", symbol_prefix, (int)last_digit);
-        sndfrm02.Append(temp_str);
+        sprintf(temp_str, ";SY(%s3%1i)", symbol_prefix_a, (int)first_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s2%1i)", symbol_prefix_a, (int)secnd_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, (int)third_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s0%1i)", symbol_prefix_a, (int)fourth_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        sprintf(temp_str, ";SY(%s4%1i)", symbol_prefix_a, (int)last_digit);
+        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
         goto return_point;
     }
@@ -1426,7 +1443,7 @@ return_point:
         sndfrm02.Append('\037');
 
         char *r = (char *)malloc(sndfrm02.Len() + 1);
-        strcpy(r, sndfrm02.c_str());
+        strcpy(r, sndfrm02.mb_str());
 
         delete tecsoustr;
         delete quasoustr;
@@ -1453,10 +1470,10 @@ static void *TOPMAR01 (void *param)
     int top_int = 0;
     bool battr = GetIntAttr(obj, "TOPSHP", top_int);
 
-    char    *sy        = NULL;
+    wxString sy;
 
     if (!battr)
-        sy = ";SY(QUESMRK1)";
+        sy = _T(";SY(QUESMRK1)");
     else {
         int floating    = FALSE; // not a floating platform
         int topshp      = (!battr) ? 0 : top_int;
@@ -1473,90 +1490,90 @@ static void *TOPMAR01 (void *param)
         if (floating) {
             // floating platform
             switch (topshp) {
-                case 1 : sy = ";SY(TOPMAR02)"; break;
-                case 2 : sy = ";SY(TOPMAR04)"; break;
-                case 3 : sy = ";SY(TOPMAR10)"; break;
-                case 4 : sy = ";SY(TOPMAR12)"; break;
+                case 1 : sy = _T(";SY(TOPMAR02)"); break;
+                case 2 : sy = _T(";SY(TOPMAR04)"); break;
+                case 3 : sy = _T(";SY(TOPMAR10)"); break;
+                case 4 : sy = _T(";SY(TOPMAR12)"); break;
 
-                case 5 : sy = ";SY(TOPMAR13)"; break;
-                case 6 : sy = ";SY(TOPMAR14)"; break;
-                case 7 : sy = ";SY(TOPMAR65)"; break;
-                case 8 : sy = ";SY(TOPMAR17)"; break;
+                case 5 : sy = _T(";SY(TOPMAR13)"); break;
+                case 6 : sy = _T(";SY(TOPMAR14)"); break;
+                case 7 : sy = _T(";SY(TOPMAR65)"); break;
+                case 8 : sy = _T(";SY(TOPMAR17)"); break;
 
-                case 9 : sy = ";SY(TOPMAR16)"; break;
-                case 10: sy = ";SY(TOPMAR08)"; break;
-                case 11: sy = ";SY(TOPMAR07)"; break;
-                case 12: sy = ";SY(TOPMAR14)"; break;
+                case 9 : sy = _T(";SY(TOPMAR16)"); break;
+                case 10: sy = _T(";SY(TOPMAR08)"); break;
+                case 11: sy = _T(";SY(TOPMAR07)"); break;
+                case 12: sy = _T(";SY(TOPMAR14)"); break;
 
-                case 13: sy = ";SY(TOPMAR05)"; break;
-                case 14: sy = ";SY(TOPMAR06)"; break;
-                case 17: sy = ";SY(TMARDEF2)"; break;
-                case 18: sy = ";SY(TOPMAR10)"; break;
+                case 13: sy = _T(";SY(TOPMAR05)"); break;
+                case 14: sy = _T(";SY(TOPMAR06)"); break;
+                case 17: sy = _T(";SY(TMARDEF2)"); break;
+                case 18: sy = _T(";SY(TOPMAR10)"); break;
 
-                case 19: sy = ";SY(TOPMAR13)"; break;
-                case 20: sy = ";SY(TOPMAR14)"; break;
-                case 21: sy = ";SY(TOPMAR13)"; break;
-                case 22: sy = ";SY(TOPMAR14)"; break;
+                case 19: sy = _T(";SY(TOPMAR13)"); break;
+                case 20: sy = _T(";SY(TOPMAR14)"); break;
+                case 21: sy = _T(";SY(TOPMAR13)"); break;
+                case 22: sy = _T(";SY(TOPMAR14)"); break;
 
-                case 23: sy = ";SY(TOPMAR14)"; break;
-                case 24: sy = ";SY(TOPMAR02)"; break;
-                case 25: sy = ";SY(TOPMAR04)"; break;
-                case 26: sy = ";SY(TOPMAR10)"; break;
+                case 23: sy = _T(";SY(TOPMAR14)"); break;
+                case 24: sy = _T(";SY(TOPMAR02)"); break;
+                case 25: sy = _T(";SY(TOPMAR04)"); break;
+                case 26: sy = _T(";SY(TOPMAR10)"); break;
 
-                case 27: sy = ";SY(TOPMAR17)"; break;
-                case 28: sy = ";SY(TOPMAR18)"; break;
-                case 29: sy = ";SY(TOPMAR02)"; break;
-                case 30: sy = ";SY(TOPMAR17)"; break;
+                case 27: sy = _T(";SY(TOPMAR17)"); break;
+                case 28: sy = _T(";SY(TOPMAR18)"); break;
+                case 29: sy = _T(";SY(TOPMAR02)"); break;
+                case 30: sy = _T(";SY(TOPMAR17)"); break;
 
-                case 31: sy = ";SY(TOPMAR14)"; break;
-                case 32: sy = ";SY(TOPMAR10)"; break;
-                case 33: sy = ";SY(TMARDEF2)"; break;
-                default: sy = ";SY(TMARDEF2)"; break;
+                case 31: sy = _T(";SY(TOPMAR14)"); break;
+                case 32: sy = _T(";SY(TOPMAR10)"); break;
+                case 33: sy = _T(";SY(TMARDEF2)"); break;
+                default: sy = _T(";SY(TMARDEF2)"); break;
             }
         } else {
             // not a floating platform
             switch (topshp) {
-                case 1 : sy = ";SY(TOPMAR22)"; break;
-                case 2 : sy = ";SY(TOPMAR24)"; break;
-                case 3 : sy = ";SY(TOPMAR30)"; break;
-                case 4 : sy = ";SY(TOPMAR32)"; break;
+                case 1 : sy = _T(";SY(TOPMAR22)"); break;
+                case 2 : sy = _T(";SY(TOPMAR24)"); break;
+                case 3 : sy = _T(";SY(TOPMAR30)"); break;
+                case 4 : sy = _T(";SY(TOPMAR32)"); break;
 
-                case 5 : sy = ";SY(TOPMAR33)"; break;
-                case 6 : sy = ";SY(TOPMAR34)"; break;
-                case 7 : sy = ";SY(TOPMAR85)"; break;
-                case 8 : sy = ";SY(TOPMAR86)"; break;
+                case 5 : sy = _T(";SY(TOPMAR33)"); break;
+                case 6 : sy = _T(";SY(TOPMAR34)"); break;
+                case 7 : sy = _T(";SY(TOPMAR85)"); break;
+                case 8 : sy = _T(";SY(TOPMAR86)"); break;
 
-                case 9 : sy = ";SY(TOPMAR36)"; break;
-                case 10: sy = ";SY(TOPMAR28)"; break;
-                case 11: sy = ";SY(TOPMAR27)"; break;
-                case 12: sy = ";SY(TOPMAR14)"; break;
+                case 9 : sy = _T(";SY(TOPMAR36)"); break;
+                case 10: sy = _T(";SY(TOPMAR28)"); break;
+                case 11: sy = _T(";SY(TOPMAR27)"); break;
+                case 12: sy = _T(";SY(TOPMAR14)"); break;
 
-                case 13: sy = ";SY(TOPMAR25)"; break;
-                case 14: sy = ";SY(TOPMAR26)"; break;
-                case 15: sy = ";SY(TOPMAR88)"; break;
-                case 16: sy = ";SY(TOPMAR87)"; break;
+                case 13: sy = _T(";SY(TOPMAR25)"); break;
+                case 14: sy = _T(";SY(TOPMAR26)"); break;
+                case 15: sy = _T(";SY(TOPMAR88)"); break;
+                case 16: sy = _T(";SY(TOPMAR87)"); break;
 
-                case 17: sy = ";SY(TMARDEF1)"; break;
-                case 18: sy = ";SY(TOPMAR30)"; break;
-                case 19: sy = ";SY(TOPMAR33)"; break;
-                case 20: sy = ";SY(TOPMAR34)"; break;
+                case 17: sy = _T(";SY(TMARDEF1)"); break;
+                case 18: sy = _T(";SY(TOPMAR30)"); break;
+                case 19: sy = _T(";SY(TOPMAR33)"); break;
+                case 20: sy = _T(";SY(TOPMAR34)"); break;
 
-                case 21: sy = ";SY(TOPMAR33)"; break;
-                case 22: sy = ";SY(TOPMAR34)"; break;
-                case 23: sy = ";SY(TOPMAR34)"; break;
-                case 24: sy = ";SY(TOPMAR22)"; break;
+                case 21: sy = _T(";SY(TOPMAR33)"); break;
+                case 22: sy = _T(";SY(TOPMAR34)"); break;
+                case 23: sy = _T(";SY(TOPMAR34)"); break;
+                case 24: sy = _T(";SY(TOPMAR22)"); break;
 
-                case 25: sy = ";SY(TOPMAR24)"; break;
-                case 26: sy = ";SY(TOPMAR30)"; break;
-                case 27: sy = ";SY(TOPMAR86)"; break;
-                case 28: sy = ";SY(TOPMAR89)"; break;
+                case 25: sy = _T(";SY(TOPMAR24)"); break;
+                case 26: sy = _T(";SY(TOPMAR30)"); break;
+                case 27: sy = _T(";SY(TOPMAR86)"); break;
+                case 28: sy = _T(";SY(TOPMAR89)"); break;
 
-                case 29: sy = ";SY(TOPMAR22)"; break;
-                case 30: sy = ";SY(TOPMAR86)"; break;
-                case 31: sy = ";SY(TOPMAR14)"; break;
-                case 32: sy = ";SY(TOPMAR30)"; break;
-                case 33: sy = ";SY(TMARDEF1)"; break;
-                default: sy = ";SY(TMARDEF1)"; break;
+                case 29: sy = _T(";SY(TOPMAR22)"); break;
+                case 30: sy = _T(";SY(TOPMAR86)"); break;
+                case 31: sy = _T(";SY(TOPMAR14)"); break;
+                case 32: sy = _T(";SY(TOPMAR30)"); break;
+                case 33: sy = _T(";SY(TMARDEF1)"); break;
+                default: sy = _T(";SY(TMARDEF1)"); break;
             }
         }
 
@@ -1567,7 +1584,7 @@ static void *TOPMAR01 (void *param)
     topmar.Append('\037');
 
     char *r = (char *)malloc(topmar.Len() + 1);
-    strcpy(r, topmar.c_str());
+    strcpy(r, topmar.mb_str());
 
     return r;
 }

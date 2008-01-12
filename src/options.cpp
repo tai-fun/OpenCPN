@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.4 2008/01/10 03:37:18 bdbcat Exp $
+ * $Id: options.cpp,v 1.5 2008/01/12 06:20:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.5  2008/01/12 06:20:47  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.4  2008/01/10 03:37:18  bdbcat
  * Update for Mac OSX
  *
@@ -71,6 +74,7 @@ extern wxString         *pNMEADataSource;
 extern wxString         *pNMEA_AP_Port;
 extern FontMgr          *pFontMgr;
 extern wxString         *pAIS_Port;
+extern wxString         *pInit_Chart_Dir;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -284,15 +288,15 @@ void options::CreateControls()
       bool tcp_en = false;
       wxString source;
       source = (*pNMEADataSource);
-      if(source.Upper().Contains("SERIAL"))
+      if(source.Upper().Contains(_T("SERIAL")))
       {
           wxString sourcex = source.Mid(7);
           sidx = m_itemNMEAListBox->FindString(sourcex);
       }
-      else if(source.Upper().Contains("NONE"))
+      else if(source.Upper().Contains(_T("NONE")))
             sidx = 0;
 #ifndef OCPN_DISABLE_SOCKETS
-      else if(source.Upper().Contains("GPSD"))
+      else if(source.Upper().Contains(_T("GPSD")))
       {
           sidx = m_itemNMEAListBox->FindString(_T("Network GPSD"));
           tcp_en = true;
@@ -315,7 +319,7 @@ void options::CreateControls()
 #ifndef OCPN_DISABLE_SOCKETS
 
 //    Add NMEA TCP/IP Server address
-      m_itemNMEA_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("GPSD Data Server"));
+      m_itemNMEA_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("GPSD Data Server"));
       m_itemNMEA_TCPIP_StaticBoxSizer = new wxStaticBoxSizer(m_itemNMEA_TCPIP_StaticBox, wxVERTICAL);
       itemNMEAStaticBoxSizer->Add(m_itemNMEA_TCPIP_StaticBoxSizer, 0, wxGROW|wxALL, 5);
 
@@ -336,7 +340,7 @@ void options::CreateControls()
 
 
 //    Add Autopilot serial output port controls
-      wxStaticBox* itemNMEAAutoStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("Autopilot Output Port"));
+      wxStaticBox* itemNMEAAutoStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("Autopilot Output Port"));
       wxStaticBoxSizer* itemNMEAAutoStaticBoxSizer = new wxStaticBoxSizer(itemNMEAAutoStaticBox, wxVERTICAL);
       itemNMEAStaticBoxSizer->Add(itemNMEAAutoStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
@@ -366,10 +370,10 @@ void options::CreateControls()
 #endif
 
       wxString ap_com;
-      if(pNMEA_AP_Port->Contains("Serial"))
+      if(pNMEA_AP_Port->Contains(_T("Serial")))
           ap_com = pNMEA_AP_Port->Mid(7);
       else
-          ap_com = "None";
+          ap_com = _T("None");
 
       sidx = m_itemNMEAAutoListBox->FindString(ap_com);
       m_itemNMEAAutoListBox->SetSelection(sidx);
@@ -377,7 +381,7 @@ void options::CreateControls()
       itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxGROW|wxALL, 5);
 
 //    Add AIS Data Input controls
-      wxStaticBox* itemAISStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("AIS Data Port"));
+      wxStaticBox* itemAISStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("AIS Data Port"));
       wxStaticBoxSizer* itemAISStaticBoxSizer = new wxStaticBoxSizer(itemAISStaticBox, wxVERTICAL);
       itemNMEAStaticBoxSizer->Add(itemAISStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
@@ -406,10 +410,10 @@ void options::CreateControls()
 #endif
 
       wxString ais_com;
-      if(pAIS_Port->Contains("Serial"))
+      if(pAIS_Port->Contains(_T("Serial")))
           ais_com = pAIS_Port->Mid(7);
       else
-          ais_com = "None";
+          ais_com = _T("None");
 
       m_itemAISListBox->SetStringSelection(ais_com);
 
@@ -419,12 +423,12 @@ void options::CreateControls()
 
 #ifdef USE_WIFI_CLIENT
 //    Add WiFi Options Box
-      wxStaticBox* itemWIFIStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("WiFi Options"));
+      wxStaticBox* itemWIFIStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("WiFi Options"));
       wxStaticBoxSizer* itemWIFIStaticBoxSizer = new wxStaticBoxSizer(itemWIFIStaticBox, wxVERTICAL);
       itemBoxSizer6->Add(itemWIFIStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
 //    Add WiFi TCP/IP Server address
-      m_itemWIFI_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("TCP/IP WiFi Data Server"));
+      m_itemWIFI_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("TCP/IP WiFi Data Server"));
       m_itemWIFI_TCPIP_StaticBoxSizer = new wxStaticBoxSizer(m_itemWIFI_TCPIP_StaticBox, wxVERTICAL);
       itemWIFIStaticBoxSizer->Add(m_itemWIFI_TCPIP_StaticBoxSizer, 0, wxGROW|wxALL, 5);
 
@@ -456,7 +460,7 @@ void options::CreateControls()
     //      See this::OnPageChange event handler
 
 
-    itemNotebook4->AddPage(itemPanel9, _("Charts"));
+    itemNotebook4->AddPage(itemPanel9, _T("Charts"));
 
 
     //      Build S57 Options page
@@ -468,12 +472,12 @@ void options::CreateControls()
 //    wxBoxSizer* itemBoxSizer25 = new wxBoxSizer(wxHORIZONTAL);
 //    itemBoxSizer22->Add(itemBoxSizer25, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
 
-    wxStaticBox* itemStaticBoxSizer26Static = new wxStaticBox(ps57Ctl, wxID_ANY, _("Chart Display Filters"));
+    wxStaticBox* itemStaticBoxSizer26Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Chart Display Filters"));
     wxStaticBoxSizer* itemStaticBoxSizer26 = new wxStaticBoxSizer(itemStaticBoxSizer26Static, wxHORIZONTAL);
     itemBoxSizer25->Add(itemStaticBoxSizer26, 0, wxTOP|wxALL|wxGROW, 5);
 
 
-    wxStaticBox* itemStaticBoxSizer57Static = new wxStaticBox(ps57Ctl, wxID_ANY, _("Mariner's Standard"));
+    wxStaticBox* itemStaticBoxSizer57Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Mariner's Standard"));
     wxStaticBoxSizer* itemStaticBoxSizer57 = new wxStaticBoxSizer(itemStaticBoxSizer57Static, wxVERTICAL);
     itemStaticBoxSizer26->Add(itemStaticBoxSizer57, 0, wxTOP|wxALL|wxGROW, 5);
 
@@ -482,12 +486,12 @@ void options::CreateControls()
                                          ps57CtlListBoxStrings, wxLB_SINGLE );
     itemStaticBoxSizer57->Add(ps57CtlListBox, 0, wxALIGN_LEFT|wxALL, 5);
 
-    itemButtonClearList = new wxButton( ps57Ctl, ID_CLEARLIST, _("Clear All"),
+    itemButtonClearList = new wxButton( ps57Ctl, ID_CLEARLIST, _T("Clear All"),
             wxDefaultPosition, wxDefaultSize, 0 );
     itemButtonClearList->SetDefault();
     itemStaticBoxSizer57->Add(itemButtonClearList, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
-    itemButtonSelectList = new wxButton( ps57Ctl, ID_SELECTLIST, _("Select All"),
+    itemButtonSelectList = new wxButton( ps57Ctl, ID_SELECTLIST, _T("Select All"),
             wxDefaultPosition, wxDefaultSize, 0 );
     itemButtonSelectList->SetDefault();
     itemStaticBoxSizer57->Add(itemButtonSelectList, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -498,58 +502,58 @@ void options::CreateControls()
     itemStaticBoxSizer26->Add(itemBoxSizer75, 0, wxTOP|wxALL, 5);
 
     wxString pDispCatStrings[] = {
-        _("&Base"),
-        _("&Standard"),
-        _("&Other"),
-        _("&MarinersStandard")
+        _T("&Base"),
+        _T("&Standard"),
+        _T("&Other"),
+        _T("&MarinersStandard")
     };
-    pDispCat = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Display Category"), wxDefaultPosition, wxDefaultSize,
+    pDispCat = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Display Category"), wxDefaultPosition, wxDefaultSize,
                                4, pDispCatStrings, 1, wxRA_SPECIFY_COLS );
     itemBoxSizer75->Add(pDispCat, 0, wxTOP|wxALL|wxGROW, 5);
 
 
-    pCheck_SOUNDG = new wxCheckBox( ps57Ctl, ID_SOUNDGCHECKBOX, _("ShowSoundings"), wxDefaultPosition,
+    pCheck_SOUNDG = new wxCheckBox( ps57Ctl, ID_SOUNDGCHECKBOX, _T("ShowSoundings"), wxDefaultPosition,
                                      wxSize(-1, -1), 0 );
     pCheck_SOUNDG->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_SOUNDG, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
 
-    pCheck_META = new wxCheckBox( ps57Ctl, ID_METACHECKBOX, _("META Objects"), wxDefaultPosition,
+    pCheck_META = new wxCheckBox( ps57Ctl, ID_METACHECKBOX, _T("META Objects"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_META->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_META, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
 
-    pCheck_SHOWTEXT = new wxCheckBox( ps57Ctl, ID_TEXTCHECKBOX, _("ShowText"), wxDefaultPosition,
+    pCheck_SHOWTEXT = new wxCheckBox( ps57Ctl, ID_TEXTCHECKBOX, _T("ShowText"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_SHOWTEXT->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_SHOWTEXT, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
 
-    pCheck_SCAMIN = new wxCheckBox( ps57Ctl, ID_SCAMINCHECKBOX, _("SCAMIN"), wxDefaultPosition,
+    pCheck_SCAMIN = new wxCheckBox( ps57Ctl, ID_SCAMINCHECKBOX, _T("SCAMIN"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_SCAMIN->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_SCAMIN, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
 
 
-    wxStaticBox* itemStaticBoxSizer83Static = new wxStaticBox(ps57Ctl, wxID_ANY, _("Chart Display Style"));
+    wxStaticBox* itemStaticBoxSizer83Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Chart Display Style"));
     wxStaticBoxSizer* itemStaticBoxSizer83 = new wxStaticBoxSizer(itemStaticBoxSizer83Static, wxHORIZONTAL);
     itemBoxSizer25->Add(itemStaticBoxSizer83, 0, wxTOP|wxALL|wxGROW, 5);
 
     wxString pPointStyleStrings[] = {
-        _("&Paper Chart"),
-        _("&Simplified"),
+        _T("&Paper Chart"),
+        _T("&Simplified"),
     };
-    pPointStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Points"), wxDefaultPosition, wxDefaultSize,
+    pPointStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Points"), wxDefaultPosition, wxDefaultSize,
                                   2, pPointStyleStrings, 1, wxRA_SPECIFY_COLS );
     itemStaticBoxSizer83->Add(pPointStyle, 0, wxTOP|wxALL| 5);
 
     wxString pBoundStyleStrings[] = {
-        _("&Plain"),
-        _("&Symbolized"),
+        _T("&Plain"),
+        _T("&Symbolized"),
     };
-    pBoundStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Boundaries"), wxDefaultPosition, wxDefaultSize,
+    pBoundStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Boundaries"), wxDefaultPosition, wxDefaultSize,
                                               2, pBoundStyleStrings, 1, wxRA_SPECIFY_COLS );
     itemStaticBoxSizer83->Add(pBoundStyle, 0, wxTOP|wxALL| 5);
 
-    itemNotebook4->AddPage(ps57Ctl, _("S52 Options"));
+    itemNotebook4->AddPage(ps57Ctl, _T("S52 Options"));
 
 
     //      Build Fonts panel
@@ -558,11 +562,11 @@ void options::CreateControls()
     wxBoxSizer* itemBoxSizerFontPanel = new wxBoxSizer(wxVERTICAL);
     itemPanelFont->SetSizer(itemBoxSizerFontPanel);
 
-    wxStaticBox* itemFontStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _("Font Options"));
+    wxStaticBox* itemFontStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _T("Font Options"));
     wxStaticBoxSizer* itemFontStaticBoxSizer = new wxStaticBoxSizer(itemFontStaticBox, wxVERTICAL);
     itemBoxSizerFontPanel->Add(itemFontStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
-    wxStaticBox* itemFontElementStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _("Text Element"));
+    wxStaticBox* itemFontElementStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _T("Text Element"));
     wxStaticBoxSizer* itemFontElementStaticBoxSizer = new wxStaticBoxSizer(itemFontElementStaticBox, wxVERTICAL);
     itemFontStaticBoxSizer->Add(itemFontElementStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
@@ -580,7 +584,7 @@ void options::CreateControls()
 
     itemFontElementStaticBoxSizer->Add(m_itemFontElementListBox, 0, wxGROW|wxALL, 5);
 
-    wxButton* itemFontChooseButton = new wxButton( itemPanelFont, ID_BUTTONFONTCHOOSE, _("Choose Font..."),
+    wxButton* itemFontChooseButton = new wxButton( itemPanelFont, ID_BUTTONFONTCHOOSE, _T("Choose Font..."),
                 wxDefaultPosition, wxDefaultSize, 0 );
     itemFontElementStaticBoxSizer->Add(itemFontChooseButton, 0, wxGROW|wxALL, 5);
 
@@ -630,7 +634,7 @@ void options::SetInitialSettings()
       {
             OBJLElement *pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
 
-            ps57CtlListBox->Append(wxString(pOLE->OBJLName));
+            ps57CtlListBox->Append(wxString(pOLE->OBJLName, wxConvUTF8));
             ps57CtlListBox->Check(ps57CtlListBox->GetCount()-1, pOLE->nViz);
       }
 
@@ -814,32 +818,32 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
 // Source
       wxString sel(m_itemNMEAListBox->GetStringSelection());
-      if(sel.Contains("COM"))
-            sel.Prepend("Serial:");
-      else if(sel.Contains("/dev"))
-          sel.Prepend("Serial:");
-      else if(sel.Contains("GPSD"))
+      if(sel.Contains(_T("COM")))
+          sel.Prepend(_T("Serial:"));
+      else if(sel.Contains(_T("/dev")))
+          sel.Prepend(_T("Serial:"));
+      else if(sel.Contains(_T("GPSD")))
       {
             sel.Empty();
-            sel.Append("GPSD:");
+            sel.Append(_T("GPSD:"));
             sel.Append(m_itemNMEA_TCPIP_Source->GetLineText(0));
       }
     *pNMEADataSource = sel;
 
 // AP Output
     wxString selp(m_itemNMEAAutoListBox->GetStringSelection());
-    if(selp.Contains("COM"))
-        selp.Prepend("Serial:");
-    else if(selp.Contains("/dev"))
-        selp.Prepend("Serial:");
+    if(selp.Contains(_T("COM")))
+        selp.Prepend(_T("Serial:"));
+    else if(selp.Contains(_T("/dev")))
+        selp.Prepend(_T("Serial:"));
     *pNMEA_AP_Port = selp;
 
 // AIS Input
     wxString selais(m_itemAISListBox->GetStringSelection());
-    if(selais.Contains("COM"))
-        selais.Prepend("Serial:");
-    else if(selais.Contains("/dev"))
-        selais.Prepend("Serial:");
+    if(selais.Contains(_T("COM")))
+        selais.Prepend(_T("Serial:"));
+    else if(selais.Contains(_T("/dev")))
+        selais.Prepend(_T("Serial:"));
     *pAIS_Port = selais;
 
 #ifdef USE_WIFI_CLIENT
@@ -902,6 +906,15 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
       }
 #endif
+
+//      Capture and store the currently selected chart tree path
+    if(pDirCtl != NULL)
+    {
+        wxString cur_path = pDirCtl->GetPath();
+        pInit_Chart_Dir->Clear();
+        pInit_Chart_Dir->Append(cur_path);
+    }
+
 
       EndModal(1);
 
@@ -1096,17 +1109,17 @@ void options::OnNMEASourceChoice(wxCommandEvent& event)
 {
     int i = event.GetSelection();
     wxString src(m_itemNMEAListBox->GetString(i));
-    if(src.Contains("GPSD"))
+    if(src.Contains(_T("GPSD")))
     {
         m_itemNMEA_TCPIP_StaticBox->Enable();
         m_itemNMEA_TCPIP_Source->Enable();
 
         m_itemNMEA_TCPIP_Source->Clear();
-        m_itemNMEA_TCPIP_Source->WriteText("localhost"); // default
+        m_itemNMEA_TCPIP_Source->WriteText(_T("localhost")); // default
 
         wxString source;
         source = *pNMEADataSource;
-        if(source.Contains("GPSD"))
+        if(source.Contains(_T("GPSD")))
         {
             wxString ip;
             ip = source.Mid(5);

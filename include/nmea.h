@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.9 2008/01/10 03:39:33 bdbcat Exp $
+ * $Id: nmea.h,v 1.10 2008/01/12 06:18:40 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.10  2008/01/12 06:18:40  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.9  2008/01/10 03:39:33  bdbcat
  * Update for Mac OSX
  *
@@ -192,7 +195,7 @@ class OCP_NMEA_Thread: public wxThread
 
 public:
 
-      OCP_NMEA_Thread(wxWindow *MainWindow, const char *pszPortName);
+      OCP_NMEA_Thread(wxWindow *MainWindow, const wxString& PortName);
       ~OCP_NMEA_Thread(void);
       void *Entry();
 
@@ -257,7 +260,7 @@ public:
 
     void OnCloseWindow(wxCloseEvent& event);
     void GetAP_Port(wxString& source);
-    void AutopilotOut(const char *Sentence);
+    void AutopilotOut(const wxString& Sentence);
 
 private:
     bool            OpenPort(wxString &port);

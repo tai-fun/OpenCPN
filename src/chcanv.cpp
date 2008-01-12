@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.20 2008/01/10 03:36:09 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.21 2008/01/12 06:23:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.21  2008/01/12 06:23:35  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.20  2008/01/10 03:36:09  bdbcat
  * Update for Mac OSX
  *
@@ -130,7 +133,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.20 2008/01/10 03:36:09 bdbcat Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.21 2008/01/12 06:23:35 bdbcat Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -146,7 +149,7 @@ CPL_CVSID("$Id: chcanv.cpp,v 1.20 2008/01/10 03:36:09 bdbcat Exp $");
 //    Constants for right click menus
 enum
 {
-      ID_DEF_MENU_MAX_DETAIL,
+      ID_DEF_MENU_MAX_DETAIL =1,
       ID_DEF_MENU_SCALE_IN,
       ID_DEF_MENU_SCALE_OUT,
       ID_DEF_MENU_QUERY,
@@ -233,6 +236,11 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
       m_bBackRender = false;
       m_bbr_paused = false;
 
+      pEM_Feet = NULL;
+      pEM_Meters = NULL;
+      pEM_Fathoms = NULL;
+
+
 //    Build the cursors
 
 #if defined( __WXGTK__) || defined(__WXOSX__) /* inline rms */
@@ -298,7 +306,7 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
             pCursorPencil =  new ocpCursor(pencil, 0, 00, 20);
         }
 #endif
-		
+
       pCursorArrow = new wxCursor(wxCURSOR_ARROW);
 
       SetMyCursor(pCursorArrow);
@@ -351,7 +359,7 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
 
 
 //    Create the default wvs chart
-      pwvs_chart = new WVSChart(this, (char *)pWVS_Locn->c_str());
+      pwvs_chart = new WVSChart(this, *pWVS_Locn);
 
       //    Create the depth unit emboss maps
       CreateDepthUnitEmbossMaps();
@@ -386,6 +394,11 @@ ChartCanvas::~ChartCanvas()
 
       delete pwvs_chart;
       delete pss_overlay_bmp;
+
+      free(pEM_Feet);
+      free(pEM_Meters);
+      free(pEM_Fathoms);
+
 
 }
 
@@ -486,14 +499,14 @@ void ChartCanvas::OnCursorTrackTimerEvent(wxTimerEvent& event)
 
                 toDMM(cursor_lon, &buf[i], 20);
 
-                wxString t(buf);
+                wxString t(buf, wxConvUTF8);
                 if(parent_frame->m_pStatusBar)
                     parent_frame->SetStatusText(t, 1);
             }
 
             sprintf(buf, "%d %d", mouse_x, mouse_y);
             if(parent_frame->m_pStatusBar)
-                parent_frame->SetStatusText(buf, 2);
+                parent_frame->SetStatusText(wxString(buf, wxConvUTF8), 2);
         }
 #endif
 }
@@ -920,7 +933,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
       {
             char buf[20];
             sprintf(buf, "Scale: %8.0f %g", VPoint.chart_scale, VPoint.binary_scale_factor);
-            parent_frame->SetStatusText(buf, 4);
+            parent_frame->SetStatusText(wxString(buf, wxConvUTF8), 4);
       }
 
       VPoint.bValid = true;                     // Mark this ViewPoint as OK
@@ -2090,7 +2103,7 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
                 pdialog = new S57QueryDialog();
                 pdialog->SetText(*QueryResult);
 
-                pdialog->Create(NULL, -1, wxT("Object Query"));
+                pdialog->Create(this, -1, wxT("Object Query"));
                 pdialog->ShowModal();
 
                 delete pdialog;
@@ -2763,8 +2776,8 @@ int *ChartCanvas::CreateEmbossMap(wxFont &font, int width, int height, char *str
     temp_dc.SetFont(font);
 
     int str_w, str_h;
-    temp_dc.GetTextExtent(wxString(str), &str_w, &str_h);
-    temp_dc.DrawText(wxString(str), width - str_w - 10, 10);
+    temp_dc.GetTextExtent(wxString(str, wxConvUTF8), &str_w, &str_h);
+    temp_dc.DrawText(wxString(str, wxConvUTF8), width - str_w - 10, 10);
 
     //  Deselect the bitmap
     temp_dc.SelectObject(wxNullBitmap);
@@ -2906,7 +2919,7 @@ void ChartCanvas::DrawAllRoutesInBBox(wxDC& dc, wxBoundingBox& BltBBox)
             }
             catch(...)
             {
-                  wxLogMessage("chcanv::DrawAllRoutesInBBox...Exception!");
+                wxLogMessage(_T("chcanv::DrawAllRoutesInBBox...Exception!"));
             }
 
             pRouteDraw = (Route *)ppp;
@@ -2930,7 +2943,7 @@ void ChartCanvas::DrawAllRoutesInBBox(wxDC& dc, wxBoundingBox& BltBBox)
                   }
             }
             else
-                  wxLogError("Route* in OnPaint is bad, skipping...");
+                wxLogError(_T("Route* in OnPaint is bad, skipping..."));
 
             node = node->GetNext();
       }
@@ -3081,7 +3094,7 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox, double sk
 
 
       pTCFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD,
-                                                      FALSE, wxString("Eurostile Extended"));
+              FALSE, wxString(_T("Eurostile Extended")));
       int now = time(NULL);
 
       if(bRebuildSelList)
@@ -3160,7 +3173,7 @@ void ChartCanvas::DrawAllCurrentsInBBox(wxDC& dc, wxBoundingBox& BBox, double sk
                                                 {
                                                       dc.SetFont(*pTCFont);
                                                       sprintf(&sbuf[0], "%3.1f", fabs(tcvalue));
-                                                      dc.DrawText(wxString(sbuf), pixxc, pixyc);
+                                                      dc.DrawText(wxString(sbuf, wxConvUTF8), pixxc, pixyc);
                                                 }
                                           }
                                     }           // scale
@@ -3259,7 +3272,7 @@ WX_DEFINE_LIST(SplineList);
 
 // Define a constructor
 TCWin::TCWin(ChartCanvas *parent, int x, int y, void *pvIDX):
- wxDialog(parent, wxID_ANY,   wxString("test"), wxPoint(x,y), wxSize(500,400),
+        wxDialog(parent, wxID_ANY,   wxString(_T("test")), wxPoint(x,y), wxSize(500,400),
                   wxCLIP_CHILDREN | wxDEFAULT_DIALOG_STYLE )
  {
       pParent = parent;
@@ -3270,12 +3283,12 @@ TCWin::TCWin(ChartCanvas *parent, int x, int y, void *pvIDX):
       if(strchr("Tt", pIDX->IDX_type))
       {
             plot_type = TIDE_PLOT;
-            SetTitle(wxString("Tide"));
+            SetTitle(wxString(_T("Tide")));
       }
       else
       {
             plot_type = CURRENT_PLOT;
-            SetTitle(wxString("Current"));
+            SetTitle(wxString(_T("Current")));
       }
 
       int sx,sy;
@@ -3466,7 +3479,7 @@ void TCWin::OnPaint(wxPaintEvent& event)
 
       wxPaintDC dc(this);
 
-      wxString tlocn(pIDX->IDX_station_name);
+      wxString tlocn(pIDX->IDX_station_name, wxConvUTF8);
 
  //     if(1/*bForceRedraw*/)
       {
@@ -3477,11 +3490,11 @@ void TCWin::OnPaint(wxPaintEvent& event)
             wxPen *pred_2   = wxThePenList->FindOrCreatePen(wxColour(255,0,0), 2, wxSOLID);
             wxBrush *pltgray = wxTheBrushList->FindOrCreateBrush(wxColour(150,150,150), wxSOLID);
             wxFont *pSFont = wxTheFontList->FindOrCreateFont(8, wxFONTFAMILY_SWISS,wxNORMAL,  wxFONTWEIGHT_NORMAL,
-                                                      FALSE, wxString("Arial"));
+                    FALSE, wxString(_T("Arial")));
             wxFont *pMFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_SWISS,wxNORMAL,  wxFONTWEIGHT_NORMAL,
-                                                      FALSE, wxString("Arial"));
+                    FALSE, wxString(_T("Arial")));
             wxFont *pLFont = wxTheFontList->FindOrCreateFont(18, wxFONTFAMILY_SWISS,wxNORMAL, wxBOLD,
-                                                      FALSE, wxString("Arial"));
+                    FALSE, wxString(_T("Arial")));
 
 
             int x_graph = x * 1/10;
@@ -3508,7 +3521,7 @@ void TCWin::OnPaint(wxPaintEvent& event)
                   dc.DrawRotatedText(wxString(sbuf), xd + (x_graph_w/25)/2, y_graph + y_graph_h + 8, 270.);
 #else
                   int x_shim = -12;
-                  dc.DrawText(wxString(sbuf), xd + x_shim + (x_graph_w/25)/2, y_graph + y_graph_h + 8);
+                  dc.DrawText(wxString(sbuf, wxConvUTF8), xd + x_shim + (x_graph_w/25)/2, y_graph + y_graph_h + 8);
 #endif
             }
 
@@ -3597,21 +3610,21 @@ void TCWin::OnPaint(wxPaintEvent& event)
                   dc.DrawLine(x_graph, yd, x_graph+x_graph_w, yd);
 
                   sprintf(sbuf, "%d", i);
-                  dc.DrawText(wxString(sbuf), x_graph - 20, yd - 10);
+                  dc.DrawText(wxString(sbuf, wxConvUTF8), x_graph - 20, yd - 10);
                   i++;
 
             }
       //    Units
             if(pIDX->pref_sta_data)
             {
-                  wxString units(pIDX->pref_sta_data->units_abbrv);
+                wxString units(pIDX->pref_sta_data->units_abbrv, wxConvUTF8);
                   dc.DrawText(units, x_graph - 40, y_graph + y_graph_h/2);
             }
 
       //  Location text
-            wxString locn(pIDX->IDX_station_name);
+            wxString locn(pIDX->IDX_station_name, wxConvUTF8);
             wxString locna, locnb;
-            if(locn.Contains(wxString(",")))
+            if(locn.Contains(wxString(_T(","))))
             {
                   locna = locn.BeforeFirst(',');
                   locnb = locn.AfterFirst(',');
@@ -3645,12 +3658,12 @@ void TCWin::OnPaint(wxPaintEvent& event)
             {
 
                   dc.SetFont(*pMFont);
-                  wxString mref(pIDX->IDX_reference_name);
+                  wxString mref(pIDX->IDX_reference_name, wxConvUTF8);
                   dc.GetTextExtent(mref, &w, &h);
                   int y_master_reference = y_graph - h - 2;
                   dc.DrawText(mref, x - w, y_master_reference);
 
-                  wxString ref_legend("Reference Station:");
+                  wxString ref_legend(_T("Reference Station:"));
                   int wl;
                   dc.GetTextExtent(ref_legend, &wl, &h);
                   dc.DrawText(ref_legend, x - w/2 - wl/2, y_master_reference - h + 4);
@@ -3666,33 +3679,31 @@ void TCWin::OnPaint(wxPaintEvent& event)
       //  More Info
 
             dc.SetFont(*pSFont);
-            dc.GetTextExtent(wxString(stz), &w, &h);
-            dc.DrawText(wxString(stz), x/2 - w/2, y * 88/100);
+            dc.GetTextExtent(wxString(stz, wxConvUTF8), &w, &h);
+            dc.DrawText(wxString(stz, wxConvUTF8), x/2 - w/2, y * 88/100);
 
 
             // There seems to be some confusion about format specifiers
             //  Hack this.....
-            //  Find and use the longest sprintf result......
-            char sbuf1[100];
-            char *sdate;
-            sprintf(sbuf1, "%s", graphday.Format("%#x").c_str());
-            sprintf(sbuf,  "%s", graphday.Format("%x" ).c_str());
+            //  Find and use the longest "sprintf" result......
+            wxString sdate;
+            wxString s1 = graphday.Format(_T("%#x"));
+            wxString s2 = graphday.Format(_T("%x"));
 
-            if(strlen(sbuf) > strlen(sbuf1))
-                sdate = sbuf;
+            if(s2.Len() > s1.Len())
+                sdate = s2;
             else
-                sdate = sbuf1;
-
+                sdate = s1;
             dc.SetFont(*pMFont);
-            dc.GetTextExtent(wxString(sdate), &w, &h);
-            dc.DrawText(wxString(sdate), x/2 - w/2, y * 92/100);
+            dc.GetTextExtent(sdate, &w, &h);
+            dc.DrawText(sdate, x/2 - w/2, y * 92/100);
 
             ///
             Station_Data *pmsd = pIDX->pref_sta_data;
             if(pmsd)
             {
-                  dc.GetTextExtent(wxString(pmsd->units_conv), &w, &h);
-                  dc.DrawRotatedText(wxString(pmsd->units_conv),
+                dc.GetTextExtent(wxString(pmsd->units_conv, wxConvUTF8), &w, &h);
+                dc.DrawRotatedText(wxString(pmsd->units_conv, wxConvUTF8),
                         5, y_graph + y_graph_h/2 + w/2, 90.);
             }
 
@@ -3701,12 +3712,12 @@ void TCWin::OnPaint(wxPaintEvent& event)
             wxDateTime this_now = wxDateTime::Now();
             int day = graphday.GetWeekDay();
             if(day ==  this_now.GetWeekDay())
-                  sday.Append("Today");
+                sday.Append(_T("Today"));
             else if(day == (this_now.GetWeekDay() + 1) % 7)
-                  sday.Append("Tomorrow");
+                sday.Append(_T("Tomorrow"));
             dc.SetFont(*pSFont);
-            dc.GetTextExtent(wxString(sday), &w, &h);
-            dc.DrawText(wxString(sday), 55 - w/2, y * 88/100);
+            dc.GetTextExtent(wxString(sday, wxConvUTF8), &w, &h);
+            dc.DrawText(wxString(sday, wxConvUTF8), 55 - w/2, y * 88/100);
 
             bForceRedraw = false;
       }
@@ -4217,7 +4228,7 @@ ocpCursor::ocpCursor(char **xpm_data, long type,
 
 
 
-#ifdef __WXOSX__	// begin rms
+#ifdef __WXOSX__  // begin rms
 
  /*
 //----------------------------------------------------------------------------------------------
@@ -4350,7 +4361,7 @@ bool S57QueryDialog::Create( wxWindow* parent,
 // We have to set extra styles before creating the
 // dialog
 //      SetExtraStyle(wxWS_EX_BLOCK_EVENTS|wxDIALOG_EX_CONTEXTHELP);
-    if (!wxDialog::Create( parent, id, caption, pos, size, style ))
+    if (!wxDialog::Create( parent, id, caption, pos, size, wxDEFAULT_FRAME_STYLE ))
             return false;
 
     wxFont *dFont = wxTheFontList->FindOrCreateFont(10, wxFONTFAMILY_TELETYPE,
@@ -4386,7 +4397,7 @@ void S57QueryDialog::CreateControls()
 
 // A second box sizer to give more space around the controls
       wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);
-      topSizer->Add(boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+      topSizer->Add(boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
 
 // Here is the query result as a Text Control
 
@@ -4402,7 +4413,7 @@ void S57QueryDialog::CreateControls()
 
       wxTextCtrl *pQueryTextCtl = new wxTextCtrl( this, -1, _T(""),
             wxDefaultPosition, wxSize(500, 500), tcstyle);
-      boxSizer->Add(pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE, 5);
+      boxSizer->Add(pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxGROW|wxADJUST_MINSIZE, 5);
 
       wxFont *qFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_TELETYPE,
               wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
@@ -4417,7 +4428,7 @@ void S57QueryDialog::CreateControls()
 
 // A horizontal box sizer to contain Reset, OK, Cancel and Help
       wxBoxSizer* okCancelBox = new wxBoxSizer(wxHORIZONTAL);
-      boxSizer->Add(okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
+      boxSizer->Add(okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
 
 // The OK button
       wxButton* ok = new wxButton ( this, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );

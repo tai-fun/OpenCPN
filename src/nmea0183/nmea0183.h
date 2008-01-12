@@ -10,7 +10,7 @@
 ** You can use it any way you like.
 */
 
-//	Include wxWindows stuff
+//    Include wxWindows stuff
 //#include "wx/wxprec.h"
 
 //#ifndef  WX_PRECOMP
@@ -110,7 +110,7 @@ typedef enum _transducertype
 ** Misc Function Prototypes
 */
 
-int HexValue( const char *hex_string );
+int HexValue( const wxString& hex_string );
 
 wxString& expand_talker_id( const wxString & );
 wxString& Hex( int value );

@@ -13,7 +13,7 @@
 #include <assert.h>
 
 #include "dychart.h"
-CPL_CVSID("$Id: sercomm.cpp,v 1.2 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: sercomm.cpp,v 1.3 2008/01/12 06:21:36 bdbcat Exp $");
 
 //#include <sstream>
 
@@ -199,7 +199,7 @@ HRESULT CSyncSerialComm::Read(char **ppszBuf, DWORD &dwSize)
             } while(dwIncommingReadSize > 0);
 
             *ppszBuf = new char[dwSize];
-            strcpy(*ppszBuf, (sb.str()).c_str());
+            strcpy(*ppszBuf, (sb.str()).mb_str());
 
             return hResult;
       }

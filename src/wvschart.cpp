@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.4 2007/05/03 13:23:56 dsr Exp $
+ * $Id: wvschart.cpp,v 1.5 2008/01/12 06:22:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.5  2008/01/12 06:22:12  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.4  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -83,16 +86,16 @@
 #include "cutil.h"
 #include "georef.h"
 
-CPL_CVSID("$Id: wvschart.cpp,v 1.4 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.5 2008/01/12 06:22:12 bdbcat Exp $");
 
 //      Local Prototypes
-extern "C" int wvsrtv (char *file, int latd, int lond, float **latray, float **lonray, int **segray);
+extern "C" int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray, int **segray);
 //------------------------------------------------------------------------------
 //      WVSChart Implementation
 //------------------------------------------------------------------------------
-WVSChart::WVSChart(wxWindow *parent, char *pwvs_chart_home)
+WVSChart::WVSChart(wxWindow *parent, const wxString& wvs_chart_home)
 {
-        pwvs_home_dir = new wxString(pwvs_chart_home);
+        pwvs_home_dir = new wxString(wvs_chart_home);
         pwvs_file_name = new wxString(*pwvs_home_dir);
         pwvs_file_name->Append(_T("wvs43.dat"));
         for(int i=0 ; i < 360 ; i++)
@@ -109,7 +112,7 @@ WVSChart::WVSChart(wxWindow *parent, char *pwvs_chart_home)
         cur_seg_cnt_max = 4;
         ptp = (wxPoint *)malloc(cur_seg_cnt_max * sizeof(wxPoint));
 //      Attempt file open to validate the passed parameter
-        FILE *fp = fopen (pwvs_file_name->c_str(), "rb");
+        FILE *fp = fopen (pwvs_file_name->mb_str(), "rb");
         if(NULL == fp)
         {
 //                wxString str("Unable to open WVSChart file:");
@@ -117,12 +120,14 @@ WVSChart::WVSChart(wxWindow *parent, char *pwvs_chart_home)
 //                wxMessageDialog dlg(parent, str, _T("OpenCPN Message"), wxOK);
 //                dlg.ShowModal();
                 m_ok = false;
-                wxLogMessage("Unable to open WVSChart datafile %s", pwvs_file_name->c_str());
+                wxString msg(_T("Unable to open WVSChart datafile: "));
+                msg.Append(*pwvs_file_name);
+                wxLogMessage(msg);
                 return;
         }
         fclose(fp);
         m_ok = true;
-//      wxLogMessage("Using WVSChart datafile: %s", pwvs_file_name->c_str());
+//      wxLogMessage("Using WVSChart datafile: %s", pwvs_file_name->mb_str());
 }
 WVSChart::~WVSChart()
 {
@@ -190,7 +195,7 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                                 platray = NULL;
                                 plonray = NULL;
                                 psegray = NULL;
-                                int nsegments = wvsrtv ((char *)pwvs_file_name->c_str(),
+                                int nsegments = wvsrtv (*pwvs_file_name,
                                         y, x, &platray, &plonray, &psegray);
                                 plat_ray[ix][iy] = platray;
                                 plon_ray[ix][iy] = plonray;
@@ -238,7 +243,7 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
         platray = NULL;
         plonray = NULL;
         psegray = NULL;
-        wvsrtv ("clean", y, x, &platray, &plonray, &psegray);
+        wvsrtv (_T("clean"), y, x, &platray, &plonray, &psegray);
 }
 //------------------------------------------------------------------------------
 //      WVSChart Static "C" Helper routines, credits within
@@ -673,7 +678,7 @@ static void build_seg (float dlat, float dlon, int *cont, int *nsegs,
 *       int    - number of segments, 0 on end, error, or no data            *
 *                                                                           *
 \***************************************************************************/
-int wvsrtv (char *file, int latd, int lond, float **latray, float **lonray,
+int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray,
 int **segray)
 {
     static FILE             *fp = NULL;
@@ -692,6 +697,9 @@ int **segray)
     long                    latoff, lonoff, conbyt, lats, lons;
 //    char                    dirfil[512], dir[512], tmpfil[512];
     float                   dlat, dlon;
+
+    char file[100];
+    strncpy(file, sfile.mb_str(), 100);
     /*
 #ifdef DEBUG
     fprintf (stderr, "%s %d\n", __FILE__, __LINE__);
@@ -710,7 +718,7 @@ int **segray)
     }
     /*  If the word "clean" is passed in as the file name, clean up memory
         and close the open file.  */
-    if (!strcmp (file, "clean"))
+    if (sfile.IsSameAs(_T("clean")))
     {
         if (*latray) free (*latray);
         if (*lonray) free (*lonray);

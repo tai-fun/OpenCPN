@@ -11,7 +11,7 @@
 
 class SENTENCE;
 
-class LATITUDE 
+class LATITUDE
 {
 
    public:
@@ -34,7 +34,7 @@ class LATITUDE
       virtual void Empty( void );
       virtual bool IsDataValid( void );
       virtual void Parse( int PositionFieldNumber, int NorthingFieldNumber, const SENTENCE& LineToParse );
-      virtual void Set( double Position, const char *Northing );
+      virtual void Set( double Position, const wxString& Northing );
       virtual void Write( SENTENCE& sentence );
 
       /*
@@ -44,7 +44,7 @@ class LATITUDE
       virtual const LATITUDE& operator = ( const LATITUDE& source );
 };
 
-class LONGITUDE 
+class LONGITUDE
 {
 
    public:
@@ -67,7 +67,7 @@ class LONGITUDE
       virtual void Empty( void );
       virtual bool IsDataValid( void );
       virtual void Parse( int PositionFieldNumber, int EastingFieldNumber, const SENTENCE& LineToParse );
-      virtual void Set( double Position, const char *Easting );
+      virtual void Set( double Position, const wxString& Easting );
       virtual void Write( SENTENCE& sentence );
 
       /*
@@ -77,7 +77,7 @@ class LONGITUDE
       virtual const LONGITUDE& operator = ( const LONGITUDE& source );
 };
 
-class LATLONG 
+class LATLONG
 {
 
    public:
@@ -95,7 +95,7 @@ class LATLONG
       /*
       ** Methods
       */
-       
+
       virtual void Empty( void );
       virtual bool Parse( int LatitudePostionFieldNumber, int NorthingFieldNumber, int LongitudePositionFieldNumber, int EastingFieldNumber, const SENTENCE& LineToParse );
       virtual void Write( SENTENCE& sentence );

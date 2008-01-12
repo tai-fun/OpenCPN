@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.5 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: statwin.h,v 1.6 2008/01/12 06:19:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Status Window
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.h,v $
+ * Revision 1.6  2008/01/12 06:19:45  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.5  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -68,9 +71,9 @@ public:
 
       void OnSize(wxSizeEvent& event);
       void OnPaint(wxPaintEvent& event);
-      void TextDraw(const char * text);
+      void TextDraw(const wxString& text);
 
-      char  *pText;
+      wxString *pText;
       bool  bTextSet;
 
 DECLARE_EVENT_TABLE()

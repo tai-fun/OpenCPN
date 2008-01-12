@@ -35,7 +35,7 @@ void RESPONSE::SetErrorMessage( const wxString& error_message )
 //   ASSERT_VALID( this );
 
    ErrorMessage  = Mnemonic;
-   ErrorMessage += ", ";
+   ErrorMessage += _T(", ");
    ErrorMessage += error_message;
 }
 
@@ -47,7 +47,7 @@ bool RESPONSE::Write( SENTENCE& sentence )
    ** All NMEA0183 sentences begin with the mnemonic...
    */
 
-   sentence  = "$--";
+    sentence  = _T("$--");
    sentence.Sentence.Append(Mnemonic);
 
 //   sentence += Mnemonic;

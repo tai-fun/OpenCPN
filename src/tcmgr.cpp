@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.4  2008/01/12 06:21:55  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.3  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -66,7 +69,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.4 2008/01/12 06:21:55 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters
@@ -164,18 +167,18 @@ TCMgr::TCMgr(const wxString &data_dir, const wxString &home_dir)
 
 //    Set up default file names
       wxString hidx_file = data_dir;
-      hidx_file.Append("HARMONIC.IDX");
-      allocate_copy_string(&indexfile_name, (char *)hidx_file.c_str());
+      hidx_file.Append(_T("HARMONIC.IDX"));
+      allocate_copy_string(&indexfile_name, hidx_file.mb_str());
 
       wxString harm_file = data_dir;
-      harm_file.Append("HARMONIC");
-      allocate_copy_string(&hfile_name, (char *)harm_file.c_str());
+      harm_file.Append(_T("HARMONIC"));
+      allocate_copy_string(&hfile_name, harm_file.mb_str());
 
       pmru_file_name = new wxString(home_dir);                    // in the current users home
 #ifdef __WXMSW__
-      pmru_file_name->Append("station_mru.dat");
+      pmru_file_name->Append(_T("station_mru.dat"));
 #else
-      pmru_file_name->Append(".opencpn/station_mru.dat");
+      pmru_file_name->Append(_T(".opencpn/station_mru.dat"));
 #endif
 
 
@@ -335,23 +338,23 @@ void TCMgr::LoadMRU(void)
 
 //          Allocate and store station name
                   psd->station_name = (char *)malloc(str.Len() +1);
-                  strcpy(psd->station_name, str.c_str());
+                  strcpy(psd->station_name, str.mb_str());
 
 //          Station Type
                   str = mru_file.GetNextLine();
-                  psd->station_type = *(str.c_str());       // one character T or C
+                  psd->station_type = *(str.mb_str());       // one character T or C
 
 //          Meridian
                   str = mru_file.GetNextLine();
-                  sscanf(str.c_str(), "%d", &(psd->meridian));
+                  sscanf(str.mb_str(), "%d", &(psd->meridian));
 
 //          Datum, units
                   char temp[40];
                   float tf, tfa, tfe;
                   str = mru_file.GetNextLine();
-                  sscanf(str.c_str(), "%f %s", &tf, &temp[0]);
+                  sscanf(str.mb_str(), "%f %s", &tf, &temp[0]);
                   psd->DATUM = tf;
-                  strcpy(     psd->unit, temp );
+                  strcpy( psd->unit, temp );
                   psd->have_BOGUS = (findunit(psd->unit) != -1) && (known_units[findunit(psd->unit)].type == BOGUS);
 
                   int unit_c;
@@ -373,7 +376,7 @@ void TCMgr::LoadMRU(void)
                   for(int i=0 ; i<num_csts ; i++)
                   {
                         str = mru_file.GetNextLine();
-                        sscanf(str.c_str(), "%f %f", &tfa, &tfe);
+                        sscanf(str.mb_str(), "%f %f", &tfa, &tfe);
                         psd->amplitude[i] = tfa;
                         psd->epoch[i] = tfe;
                   }
@@ -452,17 +455,17 @@ void TCMgr::AddMRU(Station_Data *psd)
 
 void TCMgr::SaveMRU(void)
 {
-      char  sbuf[100];
+      wxString str_sbuf;
       Station_Data *psd;
 
       if(pmru_head)
       {
-            remove(pmru_file_name->c_str());                // simply delete the existing file
+            remove(pmru_file_name->mb_str());                // simply delete the existing file
 
             wxTextFile mru_file(*pmru_file_name);
             mru_file.Create();
 
-            mru_file.AddLine(wxString("Signature"));
+            mru_file.AddLine(wxString(_T("Signature")));
 
             mru_entry *pmru = pmru_head;
 
@@ -471,24 +474,24 @@ void TCMgr::SaveMRU(void)
 
                   psd = pmru->sta_data;
 //    Station Name
-                  mru_file.AddLine(wxString(psd->station_name));
+                  mru_file.AddLine(wxString(psd->station_name,  wxConvUTF8));
 
 //    Station Type
                   mru_file.AddLine(wxString(psd->station_type));
 
 //    Meridian/tz
-                  sprintf(sbuf, "%d", psd->meridian);
-                  mru_file.AddLine(wxString(sbuf));
+                  str_sbuf.Printf(_T("%d"), psd->meridian);
+                  mru_file.AddLine(str_sbuf);
 //    Datum, Units
-                  sprintf(sbuf, "%8.4f  %s", psd->DATUM, psd->unit);
-                  mru_file.AddLine(wxString(sbuf));
+                  str_sbuf.Printf(_T("%8.4f  %s"), psd->DATUM, psd->unit);
+                  mru_file.AddLine(str_sbuf);
 
 
 //    Data
                   for(int i=0 ; i<num_csts ; i++)
                   {
-                        sprintf(sbuf, "%8.4f  %8.4f", psd->amplitude[i], psd->epoch[i]);
-                        mru_file.AddLine(wxString(sbuf));
+                      str_sbuf.Printf(_T("%8.4f  %8.4f"), psd->amplitude[i], psd->epoch[i]);
+                      mru_file.AddLine(str_sbuf);
                   }
 
 
@@ -779,7 +782,9 @@ Station_Data *TCMgr::find_or_load_harm_data(IDX_entry *pIDX)
             pIDX->IDX_tried_once = 1;
 
 //    If reference station was recently sought, and not found, don't bother
-            if(!strcmp(pIDX->IDX_reference_name, plast_reference_not_found->c_str()))
+//            if(!strcmp(pIDX->IDX_reference_name, plast_reference_not_found->mb_str()))
+            if(plast_reference_not_found->IsSameAs(wxString(pIDX->IDX_reference_name, wxConvUTF8)))
+
             {
                   return NULL;
             }
@@ -815,9 +820,9 @@ Station_Data *TCMgr::find_or_load_harm_data(IDX_entry *pIDX)
                   strcpy (psd->station_name, linrec);
 
 //    Establish Station Type
-                  wxString caplin(linrec);
+                  wxString caplin(linrec, wxConvUTF8);
                   caplin.MakeUpper();
-                  if(caplin.Contains("CURRENT"))
+                  if(caplin.Contains(_T("CURRENT")))
                         psd->station_type = 'C';
                   else
                         psd->station_type = 'T';
@@ -879,7 +884,7 @@ Station_Data *TCMgr::find_or_load_harm_data(IDX_entry *pIDX)
             }
 
             if(!psd)
-                  plast_reference_not_found->Append(pIDX->IDX_reference_name);
+                plast_reference_not_found->Append(wxString(pIDX->IDX_reference_name, wxConvUTF8));
 
             if(psd)
                   AddMRU(psd);                                    // add it to the list
@@ -1327,7 +1332,7 @@ void TCMgr::clean_string(char *str) {
    Allocate space and copy string
 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int TCMgr::allocate_copy_string(char **dst, char *string) {
+int TCMgr::allocate_copy_string(char **dst, const char *string) {
    char *cp=(char *)malloc( (int)(strlen(string)) +1);
 
    *dst = cp;

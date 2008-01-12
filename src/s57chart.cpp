@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.11 2008/01/10 03:38:32 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.12 2008/01/12 06:21:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.12  2008/01/12 06:21:18  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.11  2008/01/10 03:38:32  bdbcat
  * Update for Mac OSX
  *
@@ -86,7 +89,7 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.11 2008/01/10 03:38:32 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.12 2008/01/12 06:21:18 bdbcat Exp $");
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -436,7 +439,7 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
 
                     if(strlen(szAtt))
                     {
-                        attList->Append(szAtt);
+                        attList->Append(wxString(szAtt, wxConvUTF8));
                         attList->Append('\037');
 
                         attVal->Add(pattValTmp);
@@ -827,11 +830,11 @@ s57chart::s57chart()
     tmpup_array = NULL;
     m_pcsv_locn = NULL;
 
-    pDepthUnits->Append("METERS");
+    pDepthUnits->Append(_T("METERS"));
     m_depth_unit_id = DEPTH_UNIT_METERS;
 
     wxString csv_dir;
-    if(wxGetEnv("S57_CSV", &csv_dir))
+    if(wxGetEnv(_T("S57_CSV"), &csv_dir))
         m_pcsv_locn = new wxString(csv_dir);
 
     bGLUWarningSent = false;
@@ -1237,7 +1240,7 @@ int s57chart::DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
                 pb_spec.rclip = rect->x + rect->width - 1;
                 pb_spec.pix_buff = (unsigned char *)malloc(rect->height * pb_spec.pb_pitch);
                 if(NULL == pb_spec.pix_buff)
-                    wxLogMessage("PixBuf NULL 1");
+                    wxLogMessage(_T("PixBuf NULL 1"));
 
                 // Preset background
                 memset(pb_spec.pix_buff, 0,rect->height * pb_spec.pb_pitch);
@@ -1425,7 +1428,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 
 // Look for Thumbnail
         wxFileName ThumbFileNameLook(name);
-        ThumbFileNameLook.SetExt("BMP");
+        ThumbFileNameLook.SetExt(_T("BMP"));
 
         wxBitmap *pBMP;
         if(ThumbFileNameLook.FileExists())
@@ -1453,7 +1456,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 
 //      Look for S57 file in the target directory
         pS57FileName = new wxFileName(name);
-        pS57FileName->SetExt("S57");
+        pS57FileName->SetExt(_T("S57"));
 
         if(pS57FileName->FileExists())
         {
@@ -1463,7 +1466,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                         if(f.Length() == 0)
                         {
                                 f.Close();
-                                build_ret_val = BuildS57File( name.c_str() );
+                                build_ret_val = BuildS57File( name );
                         }
                         else                                      // file exists, non-zero
                         {                                         // so check for new updates
@@ -1526,7 +1529,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                                     bbuild_new_senc = true;
 
                                 if(bbuild_new_senc)
-                                      build_ret_val = BuildS57File( name.c_str() );
+                                      build_ret_val = BuildS57File( name );
 
 
                         }
@@ -1535,7 +1538,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 
         else                    // SENC file does not exist
         {
-                build_ret_val = BuildS57File( name.c_str() );
+                build_ret_val = BuildS57File( name );
                 bbuild_new_senc = true;
         }
 
@@ -1543,12 +1546,12 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                 return INIT_FAIL_RETRY;
 
 
-        BuildRAZFromS57File( (pS57FileName->GetFullPath()).c_str() );
+        BuildRAZFromS57File( pS57FileName->GetFullPath() );
 
 
         //      Check for and if necessary build Thumbnail
         wxFileName ThumbFileName(name);
-        ThumbFileName.SetExt("BMP");
+        ThumbFileName.SetExt(_T("BMP"));
 
         if(!ThumbFileName.FileExists() || bbuild_new_senc)
         {
@@ -1736,7 +1739,7 @@ void s57chart::GetChartNameFromTXT(const wxString& FullPath, wxString &Name)
       for(unsigned int j=0 ; j<pFileList->GetCount() ; j++)
       {
             wxFileName file(pFileList->Item(j));
-            if(((file.GetExt()).MakeUpper()) == "TXT")
+            if(((file.GetExt()).MakeUpper()) == _T("TXT"))
             {
               //  Look for the line beginning with the name of the .000 file
               wxTextFile text_file(file.GetFullPath());
@@ -1822,7 +1825,7 @@ int s57chart::GetUpdateFileArray(const wxString& DirName, wxArrayString *UpFiles
         {
                 wxFileName file(filename);
                 ext = file.GetExt();
-                if(ext.IsNumber() && ext.CmpNoCase("000"))
+                if(ext.IsNumber() && ext.CmpNoCase(_T("000")))
                 {
                         wxString FileToAdd(DirName);
                         FileToAdd.Append(file.GetFullName());
@@ -1842,7 +1845,7 @@ int s57chart::GetUpdateFileArray(const wxString& DirName, wxArrayString *UpFiles
                 wxString Last = dummy_array->Last();
                 wxFileName fnl(Last);
                 ext = fnl.GetExt();
-                retval = atoi(ext.c_str());
+                retval = atoi(ext.mb_str());
         }
 
         if(UpFiles == NULL)
@@ -1880,7 +1883,7 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
             {
                 wxFileName ufile(*pFullPath);
                 wxString sext;
-                sext.Printf("%03d", iff);
+                sext.Printf(_T("%03d"), iff);
                 ufile.SetExt(sext);
 
 
@@ -1904,12 +1907,15 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
                 bool bstat;
                 DDFModule *dupdate = new DDFModule;
                 dupdate->Initialize( '3','L','E','1','0',"!!!",3,4,4 );
-                bstat = (bool)dupdate->Create(ufile.GetFullPath().c_str());
+                bstat = (bool)dupdate->Create(ufile.GetFullPath().mb_str());
                 dupdate->Close();
 
                 if(!bstat)
-                    wxLogMessage("Error creating dummy update file %s",ufile.GetFullPath().c_str());
-
+                {
+                    wxString msg(_T("Error creating dummy update file: "));
+                    msg.Append(ufile.GetFullPath());
+                    wxLogMessage(msg);
+                }
 
                 tmpup_array->Add(ufile.GetFullPath());
             }
@@ -1921,7 +1927,7 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
             bool bSuccess;
             DDFModule oUpdateModule;
 
-            bSuccess = (bool)oUpdateModule.Open( UpFiles->Last().c_str(), TRUE );
+            bSuccess = (bool)oUpdateModule.Open( UpFiles->Last().mb_str(), TRUE );
 
             if( bSuccess )
             {
@@ -1932,7 +1938,7 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
                 int nSuccess;
                 char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0, &nSuccess));
 
-                LastUpdateDate = wxString(u);
+                LastUpdateDate = wxString(u, wxConvUTF8);
             }
         }
 
@@ -1942,18 +1948,18 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
 
 
 
-int s57chart::BuildS57File(const char *pFullPath)
+int s57chart::BuildS57File(const wxString& FullPath)
 {
 
     OGRFeature *objectDef;
     int nProg = 0;
 
     wxString nice_name;
-    GetChartNameFromTXT(wxString(pFullPath), nice_name);
+    GetChartNameFromTXT(FullPath, nice_name);
 
 
-    wxFileName s57file = wxFileName(pFullPath);
-    s57file.SetExt("S57");
+    wxFileName s57file = wxFileName(FullPath);
+    s57file.SetExt(_T("S57"));
 
     OGREnvelope xt;
 
@@ -1969,9 +1975,11 @@ int s57chart::BuildS57File(const char *pFullPath)
 
 
     DDFModule *poModule = new DDFModule();
-    if(!poModule->Open( pFullPath ))
+    if(!poModule->Open( FullPath.mb_str() ))
     {
-        wxLogMessage("s57chart::BuildS57File  Unable to open %s )",pFullPath);
+        wxString msg(_T("s57chart::BuildS57File  Unable to open"));
+        msg.Append(FullPath);
+        wxLogMessage(msg);
         return 0;
     }
 
@@ -1985,7 +1993,7 @@ int s57chart::BuildS57File(const char *pFullPath)
 // Todo I'll use ISDT here... but what is UADT?
     char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0, &nSuccess));
     if(u)
-        date000 = u;
+        date000 = wxString(u, wxConvUTF8);
 
 //      Fetch the Native Scale
     for( ; pr != NULL; pr = poModule->ReadRecord() )
@@ -2003,26 +2011,36 @@ int s57chart::BuildS57File(const char *pFullPath)
 
 
     wxFileName tfn;
-    wxString tmp_file = tfn.CreateTempFileName("");
+    wxString tmp_file = tfn.CreateTempFileName(_T(""));
 
 
     FILE *fps57;
-    fps57 = fopen(tmp_file.c_str(), "wb");
+    const char *pp = "wb";
+    fps57 = fopen(tmp_file.mb_str(), pp);
 
     if(fps57 == NULL)
     {
-            wxLogMessage("s57chart::BuildS57File  Unable to create %s )",s57file.GetFullPath().c_str());
-            return 0;
+        wxString msg(_T("s57chart::BuildS57File  Unable to create"));
+        msg.Append(s57file.GetFullPath());
+        wxLogMessage(msg);
+        return 0;
     }
 
+    char temp[200];
+
     fprintf(fps57, "SENC Version= %d\n", CURRENT_SENC_FORMAT_VERSION);
-    fprintf(fps57, "NAME=%s\n", nice_name.c_str());
-    fprintf(fps57, "DATE000=%s\n", date000.c_str());
+
+    strncpy(temp, nice_name.mb_str(), 200);
+    fprintf(fps57, "NAME=%s\n", temp);
+
+    strncpy(temp, date000.mb_str(), 200);
+    fprintf(fps57, "DATE000=%s\n", temp);
+
     fprintf(fps57, "NOGR=%d\n", nGeoRecords);
     fprintf(fps57, "SCALE=%d\n", native_scale);
 
     wxString Message = s57file.GetFullPath();
-    Message.Append("...Ingesting");
+    Message.Append(_T("...Ingesting"));
 
     wxString Title(_T("OpenCPN S57 SENC File Create..."));
     Title.append(s57file.GetFullPath());
@@ -2049,15 +2067,19 @@ int s57chart::BuildS57File(const char *pFullPath)
         last_applied_update = CountUpdates( s57file.GetPath((int)wxPATH_GET_SEPARATOR), LastUpdateDate);
 
     fprintf(fps57, "UPDT=%d\n", last_applied_update);
-    fprintf(fps57, "DATEUPD=%s\n", LastUpdateDate.c_str());
+
+    strncpy(temp, LastUpdateDate.mb_str(), 200);
+    fprintf(fps57, "DATEUPD=%s\n", temp);
 
 
     //  Here comes the actual ISO8211 file reading
     OGRSFDriver *poDriver;
-    OGRDataSource *poDS = OGRSFDriverRegistrar::Open( pFullPath, FALSE, &poDriver );
+    OGRDataSource *poDS = OGRSFDriverRegistrar::Open( FullPath.mb_str(), FALSE, &poDriver );
     if( poDS == NULL )
     {
-        wxLogMessage("s57chart::BuildS57File  Unable to open %s )", pFullPath);
+        wxString msg(_T("s57chart::BuildS57File  Unable to open  "));
+        msg.Append(FullPath);
+        wxLogMessage(msg);
         delete SENC_prog;
         fclose(fps57);
 
@@ -2070,7 +2092,7 @@ int s57chart::BuildS57File(const char *pFullPath)
     if(tmpup_array)
     {
         for(unsigned int iff = 0 ; iff < tmpup_array->GetCount() ; iff++)
-           remove(tmpup_array->Item(iff).c_str());
+           remove(tmpup_array->Item(iff).mb_str());
         delete tmpup_array;
     }
 
@@ -2110,12 +2132,18 @@ int s57chart::BuildS57File(const char *pFullPath)
                                                 //  in the GetNextFeature() call below.
                                                 //  Seems odd, but that's setjmp/longjmp behaviour
             {
-                wxString sLay("Unknown");
+                wxString sLay(_T("Unknown"));
                 if(iLayObj)
                     sLay = sobj;
 
-                wxLogMessage("s57chart(): GDAL/OGR Fatal Error caught on Obj #%d.\n \
-                        Skipping all remaining objects on Layer %s.", iObj, sLay.c_str());
+                char msg[1000];
+                char lay_name[20];
+                strncpy(lay_name, sLay.mb_str(), 20);
+                sprintf(msg, "s57chart(): GDAL/OGR Fatal Error caught on Obj #%d.\n \
+                        Skipping all remaining objects on Layer %s.", iObj, lay_name);
+
+                wxLogMessage(wxString(msg, wxConvUTF8));
+
                 delete objectDef;
                 break;                                  // pops out of while(bcont) to next layer
             }
@@ -2131,9 +2159,9 @@ int s57chart::BuildS57File(const char *pFullPath)
 //            if(objectDef->GetFID() == 3867)
 //                int hhd = 4;
 
-            sobj = wxString(objectDef->GetDefnRef()->GetName());
+            sobj = wxString(objectDef->GetDefnRef()->GetName(),  wxConvUTF8);
             wxString idx;
-            idx.Printf("  %d/%d       ", iObj, nGeoRecords);
+            idx.Printf(_T("  %d/%d       "), iObj, nGeoRecords);
             sobj += idx;
 
 //  Update the progress dialog
@@ -2180,7 +2208,7 @@ int s57chart::BuildS57File(const char *pFullPath)
                         {
                             if(!bGLUWarningSent)
                             {
-                                wxLogMessage("Warning...Could not find glu32.dll, trying internal tess.");
+                                wxLogMessage(_T("Warning...Could not find glu32.dll, trying internal tess."));
                                 bGLUWarningSent = true;
                             }
 
@@ -2193,7 +2221,7 @@ int s57chart::BuildS57File(const char *pFullPath)
 
                         if(error_code)
                         {
-                            wxLogMessage("Error: S57 SENC Create Error %d", ppg->ErrorCode);
+                            wxLogMessage(_T("Error: S57 SENC Create Error %d"), ppg->ErrorCode);
 
                             delete ppg;
                             delete objectDef;
@@ -2201,7 +2229,7 @@ int s57chart::BuildS57File(const char *pFullPath)
                             fclose(fps57);
                             delete poDS;
                             CPLPopErrorHandler();
-                            unlink(tmp_file.c_str());           // delete the temp file....
+                            unlink(tmp_file.mb_str());           // delete the temp file....
 
                             return 0;                           // soft error return
                         }
@@ -2239,18 +2267,21 @@ int s57chart::BuildS57File(const char *pFullPath)
 //      Was the operation cancelled?
     if(!bcont)
     {
-        unlink(tmp_file.c_str());               //      Delete the temp file....
+        unlink(tmp_file.mb_str());               //      Delete the temp file....
         ret_code = 0;
     }
     else
     {
-        remove(s57file.GetFullPath());
-        unlink(s57file.GetFullPath());       //  Delete any existing SENC file....
-        int err = rename(tmp_file.c_str(), s57file.GetFullPath()); //   mv temp file to target
+        remove(s57file.GetFullPath().mb_str());
+        unlink(s57file.GetFullPath().mb_str());       //  Delete any existing SENC file....
+        int err = rename(tmp_file.mb_str(), s57file.GetFullPath().mb_str()); //   mv temp file to target
         if(err)
         {
-            wxLogMessage("Could not rename temporary SENC file %s to %s",tmp_file.c_str(),
-                                     s57file.GetFullPath().c_str());
+            char file1[1000], file2[1000];
+            strncpy(file1, tmp_file.mb_str(), 1000);
+            strncpy(file2, s57file.GetFullPath().mb_str(), 1000);
+
+            wxLogMessage(_T("Could not rename temporary SENC file %s to %s"),file1, file2);
 //            wxString msg1("Could not create SENC file, perhaps permissions not set to read/write?");
 //            wxMessageDialog mdlg(this, msg1, wxString("OpenCPN"),wxICON_ERROR  );
 //            if(mdlg.ShowModal() == wxID_YES)
@@ -2270,12 +2301,12 @@ int s57chart::BuildS57File(const char *pFullPath)
       return ret_code;
 }
 
-int s57chart::BuildRAZFromS57File( const char *pFullPath )
+int s57chart::BuildRAZFromS57File( const wxString& FullPath )
 {
 
         int nProg = 0;
 
-        wxString ifs(pFullPath);
+        wxString ifs(FullPath);
 
         wxFileInputStream fpx_u(ifs);
         wxBufferedInputStream fpx(fpx_u);
@@ -2376,7 +2407,9 @@ int s57chart::BuildRAZFromS57File( const char *pFullPath )
                          LUP = ps52plib->S52_LUPLookup(LUP_Name, obj->FeatureName, obj);
 
                          if(NULL == LUP)
-                             wxLogMessage("Could not find LUP for %s", obj->FeatureName);
+                         {
+                             wxLogMessage(_T("Could not find LUP for %s"), obj->FeatureName);
+                         }
                          else
                          {
 //              Convert LUP to rules set
@@ -2408,12 +2441,12 @@ int s57chart::BuildRAZFromS57File( const char *pFullPath )
 
             else if(!strncmp(buf, "DATEUPD", 7))
             {
-                  date_upd.Append(wxString(&buf[8]).BeforeFirst('\n'));
+                date_upd.Append(wxString(&buf[8], wxConvUTF8).BeforeFirst('\n'));
             }
 
             else if(!strncmp(buf, "DATE000", 7))
             {
-                  date_000.Append(wxString(&buf[8]).BeforeFirst('\n'));
+                date_000.Append(wxString(&buf[8], wxConvUTF8).BeforeFirst('\n'));
             }
 
             else if(!strncmp(buf, "SCALE", 5))
@@ -2425,7 +2458,7 @@ int s57chart::BuildRAZFromS57File( const char *pFullPath )
 
             else if(!strncmp(buf, "NAME", 4))
             {
-                  pName->Append(wxString(&buf[5]).BeforeFirst('\n'));
+                pName->Append(wxString(&buf[5], wxConvUTF8).BeforeFirst('\n'));
             }
 
             else if(!strncmp(buf, "NOGR", 4))
@@ -2435,7 +2468,7 @@ int s57chart::BuildRAZFromS57File( const char *pFullPath )
                  nGeo1000 = nGeoFeature / 500;
 
 #ifndef __WXGTK__
-                 SENC_prog = new wxProgressDialog(  _T("OpenCPN S57 SENC File Load"), pFullPath, nGeo1000, NULL,
+                 SENC_prog = new wxProgressDialog(  _T("OpenCPN S57 SENC File Load"), FullPath, nGeo1000, NULL,
                           wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
     //      The created size in wxWidgets 2.8 is waaay too large, so....
@@ -2458,13 +2491,13 @@ int s57chart::BuildRAZFromS57File( const char *pFullPath )
 
  //   Decide on pub date to show
 
-      int d000 = atoi(wxString(date_000).Mid(0,4));
-      int dupd = atoi(wxString(date_upd).Mid(0,4));
+        int d000 = atoi((wxString(date_000, wxConvUTF8).Mid(0,4)).mb_str());
+        int dupd = atoi((wxString(date_upd, wxConvUTF8).Mid(0,4)).mb_str());
 
       if(dupd > d000)
-        pPubYear->Append(wxString(date_upd).Mid(0,4));
+          pPubYear->Append(wxString(date_upd, wxConvUTF8).Mid(0,4));
       else
-        pPubYear->Append(wxString(date_000).Mid(0,4));
+          pPubYear->Append(wxString(date_000, wxConvUTF8).Mid(0,4));
 
       return 1;
 }
@@ -2704,7 +2737,7 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
 #endif
 
 
-                        sheader += line;
+                        sheader += wxString(line, wxConvUTF8);
                         sheader += '\n';
                         }
                 }
@@ -2715,11 +2748,11 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
         if(mode == 1)
         {
             sprintf( line, "  %s\n", pGeo->getGeometryName());
-            sheader += line;
+            sheader += wxString(line, wxConvUTF8);
         }
 
         fprintf( fpOut, "HDRLEN=%d\n", sheader.Len());
-        fwrite(sheader.c_str(), 1, sheader.Len(), fpOut);
+        fwrite(sheader.mb_str(), 1, sheader.Len(), fpOut);
 
         if(( pGeo != NULL ) && (mode == 1))
         {
@@ -2745,6 +2778,7 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
             unsigned char *psb_buffer;
             double lat, lon;
             int nPoints;
+            wxString msg;
 
             OGRwkbGeometryType gType = pGeo->getGeometryType();
             switch(gType)
@@ -2799,8 +2833,9 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                     break;
 
                 case wkbMultiLineString:
-                      wxLogMessage("Warning: Unimplemented SENC wkbMultiLineString record in file %s",
-                                   pS57FileName->GetFullPath().c_str());
+                    msg = _T("Warning: Unimplemented SENC wkbMultiLineString record in file ");
+                    msg.Append(pS57FileName->GetFullPath());
+                    wxLogMessage(msg);
 
                       wkb_len = pGeo->WkbSize();
                       fprintf( fpOut, "  %d\n", wkb_len);
@@ -2923,8 +2958,10 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
 
                     //      All others
                 default:
-                    wxLogMessage("Warning: Unimplemented ogr geotype in SENC record create:file %s, geotype %d",
-                                 pS57FileName->GetFullPath().c_str(), gType);
+                    msg = _T("Warning: Unimplemented ogr geotype record in file ");
+                    msg.Append(pS57FileName->GetFullPath());
+                    wxLogMessage(msg);
+
                     wkb_len = pGeo->WkbSize();
                       fprintf( fpOut, "  %d\n", wkb_len);
                       fwrite(pwkb_buffer, 1, wkb_len, fpOut);
@@ -3081,9 +3118,9 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                   {
 
                   //    Get Name
-                  wxString name(obj.FeatureName);
-                  *ret_str << name;
-                  *ret_str << " - ";
+                      wxString name(obj.FeatureName,  wxConvUTF8);
+                      *ret_str << name;
+                      *ret_str << _T(" - ");
 
                   //    Get the object's nice description from s57objectclasses.csv
                   //    using cpl_csv from the gdal library
@@ -3092,8 +3129,8 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                   if(NULL != m_pcsv_locn)
                   {
                     wxString oc_file(*m_pcsv_locn);
-                    oc_file.Append("/s57objectclasses.csv");
-                    name_desc = MyCSVGetField(oc_file.c_str(),
+                    oc_file.Append(_T("/s57objectclasses.csv"));
+                    name_desc = MyCSVGetField(oc_file.mb_str(),
                                      "Acronym",                  // match field
                                      obj.FeatureName,            // match value
                                      CC_ExactString,
@@ -3103,18 +3140,21 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                       name_desc = "";
 
 
-                  *ret_str << name_desc;
+                  *ret_str << wxString(name_desc,  wxConvUTF8);
                   *ret_str << '\n';
 
 
                   wxString index;
-                  index.Printf("    Feature Index: %d\n", obj.Index);
+                  index.Printf(_T("    Feature Index: %d\n"), obj.Index);
                   *ret_str << index;
 
 
                   //    Get the Attributes and values
 
-                  curr_att = (char *)(obj.attList->c_str());
+                  char *curr_att0 = (char *)calloc(obj.attList->Len()+1, 1);
+                  strncpy(curr_att0, obj.attList->mb_str(), obj.attList->Len());
+                  curr_att = curr_att0;
+
                   iatt = 0;
 
                   while(*curr_att)
@@ -3160,25 +3200,30 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                         {
                             if(pval->value)
                             {
-                                wxString val_str((char *)(pval->value));
+                                wxString val_str((char *)(pval->value),  wxConvUTF8);
                                 if(val_str.IsNumber())
                                 {
-                                    int ival = atoi(val_str.c_str());
+                                    int ival = atoi(val_str.mb_str());
                                     if(0 == ival)
-                                        value.Printf("Unknown");
+                                        value = _T("Unknown");
                                     else
                                     {
                                         wxString *decode_val = GetAttributeDecode(att, ival);
                                         if(decode_val)
-                                            value.Printf("%s(%d)", decode_val->c_str(), ival);
+                                        {
+                                            value = *decode_val;
+                                            wxString iv;
+                                            iv.Printf(_T("(%d)"), ival);
+                                            value.Append(iv);
+                                        }
                                         else
-                                            value.Printf("(%d)", ival);
+                                            value.Printf(_T("(%d)"), ival);
                                         delete decode_val;
                                     }
                                 }
 
                                 else if(val_str.IsEmpty())
-                                    value.Printf("Unknown");
+                                    value = _T("Unknown");
 
                                 else
                                 {
@@ -3191,31 +3236,29 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                                         wxString token = tk.GetNextToken();
                                         if(token.IsNumber())
                                         {
-                                            int ival = atoi(token.c_str());
+                                            int ival = atoi(token.mb_str());
                                             wxString *decode_val = GetAttributeDecode(att, ival);
                                             if(decode_val)
-                                                value_increment.Printf("%s", decode_val->c_str());
+                                                value_increment = *decode_val;
                                             else
-                                                value_increment.Printf("(%d)", ival);
+                                                value_increment.Printf(_T("(%d)"), ival);
 
                                             delete decode_val;
                                             if(iv)
                                                 value_increment.Prepend(wxT(", "));
                                         }
-                                        value.Append(value_increment.c_str());
+                                        value.Append(value_increment);
 
                                         iv++;
                                     }
 
-                                    value.Append("(");
-                                    value.Append(val_str.c_str());
-                                    value.Append(")");
+                                    value.Append(_T("("));
+                                    value.Append(val_str);
+                                    value.Append(_T(")"));
                                 }
                             }
                             else
-                            {
-                                value.Printf("[NULL VALUE]");
-                            }
+                                value = _T("[NULL VALUE]");
 
                             break;
                         }
@@ -3226,9 +3269,14 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                             wxString *decode_val = GetAttributeDecode(att, ival);
 
                             if(decode_val)
-                                value.Printf("%s(%d)", decode_val->c_str(), ival);
+                            {
+                                value = *decode_val;
+                                wxString iv;
+                                iv.Printf(_T("(%d)"), ival);
+                                value.Append(iv);
+                            }
                             else
-                                value.Printf("(%d)", ival);
+                                value.Printf(_T("(%d)"), ival);
 
                             delete decode_val;
                             break;
@@ -3246,11 +3294,14 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
 
                         *ret_str << '\n';
                         iatt++;
-                  }
+
+                  }             //while *curr_att
+
+                  free(curr_att0);
 
                   return ret_str;
 
-                  }
+                  }             //case
 
 //      wxString                *attList;
 //      wxArrayOfS57attVal      *attVal;
@@ -3293,10 +3344,10 @@ wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
     const char *att_code;
 
     wxString file(*m_pcsv_locn);
-    file.Append("/s57attributes.csv");
-    att_code = MyCSVGetField(file.c_str(),
+    file.Append(_T("/s57attributes.csv"));
+    att_code = MyCSVGetField(file.mb_str(),
                                   "Acronym",                  // match field
-                                  att.c_str(),               // match value
+                                  att.mb_str(),               // match value
                                   CC_ExactString,
                                   "Code");             // return field
 
@@ -3306,10 +3357,11 @@ wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
 
     bool more = true;
     wxString ei_file(*m_pcsv_locn);
-    ei_file.Append("/s57expectedinput.csv");
+    ei_file.Append(_T("/s57expectedinput.csv"));
 
     FILE        *fp;
-    fp = VSIFOpen( ei_file.c_str(), "rb" );
+    const char *pp = "rb";
+    fp = VSIFOpen( ei_file.mb_str(), pp );
     if( fp == NULL )
         return NULL;
 
@@ -3327,7 +3379,7 @@ wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
         }
         if(atoi(result[1]) == ival)
         {
-            ret_val = new wxString(result[2]);
+            ret_val = new wxString(result[2],  wxConvUTF8);
         }
     }
 
@@ -3483,7 +3535,7 @@ void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
         snprintf( buf, ERR_BUF_LEN, "ERROR %d: %s\n", nError, pszErrorMsg );
 
 
-    wxLogMessage("%s", buf);
+    wxLogMessage(_T("%s"), buf);
 
 
     //      Do not simply return on CE_Fatal errors, as we don't want to abort()
@@ -3560,11 +3612,11 @@ int s57_initialize(const wxString& csv_dir, FILE *flog)
     //  See the README file
 
 #ifdef __WXMSW__
-    wxString envs1("S57_CSV=");
+    wxString envs1(_T("S57_CSV="));
     envs1.Append(csv_dir);
-    _putenv((char *) envs1.c_str());
+    _putenv((char *) envs1.mb_str());
 #else
-    wxSetEnv( "S57_CSV", csv_dir.c_str());
+    wxSetEnv( _T("S57_CSV"), csv_dir);
 #endif
 
 
@@ -3581,30 +3633,30 @@ int s57_initialize(const wxString& csv_dir, FILE *flog)
 
     wxString set1, set2;
 
-    set1 ="LNAM_REFS=ON";
-    set1.Append(",SPLIT_MULTIPOINT=OFF");
-    set1.Append(",ADD_SOUNDG_DEPTH=OFF");
-    set1.Append(",PRESERVE_EMPTY_NUMBERS=OFF");
+    set1 =_T("LNAM_REFS=ON");
+    set1.Append(_T(",SPLIT_MULTIPOINT=OFF"));
+    set1.Append(_T(",ADD_SOUNDG_DEPTH=OFF"));
+    set1.Append(_T(",PRESERVE_EMPTY_NUMBERS=OFF"));
     if(ver_num >= 1320)
-        set1.Append(",RETURN_PRIMITIVES=OFF");              // older GDALs handle some "off" option poorly
-    set1.Append(",RETURN_LINKAGES=OFF");
+        set1.Append(_T(",RETURN_PRIMITIVES=OFF"));              // older GDALs handle some "off" option poorly
+    set1.Append(_T(",RETURN_LINKAGES=OFF"));
 
 
 
     if(ver_num < 1320)
-        set2 = ",UPDATES=BUGBUG";               // updates ENABLED
+        set2 = _T(",UPDATES=BUGBUG");               // updates ENABLED
     else
-        set2 = ",UPDATES=APPLY";
+        set2 = _T(",UPDATES=APPLY");
 
     set1.Append(set2);
 
 #ifdef __WXMSW__
-    wxString envs2("OGR_S57_OPTIONS=");
+    wxString envs2(_T("OGR_S57_OPTIONS="));
     envs2.Append(set1);
-    _putenv( (char *)envs2.c_str());
+    _putenv( (char *)envs2.mb_str());
 
 #else
-    wxSetEnv("OGR_S57_OPTIONS",set1.c_str());
+    wxSetEnv(_T("OGR_S57_OPTIONS"),set1);
 #endif
 
 
@@ -3621,7 +3673,7 @@ int s57_initialize(const wxString& csv_dir, FILE *flog)
 // Get Chart Scale
 // By opening and reading directly the iso8211 file
 //----------------------------------------------------------------------------------
-int s57_GetChartScale(char *pFullPath)
+int s57_GetChartScale(const wxString& FullPath)
 {
 
     DDFModule   *poModule;
@@ -3630,7 +3682,7 @@ int s57_GetChartScale(char *pFullPath)
 
     poModule = new DDFModule();
 
-    if( !poModule->Open(pFullPath) )
+    if( !poModule->Open(FullPath.mb_str()) )
     {
         delete poModule;
         return 0;
@@ -3666,11 +3718,11 @@ int s57_GetChartScale(char *pFullPath)
 // Directly from the ios8211 file
 //              n.b. Caller owns the data source and the feature on success
 //----------------------------------------------------------------------------------
-bool s57_GetChartFirstM_COVR(char *pFullPath, OGRDataSource **pDS, OGRFeature **pFeature,
+bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRDataSource **pDS, OGRFeature **pFeature,
                                  OGRLayer **pLayer, int &catcov)
 {
 
-    OGRDataSource *poDS = OGRSFDriverRegistrar::Open( pFullPath );
+    OGRDataSource *poDS = OGRSFDriverRegistrar::Open( FullPath.mb_str() );
 
     *pDS = poDS;                                    // give to caller
 
@@ -3756,7 +3808,7 @@ bool s57_GetChartNextM_COVR(OGRDataSource *pDS, OGRLayer *pLayer, OGRFeature *pL
 //----------------------------------------------------------------------------------
 // Get Chart Extents
 //----------------------------------------------------------------------------------
-bool s57_GetChartExtent(char *pFullPath, Extent *pext)
+bool s57_GetChartExtent(const wxString& FullPath, Extent *pext)
 {
  //   Fix this  find extents of which?? layer??
 /*
@@ -3777,7 +3829,7 @@ bool s57_GetChartExtent(char *pFullPath, Extent *pext)
 
     delete poDS;
 */
-    return true;
+    return false;
 
 }
 

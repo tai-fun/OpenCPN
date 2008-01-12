@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.6 2008/01/02 21:04:07 bdbcat Exp $
+ * $Id: ais.h,v 1.7 2008/01/12 06:17:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.7  2008/01/12 06:17:45  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.6  2008/01/02 21:04:07  bdbcat
  * Update for Version 1.2.2
  *
@@ -190,7 +193,7 @@ public:
 
 
     void OnEvtAIS(wxCommandEvent& event);
-    AIS_Error Decode(char *str);
+    AIS_Error Decode(const wxString& str);
     void Pause(void);
     void UnPause(void);
     void GetSource(wxString& source);
@@ -204,7 +207,7 @@ private:
     void OnTimerAIS(wxTimerEvent& event);
     void OnCloseWindow(wxCloseEvent& event);
 
-    bool NMEACheckSumOK(char * str);
+    bool NMEACheckSumOK(const wxString& str);
     AIS_Target_Data *Parse_VDMBitstring(AIS_Bitstring *bstr);
     AIS_Target_Data *Merge(AIS_Target_Data *tlast, AIS_Target_Data *tthis);
 
@@ -255,7 +258,7 @@ class OCP_AIS_Thread: public wxThread
 
 public:
 
-      OCP_AIS_Thread(wxWindow *MainWindow, const char *pszPortName);
+      OCP_AIS_Thread(wxWindow *MainWindow, const wxString& PortName);
       ~OCP_AIS_Thread(void);
       void *Entry();
 

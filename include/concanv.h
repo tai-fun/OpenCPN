@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.h,v 1.2 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: concanv.h,v 1.3 2008/01/12 06:18:30 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.h,v $
+ * Revision 1.3  2008/01/12 06:18:30  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.2  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -89,7 +92,7 @@ class AnnunText : public wxWindow
 {
 public:
       AnnunText(wxWindow *parent, wxWindowID id,
-                const wxPoint& pos, const wxSize& size, const char *LegendElement, const char *ValueElement);
+                const wxPoint& pos, const wxSize& size, const wxString& LegendElement, const wxString& ValueElement);
 
       ~AnnunText();
 

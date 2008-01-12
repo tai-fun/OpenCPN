@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.6 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: chartdb.h,v 1.7 2008/01/12 06:18:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.7  2008/01/12 06:18:22  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.6  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -151,7 +154,7 @@ public:
       int  BuildChartStack(ChartStack * cstk, float lat, float lon);
       bool EqualStacks(ChartStack *, ChartStack *);
       bool CopyStack(ChartStack *pa, ChartStack *pb);
-      bool GetFullPath(ChartStack *ps, int stackindex, char *buf, int nbuf);
+      wxString GetFullPath(ChartStack *ps, int stackindex);
       bool GetChartID(ChartStack *ps, int stackindex, char *buf, int nbuf);
       int  GetStackChartScale(ChartStack *ps, int stackindex, char *buf, int nbuf);
       int  GetCSPlyPoint(ChartStack *ps, int stackindex, int plyindex, float *lat, float *lon);
@@ -163,7 +166,7 @@ public:
 
       virtual int  GetStackEntry(ChartStack *ps, wxString *pfp);
       ChartBase *OpenChartFromStack(ChartStack *pStack, int StackEntry, ChartInitFlag iflag = FULL_INIT);
-      int DisableChart(const char *pPathToDisable);
+      int DisableChart(wxString& PathToDisable);
       void ApplyColorSchemeToCachedCharts(ColorScheme cs);
 
       // Public data

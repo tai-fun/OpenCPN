@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.11 2008/01/10 03:35:57 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.12 2008/01/12 06:23:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.12  2008/01/12 06:23:26  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.11  2008/01/10 03:35:57  bdbcat
  * Update for Mac OSX
  *
@@ -87,7 +90,7 @@
 extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.11 2008/01/10 03:35:57 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.12 2008/01/12 06:23:26 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -183,6 +186,8 @@ ChartBase::ChartBase()
 
       Chart_Error_Factor = 0;
 
+      Chart_Scale = 10000;              // a benign value
+
 }
 
 ChartBase::~ChartBase()
@@ -208,7 +213,7 @@ ChartDummy::ChartDummy()
       m_pBM = NULL;
       ChartType = CHART_TYPE_DUMMY;
 
-      pFullPath = new wxString("Dummy");
+      pFullPath = new wxString(_T("Dummy"));
 
 }
 
@@ -334,17 +339,18 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 
 //    Read the GEO file, extracting useful information
 
-      ifs_hdr->SeekI(0, wxFromStart);                                         // rewind
+      ifs_hdr->SeekI(0, wxFromStart);                 // rewind
 
       Size_X = Size_Y = 0;
 
       while( (ReadBSBHdrLine(ifs_hdr, &buffer[0], BUF_LEN_MAX)) != 0 )
     {
+          wxString str_buf(buffer, wxConvUTF8);
             if(!strncmp(buffer, "Bitmap", 6))
             {
-                  wxStringTokenizer tkz(buffer, "=");
+                wxStringTokenizer tkz(str_buf, _T("="));
                   wxString token = tkz.GetNextToken();
-                  if(token.IsSameAs("Bitmap", TRUE))
+                  if(token.IsSameAs(_T("Bitmap"), TRUE))
                   {
                         pBitmapFilePath = new wxString();
 
@@ -362,9 +368,9 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 
             else if(!strncmp(buffer, "Scale", 5))
             {
-                  wxStringTokenizer tkz(buffer, "=");
+                wxStringTokenizer tkz(str_buf, _T("="));
                   wxString token = tkz.GetNextToken();
-                  if(token.IsSameAs("Scale", TRUE))               // extract Scale
+                  if(token.IsSameAs(_T("Scale"), TRUE))               // extract Scale
                   {
                         int i;
                         i = tkz.GetPosition();
@@ -374,13 +380,13 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 
             else if(!strncmp(buffer, "Depth", 5))
             {
-                wxStringTokenizer tkz(buffer, "=");
+                wxStringTokenizer tkz(str_buf, _T("="));
                 wxString token = tkz.GetNextToken();
-                if(token.IsSameAs("Depth Units", FALSE))               // extract Depth Units
+                if(token.IsSameAs(_T("Depth Units"), FALSE))               // extract Depth Units
                 {
                     int i;
                     i = tkz.GetPosition();
-                    wxString str(&buffer[i]);
+                    wxString str(&buffer[i],  wxConvUTF8);
                     pDepthUnits->Append(str.Trim());
                 }
             }
@@ -420,8 +426,9 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
                   char date_string[40];
                   char date_buf[10];
                   sscanf(buffer, "Date Published=%s\r\n", &date_string[0]);
+                  wxString date_wxstr(date_string,  wxConvUTF8);
                   wxDateTime dt;
-                  if(dt.ParseDate(date_string))       // successful parse?
+                  if(dt.ParseDate(date_wxstr))       // successful parse?
                   {
                         sprintf(date_buf, "%d", dt.GetYear());
                   }
@@ -429,14 +436,14 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
                   {
                         sscanf(date_string, "%s", date_buf);
                   }
-                  pPubYear->Append(date_buf);
+                  pPubYear->Append(wxString(date_buf, wxConvUTF8));
             }
 
             else if (!strncmp(buffer, "Skew", 4))
             {
-                  wxStringTokenizer tkz(buffer, "=");
+                wxStringTokenizer tkz(str_buf, _T("="));
                   wxString token = tkz.GetNextToken();
-                  if(token.IsSameAs("Skew Angle", FALSE))               // extract Skew Angle
+                  if(token.IsSameAs(_T("Skew Angle"), FALSE))               // extract Skew Angle
                   {
                         int i;
                         i = tkz.GetPosition();
@@ -446,9 +453,9 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 
             else if (!strncmp(buffer, "Name", 4))
             {
-              wxStringTokenizer tkz(buffer, "=");
+                wxStringTokenizer tkz(str_buf, _T("="));
               wxString token = tkz.GetNextToken();
-              if(token.IsSameAs("Name", FALSE))                         // Name
+              if(token.IsSameAs(_T("Name"), FALSE))                         // Name
               {
                 int i;
                 i = tkz.GetPosition();
@@ -465,6 +472,13 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
 //          Extract the remaining data from .NOS Bitmap file
       ifs_bitmap = NULL;
 
+//      Something wrong with the .geo file, there is no Bitmap reference
+//      This is where the arbitrarily bad file is caught, such as
+//      a file with.GEO extension that is not really a chart
+
+      if(pBitmapFilePath == NULL)
+            return INIT_FAIL_REMOVE;
+
       wxString NOS_Name(*pBitmapFilePath);            // take a copy
 
       wxDir target_dir(Path);
@@ -473,7 +487,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
       int ifile;
 
       pBitmapFilePath->Prepend(Path);
-//    wxLogMessage("ChartGEO:Init....NOS File Name is: %s", pBitmapFilePath->c_str());
+//    wxLogMessage("ChartGEO:Init....NOS File Name is: %s", pBitmapFilePath->mb_str());
       wxFileName NOS_filename(*pBitmapFilePath);
       if(NOS_filename.FileExists())
       {
@@ -495,7 +509,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             NOS_filename.SetName(fname);
             NOS_filename.SetExt(fext);
 //          wxLogMessage("ChartGEO:Init....Trying NOS File Name: %s",
-//                      (NOS_filename.GetFullPath()).c_str());
+//                      (NOS_filename.GetFullPath()).mb_str());
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
 
@@ -505,7 +519,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             NOS_filename.SetName(fname);
             NOS_filename.SetExt(fext);
 //          wxLogMessage("ChartGEO:Init....Trying NOS File Name: %s",
-//                      (NOS_filename.GetFullPath()).c_str());
+//                      (NOS_filename.GetFullPath()).mb_str());
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
 
@@ -515,7 +529,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             NOS_filename.SetName(fname);
             NOS_filename.SetExt(fext);
 //          wxLogMessage("ChartGEO:Init....Trying NOS File Name: %s",
-//                      (NOS_filename.GetFullPath()).c_str());
+//                      (NOS_filename.GetFullPath()).mb_str());
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
 
@@ -525,7 +539,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             NOS_filename.SetName(fname);
             NOS_filename.SetExt(fext);
 //          wxLogMessage("ChartGEO:Init....Trying NOS File Name: %s",
-//                      (NOS_filename.GetFullPath()).c_str());
+//                      (NOS_filename.GetFullPath()).mb_str());
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
 
@@ -552,7 +566,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             return INIT_FAIL_REMOVE;                  // not found at all
 
 found_uclc_file:
-//          wxLogMessage("ChartGEO:Init....Found: %s", (NOS_filename.GetFullPath()).c_str());
+//          wxLogMessage("ChartGEO:Init....Found: %s", (NOS_filename.GetFullPath()).mb_str());
 
             delete pBitmapFilePath;                   // fix up the member element
             pBitmapFilePath = new wxString(NOS_filename.GetFullPath());
@@ -571,14 +585,15 @@ found_uclc_file:
 
       while( (ReadBSBHdrLine(ifss_bitmap, &buffer[0], BUF_LEN_MAX)) != 0 )
       {
+          wxString str_buf(buffer,  wxConvUTF8);
 
             if(!strncmp(buffer, "NOS", 3))
             {
-                  wxStringTokenizer tkz(buffer, ",=");
+                wxStringTokenizer tkz(str_buf, _T(",="));
                   while ( tkz.HasMoreTokens() )
                   {
                         wxString token = tkz.GetNextToken();
-                        if(token.IsSameAs("RA", TRUE))                  // extract RA=x,y
+                        if(token.IsSameAs(_T("RA"), TRUE))                  // extract RA=x,y
                         {
                               int i;
                               tkz.GetNextToken();
@@ -589,7 +604,7 @@ found_uclc_file:
                               i = tkz.GetPosition();
                               Size_Y = atoi(&buffer[i]);
                         }
-                        else if(token.IsSameAs("DU", TRUE))                  // extract DU=n
+                        else if(token.IsSameAs(_T("DU"), TRUE))                  // extract DU=n
                         {
                             token = tkz.GetNextToken();
                             long temp_du;
@@ -628,10 +643,10 @@ found_uclc_file:
 
 //    Validate some of the header data
       if((Size_X == 0) || (Size_Y == 0))
-      {
-            return INIT_FAIL_REMOVE;
-      }
+          return INIT_FAIL_REMOVE;
 
+      if(nPlypoint == 0)
+          return INIT_FAIL_REMOVE;
 
 //    Calculate the Chart Extents from the PLY data, for fast database search
 
@@ -661,6 +676,9 @@ found_uclc_file:
       if((LonMax * LonMin) < 0)              // min/max are opposite signs
       {
       //    Georeferencing is unavailable, so find the reference points closest to min/max ply points
+
+          if(0 == nRefpoint)
+              return INIT_FAIL_REMOVE;          // have to bail here
 
             //    for LonMax
           double min_dist_x = 360;
@@ -707,15 +725,15 @@ found_uclc_file:
 
 //    Advance to the data
       char c;
-      if((c = ifs_bitmap->GetC()) != 0x1a){ assert(false); return INIT_FAIL_REMOVE;}
+      if((c = ifs_bitmap->GetC()) != 0x1a){ return INIT_FAIL_REMOVE;}
       if((c = ifs_bitmap->GetC()) == 0x0d)
       {
-            if((c = ifs_bitmap->GetC()) != 0x0a){ assert(false); return INIT_FAIL_REMOVE;}
-            if((c = ifs_bitmap->GetC()) != 0x1a){ assert(false); return INIT_FAIL_REMOVE;}
-            if((c = ifs_bitmap->GetC()) != 0x00){ assert(false); return INIT_FAIL_REMOVE;}
+            if((c = ifs_bitmap->GetC()) != 0x0a){  return INIT_FAIL_REMOVE;}
+            if((c = ifs_bitmap->GetC()) != 0x1a){  return INIT_FAIL_REMOVE;}
+            if((c = ifs_bitmap->GetC()) != 0x00){  return INIT_FAIL_REMOVE;}
       }
 
-      else if(c != 0x00){ assert(false); return INIT_FAIL_REMOVE;}
+      else if(c != 0x00){  return INIT_FAIL_REMOVE;}
 
 //    Read the Color table bit size
       nColorSize = ifs_bitmap->GetC();
@@ -786,8 +804,10 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 
       if(ifs_hdr->LastRead() != TestBlockSize)
       {
-            wxLogMessage("Could not read first %d bytes of header for chart file: %s",
-                       TestBlockSize, name.c_str() );
+          wxString msg;
+          msg.Printf(_T("Could not read first %d bytes of header for chart file: "), TestBlockSize);
+          msg.Append(name);
+          wxLogMessage(msg);
             return INIT_FAIL_REMOVE;
       }
 
@@ -807,7 +827,9 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
       }
       if( i == TestBlockSize - 4 )
       {
-            wxLogMessage("Chart file %s has no BSB header, cannot Init.", name.c_str());
+          wxString msg(_T("Chart file has no BSB header, cannot Init."));
+          msg.Append(name);
+          wxLogMessage(msg);
             return INIT_FAIL_REMOVE;
       }
 
@@ -829,21 +851,22 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                   ifs_hdr->Ungetch(c);
 
                   if(0x1a == c)
-                  {
-                        done_header_parse = 1;
-                  }
+                      done_header_parse = 1;
+                  else
+                      return INIT_FAIL_REMOVE;
+
                   continue;
             }
 
 
-
+            wxString str_buf(buffer,  wxConvUTF8);
             if(!strncmp(buffer, "BSB", 3))
             {
-                  wxStringTokenizer tkz(buffer, "/,=");
+                wxStringTokenizer tkz(str_buf, _T("/,="));
                   while ( tkz.HasMoreTokens() )
                   {
                         wxString token = tkz.GetNextToken();
-                        if(token.IsSameAs("RA", TRUE))                  // extract RA=x,y
+                        if(token.IsSameAs(_T("RA"), TRUE))                  // extract RA=x,y
                         {
                               int i;
                               i = tkz.GetPosition();
@@ -852,7 +875,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                               i = tkz.GetPosition();
                               Size_Y = atoi(&buffer[i]);
                         }
-                        if(token.IsSameAs("NA", TRUE))                  // extract NA=str
+                        if(token.IsSameAs(_T("NA"), TRUE))                  // extract NA=str
                         {
                           int i;
                           i = tkz.GetPosition();
@@ -862,7 +885,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                             i++;
                           }
                         }
-                        if(token.IsSameAs("DU", TRUE))                  // extract DU=n
+                        if(token.IsSameAs(_T("DU"), TRUE))                  // extract DU=n
                         {
                           token = tkz.GetNextToken();
                           long temp_du;
@@ -875,27 +898,27 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 
             else if(!strncmp(buffer, "KNP", 3))
             {
-                  wxStringTokenizer tkz(buffer, "/,=");
+                wxStringTokenizer tkz(str_buf, _T("/,="));
                   while ( tkz.HasMoreTokens() )
                   {
                         wxString token = tkz.GetNextToken();
-                        if(token.IsSameAs("SC", TRUE))                  // extract Scale
+                        if(token.IsSameAs(_T("SC"), TRUE))                  // extract Scale
                         {
                               int i;
                               i = tkz.GetPosition();
                               Chart_Scale = atoi(&buffer[i]);
                         }
-                        if(token.IsSameAs("SK", TRUE))                  // extract Skew
+                        if(token.IsSameAs(_T("SK"), TRUE))                  // extract Skew
                         {
                               int i;
                               i = tkz.GetPosition();
                               sscanf(&buffer[i], "%f,", &Chart_Skew);
                         }
-                        if(token.IsSameAs("UN", TRUE))                  // extract Depth Units
+                        if(token.IsSameAs(_T("UN"), TRUE))                  // extract Depth Units
                         {
                             int i;
                             i = tkz.GetPosition();
-                            wxString str(&buffer[i]);
+                            wxString str(&buffer[i], wxConvUTF8);
                             pDepthUnits->Append(str.BeforeFirst(','));
                         }
 
@@ -949,7 +972,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
             {
                 int idx = 0;
                 double d;
-                wxStringTokenizer tkz(&buffer[4], ",");
+                wxStringTokenizer tkz(str_buf.Mid(4), _T(","));
                 wxString token = tkz.GetNextToken();
 
                 if(token.ToLong((long int *)&wpx_type))
@@ -971,7 +994,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
             {
                 int idx = 0;
                 double d;
-                wxStringTokenizer tkz(&buffer[4], ",");
+                wxStringTokenizer tkz(str_buf.Mid(4), _T(","));
                 wxString token = tkz.GetNextToken();
 
                 if(token.ToLong((long int *)&wpy_type))
@@ -993,7 +1016,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
             {
                 int idx = 0;
                 double d;
-                wxStringTokenizer tkz(&buffer[4], ",");
+                wxStringTokenizer tkz(str_buf.Mid(4), _T(","));
                 wxString token = tkz.GetNextToken();
 
                 if(token.ToLong((long int *)&pwx_type))
@@ -1015,7 +1038,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
             {
                 int idx = 0;
                 double d;
-                wxStringTokenizer tkz(&buffer[4], ",");
+                wxStringTokenizer tkz(str_buf.Mid(4), _T(","));
                 wxString token = tkz.GetNextToken();
 
                 if(token.ToLong((long int *)&pwy_type))
@@ -1056,23 +1079,23 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 
             else if(!strncmp(buffer, "CED", 3))
             {
-                  wxStringTokenizer tkz(buffer, "/,=");
+                wxStringTokenizer tkz(str_buf, _T("/,="));
                   while ( tkz.HasMoreTokens() )
                   {
                         wxString token = tkz.GetNextToken();
-                        if(token.IsSameAs("ED", TRUE))                  // extract Edition Date
+                        if(token.IsSameAs(_T("ED"), TRUE))                  // extract Edition Date
                         {
-//          wxLogMessage("Extract ED from %s", this->pFullPath->c_str());
+//          wxLogMessage("Extract ED from %s", this->pFullPath->mb_str());
                               int i;
                               i = tkz.GetPosition();
 
                               char date_string[40];
                               char date_buf[10];
                               sscanf(&buffer[i], "%s\r\n", date_string);
-
+                              wxString date_wxstr(date_string,  wxConvUTF8);
 
                             wxDateTime dt;
-                                          if(dt.ParseDate(date_string))       // successful parse?
+                              if(dt.ParseDate(date_wxstr))       // successful parse?
                             {
                                               int iyear = dt.GetYear(); // GetYear() fails on W98, DMC compiler, wx2.8.3
 //    BSB charts typically list publish date as xx/yy/zz, we want 19zz.
@@ -1087,7 +1110,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 
 
 //                             sscanf(date_string, "%s", date_buf);
-                             pPubYear->Append(date_buf);
+                              pPubYear->Append(wxString(date_buf,  wxConvUTF8));
                         }
                   }
             }
@@ -1105,9 +1128,11 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 //    Validate some of the header data
       if((Size_X == 0) || (Size_Y == 0))
       {
-            return INIT_FAIL_REMOVE;
+          return INIT_FAIL_REMOVE;
       }
 
+      if(nPlypoint == 0)
+          return INIT_FAIL_REMOVE;
 
 //    Calculate the Chart Extents from the PLY data, for fast database search
 
@@ -1138,6 +1163,9 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
       if((LonMax * LonMin) < 0)              // min/max are opposite signs
       {
       //    Georeferencing is unavailable, so find the reference points closest to min/max ply points
+
+            if(0 == nRefpoint)
+                return INIT_FAIL_REMOVE;          // have to bail here
 
             //    for LonMax
             double min_dist_x = 360;
@@ -1477,7 +1505,9 @@ InitReturn ChartBaseBSB::PostInit(void)
         // Recreate the scan line index if the imbedded version seems corrupt
       if(!bline_index_ok)
       {
-          wxLogMessage("Line Index corrupt, recreating on chart %s", pFullPath->c_str());
+          wxString msg(_T("Line Index corrupt, recreating on chart "));
+          msg.Append(*pFullPath);
+          wxLogMessage(msg);
           if(!CreateLineIndex())
           {
             return INIT_FAIL_REMOVE;
@@ -1507,13 +1537,13 @@ InitReturn ChartBaseBSB::PostInit(void)
 
       //    Validate/Set Depth Unit Type
       wxString test_str = pDepthUnits->Upper();
-      if(test_str.IsSameAs("FEET", FALSE))
+      if(test_str.IsSameAs(_T("FEET"), FALSE))
           m_depth_unit_id = DEPTH_UNIT_FEET;
-      else if(test_str.IsSameAs("METERS", FALSE))
+      else if(test_str.IsSameAs(_T("METERS"), FALSE))
           m_depth_unit_id = DEPTH_UNIT_METERS;
-      else if(test_str.IsSameAs("FATHOMS", FALSE))
+      else if(test_str.IsSameAs(_T("FATHOMS"), FALSE))
           m_depth_unit_id = DEPTH_UNIT_FATHOMS;
-      else if(test_str.Find("FATHOMS") != wxNOT_FOUND)             // Special case for "Fathoms and Feet"
+      else if(test_str.Find(_T("FATHOMS")) != wxNOT_FOUND)             // Special case for "Fathoms and Feet"
           m_depth_unit_id = DEPTH_UNIT_FATHOMS;
 
 
@@ -1545,7 +1575,9 @@ bool ChartBaseBSB::CreateLineIndex()
 
         if(iscan > Size_Y)
         {
-           wxLogMessage("!!CreateLineIndex() failed on chart %s", pFullPath->c_str());
+            wxString msg(_T("CreateLineIndex() failed on chart "));
+            msg.Append(*pFullPath);
+            wxLogMessage(msg);
            return false;
         }
 
@@ -3440,8 +3472,12 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
             {
                 if(!bGeoErrorSent)
                 {
-                    wxLogMessage("!!Georeference Chart_Error_Factor on chart %s is %5g", pFullPath->c_str(), Chart_Error_Factor);
-                    printf("!!Georeference Chart_Error_Factor on chart %s is %5g\n", pFullPath->c_str(), Chart_Error_Factor);
+                    wxString msg;
+                    msg.Printf(_T("Georeference Chart_Error_Factor on chart is %5g"), Chart_Error_Factor);
+                    msg.Append(*pFullPath);
+                    wxLogMessage(msg);
+
+//                    printf("!!Georeference Chart_Error_Factor on chart %s is %5g\n", pFullPath->mb_str(), Chart_Error_Factor);
 
                     bGeoErrorSent = true;
                     bUseGeoRef = false;
@@ -3592,10 +3628,11 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
              // cannot use georef at all
              // so hack out a reasonable ppm_avg from chart scale and scanning resolution (DU)
             //  converting chart scanning resolution in DotsPerInch to DotsPerMeter
-        if(0 == ppm_avg)
-        {
+        if((0 == ppm_avg) && (0 != Chart_Scale))
             ppm_avg = Chart_DU * 39.37 / Chart_Scale;
-        }
+
+        if(0 == ppm_avg)
+            ppm_avg = 1.0;                      // absolute fallback
 
 
       //    We may also note that the ppm_avg multiplied by the published chart scale is usually around 10000,
@@ -3625,7 +3662,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.11 2008/01/10 03:35:57 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.12 2008/01/12 06:23:26 bdbcat Exp $
 *
 */
 
