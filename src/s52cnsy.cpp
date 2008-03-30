@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.6 2008/01/12 06:21:06 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.7 2008/03/30 22:15:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -28,10 +28,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< s52cnsy.cpp
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.7  2008/03/30 22:15:45  bdbcat
+ * Add missing symbology OBSTRN, etc.
+ *
+=======
+ * $Log: s52cnsy.cpp,v $
+ * Revision 1.7  2008/03/30 22:15:45  bdbcat
+ * Add missing symbology OBSTRN, etc.
+ *
  * Revision 1.6  2008/01/12 06:21:06  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.6
  * Revision 1.5  2008/01/10 03:37:31  bdbcat
  * Update for Mac OSX
  *
@@ -77,7 +87,9 @@
 #include "s52plib.h"
 #include "s52utils.h"
 
-extern bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val);
+bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
+
+#define UNKNOWN 1e6 //HUGE_VAL   // INFINITY/NAN
 
 
 // size of attributes value list buffer
@@ -85,7 +97,12 @@ extern bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.6 2008/01/12 06:21:06 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.7 2008/03/30 22:15:45 bdbcat Exp $");
+
+wxString *CSQUAPNT01(S57Obj *obj);
+wxString *CSQUALIN01(S57Obj *obj);
+
+
 
 static void *CLRLIN01(void *param)
 {
@@ -203,9 +220,10 @@ bool GetIntAttr(S57Obj *obj, char *AttrName, int &val)
                 idx++;
         }
 
-        if(!*patl)                                                      // Requested Attribute not found
+        if(!*patl)                                     // Requested Attribute not found
         {
-                return false;                                           // so don't return a value
+              free(attList);
+              return false;                            // so don't return a value
         }
 
 //      using idx to get the attribute value
@@ -239,9 +257,10 @@ bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
                 idx++;
         }
 
-        if(!*patl)                                                      // Requested Attribute not found
+        if(!*patl)                                        // Requested Attribute not found
         {
-                return false;                                           // so don't return a value
+             free(attList);
+             return false;                                // so don't return a value
         }
 
 //      using idx to get the attribute value
@@ -250,10 +269,49 @@ bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
         S57attVal *v = pattrVal->Item(idx);
         val = *(float*)(v->value);
 
+        free(attList);
         return true;
 }
 
 */
+bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val)
+{
+    char *attList = (char *)calloc(obj->attList->Len()+1, 1);
+    strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
+
+    char *patl = attList;
+    char *patr;
+    int idx = 0;
+    while(*patl)
+    {
+        patr = patl;
+        while(*patr != '\037')
+            patr++;
+
+        if(!strncmp(patl, AttrName, 6))
+            break;
+
+        patl = patr + 1;
+        idx++;
+    }
+
+    if(!*patl)                                        // Requested Attribute not found
+    {
+        free(attList);
+        return false;
+    }
+
+//      using idx to get the attribute value
+    wxArrayOfS57attVal      *pattrVal = obj->attVal;
+
+    S57attVal *v = pattrVal->Item(idx);
+    val = *(double*)(v->value);
+
+    free(attList);
+    return true;
+}
+
+
 bool GetStringAttr(S57Obj *obj, char *AttrName, char *pval, int nc)
 {
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
@@ -277,7 +335,10 @@ bool GetStringAttr(S57Obj *obj, char *AttrName, char *pval, int nc)
         }
 
         if(!*patl)
-                return false;
+        {
+              free(attList);
+              return false;
+        }
 
 //      using idx to get the attribute value
         wxArrayOfS57attVal      *pattrVal = obj->attVal;
@@ -316,7 +377,10 @@ wxString *GetStringAttrWXS(S57Obj *obj, char *AttrName)
         }
 
         if(!*patl)
-                return NULL;
+        {
+              free(attList);
+              return NULL;
+        }
 
 //      using idx to get the attribute value
         wxArrayOfS57attVal      *pattrVal = obj->attVal;
@@ -430,6 +494,162 @@ static int      _atPtPos(S57Obj *objNew, wxArrayPtrVoid *curntList, int bSectorC
 }
 
 
+static double   _DEPVAL01(S57Obj *obj, double least_depth)
+// Remarks: S-57 Appendix B1 Annex A requires in Section 6 that areas of rocks be
+// encoded as area obstruction, and that area OBSTRNs and area WRECKS
+// be covered by either group 1 object DEPARE or group 1 object UNSARE.
+// If the value of the attribute VALSOU for an area OBSTRN or WRECKS
+// is missing, the DRVAL1 of an underlying DEPARE is the preferred default
+// for establishing a depth value. This procedure either finds the shallowest
+// DRVAL1 of the one or more underlying DEPAREs, or returns an
+// "unknown"" depth value to the main procedure for the next default
+// procedure.
+
+// NOTE: UNSARE test is useless since least_depth is already UNKNOWN
+{
+    least_depth = UNKNOWN;
+
+/*
+    S57_geo *geoTmp = geo;
+
+    // NOTE: the geo list is unchange (_UDWHAZ03 will unlink geo)
+    while (NULL != (geoTmp = S57_nextObj(geoTmp))) {
+        GString *objlstr = S57_getAttVal(geoTmp, "OBJL");
+        int      objl    = (NULL == objlstr) ? 0 : atoi(objlstr->str);
+
+        // get area DEPARE  that intersect this area
+        if (DEPARE==objl && LINES_T==S57_getObjtype(geo)) {
+            GString *drval1str = S57_getAttVal(geoTmp, "DRVAL1");
+            double   drval1    = (NULL == drval1str) ? 9.0 : atof(drval1str->str);
+
+            if (NULL != drval1str) {
+                if (UNKNOWN==least_depth || least_depth<drval1)
+                    least_depth = drval1;
+            }
+
+        }
+    }
+  */
+    return least_depth;
+}
+
+static wxString *_UDWHAZ03(S57Obj *obj, double depth_value, ObjRazRules *rzRules)
+// Remarks: Obstructions or isolated underwater dangers of depths less than the safety
+// contour which lie within the safe waters defined by the safety contour are
+// to be presented by a specific isolated danger symbol as hazardous objects
+// and put in IMO category DISPLAYBASE (see (3), App.2, 1.3). This task
+// is performed by this conditional symbology procedure.
+{
+    wxString udwhaz03str;
+    int      danger         = FALSE;
+    double   safety_contour = S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR);
+
+
+    if (depth_value <= safety_contour) {
+        // that intersect this point/line/area for OBSTRN04
+        // that intersect this point/area      for WRECKS02
+
+        // get area DEPARE & DRGARE that intersect this point/line/area
+
+        ListOfS57Obj *pobj_list = rzRules->chart->GetAssociatedObjects(obj);
+
+        wxListOfS57ObjNode *node = pobj_list->GetFirst();
+        while(node)
+        {
+              S57Obj *ptest_obj = node->GetData();
+              if(GEO_LINE == ptest_obj->Primitive_type)
+              {
+                    double drval2 = 0.0;
+                    GetDoubleAttr(ptest_obj, "DRVAL2", drval2);
+
+                    if(drval2 < safety_contour)
+                    {
+                          danger = TRUE;
+                          break;
+                    }
+              }
+              else
+              {
+                    double drval1 = 0.0;
+                    GetDoubleAttr(ptest_obj, "DRVAL1", drval1);
+
+                    if(drval1 >= safety_contour)
+                    {
+                          danger = TRUE;
+                          break;
+                    }
+              }
+              node = node->GetNext();
+        }
+
+        delete pobj_list;
+/*
+        while (NULL != (geoTmp = S57_nextObj(geoTmp))) {
+
+            if (LINES_T  == S57_getObjtype(geoTmp)) {
+                GString *drval2str = S57_getAttVal(geoTmp, "DRVAL2");
+                double   drval2    = (NULL == drval2str) ? 0.0 : atof(drval2str->str);
+
+                if (drval2 < safety_contour) {
+                    danger = TRUE;
+                    break;
+                }
+
+            } else {
+                //
+                GString *drval1str = S57_getAttVal(geoTmp, "DRVAL1");
+                double   drval1    = (NULL == drval1str) ? 0.0 : atof(drval1str->str);
+
+                if (drval1 >= safety_contour) {
+                    danger = TRUE;
+                    break;
+                }
+            }
+
+        }
+
+*/
+        //danger = TRUE;   // true
+        if (TRUE == danger)
+        {
+              int watlev;
+              GetIntAttr(obj, "WATLEV", watlev);
+
+              if((1 == watlev) || (2 == watlev))
+                  udwhaz03str = _T(";OP(--D14050)");
+              else
+              {
+                  udwhaz03str = _T(";OP(8OD14010);SY(ISODGR51)");
+//                  S57_setAtt(geo, "SCAMIN", "INFINITE");
+              }
+
+
+/*
+            GString *watlevstr = S57_getAttVal(geo, "WATLEV");
+            if (NULL != watlevstr && ('1' == *watlevstr->str || '2' == *watlevstr->str))
+                udwhaz03str = g_string_new(";OP(--D14050");
+            else {
+                udwhaz03str = g_string_new(";OP(8OD14010);SY(ISODGR01)");
+                S57_setAtt(geo, "SCAMIN", "INFINITE");
+            }
+*/
+        }
+    }
+
+    wxString *ret_str = new wxString(udwhaz03str);
+    return ret_str;
+
+/*  if(!udwhaz03str.IsEmpty())
+    {
+      char *r = (char *)malloc(udwhaz03str.Len() + 1);
+      strcpy(r, udwhaz03str.mb_str());
+      return r;
+    }
+    else
+      return NULL;
+*/
+}
+
 
 
 
@@ -448,15 +668,15 @@ static void *DEPARE01(void *param)
    S57Obj *obj = rzRules->obj;
 
 
-   float drval1, drval2;
+   double drval1, drval2;
 
 //      Determine the color based on mariner selections
 
 
    drval1 = -1.0;                                          // default values
-   GetFloatAttr(obj, "DRVAL1", drval1);
+   GetDoubleAttr(obj, "DRVAL1", drval1);
    drval2 = drval1 + 0.01;
-   GetFloatAttr(obj, "DRVAL2", drval2);
+   GetDoubleAttr(obj, "DRVAL2", drval2);
 
 
 
@@ -532,23 +752,230 @@ static void *DEPARE01(void *param)
     return r;
 
 }
-
-static void *DEPCNT02(void *param)
+/*
+static void *DEPCNT02A(void *param)
 {
- //       ObjRazRules *rzRules = (ObjRazRules *)param;
-//      S57Obj *obj = rzRules->obj;
+ //    ObjRazRules *rzRules = (ObjRazRules *)param;
+ //    S57Obj *obj = rzRules->obj;
 
         //      Add another rule onto the ruleList
-/*
+
     Rules *r = NULL;
 
     r = (Rules*)calloc(1, sizeof(Rules));
     r->ruleType = RUL_SIM_LN;
     r->INSTstr = "SOLD,1,DEPCN";                                // points into the plib data space
-*/
+
         return NULL;
 
 }
+*/
+
+static void *DEPCNT02 (void *param)
+// Remarks: An object of the class "depth contour" or "line depth area" is highlighted and must
+// be shown under all circumstances if it matches the safety contour depth value
+// entered by the mariner (see IMO PS 3.6). But, while the mariner is free to enter any
+// safety contour depth value that he thinks is suitable for the safety of his ship, the
+// SENC only contains a limited choice of depth contours. This symbology procedure
+// determines whether a contour matches the selected safety contour. If the selected
+// safety contour does not exist in the data, the procedure will default to the next deeper
+// contour. The contour selected is highlighted as the safety contour and put in
+// DISPLAYBASE. The procedure also identifies any line segment of the spatial
+// component of the object that has a "QUAPOS" value indicating unreliable
+// positioning, and symbolizes it with a double dashed line.
+            //
+// Note: Depth contours are not normally labeled. The ECDIS may provide labels, on demand
+// only as with other text, or provide the depth value on cursor picking
+{
+//      GString *depcnt02  = NULL;
+//      int      safe      = FALSE;     // initialy not a safety contour
+//      GString *objlstr   = NULL;
+//      int      objl      = 0;
+//      GString *quaposstr = NULL;
+//      int      quapos    = 0;
+      double   depth_value;
+      double drval1, drval2;
+      bool safe = FALSE;
+      wxString rule_str;
+      double safety_contour = S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR);
+
+//      objlstr = S57_getAttVal(geo, "OBJL");
+//      objl    = (NULL == objlstr) ? 0 : atoi(objlstr->str);
+
+      ObjRazRules *rzRules = (ObjRazRules *)param;
+      S57Obj *obj = rzRules->obj;
+// Debug
+//      if(obj->Index == 1719)
+//            int tty = 5;
+
+      if ((!strncmp(obj->FeatureName, "DEPARE", 6)) && GEO_LINE==obj->Primitive_type)
+      {
+            drval1 = 0.0;                                          // default values
+            GetDoubleAttr(obj, "DRVAL1", drval1);
+            drval2 = drval1;
+            GetDoubleAttr(obj, "DRVAL2", drval2);
+
+//            GString *drval1str = S57_getAttVal(geo, "DRVAL1");
+//            double   drval1    = (NULL == drval1str) ? 0.0    : atof(drval1str->str);
+//            GString *drval2str = S57_getAttVal(geo, "DRVAL2");
+//            double   drval2    = (NULL == drval2str) ? drval1 : atof(drval2str->str);
+
+            if (drval1 <= safety_contour)
+            {
+                  if (drval2 >= safety_contour)
+                        safe = TRUE;
+            }
+            else
+            {
+                  double next_safe_contour;
+                  if(rzRules->chart->GetNearestSafeContour(safety_contour, next_safe_contour))
+                  {
+                        if (drval1 == next_safe_contour)
+                              safe = TRUE;
+                  }
+//                  safe = FALSE;            //for debug
+                              /*
+                  if (1 == S52_state)
+                        return NULL;
+                  else
+                  {
+                        S57_geo *geoTmp = geo;
+
+                // get area DEPARE & DRGARE that intersect this line
+                        while (NULL != (geoTmp = S57_nextObj(geoTmp))) {
+                              drval1str = S57_getAttVal(geoTmp, "DRVAL1");
+                              drval1    = (NULL == drval1str) ? 0.0 : atof(drval1str->str);
+
+                              if (NULL == drval1str) {
+                                    safe = TRUE;
+                                    break;
+                              }
+
+                              if (drval1 < S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR)) {
+                                    safe = TRUE;
+                                    break;
+                              }
+                        }
+                // debug trace
+                //if (safe) PRINTF("** DEPARE: SAFE FOUND**\n");
+                  }
+                              */
+            }
+
+            depth_value = drval1;
+
+      }
+      else
+      {
+        // continuation A (DEPCNT)
+            double valdco = 0;
+            GetDoubleAttr(obj, "VALDCO", valdco);
+//            GString *valdcostr = S57_getAttVal(geo, "VALDCO");
+//            double   valdco    = (NULL == valdcostr) ? 0.0 : atof(valdcostr->str);
+
+            depth_value = valdco;
+
+            if (valdco == safety_contour)
+                  safe = TRUE;   // this is useless !?!?
+            else
+            {
+                  double next_safe_contour;
+                  if(rzRules->chart->GetNearestSafeContour(safety_contour, next_safe_contour))
+                  {
+                        if (valdco == next_safe_contour)
+                              safe = TRUE;
+                  }
+
+
+/*
+                  if (valdco > safety_contour)
+                  {
+                        safe = FALSE;
+                        if (1 == S52_state)
+                              return NULL;
+                        else {
+                              S57_geo *geoTmp = geo;
+
+                    // get area DEPARE & DRGARE that intersect this line
+                              while (NULL != (geoTmp = S57_nextObj(geoTmp))){
+                                    GString *drval1str = S57_getAttVal(geoTmp, "DRVAL1");
+                                    double   drval1    = (NULL == drval1str) ? 0.0 : atof(drval1str->str);
+
+                                    if (NULL == drval1str) {
+                                          safe = TRUE;
+                                          break;
+                                    }
+
+                                    if (drval1 < S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR)) {
+                                          safe = TRUE;
+                                          break;
+                                    }
+                              }
+                    // debug trace
+                    //if (safe) PRINTF("** DEPCN: SAFE FOUND**\n");
+                        }
+
+*/
+            }
+      }
+
+    // Continuation B
+      char quaposstr[20];
+      quaposstr[0] = 0;
+      GetStringAttr(obj, "QUAPOS", quaposstr, 19);
+      int quapos;
+//      S57_getAttVal(geo, "QUAPOS");
+      if (0 != quaposstr[0]) {
+            quapos = atoi(quaposstr);
+            if ( 2 <= quapos && quapos < 10) {
+                  if (safe)
+                        rule_str = _T(";LS(DASH,2,DEPSC)");  //depcnt02 = g_string_new(";LS(DASH,2,DEPSC)");
+                  else
+                        rule_str = _T(";LS(DASH,1,DEPCN)");  //depcnt02 = g_string_new(";LS(DASH,1,DEPCN)");
+            }
+      } else {
+            if (safe)
+                  rule_str = _T(";LS(SOLD,2,DEPSC)"); //depcnt02 = g_string_new(";LS(SOLD,2,DEPSC)");
+            else
+                  rule_str = _T(";LS(SOLD,1,DEPCN)"); //depcnt02 = g_string_new(";LS(SOLD,1,DEPCN)");
+      }
+
+      if (safe) {
+//            S57_setAtt(geo, "SCAMIN", "INFINITE");
+            rule_str.Prepend(_T(";OP(8OD13010)"));       //depcnt02 = g_string_prepend(depcnt02, ";OP(8OD13010)");
+      } else
+            rule_str.Prepend(_T(";OP(---33020)"));       //depcnt02 = g_string_prepend(depcnt02, ";OP(---33020)");
+
+    // facultative in S-52
+    //if (TRUE == S52_getMarinerParam(S52_MAR_SHOW_TEXT)) {
+    //    GString *sndfrm02 = _SNDFRM02(geo, depth_value);
+    //    depcnt02 = g_string_append(depcnt02, sndfrm02->str);
+    //    g_string_free(sndfrm02, TRUE);
+    //}
+
+    // debug
+    //PRINTF("depth= %f\n", depth_value);
+
+ //           S57_unlinkObj(geo);
+
+            rule_str.Append('\037');
+
+            char *r = (char *)malloc(rule_str.Len() + 1);
+            strcpy(r, rule_str.mb_str());
+            return r;
+
+//            return depcnt02;
+}
+
+
+
+
+
+
+
+
+
+
 
 static void *DEPVAL01(void *param)
 {
@@ -579,8 +1006,8 @@ static void *LIGHTS04(void *param)
         char col_str[2];
         GetStringAttr(obj, "COLOUR", col_str, 1);
 
-        float height_val = 0;
-        GetFloatAttr(obj, "HEIGHT", height_val);
+        double height_val = 0;
+        GetDoubleAttr(obj, "HEIGHT", height_val);
 
 //      if(obj->attList->Contains(wxString("HEIGHT")))
 //              int uupr = 5;
@@ -673,7 +1100,8 @@ static void *LITDSN01(void *param)
    return NULL;
 }
 
-static void *OBSTRN04(void *param)
+/*
+static void *OBSTRN04a(void *param)
 {
         ObjRazRules *rzRules = (ObjRazRules *)param;
 //      S57Obj *obj = rzRules->obj;
@@ -684,6 +1112,302 @@ static void *OBSTRN04(void *param)
         f03++;
    return NULL;
 }
+*/
+
+wxString *SNDFRM02(S57Obj *obj, double depth_value);
+
+static void *OBSTRN04 (void *param)
+// Remarks: Obstructions or isolated underwater dangers of depths less than the safety
+// contour which lie within the safe waters defined by the safety contour are
+// to be presented by a specific isolated danger symbol and put in IMO
+// category DISPLAYBASE (see (3), App.2, 1.3). This task is performed
+// by the sub-procedure "UDWHAZ03" which is called by this symbology
+// procedure. Objects of the class "under water rock" are handled by this
+// routine as well to ensure a consistent symbolization of isolated dangers on
+// the seabed.
+{
+      wxString obstrn04str;
+//      GString *sndfrm02str = NULL;
+      wxString *udwhaz03str = NULL;
+//      GString *valsoustr   = S57_getAttVal(geo, "VALSOU");
+
+      ObjRazRules *rzRules = (ObjRazRules *)param;
+      S57Obj *obj = rzRules->obj;
+
+      double   valsou      = UNKNOWN;
+      double   depth_value = UNKNOWN;
+      double   least_depth = UNKNOWN;
+
+      wxString *sndfrm02str = NULL;
+      wxString *quapnt01str = NULL;
+
+      GetDoubleAttr(obj, "VALSOU", valsou);
+
+      if (valsou != UNKNOWN)
+      {
+            depth_value = valsou;
+            sndfrm02str = SNDFRM02(obj, valsou);
+      }
+      else
+      {
+            if (GEO_AREA == obj->Primitive_type)
+                  least_depth = _DEPVAL01(obj, least_depth);
+
+            if (UNKNOWN != least_depth)
+            {
+                  char catobsstr[20];
+                  catobsstr[0] = 0;
+                  GetStringAttr(obj, "CATOBS", catobsstr, 19);
+                  char watlevstr[20];
+                  watlevstr[0] = 0;
+                  GetStringAttr(obj, "WATLEV", watlevstr, 19);
+
+                  if ('6' == catobsstr[0])
+                        depth_value = 0.01;
+                  else if (0 == watlevstr[0]) // default
+                        depth_value = -15.0;
+                  else
+                  {
+                        switch (watlevstr[0]){
+                              case '5': depth_value =   0.0 ; break;
+                              case '3': depth_value =   0.01; break;
+                              case '4':
+                              case '1':
+                              case '2':
+                                    default : depth_value = -15.0 ; break;
+                        }
+                  }
+            }
+            else
+                  depth_value = least_depth;
+      }
+
+      udwhaz03str = _UDWHAZ03(obj, depth_value, rzRules);
+
+
+      if (GEO_POINT == obj->Primitive_type)
+      {
+        // Continuation A
+            int      sounding    = FALSE;
+            quapnt01str = CSQUAPNT01(obj);
+
+            if (0 != udwhaz03str->Len())
+            {
+                  obstrn04str.Append(*udwhaz03str);
+                  obstrn04str.Append(*quapnt01str);
+
+                  goto end;
+            }
+
+            if (UNKNOWN != valsou)
+            {
+                   if (valsou <= 20.0)
+                  {
+//                        GString *objlstr   = S57_getAttVal(geo, "OBJL");
+//                        int      objl      = (NULL == objlstr)? 0 : atoi(objlstr->str);
+//                        GString *watlevstr = S57_getAttVal(geo, "WATLEV");
+                        int watlev = -9;
+                        GetIntAttr(obj, "WATLEV", watlev);
+
+                        if (!strncmp(obj->FeatureName, "UWTROC", 6))
+                        {
+                              if (-9 == watlev) {  // default
+                                    obstrn04str.Append(_T(";SY(DANGER51)"));
+                                    sounding = TRUE;
+                              } else {
+                                    switch (watlev){
+                                          case 3: obstrn04str.Append(_T(";SY(DANGER51)")); sounding = TRUE ; break;
+                                          case 4:
+                                          case 5: obstrn04str.Append(_T(";SY(UWTROC04)")); sounding = FALSE; break;
+                                          default : obstrn04str.Append(_T(";SY(DANGER51)")); sounding = TRUE ; break;
+                                    }
+                              }
+                        }
+                        else
+                        { // OBSTRN
+                              if (-9 == watlev) { // default
+                                    obstrn04str.Append(_T(";SY(DANGER01)"));
+                                    sounding = TRUE;
+                              } else {
+                                    switch (watlev) {
+                                          case 1:
+                                          case 2: obstrn04str.Append(_T(";SY(OBSTRN11)")); sounding = FALSE; break;
+                                          case 3: obstrn04str.Append(_T(";SY(DANGER51)")); sounding = TRUE;  break;
+                                          case 4:
+                                          case 5: obstrn04str.Append(_T(";SY(DANGER53)")); sounding = TRUE; break;
+                                          default : obstrn04str.Append(_T(";SY(DANGER51)")); sounding = TRUE; break;
+                                    }
+                              }
+                        }
+                  }
+                  else
+                  {  // valsou > 20.0
+                        obstrn04str.Append(_T(";SY(DANGER52)"));
+                        sounding = FALSE;
+                  }
+            }
+            else
+            {  // NO valsou
+//                  GString *objlstr   = S57_getAttVal(geo, "OBJL");
+//                  int     objl       = (NULL == objlstr)? 0 : atoi(objlstr->str);
+                  int watlev = -9;
+                  GetIntAttr(obj, "WATLEV", watlev);
+//                  GString *watlevstr = S57_getAttVal(geo, "WATLEV");
+
+                  if (!strncmp(obj->FeatureName, "UWTROC", 6))
+                  {
+                        if (watlev == -9)  // default
+                              obstrn04str.Append(_T(";SY(UWTROC04)"));
+                        else {
+                              if (3 == watlev)
+                                    obstrn04str.Append(_T(";SY(UWTROC03)"));
+                              else
+                                    obstrn04str.Append(_T(";SY(UWTROC04)"));
+                        }
+
+                  }
+                  else
+                  { // OBSTRN
+                        if ( -9 == watlev) // default
+                              obstrn04str = _T(";SY(OBSTRN01)");
+                        else
+                        {
+                              switch (watlev) {
+                                    case 1:
+                                    case 2: obstrn04str.Append(_T(";SY(ISODGR51)")); break;
+                                    case 3: obstrn04str.Append(_T(";SY(ISODGR51)")); break;
+                                    case 4:
+                                    case 5:
+                                    default : obstrn04str.Append(_T(";SY(ISODGR51)")); break;
+                              }
+                        }
+                  }
+             }
+
+             if (sounding)
+                  obstrn04str.Append(*sndfrm02str);
+
+             obstrn04str.Append(*quapnt01str);
+
+            goto end;
+
+      }     // if geopoint
+      else
+      {
+             if (GEO_LINE == obj->Primitive_type)
+             {
+                         goto end;
+                         /*
+            // Continuation B
+                  GString *quaposstr = S57_getAttVal(geo, "QUAPOS");
+                  int      quapos    = 0;
+
+                  if (NULL != quaposstr) {
+                        quapos = atoi(quaposstr->str);
+                        if ( 2 <= quapos && quapos < 10){
+                              if (NULL != udwhaz03str)
+                                    g_string_append(obstrn04str, ";LC(LOWACC41)");
+                              else
+                                    g_string_append(obstrn04str, ";LC(LOWACC31)");
+                        }
+                  }
+
+                  if (NULL != udwhaz03str)
+                        g_string_append(obstrn04str, ";LS(DOTT,2,CHBLK)");
+
+                  if (UNKNOWN != valsou)
+                        if (valsou <= 20.0)
+                              g_string_append(obstrn04str, ";LS(DOTT,2,CHBLK)");
+                  else
+                        g_string_append(obstrn04str, ";LS(DASH,2,CHBLK)");
+                  else
+                        g_string_append(obstrn04str, ";LS(DOTT,2,CHBLK)");
+
+
+                  if (NULL != udwhaz03str)
+                        g_string_append(obstrn04str, udwhaz03str->str);
+                  else {
+                        if (UNKNOWN != valsou)
+                              if (valsou <= 20.0)
+                                    g_string_append(obstrn04str, sndfrm02str->str);
+                  }
+
+                  return obstrn04str;
+                         */
+               }
+
+            else
+            {
+                      goto end;
+/*
+            // Continuation C (AREAS_T)
+                  GString *quapnt01str = CSQUAPNT01(geo);
+                  if (NULL != udwhaz03str) {
+                        g_string_append(obstrn04str, ";AC(DEPVS);AP(FOULAR01)");
+                        g_string_append(obstrn04str, ";LS(DOTT,2,CHBLK)");
+                        g_string_append(obstrn04str, udwhaz03str->str);
+                        if (NULL != quapnt01str)
+                              g_string_append(obstrn04str, quapnt01str->str);
+
+                        return obstrn04str;
+                  }
+
+                  if (UNKNOWN != valsou) {
+                // BUG in CA49995B.000 if we get here because there is no color
+                // beside NODATA (ie there is a hole in group 1 area!)
+                //g_string_append(obstrn04, ";AC(UINFR)");
+
+                        if (valsou <= 20.0)
+                              g_string_append(obstrn04str, ";LS(DOTT,2,CHBLK)");
+                        else
+                              g_string_append(obstrn04str, ";LS(DASH,2,CHBLK)");
+
+                        g_string_append(obstrn04str, sndfrm02str->str);
+
+                  } else {
+                        GString *watlevstr = S57_getAttVal(geo, "WATLEV");
+
+                        if (NULL == watlevstr)   // default
+                              g_string_append(obstrn04str, ";AC(DEPVS);LS(DOTT,2,CHBLK)");
+                        else {
+                              if ('3' == *watlevstr->str) {
+                                    GString *catobsstr = S57_getAttVal(geo, "CATOBS");
+                                    if (NULL != catobsstr && '6' == *catobsstr->str)
+                                          g_string_append(obstrn04str, ";AC(DEPVS);AP(FOULAR01);LS(DOTT,2,CHBLK)");
+                              } else {
+                                    switch (*watlevstr->str) {
+                                          case '1':
+                                                case '2': g_string_append(obstrn04str, ";AC(CHBRN);LS(SOLD,2,CSTLN)"); break;
+                                                case '4': g_string_append(obstrn04str, ";AC(DEPIT);LS(DASH,2,CSTLN)"); break;
+                                          case '5':
+                                          case '3':
+                                                default : g_string_append(obstrn04str, ";AC(DEPVS);LS(DOTT,2,CHBLK)");  break;
+                                    }
+                              }
+                        }
+                  }
+
+                  g_string_append(obstrn04str, quapnt01str->str);
+
+                  return obstrn04str;
+*/
+            }
+      }
+
+end:
+    obstrn04str.Append('\037');
+
+    char *r = (char *)malloc(obstrn04str.Len() + 1);
+    strcpy(r, obstrn04str.mb_str());
+
+    delete udwhaz03str;
+    delete sndfrm02str;
+    delete quapnt01str;
+
+    return r;
+}
+
+
 
 static void *OWNSHP02(void *param)
 {
@@ -709,6 +1433,8 @@ static void *QUAPNT01(void *param);
 static void *QUAPOS01(void *param)
 // Remarks: The attribute QUAPOS, which identifies low positional accuracy, is attached
 // to the spatial object, not the feature object.
+// In OpenCPN implementation, QUAPOS of Point Objects has been converted to
+// QUALTY attribute of object.
 //
 // This procedure passes the object to procedure QUALIN01 or QUAPNT01,
 // which traces back to the spatial object, retrieves any QUAPOS attributes,
@@ -717,14 +1443,21 @@ static void *QUAPOS01(void *param)
     ObjRazRules *rzRules = (ObjRazRules *)param;
     S57Obj *obj = rzRules->obj;
 
-    char *quapos01 = NULL;
+    wxString *q = NULL;
 
     if (GEO_LINE == obj->Primitive_type)
-        quapos01 = (char *)QUALIN01(param);
-    else
-        quapos01 = (char *)QUAPNT01(param);
+          q = CSQUALIN01(obj);
 
-    return quapos01;
+    else
+          q = CSQUAPNT01(obj);
+
+    char *r = (char *)malloc(q->Len() + 1);
+    strcpy(r, q->mb_str());
+
+    delete q;
+
+    return r;
+
 }
 
 static void *QUALIN01(void *param)
@@ -739,6 +1472,23 @@ static void *QUALIN01(void *param)
     ObjRazRules *rzRules = (ObjRazRules *)param;
     S57Obj *obj = rzRules->obj;
 
+    wxString *q = CSQUALIN01(obj);
+    char *r = (char *)malloc(q->Len() + 1);
+    strcpy(r, q->mb_str());
+
+    delete q;
+    return r;
+}
+
+wxString *CSQUALIN01(S57Obj *obj)
+// Remarks: The attribute QUAPOS, which identifies low positional accuracy, is attached
+// only to the spatial component(s) of an object.
+//
+// A line object may be composed of more than one spatial object.
+//
+// This procedure looks at each of the spatial
+// objects, and symbolizes the line according to the positional accuracy.
+{
     wxString qualino1;
     int quapos = 0;
     bool bquapos = GetIntAttr(obj, "QUAPOS", quapos);
@@ -748,7 +1498,7 @@ static void *QUALIN01(void *param)
         if ( 2 <= quapos && quapos < 10)
             line = "LC(LOWACC21)";
     } else {
-        if (!strncmp("COALNE", rzRules->LUP->OBCL, 6)) {
+        if (!strncmp("COALNE", obj->FeatureName, 6)) {
             int conrad;
             bool bconrad = GetIntAttr(obj, "CONRAD", conrad);
 
@@ -769,48 +1519,78 @@ static void *QUALIN01(void *param)
 
     qualino1.Append('\037');
 
-    char *r = (char *)malloc(qualino1.Len() + 1);
+    wxString *r = new wxString(qualino1);
+
+/*    char *r = (char *)malloc(qualino1.Len() + 1);
     strcpy(r, qualino1.mb_str());
-
-
+*/
     return r;
 }
+
+
 
 static void *QUAPNT01(void *param)
 // Remarks: The attribute QUAPOS, which identifies low positional accuracy, is attached
 // only to the spatial component(s) of an object.
 //
-// This procedure retrieves any QUAPOS attributes, and returns the
+// This procedure retrieves any QUALTY (ne QUAPOS) attributes, and returns the
 // appropriate symbols to the calling procedure.
+
 {
     ObjRazRules *rzRules = (ObjRazRules *)param;
     S57Obj *obj = rzRules->obj;
 
+    wxString *q = CSQUAPNT01(obj);
+
+    char *r = (char *)malloc(q->Len() + 1);
+    strcpy(r, q->mb_str());
+
+    return r;
+}
+
+wxString *CSQUAPNT01(S57Obj *obj)
+// Remarks: The attribute QUAPOS, which identifies low positional accuracy, is attached
+// only to the spatial component(s) of an object.
+//
+// This procedure retrieves any QUALTY (ne QUAPOS) attributes, and returns the
+// appropriate symbols to the calling procedure.
+
+{
     wxString quapnt01;
     int accurate  = TRUE;
-    int quapos;
-    bool bquapos = GetIntAttr(obj, "QUAPOS", quapos);
+    int qualty = 10;
+    bool bquapos = GetIntAttr(obj, "QUALTY", qualty);
 
     if (bquapos) {
-        if ( 2 <= quapos && quapos < 10)
+        if ( 2 <= qualty && qualty < 10)
             accurate = FALSE;
     }
 
     if (!accurate)
-        quapnt01.Append(_T("SY(LOWACC01)"));
-
+    {
+          switch(qualty)
+          {
+          case 4:
+                quapnt01.Append(_T(";SY(QUAPOS01)")); break;      // "PA"
+          case 5:
+                quapnt01.Append(_T(";SY(QUAPOS02)")); break;      // "PD"
+          case 7:
+          case 8:
+                quapnt01.Append(_T(";SY(QUAPOS03)")); break;      // "REP"
+          default:
+                quapnt01.Append(_T(";SY(LOWACC03)")); break;      // "?"
+          }
+    }
 
     quapnt01.Append('\037');
 
-    char *r = (char *)malloc(quapnt01.Len() + 1);
+    wxString *r = new wxString(*quapnt01);
+
+/*    char *r = (char *)malloc(quapnt01.Len() + 1);
     strcpy(r, quapnt01.mb_str());
-
-
+*/
     return r;
-
 }
-
-
 
 static void *SLCONS03(void *param)
 
@@ -1220,7 +2000,7 @@ static void *SNDFRM02(void *param)
 }
 */
 
-static void *SNDFRM02(S57Obj *obj, double depth_value);
+wxString *SNDFRM02(S57Obj *obj, double depth_value);
 
 static void *SOUNDG02(void *param)
 // Remarks: In S-57 soundings are elements of sounding arrays rather than individual
@@ -1247,14 +2027,18 @@ static void *SOUNDG03(void *param)
     ObjRazRules *rzRules = (ObjRazRules *)param;
     S57Obj *obj = rzRules->obj;
 
-    char *r = (char *)SNDFRM02(obj, obj->z);
-    return r;
+    wxString *s = SNDFRM02(obj, obj->z);
 
+    char *r = (char *)malloc(s->Len() + 1);
+    strcpy(r, s->mb_str());
+
+    delete s;
+    return r;
 }
 
 
 
-static void *SNDFRM02(S57Obj *obj, double depth_value)
+wxString *SNDFRM02(S57Obj *obj, double depth_value)
 // Remarks: Soundings differ from plain text because they have to be readable under all
 // circumstances and their digits are placed according to special rules. This
 // conditional symbology procedure accesses a set of carefully designed
@@ -1358,7 +2142,9 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
                 sndfrm02.Append(wxString(temp_str, wxConvUTF8));
             }
 
-            sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, (int)leading_digit);
+            double first_digit = floor(leading_digit / 10);
+            int secnd_digit = (int)(floor(leading_digit - (first_digit * 10)));
+            sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, secnd_digit/*(int)leading_digit*/);
             sndfrm02.Append(wxString(temp_str, wxConvUTF8));
             sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix_a, (int)fraction);
             sndfrm02.Append(wxString(temp_str, wxConvUTF8));
@@ -1442,9 +2228,11 @@ static void *SNDFRM02(S57Obj *obj, double depth_value)
 return_point:
         sndfrm02.Append('\037');
 
-        char *r = (char *)malloc(sndfrm02.Len() + 1);
-        strcpy(r, sndfrm02.mb_str());
+        wxString *r = new wxString(sndfrm02);
 
+/*        char *r = (char *)malloc(sndfrm02.Len() + 1);
+        strcpy(r, sndfrm02.mb_str());
+*/
         delete tecsoustr;
         delete quasoustr;
         delete statusstr;
@@ -1590,24 +2378,6 @@ static void *TOPMAR01 (void *param)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 static void *UDWHAZ03(void *param)
 {
         ObjRazRules *rzRules = (ObjRazRules *)param;
@@ -1635,7 +2405,8 @@ static void *VRMEBL01(void *param)
    return NULL;
 }
 
-static void *WRECKS02(void *param)
+/*
+static void *WRECKS02a(void *param)
 {
         ObjRazRules *rzRules = (ObjRazRules *)param;
 //      S57Obj *obj = rzRules->obj;
@@ -1646,6 +2417,271 @@ static void *WRECKS02(void *param)
         f07++;
    return NULL;
 }
+*/
+
+static void *WRECKS02 (void *param)
+// Remarks: Wrecks of depths less than the safety contour which lie within the safe waters
+// defined by the safety contour are to be presented by a specific isolated
+// danger symbol and put in IMO category DISPLAYBASE (see (3), App.2,
+// 1.3). This task is performed by the sub-procedure "UDWHAZ03" which is
+// called by this symbology procedure.
+{
+    wxString wrecks02str;
+    wxString *sndfrm02str = NULL;
+    wxString *udwhaz03str = NULL;
+    wxString *quapnt01str = NULL;
+    double   least_depth = UNKNOWN;
+    double   depth_value = UNKNOWN;
+//    GString *valsoustr   = S57_getAttVal(geo, "VALSOU");
+    double   valsou      = UNKNOWN;
+
+    ObjRazRules *rzRules = (ObjRazRules *)param;
+    S57Obj *obj = rzRules->obj;
+
+    GetDoubleAttr(obj, "VALSOU", valsou);
+
+    int watlev = -9;
+    GetIntAttr(obj, "WATLEV", watlev);
+    int catwrk = -9;
+    GetIntAttr(obj, "CATWRK", catwrk);
+
+    double safety_contour = S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR);
+
+    if (UNKNOWN != valsou)
+    {
+        depth_value = valsou;
+        sndfrm02str = SNDFRM02(obj, depth_value);
+    }
+    else
+    {
+        if (GEO_AREA == obj->Primitive_type)
+            least_depth = _DEPVAL01(obj, least_depth);
+
+        if (least_depth == UNKNOWN)
+/*
+        {
+            // WARNING: ambiguity removed in WRECKS03 (see update)
+
+            if (-9 == watlev) // default
+                depth_value = -15.0;
+            else
+                switch (watlev)
+                  { // ambiguous
+                    case 1:
+                    case 2: depth_value = -15.0 ; break;
+                    case 3: depth_value =   0.01; break;
+                    case 4: depth_value = -15.0 ; break;
+                    case 5: depth_value =   0.0 ; break;
+                    case 6: depth_value = -15.0 ; break;
+                    default :
+                          {
+                              if (-9 != catwrk)
+                              {
+                                    switch (catwrk)
+                                    {
+                                          case 1: depth_value =  20.0; break;
+                                          case 2: depth_value =   0.0; break;
+                                          case 4:
+                                          case 5: depth_value = -15.0; break;
+                                    }
+                               }
+                          }
+                  }
+        }
+*/
+////////////////////////////////////////////////
+//    DSR New Logic Here  (FIXME)
+        {
+           if (-9 != catwrk)
+           {
+                  switch (catwrk)
+                  {
+                        case 1: depth_value =  20.0; break;       // safe
+                        case 2: depth_value =   0.0; break;       // dangerous
+                        case 4:
+                        case 5: depth_value = -15.0; break;
+                  }
+            }
+            else
+            {
+                if (-9 == watlev) // default
+                      depth_value = -15.0;
+                else
+                  switch (watlev)
+                  {
+                    case 1:
+                    case 2: depth_value = -15.0 ; break;
+                    case 3: depth_value =   0.01; break;
+                    case 4: depth_value = -15.0 ; break;
+                    case 5: depth_value =   0.0 ; break;
+                    case 6: depth_value = -15.0 ; break;
+                  }
+            }
+
+        }
+
+        else
+            depth_value = least_depth;
+
+
+    }
+
+    udwhaz03str = _UDWHAZ03(obj, depth_value, rzRules);
+    quapnt01str = CSQUAPNT01(obj);
+
+    if (GEO_POINT == obj->Primitive_type) {
+          if (0 != udwhaz03str->Len()) {
+            wrecks02str = wxString(*udwhaz03str);
+
+          wrecks02str.Append(*quapnt01str);
+
+        } else {
+            // Continuation A (POINT_T)
+            if (UNKNOWN != valsou) {
+///////////////////////////////////////////
+//    DSR New logic here, FIXME check s52 specs
+/*
+                if (valsou <= 20.0)
+                {
+                    wrecks02str = wxString(";SY(DANGER51)");
+                    if (NULL != sndfrm02str)
+                        wrecks02str.Append(sndfrm02str);
+                }
+                else
+                    wrecks02str = wxString(";SY(DANGER52)");
+*/
+                if((valsou < safety_contour) || (2 == catwrk))    // maybe redundant, seems like wrecks with valsou < 20
+                                                                  // are always coded as "dangerous wrecks"
+                      wrecks02str = wxString(_T(";SY(DANGER51)"));
+                else
+                      wrecks02str = wxString(_T(";SY(DANGER52)"));
+
+                if (NULL != sndfrm02str)                          // always show valsou depth
+                        wrecks02str.Append(*sndfrm02str);
+///////////////////////////////////////////
+
+                wrecks02str.Append(*udwhaz03str);
+                wrecks02str.Append(*quapnt01str);
+
+            } else {
+                wxString sym;
+
+                if (-9 != catwrk && -9 != watlev) {
+                    if (1 == catwrk && 3 == watlev)
+                          sym =_T(";SY(WRECKS04)");
+                    else {
+                        if (2 == catwrk && 3 == watlev)
+                              sym = _T(";SY(WRECKS05)");
+                        else {
+                            if (4 == catwrk || 5 == catwrk)
+                                  sym = _T(";SY(WRECKS01)");
+                            else {
+                                if (1 == watlev ||
+                                    2 == watlev ||
+                                    5 == watlev ||
+                                    4 == watlev ){
+                                      sym = _T(";SY(WRECKS01)");
+                                } else
+                                      sym = _T(";SY(WRECKS05)"); // default
+
+                            }
+                        }
+                    }
+                }
+
+                wrecks02str = sym;
+                if (NULL != quapnt01str)
+                    wrecks02str.Append(*quapnt01str);
+
+            }
+
+        }
+
+
+    } else {
+        // Continuation B (AREAS_T)
+        int quapos = 0;
+        GetIntAttr(obj, "QUAPOS", quapos);
+
+        wxString line;
+
+        if (2 <= quapos && quapos < 10)
+              line = _T(";LC(LOWACC41)");
+        else {
+              if ( 0 != udwhaz03str->Len())
+                  line = _T(";LS(DOTT,2,CHBLK)");
+            else {
+                 if (UNKNOWN != valsou){
+                     if (valsou <= 20)
+                           line = _T(";LS(DOTT,2,CHBLK)");
+                     else
+                           line = _T(";LS(DASH,2,CHBLK)");
+                 } else {
+
+                     if (-9 == watlev)
+                           line = _T(";LS(DOTT,2,CSTLN)");
+                     else {
+                         switch (watlev){
+                             case 1:
+                             case 2: line = _T(";LS(SOLD,2,CSTLN)"); break;
+                             case 4: line = _T(";LS(DASH,2,CSTLN)"); break;
+                             case 3:
+                             case 5:
+
+                             default : line = _T(";LS(DOTT,2,CSTLN)"); break;
+                         }
+                     }
+
+                 }
+            }
+        }
+        wrecks02str = wxString(line);
+
+        if (UNKNOWN != valsou) {
+            if (valsou <= 20) {
+                    wrecks02str.Append(*udwhaz03str);
+                    wrecks02str.Append(*quapnt01str);
+                    wrecks02str.Append(*sndfrm02str);
+
+            } else {
+                // NOTE: ??? same as above ???
+                    wrecks02str.Append(*udwhaz03str);
+                    wrecks02str.Append(*quapnt01str);
+            }
+        } else {
+            wxString ac;
+
+            if (-9 == watlev)
+                  ac = _T(";AC(DEPVS)");
+            else
+                switch (watlev) {
+                          case 1:
+                          case 2: ac = _T(";AC(CHBRN)"); break;
+                          case 4: ac = _T(";AC(DEPIT)"); break;
+                          case 5:
+                          case 3:
+                          default : ac = _T(";AC(DEPVS)"); break;
+                }
+
+            wrecks02str.Append(ac);
+
+            wrecks02str.Append(*udwhaz03str);
+            wrecks02str.Append(*quapnt01str);
+        }
+    }
+
+    wrecks02str.Append('\037');
+
+    char *r = (char *)malloc(wrecks02str.Len() + 1);
+    strcpy(r, wrecks02str.mb_str());
+
+    delete sndfrm02str;
+    delete udwhaz03str;
+    delete quapnt01str;
+
+    return r;
+}
+
 
 
 //--------------------------------
@@ -1723,7 +2759,7 @@ Cond condTable[] = {
 #include <math.h>       // fabsf(), HUGE_VAL
 #include <ctype.h>      // isdigit()
 
-#define UNKNOWN HUGE_VAL   // INFINITY/NAN
+#define UNKNOWN 1e6     //HUGE_VAL   // INFINITY/NAN
 
 #define COALNE   30   // Coastline
 #define DEPARE   42   // Depth area
@@ -2093,19 +3129,24 @@ static GString *DEPCNT02 (S57_geo *geo)
     objlstr = S57_getAttVal(geo, "OBJL");
     objl    = (NULL == objlstr) ? 0 : atoi(objlstr->str);
 
-    if (DEPARE==objl && LINES_T==S57_getObjtype(geo)) {
+    if (DEPARE==objl && LINES_T==S57_getObjtype(geo))
+    {
         GString *drval1str = S57_getAttVal(geo, "DRVAL1");
         double   drval1    = (NULL == drval1str) ? 0.0    : atof(drval1str->str);
         GString *drval2str = S57_getAttVal(geo, "DRVAL2");
         double   drval2    = (NULL == drval2str) ? drval1 : atof(drval2str->str);
 
-        if (drval1 <= S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR)) {
+        if (drval1 <= S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR))
+        {
             if (drval2 >= S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR))
                 safe = TRUE;
-        } else {
+        }
+        else
+        {
             if (1 == S52_state)
                 return NULL;
-            else {
+            else
+            {
                 S57_geo *geoTmp = geo;
 
                 // get area DEPARE & DRGARE that intersect this line
@@ -2130,7 +3171,9 @@ static GString *DEPCNT02 (S57_geo *geo)
 
         depth_value = drval1;
 
-    } else {
+    }
+    else
+    {
         // continuation A (DEPCNT)
         GString *valdcostr = S57_getAttVal(geo, "VALDCO");
         double   valdco    = (NULL == valdcostr) ? 0.0 : atof(valdcostr->str);
@@ -2139,7 +3182,8 @@ static GString *DEPCNT02 (S57_geo *geo)
 
         if (valdco == S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR))
             safe = TRUE;   // this is useless !?!?
-        else {
+        else
+        {
             if (valdco > S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR)) {
                 if (1 == S52_state)
                     return NULL;
@@ -2212,7 +3256,7 @@ static double   _DEPVAL01(S57_geo *geo, double least_depth)
 // be covered by either group 1 object DEPARE or group 1 object UNSARE.
 // If the value of the attribute VALSOU for an area OBSTRN or WRECKS
 // is missing, the DRVAL1 of an underlying DEPARE is the preferred default
-// for establishing a depth vale. This procedure either finds the shallowest
+// for establishing a depth value. This procedure either finds the shallowest
 // DRVAL1 of the one or more underlying DEPAREs, or returns an
 // "unknown"" depth value to the main procedure for the next default
 // procedure.
@@ -3698,6 +4742,7 @@ static GString *TOPMAR01 (S57_geo *geo)
     return topmar;
 }
 
+/*
 static GString *_UDWHAZ03(S57_geo *geo, double depth_value)
 // Remarks: Obstructions or isolated underwater dangers of depths less than the safety
 // contour which lie within the safe waters defined by the safety contour are
@@ -3746,7 +4791,7 @@ static GString *_UDWHAZ03(S57_geo *geo, double depth_value)
             if (NULL != watlevstr && ('1' == *watlevstr->str || '2' == *watlevstr->str))
                 udwhaz03str = g_string_new(";OP(--D14050");
             else {
-                udwhaz03str = g_string_new(";OP(8OD14010);SY(ISODGR01)");
+                udwhaz03str = g_string_new(";OP(8OD14010);SY(ISODGR51)");
                 S57_setAtt(geo, "SCAMIN", "INFINITE");
             }
         }
@@ -4027,5 +5072,5 @@ CondSymb condTable[] = {
 
    {"########",NULL}
 };
-
+*/
 #endif
