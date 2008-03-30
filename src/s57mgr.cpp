@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57mgr.cpp,v 1.3 2008/01/12 06:21:28 bdbcat Exp $
+ * $Id: s57mgr.cpp,v 1.4 2008/03/30 22:20:39 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S57 Chart Manager
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< s57mgr.cpp
  * $Log: s57mgr.cpp,v $
+ * Revision 1.4  2008/03/30 22:20:39  bdbcat
+ * Update for Mac OSX/Unicode
+ *
+=======
+ * $Log: s57mgr.cpp,v $
+ * Revision 1.4  2008/03/30 22:20:39  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.3  2008/01/12 06:21:28  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.3
  * Revision 1.2  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -85,7 +95,7 @@
 
 //#include "../mygdal/include/iso8211.h"
 
-CPL_CVSID("$Id: s57mgr.cpp,v 1.3 2008/01/12 06:21:28 bdbcat Exp $");
+CPL_CVSID("$Id: s57mgr.cpp,v 1.4 2008/03/30 22:20:39 bdbcat Exp $");
 
 static wxString *pval;
 
@@ -129,7 +139,7 @@ extern "C" char *mygetenv(char *pvar)
 #include <stdlib.h>
 extern char **environ;
 {
-    wxLogMessage("In my getenv");
+    wxLogMessage(_T("In my getenv"));
 
     void *t = (void *)environ;
     return NULL;

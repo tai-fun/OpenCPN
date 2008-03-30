@@ -13,7 +13,7 @@
 #include <assert.h>
 
 #include "dychart.h"
-CPL_CVSID("$Id: sercomm.cpp,v 1.3 2008/01/12 06:21:36 bdbcat Exp $");
+CPL_CVSID("$Id: sercomm.cpp,v 1.4 2008/03/30 22:22:02 bdbcat Exp $");
 
 //#include <sstream>
 
