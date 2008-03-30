@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ddfrecord.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ddfrecord.cpp,v 1.2 2008/03/30 22:46:31 bdbcat Exp $
  *
  * Project:  ISO 8211 Access
  * Purpose:  Implements the DDFRecord class.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ddfrecord.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 22:46:31  bdbcat
+ * Add Copy() method
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:29  dsr
  * Rename/Import to OpenCPN
@@ -122,7 +125,7 @@
 #include "iso8211.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ddfrecord.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: ddfrecord.cpp,v 1.2 2008/03/30 22:46:31 bdbcat Exp $");
 
 static const size_t nLeaderSize = 24;
 
@@ -1024,6 +1027,50 @@ DDFRecord *DDFRecord::CloneOn( DDFModule *poTargetModule )
     poTargetModule->AddCloneRecord( poClone );
 
     return poClone;
+}
+
+
+/************************************************************************/
+/*                               Copy()                                */
+/************************************************************************/
+
+/**
+ * Make a copy of a record.
+ *
+ * This method is used to make a copy of a record that will become 
+ * the properly of application.  
+ *
+ * @return A new copy of the DDFRecord.  This can be delete'd by the
+ * application when no longer needed.
+ */
+
+DDFRecord * DDFRecord::Copy()
+
+{
+    DDFRecord   *poNR;
+
+    poNR = new DDFRecord( poModule );
+
+    poNR->nReuseHeader = FALSE;
+    poNR->nFieldOffset = nFieldOffset;
+    
+    poNR->nDataSize = nDataSize;
+    poNR->pachData = (char *) CPLMalloc(nDataSize);
+    memcpy( poNR->pachData, pachData, nDataSize );
+    
+    poNR->nFieldCount = nFieldCount;
+    poNR->paoFields = new DDFField[nFieldCount];
+    for( int i = 0; i < nFieldCount; i++ )
+    {
+        int     nOffset;
+
+        nOffset = (paoFields[i].GetData() - pachData);
+        poNR->paoFields[i].Initialize( paoFields[i].GetFieldDefn(),
+                                       poNR->pachData + nOffset,
+                                       paoFields[i].GetDataSize() );
+    }
+    
+    return poNR;
 }
 
 
