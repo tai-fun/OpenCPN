@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: iso8211.h,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: iso8211.h,v 1.2 2008/03/30 22:55:35 bdbcat Exp $
  *
  * Project:  ISO 8211 Access
  * Purpose:  Main declarations for ISO 8211.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: iso8211.h,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 22:55:35  bdbcat
+ * Add Copy() method
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -165,6 +168,7 @@ class DDFModule
     void        Dump( FILE * fp );
 
     DDFRecord   *ReadRecord( void );
+    DDFRecord   *ReadRecord1( void );
     void        Rewind( long nOffset = -1 );
 
     DDFFieldDefn *FindFieldDefn( const char * );
@@ -447,7 +451,7 @@ class DDFRecord
 
     DDFRecord  *Clone();
     DDFRecord  *CloneOn( DDFModule * );
-    
+    DDFRecord  *Copy();
     void        Dump( FILE * );
 
     /** Get the number of DDFFields on this record. */
