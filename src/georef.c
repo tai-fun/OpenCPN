@@ -52,7 +52,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: georef.c,v 1.6 2008/01/02 20:47:48 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.7 2008/03/30 22:32:55 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -299,7 +299,7 @@ void todmm(int flag, double a, char *bufp, int bufplen)
       d = -d;
 
     if (!flag)
-      sprintf(bufp, "%d %02ld.%03ld'", d, m / 1000, m % 1000);
+      snprintf(bufp, bufplen, "%d %02ld.%03ld'", d, m / 1000, m % 1000);
     else {
       if (flag == 1) {
           char c = 'N';
@@ -308,8 +308,8 @@ void todmm(int flag, double a, char *bufp, int bufplen)
             d = -d;
             c = 'S';
           }
-          sprintf(bufp,
-                 "%02d%02ld%02ld%c", d, m / 1000, (m % 1000) / 10, c);
+          snprintf(bufp, bufplen,
+                 "%02d %02ld.%03ld %c", d, m / 1000, (m % 1000), c);
       } else if (flag == 2) {
           char c = 'E';
 
@@ -317,8 +317,8 @@ void todmm(int flag, double a, char *bufp, int bufplen)
             d = -d;
             c = 'W';
           }
-          sprintf(bufp,
-                 "%03d%02ld%02ld%c", d, m / 1000, (m % 1000) / 10, c);
+          snprintf(bufp, bufplen,
+                 "%03d %02ld.%03ld %c", d, m / 1000, (m % 1000), c);
       }
     }
     return;
@@ -637,8 +637,32 @@ resultantLatLong[lat1, lon1, dist, bearing] :=
                                 return [lat2, lon1+L]
 }
 
-
 */
+
+float DistGreatCircle(double slat, double slon, double dlat, double dlon)
+{
+//    Calculate distance using Great Circle Formula
+//  d=2*asin(sqrt((sin((lat1-lat2)/2))^2 +
+//                 cos(lat1)*cos(lat2)*(sin((lon1-lon2)/2))^2))
+//  distance_nm=((180*60)/pi)*distance_radians
+
+      double lon1 = dlon * PI / 180.;
+      double lon2 = slon * PI / 180.;
+      double lat1 = dlat * PI / 180.;
+      double lat2 = slat * PI / 180.;
+
+      double v = sin((lon1 - lon2)/2.0);
+      double w = cos(lat1) * cos(lat2) * v * v;
+      double x = sin((lat1 - lat2)/2.0);
+      double d4 = 2.0 * asin(sqrt(x*x + w));
+
+      float d5 = (180. * 60. / PI) * d4;
+      return d5;
+}
+
+
+
+
 
 /* --------------------------------------------------------------------------------- */
 /*
