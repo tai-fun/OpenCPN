@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.7 2008/01/12 06:17:45 bdbcat Exp $
+ * $Id: ais.h,v 1.8 2008/03/30 23:13:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< ais.h
  * $Log: ais.h,v $
+ * Revision 1.8  2008/03/30 23:13:42  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: ais.h,v $
+ * Revision 1.8  2008/03/30 23:13:42  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.7  2008/01/12 06:17:45  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.7
  * Revision 1.6  2008/01/02 21:04:07  bdbcat
  * Update for Version 1.2.2
  *
@@ -228,6 +238,7 @@ private:
     int               isentence;
     wxString          sentence_accumulator;
     bool              m_OK;
+    int               m_death_age_seconds;
 
 DECLARE_EVENT_TABLE()
 
