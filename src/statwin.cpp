@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< statwin.cpp
  * $Log: statwin.cpp,v $
+ * Revision 1.11  2008/03/30 22:23:04  bdbcat
+ * Cleanup
+ *
+=======
+ * $Log: statwin.cpp,v $
+ * Revision 1.11  2008/03/30 22:23:04  bdbcat
+ * Cleanup
+ *
  * Revision 1.10  2008/01/12 06:21:42  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.10
  * Revision 1.9  2007/06/13 22:47:36  bdbcat
  * Refresh on SetColorScheme()
  *
@@ -78,7 +88,7 @@ extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 extern int              CurrentStackEntry;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.10 2008/01/12 06:21:42 bdbcat Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.11 2008/03/30 22:23:04 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
