@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpoint.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogrpoint.cpp,v 1.2 2008/03/30 23:03:27 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The Point geometry class.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogrpoint.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 23:03:27  bdbcat
+ * Add QUALTY attribute
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -124,7 +127,7 @@
 #include "ogr_p.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrpoint.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: ogrpoint.cpp,v 1.2 2008/03/30 23:03:27 bdbcat Exp $");
 
 /************************************************************************/
 /*                              OGRPoint()                              */
@@ -140,6 +143,7 @@ OGRPoint::OGRPoint()
     x = 0;
     y = 0;
     z = 0;
+    nQual = 10;             // Default, precisely known
 }
 
 /************************************************************************/
@@ -257,9 +261,9 @@ int OGRPoint::WkbSize() const
 
 {
     if( z == 0)
-        return 21;
+        return 25;                  // DSR Added 4 for nQual
     else
-        return 29;
+        return 33;                  // DSR Added 4 for nQual
 }
 
 /************************************************************************/
@@ -361,11 +365,13 @@ OGRErr  OGRPoint::exportToWkb( OGRwkbByteOrder eByteOrder,
 /* -------------------------------------------------------------------- */
 /*      Copy in the raw data.                                           */
 /* -------------------------------------------------------------------- */
-    memcpy( pabyData+5, &x, 16 );
+    memcpy( pabyData+5, &nQual, 4 );
+
+    memcpy( pabyData+9, &x, 16 );
 
     if( z != 0 )
     {
-        memcpy( pabyData + 5 + 16, &z, 8 );
+        memcpy( pabyData + 9 + 16, &z, 8 );
     }
     
 /* -------------------------------------------------------------------- */
@@ -373,11 +379,12 @@ OGRErr  OGRPoint::exportToWkb( OGRwkbByteOrder eByteOrder,
 /* -------------------------------------------------------------------- */
     if( OGR_SWAP( eByteOrder ) )
     {
-        CPL_SWAPDOUBLE( pabyData + 5 );
-        CPL_SWAPDOUBLE( pabyData + 5 + 8 );
+        CPL_SWAP32PTR( pabyData + 5 );
+        CPL_SWAPDOUBLE( pabyData + 9 );
+        CPL_SWAPDOUBLE( pabyData + 9 + 8 );
 
         if( z != 0 )
-            CPL_SWAPDOUBLE( pabyData + 5 + 16 );
+            CPL_SWAPDOUBLE( pabyData + 9 + 16 );
     }
 
     return OGRERR_NONE;
