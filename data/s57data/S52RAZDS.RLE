@@ -4051,14 +4051,14 @@ LUCM    612210
 0001    500538
 LUPT   29LU00538NILCBLSUBL00003OLINES
 ATTC    1
-INST   13LC(CBLSUB06)
+INST   17LS(DASH,1,CHMGD)
 DISC    6OTHER
 LUCM    634070
 ****    0
 0001    500539
 LUPT   29LU00539NILCBLSUBL00006OLINES
 ATTC    8CATCBL6
-INST   17LS(DASH,1,CHMGD)
+INST   13LC(CBLSUB06)
 DISC    9STANDARD
 LUCM    624010
 ****    0
@@ -16173,6 +16173,62 @@ INST   63SY(DAYTRI52);TE('bn %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)
 DISC    9STANDARD
 LUCM    627025
 ****    0
+0001    501081
+LUPT   34LU01081NIL$CSYMBP00004OSIMPLIFIED
+ATTC   15$SCODEDANGER01
+INST   13SY(DANGER51)
+DISC    6OTHER
+LUCM    634050
+****    0
+0001    501082
+LUPT   34LU01082NIL$CSYMBP00004OSIMPLIFIED
+ATTC   15$SCODEDANGER02
+INST   13SY(DANGER52)
+DISC    6OTHER
+LUCM    634050
+****    0
+0001    501083
+LUPT   34LU01083NIL$CSYMBP00004OSIMPLIFIED
+ATTC   15$SCODEDANGER03
+INST   13SY(DANGER53)
+DISC    6OTHER
+LUCM    634050
+****    0
+0001    501508
+LUPT   35LU01508NIL$CSYMBP00004OPAPER_CHART
+ATTC   15$SCODEDANGER01
+INST   13SY(DANGER51)
+DISC    6OTHER
+LUCM    634050
+****    0
+0001    501509
+LUPT   35LU01509NIL$CSYMBP00004OPAPER_CHART
+ATTC   15$SCODEDANGER02
+INST   13SY(DANGER52)
+DISC    6OTHER
+LUCM    634050
+****    0
+0001    501510
+LUPT   35LU01510NIL$CSYMBP00004OPAPER_CHART
+ATTC   15$SCODEDANGER03
+INST   13SY(DANGER53)
+DISC    6OTHER
+LUCM    634050
+****    0
+0001    501092
+LUPT   34LU01092NIL$CSYMBP00004OSIMPLIFIED
+ATTC   15$SCODEISODGR01
+INST   13SY(ISODGR51)
+DISC   12DISPLAYBASE
+LUCM    614010
+****    0
+0001    501519
+LUPT   35LU01519NIL$CSYMBP00004OPAPER_CHART
+ATTC   15$SCODEISODGR01
+INST   13SY(ISODGR51)
+DISC   12DISPLAYBASE
+LUCM    614010
+****    0
 
 ;
 ;
@@ -17722,3 +17778,165 @@ SBTM   26@@@@@@@AABBBABBBAA@@@@@@@
 SBTM   26@@@@@@@@@AAABAAA@@@@@@@@@
 SBTM   26@@@@@@@@@@@@A@@@@@@@@@@@@
 ****
+0001
+SYMB   10SY00077NIL
+SYMD   39DANGER51R000160001000029000210000000000
+SXPO   67underwater hazard with a defined depth, full-chart and simplified
+SCRF   12ACHBLKBDEPVS
+SBTM   30@@@@@@@@@@@A@@A@@A@@@@@@@@@@@
+SBTM   30@@@@@@@@A@B@B@B@B@B@A@@@@@@@@
+SBTM   30@@@@@A@@@@@@@@@@@@@@@@@A@@@@@
+SBTM   30@@@@@@B@B@B@B@B@B@B@B@B@@@@@@
+SBTM   30@@@A@@@@@@@@@@@@@@@@@@@@@A@@@
+SBTM   30@@@@B@B@B@B@B@B@B@B@B@B@B@@@@
+SBTM   30@A@@@@@@@@@@@@@@@@@@@@@@@@@A@
+SBTM   30@@B@B@B@B@B@B@B@B@B@B@B@B@B@@
+SBTM   30A@@@@@@@@@@@@@@@@@@@@@@@@@@@A
+SBTM   30@@B@B@B@B@B@B@B@B@B@B@B@B@B@@
+SBTM   30A@@@@@@@@@@@@@@@@@@@@@@@@@@@A
+SBTM   30@@B@B@B@B@B@B@B@B@B@B@B@B@B@@
+SBTM   30A@@@@@@@@@@@@@@@@@@@@@@@@@@@A
+SBTM   30@@B@B@B@B@B@B@B@B@B@B@B@B@B@@
+SBTM   30@A@@@@@@@@@@@@@@@@@@@@@@@@@A@
+SBTM   30@@@@B@B@B@B@B@B@B@B@B@B@B@@@@
+SBTM   30@@@A@@@@@@@@@@@@@@@@@@@@@A@@@
+SBTM   30@@@@@@B@B@B@B@B@B@B@B@B@@@@@@
+SBTM   30@@@@@A@@@@@@@@@@@@@@@@@A@@@@@
+SBTM   30@@@@@@@@A@B@B@B@B@B@A@@@@@@@@
+SBTM   30@@@@@@@@@@@A@@A@@A@@@@@@@@@@@
+****
+0001
+SYMB   10SY00077NIL
+SYMD   39DANGER52R000160001000029000210000000000
+SXPO   92underwater hazard with a defined depth less than safety contour, full-chart and simplified
+SCRF    6ACHBLK
+SBTM   30@@@@@@@@@@@A@@A@@A@@@@@@@@@@@
+SBTM   30@@@@@@@@A@@@@@@@@@@@A@@@@@@@@
+SBTM   30@@@@@A@@@@@@@@@@@@@@@@@A@@@@@
+SBTM   30@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   30@@@A@@@@@@@@@@@@@@@@@@@@@A@@@
+SBTM   30@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   30@A@@@@@@@@@@@@@@@@@@@@@@@@@A@
+SBTM   30@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   30A@@@@@@@@@@@@@@@@@@@@@@@@@@@A
+SBTM   30@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   30A@@@@@@@@@@@@@@@@@@@@@@@@@@@A
+SBTM   30@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   30A@@@@@@@@@@@@@@@@@@@@@@@@@@@A
+SBTM   30@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   30@A@@@@@@@@@@@@@@@@@@@@@@@@@A@
+SBTM   30@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   30@@@A@@@@@@@@@@@@@@@@@@@@@A@@@
+SBTM   30@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   30@@@@@A@@@@@@@@@@@@@@@@@A@@@@@
+SBTM   30@@@@@@@@A@@@@@@@@@@@A@@@@@@@@
+SBTM   30@@@@@@@@@@@A@@A@@A@@@@@@@@@@@
+****
+0001
+SYMB   10SY00001NIL
+SYMD   39QUAPOS01R000210002000022000210000000000
+SXPO   21position approximate
+SCRF    6ACHBLK
+SBTM   23AAA@@@A@@@@@@@@@@@@@@@
+SBTM   23A@@A@@A@@@@@@@@@@@@@@@
+SBTM   23A@@A@A@A@@@@@@@@@@@@@@
+SBTM   23A@@A@A@A@@@@@@@@@@@@@@
+SBTM   23AAA@@AAA@@@@@@@@@@@@@@
+SBTM   23A@@@A@@@A@@@@@@@@@@@@@
+SBTM   23A@@@A@@@A@@@@@@@@@@@@@
+SBTM   23A@@@A@@@A@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@A@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@A@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@A@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@A@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@A@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+****
+0001
+SYMB   10SY00001NIL
+SYMD   39QUAPOS02R000210002000022000210000000000
+SXPO   18position doubtful
+SCRF    6ACHBLK
+SBTM   23AAA@@AAA@@@@@@@@@@@@@@
+SBTM   23A@@A@A@@A@@@@@@@@@@@@@
+SBTM   23A@@A@A@@A@@@@@@@@@@@@@
+SBTM   23A@@A@A@@A@@@@@@@@@@@@@
+SBTM   23AAA@@A@@A@@@@@@@@@@@@@
+SBTM   23A@@@@A@@A@@@@@@@@@@@@@
+SBTM   23A@@@@A@@A@@@@@@@@@@@@@
+SBTM   23A@@@@AAA@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@A@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@A@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@A@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@A@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@A@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+SBTM   23@@@@@@@@@@@@@@@@@@@@@@
+****
+0001
+SYMB   10SY00001NIL
+SYMD   39QUAPOS03R000250002000026000210000000000
+SXPO   26reported but not surveyed
+SCRF    6ACHBLK
+SBTM   27AAA@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   27A@@A@@@@@@@@@@@@@@@@@@@@@@
+SBTM   27A@@A@@AA@@AAA@@@@@@@@@@@@@
+SBTM   27A@@A@A@@A@A@@A@@@@@@@@@@@@
+SBTM   27AAA@@A@@A@A@@A@@@@@@@@@@@@
+SBTM   27A@A@@AAA@@A@@A@@@@@@@@@@@@
+SBTM   27A@@A@A@@A@A@@A@@@@@@@@@@@@
+SBTM   27A@@A@@AA@@AAA@@@@@@@@@@@@@
+SBTM   27@@@@@@@@@@A@@@@@@@@@@@@@@@
+SBTM   27@@@@@@@@@@A@@@A@@@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@A@@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@A@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@A@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@@A@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@@@@@@@@@@
+SBTM   27@@@@@@@@@@@@@@@@@@@@@@@@@@
+****
+0001
+SYMB   10SY00108NIL
+SYMD   39ISODGR51R000090000900019000190000000000
+SXPO   51isolated danger symbol, full-chart and simplified
+SCRF   12ADEPMDBCHMGD
+SBTM   20@@@@@@@AAAAA@@@@@@@
+SBTM   20@@@@@AABBBBBAA@@@@@
+SBTM   20@@@AABBB@B@BBBAA@@@
+SBTM   20@@ABB@B@B@B@B@BBA@@
+SBTM   20@@AB@@@B@B@B@@@BA@@
+SBTM   20@AB@@@@@B@B@@@@@BA@
+SBTM   20@ABB@@@@@B@@@@@BBA@
+SBTM   20ABB@B@@@@@@@@@B@BBA
+SBTM   20AB@B@B@@@@@@@B@B@BA
+SBTM   20ABB@B@B@@@@@B@B@BBA
+SBTM   20AB@B@B@@@@@@@B@B@BA
+SBTM   20ABB@B@@@@@@@@@B@BBA
+SBTM   20@ABB@@@@@B@@@@@BBA@
+SBTM   20@AB@@@@@B@B@@@@@BA@
+SBTM   20@@AB@@@B@B@B@@@BA@@
+SBTM   20@@ABB@B@B@B@B@BBA@@
+SBTM   20@@@AABBB@B@BBBAA@@@
+SBTM   20@@@@@AABBBBBAA@@@@@
+SBTM   20@@@@@@@AAAAA@@@@@@@
+****
+
+
