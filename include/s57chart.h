@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.10 2008/01/12 06:19:18 bdbcat Exp $
+ * $Id: s57chart.h,v 1.11 2008/03/30 23:24:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< s57chart.h
  * $Log: s57chart.h,v $
+ * Revision 1.11  2008/03/30 23:24:11  bdbcat
+ * Cleanup
+ *
+=======
+ * $Log: s57chart.h,v $
+ * Revision 1.11  2008/03/30 23:24:11  bdbcat
+ * Cleanup
+ *
  * Revision 1.10  2008/01/12 06:19:18  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.10
  * Revision 1.9  2008/01/02 21:06:00  bdbcat
  * Update for Version 1.2.2
  *
@@ -78,6 +88,7 @@
 #include "gdal.h"
 
 #include "s52s57.h"                 //types
+#include "ogr_s57.h"
 
 // ----------------------------------------------------------------------------
 // Useful Prototypes
@@ -89,9 +100,9 @@
 extern "C" int  s57_initialize(const wxString& csv_dir, FILE *flog);
 extern "C" int  s57_GetChartScale(const wxString& FullPath);
 extern "C" bool s57_GetChartExtent(const wxString& FullPath, Extent *pext);
-extern "C" bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRDataSource **pDS, OGRFeature **pFeature,
-                               OGRLayer **pLayer, int &catcov);
-extern "C" bool s57_GetChartNextM_COVR(OGRDataSource *pDS, OGRLayer *pLayer, OGRFeature *pLastFeature,
+extern "C" bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRS57DataSource **pDS, OGRFeature **pFeature,
+                               OGRFeatureDefn **pFD, int &catcov);
+extern "C" bool s57_GetChartNextM_COVR(OGRS57DataSource *pDS, OGRFeatureDefn *pFD, OGRFeature *pLastFeature,
                               OGRFeature **pFeature, int &catcov);
 extern "C" bool s57_ddfrecord_test();
 
@@ -113,8 +124,10 @@ class PixelCache;
 #include <wx/dynarray.h>
 
 // Define the Array of S57Obj
-
 WX_DECLARE_OBJARRAY(S57Obj, ArrayOfS57Obj);
+
+// And also a list
+WX_DECLARE_LIST(S57Obj, ListOfS57Obj);
 
 //----------------------------------------------------------------------------
 // s57 Chart object class
@@ -160,6 +173,18 @@ public:
       bool IsPointInObjArea(float lat, float lon, float select_radius, S57Obj *obj);
       wxString *CreateObjDescription(const S57Obj& obj);
       wxString *GetAttributeDecode(wxString& att, int ival);
+
+      //    Access to raw ENC DataSet
+      bool InitENCMinimal( const wxString& FullPath );
+      int GetENCScale();
+      OGRFeature *GetChartFirstM_COVR(int &catcov);
+      OGRFeature *GetChartNextM_COVR(int &catcov);
+
+      //    DEPCNT VALDCO array access
+      bool GetNearestSafeContour(double safe_cnt, double &next_safe_cnt);
+
+      ListOfS57Obj *GetAssociatedObjects(S57Obj *obj);
+
 
 // Public data
 //Todo Accessors here
@@ -220,6 +245,13 @@ private:
       double    prev_easting_ul, prev_northing_ul;
       double    prev_easting_lr, prev_northing_lr;
 
+//  Raw ENC DataSet members
+      OGRS57DataSource  *m_pENCDS;
+
+//  DEPCNT VALDCO array members
+      int         m_nvaldco;
+      int         m_nvaldco_alloc;
+      double       *m_pvaldco_array;
 
 
 };

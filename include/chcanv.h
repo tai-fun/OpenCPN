@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.11 2008/01/10 03:39:06 bdbcat Exp $
+ * $Id: chcanv.h,v 1.12 2008/03/30 23:26:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.12  2008/03/30 23:26:50  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2008/01/10 03:39:06  bdbcat
  * Update for Mac OSX
  *
@@ -194,15 +197,20 @@ public:
       float GetVPChartScale(){return VPoint.chart_scale;}
       double GetVPBinaryScaleFactor(){return VPoint.binary_scale_factor;}
 
-      void  SetbNewVP(bool f){ bNewVP = f;}
-      bool  GetbNewVP(){ return bNewVP;}
+      void  SetbNewVP(bool f){ m_bNewVP = f;}
+      bool  GetbNewVP(){ return m_bNewVP;}
+
+      void  SetbTCUpdate(bool f){ m_bTCupdate = f;}
+      bool  GetbTCUpdate(){ return m_bTCupdate;}
+      void  SetbShowCurrent(bool f){ m_bShowCurrent = f;}
+      bool  GetbShowCurrent(){ return m_bShowCurrent;}
+      void  SetbShowTide(bool f){ m_bShowTide = f;}
+      bool  GetbShowTide(){ return m_bShowTide;}
 
       //Todo build more accessors
       bool        m_bFollow;
-      bool        m_bForceReDraw;
+//      bool        m_bForceReDraw;
       wxCursor    *pCursorPencil;
-      bool        bShowCurrent;
-      bool        bShowTide;
       float       canvas_scale_factor;    // converter....
                                     // useage....
                                     // conventional_chart_scale   = scale_factor /pix_per_deg_lon
@@ -213,29 +221,34 @@ public:
       int         Ship_Size;
 
 private:
-      bool        bNewVP;
+      bool        m_bShowCurrent;
+      bool        m_bShowTide;
+      bool        m_bNewVP;
       int         cursor_region;
+      bool        m_bTCupdate;
 
       wxRect      bbRect;
 
       wxPoint     r_rband;
       wxPoint     LastShipPoint;
       wxPoint     LastPredPoint;
-      bool        bDrawingRoute;
+      bool        m_bDrawingRoute;
       bool        m_bRouteEditing;
+      bool        m_bMarkEditing;
       RoutePoint  *m_pRoutePointEditTarget;
       SelectItem  *m_pFoundPoint;
 
-      Route       *pMouseRoute;
-      double      prev_rlat;
-      double      prev_rlon;
-      RoutePoint  *prev_pMousePoint;
-      Route       *pSelectedRoute;
+      Route       *m_pMouseRoute;
+      double      m_prev_rlat;
+      double      m_prev_rlon;
+      RoutePoint  *m_prev_pMousePoint;
+      Route       *m_pSelectedRoute;
       Route       *m_pEditRoute;
-      RoutePoint  *pFoundRoutePoint;
+      RoutePoint  *m_pFoundRoutePoint;
+      RoutePoint  *m_pFoundRoutePointSecond;
 
-      AIS_Target_Data *pFoundAIS_Target_Data;
-      AIS_Target_Data *pSnapshotAIS_Target_Data;
+      AIS_Target_Data *m_pFoundAIS_Target_Data;
+      AIS_Target_Data *m_pSnapshotAIS_Target_Data;
 
       wxCursor    *pCursorLeft;
       wxCursor    *pCursorRight;
@@ -271,9 +284,11 @@ private:
 
       void RescaleTimerEvent(wxTimerEvent& event);
       void PanTimerEvent(wxTimerEvent& event);
+      bool CheckEdgePan(int x, int y);
       void OnCursorTrackTimerEvent(wxTimerEvent& event);
 
       void DrawAllRoutesInBBox(wxDC& dc, wxBoundingBox& BltBBox);
+      void DrawAllWaypointsInBBox(wxDC& dc, wxBoundingBox& BltBBox, bool bDrawMarksOnly);
 
       void DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSelList,
                         bool bdraw_mono = false);
@@ -282,7 +297,7 @@ private:
       void DrawTCWindow(int x, int y, void *pIDX);
       void RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool bdraw_mono = false);
       void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono = false);
-      wxBitmap *DrawTCCBitmap(bool bAddNewSelpoints);
+      wxBitmap *DrawTCCBitmap(bool bAddNewSelpoints = true);
       void AISDraw(wxDC& dc);
 
       void EmbossDepthScale(wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, int emboss_ident);
@@ -337,7 +352,7 @@ private:
       ChartBaseBSB *br_Ch;
 
       wxBitmap    *proute_bm;       // a bitmap and dc used to calculate route bounding box
-      wxMemoryDC  dc_route;         // seen in mouse->edit->route
+      wxMemoryDC  m_dc_route;         // seen in mouse->edit->route
 
       double   m_ownship_predictor_minutes;      // Minutes shown on ownship position predictor graphic
                                                 // defaults to 5
@@ -390,7 +405,7 @@ public:
 
       void RePosition(void);
 
-      bool        bForceRedraw;
+      bool        m_bForceTCRedraw;
 
 private:
 

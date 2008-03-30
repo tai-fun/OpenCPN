@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.8 2008/01/02 21:04:29 bdbcat Exp $
+ * $Id: chartbase.h,v 1.9 2008/03/30 23:26:07 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.9  2008/03/30 23:26:07  bdbcat
+ * Cleanup
+ *
  * Revision 1.8  2008/01/02 21:04:29  bdbcat
  * Update for Version 1.2.2
  *
@@ -158,7 +161,7 @@ public:
       virtual void GetChartExtent(Extent *pext) = 0;
 
       virtual void GetPubDate(wxString &data){ data = *pPubYear;}
-      virtual void GetFullPath(wxString &data){ data = *pFullPath;}
+      virtual void GetFullPath(wxString &data){ data = *m_pFullPath;}
       virtual void GetName(wxString &data){ data = *pName;}
       virtual ChartDepthUnitType GetDepthUnitType(void) { return m_depth_unit_id;}
 
@@ -178,7 +181,7 @@ public:
 
       ChartTypeEnum     ChartType;
       int               Chart_Scale;
-      wxString          *pFullPath;
+      wxString          *m_pFullPath;
       wxString          *pName;
 
       wxString          *pPubYear;
