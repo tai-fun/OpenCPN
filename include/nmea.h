@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.10 2008/01/12 06:18:40 bdbcat Exp $
+ * $Id: nmea.h,v 1.11 2008/03/30 23:22:37 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< nmea.h
  * $Log: nmea.h,v $
+ * Revision 1.11  2008/03/30 23:22:37  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: nmea.h,v $
+ * Revision 1.11  2008/03/30 23:22:37  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.10  2008/01/12 06:18:40  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.10
  * Revision 1.9  2008/01/10 03:39:33  bdbcat
  * Update for Mac OSX
  *

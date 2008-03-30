@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tcmgr.h,v 1.3 2008/01/12 06:19:53 bdbcat Exp $
+ * $Id: tcmgr.h,v 1.4 2008/03/30 23:24:57 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tide and Current Manager
@@ -26,10 +26,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< tcmgr.h
  * $Log: tcmgr.h,v $
+ * Revision 1.4  2008/03/30 23:24:57  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: tcmgr.h,v $
+ * Revision 1.4  2008/03/30 23:24:57  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.3  2008/01/12 06:19:53  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.3
  * Revision 1.2  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.7 2008/01/12 06:19:11 bdbcat Exp $
+ * $Id: s52s57.h,v 1.8 2008/03/30 23:23:29 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< s52s57.h
  * $Log: s52s57.h,v $
+ * Revision 1.8  2008/03/30 23:23:29  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: s52s57.h,v $
+ * Revision 1.8  2008/03/30 23:23:29  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.7  2008/01/12 06:19:11  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.7
  * Revision 1.6  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -68,7 +78,7 @@
 
 #include "bbox.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  113
+#define CURRENT_SENC_FORMAT_VERSION  115
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
@@ -183,7 +193,10 @@ typedef struct _Rule{
    union          {char       *LVCT,      *PVCT,      *SVCT;      } vector;
 
    // Private data
-   int     parm1;                      // integer parameter
+   int     parm1;                      // integer parameters
+   int     parm2;
+   int     parm3;
+   int     parm4;
    void    *pixelPtr;                  // opaque pointer
 
    }Rule;
@@ -283,7 +296,7 @@ typedef struct _OBJLElement{
 
 
 
-// OGR primitiv
+// OGR primitive type
 typedef enum _geoPrim_t{
    GEO_POINT,
    GEO_LINE,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.7 2008/01/12 06:18:22 bdbcat Exp $
+ * $Id: chartdb.h,v 1.8 2008/03/30 23:21:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< chartdb.h
  * $Log: chartdb.h,v $
+ * Revision 1.8  2008/03/30 23:21:45  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: chartdb.h,v $
+ * Revision 1.8  2008/03/30 23:21:45  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.7  2008/01/12 06:18:22  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.7
  * Revision 1.6  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -163,6 +173,8 @@ public:
       int  GetDBChartType(int dbIndex);
       bool GetDBFullPath(int dbIndex, char *buf);
       bool GetDBBoundingBox(int dbindex, wxBoundingBox *box);
+      bool SearchForChartDir(wxString &dir);
+
 
       virtual int  GetStackEntry(ChartStack *ps, wxString *pfp);
       ChartBase *OpenChartFromStack(ChartStack *pStack, int StackEntry, ChartInitFlag iflag = FULL_INIT);

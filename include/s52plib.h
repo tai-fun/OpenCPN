@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.6 2008/01/12 06:18:50 bdbcat Exp $
+ * $Id: s52plib.h,v 1.7 2008/03/30 23:23:08 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< s52plib.h
  * $Log: s52plib.h,v $
+ * Revision 1.7  2008/03/30 23:23:08  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: s52plib.h,v $
+ * Revision 1.7  2008/03/30 23:23:08  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.6  2008/01/12 06:18:50  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.6
  * Revision 1.5  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -96,6 +106,7 @@ public:
       color *S52_getColor(char *colorName);
 
       void UpdateMarinerParams(void);
+      void ClearCNSYLUPArray(void);
 
 //    Rendering stuff
       int _draw(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp);
@@ -148,9 +159,9 @@ public:
                render_canvas_parms *pb_spec, render_canvas_parms *patt_spec);
 
       void draw_lc_poly(wxDC *pdc, wxPoint *ptp, int npt,
-                           float sym_len, float sym_factor, Rule *draw_rule);
+                        float sym_len, float sym_factor, Rule *draw_rule, ViewPort *vp);
 
-
+      bool RenderHPGLtoDC(char *str, char *col, wxDC *pdc, wxPoint &r, wxPoint &pivot, double rot_angle = 0.);
       bool RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle = 0);
       bool RenderRasterSymbol(Rule *prule, wxDC *pdc, wxPoint &r, float rot_angle = 0);
       wxImage *RuleXBMToImage(Rule *prule);

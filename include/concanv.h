@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.h,v 1.3 2008/01/12 06:18:30 bdbcat Exp $
+ * $Id: concanv.h,v 1.4 2008/03/30 23:22:08 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Console Canvas
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< concanv.h
  * $Log: concanv.h,v $
+ * Revision 1.4  2008/03/30 23:22:08  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: concanv.h,v $
+ * Revision 1.4  2008/03/30 23:22:08  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.3  2008/01/12 06:18:30  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.3
  * Revision 1.2  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *

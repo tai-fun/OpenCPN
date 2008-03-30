@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.h,v 1.4 2008/01/12 06:20:07 bdbcat Exp $
+ * $Id: wvschart.h,v 1.5 2008/03/30 23:25:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -25,12 +25,24 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< wvschart.h
  * $Log: wvschart.h,v $
+ * Revision 1.5  2008/03/30 23:25:18  bdbcat
+ * *** empty log message ***
+ *
+ * Revision 1.3  2007/05/03 13:31:19  dsr
+ * Major refactor for 1.2.0
+=======
+ * $Log: wvschart.h,v $
+ * Revision 1.5  2008/03/30 23:25:18  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.4  2008/01/12 06:20:07  bdbcat
  * Update for Mac OSX/Unicode
  *
  * Revision 1.3  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
+>>>>>>> 1.4
  *
  * Revision 1.2  2007/03/02 02:08:23  dsr
  * Cleanup

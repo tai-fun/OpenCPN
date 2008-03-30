@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.11 2008/01/12 06:18:10 bdbcat Exp $
+ * $Id: chart1.h,v 1.12 2008/03/30 23:21:21 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< chart1.h
  * $Log: chart1.h,v $
+ * Revision 1.12  2008/03/30 23:21:21  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: chart1.h,v $
+ * Revision 1.12  2008/03/30 23:21:21  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.11  2008/01/12 06:18:10  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.11
  * Revision 1.10  2008/01/10 03:38:47  bdbcat
  * Update for Mac OSX
  *
@@ -88,6 +98,9 @@ enum NMEA_EVENT_STATE
 extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
                              const char * pszErrorMsg );
 
+#ifdef __WXMSW__
+wxArrayString *EnumerateSerialPorts(void);
+#endif
 
 //----------------------------------------------------------------------------
 //   constants
@@ -159,6 +172,10 @@ typedef enum ColorScheme
 //      Define a constant GPS signal watchdog timeout value
 #define GPS_TIMEOUT_SECONDS  5
 
+//    Define a timer value for Tide/Current updates
+//    Note that the underlying data algorithms produce fresh data only every 15 minutes
+//    So maybe 5 minute updates should provide sufficient oversampling
+#define TIMER_TC_VALUE_SECONDS      300
 //----------------------------------------------------------------------------
 // fwd class declarations
 //----------------------------------------------------------------------------
@@ -170,6 +187,7 @@ class wxSocketEvent;
 //----------------------------------------------------------------------------
 WX_DECLARE_STRING_HASH_MAP(char*, string_to_pchar_hash);
 WX_DECLARE_STRING_HASH_MAP(wxBitmap*, string_to_pbitmap_hash);
+WX_DECLARE_STRING_HASH_MAP(wxString*, string_to_string_hash);
 
 
 class MyApp: public wxApp
@@ -219,11 +237,14 @@ class MyFrame: public wxFrame
 
     bool GetMemoryStatus(int& mem_total, int& mem_used);
 
+    void OnFrameTCTimer(wxTimerEvent& event);
+
     wxStatusBar         *m_pStatusBar;
     int                 nRoute_State;
     int                 nBlinkerTick;
     bool                m_bTimeIsSet;
 
+    wxTimer             FrameTCTimer;
     wxTimer             FrameTimer1;
     wxTextCtrl          *m_textWindow;
 
@@ -291,7 +312,9 @@ enum {
     AIS_SOCKET_ID,
     WIFI_SOCKET_ID,
     TIMER_WIFI1,
-    FRAME_TIMER_DOG
+    FRAME_TIMER_DOG,
+    FRAME_TC_TIMER
+
 };
 
 #endif

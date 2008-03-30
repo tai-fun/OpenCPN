@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.8 2008/03/30 23:13:42 bdbcat Exp $
+ * $Id: ais.h,v 1.9 2008/03/30 23:20:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,12 +26,27 @@
  ***************************************************************************
  *
 <<<<<<< ais.h
+<<<<<<< ais.h
  * $Log: ais.h,v $
+ * Revision 1.9  2008/03/30 23:20:36  bdbcat
+ * *** empty log message ***
+ *
+=======
+=======
+<<<<<<< ais.h
+>>>>>>> 1.8
+ * $Log: ais.h,v $
+ * Revision 1.9  2008/03/30 23:20:36  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.8  2008/03/30 23:13:42  bdbcat
  * *** empty log message ***
  *
 =======
  * $Log: ais.h,v $
+ * Revision 1.9  2008/03/30 23:20:36  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.8  2008/03/30 23:13:42  bdbcat
  * *** empty log message ***
  *

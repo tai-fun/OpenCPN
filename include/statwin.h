@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.6 2008/01/12 06:19:45 bdbcat Exp $
+ * $Id: statwin.h,v 1.7 2008/03/30 23:24:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Status Window
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< statwin.h
  * $Log: statwin.h,v $
+ * Revision 1.7  2008/03/30 23:24:32  bdbcat
+ * *** empty log message ***
+ *
+=======
+ * $Log: statwin.h,v $
+ * Revision 1.7  2008/03/30 23:24:32  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.6  2008/01/12 06:19:45  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.6
  * Revision 1.5  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
