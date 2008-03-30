@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.8 2008/01/12 06:23:02 bdbcat Exp $
+ * $Id: about.cpp,v 1.9 2008/03/30 21:34:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -26,10 +26,20 @@
  ***************************************************************************
  *
  *
+<<<<<<< about.cpp
  * $Log: about.cpp,v $
+ * Revision 1.9  2008/03/30 21:34:03  bdbcat
+ * Update for Mac OSX/Unicode
+ *
+=======
+ * $Log: about.cpp,v $
+ * Revision 1.9  2008/03/30 21:34:03  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.8  2008/01/12 06:23:02  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.8
  * Revision 1.7  2008/01/10 03:35:19  bdbcat
  * Update for Mac OSX
  *
@@ -60,7 +70,7 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.8 2008/01/12 06:23:02 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.9 2008/03/30 21:34:03 bdbcat Exp $");
 
 
 //    Some constants
