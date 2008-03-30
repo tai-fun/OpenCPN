@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.17 2008/01/12 06:24:20 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.18 2008/03/30 22:08:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -25,13 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< nmea.cpp
  * $Log: nmea.cpp,v $
+ * Revision 1.18  2008/03/30 22:08:25  bdbcat
+ * Cleanup
+ *
+=======
+ * $Log: nmea.cpp,v $
+ * Revision 1.18  2008/03/30 22:08:25  bdbcat
+ * Cleanup
+ *
  * Revision 1.17  2008/01/12 06:24:20  bdbcat
  * Update for Mac OSX/Unicode
  *
  * Revision 1.16  2008/01/11 01:39:46  bdbcat
  * Update for Mac OSX
  *
+>>>>>>> 1.17
  * Revision 1.15  2008/01/10 03:36:48  bdbcat
  * Update for Mac OSX
  *
@@ -95,7 +105,7 @@ extern int        g_iNMEAEventState ;
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.17 2008/01/12 06:24:20 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.18 2008/03/30 22:08:25 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -1192,7 +1202,7 @@ void *OCP_NMEA_Thread::Entry()
                                                 else
                                                 {
                                                       partial = true;
-//                                                    wxLogMessage("partial");
+//                                                    wxLogMessage(_T("partial"));
                                                 }
                                                 */
                                           }

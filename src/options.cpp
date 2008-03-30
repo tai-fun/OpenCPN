@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.5 2008/01/12 06:20:47 bdbcat Exp $
+ * $Id: options.cpp,v 1.6 2008/03/30 22:09:48 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< options.cpp
  * $Log: options.cpp,v $
+ * Revision 1.6  2008/03/30 22:09:48  bdbcat
+ * Cleanup
+ *
+=======
+ * $Log: options.cpp,v $
+ * Revision 1.6  2008/03/30 22:09:48  bdbcat
+ * Cleanup
+ *
  * Revision 1.5  2008/01/12 06:20:47  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.5
  * Revision 1.4  2008/01/10 03:37:18  bdbcat
  * Update for Mac OSX
  *
@@ -65,6 +75,7 @@
 #include "navutil.h"
 #ifdef USE_S57
 #include "s52plib.h"
+#include "s52utils.h"
 #endif
 
 extern bool             g_bShowPrintIcon;
@@ -87,6 +98,7 @@ extern s52plib          *ps52plib;
 //    Some constants
 #define ID_CHOICE_NMEA  wxID_HIGHEST + 1
 
+/*
 //begin rms
 #ifdef __WXOSX__
 #include "macutils.h"
@@ -94,7 +106,9 @@ extern s52plib          *ps52plib;
       int iPortNameCount ;
 #endif
 //end rms
+*/
 
+extern wxArrayString *EnumerateSerialPorts(void);
 
 IMPLEMENT_DYNAMIC_CLASS( options, wxDialog )
 
@@ -106,7 +120,6 @@ BEGIN_EVENT_TABLE( options, wxDialog )
     EVT_TREE_SEL_CHANGED( ID_DIRCTRL, options::OnDirctrlSelChanged )
     EVT_BUTTON( ID_BUTTONADD, options::OnButtonaddClick )
     EVT_BUTTON( ID_BUTTONDELETE, options::OnButtondeleteClick )
-    EVT_BUTTON( ID_BUTTONREBUILD, options::OnButtonrebuildClick )
     EVT_RADIOBOX( ID_RADIOBOX, options::OnRadioboxSelected )
     EVT_BUTTON( xID_OK, options::OnXidOkClick )
     EVT_BUTTON( wxID_CANCEL, options::OnCancelClick )
@@ -134,7 +147,7 @@ options::options( wxWindow* parent, wxWindowID id, const wxString& caption, cons
 
       pParent = parent;
 
-    Create(parent, id, caption, pos, size, style, Initial_Chart_Dir);
+      Create(parent, id, caption, pos, size, style, Initial_Chart_Dir);
 }
 
 
@@ -148,6 +161,7 @@ bool options::Create( wxWindow* parent, wxWindowID id, const wxString& caption, 
     ps57Ctl = NULL;
     ps57CtlListBox = NULL;
     pDispCat = NULL;
+    m_pSerialArray = NULL;
 
     itemStaticBoxSizer11 = NULL;
     pDirCtl = NULL;;
@@ -155,14 +169,18 @@ bool options::Create( wxWindow* parent, wxWindowID id, const wxString& caption, 
 
     m_pinit_chart_dir = (wxString *)&Initial_Chart_Dir;
 
+    m_pSerialArray = EnumerateSerialPorts();
+
     SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS);
     wxDialog::Create( parent, id, caption, pos, size, style );
 
     CreateControls();
+
+    GetSizer()->SetMinSize(size);
+
     GetSizer()->Fit(this);
     GetSizer()->SetSizeHints(this);
     Centre();
-
 
     return TRUE;
 }
@@ -255,28 +273,12 @@ void options::CreateControls()
     wxStaticBoxSizer* itemNMEASourceStaticBoxSizer = new wxStaticBoxSizer(itemNMEASourceStaticBox, wxVERTICAL);
     itemNMEAStaticBoxSizer->Add(itemNMEASourceStaticBoxSizer, 0, wxGROW|wxALL, 5);
 
-      m_itemNMEAListBox = new wxComboBox(itemPanel5, ID_CHOICE_NMEA);
-      m_itemNMEAListBox->Append( _T("None"));
+    m_itemNMEAListBox = new wxComboBox(itemPanel5, ID_CHOICE_NMEA);
+    m_itemNMEAListBox->Append( _T("None"));
 
-#ifdef __WXMSW__
-      m_itemNMEAListBox->Append( _T("COM1"));
-      m_itemNMEAListBox->Append( _T("COM2"));
-      m_itemNMEAListBox->Append( _T("COM3"));
-      m_itemNMEAListBox->Append( _T("COM4"));
-//begin rms
-#elif defined (__WXOSX__)
-      memset(paPortNames,0x00,sizeof(paPortNames)) ;
-      iPortNameCount = FindSerialPortNames(&paPortNames[0],MAX_SERIAL_PORTS) ;
-      for (int iPortIndex=0;iPortIndex<iPortNameCount;iPortIndex++)
-      {
-          m_itemNMEAListBox->Append( _T(paPortNames[iPortIndex]));
-          free(paPortNames[iPortIndex]) ;
-      }
-// end rms
-#else
-      m_itemNMEAListBox->Append( _T("/dev/ttyS0"));
-      m_itemNMEAListBox->Append( _T("/dev/ttyS1"));
-#endif
+      //    Fill in the listbox with all detected serial ports
+    for (unsigned int iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+          m_itemNMEAListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
 #ifndef OCPN_DISABLE_SOCKETS
       m_itemNMEAListBox->Append( _T("Network GPSD"));
@@ -347,7 +349,11 @@ void options::CreateControls()
       m_itemNMEAAutoListBox = new wxComboBox(itemPanel5, ID_CHOICE_AP);
       m_itemNMEAAutoListBox->Append( _T("None"));
 
+      //    Fill in the listbox with all detected serial ports
+      for (unsigned int iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+            m_itemNMEAAutoListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
+      /*
 #ifdef __WXMSW__
       m_itemNMEAAutoListBox->Append( _T("COM1"));
       m_itemNMEAAutoListBox->Append( _T("COM2"));
@@ -368,6 +374,7 @@ void options::CreateControls()
       m_itemNMEAAutoListBox->Append( _T("/dev/ttyS0"));
       m_itemNMEAAutoListBox->Append( _T("/dev/ttyS1"));
 #endif
+      */
 
       wxString ap_com;
       if(pNMEA_AP_Port->Contains(_T("Serial")))
@@ -388,26 +395,10 @@ void options::CreateControls()
       m_itemAISListBox = new wxComboBox(itemPanel5, ID_CHOICE_AIS);
       m_itemAISListBox->Append( _T("None"));
 
-#ifdef __WXMSW__
-      m_itemAISListBox->Append( _T("COM1"));
-      m_itemAISListBox->Append( _T("COM2"));
-      m_itemAISListBox->Append( _T("COM3"));
-      m_itemAISListBox->Append( _T("COM4"));
+      //    Fill in the listbox with all detected serial ports
+      for (unsigned int iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+            m_itemAISListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
-//begin rms
-#elif defined (__WXOSX__)
-      memset(paPortNames,0x00,sizeof(paPortNames)) ;
-      iPortNameCount = FindSerialPortNames(&paPortNames[0],MAX_SERIAL_PORTS) ;
-      for (int iPortIndex=0;iPortIndex<iPortNameCount;iPortIndex++)
-      {
-          m_itemAISListBox->Append( _T(paPortNames[iPortIndex]));
-          free(paPortNames[iPortIndex]) ;
-      }
-// end rms
-#else
-      m_itemAISListBox->Append( _T("/dev/ttyS0"));
-      m_itemAISListBox->Append( _T("/dev/ttyS1"));
-#endif
 
       wxString ais_com;
       if(pAIS_Port->Contains(_T("Serial")))
@@ -418,7 +409,6 @@ void options::CreateControls()
       m_itemAISListBox->SetStringSelection(ais_com);
 
       itemAISStaticBoxSizer->Add(m_itemAISListBox, 0, wxGROW|wxALL, 5);
-
 
 
 #ifdef USE_WIFI_CLIENT
@@ -474,12 +464,12 @@ void options::CreateControls()
 
     wxStaticBox* itemStaticBoxSizer26Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Chart Display Filters"));
     wxStaticBoxSizer* itemStaticBoxSizer26 = new wxStaticBoxSizer(itemStaticBoxSizer26Static, wxHORIZONTAL);
-    itemBoxSizer25->Add(itemStaticBoxSizer26, 0, wxTOP|wxALL|wxGROW, 5);
+    itemBoxSizer25->Add(itemStaticBoxSizer26, 1, wxTOP|wxALL|wxGROW, 5);
 
 
     wxStaticBox* itemStaticBoxSizer57Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Mariner's Standard"));
     wxStaticBoxSizer* itemStaticBoxSizer57 = new wxStaticBoxSizer(itemStaticBoxSizer57Static, wxVERTICAL);
-    itemStaticBoxSizer26->Add(itemStaticBoxSizer57, 0, wxTOP|wxALL|wxGROW, 5);
+    itemStaticBoxSizer26->Add(itemStaticBoxSizer57, 1, wxTOP|wxALL|wxGROW, 5);
 
     wxString* ps57CtlListBoxStrings = NULL;
     ps57CtlListBox = new wxCheckListBox( ps57Ctl, ID_CHECKLISTBOX, wxDefaultPosition, wxSize(-1, 200), 0,
@@ -499,7 +489,7 @@ void options::CreateControls()
 
 
     wxBoxSizer* itemBoxSizer75 = new wxBoxSizer(wxVERTICAL);
-    itemStaticBoxSizer26->Add(itemBoxSizer75, 0, wxTOP|wxALL, 5);
+    itemStaticBoxSizer26->Add(itemBoxSizer75, 1, wxTOP|wxALL, 5);
 
     wxString pDispCatStrings[] = {
         _T("&Base"),
@@ -527,7 +517,7 @@ void options::CreateControls()
     pCheck_SHOWTEXT->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_SHOWTEXT, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
 
-    pCheck_SCAMIN = new wxCheckBox( ps57Ctl, ID_SCAMINCHECKBOX, _T("SCAMIN"), wxDefaultPosition,
+    pCheck_SCAMIN = new wxCheckBox( ps57Ctl, ID_SCAMINCHECKBOX, _T("Use SCAMIN"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_SCAMIN->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_SCAMIN, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
@@ -552,6 +542,37 @@ void options::CreateControls()
     pBoundStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Boundaries"), wxDefaultPosition, wxDefaultSize,
                                               2, pBoundStyleStrings, 1, wxRA_SPECIFY_COLS );
     itemStaticBoxSizer83->Add(pBoundStyle, 0, wxTOP|wxALL| 5);
+
+    wxString pColorNumStrings[] = {
+          _T("&2 Color"),
+          _T("&4 Color"),
+    };
+    p24Color = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Colors"), wxDefaultPosition, wxDefaultSize,
+                               2, pColorNumStrings, 1, wxRA_SPECIFY_COLS );
+    itemStaticBoxSizer83->Add(p24Color, 0, wxTOP|wxALL| 5);
+
+    wxStaticBox* itemStaticBoxSizer27Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Contour Settings"));
+    wxStaticBoxSizer* itemStaticBoxSizer27 = new wxStaticBoxSizer(itemStaticBoxSizer27Static, wxVERTICAL);
+    itemBoxSizer25->Add(itemStaticBoxSizer27, 0, wxTOP|wxALL|wxGROW, 5);
+
+    wxStaticText* itemStaticText4 = new wxStaticText( ps57Ctl, wxID_STATIC, _("Shallow Depth"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemStaticBoxSizer27->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+    m_ShallowCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+    itemStaticBoxSizer27->Add(m_ShallowCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+
+    wxStaticText* itemStaticText5 = new wxStaticText( ps57Ctl, wxID_STATIC, _("Safety Depth"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemStaticBoxSizer27->Add(itemStaticText5, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+    m_SafetyCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+    itemStaticBoxSizer27->Add(m_SafetyCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+
+    wxStaticText* itemStaticText6 = new wxStaticText( ps57Ctl, wxID_STATIC, _("Deep Depth"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemStaticBoxSizer27->Add(itemStaticText6, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+    m_DeepCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+    itemStaticBoxSizer27->Add(m_DeepCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+
 
     itemNotebook4->AddPage(ps57Ctl, _T("S52 Options"));
 
@@ -685,6 +706,22 @@ void options::SetInitialSettings()
           pBoundStyle->SetSelection(0);
       else
           pBoundStyle->SetSelection(1);
+
+      if(S52_getMarinerParam(S52_MAR_TWO_SHADES) == 1.0)
+            p24Color->SetSelection(0);
+      else
+            p24Color->SetSelection(1);
+
+      wxString s;
+      s.Printf(_T("%6.2f"),S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR));
+      m_SafetyCtl->SetValue(s);
+
+      s.Printf(_T("%6.2f"),S52_getMarinerParam(S52_MAR_SHALLOW_CONTOUR));
+      m_ShallowCtl->SetValue(s);
+
+      s.Printf(_T("%6.2f"),S52_getMarinerParam(S52_MAR_DEEP_CONTOUR));
+      m_DeepCtl->SetValue(s);
+
     }
 #endif
 }
@@ -902,6 +939,26 @@ void options::OnXidOkClick( wxCommandEvent& event )
             else
                 ps52plib->m_nBoundaryStyle = SYMBOLIZED_BOUNDARIES;
 
+            if(0 == p24Color->GetSelection())
+                  S52_setMarinerParam(S52_MAR_TWO_SHADES, 1.0);
+            else
+                  S52_setMarinerParam(S52_MAR_TWO_SHADES, 0.0);
+
+            double dval;
+
+            if((m_SafetyCtl->GetValue()).ToDouble(&dval))
+            {
+                  S52_setMarinerParam(S52_MAR_SAFETY_DEPTH, dval);            // controls sounding display
+                  S52_setMarinerParam(S52_MAR_SAFETY_CONTOUR, dval);          // controls colour
+            }
+
+            if((m_ShallowCtl->GetValue()).ToDouble(&dval))
+                  S52_setMarinerParam(S52_MAR_SHALLOW_CONTOUR, dval);
+
+            if((m_DeepCtl->GetValue()).ToDouble(&dval))
+                  S52_setMarinerParam(S52_MAR_DEEP_CONTOUR, dval);
+
+
             ps52plib->UpdateMarinerParams();
 
       }
@@ -915,9 +972,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
         pInit_Chart_Dir->Append(cur_path);
     }
 
-
-      EndModal(1);
-
+    //      Could be a lot smarter here
+    EndModal(GENERIC_CHANGED | S52_CHANGED);
 }
 
 
@@ -957,14 +1013,6 @@ void options::OnButtondeleteClick( wxCommandEvent& event )
 
       event.Skip();
 }
-
-
-
-void options::OnButtonrebuildClick( wxCommandEvent& event )
-{
-    event.Skip();
-}
-
 
 
 void options::OnDebugcheckbox1Click( wxCommandEvent& event )
