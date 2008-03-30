@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.6 2008/01/12 06:23:42 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.7 2008/03/30 22:00:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< concanv.cpp
  * $Log: concanv.cpp,v $
+ * Revision 1.7  2008/03/30 22:00:27  bdbcat
+ * Cleanup
+ *
+=======
+ * $Log: concanv.cpp,v $
+ * Revision 1.7  2008/03/30 22:00:27  bdbcat
+ * Cleanup
+ *
  * Revision 1.6  2008/01/12 06:23:42  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.6
  * Revision 1.5  2008/01/10 03:36:19  bdbcat
  * Update for Mac OSX
  *
@@ -101,7 +111,7 @@ extern                  float gCog;
 extern                  float gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.6 2008/01/12 06:23:42 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.7 2008/03/30 22:00:27 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -277,12 +287,15 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                   wxRoutePointListNode *node = (prt->pRoutePointList)->GetFirst();
                   RoutePoint *prp;
 
-
+                  int n_addflag = 0;
                   while(node)
                   {
                         prp = node->GetData();
-                        if(prp->nPoint > prt->m_nRouteActivePoint)
+                        if(n_addflag)
                               trng += prp->m_seg_len;
+
+                        if(prp == prt->m_pRouteActivePoint)
+                              n_addflag ++;
 
                         node=node->GetNext();
                   }
@@ -353,7 +366,7 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
 #endif
 
       if(event.IsButton())
-            wxLogMessage(_T("concanv::MouseEvent Button"));
+//            wxLogMessage(_T("concanv::MouseEvent Button"));
 //    Check the regions
 
       if(event.LeftDown())
@@ -377,7 +390,7 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
 #ifdef __WXMSW__
             if(rr.Contains(x,y)  != wxInRegion)
             {
-                  wxLogMessage("concanv::MouseEvent releasing mouse");
+//                  wxLogMessage(_T("concanv::MouseEvent releasing mouse"));
                   ReleaseMouse();
             }
 #endif
@@ -451,7 +464,7 @@ AnnunText::AnnunText(wxWindow *parent, wxWindowID id,
       if(MyBuildXFontSpec(-1, itwips,  wxFONTFAMILY_DEFAULT, wxNORMAL, wxFONTWEIGHT_BOLD, 0,
          wxString("nimbus sans l"), wxString("iso8859"), wxString("1"), &xFontName))
       {
-            wxLogMessage("Found Font, itwips = %d", itwips);
+            wxLogMessage(_T("Found Font, itwips = %d"), itwips);
             xFontName.Prepend("0;");
             wxFont *ptf = new wxFont;
             pvalueFont = ptf->New(xFontName);
