@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: thumbwin.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $
+ * $Id: thumbwin.cpp,v 1.4 2008/03/30 22:29:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Thumbnail Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: thumbwin.cpp,v $
+ * Revision 1.4  2008/03/30 22:29:22  bdbcat
+ * Cleanup
+ *
  * Revision 1.3  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -88,34 +91,30 @@ extern ChartBase        *Current_Ch;
 extern ChartCanvas      *cc1;
 
 
-CPL_CVSID("$Id: thumbwin.cpp,v 1.3 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: thumbwin.cpp,v 1.4 2008/03/30 22:29:22 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    Thumbwin Implementation
 //------------------------------------------------------------------------------
 BEGIN_EVENT_TABLE(ThumbWin, wxWindow)
   EVT_PAINT(ThumbWin::OnPaint)
-  EVT_SIZE(ThumbWin::OnSize)
-  EVT_MOUSE_EVENTS(ThumbWin::MouseEvent)
 END_EVENT_TABLE()
 
 // Define a constructor
+
 ThumbWin::ThumbWin(wxFrame *frame):
- wxWindow(frame, wxID_ANY,    wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
-
-
-
+                   wxWindow(frame, wxID_ANY,    wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 {
       pThumbChart = NULL;
       m_max_size.x = m_max_size.y = 100;
       Show(false);
+}
 
- }
 
 ThumbWin::~ThumbWin()
 {
-
 }
+
 
 void ThumbWin::Resize(void)
 {
@@ -160,11 +159,4 @@ void ThumbWin::OnPaint(wxPaintEvent& event)
 }
 
 
-void ThumbWin::OnSize(wxSizeEvent& event)
-{
-}
 
-
-void ThumbWin::MouseEvent(wxMouseEvent& event)
-{
-}

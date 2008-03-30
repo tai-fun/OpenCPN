@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52utils.cpp,v 1.3 2008/01/10 03:38:08 bdbcat Exp $
+ * $Id: s52utils.cpp,v 1.4 2008/03/30 22:28:43 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Utility Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52utils.cpp,v $
+ * Revision 1.4  2008/03/30 22:28:43  bdbcat
+ * Cleanup
+ *
  * Revision 1.3  2008/01/10 03:38:08  bdbcat
  * Update for Mac OSX
  *
@@ -61,7 +64,7 @@
  */
 
 #include "dychart.h"
-CPL_CVSID("$Id: s52utils.cpp,v 1.3 2008/01/10 03:38:08 bdbcat Exp $");
+CPL_CVSID("$Id: s52utils.cpp,v 1.4 2008/03/30 22:28:43 bdbcat Exp $");
 
 #include "s52utils.h"
 #include <stdio.h>        // FILE
@@ -161,7 +164,7 @@ static char *_MARparamNm[]  = {
 static double _MARparamVal[] = {
     0.0,      // NONE
     TRUE,     // SHOW_TEXT
-    FALSE,    // TWO_SHADES
+    TRUE,     // TWO_SHADES
 
     8.0,     // SAFETY_CONTOUR
     //0.0,     // SAFETY_CONTOUR  --to test DEPCNT02 selection (GL) in CA49995A.000

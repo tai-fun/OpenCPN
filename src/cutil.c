@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.6 2008/01/02 20:47:16 bdbcat Exp $
+ * $Id: cutil.c,v 1.7 2008/03/30 22:31:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Extern C Linked Utilities
@@ -27,6 +27,9 @@
  *
  *
  * $Log: cutil.c,v $
+ * Revision 1.7  2008/03/30 22:31:39  bdbcat
+ * Cleanup
+ *
  * Revision 1.6  2008/01/02 20:47:16  bdbcat
  * Add windows exception handler
  *
@@ -42,11 +45,9 @@
  * Revision 1.2  2006/10/01 03:22:58  dsr
  * no message
  *
-*
+ *
  *
  */
-
-
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -80,7 +81,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: cutil.c,v 1.6 2008/01/02 20:47:16 bdbcat Exp $");
+CPL_CVSID("$Id: cutil.c,v 1.7 2008/03/30 22:31:39 bdbcat Exp $");
 
 /*************************************************************************
 
@@ -313,40 +314,30 @@ double      round_msvc (double x)
 {
     return(floor(x + 0.5));
 
-/*
-    int intgr ;
-
-    _asm
-    {     fld flt
-    fistp intgr
-} ;
-
-    return intgr ;
-*/
 }
 
 #ifdef __WXMSW__
 #include <windows.h>
-#include <float.h>		// for _clear87()
+#include <float.h>            // for _clear87()
 
 long __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
-//    return EXCEPTION_EXECUTE_HANDLER ;		// terminates the app
+//    return EXCEPTION_EXECUTE_HANDLER ;        // terminates the app
 
     switch(ExceptionInfo->ExceptionRecord->ExceptionCode)
     {
         case EXCEPTION_FLT_DENORMAL_OPERAND:
         case EXCEPTION_FLT_DIVIDE_BY_ZERO:
         case EXCEPTION_FLT_INEXACT_RESULT:
-        case EXCEPTION_FLT_INVALID_OPERATION: 
-        case EXCEPTION_FLT_OVERFLOW: 
-        case EXCEPTION_FLT_STACK_CHECK: 
+        case EXCEPTION_FLT_INVALID_OPERATION:
+        case EXCEPTION_FLT_OVERFLOW:
+        case EXCEPTION_FLT_STACK_CHECK:
         case EXCEPTION_FLT_UNDERFLOW:
            _clear87();
-            return EXCEPTION_CONTINUE_EXECUTION ; 	// retry
+            return EXCEPTION_CONTINUE_EXECUTION ;     // retry
 
         default:
-           return EXCEPTION_CONTINUE_SEARCH ;		// standard fatal dialog box
+           return EXCEPTION_CONTINUE_SEARCH ;         // standard fatal dialog box
     }
 }
 
