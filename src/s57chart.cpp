@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.12 2008/01/12 06:21:18 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.13 2008/03/30 22:19:19 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< s57chart.cpp
  * $Log: s57chart.cpp,v $
+ * Revision 1.13  2008/03/30 22:19:19  bdbcat
+ * Improve messages
+ *
+=======
+ * $Log: s57chart.cpp,v $
+ * Revision 1.13  2008/03/30 22:19:19  bdbcat
+ * Improve messages
+ *
  * Revision 1.12  2008/01/12 06:21:18  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.12
  * Revision 1.11  2008/01/10 03:38:32  bdbcat
  * Update for Mac OSX
  *
@@ -89,7 +99,11 @@
 #include "cpl_csv.h"
 #include "setjmp.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.12 2008/01/12 06:21:18 bdbcat Exp $");
+#include "mygdal/ogr_s57.h"
+
+CPL_CVSID("$Id: s57chart.cpp,v 1.13 2008/03/30 22:19:19 bdbcat Exp $");
+
+extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
 
 void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
@@ -104,6 +118,7 @@ const char *MyCSVGetField( const char * pszFilename,
 
 
 extern s52plib  *ps52plib;
+extern S57ClassRegistrar *g_poRegistrar;
 
 extern int    user_user_id;
 extern int    file_user_id;
@@ -114,6 +129,9 @@ static jmp_buf env_ogrf;                    // the context saved by setjmp();
 #include <wx/arrimpl.cpp>                   // Implement an array of S57 Objects
 WX_DEFINE_OBJARRAY(ArrayOfS57Obj);
 
+#include <wx/listimpl.cpp>                   // Implement a list of S57 Objects
+WX_DEFINE_LIST(ListOfS57Obj);
+
 //  This needs to be temporarily static so that S57OBJ ctor can use it to
 //  convert SENC SM data to lat/lon for bounding boxes.
 //  Eventually, goes into private data when chart rendering is done by
@@ -121,6 +139,7 @@ WX_DEFINE_OBJARRAY(ArrayOfS57Obj);
 //  At that point, S57OBJ works only in SM
 
 static double s_ref_lat, s_ref_lon;
+
 
 #define S57_THUMB_SIZE  200
 
@@ -233,6 +252,12 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
             attVal =  new wxArrayOfS57attVal();
 
             FEIndex = atoi(buf+19);
+
+ // Debug hooks
+ //       if(!strncmp(obj->FeatureName, "DEPCNT", 6))
+ //           int ffl = 4;
+ //       if(FEIndex == 1226)
+ //           int rrt = 5;
 
             strncpy(szFeatureName, buf+11, 6);
             szFeatureName[6] = 0;
@@ -421,11 +446,14 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
 
                         br += 2;
 
-                        float AValReal;
-                        sscanf(br, "%f", &AValReal);
+                        float AValfReal;
+                        sscanf(br, "%f", &AValfReal);
 
-                        float *pAVR = (float *)malloc(sizeof(float));   //new float;
+                        double AValReal = AValfReal;        //FIXME this cast leaves trash in double
+
+                        double *pAVR = (double *)malloc(sizeof(double));   //new double;
                         *pAVR = AValReal;
+
                         pattValTmp->valType = OGR_REAL;
                         pattValTmp->value   = pAVR;
                     }
@@ -583,7 +611,12 @@ S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
 
                 case 3:                                                                 // area as polygon
                 {
-                    Primitive_type = GEO_AREA;
+// Debug hook
+//       if(!strncmp(obj->FeatureName, "DEPCNT", 6))
+//           int ffl = 4;
+//        if(FEIndex == 1226)
+//            int rrt = 5;
+                 Primitive_type = GEO_AREA;
 
                     int ll = strlen(buf);
                     if(ll > llmax)
@@ -822,7 +855,7 @@ s57chart::s57chart()
 
     pDIB = NULL;
 
-    pFullPath = NULL;
+    m_pFullPath = NULL;
 
     pFloatingATONArray = NULL;
     pRigidATONArray = NULL;
@@ -838,6 +871,13 @@ s57chart::s57chart()
         m_pcsv_locn = new wxString(csv_dir);
 
     bGLUWarningSent = false;
+
+    m_pENCDS = NULL;
+
+    m_nvaldco = 0;
+    m_nvaldco_alloc = 5;
+    m_pvaldco_array = (double *)calloc(m_nvaldco_alloc, sizeof(double));
+
 }
 
 s57chart::~s57chart()
@@ -847,14 +887,16 @@ s57chart::~s57chart()
 
     delete pDIB;
 
-    delete pFullPath;
+//    delete pFullPath;
 
     delete pFloatingATONArray;
     delete pRigidATONArray;
 
     delete m_pcsv_locn;
 
+    delete m_pENCDS;
 
+    free( m_pvaldco_array );
 }
 
 
@@ -1058,7 +1100,6 @@ void s57chart::SetFullExtent(Extent& ext)
   FullExtent.WLON = ext.WLON;
   FullExtent.ELON = ext.ELON;
 }
-
 
 void s57chart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type)
 {
@@ -1290,7 +1331,7 @@ int s57chart::DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
         ocpnBitmap *pREN = new ocpnBitmap(pb_spec.pix_buff,
                                                 pb_spec.width, pb_spec.height, pb_spec.depth);
 #else
-        wxImage *prender_image = new wxImage(pb_spec.width, pb_spec.height);
+        wxImage *prender_image = new wxImage(pb_spec.width, pb_spec.height, false);
         prender_image->SetData((unsigned char*)pb_spec.pix_buff);
         wxBitmap *pREN = new wxBitmap(*prender_image);
 
@@ -1416,7 +1457,7 @@ bool s57chart::DCRenderLPB(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
 
 InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorScheme cs )
 {
-    pFullPath = new wxString(name);
+    m_pFullPath = new wxString(name);
 
     //  Establish a common reference point for the chart
     ref_lat = (FullExtent.NLAT + FullExtent.SLAT) /2.;
@@ -1599,6 +1640,9 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                         pOLE->nViz = 0;
                 }
 
+//      Also, save some other settings
+                bool bsavem_bShowSoundgp = ps52plib->m_bShowSoundg;
+
 //      Now, set up what I want for this render
                 for(iPtr = 0 ; iPtr < OBJLCount ; iPtr++)
                 {
@@ -1608,6 +1652,8 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                         if(!strncmp(pOLE->OBJLName, "DEPARE", 6))
                                 pOLE->nViz = 1;
                 }
+
+                ps52plib->m_bShowSoundg = false;
 
 //      Use display category MARINERS_STANDARD to force use of OBJLArray
                 DisCat dsave = ps52plib->m_nDisplayCategory;
@@ -1637,6 +1683,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                 }
 
                 ps52plib->m_nDisplayCategory = dsave;
+                ps52plib->m_bShowSoundg = bsavem_bShowSoundgp;
 
 //      Reset the color scheme
                 ps52plib->SetColorScheme(m_S52_color_index);
@@ -1697,6 +1744,67 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
         m_global_color_scheme = cs;
         SetColorScheme(cs, false);
 
+//    Build array of contour values for later use by conditional symbology
+
+    ObjRazRules *top;
+    for (int i=0; i<PRIO_NUM; ++i)
+    {
+        for(int j=0 ; j<LUPNAME_NUM ; j++)
+        {
+
+            top = razRules[i][j];
+            while ( top != NULL)
+            {
+               if(!strncmp(top->obj->FeatureName, "DEPCNT", 6))
+               {
+                     double valdco = 0.0;
+                     if(GetDoubleAttr(top->obj, "VALDCO", valdco))
+                     {
+                           m_nvaldco++;
+                           if(m_nvaldco > m_nvaldco_alloc)
+                           {
+                                 void *tr = realloc((void *)m_pvaldco_array,m_nvaldco_alloc * 2 * sizeof(double));
+                                 m_pvaldco_array = (double *)tr;
+                                 m_nvaldco_alloc *= 2;
+                           }
+                           m_pvaldco_array[m_nvaldco - 1] = valdco;
+                     }
+               }
+               ObjRazRules *nxx  = top->next;
+               top = nxx;
+            }
+        }
+    }
+
+    //      And bubble sort it
+      bool swap = true;
+      int isort;
+
+      while(swap == true)
+      {
+            swap = false;
+            isort = 0;
+            while(isort < m_nvaldco - 1)
+            {
+                  if(m_pvaldco_array[isort+1] < m_pvaldco_array[isort])
+                  {
+                        double t = m_pvaldco_array[isort];
+                        m_pvaldco_array[isort] = m_pvaldco_array[isort+1];
+                        m_pvaldco_array[isort+1] = t;
+                        swap = true;
+                  }
+                  isort++;
+            }
+      }
+
+/*
+      for(int j=0 ; j < m_nvaldco ; j++)
+      {
+            double d = m_pvaldco_array[j];
+            int y = 4;
+      }
+*/
+
         bReadyToRender = true;
 
         return INIT_OK;
@@ -1710,6 +1818,97 @@ void s57chart::InvalidateCache()
                 pDIB = NULL;
         }
 
+}
+
+
+/*    This method returns the smallest chart DEPCNT:VALDCO value which
+      is greater than or equal to the specified value
+*/
+bool s57chart::GetNearestSafeContour(double safe_cnt, double &next_safe_cnt)
+{
+      int i = 0;
+      if(NULL != m_pvaldco_array)
+      {
+            for(i = 0 ; i < m_nvaldco ; i++)
+            {
+                  if(m_pvaldco_array[i] >= safe_cnt)
+                        break;
+            }
+
+            if(i < m_nvaldco)
+                  next_safe_cnt = m_pvaldco_array[i];
+            else
+                  next_safe_cnt = (double)1e6;
+            return true;
+      }
+      else
+      {
+            next_safe_cnt = (double)1e6;
+            return false;
+      }
+}
+
+/*
+--------------------------------------------------------------------------
+      Build a list of "associated" DEPARE and DRGARE objects from a given
+      object. to be "associated" means to be physically intersecting,
+      overlapping, or contained within, depending upon the geometry type
+      of the given object.
+--------------------------------------------------------------------------
+*/
+
+
+ListOfS57Obj *s57chart::GetAssociatedObjects(S57Obj *obj)
+{
+      int j;
+      int disPrioIdx;
+
+      ListOfS57Obj *pobj_list = new ListOfS57Obj;
+      pobj_list->Clear();
+
+
+      double lat, lon;
+      fromSM(obj->x, obj->y, ref_lat, ref_lon, &lat, &lon);
+
+      //    What is the entry object geometry type?
+
+      switch(obj->Primitive_type)
+      {
+            case GEO_POINT:
+                  ObjRazRules *top;
+                  disPrioIdx = 1;
+
+                  for(j=0 ; j<LUPNAME_NUM ; j++)
+                  {
+                        top = razRules[disPrioIdx][j];
+                        while ( top != NULL)
+                        {
+                              if(!strncmp(top->obj->FeatureName, "DEPARE", 6) || !strncmp(top->obj->FeatureName, "DRGARE", 6))
+                              {
+                                    if(IsPointInObjArea(lat, lon, 0.0, top->obj))
+                                    {
+                                          pobj_list->Append(top->obj);
+                                    }
+                              }
+
+                              ObjRazRules *nxx  = top->next;
+                              top = nxx;
+                        }
+                  }
+
+                  break;
+
+            case GEO_LINE:
+                  break;
+
+            case GEO_AREA:
+                  break;
+
+            default:
+                  break;
+      }
+
+      return pobj_list;
 }
 
 
@@ -1881,7 +2080,7 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
 
             for(int iff=1 ; iff < retval ; iff++)
             {
-                wxFileName ufile(*pFullPath);
+                wxFileName ufile(*m_pFullPath);
                 wxString sext;
                 sext.Printf(_T("%03d"), iff);
                 ufile.SetExt(sext);
@@ -1946,10 +2145,17 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
         return retval;
 }
 
+extern FILE *s_fpdebug;
 
 
 int s57chart::BuildS57File(const wxString& FullPath)
 {
+      wxStopWatch sw_build;
+
+      wxString msg0(_T("Building SENC file for"));
+      msg0.Append(FullPath);
+      wxLogMessage(msg0);
+
 
     OGRFeature *objectDef;
     int nProg = 0;
@@ -2068,10 +2274,11 @@ int s57chart::BuildS57File(const wxString& FullPath)
 
     fprintf(fps57, "UPDT=%d\n", last_applied_update);
 
+
     strncpy(temp, LastUpdateDate.mb_str(), 200);
     fprintf(fps57, "DATEUPD=%s\n", temp);
 
-
+    /*
     //  Here comes the actual ISO8211 file reading
     OGRSFDriver *poDriver;
     OGRDataSource *poDS = OGRSFDriverRegistrar::Open( FullPath.mb_str(), FALSE, &poDriver );
@@ -2085,17 +2292,19 @@ int s57chart::BuildS57File(const wxString& FullPath)
 
         return 0;
     }
+    */
 
     //  Now that the .000 file with updates is safely ingested, delete any temporary
     //  dummy update files
 
+/*
     if(tmpup_array)
     {
         for(unsigned int iff = 0 ; iff < tmpup_array->GetCount() ; iff++)
            remove(tmpup_array->Item(iff).mb_str());
         delete tmpup_array;
     }
-
+*/
 
     //      Insert my local error handler to catch OGR errors,
     //      Especially CE_Fatal type errors
@@ -2109,11 +2318,185 @@ int s57chart::BuildS57File(const wxString& FullPath)
     int iObj = 0;
     OGRwkbGeometryType geoType;
     wxString sobj;
-    int iLayObj;
+//    int iLayObj;
 
-    int nLayers = poDS->GetLayerCount();
+    //int nLayers = poDS->GetLayerCount();
+
+    wxStopWatch sw_polygon;
+    sw_polygon.Pause();
+    wxStopWatch sw_other;
+    sw_other.Pause();
+    wxStopWatch sw_create_senc_record;
+    sw_create_senc_record.Pause();
+    wxStopWatch sw_get_next_feature;
+    sw_get_next_feature.Pause();
+
+    //////////////Testing
+    bcont = SENC_prog->Update(1, _T(""));
 
 
+
+    OGRS57DataSource *poS57DS = new OGRS57DataSource;
+    poS57DS->SetS57Registrar(g_poRegistrar);
+
+    wxStopWatch sw_ingest;
+    poS57DS->Open(FullPath.mb_str(), TRUE);
+    sw_ingest.Pause();
+
+    //  Now that the .000 file with updates is safely ingested, delete any temporary
+    //  dummy update files created by CountUpdates()
+    if(tmpup_array)
+    {
+          for(unsigned int iff = 0 ; iff < tmpup_array->GetCount() ; iff++)
+                remove(tmpup_array->Item(iff).mb_str());
+          delete tmpup_array;
+    }
+
+
+//    Debug
+//    FILE *fdebug = VSIFOpen( "\\ocpdebug", "w");
+//    s_fpdebug = fdebug;
+
+
+    S57Reader   *poReader = poS57DS->GetModule(0);
+
+    while(bcont)
+    {
+            //  Prepare for possible CE_Fatal error in GDAL
+            //  Corresponding longjmp() is in the local error handler
+          int setjmp_ret = 0;
+          setjmp_ret = setjmp(env_ogrf);
+          if(setjmp_ret == 1)             //  CE_Fatal happened in GDAL library
+                                          //  in the ReadNextFeature() call below.
+                                          //  Seems odd, but that's setjmp/longjmp behaviour
+                                          //      Discovered/debugged on US5MD11M.017.  VI 548 geometry deleted
+
+          {
+//                need to debug thissssssssss
+               wxLogMessage(_T("s57chart(): GDAL/OGR Fatal Error caught on Obj #%d"), iObj);
+          }
+
+          sw_get_next_feature.Resume();
+          objectDef = poReader->ReadNextFeature( );
+          sw_get_next_feature.Pause();
+
+
+          if(objectDef != NULL)
+          {
+
+                            iObj++;
+//    Debug hook
+//                            if(!strncmp(objectDef->GetDefnRef()->GetName(), "M_SREL", 6))
+//                                    int ggk = 4;
+//                            if(iObj == 1707)
+//                                  int ggk = 4;
+
+//  Update the progress dialog
+                            sobj = wxString(objectDef->GetDefnRef()->GetName(),  wxConvUTF8);
+                            wxString idx;
+                            idx.Printf(_T("  %d/%d       "), iObj, nGeoRecords);
+                            sobj += idx;
+
+                            nProg = iObj;
+                            if(nProg > nGeoRecords - 1)
+                                  nProg = nGeoRecords - 1;
+
+                            if(0 == (nProg % 1000))
+                                  bcont = SENC_prog->Update(nProg, sobj);
+
+
+                            geoType = wkbUnknown;
+//      This test should not be necessary for real (i.e not C_AGGR) features
+//      However... some update files contain errors, and have deleted some
+//      geometry without deleting the corresponding feature(s).
+//      So, GeometryType becomes Unknown.
+//      e.g. US5MD11M.017
+//      In this case, all we can do is skip the feature....sigh.
+
+                            if (objectDef->GetGeometryRef() != NULL)
+                                  geoType = objectDef->GetGeometryRef()->getGeometryType();
+
+
+//      Look for polygons to process
+                            if(geoType == wkbPolygon)
+                            {
+                                  int error_code;
+                                  PolyTessGeo *ppg = NULL;
+
+                                  OGRPolygon *poly = (OGRPolygon *)(objectDef->GetGeometryRef());
+
+//                                  bcont = SENC_prog->Update(nProg, sobj);
+
+                                  sw_create_senc_record.Resume();
+                                  CreateSENCRecord( objectDef, fps57, 0 );
+                                  sw_create_senc_record.Pause();
+
+                                  sw_polygon.Resume();
+                                  ppg = new PolyTessGeo(poly, true, ref_lat, ref_lon, 0);   //try to use glu library
+
+                                  error_code = ppg->ErrorCode;
+                                  if(error_code == ERROR_NO_DLL)
+                                  {
+                                              if(!bGLUWarningSent)
+                                              {
+                                                    wxLogMessage(_T("Warning...Could not find glu32.dll, trying internal tess."));
+                                                    bGLUWarningSent = true;
+                                              }
+
+                                        delete ppg;
+                                //  Try with internal tesselator
+                                        ppg = new PolyTessGeo(poly, true, ref_lat, ref_lon, 1);
+                                        error_code = ppg->ErrorCode;
+                                  }
+
+
+                                  if(error_code)
+                                  {
+                                              wxLogMessage(_T("Error: S57 SENC Create Error %d"), ppg->ErrorCode);
+
+                                              delete ppg;
+                                              delete objectDef;
+                                              delete SENC_prog;
+                                              fclose(fps57);
+                                              delete poS57DS;
+                                              CPLPopErrorHandler();
+                                              unlink(tmp_file.mb_str());           // delete the temp file....
+
+                                              return 0;                           // soft error return
+                                  }
+                                  sw_polygon.Pause();
+
+                                  ppg->Write_PolyTriGroup( fps57 );
+                                  delete ppg;
+                            }
+
+//      n.b  This next line causes skip of C_AGGR features w/o geometry
+                            else if( geoType != wkbUnknown )                                // Write only if has wkbGeometry
+                            {
+                                  sw_other.Resume();
+                                  sw_create_senc_record.Resume();
+
+                                  CreateSENCRecord( objectDef, fps57, 1 );
+
+                                  sw_create_senc_record.Pause();
+                                  sw_other.Pause();
+                            }
+
+                            delete objectDef;
+
+
+          }
+          else
+                break;
+
+
+    }
+    delete poS57DS;
+
+//    VSIFClose( s_fpdebug);
+
+    //////////////////
+    /*
     for(int iL=0 ; iL < nLayers ; iL++)
     {
         OGRLayer *pLay = poDS->GetLayer(iL);
@@ -2147,8 +2530,10 @@ int s57chart::BuildS57File(const wxString& FullPath)
                 delete objectDef;
                 break;                                  // pops out of while(bcont) to next layer
             }
-
+//            sw_get_next_feature.Resume();
             objectDef = pLay->GetNextFeature();
+//            sw_get_next_feature.Pause();
+
             iObj++;
             iLayObj++;
 
@@ -2201,8 +2586,15 @@ int s57chart::BuildS57File(const wxString& FullPath)
 //              if(1)
                 {
                         bcont = SENC_prog->Update(nProg, sobj);
+
+                        sw_create_senc_record.Resume();
                         CreateSENCRecord( objectDef, fps57, 0 );
+                        sw_create_senc_record.Pause();
+
+                        sw_polygon.Resume();
                         ppg = new PolyTessGeo(poly, true, ref_lat, ref_lon, 0);   //try to use glu library
+                        sw_polygon.Pause();
+
                         error_code = ppg->ErrorCode;
                         if(error_code == ERROR_NO_DLL)
                         {
@@ -2241,7 +2633,15 @@ int s57chart::BuildS57File(const wxString& FullPath)
 
 //      n.b  This next line causes skip of C_AGGR features w/o geometry
             else if( geoType != wkbUnknown )                                // Write only if has wkbGeometry
-                CreateSENCRecord( objectDef, fps57, 1 );
+            {
+                  sw_other.Resume();
+                  sw_create_senc_record.Resume();
+
+                  CreateSENCRecord( objectDef, fps57, 1 );
+
+                  sw_create_senc_record.Pause();
+                  sw_other.Pause();
+            }
 
             delete objectDef;
 
@@ -2250,11 +2650,13 @@ int s57chart::BuildS57File(const wxString& FullPath)
 
     }               // for
 
+    delete poDS;
+
+    */
+
     delete SENC_prog;
 
     fclose(fps57);
-
-    delete poDS;
 
     CPLPopErrorHandler();
 
@@ -2277,11 +2679,11 @@ int s57chart::BuildS57File(const wxString& FullPath)
         int err = rename(tmp_file.mb_str(), s57file.GetFullPath().mb_str()); //   mv temp file to target
         if(err)
         {
-            char file1[1000], file2[1000];
-            strncpy(file1, tmp_file.mb_str(), 1000);
-            strncpy(file2, s57file.GetFullPath().mb_str(), 1000);
-
-            wxLogMessage(_T("Could not rename temporary SENC file %s to %s"),file1, file2);
+            wxString msg(_T("Could not rename temporary SENC file "));
+            msg.Append(tmp_file);
+            msg.Append(_T(" to "));
+            msg.Append(s57file.GetFullPath());
+            wxLogMessage(msg);
 //            wxString msg1("Could not create SENC file, perhaps permissions not set to read/write?");
 //            wxMessageDialog mdlg(this, msg1, wxString("OpenCPN"),wxICON_ERROR  );
 //            if(mdlg.ShowModal() == wxID_YES)
@@ -2297,6 +2699,14 @@ int s57chart::BuildS57File(const wxString& FullPath)
       seteuid(user_user_id);
 #endif
 
+      sw_build.Pause();
+
+      wxLogMessage(_T("sw_build: %ld"), sw_build.Time());
+      wxLogMessage(_T("sw_ingest: %ld"), sw_ingest.Time());
+      wxLogMessage(_T("sw_polygon: %ld"), sw_polygon.Time());
+      wxLogMessage(_T("sw_other: %ld"), sw_other.Time());
+      wxLogMessage(_T("sw_create_senc_record: %ld"), sw_create_senc_record.Time());
+      wxLogMessage(_T("sw_get_next_feature: %ld"), sw_get_next_feature.Time());
 
       return ret_code;
 }
@@ -2402,8 +2812,11 @@ int s57chart::BuildRAZFromS57File( const wxString& FullPath )
                          }
 
  // Debug hook
- //       if(!strncmp(obj->FeatureName, "DEPCNT", 6))
- //           int ffl = 4;
+//        if(!strncmp(obj->FeatureName, "CBLSUB", 6))
+//            int ffl = 4;
+//        if(obj->Index == 1128)
+//            int rrt = 5;
+
                          LUP = ps52plib->S52_LUPLookup(LUP_Name, obj->FeatureName, obj);
 
                          if(NULL == LUP)
@@ -2691,6 +3104,10 @@ void s57chart::UpdateLUPs()
             }
         }
     }
+
+          //    Clear the dynamically created Conditional Symbology LUP Array
+    ps52plib->ClearCNSYLUPArray();
+
 }
 
 
@@ -2718,7 +3135,7 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
         {
                 if( pFeature->IsFieldSet( iField ) )
                 {
-                        if((iField == 1) || (iField > 7))
+                        if( (iField == 1) || (iField > 7))
                         {
                                 OGRFieldDefn *poFDefn = pFeature->GetDefnRef()->GetFieldDefn(iField);
 
@@ -2744,6 +3161,22 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
         }
 
         OGRGeometry *pGeo = pFeature->GetGeometryRef();
+
+
+//    Special geometry cases
+        if(wkbPoint == pGeo->getGeometryType())
+        {
+              OGRPoint *pp = (OGRPoint *)pGeo;
+              int nqual = pp->getnQual();
+              if(10 != nqual)                         // only add attribute if nQual is not "precisely known"
+              {
+// for msw                    _snprintf( line, MAX_HDR_LINE - 2, "  %s (%c) = %d","QUALTY", 'I', nqual);
+                    snprintf( line, MAX_HDR_LINE - 2, "  %s (%c) = %d","QUALTY", 'I', nqual);
+                    sheader += wxString(line, wxConvUTF8);
+                    sheader += '\n';
+              }
+
+        }
 
         if(mode == 1)
         {
@@ -2844,7 +3277,12 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                       break;
 
                 case wkbPoint:
-                    sb_len = ((wkb_len - 5) / 2) + 5;                   // data will be 4 byte float, not double
+                    {
+                    int nq_len = 4;                                     // nQual length
+//                    int nqual = *(int *)(pwkb_buffer + 5);              // fetch nqual
+
+                    sb_len = ((wkb_len - (5 + nq_len)) / 2) + 5;        // data will be 4 byte float, not double
+                                                                        // and skipping nQual
 
                     fprintf( fpOut, "  %d\n", sb_len);
 
@@ -2852,10 +3290,10 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                     pd = psb_buffer;
                     ps = pwkb_buffer;
 
-                    memcpy(pd, ps, 5);                                  // byte order, type
+                    memcpy(pd, ps, 5);                                 // byte order, type
 
                     pd += 5;
-                    ps += 5;
+                    ps += 5 + nq_len;
                     psd = (double *)ps;
                     pdf = (float *)pd;
 
@@ -2874,6 +3312,7 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                     free(psb_buffer);
 
                     break;
+                    }
 
                 case wkbMultiPoint25D:
                     ps = pwkb_buffer;
@@ -3093,6 +3532,48 @@ bool s57chart::DoesLatLonSelectObject(float lat, float lon, float select_radius,
                 }
 
             case  GEO_LINE:
+            {
+                  if(obj->geoPt)
+                  {
+                        //  Coarse test first
+                        if(!obj->BBObj.PointInBox( lon, lat, select_radius))
+                              return false;
+
+        //  Polygon geometry is carried in SM coordinates, so...
+        //  make the hit test thus.
+                        double easting, northing;
+                        toSM(lat, lon, ref_lat, ref_lon, &easting, &northing);
+
+                        pt *ppt = obj->geoPt;
+                        int npt = obj->npt;
+                        float north0 = ppt->y;
+                        float east0 = ppt->x;
+                        ppt++;
+
+                        for(int ip=1 ; ip<npt ; ip++)
+                        {
+                              float north = ppt->y;
+                              float east = ppt->x;
+
+                              //    A slightly less coarse segment bounding box check
+                              if(northing >= (fmin(north, north0) - select_radius))
+                                    if(northing <= (fmax(north, north0) + select_radius))
+                                          if(easting >= (fmin(east, east0) - select_radius))
+                                                if(easting <= (fmax(east, east0) + select_radius))
+                                                {
+                                                      return true;
+                                                }
+
+
+                              north0 = north;
+                              east0 = east;
+                              ppt++;
+                        }
+                  }
+
+                  break;
+            }
+
             case  GEO_META:
             case  GEO_PRIM:
 
@@ -3115,7 +3596,8 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
       {
             case  GEO_POINT:
             case  GEO_AREA:
-                  {
+            case  GEO_LINE:
+            {
 
                   //    Get Name
                       wxString name(obj.FeatureName,  wxConvUTF8);
@@ -3141,7 +3623,7 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
 
 
                   *ret_str << wxString(name_desc,  wxConvUTF8);
-                  *ret_str << '\n';
+                  *ret_str << _T('\n');
 
 
                   wxString index;
@@ -3162,7 +3644,10 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
 //    Attribute name
                         att.Clear();
                         while((*curr_att) && (*curr_att != '\037'))
-                              att.Append(*curr_att++);
+                        {
+                              char t = *curr_att++;
+                              att.Append(t);
+                        }
 
                         if(*curr_att == '\037')
                               curr_att++;
@@ -3170,7 +3655,7 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                         int is = 0;
                         while( is < 8)
                         {
-                              *ret_str << ' ';
+                              *ret_str << _T(' ');
                               is++;
                         }
 
@@ -3179,7 +3664,7 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                         is+= att.Len();
                         while( is < 25)
                         {
-                              *ret_str << ' ';
+                              *ret_str << _T(' ');
                               is++;
                         }
 
@@ -3282,7 +3767,19 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                             break;
                         }
                         case OGR_INT_LST:
+                              break;
+
                         case OGR_REAL:
+                        {
+/*
+                              float dval = *((float *)pval->value);
+                              value.Printf(_T("%g"), dval);
+*/
+                              double dval = *((double *)pval->value);
+                              value.Printf(_T("%g"), dval);
+                              break;
+                        }
+
                         case OGR_REAL_LST:
                         {
                                 break;
@@ -3292,7 +3789,7 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
 
                         *ret_str << value;
 
-                        *ret_str << '\n';
+                        *ret_str << _T('\n');
                         iatt++;
 
                   }             //while *curr_att
@@ -3322,7 +3819,6 @@ typedef struct _S57attVal{
 #endif
 
 
-            case  GEO_LINE:
             case  GEO_META:
             case  GEO_PRIM:
 
@@ -3511,6 +4007,116 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
 }
 
 
+//------------------------------------------------------------------------
+//
+//          S57 ENC (i.e. "raw") DataSet support functions
+//          Not bulletproof, so call carefully
+//
+//------------------------------------------------------------------------
+bool s57chart::InitENCMinimal(const wxString &FullPath)
+{
+      m_pENCDS = new OGRS57DataSource;
+
+      if(g_poRegistrar)
+            m_pENCDS->SetS57Registrar(g_poRegistrar);
+
+      if(!m_pENCDS->OpenMin(FullPath.mb_str(), TRUE))
+            return false;
+
+      S57Reader *pENCReader = m_pENCDS->GetModule(0);
+      pENCReader->SetClassBased( g_poRegistrar );
+
+      pENCReader->Ingest();
+
+      return true;
+}
+
+
+OGRFeature *s57chart::GetChartFirstM_COVR(int &catcov)
+{
+//    Get the reader
+      S57Reader *pENCReader = m_pENCDS->GetModule(0);
+
+      if(pENCReader)
+      {
+
+//      Select the proper class
+            g_poRegistrar->SelectClass( "M_COVR");
+
+//      Build a new feature definition for this class
+            OGRFeatureDefn *poDefn = S57GenerateObjectClassDefn( g_poRegistrar, g_poRegistrar->GetOBJL(),
+                                                pENCReader->GetOptionFlags() );
+
+//      Add this feature definition to the reader
+            pENCReader->AddFeatureDefn(poDefn);
+
+//    Also, add as a Layer to Datasource to ensure proper deletion
+            m_pENCDS->AddLayer( new OGRS57Layer( m_pENCDS, poDefn, 1 ) );
+
+//      find this feature
+            OGRFeature *pobjectDef = pENCReader->ReadNextFeature(poDefn );
+            if(pobjectDef)
+            {
+      //  Fetch the CATCOV attribute
+               catcov = pobjectDef->GetFieldAsInteger( "CATCOV" );
+               return pobjectDef;
+            }
+
+            else
+            {
+               return NULL;
+            }
+      }
+      else
+            return NULL;
+}
+
+OGRFeature *s57chart::GetChartNextM_COVR(int &catcov)
+{
+    catcov = -1;
+
+//    Get the reader
+    S57Reader *pENCReader = m_pENCDS->GetModule(0);
+
+//    Get the Feature Definition, stored in Layer 0
+    OGRFeatureDefn *poDefn = m_pENCDS->GetLayer(0)->GetLayerDefn();
+
+    if(pENCReader)
+    {
+      OGRFeature *pobjectDef = pENCReader->ReadNextFeature(poDefn);
+
+      if(pobjectDef)
+      {
+        catcov = pobjectDef->GetFieldAsInteger( "CATCOV" );
+        return pobjectDef;
+      }
+
+      return NULL;
+    }
+    else
+      return NULL;
+
+}
+
+
+int s57chart::GetENCScale(void)
+{
+      if(NULL == m_pENCDS)
+            return 0;
+
+      //    Assume that chart has been initialized for minimal ENC access
+      //    which implies that the ENC has been fully ingested, and some
+      //    interesting values have been extracted thereby.
+
+//    Get the reader
+      S57Reader *pENCReader = m_pENCDS->GetModule(0);
+
+      if(pENCReader)
+            return pENCReader->GetCSCL();
+      else
+            return 1;
+}
+
 
  extern wxLog *logger;
 
@@ -3523,16 +4129,16 @@ void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
                               const char * pszErrorMsg )
 {
 
-#define ERR_BUF_LEN 200
+#define ERR_BUF_LEN 2000
 
     char buf[ERR_BUF_LEN + 1];
 
     if( eErrClass == CE_Debug )
-        snprintf( buf, ERR_BUF_LEN, "%s\n", pszErrorMsg );
+        sprintf( buf, "%s\n", pszErrorMsg );
     else if( eErrClass == CE_Warning )
-        snprintf( buf, ERR_BUF_LEN, "Warning %d: %s\n", nError, pszErrorMsg );
+        sprintf( buf, "Warning %d: %s\n", nError, pszErrorMsg );
     else
-        snprintf( buf, ERR_BUF_LEN, "ERROR %d: %s\n", nError, pszErrorMsg );
+        sprintf( buf, "ERROR %d: %s\n", nError, pszErrorMsg );
 
 
     wxLogMessage(_T("%s"), buf);
@@ -3660,8 +4266,35 @@ int s57_initialize(const wxString& csv_dir, FILE *flog)
 #endif
 
 
-    RegisterOGRS57();
+    //      Get one instance of the s57classregistrar,
+    //      And be prepared to give it to any module that needs it
 
+    if( g_poRegistrar == NULL )
+    {
+        g_poRegistrar = new S57ClassRegistrar();
+
+        if( !g_poRegistrar->LoadInfo( NULL, FALSE ) )
+        {
+            delete g_poRegistrar;
+            g_poRegistrar = NULL;
+        }
+    }
+
+///    RegisterOGRS57();
+
+    //      Testing
+    /*
+      OGRS57DataSource *pDS;
+      OGRFeature *pFeat;
+      OGRFeature *pLastFeat;
+      OGRFeatureDefn *pFD;
+      int catcov;
+
+    //Get the first M_COVR object
+      s57_GetChartFirstM_COVR("/ENC_ROOT/US5FL11M/US5FL11M.000", &pDS, &pFeat, &pFD, catcov);
+      pLastFeat = pFeat;
+      s57_GetChartNextM_COVR(pDS, pFD, pLastFeat, &pFeat, catcov);
+    */
     return 0;
 }
 
@@ -3713,15 +4346,83 @@ int s57_GetChartScale(const wxString& FullPath)
 
 }
 
+
+/*    How To
+
+        1. Instantiate class registrar
+        2. new ogrs57datasource
+        3. Open minimal (includes ingest, but no OGRFeatureDefn creation, no layers0)
+        4. Get module
+        5. From class registrar, set cless = M_COVR
+        6. OGRFeatureDefn *p = GenerateObjectClassDefn
+        7. Add p to module
+        8.  Loop on module::GetNextFeature(p)
+            this will only return M_COVR objects
+*/
 //----------------------------------------------------------------------------------
 // Get First Chart M_COVR Object
 // Directly from the ios8211 file
 //              n.b. Caller owns the data source and the feature on success
 //----------------------------------------------------------------------------------
-bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRDataSource **pDS, OGRFeature **pFeature,
-                                 OGRLayer **pLayer, int &catcov)
+bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRS57DataSource **pDS, OGRFeature **pFeature,
+                                 OGRFeatureDefn **pFD, int &catcov)
 {
+      OGRFeature *objectDef;
+      OGRS57DataSource *poS57DS = new OGRS57DataSource;
+      *pDS = poS57DS;                                    // give to caller
 
+      if(g_poRegistrar)
+            poS57DS->SetS57Registrar(g_poRegistrar);
+
+      poS57DS->OpenMin(FullPath.mb_str(), TRUE);
+
+      S57Reader   *poReader = poS57DS->GetModule(0);
+      poReader->SetClassBased( g_poRegistrar );
+
+//      Select the proper class
+      g_poRegistrar->SelectClass( "M_COVR");
+
+
+//      Build a new feature definition for this class
+      OGRFeatureDefn *poFDefn = S57GenerateObjectClassDefn( g_poRegistrar, g_poRegistrar->GetOBJL(),
+                                                poReader->GetOptionFlags() );
+
+//      Add this feature definition to the module
+      poReader->AddFeatureDefn(poFDefn);
+      *pFD = poFDefn;                                       //  give to caller
+
+//      find this feature
+      objectDef = poReader->ReadNextFeature(poFDefn );
+      if(objectDef)
+      {
+        *pFeature = objectDef;                  // Give to caller
+
+    //  Fetch the CATCOV attribute
+        for( int iField = 0; iField < objectDef->GetFieldCount(); iField++ )
+        {
+            if( objectDef->IsFieldSet( iField ) )
+            {
+                OGRFieldDefn *poFDefn = objectDef->GetDefnRef()->GetFieldDefn(iField);
+                if(!strcmp(poFDefn->GetNameRef(), "CATCOV"))
+                {
+                    catcov = objectDef->GetFieldAsInteger( iField );
+                    break;
+                }
+            }
+        }
+        return true;
+      }
+
+      else
+      {
+        delete poS57DS;
+        *pDS = NULL;
+        return false;
+      }
+
+
+//      new code here
+/*
     OGRDataSource *poDS = OGRSFDriverRegistrar::Open( FullPath.mb_str() );
 
     *pDS = poDS;                                    // give to caller
@@ -3763,29 +4464,31 @@ bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRDataSource **pDS, OGRF
         *pDS = NULL;
         return false;
     }
-
+  */
+      return false;
 }
 
 //----------------------------------------------------------------------------------
 // GetNext Chart M_COVR Object
-// Directly from the ios8211 file
+// Directly from the iso8211 file
 // Companion to s57_GetChartFirstM_COVR
 //              n.b. Caller still owns the data source and the feature on success
 //----------------------------------------------------------------------------------
-bool s57_GetChartNextM_COVR(OGRDataSource *pDS, OGRLayer *pLayer, OGRFeature *pLastFeature,
+bool s57_GetChartNextM_COVR(OGRS57DataSource *pDS, OGRFeatureDefn *pFD, OGRFeature *pLastFeature,
                                 OGRFeature **pFeature, int &catcov)
 {
-
-
     if( pDS == NULL )
         return false;
 
     catcov = -1;
 
 
-    int fid = pLastFeature->GetFID();
+    S57Reader   *poReader = pDS->GetModule(0);
 
-    OGRFeature *objectDef = pLayer->GetFeature(fid + 1);
+    int fid = pLastFeature->GetFID();
+    poReader->SetNextFEIndex( fid + 1, 100 );
+
+    OGRFeature *objectDef = poReader->ReadNextFeature(pFD);
     *pFeature = objectDef;                  // Give to caller
 
     if(objectDef)
@@ -3796,11 +4499,15 @@ bool s57_GetChartNextM_COVR(OGRDataSource *pDS, OGRLayer *pLayer, OGRFeature *pL
             {
                 OGRFieldDefn *poFDefn = objectDef->GetDefnRef()->GetFieldDefn(iField);
                 if(!strcmp(poFDefn->GetNameRef(), "CATCOV"))
+                {
                     catcov = objectDef->GetFieldAsInteger( iField );
+                    break;
+                }
             }
         }
         return true;
     }
+
     return false;
 }
 
