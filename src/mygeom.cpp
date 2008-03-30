@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.8 2008/01/12 06:20:27 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.9 2008/03/30 22:01:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< mygeom.cpp
  * $Log: mygeom.cpp,v $
+ * Revision 1.9  2008/03/30 22:01:50  bdbcat
+ * Optimize SENC format
+ *
+=======
+ * $Log: mygeom.cpp,v $
+ * Revision 1.9  2008/03/30 22:01:50  bdbcat
+ * Optimize SENC format
+ *
  * Revision 1.8  2008/01/12 06:20:27  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.8
  * Revision 1.7  2007/06/10 02:28:15  bdbcat
  * Cleanup
  *
@@ -66,7 +76,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.8 2008/01/12 06:20:27 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.9 2008/03/30 22:01:50 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -340,14 +350,24 @@ PolyTessGeo::PolyTessGeo(unsigned char *polybuf, int nrecl, int index)
     //  Read the PTG_Triangle Geometry in a loop
     unsigned int tri_type;
     int nvert;
+    int nvert_max = 0;
     bool not_finished = true;
     while(not_finished)
     {
-        my_bufgets( buf, POLY_LINE_MAX );                       // GL_TRI.....
-
-        if(!strncmp(buf, "GL_TRI", 6))
+        if((m_buf_ptr - m_buf_head) != m_nrecl)
         {
-            sscanf(buf, "GL_TRI%d %d", &tri_type, &nvert);
+            int *pi = (int *)m_buf_ptr;
+            tri_type = *pi++;
+            nvert = *pi;
+            m_buf_ptr += 2 * sizeof(int);
+
+            //    Here is the usual stop condition, which results from
+            //    interpreting the string "POLYEND" as an int
+            if(tri_type == 0x594c4f50)
+            {
+                  not_finished = false;
+                  break;
+            }
 
             TriPrim *tp = new TriPrim;
             *p_prev_triprim = tp;                               // make the link
@@ -356,6 +376,10 @@ PolyTessGeo::PolyTessGeo(unsigned char *polybuf, int nrecl, int index)
 
             tp->type = tri_type;
             tp->nVert = nvert;
+
+            if(nvert > nvert_max )                          // Keep a running tab of largest vertex count
+                  nvert_max = nvert;
+
             int byte_size = nvert * 2 * sizeof(double);
 
             tp->p_vertex = (double *)malloc(byte_size);
@@ -372,28 +396,19 @@ PolyTessGeo::PolyTessGeo(unsigned char *polybuf, int nrecl, int index)
             tp->p_bbox->SetMin(minx, miny);
             tp->p_bbox->SetMax(maxx, maxy);
 
-
             m_buf_ptr += 4 * sizeof(double);
-            m_buf_ptr++;                            // allow for nl
-
 
         }
         else                                    // got end of poly
-        {
             not_finished = false;
-        }
-
     }                   // while
 
 
 
     m_ppg_head = ppg;
+    m_nvertex_max = nvert_max;
 
     free(buf);
-
-
-
-
 }
 
 
@@ -830,15 +845,11 @@ int PolyTessGeo::Write_PolyTriGroup( FILE *ofs)
 
     TriPrim *pTP = pPTG->tri_prim_head;         // head of linked list of TriPrims
 
-    stemp.sprintf( _T("\n"));
 
     while(pTP)
     {
-
-        char buf[80];
-
-        sprintf(buf, "GL_TRI%1d %d\n", pTP->type, pTP->nVert);
-        ostream2->Write(buf, strlen(buf));
+        ostream2->Write(&pTP->type, sizeof(int));
+        ostream2->Write(&pTP->nVert, sizeof(int));
 
         ostream2->Write( pTP->p_vertex, pTP->nVert * 2 * sizeof(double));
 
@@ -853,15 +864,12 @@ int PolyTessGeo::Write_PolyTriGroup( FILE *ofs)
         ostream2->Write(&maxy, sizeof(double));
 
 
-        ostream2->Write(stemp.mb_str(), stemp.Len());
-
         pTP = pTP->p_next;
     }
 
 
     stemp.sprintf( _T("POLYEND\n"));
     ostream2->Write(stemp.mb_str(), stemp.Len());
-
 
     int nrecl = ostream1->GetSize() + ostream2->GetSize();
     stemp.sprintf( _T("  POLYTESSGEO  %08d\n"), nrecl);
@@ -883,10 +891,6 @@ int PolyTessGeo::Write_PolyTriGroup( FILE *ofs)
 
     return 0;
 }
-
-
-
-
 
 
 
