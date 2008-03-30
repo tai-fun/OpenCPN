@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.13 2008/01/12 06:24:20 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.14 2008/03/30 22:17:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -25,13 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< s52plib.cpp
  * $Log: s52plib.cpp,v $
+ * Revision 1.14  2008/03/30 22:17:41  bdbcat
+ * Optimize HPGL cacheing
+ *
+=======
+ * $Log: s52plib.cpp,v $
+ * Revision 1.14  2008/03/30 22:17:41  bdbcat
+ * Optimize HPGL cacheing
+ *
  * Revision 1.13  2008/01/12 06:24:20  bdbcat
  * Update for Mac OSX/Unicode
  *
  * Revision 1.12  2008/01/11 01:39:59  bdbcat
  * Update for Mac OSX
  *
+>>>>>>> 1.13
  * Revision 1.11  2008/01/10 03:37:47  bdbcat
  * Update for Mac OSX
  *
@@ -93,7 +103,9 @@
 
 extern s52plib          *ps52plib;
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.13 2008/01/12 06:24:20 bdbcat Exp $");
+extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
+
+CPL_CVSID("$Id: s52plib.cpp,v 1.14 2008/03/30 22:17:41 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -400,7 +412,7 @@ wxArrayOfLUPrec *s52plib::SelectLUPARRAY(LUPname TNAM)
       case PLAIN_BOUNDARIES:            return areaPlaineLUPArray;
       case SYMBOLIZED_BOUNDARIES:       return areaSymbolLUPArray;
       default:                          return NULL;
-//          wxLogMessage("S52:_selctLUP() ERROR");
+//          wxLogMessage(_T("S52:_selctLUP() ERROR"));
    }
 
    return NULL;
@@ -1066,7 +1078,7 @@ int s52plib::ParsePATT(FILE *fp)
       MOD_REC(PBTM){
                 bitmap_width = patt->pos.patt.bnbox_w.SYHL;
 //                if(bitmap_width > 200)
-//                        wxLogMessage("ParsePatt....bitmap too wide.");
+//                        wxLogMessage(_T("ParsePatt....bitmap too wide."));
                 strncpy(pbm_line, pBuf+9, bitmap_width);
                 pbm_line[bitmap_width] = 0;
                 patt->bitmap.SBTM->Append( wxString(pbm_line, wxConvUTF8) );
@@ -1397,7 +1409,7 @@ void s52plib::DestroyRules(RuleHash *rh)
 
             if(pR->pixelPtr)
             {
-                if(pR->definition.PADF == 'R')
+//                if(pR->definition.PADF == 'R')
                 {
                     wxBitmap *pbm = (wxBitmap *)(pR->pixelPtr);
                     delete pbm;
@@ -1489,6 +1501,16 @@ void s52plib::DestroyLUPArray(wxArrayOfLUPrec *pLUPArray)
 
         delete pLUPArray;
 }
+
+
+void s52plib::ClearCNSYLUPArray(void)
+{
+      for(unsigned int i = 0 ; i < condSymbolLUPArray->GetCount() ; i++)
+            DestroyLUP(condSymbolLUPArray->Item(i));
+
+      condSymbolLUPArray->Clear();
+}
+
 
 bool s52plib::S52_flush_Plib()
 {
@@ -1718,6 +1740,7 @@ wxString GetStringAttr(S57Obj *obj, char *AttrName)
         return str;
 }
 
+/*
 bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
 {
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
@@ -1740,7 +1763,7 @@ bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
         idx++;
     }
 
-    if(!*patl)                                                      // Requested Attribute not found
+    if(!*patl)                                                   // Requested Attribute not found
     {
         free(attList);
         return false;                                           // so don't return a value
@@ -1757,6 +1780,42 @@ bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
 }
 
 
+bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val)
+{
+    char *attList = (char *)calloc(obj->attList->Len()+1, 1);
+    strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
+
+    char *patl = attList;
+    char *patr;
+    int idx = 0;
+    while(*patl)
+    {
+        patr = patl;
+        while(*patr != '\037')
+            patr++;
+
+        if(!strncmp(patl, AttrName, 6))
+            break;
+
+        patl = patr + 1;
+        idx++;
+    }
+
+    if(!*patl)                                                   // Requested Attribute not found
+    {
+        free(attList);
+        return false;                                           // so don't return a value
+    }
+
+//      using idx to get the attribute value
+    wxArrayOfS57attVal      *pattrVal = obj->attVal;
+
+    S57attVal *v = pattrVal->Item(idx);
+    val = *(double*)(v->value);
+
+    return true;
+}
+*/
 
 char      *_getParamVal(ObjRazRules *rzRules, char *str, char *buf, int bsz)
 // Symbology Command Word Parameter Value Parser.
@@ -1979,28 +2038,6 @@ S52_Text   *S52_PL_parseTE(ObjRazRules *rzRules, Rules *rules, char *cmd)
 
     return text;
 }
-/*
-
-gint        S52_PL_getTEXT(S52_Text  *text, S52_Color **col,
-                          int *xoffs, int *yoffs, char **str)
-{
-    *col   = text->col;
-    *xoffs = text->xoffs;
-    *yoffs = text->yoffs;
-    *str   = text->frmtd->str;
-    return 1;
-}
-
-gint        S52_PL_doneTXT(S52_Text *text)
-{
-    if (NULL != text->frmtd)
-        g_string_free(text->frmtd, TRUE);
-    g_free(text);
-
-    return 1;
-}
-
-*/
 
 void RenderText(wxDC *pdc, wxFont *pFont, const wxString& str, int x, int y, int &dx, int &dy)
 {
@@ -2041,10 +2078,6 @@ void RenderText(wxDC *pdc, wxFont *pFont, const wxString& str, int x, int y, int
 
 
 }
-
-
-
-
 
 
 
@@ -2133,34 +2166,26 @@ int s52plib::RenderTE(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
    return 1;
 }
 
-
-bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
+bool s52plib::RenderHPGLtoDC(char *str, char *col, wxDC *pdc, wxPoint &r, wxPoint &pivot, double rot_angle)
 {
-//      static int _renderHPGL(gpointer key, gpointer value, gpointer data)
-//{
-   int width = 1;
-   double radius = 0.0;
-//   double sweepAngle;
-//   double startAngle;
-   int    tessObj       = FALSE;
-   int    polyMode      = FALSE;
-   int    inBegEnd      = FALSE;
-   color *newColor;
-   float trans = 1.0;
+      int width = 1;
+      double radius = 0.0;
+      int    tessObj       = FALSE;
+      int    polyMode      = FALSE;
+      int    inBegEnd      = FALSE;
+      color *newColor;
+      float trans = 1.0;
 
-//   double centerX = 0.0;
-//   double centerY = 0.0;
+      int x1, x2, y1, y2;
+      int x,y;
 
-   int x1, x2, y1, y2;
-   int x,y;
+      float sin_rot, cos_rot;
 
-   float sin_rot, cos_rot;
-
-   if(rot_angle)
-   {
-           sin_rot = sin(rot_angle * PI / 180.);
-           cos_rot = cos(rot_angle * PI / 180.);
-   }
+      if(rot_angle)
+      {
+            sin_rot = sin(rot_angle * PI / 180.);
+            cos_rot = cos(rot_angle * PI / 180.);
+      }
 
 
 #define MAX_POINTS 100
@@ -2168,53 +2193,11 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
    int vIdx;
 
 
-
-//   double scaleFac = 300000.0;                        // fixme: should be computed
-//   double scaleFac = 1.0/_degPix;                     // fixme: should be computed
-
-//   struct _vertex{GLdouble x,y,z;}vertex;
-//   struct _vertex vertexV[256];
-
-   Rule *rule           = (Rule *)rule_in;
-
-   char *str = rule->vector.LVCT;
-   char *col = rule->colRef.LCRF;
-
-//   char *str            = (char *)(rule->vector.LVCT->mb_str()); //->str;
-//   char *col            = (char *)(rule->colRef.LCRF)->mb_str();
-
-//   int bbx            = rule->pos.line.bnbox_x.LBXC ;
-//   int bby            = rule->pos.line.bnbox_y.LBXR ;
-//   int w                      = rule->pos.line.bnbox_w.LIHL / scaleFac;
-//   int h                      = rule->pos.line.bnbox_h.LIVL / scaleFac;
-   int pivot_x  = rule->pos.line.pivot_x.LICL;
-   int pivot_y  = rule->pos.line.pivot_y.LIRW;
-
-   //printf("Symb:%s bbx:%d bby:%d\n",rule->name.LINM,bbx,bby);
-
-   int scaleFac =25;            // todo where does this come from?
    float fsf = 100 / canvas_pix_per_mm;
-   scaleFac = (int)floor(fsf);
+   int scaleFac = (int)floor(fsf);
 
 
-/*
-   if (createTexture){
-      glBindTexture(GL_TEXTURE_2D,*crntTextName);
-      //glBindTexture(GL_TEXTURE_2D,1);
 
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-   }else{
-      glNewList(listIndex, GL_COMPILE);
-      glScaled(1.0,-1.0,1.0);                                   // flip coordinated in Y
-   }
-
-   //printf("pivot_x:%d pivot_y:%d\n", pivot_x,pivot_y);
-*/
 
 #define INST(cmd)               if(0==strncmp(str,#cmd,2)) {str+=2;
 
@@ -2223,125 +2206,119 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
       // Select (Pen) color
       INST(SP)
 //         GET_COL()
-                                {
-               char *c=col;
-               while(*c != '\0'){
+      {
+            char *c=col;
+            while(*c != '\0'){
                   if( *c == *str)
-                     break;
+                        break;
                   else
-                     c+=6;
-               }
-               newColor =  S52_getColor(c+1);
+                        c+=6;
             }
+            newColor =  S52_getColor(c+1);
       }
+   }
 
       // Select Transparency
-      else INST(ST)
-         trans = atof(str);
-         trans = (trans == 0)? 1 : trans*0.25;
+   else INST(ST)
+          trans = atof(str);
+          trans = (trans == 0)? 1 : trans*0.25;
 
-         //test
-         trans = 1.0;
-      }
+          //test
+          trans = 1.0;
+}
 
       // Select pen Width
       else INST(SW)
-         width = atoi(str++);
+          width = atoi(str++);
 
-         if (inBegEnd){
-             wxLogMessage(_T("bogus BegEnd in SW"));
+      if (inBegEnd)
+      {
+            wxLogMessage(_T("bogus BegEnd in SW"));
             inBegEnd = FALSE;
-         }
-
       }
+
+}
 
       // Pen Up
       else INST(PU)
 
-         if (inBegEnd){
-          wxLogMessage(_T("bogus BegEnd in PU"));
+            if (inBegEnd)
+            {
+            wxLogMessage(_T("bogus BegEnd in PU"));
             inBegEnd = FALSE;
-         }
+            }
 
-                wxColour color(newColor->R, newColor->G, newColor->B);
-//              wxColour color(255, 0,0);
-                wxPen *pthispen = wxThePenList->FindOrCreatePen(color, width, wxSOLID);
+                        wxColour color(newColor->R, newColor->G, newColor->B);
+                        wxPen *pthispen = wxThePenList->FindOrCreatePen(color, width, wxSOLID);
 
-                pdc->SetPen(*pthispen);
-/*
-         glColor4f(     (float)newColor-&gt;R/255.0,
-                                (float)newColor-&gt;G/255.0,
-                     (float)newColor-&gt;B/255.0,
-                     trans);
-*/
-         sscanf(str, "%u,%u", &x, &y);
-         x1 = x - pivot_x;      // /scaleFac;
-         y1 = y - pivot_y;      // /scaleFac;
+                        pdc->SetPen(*pthispen);
+                        sscanf(str, "%u,%u", &x, &y);
+                        x1 = x - pivot.x;
+                        y1 = y - pivot.y;
 
 //              Rotation
-         if(rot_angle)
-                 {
-                         float xp = (x1 * cos_rot) - (y1 * sin_rot);
-                         float yp = (x1 * sin_rot) + (y1 * cos_rot);
+                        if(rot_angle)
+                        {
+                              float xp = (x1 * cos_rot) - (y1 * sin_rot);
+                              float yp = (x1 * sin_rot) + (y1 * cos_rot);
 
-                         x1 = (int)xp;
-                         y1 = (int)yp;
-                 }
+                              x1 = (int)xp;
+                              y1 = (int)yp;
+                        }
 
 
-                 x1 /= scaleFac;
-         y1 /= scaleFac;
+                        x1 /= scaleFac;
+                        y1 /= scaleFac;
 
-                 x1 += r.x;
-                 y1 += r.y;
+                        x1 += r.x;
+                        y1 += r.y;
 
-         while(*str != ';')str++;
-      }
+                        while(*str != ';')str++;
+}
 
                 // Pen Down
       else INST(PD)
-         do{
-            if (*str == ';')
-               continue;
+            do
+            {
+                  if (*str == ';')
+                        continue;
 
-            if (!inBegEnd){
-               inBegEnd = TRUE;
+                  if (!inBegEnd){
+                        inBegEnd = TRUE;
             }
 
             sscanf(str, "%u,%u", &x, &y);
-            x2 = x - pivot_x;
-            y2 = y - pivot_y;
-                        if(rot_angle)
-                        {
-                                float xp = (x2 * cos_rot) - (y2 * sin_rot);
-                                float yp = (x2 * sin_rot) + (y2 * cos_rot);
+            x2 = x - pivot.x;
+            y2 = y - pivot.y;
+            if(rot_angle)
+            {
+                  float xp = (x2 * cos_rot) - (y2 * sin_rot);
+                  float yp = (x2 * sin_rot) + (y2 * cos_rot);
 
-                                x2 = (int)xp;
-                                y2 = (int)yp;
-                        }
+                  x2 = (int)xp;
+                  y2 = (int)yp;
+            }
 
             x2 /= scaleFac;
             y2 /= scaleFac;
 
-                        x2 += r.x;
-                        y2 += r.y;
+            x2 += r.x;
+            y2 += r.y;
 
-                        pdc->DrawLine(x1, y1, x2, y2);
-            //printf("PD x:%d y:%d xd:%f yd:%f \n",x,y,xd,yd);
-            //printf("PD x:%d y:%d\n",x,y);
+            pdc->DrawLine(x1, y1, x2, y2);
 
-                        x1=x2;                  // set for pu;pd;pd....
-                        y1=y2;
+            x1=x2;                  // set for pu;pd;pd....
+            y1=y2;
 
             while(*str++ != ',' );                      // specs: could repeat x,y,x, ..
             while(*str   != ',' && *str != ';')str++;  // but never do!
-         }while(*str != ';');                                                                    // outside poly mode
+            }while(*str != ';');           // outside poly mode
 
-         if(0 != strncmp(str,";PD",3)){ // not very smart!!
- //           glEnd();                                                  // find better state machine
-            inBegEnd = FALSE;                           // ie put glEnd in PU !?
-         }
-       }
+            if(0 != strncmp(str,";PD",3))
+            { // not very smart!!
+                  inBegEnd = FALSE;                           // ie put glEnd in PU !?
+            }
+}
 
 
 
@@ -2352,143 +2329,231 @@ bool s52plib::RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle)
 
       // Polygon Mode
       else INST(PM)
-         tessObj = FALSE;
-         polyMode= TRUE;
-         do{
+            tessObj = FALSE;
+      polyMode= TRUE;
+      do{
             if (*str == '0'){           // start a new poly
-               str+=2;
+                  str+=2;
 
                // CIrcle
-               INST(CI)
+                  INST(CI)
                         radius = (double)atoi(str);
-                                        wxColour color(newColor->R, newColor->G, newColor->B);
-                                        wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
-                                        wxPen *pthispen = wxThePenList->FindOrCreatePen(color, width, wxSOLID);
+                        wxColour color(newColor->R, newColor->G, newColor->B);
+                        wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
+                        wxPen *pthispen = wxThePenList->FindOrCreatePen(color, width, wxSOLID);
 
-                                        pdc->SetPen(*pthispen);
-                                        pdc->SetBrush(*pthisbrush);
+                        pdc->SetPen(*pthispen);
+                        pdc->SetBrush(*pthisbrush);
 
-                                        int r1 = (int)radius / scaleFac;
+                        int r1 = (int)radius / scaleFac;
 
-                                        pdc->DrawCircle(x1, y1, r1);
+                        pdc->DrawCircle(x1, y1, r1);
 
-//                  gluQuadricDrawStyle(qobj, GLU_FILL);
-//                  gluQuadricNormals(qobj, GLU_FLAT);
-//                              gluDisk(qobj, 0.0, radius/scaleFac, 20, 4);
-                  inBegEnd = FALSE;
+                        inBegEnd = FALSE;
 
-                  while(*str != ';') ++str;
+                        while(*str != ';') ++str;
 
                // Arc Angle --never used!
-               }else INST(AA)
-                           wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme AA instruction not implemented"));
+                  }
+                  else INST(AA)
+                        wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme AA instruction not implemented"));
+                        inBegEnd = FALSE;
+                  }
+                  else
+                  {
+                        tessObj = TRUE;
+                        inBegEnd = FALSE;
+      }
+}
 
-                  //centerX = (double)atoi(str++);
-                  //centerY = (double)atoi(str++);
-                  //sweepAngle   = atoi(str++);
-
-                  // computer startAngle and radius
-
-                  //gluQuadricDrawStyle(qobj, GLU_LINE);
-                  //gluPartialDisk(qobj,0,radius,0,0,startAngle, sweepAngle);
-                  inBegEnd = FALSE;
-               }else{
-                  tessObj = TRUE;
-//                  gluTessBeginPolygon(tobj,NULL);
-//                  gluTessBeginContour(tobj);
-                  inBegEnd = FALSE;
-               }
+            if (*str == '1')
+            {   // sub poly --never used!
+                  str++;
             }
 
-            if (*str == '1'){   // sub poly --never used!
-               str++;
-//               gluTessEndContour(tobj);
-//               gluTessBeginContour(tobj);
-//               printf("begin sub poly symb\n");
-            }
-
-            if (tessObj){
-               str+=2;    // skip PD
-               do{
-                if (!inBegEnd){
-                                          PointArray[0].x =x1;
-                                          PointArray[0].y =y1;
-                                          vIdx = 1;
-                     inBegEnd = TRUE;
-                }                                               // no need to remember PU!
+            if (tessObj)
+            {
+                  str+=2;    // skip PD
+                  do{
+                        if (!inBegEnd){
+                              PointArray[0].x =x1;
+                              PointArray[0].y =y1;
+                              vIdx = 1;
+                              inBegEnd = TRUE;
+                        }                                               // no need to remember PU!
 
                   // read tess vertex
-                                sscanf(str, "%u,%u", &x, &y);
-                        x2 = x - pivot_x;
-                            y2 = y - pivot_y;
-                                 if(rot_angle)
-                                 {
-                                         float xp = (x2 * cos_rot) - (y2 * sin_rot);
-                                         float yp = (x2 * sin_rot) + (y2 * cos_rot);
+                        sscanf(str, "%u,%u", &x, &y);
+                        x2 = x - pivot.x;
+                        y2 = y - pivot.y;
+                        if(rot_angle)
+                        {
+                              float xp = (x2 * cos_rot) - (y2 * sin_rot);
+                              float yp = (x2 * sin_rot) + (y2 * cos_rot);
 
-                                         x2 = (int)xp;
-                                         y2 = (int)yp;
-                                 }
-                                x2 /= scaleFac;
-                                y2 /= scaleFac;
+                              x2 = (int)xp;
+                              y2 = (int)yp;
+                        }
+                        x2 /= scaleFac;
+                        y2 /= scaleFac;
 
-                                x2 += r.x;
-                                y2 += r.y;
+                        x2 += r.x;
+                        y2 += r.y;
 
-                                if(vIdx < MAX_POINTS)
-                                {
-                                        PointArray[vIdx].x =x2;
-                                        PointArray[vIdx].y =y2;
-                                }
+                        if(vIdx < MAX_POINTS)
+                        {
+                              PointArray[vIdx].x =x2;
+                              PointArray[vIdx].y =y2;
+                        }
 
-                ++vIdx;
+                        ++vIdx;
 
-                 while(*str++ != ',' );                 // specs: could repeat x,y,x, ..
-                 while(*str   != ',' && *str != ';')str++;
-                 if (*str == ',') str++;
-                 if (0 == strncmp(str,";PD",3)) str += 3;
-               }while(*str != ';');
+                        while(*str++ != ',' );                 // specs: could repeat x,y,x, ..
+                        while(*str   != ',' && *str != ';')str++;
+                        if (*str == ',') str++;
+                        if (0 == strncmp(str,";PD",3)) str += 3;
+                  }while(*str != ';');
             }
-         }while(0 != strncmp(str,";PM2",4));
+}while(0 != strncmp(str,";PM2",4));
 
          // exit polygon mode
          str++;
          while(*str != ';') ++str;
 
 
-      } // PM
+} // PM
 
       // Edge Polygon --draw polygon with lines
       // never called --not tested
       else INST(EP)
-         if(tessObj){
-          wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme EP instruction not implemented "));
-         }
+                        if(tessObj){
+            wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme EP instruction not implemented "));
+                        }
 
-      }
+}
 
       // Fill Polygon
       else INST(FP)
-         if(tessObj){
-                        wxColour color(newColor->R, newColor->G, newColor->B);
-                        wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
+                        if(tessObj){
+            wxColour color(newColor->R, newColor->G, newColor->B);
+            wxBrush *pthisbrush = wxTheBrushList->FindOrCreateBrush(color, wxSOLID);
 
-                        pdc->SetBrush(*pthisbrush);
-                        pdc->DrawPolygon(vIdx, PointArray);
+            pdc->SetBrush(*pthisbrush);
+            pdc->DrawPolygon(vIdx, PointArray);
             inBegEnd = FALSE;
-         }
-      }
+                        }
+}
 
       // Symbol Call    --never used
       else INST(SC)
-                  wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme SC instruction not implemented "));
-      }
+                        wxLogMessage(_T("SEQuencer:_renderHPGL(): fixme SC instruction not implemented "));
+}
       ++str;
 
-   } /* while */
+} /* while */
 
         return true;
 }
+
+
+
+
+
+
+
+
+bool s52plib::RenderHPGL(Rule *prule, wxDC *pdc, wxPoint &r, float rot_angle)
+{
+
+      float fsf = 100 / canvas_pix_per_mm;
+
+      int width  = prule->pos.symb.bnbox_x.SBXC + prule->pos.symb.bnbox_w.SYHL;
+      width *= 2;
+      width = (int)(width/fsf);
+      int height = prule->pos.symb.bnbox_y.SBXR + prule->pos.symb.bnbox_h.SYVL;
+      height *= 2;
+      height = (int)(height/fsf);
+
+      int pivot_x = prule->pos.symb.pivot_x.SYCL;
+      int pivot_y = prule->pos.symb.pivot_y.SYRW;
+
+      //Instantiate the symbol if necessary
+      if((prule->pixelPtr == NULL) || (prule->parm1 != m_ColorScheme))
+      {
+            wxBitmap *pbm = new wxBitmap(width, height);
+            wxMemoryDC mdc;
+            mdc.SelectObject(*pbm);
+            mdc.SetBackground(wxBrush(wxColour(unused_color.R, unused_color.G, unused_color.B)));
+            mdc.Clear();
+
+            char *str = prule->vector.LVCT;
+            char *col = prule->colRef.LCRF;
+            wxPoint pivot(pivot_x, pivot_y);
+            wxPoint r0((int)(pivot_x/fsf), (int)(pivot_y/fsf));
+            RenderHPGLtoDC(str, col, &mdc, r0, pivot, (double)rot_angle);
+
+            int bm_width  = (mdc.MaxX() - mdc.MinX()) + 1;
+            int bm_height = (mdc.MaxY() - mdc.MinY()) + 1;
+            int bm_orgx = wxMax(0, mdc.MinX());
+            int bm_orgy = wxMax(0, mdc.MinY());
+
+            mdc.SelectObject(wxNullBitmap);
+
+            //          Get smallest containing bitmap
+            wxBitmap *sbm = new wxBitmap(pbm->GetSubBitmap(wxRect(bm_orgx, bm_orgy, bm_width, bm_height)));
+
+            delete pbm;
+
+            //      Make the mask
+            wxMask *pmask = new wxMask(*sbm,
+                                        wxColour(unused_color.R, unused_color.G, unused_color.B));
+
+            //      Associate the mask with the bitmap
+            sbm->SetMask(pmask);
+
+            // delete any old private data
+            wxBitmap *pbmo = (wxBitmap *)(prule->pixelPtr);
+            delete pbmo;
+
+            //      Save the bitmap ptr and aux parms in the rule
+            prule->pixelPtr = sbm;
+            prule->parm1 = m_ColorScheme;
+            prule->parm2 = bm_orgx- (int)(pivot_x/fsf);
+            prule->parm3 = bm_orgy- (int)(pivot_y/fsf);
+            prule->parm4 = (int)rot_angle;
+
+
+      }               // instantiation
+
+      //    If the rotation angle of the cached symbol is not equal to the request,
+      //    then render the symbol directly in HPGL
+      if((int)rot_angle != prule->parm4)
+      {
+            char *str = prule->vector.LVCT;
+            char *col = prule->colRef.LCRF;
+            wxPoint pivot(prule->pos.line.pivot_x.LICL, prule->pos.line.pivot_y.LIRW);
+            RenderHPGLtoDC(str, col, pdc, r, pivot, (double)rot_angle);
+
+            return true;
+      }
+
+
+        //      Now render the symbol from the cached bitmap
+
+        //      Get the bitmap into a memory dc
+      wxMemoryDC mdc;
+
+      mdc.SelectObject((wxBitmap &)(*((wxBitmap *)(prule->pixelPtr))));
+
+        //      Blit it into the target dc
+      pdc->Blit(r.x + prule->parm2, r.y + prule->parm3, width, height, &mdc, 0, 0, wxCOPY,  true);
+
+      mdc.SelectObject(wxNullBitmap);
+
+
+      return true;
+}
+
 
 //-----------------------------------------------------------------------------------------
 //      Instantiate a Symbol or Pattern stored as XBM ascii in a rule
@@ -2640,11 +2705,15 @@ bool s52plib::RenderRasterSymbol(Rule *prule, wxDC *pdc, wxPoint &r, float rot_a
 int s52plib::RenderSY(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 {
     float angle = 0;
-    float orient;
+    double orient;
+
+    //      Debug
+//    if(!strncmp(rzRules->obj->FeatureName, "TSSLPT", 6))
+//          int ggk = 3;
 
     if(rules->razRule != NULL)
     {
-        if(GetFloatAttr(rzRules->obj, "ORIENT", orient))
+        if(GetDoubleAttr(rzRules->obj, "ORIENT", orient))
            angle = orient;
 
         if(!strncmp(rules->INSTstr, "LIGHTS0", 7))  // matches LIGHTS01 and 02
@@ -2862,6 +2931,7 @@ int s52plib::RenderLS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 // Line Complex
 int s52plib::RenderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 {
+
         wxPoint   *ptp;
         int       npt;
         color     *c;
@@ -2909,7 +2979,7 @@ int s52plib::RenderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
                 rzRules->chart->GetPointPix(rzRules, plat, plon, pr);
 
 
-                draw_lc_poly(pdc, ptp, npt + 1, sym_len, sym_factor, rules->razRule);
+                draw_lc_poly(pdc, ptp, npt + 1, sym_len, sym_factor, rules->razRule, vp);
 
                 free(ptp);
 
@@ -2940,7 +3010,7 @@ int s52plib::RenderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
                 }
 
 
-                draw_lc_poly(pdc, ptp, npt, sym_len, sym_factor, rules->razRule);
+                draw_lc_poly(pdc, ptp, npt, sym_len, sym_factor, rules->razRule, vp);
 
                 free(ptp);
         }
@@ -2952,12 +3022,31 @@ int s52plib::RenderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 //      Render Line Complex Polyline
 
 void s52plib::draw_lc_poly(wxDC *pdc, wxPoint *ptp, int npt,
-                           float sym_len, float sym_factor, Rule *draw_rule)
+                           float sym_len, float sym_factor, Rule *draw_rule, ViewPort *vp)
 {
     wxPoint   r;
+    int x0, y0, x1, y1;
+    int xmin_ = 0;
+    int xmax_ = vp->pix_width;
+    int ymin_ = 0;
+    int ymax_ = vp->pix_height;
 
     for(int iseg = 0 ; iseg < npt - 1 ; iseg++)
     {
+          // Do not bother with segments that are invisible
+
+        x0 = ptp[iseg].x;
+        y0 = ptp[iseg].y;
+        x1 = ptp[iseg+1].x;
+        y1 = ptp[iseg+1].y;
+
+        ClipResult res = cohen_sutherland_line_clip_i (&x0, &y0, &x1, &y1,
+                      xmin_, xmax_, ymin_, ymax_);
+
+        if(res == Invisible)
+                continue;
+
+
         float dx = ptp[iseg + 1].x - ptp[iseg].x;
         float dy = ptp[iseg + 1].y - ptp[iseg].y;
         float seg_len = sqrt(dx*dx + dy*dy);
@@ -2996,7 +3085,12 @@ void s52plib::draw_lc_poly(wxDC *pdc, wxPoint *ptp, int npt,
                 {
                         r.x = (int)xs;
                         r.y = (int)ys;
-                        RenderHPGL(draw_rule, pdc, r, tdeg);
+                        char *str = draw_rule->vector.LVCT;
+                        char *col = draw_rule->colRef.LCRF;
+                        wxPoint pivot(draw_rule->pos.line.pivot_x.LICL, draw_rule->pos.line.pivot_y.LIRW);
+
+                        RenderHPGLtoDC(str, col, pdc, r, pivot, (double)tdeg);
+
 
                         xs += sym_len * cth * sym_factor;
                         ys += sym_len * sth * sym_factor;
@@ -3120,8 +3214,9 @@ char *s52plib::RenderCS(ObjRazRules *rzRules, Rules *rules)
 
 int s52plib::_draw(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 {
+
     if(!ObjectRenderCheck(rzRules, vp))
-        return 0;
+      return 0;
 
     pdc = pdcin;                    // use this DC
     Rules *rules = rzRules->LUP->ruleList;
@@ -3129,6 +3224,9 @@ int s52plib::_draw(wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 //  Debug Hook
 //    if(!strncmp(rzRules->LUP->OBCL, "M_COVR", 6))
 //        int yyrt = 4;
+
+//    if(rzRules->obj->Index == 1706)
+//          int rrt = 5;
 
 
         while (rules != NULL)
@@ -3211,11 +3309,22 @@ int s52plib::dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, rende
 #endif
     }
 
+    //      Color Debug
+/*    int fc = rand();
+    b = fc & 0xff;
+    g = fc & 0xff;
+    r = fc & 0xff;
+*/
+
+    int color_int;
+    if(NULL != c)
+          color_int =  ((r) << 16) + ((g) << 8) + (b);
+
     //      Determine ymin and ymax indices
 
-
     int ymax = ptp[0].y;
-    int ymin = ptp[0].y;
+    int ymin = ymax;
+    int xmin, xmax, xmid, ymid;
     int imin = 0;
     int imax = 0;
     int imid;
@@ -3234,17 +3343,14 @@ int s52plib::dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, rende
         }
     }
 
+
     imid = 3 - (imin + imax);            // do the math...
 
-///Debug code
-    /*
-    if(imid == 3)
-    {
-        for(int ip=0 ; ip < 3 ; ip++)
-            printf(" 3v %d %d %d\n", ip, ptp[ip].x, ptp[ip].y);
-    }
-    */
-///
+    xmax = ptp[imax].x;
+    xmin = ptp[imin].x;
+    xmid = ptp[imid].x;
+    ymid = ptp[imid].y;
+
 
     //      Create edge arrays using fast integer DDA
     int m, x, dy, count;
@@ -3253,93 +3359,60 @@ int s52plib::dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, rende
 //    if((ptp[imin].y >= 0 ) && (ptp[imin].y < 1500))           // left begin point
 //            ledge[ptp[imin].y] = ptp[imin].x;
 
-    dy = (ptp[imax].y - ptp[imin].y);
+    dy = (ymax - ymin);
     if(dy)
     {
-            m = (ptp[imax].x - ptp[imin].x) << 16;
+            m = (xmax - xmin) << 16;
             m /= dy;
 
-            x = ptp[imin].x << 16;
+            x = xmin << 16;
 
-            for (count = ptp[imin].y; count <= ptp[imax].y; count++)
+//            for (count = ptp[imin].y; count <= ptp[imax].y; count++)
+            for (count = ymin; count <= ymax; count++)
             {
                     if((count >= 0 ) && (count < 1500))
                             ledge[count] = x >> 16;
                     x += m;
             }
     }
-    else
-    {
-//            if((ptp[imin].y >= 0 ) && (ptp[imin].y < 1500))
-//                    ledge[ptp[imin].y] = __min(ledge[ptp[imin].y], ptp[imax].x);
-    }
 
-   // right edge lower
-//    if((ptp[imin].y >= 0 ) && (ptp[imin].y < 1500))           // right begin point
-//        redge[ptp[imin].y] = ptp[imin].x;
-
-    dy = (ptp[imid].y - ptp[imin].y);
+    dy = (ymid - ymin);
     if(dy)
     {
-        m = (ptp[imid].x - ptp[imin].x) << 16;
+        m = (xmid - xmin) << 16;
         m /= dy;
 
-        x = ptp[imin].x << 16;
-//        x += m;
+        x = xmin << 16;
 
-        for (count = ptp[imin].y; count <= ptp[imid].y; count++)
+        for (count = ymin; count <= ymid; count++)
         {
             if((count >= 0 ) && (count < 1500))
                 redge[count] = x >> 16;
             x += m;
         }
     }
-    else
-    {
-//        if((ptp[imin].y >= 0 ) && (ptp[imin].y < 1500))
-//            redge[ptp[imin].y] = __min(ledge[ptp[imin].y], ptp[imid].x);
-    }
 
-   // right edge upper
-//    if((ptp[imid].y >= 0 ) && (ptp[imid].y < 1500))           // right begin point
-//        redge[ptp[imid].y] = ptp[imid].x;
-
-    dy = (ptp[imax].y - ptp[imid].y);
+    dy = (ymax - ymid);
     if(dy)
     {
-        m = (ptp[imax].x - ptp[imid].x) << 16;
+        m = (xmax - xmid) << 16;
         m /= dy;
 
-        x = ptp[imid].x << 16;
-//        x += m;
+        x = xmid << 16;
 
-        for (count = ptp[imid].y; count <= ptp[imax].y; count++)
+        for (count = ymid; count <=ymax; count++)
         {
             if((count >= 0 ) && (count < 1500))
                 redge[count] = x >> 16;
             x += m;
         }
     }
-    else
-    {
- //       if((ptp[imid].y >= 0 ) && (ptp[imid].y < 1500))
- //           redge[ptp[imid].y] = __min(ledge[ptp[imid].y], ptp[imax].x);
-    }
-
-
-
-//    if((ptp[imax].y >= 0 ) && (ptp[imax].y < 1500))         // right, top begin point
-//            redge[ptp[imax].y] = ptp[imax].x;
-
 
     //      Check the triangle edge winding direction
     int dfSum = 0;
-    dfSum += ptp[imin].x * ptp[imax].y
-            - ptp[imin].y * ptp[imax].x;
-    dfSum += ptp[imax].x * ptp[imid].y
-            - ptp[imax].y * ptp[imid].x;
-    dfSum += ptp[imid].x * ptp[imin].y
-            - ptp[imid].y * ptp[imin].x;
+    dfSum += xmin * ymax - ymin * xmax;
+    dfSum += xmax * ymid - ymax * xmid;
+    dfSum += xmid * ymin - ymid * xmin;
 
     bool cw = dfSum < 0;
 
@@ -3347,8 +3420,8 @@ int s52plib::dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, rende
 
     //              Clip the triangle
 
-    int y1 = ptp[imax].y;
-    int y2 = ptp[imin].y;
+    int y1 = ymax;
+    int y2 = ymin;
 
     int ybt = pb_spec->y;
     int yt = pb_spec->y + pb_spec->height;
@@ -3463,8 +3536,8 @@ int s52plib::dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, rende
 
  //                                   int ixm = redge[iyp];
 
-                                        if(pPatt_spec)          // Pattern
-                                        {
+                                    if(pPatt_spec)          // Pattern
+                                    {
                                             while(ix <= ixm)
                                             {
                                                 int patt_x = ix  % patt_size_x;
@@ -3488,23 +3561,46 @@ int s52plib::dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, rende
 
                                                 ix++;
                                             }
-                                        }
+                                    }
 
 
-                                        else                    // No Pattern
-                                        {
-                                            while(ix <= ixm)
-                                            {
+                                    else                    // No Pattern
+                                    {
+#ifdef __WXGTK__
+#define memset3(dest, value, count) \
+__asm__ __volatile__ ( \
+"cmp $0,%2\n\t" \
+"jg l0\n\t" \
+"je l1\n\t" \
+"jmp l2\n\t" \
+"l0:\n\t" \
+"movl  %0,(%1)\n\t" \
+"add $3,%1\n\t" \
+"dec %2\n\t" \
+"jnz l0\n\t" \
+"l1:\n\t" \
+"movb %b0,(%1)\n\t" \
+"inc %1\n\t" \
+"movb %h0,(%1)\n\t" \
+"inc %1\n\t" \
+"shr $16,%0\n\t" \
+"movb %b0,(%1)\n\t" \
+"l2:\n\t" \
+: : "a"(value), "D"(dest), "r"(count) :  );
+                                           int count = ixm-ix;
+                                           memset3(px, color_int, count)
+#else
+
+                                           while(ix <= ixm)
+                                           {
                                                 *px++ = b;
                                                 *px++ = g;
                                                 *px++ = r;
 
                                                 ix++;
-                                                if((px - pb_spec->pix_buff) > ((pb_spec->pb_pitch * pb_spec->height) * pb_spec->depth))
-                                                    wxLogMessage(_T("pix 2"));
-
-                                            }
-                                        }
+                                           }
+#endif
+                                   }
                            }
                     }
             }
@@ -3512,9 +3608,6 @@ int s52plib::dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, rende
 
     if(pb_spec->depth == 32)
     {
-            int color_int;
-            if(NULL != c)
-                color_int =  ((c->R) << 16) + ((c->G) << 8) + (c->B);
 
             assert(ya <= yb);
 
@@ -3608,6 +3701,9 @@ void s52plib::RenderToBufferFilledPolygon(ObjRazRules *rzRules, S57Obj *obj, col
 
     if(obj->pPolyTessGeo)
     {
+        wxPoint *pp3 = (wxPoint *)malloc(3 * sizeof(wxPoint));
+        wxPoint *ptp = (wxPoint *)malloc((obj->pPolyTessGeo->GetnVertexMax() + 1) * sizeof(wxPoint));
+
         //  Allow a little slop in calculating whether a triangle
         //  is within the requested Viewport
         double margin = BBView.GetWidth() * .05;
@@ -3620,10 +3716,7 @@ void s52plib::RenderToBufferFilledPolygon(ObjRazRules *rzRules, S57Obj *obj, col
             if(BBView.Intersect(*(p_tp->p_bbox), margin) != _OUT)
             {
                 //      Get and convert the points
-                wxPoint *ptp = (wxPoint *)malloc((p_tp->nVert + 1) * sizeof(wxPoint));
                 wxPoint *pr = ptp;
-
-                wxPoint *pp3 = (wxPoint *)malloc(3 * sizeof(wxPoint));
 
                 double *pvert_list = p_tp->p_vertex;
 
@@ -3691,13 +3784,11 @@ void s52plib::RenderToBufferFilledPolygon(ObjRazRules *rzRules, S57Obj *obj, col
                         break;
                     }
                 }
-
-                free(ptp);
-                free(pp3);
-
             }   // if bbox
             p_tp = p_tp->p_next;                // pick up the next in chain
         }       // while
+        free(ptp);
+        free(pp3);
     }       // if pPolyTessGeo
 
 }
@@ -4011,6 +4102,11 @@ bool s52plib::ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp)
 //    if((rzRules->obj->Index == 3868) || (rzRules->obj->Index == 3870))
 //        return false;
 
+    // Of course, the object must be at least partly visible in the viewport
+    wxBoundingBox BBView = vp->vpBBox;
+    if(BBView.Intersect(rzRules->obj->BBObj, 0) == _OUT)// Object is wholly outside window
+          return false;
+
     bool b_catfilter = true;
 
 //      Do Object Type Filtering
@@ -4058,17 +4154,23 @@ bool s52plib::ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp)
     bool b_visible = false;
     if(b_catfilter)
     {
-//      View BBox filtering
-        wxBoundingBox BBView = vp->vpBBox;
-        if(BBView.Intersect(rzRules->obj->BBObj, 0) != _OUT)// Object is not wholly outside window
-            b_visible = true;
-
+          b_visible = true;
 
 //      SCAMIN Filtering
-        if(m_bUseSCAMIN)
-            if(vp->chart_scale > rzRules->obj->Scamin)
-                 b_visible = false;
+          //      Implementation note:
+          //      According to S52 specs, SCAMIN must not apply to GROUP1 objects, Meta Objects
+          //      or DisplayCategoryBase objects.
+          //      Occasionally, an ENC will encode a spurious SCAMIN value for one of these objects.
+          //      see, for example, US5VA18M, in OpenCPN SENC as Feature 350(DEPARE), LNAM = 022608187ED20ACC.
+          //      We shall explicitly ignore SCAMIN filtering for these types of objects.
 
+          if(m_bUseSCAMIN)
+          {
+                if((DISPLAYBASE == rzRules->LUP->DISC) || (PRIO_GROUP1 == rzRules->LUP->DPRI))
+                      b_visible = true;
+                else if(vp->chart_scale > rzRules->obj->Scamin)
+                      b_visible = false;
+          }
 
         return b_visible;
     }
