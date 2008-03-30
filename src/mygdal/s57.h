@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57.h,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: s57.h,v 1.2 2008/03/30 23:09:35 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Declarations for S-57 translator not including the
@@ -30,8 +30,11 @@
  ******************************************************************************
  *
  * $Log: s57.h,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 23:09:35  bdbcat
+ * Cleanup/optimize
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -142,13 +145,13 @@ char **S57FileCollector( const char * pszDataset );
 #define S57O_RETURN_PRIMITIVES "RETURN_PRIMITIVES"
 #define S57O_RETURN_LINKAGES "RETURN_LINKAGES"
 
-#define S57M_UPDATES 			0x01
-#define S57M_LNAM_REFS 			0x02
+#define S57M_UPDATES                0x01
+#define S57M_LNAM_REFS              0x02
 #define S57M_SPLIT_MULTIPOINT           0x04
-#define S57M_ADD_SOUNDG_DEPTH		0x08
-#define S57M_PRESERVE_EMPTY_NUMBERS	0x10
-#define S57M_RETURN_PRIMITIVES		0x20
-#define S57M_RETURN_LINKAGES		0x40
+#define S57M_ADD_SOUNDG_DEPTH       0x08
+#define S57M_PRESERVE_EMPTY_NUMBERS 0x10
+#define S57M_RETURN_PRIMITIVES            0x20
+#define S57M_RETURN_LINKAGES        0x40
 
 /* -------------------------------------------------------------------- */
 /*      RCNM values.                                                    */
@@ -185,13 +188,15 @@ class S57ClassRegistrar
 {
     // Class information:
     int         nClasses;
-    char      **papszClassesInfo;
 
     int         iCurrentClass;
 
     char      **papszCurrentFields;
 
     char      **papszTempResult;
+
+    int        *pnClassesOBJL;
+    char     ***papapszClassesTokenized;
 
     // Attribute Information:
     int         nAttrMax;
@@ -208,6 +213,7 @@ class S57ClassRegistrar
 
     const char *ReadLine( FILE * fp );
     char      **papszNextLine;
+    void        DestroySparseStringlist(char **papszStrList);
 
 public:
                 S57ClassRegistrar();
@@ -313,6 +319,7 @@ class S57Reader
 
     int                 nCOMF;  /* Coordinate multiplier */
     int                 nSOMF;  /* Vertical (sounding) multiplier */
+    int                 nCSCL;  /* Chart Scale (from DSPM record) */
 
     int                 bFileIngested;
     DDFRecordIndex      oVI_Index;
@@ -330,7 +337,7 @@ class S57Reader
 
     char                **papszOptions;
 
-    int                 nOptionFlags; 
+    int                 nOptionFlags;
 
     int                 iPointOffset;
     OGRFeature          *poMultiPoint;
@@ -350,7 +357,7 @@ class S57Reader
     void                AssembleAreaGeometry( DDFRecord *, OGRFeature * );
 
     int                 FetchPoint( int, int,
-                                    double *, double *, double * = NULL );
+                                    double *, double *, double * = NULL, int * = NULL );
 
     OGRFeatureDefn     *FindFDefn( DDFRecord * );
     int                 ParseName( DDFField *, int = 0, int * = NULL );
@@ -372,6 +379,7 @@ class S57Reader
     void                Close();
     DDFModule           *GetModule() { return poModule; }
     const char          *GetDSNM() { return pszDSNM; }
+    int                 GetCSCL() { return nCSCL; }
 
     void                Ingest();
     int                 ApplyUpdates( DDFModule * );
@@ -412,15 +420,15 @@ public:
     int                 WriteATTF( DDFRecord *, OGRFeature * );
     int                 WritePrimitive( OGRFeature *poFeature );
     int                 WriteCompleteFeature( OGRFeature *poFeature );
-    int                 WriteDSID( const char *pszDSNM = NULL, 
-                                   const char *pszISDT = NULL, 
+    int                 WriteDSID( const char *pszDSNM = NULL,
+                                   const char *pszISDT = NULL,
                                    const char *pszSTED = NULL,
                                    int nAGEN = 0,
                                    const char *pszCOMT = NULL );
     int                 WriteDSPM( int nScale = 0 );
 
 private:
-    DDFModule 		*poModule;
+    DDFModule           *poModule;
     S57ClassRegistrar   *poRegistrar;
 
     int                 nNext0001Index;
@@ -436,7 +444,7 @@ private:
 /* -------------------------------------------------------------------- */
 void           CPL_DLL  S57GenerateStandardAttributes( OGRFeatureDefn *, int );
 OGRFeatureDefn CPL_DLL *S57GenerateGeomFeatureDefn( OGRwkbGeometryType, int );
-OGRFeatureDefn CPL_DLL *S57GenerateObjectClassDefn( S57ClassRegistrar *, 
+OGRFeatureDefn CPL_DLL *S57GenerateObjectClassDefn( S57ClassRegistrar *,
                                                     int, int );
 OGRFeatureDefn CPL_DLL  *S57GenerateVectorPrimitiveFeatureDefn( int, int );
 

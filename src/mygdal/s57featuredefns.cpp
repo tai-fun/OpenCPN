@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57featuredefns.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: s57featuredefns.cpp,v 1.2 2008/03/30 23:08:42 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements methods to create OGRFeatureDefns for various
@@ -29,8 +29,11 @@
  ******************************************************************************
  *
  * $Log: s57featuredefns.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 23:08:42  bdbcat
+ * Cleanup/optimize
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -48,7 +51,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57featuredefns.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: s57featuredefns.cpp,v 1.2 2008/03/30 23:08:42 bdbcat Exp $");
 
 
 /************************************************************************/
@@ -209,6 +212,11 @@ OGRFeatureDefn *S57GenerateObjectClassDefn( S57ClassRegistrar *poCR,
 /*      acronym.                                                        */
 /* -------------------------------------------------------------------- */
     poFDefn = new OGRFeatureDefn( poCR->GetAcronym() );
+
+/* -------------------------------------------------------------------- */
+/*      Set the nOBJL Class Code as a convenience                       */
+/* -------------------------------------------------------------------- */
+    poFDefn->SetOBJL(nOBJL);
 
 /* -------------------------------------------------------------------- */
 /*      Try and establish the geometry type.  If more than one          */
