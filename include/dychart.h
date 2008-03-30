@@ -64,6 +64,10 @@
 //    Following definition required by GDAL
 #define notdef 1
 
+#ifdef __MSVC__
+#define snprintf _snprintf
+#endif
+
 //------------------------------------------------------------------------------
 // Some Portable math definitions
 //------------------------------------------------------------------------------

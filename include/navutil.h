@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.4 2007/05/03 13:31:19 dsr Exp $
+ * $Id: navutil.h,v 1.5 2008/03/30 23:29:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.5  2008/03/30 23:29:52  bdbcat
+ * Cleanup/optimize
+ *
  * Revision 1.4  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -65,6 +68,7 @@
 #include <wx/config.h>
 #include <wx/confbase.h>
 #include <wx/fileconf.h>
+#include <wx/xml/xml.h>
 
 #ifdef __WXMSW__
 #include <wx/msw/regconf.h>
@@ -75,6 +79,8 @@
 #include "s52s57.h"
 
 
+
+extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
 // ----------------------------------------------------------------------------
 // resources
@@ -98,18 +104,41 @@ typedef struct tagVECTOR2D  {
 class RoutePoint
 {
 public:
-      Route             *m_pParentRoute;
-      float             rlat;
-      float             rlon;
-      int               nPoint;
+      RoutePoint(double lat, double lon, const wxString& icon_ident, const wxString& name, wxString *pGUID = NULL);
+      ~RoutePoint(void);
+      void DrawPoint(wxDC& dc, wxPoint *rpn = NULL);
+      void DrawTransparentBox(wxDC& dc, int x, int y, int size_x, int size_y,
+                                          unsigned char rval, unsigned char gval, unsigned char bval, unsigned char transparency);
+      void SetPosition(double lat, double lon);
+      void CalculateDCRect(wxDC& dc, wxRect *prect);
+
+      float             m_lat;
+      float             m_lon;
       float             m_seg_len;              // length in NMI to this point
                                                 // undefined for starting point
       bool              m_bPtIsSelected;
+      bool              m_bIsBeingEdited;
+      bool              m_bIsInRoute;
+      int               m_ConfigWPNum;
+      wxString          m_MarkName;
+      wxString          m_MarkDescription;
+      wxString          m_GUID;
+      wxString          m_IconName;
+      wxBitmap          *m_pbmIcon;
+      int               m_icon_x2;
+      int               m_icon_y2;
+      bool              m_bBlink;
+      bool              m_bDynamicName;
+      bool              m_bShowName;
+      wxRect            CurrentRect_in_DC;
+      wxRect            m_hilitebox;
+      int               m_NameLocationOffsetX;
+      int               m_NameLocationOffsetY;
+
 
 };
 
 WX_DECLARE_LIST(RoutePoint, RoutePointList);// establish class as list member
-
 
 //----------------------------------------------------------------------------
 //    Route
@@ -120,11 +149,12 @@ public:
       Route(void);
       ~Route(void);
 
-      RoutePoint *AddPoint(float rlat, float rlon);
-      RoutePoint *GetPoint(int nPoint, float *prlat, float *prlon);
-      RoutePoint *InsertPoint(int nP, float rlat, float rlon);
+      void AddPoint(RoutePoint *pNewPoint);
+      void AddTentativePoint(const wxString& GUID);
+      RoutePoint *GetPoint(int nPoint);
+      int GetIndexOf(RoutePoint *prp);
+      RoutePoint *InsertPointBefore(RoutePoint *pRP, float rlat, float rlon);
       void DrawPointWhich(wxDC& dc, int iPoint, wxPoint *rpn);
-      void DrawPointLL(wxDC& dc, float rlat, float rlon, int iPoint, wxPoint *rpn);
       void DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2);
       void DrawRoute(wxDC& dc);
       RoutePoint *GetLastPoint();
@@ -134,21 +164,31 @@ public:
       void UpdateSegmentDistances();
       void DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb);
       void CalculateDCRect(wxDC& dc_route, wxRect *prect);
+      int GetnPoints(void){ return m_nPoints; }
+      void Reverse(bool bRenamePoints = true);
+      void RebuildGUIDList(void);
+      void AssembleRoute();
+      void RenameRoutePoints();
 
-
-
-      int         m_nPoints;
-      int         ConfigRouteNum;
+      int         m_ConfigRouteNum;
       bool        m_bRtIsSelected;
       bool        m_bRtIsActive;
-      int         m_nRouteActivePoint;
+      RoutePoint  *m_pRouteActivePoint;
       bool        m_bIsBeingCreated;
       bool        m_bIsBeingEdited;
+      double      m_route_length;
+      wxString    m_RouteNameString;
+      wxString    m_RouteStartString;
+      wxString    m_RouteEndString;
 
-      RoutePointList    *pRoutePointList;
+      wxArrayString      RoutePointGUIDList;
+      RoutePointList     *pRoutePointList;
 
       wxBoundingBox     BBox;
       wxRect      active_pt_rect;
+
+private:
+      int         m_nPoints;
 
 
 };
@@ -168,15 +208,30 @@ public:
       MyConfig(const wxString &appName, const wxString &vendorName,
                               const wxString &LocalFileName);
 
-
       int LoadMyConfig(int iteration);
       virtual bool AddNewRoute(Route *pr, int ConfigRouteNum = -1);
       virtual bool UpdateRoute(Route *pr);
-      virtual bool DeleteRoute(Route *pr);
+      virtual bool DeleteConfigRoute(Route *pr);
+
+      virtual bool AddNewWayPoint(RoutePoint *pWP, int ConfigRouteNum = -1);
+      virtual bool UpdateWayPoint(RoutePoint *pWP);
+      virtual bool DeleteWayPoint(RoutePoint *pWP);
+
       virtual bool UpdateChartDirs(wxArrayString *pdirlist);
       virtual void UpdateSettings();
 
-      int NextRouteNum;
+/*
+      void CreateXMLNavObj(void);
+      void CreateXMLRoutePoints(void);
+      wxXmlNode *CreateMarkNode(RoutePoint *pr);
+      void WriteXMLNavObj(const wxString& file);
+
+      wxXmlDocument     *m_pXMLNavObj;
+      wxXmlNode         *m_XMLrootnode;
+*/
+
+      int m_NextRouteNum;
+      int m_NextWPNum;
 
 
 //    Members describing the current config and runtime environment
@@ -184,7 +239,6 @@ public:
       wxPen *pSelectedRoutePen;
       wxPen *pActiveRoutePen;
       wxPen *pActiveRoutePointPen;
-
 
       float st_lat, st_lon, st_view_scale;            // startup values
       bool  st_bFollow;
@@ -201,7 +255,6 @@ public:
       bool  m_bShowSoundg;
       bool  m_bShowMeta;
       bool  m_bUseSCAMIN;
-
 };
 
 
@@ -214,7 +267,9 @@ enum
       SELTYPE_CURRENTPOINT,
       SELTYPE_ROUTECREATE,
       SELTYPE_UNKNOWN,
-      SELTYPE_AISTARGET
+      SELTYPE_AISTARGET,
+      SELTYPE_MARKPOINT,
+
 };
 
 //-----------------------------------------------------------------------------
@@ -258,12 +313,14 @@ public:
       bool DeleteAllSelectableRoutePoints(Route *);
       bool AddAllSelectableRouteSegments(Route *pr);
       bool AddAllSelectableRoutePoints(Route *pr);
+      bool UpdateSelectableRouteSegments(RoutePoint *prp);
 
 //    Generic Point Support
 //      e.g. Tides/Currents and AIS Targets
       bool AddSelectablePoint(float slat, float slon, void *data, int fseltype);
       bool DeleteAllPoints(void);
       bool DeleteSelectablePoint(void *data, int SeltypeToDelete);
+      bool ModifySelectablePoint(float slat, float slon, void *data, int fseltype);
 
 //    Delete all selectable points in list by type
       bool DeleteAllSelectableTypePoints(int SeltypeToDelete);
@@ -303,7 +360,7 @@ public:
       FontMgr();
       ~FontMgr();
 
-      wxFont *GetFont(wxString &TextElement);
+      wxFont *GetFont(const wxString &TextElement);
 
       int GetNumFonts(void);
       wxString *GetConfigString(int i);

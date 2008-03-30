@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: thumbwin.h,v 1.2 2007/05/03 13:31:19 dsr Exp $
+ * $Id: thumbwin.h,v 1.3 2008/03/30 23:29:52 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Chart Thumbnail Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: thumbwin.h,v $
+ * Revision 1.3  2008/03/30 23:29:52  bdbcat
+ * Cleanup/optimize
+ *
  * Revision 1.2  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -62,9 +65,11 @@
 #ifndef __thumbwin_H__
 #define __thumbwin_H__
 
+/*
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "thumbwin.cpp"
 #endif
+*/
 
 // Include wxWindows' headers
 
@@ -92,11 +97,10 @@ class ChartBase;
 class ThumbWin: public wxWindow
 {
 public:
+      ThumbWin();
       ThumbWin(wxFrame *frame);
-      ~ThumbWin();
-      void OnSize(wxSizeEvent& event);
-      void OnPaint(wxPaintEvent& event);
-      void MouseEvent(wxMouseEvent& event);
+      virtual ~ThumbWin();
+
       void Resize(void);
       void SetMaxSize(wxSize const &max_size);
 
@@ -105,6 +109,7 @@ public:
       ChartBase    *pThumbChart;
 
 private:
+      void OnPaint(wxPaintEvent& event);
 
       wxSize      m_max_size;
 

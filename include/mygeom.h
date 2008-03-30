@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.6 2007/06/10 02:37:18 bdbcat Exp $
+ * $Id: mygeom.h,v 1.7 2008/03/30 23:28:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselation of Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
+ * Revision 1.7  2008/03/30 23:28:29  bdbcat
+ * Cleanup/optimize
+ *
  * Revision 1.6  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -160,7 +163,7 @@ class PolyTessGeo
         double Get_ymin(){ return ymin;}
         double Get_ymax(){ return ymax;}
         PolyTriGroup *Get_PolyTriGroup_head(){ return m_ppg_head;}
-
+        int GetnVertexMax(){ return m_nvertex_max; }
         int     ErrorCode;
 
 
@@ -175,6 +178,9 @@ class PolyTessGeo
 
         double         xmin, xmax, ymin, ymax;
         PolyTriGroup    *m_ppg_head;                  // head of a PolyTriGroup chain
+        int             m_nvertex_max;                 // and computed max vertex count
+                                                      // used by drawing primitives as
+                                                      // optimization
 
         int             ncnt;
         int             nwkb;

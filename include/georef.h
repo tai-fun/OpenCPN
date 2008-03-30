@@ -80,6 +80,8 @@ void datumParams(short datum, double *a, double *es);
 #ifdef __cplusplus
 extern "C" void toDMS(double a, char *bufp, int bufplen);
 extern "C" void toDMM(double a, char *bufp, int bufplen);
+extern "C" void todmm(int flag, double a, char *bufp, int bufplen);
+extern "C" double fromDMM(char *dms);
 
 extern "C" void toTM(float lat, float lon, float lat0, float lon0, double *x, double *y);
 extern "C" void fromTM(double x, double y, double lat0, double lon0, double *lat, double *lon);
@@ -88,6 +90,8 @@ extern "C" void toSM(float lat, float lon, float lat0, float lon0, double *x, do
 extern "C" void fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon);
 
 extern "C" void ll_gc_ll(double lat, double lon, double crs, double dist, double *dlat, double *dlon);
+
+extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
 
 #else

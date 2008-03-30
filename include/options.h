@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.3 2008/01/02 21:05:30 bdbcat Exp $
+ * $Id: options.h,v 1.4 2008/03/30 23:29:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.4  2008/03/30 23:29:52  bdbcat
+ * Cleanup/optimize
+ *
  * Revision 1.3  2008/01/02 21:05:30  bdbcat
  * Update for Version 1.2.2
  *
@@ -92,7 +95,11 @@ enum {
         ID_SHOWDEPTHUNITSBOX1
 };
 
-
+//    Define an int bit field for dialog return value
+//    To indicate which types of settings have changed
+#define     GENERIC_CHANGED   1
+#define     S52_CHANGED       2
+#define     FONT_CHANGED      4
 
 
 #ifndef wxCLOSE_BOX
@@ -130,7 +137,6 @@ public:
     void OnDirctrlSelChanged( wxTreeEvent& event );
     void OnButtonaddClick( wxCommandEvent& event );
     void OnButtondeleteClick( wxCommandEvent& event );
-    void OnButtonrebuildClick( wxCommandEvent& event );
     void OnRadioboxSelected( wxCommandEvent& event );
     void OnXidOkClick( wxCommandEvent& event );
     void OnCancelClick( wxCommandEvent& event );
@@ -158,10 +164,15 @@ public:
     wxButton                *itemButtonSelectList;
     wxRadioBox              *pPointStyle;
     wxRadioBox              *pBoundStyle;
+    wxRadioBox              *p24Color;
     wxCheckBox              *pCheck_SOUNDG;
     wxCheckBox              *pCheck_META;
     wxCheckBox              *pCheck_SHOWTEXT;
     wxCheckBox              *pCheck_SCAMIN;
+    wxTextCtrl              *m_ShallowCtl;
+    wxTextCtrl              *m_SafetyCtl;
+    wxTextCtrl              *m_DeepCtl;
+
 
 //    For "Charts" page
     wxPanel* itemPanel9;
@@ -202,6 +213,8 @@ public:
     wxArrayPtrVoid          OBJLBoxArray;
     wxString                *m_pinit_chart_dir;
     wxWindow                *pParent;
+
+    wxArrayString           *m_pSerialArray;
 };
 
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.h,v 1.1 2006/08/21 05:52:11 dsr Exp $
+ * $Id: routeman.h,v 1.2 2008/03/30 23:29:52 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Route Manager
@@ -26,8 +26,11 @@
  ***************************************************************************
  *
  * $Log: routeman.h,v $
- * Revision 1.1  2006/08/21 05:52:11  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 23:29:52  bdbcat
+ * Cleanup/optimize
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:11  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:27  dsr
  * Rename/Import to OpenCPN
@@ -49,18 +52,28 @@
 #define __ROUTEMAN_H__
 
 
-
+#include "chart1.h"                 // for hash table definition
+#include <wx/imaglist.h>
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
 
 
 //----------------------------------------------------------------------------
-//    class declarations
+//    forward class declarations
 //----------------------------------------------------------------------------
 
 class Route;
 class RoutePoint;
+class RoutePointList;
+
+//    List definitions for Waypoint Manager Icons
+
+class markicon_bitmap_list_type;
+class markicon_key_list_type;
+class markicon_description_list_type;
+
+
 
 //----------------------------------------------------------------------------
 //   Routeman
@@ -71,6 +84,10 @@ class Routeman
 public:
       Routeman();
       ~Routeman();
+
+      void AssembleAllRoutes(void);
+      void DeleteRoute(Route *pRoute);
+      Route *FindRouteContainingWaypoint(RoutePoint *pWP);
 
       bool ActivateRoute(Route *pActivate);
       bool ActivateRoutePoint(Route *pA, RoutePoint *pRP);
@@ -106,6 +123,42 @@ private:
       float       CurrentSegmentCourse;
       int         XTEDir;
       bool        m_bArrival;
+
+};
+
+
+//----------------------------------------------------------------------------
+//   WayPointman
+//----------------------------------------------------------------------------
+
+class WayPointman
+{
+public:
+      WayPointman();
+      ~WayPointman();
+      wxBitmap *GetIconBitmap(const wxString& icon_key);
+      int GetIconIndex(const wxBitmap *pbm);
+      int GetNumIcons(void){ return m_nIcons; }
+      wxString CreateGUID(RoutePoint *pRP);
+
+      wxBitmap *GetIconBitmap(int index);
+      wxString *GetIconDescription(int index);
+      wxString *GetIconKey(int index);
+
+      RoutePointList    *m_pWayPointList;
+
+//      string_to_pchar_hash      markicon_xpm_hash;         // hash map of [static] mark icon xpms
+//      string_to_pbitmap_hash    markicon_bitmap_hash;      // and to created bitmaps with same index
+//      string_to_string_hash     markicon_description_hash; // and to nice readable description of Icon
+
+      markicon_description_list_type      *pmarkicon_description_list;
+      markicon_bitmap_list_type           *pmarkicon_bitmap_list;
+      markicon_key_list_type              *pmarkicon_key_list;
+      wxImageList                         *pmarkicon_image_list;
+
+
+private:
+      int m_nIcons;
 
 };
 
