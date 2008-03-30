@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.8 2008/01/12 06:23:11 bdbcat Exp $
+ * $Id: ais.cpp,v 1.9 2008/03/30 21:36:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< ais.cpp
  * $Log: ais.cpp,v $
+ * Revision 1.9  2008/03/30 21:36:27  bdbcat
+ * Correct Target Age calculation
+ *
+=======
+ * $Log: ais.cpp,v $
+ * Revision 1.9  2008/03/30 21:36:27  bdbcat
+ * Correct Target Age calculation
+ *
  * Revision 1.8  2008/01/12 06:23:11  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.8
  * Revision 1.7  2008/01/10 03:35:31  bdbcat
  * Update for Mac OSX
  *
@@ -76,7 +86,7 @@ extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 
-CPL_CVSID("$Id: ais.cpp,v 1.8 2008/01/12 06:23:11 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.9 2008/03/30 21:36:27 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -260,11 +270,13 @@ AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDat
       wxWindow(pParent, window_id, wxPoint(20,30), wxSize(5,5), wxSIMPLE_BORDER)
 
 {
-    AISTargetList = new AIS_Target_Hash;
+      m_death_age_seconds = 300;
 
-    OpenDataSource(pParent, AISDataSource);
+      AISTargetList = new AIS_Target_Hash;
 
-    Hide();
+      OpenDataSource(pParent, AISDataSource);
+
+      Hide();
 }
 
 AIS_Decoder::~AIS_Decoder(void)
@@ -558,9 +570,9 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
     int utc_hour = now.GetHour();
     int utc_min = now.GetMinute();
     int utc_sec = now.GetSecond();
-    int utc_day = now.GetDay();
-    wxDateTime::Month utc_month = now.GetMonth();
-    int utc_year = now.GetYear();
+ //   int utc_day = now.GetDay();
+ //   wxDateTime::Month utc_month = now.GetMonth();
+ //   int utc_year = now.GetYear();
     atd.ReportTicks = now.GetTicks();       // Default is my idea of NOW
                                             // which amy disagee with target...
 
@@ -625,12 +637,13 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
                 //  Todo there may be a bug here.  Sometimes get invalid utc_hour, utc_min
                 if((utc_hour < 24) && (utc_min < 60) && (utc_sec < 60))
                 {
-                    wxDateTime report_time(utc_day, utc_month, utc_year, utc_hour, utc_min, utc_sec, 0);
-                    atd.ReportTicks = report_time.GetTicks();
-                    parse_result = true;
+                      //      Cannot depend on target's idea of time
+//                      wxDateTime report_time(utc_day, utc_month, utc_year, utc_hour, utc_min, utc_sec, 0);
+//                      atd.ReportTicks = report_time.GetTicks();
+                      parse_result = true;
                 }
                 else
-                    parse_result = false;
+                      parse_result = false;
             }
             break;
         }
@@ -1053,8 +1066,6 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
       //    Scrub the target hash list
       //    removing any targets older than stipulated age
 
-      //    Todo Add a method to set this parameter
-      int death_age_seconds = 240;
 
       wxDateTime now = wxDateTime::Now();
       now.MakeGMT();
@@ -1067,11 +1078,11 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
           AIS_Target_Data *td = it->second;
 
           int target_age = now.GetTicks() - td->ReportTicks;
-///          printf("Current Target: MMSI: %d    target_age:%d\n", td->MMSI, target_age);
+//          printf("Current Target: MMSI: %d    target_age:%d\n", td->MMSI, target_age);
 
-          if(target_age > death_age_seconds)
+          if(target_age > m_death_age_seconds)
           {
-///             printf("      erase MMSI %d\n", td->MMSI);
+//             printf("      erase MMSI %d\n", td->MMSI);
               current_targets->erase(it);
               pSelectAIS->DeleteSelectablePoint((void *)td, SELTYPE_AISTARGET);
               delete td;
