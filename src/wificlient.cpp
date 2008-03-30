@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.9 2008/01/12 06:22:04 bdbcat Exp $
+ * $Id: wificlient.cpp,v 1.10 2008/03/30 22:25:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< wificlient.cpp
  * $Log: wificlient.cpp,v $
+ * Revision 1.10  2008/03/30 22:25:29  bdbcat
+ * Update for Mac OSX/Unicode
+ *
+=======
+ * $Log: wificlient.cpp,v $
+ * Revision 1.10  2008/03/30 22:25:29  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.9  2008/01/12 06:22:04  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.9
  * Revision 1.8  2008/01/02 20:57:14  bdbcat
  * Update for Version 1.2.2
  *
@@ -74,7 +84,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.9 2008/01/12 06:22:04 bdbcat Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.10 2008/03/30 22:25:29 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation

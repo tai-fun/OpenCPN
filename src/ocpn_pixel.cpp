@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.cpp,v 1.3 2008/01/10 03:37:02 bdbcat Exp $
+ * $Id: ocpn_pixel.cpp,v 1.4 2008/03/30 22:27:32 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Optimized wxBitmap Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ocpn_pixel.cpp,v $
+ * Revision 1.4  2008/03/30 22:27:32  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.3  2008/01/10 03:37:02  bdbcat
  * Update for Mac OSX
  *
@@ -112,7 +115,7 @@
 #endif
 
 
-CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.3 2008/01/10 03:37:02 bdbcat Exp $");
+CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.4 2008/03/30 22:27:32 bdbcat Exp $");
 
 
 #ifdef  __WXX11__
@@ -160,7 +163,7 @@ ocpnXImage::ocpnXImage(int width, int height)
                                  width, height );
         if (m_img == NULL)
         {
-            wxLogError("XShmCreateImage failed!");
+              wxLogError(_T("XShmCreateImage failed!"));
             goto after_check;
         }
 
@@ -170,7 +173,7 @@ ocpnXImage::ocpnXImage(int width, int height)
         {
             XDestroyImage( m_img );
             m_img = NULL;
-            wxLogMessage( "alloc_back_buffer: Shared memory error (shmget), disabling." );
+            wxLogMessage( _T("alloc_back_buffer: Shared memory error (shmget), disabling.") );
             goto after_check;
         }
 
@@ -180,7 +183,7 @@ ocpnXImage::ocpnXImage(int width, int height)
         {
             XDestroyImage( m_img );
             m_img = NULL;
-            wxLogMessage("shmat failed\n");
+            wxLogMessage(_T("shmat failed"));
             goto after_check;
         }
 

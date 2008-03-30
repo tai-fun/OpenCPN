@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< tcmgr.cpp
  * $Log: tcmgr.cpp,v $
+ * Revision 1.5  2008/03/30 22:24:40  bdbcat
+ * Update for Mac OSX/Unicode
+ *
+=======
+ * $Log: tcmgr.cpp,v $
+ * Revision 1.5  2008/03/30 22:24:40  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.4  2008/01/12 06:21:55  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.4
  * Revision 1.3  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -69,7 +79,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.4 2008/01/12 06:21:55 bdbcat Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.5 2008/03/30 22:24:40 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.5 2008/01/12 06:22:12 bdbcat Exp $
+ * $Id: wvschart.cpp,v 1.6 2008/03/30 22:26:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< wvschart.cpp
  * $Log: wvschart.cpp,v $
+ * Revision 1.6  2008/03/30 22:26:40  bdbcat
+ * Update for Mac OSX/Unicode
+ *
+=======
+ * $Log: wvschart.cpp,v $
+ * Revision 1.6  2008/03/30 22:26:40  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.5  2008/01/12 06:22:12  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.5
  * Revision 1.4  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -86,7 +96,7 @@
 #include "cutil.h"
 #include "georef.h"
 
-CPL_CVSID("$Id: wvschart.cpp,v 1.5 2008/01/12 06:22:12 bdbcat Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.6 2008/03/30 22:26:40 bdbcat Exp $");
 
 //      Local Prototypes
 extern "C" int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray, int **segray);
@@ -127,7 +137,10 @@ WVSChart::WVSChart(wxWindow *parent, const wxString& wvs_chart_home)
         }
         fclose(fp);
         m_ok = true;
-//      wxLogMessage("Using WVSChart datafile: %s", pwvs_file_name->mb_str());
+
+        wxString s(_T("Using WVSChart datafile: "));
+        s.Append(*pwvs_file_name);
+        wxLogMessage(s);
 }
 WVSChart::~WVSChart()
 {
