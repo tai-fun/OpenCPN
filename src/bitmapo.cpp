@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bitmapo.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $
+ * $Id: bitmapo.cpp,v 1.3 2008/03/30 21:39:04 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Optimized wxBitmap Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: bitmapo.cpp,v $
+ * Revision 1.3  2008/03/30 21:39:04  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.2  2006/10/07 03:50:27  dsr
  * *** empty log message ***
  *
@@ -142,7 +145,7 @@
 #include <X11/extensions/XShm.h>
 #endif
 
-CPL_CVSID("$Id: bitmapo.cpp,v 1.2 2006/10/07 03:50:27 dsr Exp $");
+CPL_CVSID("$Id: bitmapo.cpp,v 1.3 2008/03/30 21:39:04 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // macros
@@ -328,7 +331,7 @@ bool wxBitmapo::CreateFromData( void *pPix, int width, int height, int depth )
         {
           XDestroyImage( img );
           img = NULL;
-          wxLogMessage( "alloc_back_buffer: Shared memory error (shmget), disabling." );
+          wxLogMessage( _T("alloc_back_buffer: Shared memory error (shmget), disabling." ));
           goto after_check;
         }
 
@@ -338,7 +341,7 @@ bool wxBitmapo::CreateFromData( void *pPix, int width, int height, int depth )
         {
           XDestroyImage( img );
           img = NULL;
-          wxLogMessage("shmat failed\n");
+          wxLogMessage(_T("shmat failed"));
           goto after_check;
         }
 
