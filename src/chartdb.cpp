@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.7 2008/01/12 06:23:19 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.8 2008/03/30 21:54:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< chartdb.cpp
  * $Log: chartdb.cpp,v $
+ * Revision 1.8  2008/03/30 21:54:29  bdbcat
+ * Update for Mac OSX/Unicode
+ *
+=======
+ * $Log: chartdb.cpp,v $
+ * Revision 1.8  2008/03/30 21:54:29  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.7  2008/01/12 06:23:19  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.7
  * Revision 1.6  2007/06/10 02:25:09  bdbcat
  * Fix leaks
  *
@@ -54,6 +64,8 @@
       #include "wx/wx.h"
 #endif //precompiled headers
 
+#include <wx/stopwatch.h>
+
 #include "chartdb.h"
 #include "chartimg.h"
 #include "chart1.h"
@@ -65,6 +77,7 @@
 
 #ifdef USE_S57
 #include "s57chart.h"
+#include "s57.h"
 #endif
 
 extern ChartBase    *Current_Ch;
@@ -73,7 +86,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.7 2008/01/12 06:23:19 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.8 2008/03/30 21:54:29 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -506,7 +519,7 @@ int ChartDB::TraverseDirAndAddBSB(wxString dir_name, bool bshow_prog, bool bupda
     for(unsigned int id = 0 ; id < dirs.GetCount() ; id++)
     {
         wxString this_dir(dirs[id]);
-        this_dir.Append('/');
+        this_dir.Append(wxFileName::GetPathSeparator());
         nAdd += SearchDirAndAddBSB(this_dir, wxString(_T("*.geo")), bshow_prog, bupdate);
 
         nAdd += SearchDirAndAddBSB(this_dir, wxString(_T("*.KAP")), bshow_prog, bupdate);
@@ -562,6 +575,10 @@ int ChartDB::SearchDirAndAddBSB(wxString& dir_name, const wxString& filespec,
       ChartTableEntry *pEntry = pTempChartTable;
       int nDirEntry = 0;
 
+      //    Check to see if there are any charts in the DB which refer to this directory
+      //    If none at all, there is no need to scan the DB for each potential addition
+      bool bneed_full_search = SearchForChartDir(dir_name);
+
       int nFileLook = 0;
       cont = dir.GetFirst(&filename, filespec);
       while ( cont )
@@ -569,17 +586,25 @@ int ChartDB::SearchDirAndAddBSB(wxString& dir_name, const wxString& filespec,
             wxString full_name = dir_name;
             full_name.Append(filename);
 
+            //    As a speed optimization, use strcmp instead of wxString::IsSameAs()
+            char test_str[512];
+            strncpy(test_str, full_name.mb_str(), 511);
+
             bool bAdd = true;
             if(bupdate)
             {
-                for(int i=0 ; i<nEntry ; i++)
+                if(bneed_full_search)
                 {
-                    if(full_name.IsSameAs(wxString(pChartTable[i].pFullPath, wxConvUTF8)))
-                    {
-                        pChartTable[i].bValid = true;
-                        bAdd = false;
-                        break;
-                    }
+                      for(int i=0 ; i<nEntry ; i++)
+                      {
+//                        if(full_name.IsSameAs(wxString(pChartTable[i].pFullPath, wxConvUTF8)))
+                        if(0 == strcmp(test_str, pChartTable[i].pFullPath))
+                        {
+                              pChartTable[i].bValid = true;
+                              bAdd = false;
+                              break;
+                        }
+                      }
 
                     //  Look at the chart name itself for a further check
                     //  Todo  think about comparing publish dates?
@@ -639,7 +664,6 @@ int ChartDB::SearchDirAndAddBSB(wxString& dir_name, const wxString& filespec,
 // ----------------------------------------------------------------------------
 bool ChartDB::CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
 {
-
       wxFileName fn(full_name);
       wxString charttype = fn.GetExt();
       ChartBaseBSB *pch = NULL;
@@ -707,41 +731,10 @@ bool ChartDB::CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEnt
 // ----------------------------------------------------------------------------
 
 int ChartDB::TraverseDirAndAddS57(wxString dir_name, bool bshow_prog, bool bupdate)
-//    Use Traverser to list of sub-directories
-//    Thus handling the case where user has all charts in one folder with subdirs,
-//    And wants all possible charts installed in one fell swoop.
 {
-    int nAdd = 0;
-    wxArrayString dirs;
-    wxArrayString files;
-    dirs.Add(dir_name);                 // add entry tree root to the list always
-
-    wxDir dir(dir_name);                // Make a searchable dir
-
-    if ( !dir.IsOpened() )
-    {
-        return 0;
-    }
-
-    if(dir.HasSubDirs())
-    {
-        wxDirTraverserCharts traverser(files, dirs);
-        dir.Traverse(traverser);
-    }
-//    int a = dirs.GetCount();
-//    int b = files.GetCount();
-
     //  This search will recursively search the selected directory
-    nAdd += SearchDirAndAddS57(dir_name, bshow_prog, bupdate);
+    int nAdd = SearchDirAndAddS57(dir_name, bshow_prog, bupdate);
 
-/*
-        for(unsigned int id = 0 ; id < dirs.GetCount() ; id++)
-    {
-        wxString this_dir(dirs[id]);
-        this_dir.Append('/');
-        nAdd += SearchDirAndAddS57(this_dir, bshow_prog, bupdate);
-    }
-*/
     return nAdd;
 }
 
@@ -763,17 +756,8 @@ int ChartDB::SearchDirAndAddS57(wxString& dir_name, bool bshow_prog, bool bupdat
 
       wxArrayString *pFileList = new wxArrayString();
 
-      dir.GetAllFiles(dir_name, pFileList);
-      int nFile = 0;
-
-      for(unsigned int j=0 ; j<pFileList->GetCount() ; j++)
-      {
-            wxFileName file(pFileList->Item(j));
-            if(file.GetExt() == _T("000"))
-            {
-                  nFile++;
-            }
-      }
+      dir.GetAllFiles(dir_name, pFileList, wxString(_T("*.000")));
+      int nFile = pFileList->GetCount();
 
       if(!nFile)
       {
@@ -786,6 +770,10 @@ int ChartDB::SearchDirAndAddS57(wxString& dir_name, bool bshow_prog, bool bupdat
       ChartTableEntry *pEntry = pTempChartTable;
       int n000Entry = 0;
 
+      //    Check to see if there are any charts in the DB which refer to this directory
+      //    If none at all, there is no need to scan the DB for each potential addition
+      bool bneed_full_search = SearchForChartDir(dir_name);
+
       int iProg = 0;
       for(unsigned int ifile=0 ; ifile < pFileList->GetCount() ; ifile++)
       {
@@ -795,14 +783,17 @@ int ChartDB::SearchDirAndAddS57(wxString& dir_name, bool bshow_prog, bool bupdat
               bool bAdd = true;
               if(bupdate)
               {
-                  for(int i=0 ; i<nEntry ; i++)
+                  if(bneed_full_search)
                   {
-                      if(file.GetFullPath().IsSameAs(wxString(pChartTable[i].pFullPath, wxConvUTF8)))
-                      {
-                          pChartTable[i].bValid = true;
-                          bAdd = false;
-                          break;
-                      }
+                        for(int i=0 ; i<nEntry ; i++)
+                        {
+                              if(file.GetFullPath().IsSameAs(wxString(pChartTable[i].pFullPath, wxConvUTF8)))
+                              {
+                                    pChartTable[i].bValid = true;
+                                    bAdd = false;
+                                    break;
+                              }
+                        }
                   }
               }
 
@@ -869,6 +860,19 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
       if(!fn.FileExists())
             return false;
 
+      wxString msg(_T("Create ChartTable Entry for "));
+      msg.Append(full_name);
+      wxLogMessage(msg);
+
+//    Open a minimally functional ENC-capable chart
+      wxStopWatch sw_init;
+
+      s57chart pchart;
+      if(!pchart.InitENCMinimal(full_name))
+            return false;
+
+      sw_init.Pause();
+
       pEntry->ChartType = CHART_TYPE_S57;
 
       char *pt = (char *)malloc(full_name.Length() + 1);
@@ -878,22 +882,20 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
       strncpy(pEntry->ChartID, fn.GetName().mb_str( wxConvUTF8), sizeof(pEntry->ChartID));
       pEntry->ChartID[sizeof(pEntry->ChartID)-1] = 0;
 
-      pEntry->Scale = s57_GetChartScale(full_name);
+      pEntry->Scale = pchart.GetENCScale();     //s57_GetChartScale(full_name);
 
-      OGRDataSource *pDS;
       OGRFeature *pFeat;
-      OGRFeature *pLastFeat;
-      OGRLayer *pLayer;
       int catcov;
 
+      wxStopWatch sw_mcov;
 //    If Extent pointer passed is null, get extents the hard way
       if(pext == NULL)
       {
 
           //Get the first M_COVR object
-          if(   s57_GetChartFirstM_COVR(full_name, &pDS, &pFeat, &pLayer, catcov))
+            if((pFeat = pchart.GetChartFirstM_COVR(catcov)))
             {
-
+                sw_mcov.Pause();
                 OGRPolygon *poly;
                 OGRLinearRing *xring;
                 int npt;
@@ -939,13 +941,12 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
                   }
                 }
 
+                delete pFeat;
+                pFeat = NULL;
 
-                  pLastFeat = pFeat;
 
-                  while( s57_GetChartNextM_COVR(pDS, pLayer, pLastFeat, &pFeat, catcov))
+                while( (pFeat = pchart.GetChartNextM_COVR(catcov)))
                   {
-                      delete pLastFeat;
-                      pLastFeat = pFeat;
 
                       if(catcov == 1)
                       {
@@ -975,10 +976,11 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
                         }
                       }
 
+                      delete pFeat;
+
 
                   }         // while
 
-                  delete pLastFeat;
 
                   //    If only one M_COVR,CATCOV=1 object was found,
                   //    assign the geometry to the Primary PlyTable
@@ -1059,7 +1061,6 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
                   pEntry->LonMin = LonMin;
                   pEntry->LonMax = LonMax;
 
-                  delete pDS;
 
                   delete pAuxPtrArray;
                   delete pAuxCntArray;
@@ -1134,6 +1135,9 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
 
       pEntry->bValid = true;
 
+//      wxLogMessage(_T("sw_init: %ld"), sw_init.Time());
+//      wxLogMessage(_T("sw_mcov: %ld"), sw_mcov.Time());
+
       return true;
 
 #else
@@ -1150,6 +1154,35 @@ bool ChartDB::CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEnt
 //      Database access methods
 //
 //-------------------------------------------------------------------------------------------------------
+
+
+//-------------------------------------------------------------------------------------------------------
+//    Search database for any chart entries pointing to specified directory
+//     (with or without trailing path separator)
+//-------------------------------------------------------------------------------------------------------
+
+bool ChartDB::SearchForChartDir(wxString &dir)
+{
+      wxString dir_copy(dir);
+      if((dir_copy.Last() == wxFileName::GetPathSeparator()) || (dir_copy.Last() == '/'))
+            dir_copy.RemoveLast();
+
+      dir_copy.Append(_T("*"));           // make match string
+      for(int i=0 ; i<nEntry ; i++)
+      {
+            wxString entry_name(pChartTable[i].pFullPath, wxConvUTF8);
+            if(entry_name.Matches(dir_copy))
+               return true;
+
+/*            wxFileName entry_filename(entry_name);
+            wxString entry_path = entry_filename.GetPath((int)wxPATH_GET_VOLUME);
+
+            if(entry_path == dir_copy)
+                  return true;
+*/
+      }
+      return false;
+}
 
 //-------------------------------------------------------------------
 //    Get Full Path from db
@@ -1185,7 +1218,6 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
 
       for(i=0 ; i<nEntry ; i++)
       {
-          wxString tt(wxString(pChartTable[i].pFullPath,  wxConvUTF8));
 
 //    First check on rough Bounding box
             if((lat < pChartTable[i].LatMax) &&
@@ -1468,7 +1500,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                   unsigned int nCache = pChartCache->GetCount();
                   if(nCache > 2)
                   {
-//                      wxLogMessage("Searching chart cache for oldest entry");
+//                      wxLogMessage(_T("Searching chart cache for oldest entry"));
                         int LRUTime = now.GetTicks();
                         int iOldest = 0;
                         for(unsigned int i=0 ; i<nCache ; i++)
@@ -1484,19 +1516,19 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                               }
                         }
 //                      int dt = now.GetTicks() - LRUTime;
-//                      wxLogMessage("Oldest cache index is %d, delta t is %d", iOldest, dt);
+//                      wxLogMessage(_T("Oldest cache index is %d, delta t is %d"), iOldest, dt);
 
                         pce = (CacheEntry *)(pChartCache->Item(iOldest));
                         ChartBase *pDeleteCandidate =  (ChartBase *)(pce->pChart);
 
                         if(Current_Ch == pDeleteCandidate)
                         {
-//                            wxLogMessage("...However, it is Current_Ch");
+//                            wxLogMessage(_T("...However, it is Current_Ch"));
                         }
                         else
                         {
-//                            wxLogMessage("Deleting/Removing oldest chart from cache");
-//                            wxLogMessage("oMem_Free before chart removal is %d", omem_free);
+//                            wxLogMessage(_T("Deleting/Removing oldest chart from cache"));
+//                            wxLogMessage(_T("oMem_Free before chart removal is %d"), omem_free);
 
                               //    Delete the chart
                               delete pDeleteCandidate;
@@ -1506,7 +1538,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 
                               pParent->GetMemoryStatus(omem_total, omem_used);
 //                            int omem_free = omem_total - omem_used;
-//                            wxLogMessage("oMem_Free after chart removal is %d", omem_free);
+//                            wxLogMessage(_T("oMem_Free after chart removal is %d"), omem_free);
 
                         }
                   }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.12 2008/01/12 06:23:26 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.13 2008/03/30 21:56:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -25,10 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< chartimg.cpp
  * $Log: chartimg.cpp,v $
+ * Revision 1.13  2008/03/30 21:56:15  bdbcat
+ * Update for Mac OSX/Unicode
+ *
+=======
+ * $Log: chartimg.cpp,v $
+ * Revision 1.13  2008/03/30 21:56:15  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.12  2008/01/12 06:23:26  bdbcat
  * Update for Mac OSX/Unicode
  *
+>>>>>>> 1.12
  * Revision 1.11  2008/01/10 03:35:57  bdbcat
  * Update for Mac OSX
  *
@@ -90,7 +100,7 @@
 extern void *x_malloc(size_t t);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.12 2008/01/12 06:23:26 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.13 2008/03/30 21:56:15 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -199,6 +209,7 @@ ChartBase::~ChartBase()
       delete pDepthUnits;
 
       delete pThumbData;
+      delete m_pFullPath;
 
       delete pName;
 }
@@ -213,13 +224,13 @@ ChartDummy::ChartDummy()
       m_pBM = NULL;
       ChartType = CHART_TYPE_DUMMY;
 
-      pFullPath = new wxString(_T("Dummy"));
+      m_pFullPath = new wxString(_T("Dummy"));
 
 }
 
 ChartDummy::~ChartDummy()
 {
-      delete pFullPath;
+//      delete pFullPath;
       delete m_pBM;
 }
 
@@ -329,9 +340,9 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
       if(!ifs_hdr->Ok())
             return INIT_FAIL_REMOVE;
 
-      pFullPath = new wxString(name);
+      m_pFullPath = new wxString(name);
 
-      wxFileName GEOFile(*pFullPath);
+      wxFileName GEOFile(*m_pFullPath);
 
       wxString Path;
       Path = GEOFile.GetPath(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME);
@@ -487,7 +498,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
       int ifile;
 
       pBitmapFilePath->Prepend(Path);
-//    wxLogMessage("ChartGEO:Init....NOS File Name is: %s", pBitmapFilePath->mb_str());
+
       wxFileName NOS_filename(*pBitmapFilePath);
       if(NOS_filename.FileExists())
       {
@@ -508,8 +519,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             fext.MakeLower();
             NOS_filename.SetName(fname);
             NOS_filename.SetExt(fext);
-//          wxLogMessage("ChartGEO:Init....Trying NOS File Name: %s",
-//                      (NOS_filename.GetFullPath()).mb_str());
+
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
 
@@ -518,8 +528,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             fext.MakeUpper();
             NOS_filename.SetName(fname);
             NOS_filename.SetExt(fext);
-//          wxLogMessage("ChartGEO:Init....Trying NOS File Name: %s",
-//                      (NOS_filename.GetFullPath()).mb_str());
+
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
 
@@ -528,8 +537,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             fext.MakeLower();
             NOS_filename.SetName(fname);
             NOS_filename.SetExt(fext);
-//          wxLogMessage("ChartGEO:Init....Trying NOS File Name: %s",
-//                      (NOS_filename.GetFullPath()).mb_str());
+
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
 
@@ -538,8 +546,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             fext.MakeUpper();
             NOS_filename.SetName(fname);
             NOS_filename.SetExt(fext);
-//          wxLogMessage("ChartGEO:Init....Trying NOS File Name: %s",
-//                      (NOS_filename.GetFullPath()).mb_str());
+
             if(NOS_filename.FileExists())
                   goto found_uclc_file;
 
@@ -566,7 +573,6 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
             return INIT_FAIL_REMOVE;                  // not found at all
 
 found_uclc_file:
-//          wxLogMessage("ChartGEO:Init....Found: %s", (NOS_filename.GetFullPath()).mb_str());
 
             delete pBitmapFilePath;                   // fix up the member element
             pBitmapFilePath = new wxString(NOS_filename.GetFullPath());
@@ -780,7 +786,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
       if(!ifs_hdr->Ok())
             return INIT_FAIL_REMOVE;
 
-      pFullPath = new wxString(name);
+      m_pFullPath = new wxString(name);
 
       ifss_bitmap = new wxFileInputStream(name); // Open again, as the bitmap
       ifs_bitmap = new wxBufferedInputStream(*ifss_bitmap);
@@ -1085,7 +1091,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                         wxString token = tkz.GetNextToken();
                         if(token.IsSameAs(_T("ED"), TRUE))                  // extract Edition Date
                         {
-//          wxLogMessage("Extract ED from %s", this->pFullPath->mb_str());
+
                               int i;
                               i = tkz.GetPosition();
 
@@ -1244,7 +1250,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 ChartBaseBSB::ChartBaseBSB()
 {
       //    Init some private data
-      pFullPath = NULL;
+      m_pFullPath = NULL;
       pBitmapFilePath = NULL;
 
       pline_table = NULL;
@@ -1291,8 +1297,8 @@ ChartBaseBSB::ChartBaseBSB()
 
 ChartBaseBSB::~ChartBaseBSB()
 {
-      if(pFullPath)
-            delete pFullPath;
+//      if(pFullPath)
+//            delete pFullPath;
 
       if(pBitmapFilePath)
             delete pBitmapFilePath;
@@ -1506,7 +1512,7 @@ InitReturn ChartBaseBSB::PostInit(void)
       if(!bline_index_ok)
       {
           wxString msg(_T("Line Index corrupt, recreating on chart "));
-          msg.Append(*pFullPath);
+          msg.Append(*m_pFullPath);
           wxLogMessage(msg);
           if(!CreateLineIndex())
           {
@@ -1576,7 +1582,7 @@ bool ChartBaseBSB::CreateLineIndex()
         if(iscan > Size_Y)
         {
             wxString msg(_T("CreateLineIndex() failed on chart "));
-            msg.Append(*pFullPath);
+            msg.Append(*m_pFullPath);
             wxLogMessage(msg);
            return false;
         }
@@ -3474,9 +3480,8 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
                 {
                     wxString msg;
                     msg.Printf(_T("Georeference Chart_Error_Factor on chart is %5g"), Chart_Error_Factor);
-                    msg.Append(*pFullPath);
+                    msg.Append(*m_pFullPath);
                     wxLogMessage(msg);
-
 //                    printf("!!Georeference Chart_Error_Factor on chart %s is %5g\n", pFullPath->mb_str(), Chart_Error_Factor);
 
                     bGeoErrorSent = true;
@@ -3662,7 +3667,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.12 2008/01/12 06:23:26 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.13 2008/03/30 21:56:15 bdbcat Exp $
 *
 */
 

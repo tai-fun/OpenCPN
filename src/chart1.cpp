@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.19 2008/01/12 06:24:20 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.20 2008/03/30 21:51:57 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -25,13 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
+<<<<<<< chart1.cpp
  * $Log: chart1.cpp,v $
+ * Revision 1.20  2008/03/30 21:51:57  bdbcat
+ * Update for Mac OSX/Unicode
+ *
+=======
+ * $Log: chart1.cpp,v $
+ * Revision 1.20  2008/03/30 21:51:57  bdbcat
+ * Update for Mac OSX/Unicode
+ *
  * Revision 1.19  2008/01/12 06:24:20  bdbcat
  * Update for Mac OSX/Unicode
  *
  * Revision 1.18  2008/01/11 01:39:32  bdbcat
  * Update for Mac OSX
  *
+>>>>>>> 1.19
  * Revision 1.17  2008/01/10 03:35:45  bdbcat
  * Update for Mac OSX
  *
@@ -98,6 +108,7 @@
 #include "cpl_error.h"
 #include "ais.h"
 #include "chartimg.h"               // for ChartBaseBSB
+#include "routeprop.h"
 
 #ifdef __WXMSW__
 #include <wx/image.h>
@@ -116,6 +127,7 @@
 #ifdef USE_S57
 #include "s52plib.h"
 #include "s57chart.h"
+#include "s57.h"
 #endif
 
 #ifdef USE_WIFI_CLIENT
@@ -128,7 +140,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.19 2008/01/12 06:24:20 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.20 2008/03/30 21:51:57 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -168,6 +180,11 @@ Select          *pSelectTC;
 Select          *pSelectAIS;
 
 Routeman        *pRouteMan;
+WayPointman     *pWayPointMan;
+MarkProp        *pMarkPropDialog;
+RouteProp       *pRoutePropDialog;
+
+
 NMEA0183        *pNMEA0183;
 
 float           gLat, gLon, gCog, gSog, gHdg;
@@ -209,7 +226,8 @@ OCP_NMEA_Thread *pNMEA_Thread;
 wxString        *pNMEADataSource;
 wxString        *pNMEA_AP_Port;
 
-
+wxDateTime      g_start_time;
+bool            g_bCruising;
 
 ChartDummy      *pDummyChart;
 
@@ -236,7 +254,9 @@ int             gGPS_Watchdog;
 bool            bGPSValid;
 
 #ifdef USE_S57
-s52plib         *ps52plib;
+s52plib           *ps52plib;
+S57ClassRegistrar *g_poRegistrar;
+
 // begin rms
 #elif defined __WXOSX__
 s52plib         *ps52plib;
@@ -278,11 +298,15 @@ bool            s_socket_test_passed;
 wxSocketClient  *s_t_sock;
 wxSocketServer  *s_s_sock;
 
+
 int              g_nframewin_x;
 int              g_nframewin_y;
 bool             g_bframemax;
 
+wxRect           g_blink_rect;
+double           g_PlanSpeed;
 
+FILE *s_fpdebug;
 //-----------------------------------------------------------------------------------------------------
 //      OCP_NMEA_Thread Static data store
 //-----------------------------------------------------------------------------------------------------
@@ -302,6 +326,10 @@ struct sigaction sa_usr1_old;
 // this allows us to make sure that a message is completely processed before sending another one.
 wxMutex           s_pmutexNMEAEventState;
 int               g_iNMEAEventState = NMEA_STATE_NONE ;
+
+#ifndef uint64_t
+#define uint64_t long
+#endif
 
 // begin rms
 #if defined(__WXOSX__) || defined(__LINUX__)
@@ -378,6 +406,7 @@ IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit()
 {
+      g_start_time = wxDateTime::Now();
 
 #ifdef __WXMSW__
     //testing
@@ -393,7 +422,7 @@ bool MyApp::OnInit()
 #endif
 
 
-//      _CrtSetBreakAlloc(3868);
+//      _CrtSetBreakAlloc(466328);
 
 #ifdef __MSVC__
 _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
@@ -539,6 +568,8 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      Init the Route Manager
         pRouteMan = new Routeman();
 
+//      Init the WayPoint Manager
+        pWayPointMan = new WayPointman();
 
 //      Who am I?
         phost_name = new wxString(::wxGetHostName());
@@ -877,7 +908,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         gsp_watchdog_timeout_ticks = (GPS_TIMEOUT_SECONDS * 1000) / TIMER_GFRAME_1;
 
 //      Start up the ticker....
-        gFrame->FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
+        gFrame->FrameTimer1.Start(TIMER_GFRAME_1, wxTIMER_CONTINUOUS);
 
    return TRUE;
 }
@@ -886,13 +917,15 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 int MyApp::OnExit()
 {
-        wxLogMessage(_T("opencpn exiting cleanly...\n"));
+      wxLogMessage(_T("opencpn::MyApp exiting cleanly...\n"));
         delete pConfig;
         delete pSelect;
         delete pSelectTC;
         delete pSelectAIS;
 
         delete pRouteMan;
+        delete pWayPointMan;
+
         delete pNMEA0183;
         delete pChartDirArray;
 
@@ -930,6 +963,10 @@ int MyApp::OnExit()
         delete pFontMgr;
 
 #ifdef USE_S57
+        delete g_poRegistrar;
+#endif
+
+#ifdef USE_S57
 #ifdef __WXMSW__
 #ifdef USE_GLU_TESS
 #ifdef USE_GLU_DLL
@@ -939,7 +976,6 @@ int MyApp::OnExit()
 #endif
 #endif
 #endif
-
 
 //        _CrtDumpMemoryLeaks( );
 
@@ -1027,6 +1063,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_SIZE(MyFrame::OnSize)
   EVT_MENU(-1, MyFrame::OnToolLeftClick)
   EVT_TIMER(FRAME_TIMER_1, MyFrame::OnFrameTimer1)
+  EVT_TIMER(FRAME_TC_TIMER, MyFrame::OnFrameTCTimer)
   EVT_ACTIVATE(MyFrame::OnActivate)
   EVT_COMMAND(ID_NMEA_WINDOW, EVT_NMEA, MyFrame::OnEvtNMEA)
 END_EVENT_TABLE()
@@ -1043,6 +1080,9 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 
         //      Redirect the global heartbeat timer to this frame
         FrameTimer1.SetOwner(this, FRAME_TIMER_1);
+
+        //      Redirect the Tide/Current update timer to this frame
+        FrameTCTimer.SetOwner(this, FRAME_TC_TIMER);
 
         //      Set up some assorted member variables
         nRoute_State = 0;
@@ -1493,8 +1533,8 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
 
     //  Re-establish toggle states
     toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
-    toolBar->ToggleTool(ID_CURRENT, cc1->bShowCurrent);
-    toolBar->ToggleTool(ID_TIDE, cc1->bShowTide);
+    toolBar->ToggleTool(ID_CURRENT, cc1->GetbShowCurrent());
+    toolBar->ToggleTool(ID_TIDE, cc1->GetbShowTide());
 
     return;
 }
@@ -1510,20 +1550,49 @@ void MyFrame::OnExit(wxCommandEvent& event)
 
 void MyFrame::OnCloseWindow(wxCloseEvent& event)
 {
+      wxLogMessage(_T("opencpn::MyFrame exiting cleanly..."));
+
 // begin rms
 #ifdef __WXOSX__
       quitflag++ ;
 #endif // __WXOSX__
 // end rms
+<<<<<<< chart1.cpp
+      FrameTimer1.Stop();
+
+    /*
+          Automatically drop an anchorage waypoint, if enabled
+          On following conditions:
+          1.  In "Cruising" mode, meaning that speed has at some point exceeded 3.0 kts.
+          2.  Current speed is less than 0.5 kts.
+          3.  Opencpn has been up at least 30 minutes
+          4.  And, of course, opencpn is going down now.
+    */
+      if(1)
+      {
+            wxDateTime now = wxDateTime::Now();
+            wxTimeSpan uptime = now.Subtract(g_start_time);
+
+            if((g_bCruising) && (gSog < 0.5) && (uptime.IsLongerThan(wxTimeSpan(0,30,0,0))))
+            {
+                  wxString name = now.Format();
+                  name.Prepend(_T("Created "));
+                  RoutePoint *pWP = new RoutePoint(gLat, gLon, wxString(_T("anchorage")), name, NULL);
+                  pWP->m_bShowName = false;
+
+                  pConfig->AddNewWayPoint(pWP, -1);       // use auto next num
+            }
+      }
+=======
    FrameTimer1.Stop();
+>>>>>>> 1.19
 
-   g_bframemax = IsMaximized();
+      g_bframemax = IsMaximized();
 
-   pConfig->UpdateSettings();
+      pConfig->UpdateSettings();
 
-
-    delete g_printData;
-    delete g_pageSetupData;
+      delete g_printData;
+      delete g_pageSetupData;
 
 //      Explicitely Close some children, especially the ones with event handlers
 //      or that call GUI methods
@@ -1580,6 +1649,7 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
         delete pbm;
     }
 
+    //      Automatically drop an anchorage waypoint, if enabled
     this->Destroy();
 }
 
@@ -1671,7 +1741,6 @@ void MyFrame::OnChar(wxKeyEvent &event)
 
 void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 {
-
   switch(event.GetId())
   {
     case ID_STKUP:
@@ -1751,7 +1820,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             ps52plib->SetShowS57Text(!ps52plib->GetShowS57Text());
             toolBar->ToggleTool(ID_TEXT, ps52plib->GetShowS57Text());
             Current_Ch->InvalidateCache();
-            cc1->m_bForceReDraw = true;
             cc1->Refresh(false);
             break;
         }
@@ -1767,7 +1835,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
             if(Current_Ch)
                 Current_Ch->InvalidateCache();
-            cc1->m_bForceReDraw = true;
+ //           cc1->m_bForceReDraw = true;
             cc1->Refresh(false);
             break;
         }
@@ -1778,21 +1846,29 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             if(!ptcmgr)                                                     // First time, init the manager
                 ptcmgr = new TCMgr(*pTC_Dir, *pHome_Locn);
 
-
             if(ptcmgr->IsReady())
             {
-                  cc1->bShowCurrent = !cc1->bShowCurrent;
-                  toolBar->ToggleTool(ID_CURRENT, cc1->bShowCurrent);
+                  cc1->SetbShowCurrent(!cc1->GetbShowCurrent());
+                  toolBar->ToggleTool(ID_CURRENT, cc1->GetbShowCurrent());
                   Current_Ch->InvalidateCache();
-                  cc1->m_bForceReDraw = true;
-                  cc1->Refresh(false);
             }
             else
             {
                 wxLogMessage(_T("Chart1::Event...TCMgr Not Available"));
-                  cc1->bShowCurrent = false;
-                  toolBar->ToggleTool(ID_CURRENT, false);
+                cc1->SetbShowCurrent(false);
+                toolBar->ToggleTool(ID_CURRENT, false);
             }
+
+            if(cc1->GetbShowCurrent())
+            {
+                  FrameTCTimer.Start(TIMER_TC_VALUE_SECONDS * 1000, wxTIMER_CONTINUOUS);
+                  cc1->SetbTCUpdate(true);                        // force immediate update
+            }
+            else
+                  FrameTCTimer.Stop();
+
+            cc1->Refresh(false);
+
             break;
 
         }
@@ -1802,23 +1878,30 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
                 if(!ptcmgr)                                                     // First time, init the manager
                       ptcmgr = new TCMgr(*pTC_Dir, *pHome_Locn);
 
-
                 if(ptcmgr->IsReady())
                 {
-                        cc1->bShowTide = !cc1->bShowTide;
-                        toolBar->ToggleTool(ID_TIDE, cc1->bShowTide);
-                        Current_Ch->InvalidateCache();
-                        cc1->m_bForceReDraw = true;
-                        cc1->Update();
-                        cc1->Refresh(false);
+                      cc1->SetbShowTide(!cc1->GetbShowTide());
+                      toolBar->ToggleTool(ID_TIDE, cc1->GetbShowTide());
+                      Current_Ch->InvalidateCache();
                 }
                 else
                 {
                     wxLogMessage(_T("Chart1::Event...TCMgr Not Available"));
-                        cc1->bShowTide = false;
-                        toolBar->ToggleTool(ID_TIDE, false);
+                    cc1->SetbShowTide(false);
+                    toolBar->ToggleTool(ID_TIDE, false);
                 }
-            break;
+
+                if(cc1->GetbShowTide())
+                {
+                      FrameTCTimer.Start(TIMER_TC_VALUE_SECONDS * 1000, wxTIMER_CONTINUOUS);
+                      cc1->SetbTCUpdate(true);                        // force immediate update
+                }
+                else
+                      FrameTCTimer.Stop();
+
+                cc1->Refresh(false);
+
+                break;
 
         }
 
@@ -1827,10 +1910,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
         about *pAboutDlg = new about(this, pSData_Locn);
         pAboutDlg->ShowModal();
 
-
         break;
-
-
       }
 
     case ID_PRINT:
@@ -1853,7 +1933,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             if(cc1)
             {
                 cc1->FlushBackgroundRender();
-                cc1->m_bForceReDraw = true;
                 cc1->Refresh(false);
             }
             break;
@@ -1873,7 +1952,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 {
  //             ShowDebugWindow as a wxStatusBar
-    m_StatusBarFieldCount = 6;
+        m_StatusBarFieldCount = 6;
         if(pConfig->m_bShowDebugWindows)
         {
                 if(!m_pStatusBar)
@@ -1906,7 +1985,8 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 
 int MyFrame::DoOptionsDialog()
 {
-    options *pSetDlg = new options(this, -1, _T("Options"), *pInit_Chart_Dir);
+    options *pSetDlg = new options(this, -1, _T("Options"), *pInit_Chart_Dir,
+          wxDefaultPosition, wxSize(500, 500) );
 
 //      Pass two working pointers for Chart Dir Dialog
       pSetDlg->SetCurrentDirListPtr(pChartDirArray);
@@ -1929,8 +2009,8 @@ int MyFrame::DoOptionsDialog()
 
 //    Grab copies of s57 Display Styles
 #ifdef USE_S57
-      int l_nSymbolStyle   = ps52plib->m_nSymbolStyle;
-      int l_nBoundaryStyle = ps52plib->m_nBoundaryStyle;
+//      int l_nSymbolStyle   = ps52plib->m_nSymbolStyle;
+//      int l_nBoundaryStyle = ps52plib->m_nBoundaryStyle;
 #endif
 
 //    Pause all of the async classes
@@ -1947,7 +2027,7 @@ int MyFrame::DoOptionsDialog()
 // And here goes the (modal) dialog
       int rr = pSetDlg->ShowModal();
 
-      if(rr == 1)
+      if(rr)
       {
             if(*pChartDirArray != *pWorkDirArray)
             {
@@ -1968,7 +2048,6 @@ int MyFrame::DoOptionsDialog()
                   pConfig->UpdateChartDirs(pChartDirArray);
 
                   FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
-
             }
 
             if(*pNMEADataSource != previous_NMEA_source)
@@ -1997,8 +2076,9 @@ int MyFrame::DoOptionsDialog()
             }
 
 #ifdef USE_S57
-            if((l_nSymbolStyle != ps52plib->m_nSymbolStyle) ||
-                   (l_nBoundaryStyle != ps52plib->m_nBoundaryStyle))
+//            if((l_nSymbolStyle != ps52plib->m_nSymbolStyle) ||
+//                   (l_nBoundaryStyle != ps52plib->m_nBoundaryStyle))
+            if(rr & S52_CHANGED)
             {
                 // Traverse the database of open charts.
                 // Finding S57 chart, execute UpdateLUPs to link objects
@@ -2127,7 +2207,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
           nBlinkerTick++;
           //    This RefreshRect will cause any active routepoint to blink
           if(pRouteMan->GetpActiveRoute())
-            cc1->RefreshRect(pRouteMan->GetpActiveRoute()->active_pt_rect, false);
+            cc1->RefreshRect(g_blink_rect, false);
       }
 
 //      Update the memory status, and display
@@ -2173,7 +2253,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
         }
 
 
-        FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
+        FrameTimer1.Start(TIMER_GFRAME_1, wxTIMER_CONTINUOUS);
 
 //        cc1->Refresh(false);
 
@@ -2195,6 +2275,13 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
            console->Refresh(false);
 
 
+}
+
+//    Cause refresh of active Tide/Current data, if displayed
+void MyFrame::OnFrameTCTimer(wxTimerEvent& event)
+{
+      cc1->SetbTCUpdate(true);
+      cc1->Refresh(false);
 }
 
 
@@ -2562,7 +2649,7 @@ void MyFrame::SetChartThumbnail(int index)
                                 {
                                         pthumbwin->pThumbChart = new_pThumbChart;
 
-                                        cc1->m_bForceReDraw = true;
+//                                        cc1->m_bForceReDraw = true;
 
                                         pthumbwin->Resize();
                                         pthumbwin->Show(true);
@@ -2585,7 +2672,7 @@ void MyFrame::SetChartThumbnail(int index)
                                                 Could not create thumbnail"));
                                         pthumbwin->pThumbChart = NULL;
                                         pthumbwin->Show(false);
-                                        cc1->m_bForceReDraw = true;
+//                                        cc1->m_bForceReDraw = true;
                                         cc1->Refresh(FALSE);
                                 }
 
@@ -2597,7 +2684,7 @@ void MyFrame::SetChartThumbnail(int index)
                                 wxLogMessage(fp);
                                 pthumbwin->pThumbChart = NULL;
                                 pthumbwin->Show(false);
-                                cc1->m_bForceReDraw = true;
+//                                cc1->m_bForceReDraw = true;
                                 cc1->Refresh(FALSE);
                         }
 
@@ -2618,7 +2705,7 @@ void MyFrame::SetChartThumbnail(int index)
                                 pthumbwin->Show(true);
                                 pthumbwin->Refresh(FALSE);
                             }
-                            cc1->m_bForceReDraw = true;
+ //                           cc1->m_bForceReDraw = true;
                             cc1->Refresh(FALSE);
                         }
                 }
@@ -2628,7 +2715,7 @@ void MyFrame::SetChartThumbnail(int index)
                 {
                         pthumbwin->pThumbChart = NULL;
                         pthumbwin->Show(false);
-                        cc1->m_bForceReDraw = true;
+//                        cc1->m_bForceReDraw = true;
                         cc1->Refresh(FALSE);
                 }
 
@@ -2677,7 +2764,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
         ChartStack *pWorkStack = new ChartStack;
         int l = ChartData->BuildChartStack(pWorkStack, tLat, tLon);
 
-        if(l == 0)                                                                      // Bogus Lat, Lon?
+        if(l == 0)                                    // Bogus Lat, Lon?
         {
                 if(NULL == pDummyChart)
                 {
@@ -2729,7 +2816,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
                 int tEntry = -1;
                 if(NULL != Current_Ch)                                  // this handles startup case
-                        tEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->pFullPath);
+                        tEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->m_pFullPath);
 
                 if(tEntry != -1)                // Current_Ch is in the new stack
                 {
@@ -3119,7 +3206,7 @@ void *x_malloc(size_t t)
                 if(t > malloc_max)
                 {
                         malloc_max = t;
-//                      wxLogMessage("New malloc_max: %d", malloc_max);
+//                      wxLogMessage(_T("New malloc_max: %d", malloc_max));
                 }
 
                 return pr;                                      // good return
@@ -3272,8 +3359,11 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
     }
 #endif
       // end rms
-}
+//    If gSog is greater than some threshold, we determine that we are "cruising"
+      if(gSog > 3.0)
+            g_bCruising = true;
 
+}
 void MyFrame::StopSockets(void)
 {
 #ifdef USE_WIFI_CLIENT
@@ -3304,14 +3394,17 @@ void MyCPLErrorHandler( CPLErr eErrClass, int nError,
                              const char * pszErrorMsg )
 
 {
+    char msg[256];
 
     if( eErrClass == CE_Debug )
-        wxLogMessage(_T("CPL: %s"), pszErrorMsg);
+        snprintf(msg, 255,"CPL: %s", pszErrorMsg);
     else if( eErrClass == CE_Warning )
-        wxLogMessage(_T("CPL Warning %d: %s"), nError, pszErrorMsg);
+        snprintf(msg, 255,"CPL Warning %d: %s", nError, pszErrorMsg);
     else
-        wxLogMessage(_T("CPL ERROR %d: %s"), nError, pszErrorMsg);
+        snprintf(msg, 255,"CPL ERROR %d: %s", nError, pszErrorMsg);
 
+    wxString str(msg, wxConvUTF8);
+    wxLogMessage(str);
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -3434,5 +3527,239 @@ extern "C" char *mygetenv(char *pvar)
                 return((char *)pval->c_str());
         }
 
+}
+
+
+/*
+*     Enumerate all the serial ports on the system
+*
+*     wxArrayString *EnumerateSerialPorts(void)
+
+*     Very system specific, unaviodably.
+*/
+
+wxArrayString *EnumerateSerialPorts(void)
+{
+      wxArrayString *preturn = new wxArrayString;
+
+#ifdef __WXGTK__
+
+/*
+*     For modern Linux/(Posix??) systems, we will use
+*     the system files /proc/tty/driver/serial
+*     and /proc/tty/driver/usbserial to identify
+*     available serial ports.
+*     A complicating factor is that most (all??) linux
+*     systems require root prvileges to access these files.
+*     We will use suid method here, despite implied vulnerability.
+*/
+
+char buf[256]; // enough to hold one line from serial devices list
+char left_digit;
+char right_digit;
+int port_num;
+FILE *f;
+
+
+//    Temporarily gain root privileges
+      seteuid(file_user_id);
+
+//    Read and parse the files
+
+/*
+      * see if we have any traditional ttySx ports available
+*/
+      f = fopen("/proc/tty/driver/serial", "r");
+
+      if (f != NULL)
+      {
+
+            /* read in each line of the file */
+            while(fgets(buf, sizeof(buf), f) != NULL)
+            {
+
+                  /* if the line doesn't start with a number get the next line */
+                  if (buf[0] < '0' || buf[0] > '9')
+                        continue;
+
+      /*
+                  * convert digits to an int
+      */
+                  left_digit = buf[0];
+                  right_digit = buf[1];
+                  if (right_digit < '0' || right_digit > '9')
+                        port_num = left_digit - '0';
+                  else
+                        port_num = (left_digit - '0') * 10 + right_digit - '0';
+
+                  /* skip if "unknown" in the string */
+                  if (strstr(buf, "unknown") != NULL)
+                        continue;
+
+                  /* upper limit of 15 */
+                  if (port_num > 15)
+                        continue;
+
+                  /* create string from port_num  */
+
+                  wxString s;
+                  s.Printf(_T("/dev/ttyS%d"), port_num);
+
+                  /*  add to the output array  */
+                  preturn->Add(wxString(s));
+
+            }
+
+            fclose(f);
+      }
+
+
+/*
+      * Same for USB ports
+*/
+      f = fopen("/proc/tty/driver/usb-serial", "r");
+      if (f == NULL)
+            f = fopen("/proc/tty/driver/usbserial", "r");
+
+      if (f != NULL)
+      {
+
+            /* read in each line of the file */
+            while(fgets(buf, sizeof(buf), f) != NULL)
+            {
+
+                  /* if the line doesn't start with a number get the next line */
+                  if (buf[0] < '0' || buf[0] > '9')
+                        continue;
+
+      /*
+                  * convert digits to an int
+      */
+                  left_digit = buf[0];
+                  right_digit = buf[1];
+                  if (right_digit < '0' || right_digit > '9')
+                        port_num = left_digit - '0';
+                  else
+                        port_num = (left_digit - '0') * 10 + right_digit - '0';
+
+                  /* skip if "unknown" in the string */
+                  if (strstr(buf, "unknown") != NULL)
+                        continue;
+
+                  /* upper limit of 15 */
+                  if (port_num > 15)
+                        continue;
+
+                  /* create string from port_num  */
+
+                  wxString s;
+                  s.Printf(_T("/dev/ttyUSB%d"), port_num);
+
+                  /*  add to the output array  */
+                  preturn->Add(wxString(s));
+
+            }
+
+            fclose(f);
+      }
+
+      /*  Return to user privileges */
+      seteuid(user_user_id);
+
+      //    As a fallback, in case seteuid doesn't work....
+      //    provide some defaults
+      //    This is currently the case for GTK+, which
+      //    refuses to run suid.  sigh...
+
+      if(preturn->IsEmpty())
+      {
+            preturn->Add( _T("/dev/ttyS0"));
+            preturn->Add( _T("/dev/ttyS1"));
+            preturn->Add( _T("/dev/ttyUSB0"));
+            preturn->Add( _T("/dev/ttyUSB1"));
+      }
+#endif      // __WXGTK__
+
+#ifdef __WXOSX__
+#include "macutils.h"
+      char* paPortNames[MAX_SERIAL_PORTS] ;
+      int iPortNameCount ;
+
+      memset(paPortNames,0x00,sizeof(paPortNames)) ;
+      iPortNameCount = FindSerialPortNames(&paPortNames[0],MAX_SERIAL_PORTS) ;
+      for (int iPortIndex=0;iPortIndex<iPortNameCount;iPortIndex++)
+      {
+            preturn->Add( _T(paPortNames[iPortIndex]));
+            free(paPortNames[iPortIndex]) ;
+      }
+#endif      //__WXOSX__
+
+
+#ifdef __WXMSW__
+/*************************************************************************
+ * Windows provides no system level enumeration of available serial ports
+ * There are several ways of doing this.
+ *
+ *************************************************************************/
+
+#include <windows.h>
+
+
+
+      //    Method 1:  Use GetDefaultCommConfig()
+      // Try all 255 possible COM ports, check for a default configuration
+      for (int i=1; i<256; i++)
+{
+      char s[20];
+      sprintf(s, "COM%d", i);
+
+      COMMCONFIG cc;
+      DWORD dwSize = sizeof(COMMCONFIG);
+      if (GetDefaultCommConfig(s, &cc, &dwSize))
+            preturn->Add(wxString(s));
+}
+
+
+#if 0
+      // Method 2:  Use FileOpen()
+      // Try all 255 possible COM ports, check to see if it can be opened, or if
+      // not, that an expected error is returned.
+
+      BOOL bFound;
+      for (int j=1; j<256; j++)
+{
+      char s[20];
+      sprintf(s, "\\\\.\\COM%d", j);
+
+          // Open the port tentatively
+      BOOL bSuccess = FALSE;
+      HANDLE hComm = ::CreateFile(s, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
+
+            //  Check for the error returns that indicate a port is there, but not currently useable
+      if (hComm == INVALID_HANDLE_VALUE)
+      {
+            DWORD dwError = GetLastError();
+
+            if (dwError == ERROR_ACCESS_DENIED ||
+                dwError == ERROR_GEN_FAILURE ||
+                dwError == ERROR_SHARING_VIOLATION ||
+                dwError == ERROR_SEM_TIMEOUT)
+                  bFound = TRUE;
+      }
+      else
+      {
+            bFound = TRUE;
+            CloseHandle(hComm);
+      }
+
+      if (bFound)
+            preturn->Add(wxString(s));
+}
+#endif
+
+
+#endif      //__WXMSW__
+
+      return preturn;
 }
 
