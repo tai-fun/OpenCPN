@@ -1,13 +1,12 @@
 ## Process this file with automake to produce Makefile.in
 
-VERSION=1.2.0
+VERSION=1.2.4
 
 INCLUDES = \
-	$(WX_CXXFLAGS)\
 	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
-	-I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/X11R6/include\
-        -I/usr/include/atk-1.0 -I/usr/include/pango-1.0 -I/usr/include/freetype2\
-        -I/usr/include/freetype2/config -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
+	 -I/usr/X11R6/include
+
+
 
 AM_CFLAGS =\
 	 -Wall\
@@ -53,6 +52,7 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/navutil.cpp \
 			src/nmea.cpp \
 			src/routeman.cpp \
+			src/routeprop.cpp \
 			src/sercomm.cpp \
 			src/statwin.cpp \
 			src/tcmgr.cpp \
@@ -112,23 +112,14 @@ opencpn_SOURCES +=	src/myiso8211/ddffielddefn.cpp \
 	 		src/mygdal/cpl_string.cpp \
 			src/mygdal/cpl_vsisimple.cpp \
 			src/mygdal/cplgetsymbol.cpp \
-			src/mygdal/ogr_fromepsg.cpp \
-			src/mygdal/ogr_srs_esri.cpp \
-			src/mygdal/ogr_srs_proj4.cpp \
-			src/mygdal/ogr_srs_xml.cpp \
-			src/mygdal/ogr_srsnode.cpp \
 			src/mygdal/ograssemblepolygon.cpp \
-			src/mygdal/ogrct.cpp \
 			src/mygdal/ogrcurve.cpp \
-			src/mygdal/ogrdatasource.cpp \
 			src/mygdal/ogrfeature.cpp \
 			src/mygdal/ogrfeaturedefn.cpp \
-			src/mygdal/ogrfeaturequery.cpp \
 			src/mygdal/ogrfielddefn.cpp \
 			src/mygdal/ogrgeometry.cpp \
 			src/mygdal/ogrgeometrycollection.cpp \
 			src/mygdal/ogrgeometryfactory.cpp \
-			src/mygdal/ogrlayer.cpp \
 			src/mygdal/ogrlinearring.cpp \
 			src/mygdal/ogrlinestring.cpp \
 			src/mygdal/ogrmultilinestring.cpp \
@@ -137,26 +128,14 @@ opencpn_SOURCES +=	src/myiso8211/ddffielddefn.cpp \
 			src/mygdal/ogrpoint.cpp \
 			src/mygdal/ogrpolygon.cpp \
 			src/mygdal/ogrs57datasource.cpp \
-			src/mygdal/ogrs57driver.cpp \
+			src/mygdal/ogrlayer.cpp \
 			src/mygdal/ogrs57layer.cpp \
-			src/mygdal/ogrsfdriver.cpp \
-			src/mygdal/ogrsfdriverregistrar.cpp \
-			src/mygdal/ogrspatialreference.cpp \
 			src/mygdal/ogrutils.cpp \
 			src/mygdal/s57classregistrar.cpp \
 			src/mygdal/s57featuredefns.cpp \
-			src/mygdal/s57filecollector.cpp\
 			src/mygdal/s57reader.cpp \
-			src/mygdal/swq.c  \
-			src/mygdal/ogr_gensql.cpp \
-			src/mygdal/ogr_srs_dict.cpp \
-			src/mygdal/ogr_attrind.cpp \
-			src/mygdal/ogr_nullattrind.cpp \
-			src/mygdal/s57writer.cpp \
-			src/mygdal/ogr2gmlgeometry.cpp \
-			src/mygdal/gml2ogrgeometry.cpp \
-			src/mygdal/gdal_misc.cpp
-
+			src/mygdal/gdal_misc.cpp 
+ 
 INCLUDES += -I./$(srcdir)/src/mygdal
 endif
 
@@ -178,8 +157,7 @@ noinst_HEADERS = \
  	include/cutil.h \
  	include/dychart.h \
  	include/georef.h \
- 	include/iso8211.h \
- 	include/mygeom.h \
+  	include/mygeom.h \
  	include/navutil.h \
  	include/nmea.h \
  	include/ocpn_pixel.h \
@@ -208,35 +186,27 @@ noinst_HEADERS = \
  	src/mygdal/cpl_port.h \
  	src/mygdal/cpl_string.h \
  	src/mygdal/cpl_vsi.h \
- 	src/mygdal/gdal_alg.h \
- 	src/mygdal/gdal_frmts.h \
- 	src/mygdal/gdal.h \
- 	src/mygdal/gdal_priv.h \
- 	src/mygdal/gdalwarper.h \
- 	src/mygdal/iso8211.h \
- 	src/mygdal/ogr_api.h \
- 	src/mygdal/ogr_attrind.h \
- 	src/mygdal/ogr_core.h \
- 	src/mygdal/ogr_feature.h \
- 	src/mygdal/ogr_featurestyle.h \
- 	src/mygdal/ogr_gensql.h \
- 	src/mygdal/ogr_geometry.h \
- 	src/mygdal/ogr_p.h \
- 	src/mygdal/ogr_s57.h \
- 	src/mygdal/ogrsf_frmts.h \
- 	src/mygdal/ogr_spatialref.h \
- 	src/mygdal/ogr_srs_api.h \
- 	src/mygdal/s57.h \
- 	src/mygdal/sfclsid.h \
- 	src/mygdal/sfiiddef.h \
- 	src/mygdal/swq.h \
  	src/nmea0183/nmea0183.h \
  	src/nmea0183/LatLong.hpp \
  	src/nmea0183/nmea0183.hpp \
  	src/nmea0183/Response.hpp \
  	src/nmea0183/RMB.hpp \
  	src/nmea0183/RMC.HPP \
- 	src/nmea0183/Sentence.hpp
+ 	src/nmea0183/Sentence.hpp \
+ 	src/mygdal/iso8211.h \
+ 	src/mygdal/ogr_s57.h \
+ 	src/mygdal/s57.h \
+ 	src/mygdal/ogr_feature.h \
+ 	src/mygdal/ogr_geometry.h \
+ 	src/mygdal/ogr_p.h \
+ 	src/mygdal/ogr_attrind.h \
+ 	src/mygdal/ogrsf_frmts.h \
+ 	src/mygdal/ogr_spatialref.h \
+ 	src/mygdal/gdal.h \
+ 	src/mygdal/ogr_api.h \
+ 	src/mygdal/gdal_priv.h \
+ 	src/mygdal/gdal_frmts.h 
+
 
 EXTRA_DIST = \
 	data/wvsdata/readmewvs.txt \

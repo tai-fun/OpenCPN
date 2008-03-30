@@ -32,41 +32,14 @@ a.  Opencpn was built with the following objectives in mind.
 2.  Library Notes & Requirements
 ----------------------------------------------------------------------
 
-a.  For S57 ENC support, OpenCPN requires the GDAL/OGR library,
-Version 1.2.0 or better. This library is available from
-
-         http://www.remotesensing.org/gdal
-
-If GDAL/OGR library support is available on your system, OpenCPN may be
-built to use that library. Use the --with-gdal-system option for
-configuration.  See configuration options below.
-
-Otherwise, the default OpenCPN configuration script compiles and links
-an internal copy of the required GDAL modules.  See src/mygdal/*
-
-Note that there were problems with the ISO8211 library in Version 1.2.0
-as relates to S57 ENC updates.  Specifically, OpenCPN requires
-the inclusion in the library of ddfrecord.cpp Version 1.27 or greater
-to support ENC updates.  Check the source version in your library:
-
-    ident <library location>/libgdal.so | grep ddfrecord.cpp
-
-OpenCPN will check for this library compatibility at run-time, display a
-message, and disable ENC updates as necessary.
-
-GDAL/OGR Version 1.2.1 corrects this bug.
-
-The current GDAL/OGR Version (1.3.2) (1 Aug, 2006) has been tested OK,
-as has the internal version included in this distribution of OpenCPN.
-
-
+a.  External OGR/GDAL library support is deprecated from OpenCPN Version
+ 1.2.4 and greater.  The required support modules and classes are
+integrated into the OpenCPN source tree. See src/mygdal.
 
 b.  iso8211 class support is required to build OpenCPN from source with
-S57 ENC support. GDAL/OGR includes and uses iso8211 file support, but the
-interesting classes and methods are not exported from the GDAL library.
-So, the relevant files are in the source tree as src/myiso8211. These
-files are verbatim copies of the files by the same name in GDAL/OGR library
-Version 1.2.1.
+S57 ENC support.  The relevant files are in the source tree as src/myiso8211.
+These files are verbatim copies of the files by the same name in the
+open source GDAL/OGR library Version 1.2.1.
 
 Thanks to Frank Warmerdam and others for GDAL/OGR.
 What an impressive body of work!
@@ -199,44 +172,7 @@ OpenCPN is now ready to run.
 -------------------------
 Notes For Advanced Users:
 
-OpenCPN requires a functional GDAL/OGR library for S-57 vector chart support.
-The default makefile setup compiles and links an internal version of these
-libraries for your build convenience.  Source is in <src/mygdal/>
-
-However, If you would like to use a GDAL/OGR library already present on
-your system, you may do so.  Edit the makefile.wat file to enable static or dynamic
-(i.e. DLL) linkage of your GDAL, and specify the library location as required.
-
-
-As a consequence of building with static GDAL/OGR library linkage,
-the MS linker will emit a .LIB and .EXP file set, and complain
-about library conflicts with LIBC.  These warnings come about
-as a result of exports defined in gdal.lib. as a part of the default
-gdalxx.dll build. These files and warnings may be safely ignored.
-
-
-IMPORTANT:  Linking with GDAL/OGR as a DLL (e.g.. gdal12.dll) does not work.
-OGR requires parameter passage via environment variables.  The library
-uses getenv() to fetch parameter values.  getenv() does not work from within
-a DLL, since a DLL has no common data storage with the caller.
-See MS Knowledge Base Article ID: Q78542 .
-
-There are two workarounds.
-i.  Link GDAL/OGR statically or internally (i.e. do not use gdalxx.dll), or
-ii. Ensure that the following two files are present in the user's
-    current directory at run-time:
-                  s57attributes.csv
-                  s57objectclasses.csv
-
-The wmake install target places these files in the selected install directory
-automatically, typically C:\Program Files\opencpn
-
-Finally, S57ENC support, and related GDAL/OGR compilation and linkage
-may be disabled completely in makefile.wat by un-defining the variable USE_S57.
-
-All of this library linkage gorp may be avoided by simply using the internal
-GDAL/OGR libraries provided by OpenCPN.
-
+a. Windows
 
 b. LINUX
 
@@ -273,10 +209,7 @@ Some configure options specific to opencpn are available:
         --enable-s57enc=0           ...or not...
                                     Default is ENABLED.
 
-        --with-gdal-system          Use system GDAL/OGR library.
-                                    Useful in cases where GDAL library
-                                    is available and current on your system.
-                                    Default is OFF, using internal GDAL.
+        --with-gdal-system          Deprecated from Version 1.2.4
 
         --with-tess-internal        Use internal tesselator, as opposed
                                     to OpenGL gluTess.

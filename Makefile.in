@@ -79,23 +79,14 @@ bin_PROGRAMS = opencpn$(EXEEXT)
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	 		src/mygdal/cpl_string.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cpl_vsisimple.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cplgetsymbol.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_fromepsg.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_srs_esri.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_srs_proj4.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_srs_xml.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_srsnode.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ograssemblepolygon.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrct.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrcurve.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrdatasource.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrfeature.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrfeaturedefn.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrfeaturequery.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrfielddefn.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrgeometry.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrgeometrycollection.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrgeometryfactory.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrlayer.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrlinearring.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrlinestring.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrmultilinestring.cpp \
@@ -104,25 +95,13 @@ bin_PROGRAMS = opencpn$(EXEEXT)
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrpoint.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrpolygon.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrs57datasource.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrs57driver.cpp \
+@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrlayer.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrs57layer.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrsfdriver.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrsfdriverregistrar.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrspatialreference.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrutils.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/s57classregistrar.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/s57featuredefns.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/s57filecollector.cpp\
 @BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/s57reader.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/swq.c  \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_gensql.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_srs_dict.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_attrind.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr_nullattrind.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/s57writer.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogr2gmlgeometry.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/gml2ogrgeometry.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/gdal_misc.cpp
+@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/gdal_misc.cpp 
 
 @BUILD_WITH_INTERNAL_GDAL_TRUE@am__append_11 = -I./$(srcdir)/src/mygdal
 @BUILD_WITH_WIFI_CLIENT_TRUE@am__append_12 = -DUSE_WIFI_CLIENT
@@ -133,7 +112,8 @@ DIST_COMMON = README $(am__configure_deps) $(noinst_HEADERS) \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
 	depcomp install-sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.in
+am__aclocal_m4_deps = $(top_srcdir)/gtk-2.0.m4 $(top_srcdir)/gtk.m4 \
+	$(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -146,9 +126,9 @@ PROGRAMS = $(bin_PROGRAMS)
 am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 	src/chart1.cpp src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
 	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
-	src/nmea.cpp src/routeman.cpp src/sercomm.cpp src/statwin.cpp \
-	src/tcmgr.cpp src/thumbwin.cpp src/options.cpp \
-	src/wvschart.cpp src/about.cpp src/ais.cpp \
+	src/nmea.cpp src/routeman.cpp src/routeprop.cpp \
+	src/sercomm.cpp src/statwin.cpp src/tcmgr.cpp src/thumbwin.cpp \
+	src/options.cpp src/wvschart.cpp src/about.cpp src/ais.cpp \
 	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
@@ -165,30 +145,19 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 	src/mygdal/cpl_findfile.cpp src/mygdal/cpl_minixml.cpp \
 	src/mygdal/cpl_path.cpp src/mygdal/cpl_string.cpp \
 	src/mygdal/cpl_vsisimple.cpp src/mygdal/cplgetsymbol.cpp \
-	src/mygdal/ogr_fromepsg.cpp src/mygdal/ogr_srs_esri.cpp \
-	src/mygdal/ogr_srs_proj4.cpp src/mygdal/ogr_srs_xml.cpp \
-	src/mygdal/ogr_srsnode.cpp src/mygdal/ograssemblepolygon.cpp \
-	src/mygdal/ogrct.cpp src/mygdal/ogrcurve.cpp \
-	src/mygdal/ogrdatasource.cpp src/mygdal/ogrfeature.cpp \
-	src/mygdal/ogrfeaturedefn.cpp src/mygdal/ogrfeaturequery.cpp \
+	src/mygdal/ograssemblepolygon.cpp src/mygdal/ogrcurve.cpp \
+	src/mygdal/ogrfeature.cpp src/mygdal/ogrfeaturedefn.cpp \
 	src/mygdal/ogrfielddefn.cpp src/mygdal/ogrgeometry.cpp \
 	src/mygdal/ogrgeometrycollection.cpp \
-	src/mygdal/ogrgeometryfactory.cpp src/mygdal/ogrlayer.cpp \
-	src/mygdal/ogrlinearring.cpp src/mygdal/ogrlinestring.cpp \
-	src/mygdal/ogrmultilinestring.cpp src/mygdal/ogrmultipoint.cpp \
-	src/mygdal/ogrmultipolygon.cpp src/mygdal/ogrpoint.cpp \
-	src/mygdal/ogrpolygon.cpp src/mygdal/ogrs57datasource.cpp \
-	src/mygdal/ogrs57driver.cpp src/mygdal/ogrs57layer.cpp \
-	src/mygdal/ogrsfdriver.cpp src/mygdal/ogrsfdriverregistrar.cpp \
-	src/mygdal/ogrspatialreference.cpp src/mygdal/ogrutils.cpp \
+	src/mygdal/ogrgeometryfactory.cpp src/mygdal/ogrlinearring.cpp \
+	src/mygdal/ogrlinestring.cpp src/mygdal/ogrmultilinestring.cpp \
+	src/mygdal/ogrmultipoint.cpp src/mygdal/ogrmultipolygon.cpp \
+	src/mygdal/ogrpoint.cpp src/mygdal/ogrpolygon.cpp \
+	src/mygdal/ogrs57datasource.cpp src/mygdal/ogrlayer.cpp \
+	src/mygdal/ogrs57layer.cpp src/mygdal/ogrutils.cpp \
 	src/mygdal/s57classregistrar.cpp \
-	src/mygdal/s57featuredefns.cpp src/mygdal/s57filecollector.cpp \
-	src/mygdal/s57reader.cpp src/mygdal/swq.c \
-	src/mygdal/ogr_gensql.cpp src/mygdal/ogr_srs_dict.cpp \
-	src/mygdal/ogr_attrind.cpp src/mygdal/ogr_nullattrind.cpp \
-	src/mygdal/s57writer.cpp src/mygdal/ogr2gmlgeometry.cpp \
-	src/mygdal/gml2ogrgeometry.cpp src/mygdal/gdal_misc.cpp \
-	src/wificlient.cpp
+	src/mygdal/s57featuredefns.cpp src/mygdal/s57reader.cpp \
+	src/mygdal/gdal_misc.cpp src/wificlient.cpp
 @BUILD_WITH_S57_TRUE@am__objects_1 = s52cnsy.$(OBJEXT) \
 @BUILD_WITH_S57_TRUE@	s52plib.$(OBJEXT) s52utils.$(OBJEXT) \
 @BUILD_WITH_S57_TRUE@	s57chart.$(OBJEXT) mygeom.$(OBJEXT) \
@@ -215,23 +184,14 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_string.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_vsisimple.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	cplgetsymbol.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_fromepsg.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_srs_esri.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_srs_proj4.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_srs_xml.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_srsnode.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ograssemblepolygon.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrct.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrcurve.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrdatasource.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrfeature.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrfeaturedefn.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrfeaturequery.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrfielddefn.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrgeometry.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrgeometrycollection.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrgeometryfactory.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrlayer.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrlinearring.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrlinestring.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrmultilinestring.$(OBJEXT) \
@@ -240,38 +200,27 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrpoint.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrpolygon.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrs57datasource.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrs57driver.$(OBJEXT) \
+@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrlayer.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrs57layer.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrsfdriver.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrsfdriverregistrar.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrspatialreference.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrutils.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	s57classregistrar.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	s57featuredefns.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	s57filecollector.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	s57reader.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	swq.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_gensql.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_srs_dict.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_attrind.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr_nullattrind.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	s57writer.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogr2gmlgeometry.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	gml2ogrgeometry.$(OBJEXT) \
 @BUILD_WITH_INTERNAL_GDAL_TRUE@	gdal_misc.$(OBJEXT)
 @BUILD_WITH_WIFI_CLIENT_TRUE@am__objects_4 = wificlient.$(OBJEXT)
 am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
 	chart1.$(OBJEXT) chartdb.$(OBJEXT) chartimg.$(OBJEXT) \
 	chcanv.$(OBJEXT) concanv.$(OBJEXT) cutil.$(OBJEXT) \
 	georef.$(OBJEXT) navutil.$(OBJEXT) nmea.$(OBJEXT) \
-	routeman.$(OBJEXT) sercomm.$(OBJEXT) statwin.$(OBJEXT) \
-	tcmgr.$(OBJEXT) thumbwin.$(OBJEXT) options.$(OBJEXT) \
-	wvschart.$(OBJEXT) about.$(OBJEXT) ais.$(OBJEXT) \
-	latlong.$(OBJEXT) long.$(OBJEXT) nmea0183.$(OBJEXT) \
-	response.$(OBJEXT) rmb.$(OBJEXT) sentence.$(OBJEXT) \
-	talkerid.$(OBJEXT) rmc.$(OBJEXT) hexvalue.$(OBJEXT) \
-	lat.$(OBJEXT) expid.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2) $(am__objects_3) $(am__objects_4)
+	routeman.$(OBJEXT) routeprop.$(OBJEXT) sercomm.$(OBJEXT) \
+	statwin.$(OBJEXT) tcmgr.$(OBJEXT) thumbwin.$(OBJEXT) \
+	options.$(OBJEXT) wvschart.$(OBJEXT) about.$(OBJEXT) \
+	ais.$(OBJEXT) latlong.$(OBJEXT) long.$(OBJEXT) \
+	nmea0183.$(OBJEXT) response.$(OBJEXT) rmb.$(OBJEXT) \
+	sentence.$(OBJEXT) talkerid.$(OBJEXT) rmc.$(OBJEXT) \
+	hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2) $(am__objects_3) \
+	$(am__objects_4)
 opencpn_OBJECTS = $(am_opencpn_OBJECTS)
 am__DEPENDENCIES_1 =
 @BUILD_WITH_GLU_TESS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
@@ -354,6 +303,9 @@ GDAL_CFLAGS = @GDAL_CFLAGS@
 GDAL_LIBS = @GDAL_LIBS@
 GL_CFLAGS = @GL_CFLAGS@
 GL_LIBS = @GL_LIBS@
+GTK_CFLAGS = @GTK_CFLAGS@
+GTK_CONFIG = @GTK_CONFIG@
+GTK_LIBS = @GTK_LIBS@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -371,10 +323,11 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-VERSION = 1.2.0
+VERSION = 1.2.4
 WX_LIBS = @WX_LIBS@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
@@ -408,13 +361,8 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-INCLUDES = $(WX_CXXFLAGS) -I./$(srcdir)/include \
-	-I./$(srcdir)/src/nmea0183 -I/usr/include/gtk-2.0 \
-	-I/usr/lib/gtk-2.0/include -I/usr/X11R6/include \
-	-I/usr/include/atk-1.0 -I/usr/include/pango-1.0 \
-	-I/usr/include/freetype2 -I/usr/include/freetype2/config \
-	-I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include \
-	$(am__append_11)
+INCLUDES = -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183 \
+	-I/usr/X11R6/include $(am__append_11)
 AM_CFLAGS = -Wall -g $(am__append_1) $(am__append_3) $(am__append_9)
 AM_CXXFLAGS = -Wall -g $(am__append_2) $(am__append_4) \
 	$(am__append_12)
@@ -423,9 +371,9 @@ opencpn_LDADD = $(WX_LIBS) $(am__append_5) $(am__append_8)
 opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
 	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
-	src/nmea.cpp src/routeman.cpp src/sercomm.cpp src/statwin.cpp \
-	src/tcmgr.cpp src/thumbwin.cpp src/options.cpp \
-	src/wvschart.cpp src/about.cpp src/ais.cpp \
+	src/nmea.cpp src/routeman.cpp src/routeprop.cpp \
+	src/sercomm.cpp src/statwin.cpp src/tcmgr.cpp src/thumbwin.cpp \
+	src/options.cpp src/wvschart.cpp src/about.cpp src/ais.cpp \
 	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
@@ -446,8 +394,7 @@ noinst_HEADERS = \
  	include/cutil.h \
  	include/dychart.h \
  	include/georef.h \
- 	include/iso8211.h \
- 	include/mygeom.h \
+  	include/mygeom.h \
  	include/navutil.h \
  	include/nmea.h \
  	include/ocpn_pixel.h \
@@ -476,35 +423,26 @@ noinst_HEADERS = \
  	src/mygdal/cpl_port.h \
  	src/mygdal/cpl_string.h \
  	src/mygdal/cpl_vsi.h \
- 	src/mygdal/gdal_alg.h \
- 	src/mygdal/gdal_frmts.h \
- 	src/mygdal/gdal.h \
- 	src/mygdal/gdal_priv.h \
- 	src/mygdal/gdalwarper.h \
- 	src/mygdal/iso8211.h \
- 	src/mygdal/ogr_api.h \
- 	src/mygdal/ogr_attrind.h \
- 	src/mygdal/ogr_core.h \
- 	src/mygdal/ogr_feature.h \
- 	src/mygdal/ogr_featurestyle.h \
- 	src/mygdal/ogr_gensql.h \
- 	src/mygdal/ogr_geometry.h \
- 	src/mygdal/ogr_p.h \
- 	src/mygdal/ogr_s57.h \
- 	src/mygdal/ogrsf_frmts.h \
- 	src/mygdal/ogr_spatialref.h \
- 	src/mygdal/ogr_srs_api.h \
- 	src/mygdal/s57.h \
- 	src/mygdal/sfclsid.h \
- 	src/mygdal/sfiiddef.h \
- 	src/mygdal/swq.h \
  	src/nmea0183/nmea0183.h \
  	src/nmea0183/LatLong.hpp \
  	src/nmea0183/nmea0183.hpp \
  	src/nmea0183/Response.hpp \
  	src/nmea0183/RMB.hpp \
  	src/nmea0183/RMC.HPP \
- 	src/nmea0183/Sentence.hpp
+ 	src/nmea0183/Sentence.hpp \
+ 	src/mygdal/iso8211.h \
+ 	src/mygdal/ogr_s57.h \
+ 	src/mygdal/s57.h \
+ 	src/mygdal/ogr_feature.h \
+ 	src/mygdal/ogr_geometry.h \
+ 	src/mygdal/ogr_p.h \
+ 	src/mygdal/ogr_attrind.h \
+ 	src/mygdal/ogrsf_frmts.h \
+ 	src/mygdal/ogr_spatialref.h \
+ 	src/mygdal/gdal.h \
+ 	src/mygdal/ogr_api.h \
+ 	src/mygdal/gdal_priv.h \
+ 	src/mygdal/gdal_frmts.h 
 
 EXTRA_DIST = \
 	data/wvsdata/readmewvs.txt \
@@ -639,7 +577,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdal_misc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/georef.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gml2ogrgeometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexvalue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/latlong.Po@am__quote@
@@ -649,23 +586,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmea.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmea0183.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ocpn_pixel.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr2gmlgeometry.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_attrind.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_fromepsg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_gensql.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_nullattrind.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_srs_dict.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_srs_esri.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_srs_proj4.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_srs_xml.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogr_srsnode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ograssemblepolygon.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrcurve.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrdatasource.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrfeature.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrfeaturedefn.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrfeaturequery.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrfielddefn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrgeometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrgeometrycollection.Po@am__quote@
@@ -679,30 +603,24 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrpoint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrpolygon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrs57datasource.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrs57driver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrs57layer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrsfdriver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrsfdriverregistrar.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrspatialreference.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrutils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/options.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/response.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rmb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rmc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/routeman.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/routeprop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s52cnsy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s52plib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s52utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s57chart.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s57classregistrar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s57featuredefns.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s57filecollector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s57reader.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s57writer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sentence.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sercomm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statwin.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/swq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/talkerid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcmgr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thumbwin.Po@am__quote@
@@ -765,20 +683,6 @@ tri.obj: src/tri.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/tri.c' object='tri.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tri.obj `if test -f 'src/tri.c'; then $(CYGPATH_W) 'src/tri.c'; else $(CYGPATH_W) '$(srcdir)/src/tri.c'; fi`
-
-swq.o: src/mygdal/swq.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT swq.o -MD -MP -MF "$(DEPDIR)/swq.Tpo" -c -o swq.o `test -f 'src/mygdal/swq.c' || echo '$(srcdir)/'`src/mygdal/swq.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/swq.Tpo" "$(DEPDIR)/swq.Po"; else rm -f "$(DEPDIR)/swq.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/mygdal/swq.c' object='swq.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o swq.o `test -f 'src/mygdal/swq.c' || echo '$(srcdir)/'`src/mygdal/swq.c
-
-swq.obj: src/mygdal/swq.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT swq.obj -MD -MP -MF "$(DEPDIR)/swq.Tpo" -c -o swq.obj `if test -f 'src/mygdal/swq.c'; then $(CYGPATH_W) 'src/mygdal/swq.c'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/swq.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/swq.Tpo" "$(DEPDIR)/swq.Po"; else rm -f "$(DEPDIR)/swq.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/mygdal/swq.c' object='swq.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o swq.obj `if test -f 'src/mygdal/swq.c'; then $(CYGPATH_W) 'src/mygdal/swq.c'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/swq.c'; fi`
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -933,6 +837,20 @@ routeman.obj: src/routeman.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/routeman.cpp' object='routeman.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o routeman.obj `if test -f 'src/routeman.cpp'; then $(CYGPATH_W) 'src/routeman.cpp'; else $(CYGPATH_W) '$(srcdir)/src/routeman.cpp'; fi`
+
+routeprop.o: src/routeprop.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT routeprop.o -MD -MP -MF "$(DEPDIR)/routeprop.Tpo" -c -o routeprop.o `test -f 'src/routeprop.cpp' || echo '$(srcdir)/'`src/routeprop.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/routeprop.Tpo" "$(DEPDIR)/routeprop.Po"; else rm -f "$(DEPDIR)/routeprop.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/routeprop.cpp' object='routeprop.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o routeprop.o `test -f 'src/routeprop.cpp' || echo '$(srcdir)/'`src/routeprop.cpp
+
+routeprop.obj: src/routeprop.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT routeprop.obj -MD -MP -MF "$(DEPDIR)/routeprop.Tpo" -c -o routeprop.obj `if test -f 'src/routeprop.cpp'; then $(CYGPATH_W) 'src/routeprop.cpp'; else $(CYGPATH_W) '$(srcdir)/src/routeprop.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/routeprop.Tpo" "$(DEPDIR)/routeprop.Po"; else rm -f "$(DEPDIR)/routeprop.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/routeprop.cpp' object='routeprop.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o routeprop.obj `if test -f 'src/routeprop.cpp'; then $(CYGPATH_W) 'src/routeprop.cpp'; else $(CYGPATH_W) '$(srcdir)/src/routeprop.cpp'; fi`
 
 sercomm.o: src/sercomm.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sercomm.o -MD -MP -MF "$(DEPDIR)/sercomm.Tpo" -c -o sercomm.o `test -f 'src/sercomm.cpp' || echo '$(srcdir)/'`src/sercomm.cpp; \
@@ -1508,76 +1426,6 @@ cplgetsymbol.obj: src/mygdal/cplgetsymbol.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cplgetsymbol.obj `if test -f 'src/mygdal/cplgetsymbol.cpp'; then $(CYGPATH_W) 'src/mygdal/cplgetsymbol.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/cplgetsymbol.cpp'; fi`
 
-ogr_fromepsg.o: src/mygdal/ogr_fromepsg.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_fromepsg.o -MD -MP -MF "$(DEPDIR)/ogr_fromepsg.Tpo" -c -o ogr_fromepsg.o `test -f 'src/mygdal/ogr_fromepsg.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_fromepsg.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_fromepsg.Tpo" "$(DEPDIR)/ogr_fromepsg.Po"; else rm -f "$(DEPDIR)/ogr_fromepsg.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_fromepsg.cpp' object='ogr_fromepsg.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_fromepsg.o `test -f 'src/mygdal/ogr_fromepsg.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_fromepsg.cpp
-
-ogr_fromepsg.obj: src/mygdal/ogr_fromepsg.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_fromepsg.obj -MD -MP -MF "$(DEPDIR)/ogr_fromepsg.Tpo" -c -o ogr_fromepsg.obj `if test -f 'src/mygdal/ogr_fromepsg.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_fromepsg.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_fromepsg.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_fromepsg.Tpo" "$(DEPDIR)/ogr_fromepsg.Po"; else rm -f "$(DEPDIR)/ogr_fromepsg.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_fromepsg.cpp' object='ogr_fromepsg.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_fromepsg.obj `if test -f 'src/mygdal/ogr_fromepsg.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_fromepsg.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_fromepsg.cpp'; fi`
-
-ogr_srs_esri.o: src/mygdal/ogr_srs_esri.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srs_esri.o -MD -MP -MF "$(DEPDIR)/ogr_srs_esri.Tpo" -c -o ogr_srs_esri.o `test -f 'src/mygdal/ogr_srs_esri.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srs_esri.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srs_esri.Tpo" "$(DEPDIR)/ogr_srs_esri.Po"; else rm -f "$(DEPDIR)/ogr_srs_esri.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srs_esri.cpp' object='ogr_srs_esri.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srs_esri.o `test -f 'src/mygdal/ogr_srs_esri.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srs_esri.cpp
-
-ogr_srs_esri.obj: src/mygdal/ogr_srs_esri.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srs_esri.obj -MD -MP -MF "$(DEPDIR)/ogr_srs_esri.Tpo" -c -o ogr_srs_esri.obj `if test -f 'src/mygdal/ogr_srs_esri.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srs_esri.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srs_esri.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srs_esri.Tpo" "$(DEPDIR)/ogr_srs_esri.Po"; else rm -f "$(DEPDIR)/ogr_srs_esri.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srs_esri.cpp' object='ogr_srs_esri.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srs_esri.obj `if test -f 'src/mygdal/ogr_srs_esri.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srs_esri.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srs_esri.cpp'; fi`
-
-ogr_srs_proj4.o: src/mygdal/ogr_srs_proj4.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srs_proj4.o -MD -MP -MF "$(DEPDIR)/ogr_srs_proj4.Tpo" -c -o ogr_srs_proj4.o `test -f 'src/mygdal/ogr_srs_proj4.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srs_proj4.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srs_proj4.Tpo" "$(DEPDIR)/ogr_srs_proj4.Po"; else rm -f "$(DEPDIR)/ogr_srs_proj4.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srs_proj4.cpp' object='ogr_srs_proj4.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srs_proj4.o `test -f 'src/mygdal/ogr_srs_proj4.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srs_proj4.cpp
-
-ogr_srs_proj4.obj: src/mygdal/ogr_srs_proj4.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srs_proj4.obj -MD -MP -MF "$(DEPDIR)/ogr_srs_proj4.Tpo" -c -o ogr_srs_proj4.obj `if test -f 'src/mygdal/ogr_srs_proj4.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srs_proj4.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srs_proj4.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srs_proj4.Tpo" "$(DEPDIR)/ogr_srs_proj4.Po"; else rm -f "$(DEPDIR)/ogr_srs_proj4.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srs_proj4.cpp' object='ogr_srs_proj4.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srs_proj4.obj `if test -f 'src/mygdal/ogr_srs_proj4.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srs_proj4.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srs_proj4.cpp'; fi`
-
-ogr_srs_xml.o: src/mygdal/ogr_srs_xml.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srs_xml.o -MD -MP -MF "$(DEPDIR)/ogr_srs_xml.Tpo" -c -o ogr_srs_xml.o `test -f 'src/mygdal/ogr_srs_xml.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srs_xml.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srs_xml.Tpo" "$(DEPDIR)/ogr_srs_xml.Po"; else rm -f "$(DEPDIR)/ogr_srs_xml.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srs_xml.cpp' object='ogr_srs_xml.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srs_xml.o `test -f 'src/mygdal/ogr_srs_xml.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srs_xml.cpp
-
-ogr_srs_xml.obj: src/mygdal/ogr_srs_xml.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srs_xml.obj -MD -MP -MF "$(DEPDIR)/ogr_srs_xml.Tpo" -c -o ogr_srs_xml.obj `if test -f 'src/mygdal/ogr_srs_xml.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srs_xml.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srs_xml.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srs_xml.Tpo" "$(DEPDIR)/ogr_srs_xml.Po"; else rm -f "$(DEPDIR)/ogr_srs_xml.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srs_xml.cpp' object='ogr_srs_xml.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srs_xml.obj `if test -f 'src/mygdal/ogr_srs_xml.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srs_xml.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srs_xml.cpp'; fi`
-
-ogr_srsnode.o: src/mygdal/ogr_srsnode.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srsnode.o -MD -MP -MF "$(DEPDIR)/ogr_srsnode.Tpo" -c -o ogr_srsnode.o `test -f 'src/mygdal/ogr_srsnode.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srsnode.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srsnode.Tpo" "$(DEPDIR)/ogr_srsnode.Po"; else rm -f "$(DEPDIR)/ogr_srsnode.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srsnode.cpp' object='ogr_srsnode.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srsnode.o `test -f 'src/mygdal/ogr_srsnode.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srsnode.cpp
-
-ogr_srsnode.obj: src/mygdal/ogr_srsnode.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srsnode.obj -MD -MP -MF "$(DEPDIR)/ogr_srsnode.Tpo" -c -o ogr_srsnode.obj `if test -f 'src/mygdal/ogr_srsnode.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srsnode.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srsnode.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srsnode.Tpo" "$(DEPDIR)/ogr_srsnode.Po"; else rm -f "$(DEPDIR)/ogr_srsnode.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srsnode.cpp' object='ogr_srsnode.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srsnode.obj `if test -f 'src/mygdal/ogr_srsnode.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srsnode.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srsnode.cpp'; fi`
-
 ograssemblepolygon.o: src/mygdal/ograssemblepolygon.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ograssemblepolygon.o -MD -MP -MF "$(DEPDIR)/ograssemblepolygon.Tpo" -c -o ograssemblepolygon.o `test -f 'src/mygdal/ograssemblepolygon.cpp' || echo '$(srcdir)/'`src/mygdal/ograssemblepolygon.cpp; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ograssemblepolygon.Tpo" "$(DEPDIR)/ograssemblepolygon.Po"; else rm -f "$(DEPDIR)/ograssemblepolygon.Tpo"; exit 1; fi
@@ -1592,20 +1440,6 @@ ograssemblepolygon.obj: src/mygdal/ograssemblepolygon.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ograssemblepolygon.obj `if test -f 'src/mygdal/ograssemblepolygon.cpp'; then $(CYGPATH_W) 'src/mygdal/ograssemblepolygon.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ograssemblepolygon.cpp'; fi`
 
-ogrct.o: src/mygdal/ogrct.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrct.o -MD -MP -MF "$(DEPDIR)/ogrct.Tpo" -c -o ogrct.o `test -f 'src/mygdal/ogrct.cpp' || echo '$(srcdir)/'`src/mygdal/ogrct.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrct.Tpo" "$(DEPDIR)/ogrct.Po"; else rm -f "$(DEPDIR)/ogrct.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrct.cpp' object='ogrct.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrct.o `test -f 'src/mygdal/ogrct.cpp' || echo '$(srcdir)/'`src/mygdal/ogrct.cpp
-
-ogrct.obj: src/mygdal/ogrct.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrct.obj -MD -MP -MF "$(DEPDIR)/ogrct.Tpo" -c -o ogrct.obj `if test -f 'src/mygdal/ogrct.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrct.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrct.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrct.Tpo" "$(DEPDIR)/ogrct.Po"; else rm -f "$(DEPDIR)/ogrct.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrct.cpp' object='ogrct.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrct.obj `if test -f 'src/mygdal/ogrct.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrct.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrct.cpp'; fi`
-
 ogrcurve.o: src/mygdal/ogrcurve.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrcurve.o -MD -MP -MF "$(DEPDIR)/ogrcurve.Tpo" -c -o ogrcurve.o `test -f 'src/mygdal/ogrcurve.cpp' || echo '$(srcdir)/'`src/mygdal/ogrcurve.cpp; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrcurve.Tpo" "$(DEPDIR)/ogrcurve.Po"; else rm -f "$(DEPDIR)/ogrcurve.Tpo"; exit 1; fi
@@ -1619,20 +1453,6 @@ ogrcurve.obj: src/mygdal/ogrcurve.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrcurve.cpp' object='ogrcurve.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrcurve.obj `if test -f 'src/mygdal/ogrcurve.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrcurve.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrcurve.cpp'; fi`
-
-ogrdatasource.o: src/mygdal/ogrdatasource.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrdatasource.o -MD -MP -MF "$(DEPDIR)/ogrdatasource.Tpo" -c -o ogrdatasource.o `test -f 'src/mygdal/ogrdatasource.cpp' || echo '$(srcdir)/'`src/mygdal/ogrdatasource.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrdatasource.Tpo" "$(DEPDIR)/ogrdatasource.Po"; else rm -f "$(DEPDIR)/ogrdatasource.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrdatasource.cpp' object='ogrdatasource.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrdatasource.o `test -f 'src/mygdal/ogrdatasource.cpp' || echo '$(srcdir)/'`src/mygdal/ogrdatasource.cpp
-
-ogrdatasource.obj: src/mygdal/ogrdatasource.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrdatasource.obj -MD -MP -MF "$(DEPDIR)/ogrdatasource.Tpo" -c -o ogrdatasource.obj `if test -f 'src/mygdal/ogrdatasource.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrdatasource.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrdatasource.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrdatasource.Tpo" "$(DEPDIR)/ogrdatasource.Po"; else rm -f "$(DEPDIR)/ogrdatasource.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrdatasource.cpp' object='ogrdatasource.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrdatasource.obj `if test -f 'src/mygdal/ogrdatasource.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrdatasource.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrdatasource.cpp'; fi`
 
 ogrfeature.o: src/mygdal/ogrfeature.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrfeature.o -MD -MP -MF "$(DEPDIR)/ogrfeature.Tpo" -c -o ogrfeature.o `test -f 'src/mygdal/ogrfeature.cpp' || echo '$(srcdir)/'`src/mygdal/ogrfeature.cpp; \
@@ -1661,20 +1481,6 @@ ogrfeaturedefn.obj: src/mygdal/ogrfeaturedefn.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrfeaturedefn.cpp' object='ogrfeaturedefn.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrfeaturedefn.obj `if test -f 'src/mygdal/ogrfeaturedefn.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrfeaturedefn.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrfeaturedefn.cpp'; fi`
-
-ogrfeaturequery.o: src/mygdal/ogrfeaturequery.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrfeaturequery.o -MD -MP -MF "$(DEPDIR)/ogrfeaturequery.Tpo" -c -o ogrfeaturequery.o `test -f 'src/mygdal/ogrfeaturequery.cpp' || echo '$(srcdir)/'`src/mygdal/ogrfeaturequery.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrfeaturequery.Tpo" "$(DEPDIR)/ogrfeaturequery.Po"; else rm -f "$(DEPDIR)/ogrfeaturequery.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrfeaturequery.cpp' object='ogrfeaturequery.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrfeaturequery.o `test -f 'src/mygdal/ogrfeaturequery.cpp' || echo '$(srcdir)/'`src/mygdal/ogrfeaturequery.cpp
-
-ogrfeaturequery.obj: src/mygdal/ogrfeaturequery.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrfeaturequery.obj -MD -MP -MF "$(DEPDIR)/ogrfeaturequery.Tpo" -c -o ogrfeaturequery.obj `if test -f 'src/mygdal/ogrfeaturequery.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrfeaturequery.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrfeaturequery.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrfeaturequery.Tpo" "$(DEPDIR)/ogrfeaturequery.Po"; else rm -f "$(DEPDIR)/ogrfeaturequery.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrfeaturequery.cpp' object='ogrfeaturequery.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrfeaturequery.obj `if test -f 'src/mygdal/ogrfeaturequery.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrfeaturequery.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrfeaturequery.cpp'; fi`
 
 ogrfielddefn.o: src/mygdal/ogrfielddefn.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrfielddefn.o -MD -MP -MF "$(DEPDIR)/ogrfielddefn.Tpo" -c -o ogrfielddefn.o `test -f 'src/mygdal/ogrfielddefn.cpp' || echo '$(srcdir)/'`src/mygdal/ogrfielddefn.cpp; \
@@ -1731,20 +1537,6 @@ ogrgeometryfactory.obj: src/mygdal/ogrgeometryfactory.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrgeometryfactory.cpp' object='ogrgeometryfactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrgeometryfactory.obj `if test -f 'src/mygdal/ogrgeometryfactory.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrgeometryfactory.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrgeometryfactory.cpp'; fi`
-
-ogrlayer.o: src/mygdal/ogrlayer.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrlayer.o -MD -MP -MF "$(DEPDIR)/ogrlayer.Tpo" -c -o ogrlayer.o `test -f 'src/mygdal/ogrlayer.cpp' || echo '$(srcdir)/'`src/mygdal/ogrlayer.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrlayer.Tpo" "$(DEPDIR)/ogrlayer.Po"; else rm -f "$(DEPDIR)/ogrlayer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrlayer.cpp' object='ogrlayer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrlayer.o `test -f 'src/mygdal/ogrlayer.cpp' || echo '$(srcdir)/'`src/mygdal/ogrlayer.cpp
-
-ogrlayer.obj: src/mygdal/ogrlayer.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrlayer.obj -MD -MP -MF "$(DEPDIR)/ogrlayer.Tpo" -c -o ogrlayer.obj `if test -f 'src/mygdal/ogrlayer.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrlayer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrlayer.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrlayer.Tpo" "$(DEPDIR)/ogrlayer.Po"; else rm -f "$(DEPDIR)/ogrlayer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrlayer.cpp' object='ogrlayer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrlayer.obj `if test -f 'src/mygdal/ogrlayer.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrlayer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrlayer.cpp'; fi`
 
 ogrlinearring.o: src/mygdal/ogrlinearring.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrlinearring.o -MD -MP -MF "$(DEPDIR)/ogrlinearring.Tpo" -c -o ogrlinearring.o `test -f 'src/mygdal/ogrlinearring.cpp' || echo '$(srcdir)/'`src/mygdal/ogrlinearring.cpp; \
@@ -1858,19 +1650,19 @@ ogrs57datasource.obj: src/mygdal/ogrs57datasource.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrs57datasource.obj `if test -f 'src/mygdal/ogrs57datasource.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrs57datasource.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrs57datasource.cpp'; fi`
 
-ogrs57driver.o: src/mygdal/ogrs57driver.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrs57driver.o -MD -MP -MF "$(DEPDIR)/ogrs57driver.Tpo" -c -o ogrs57driver.o `test -f 'src/mygdal/ogrs57driver.cpp' || echo '$(srcdir)/'`src/mygdal/ogrs57driver.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrs57driver.Tpo" "$(DEPDIR)/ogrs57driver.Po"; else rm -f "$(DEPDIR)/ogrs57driver.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrs57driver.cpp' object='ogrs57driver.o' libtool=no @AMDEPBACKSLASH@
+ogrlayer.o: src/mygdal/ogrlayer.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrlayer.o -MD -MP -MF "$(DEPDIR)/ogrlayer.Tpo" -c -o ogrlayer.o `test -f 'src/mygdal/ogrlayer.cpp' || echo '$(srcdir)/'`src/mygdal/ogrlayer.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrlayer.Tpo" "$(DEPDIR)/ogrlayer.Po"; else rm -f "$(DEPDIR)/ogrlayer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrlayer.cpp' object='ogrlayer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrs57driver.o `test -f 'src/mygdal/ogrs57driver.cpp' || echo '$(srcdir)/'`src/mygdal/ogrs57driver.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrlayer.o `test -f 'src/mygdal/ogrlayer.cpp' || echo '$(srcdir)/'`src/mygdal/ogrlayer.cpp
 
-ogrs57driver.obj: src/mygdal/ogrs57driver.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrs57driver.obj -MD -MP -MF "$(DEPDIR)/ogrs57driver.Tpo" -c -o ogrs57driver.obj `if test -f 'src/mygdal/ogrs57driver.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrs57driver.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrs57driver.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrs57driver.Tpo" "$(DEPDIR)/ogrs57driver.Po"; else rm -f "$(DEPDIR)/ogrs57driver.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrs57driver.cpp' object='ogrs57driver.obj' libtool=no @AMDEPBACKSLASH@
+ogrlayer.obj: src/mygdal/ogrlayer.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrlayer.obj -MD -MP -MF "$(DEPDIR)/ogrlayer.Tpo" -c -o ogrlayer.obj `if test -f 'src/mygdal/ogrlayer.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrlayer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrlayer.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrlayer.Tpo" "$(DEPDIR)/ogrlayer.Po"; else rm -f "$(DEPDIR)/ogrlayer.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrlayer.cpp' object='ogrlayer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrs57driver.obj `if test -f 'src/mygdal/ogrs57driver.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrs57driver.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrs57driver.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrlayer.obj `if test -f 'src/mygdal/ogrlayer.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrlayer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrlayer.cpp'; fi`
 
 ogrs57layer.o: src/mygdal/ogrs57layer.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrs57layer.o -MD -MP -MF "$(DEPDIR)/ogrs57layer.Tpo" -c -o ogrs57layer.o `test -f 'src/mygdal/ogrs57layer.cpp' || echo '$(srcdir)/'`src/mygdal/ogrs57layer.cpp; \
@@ -1885,48 +1677,6 @@ ogrs57layer.obj: src/mygdal/ogrs57layer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrs57layer.cpp' object='ogrs57layer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrs57layer.obj `if test -f 'src/mygdal/ogrs57layer.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrs57layer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrs57layer.cpp'; fi`
-
-ogrsfdriver.o: src/mygdal/ogrsfdriver.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrsfdriver.o -MD -MP -MF "$(DEPDIR)/ogrsfdriver.Tpo" -c -o ogrsfdriver.o `test -f 'src/mygdal/ogrsfdriver.cpp' || echo '$(srcdir)/'`src/mygdal/ogrsfdriver.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrsfdriver.Tpo" "$(DEPDIR)/ogrsfdriver.Po"; else rm -f "$(DEPDIR)/ogrsfdriver.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrsfdriver.cpp' object='ogrsfdriver.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrsfdriver.o `test -f 'src/mygdal/ogrsfdriver.cpp' || echo '$(srcdir)/'`src/mygdal/ogrsfdriver.cpp
-
-ogrsfdriver.obj: src/mygdal/ogrsfdriver.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrsfdriver.obj -MD -MP -MF "$(DEPDIR)/ogrsfdriver.Tpo" -c -o ogrsfdriver.obj `if test -f 'src/mygdal/ogrsfdriver.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrsfdriver.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrsfdriver.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrsfdriver.Tpo" "$(DEPDIR)/ogrsfdriver.Po"; else rm -f "$(DEPDIR)/ogrsfdriver.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrsfdriver.cpp' object='ogrsfdriver.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrsfdriver.obj `if test -f 'src/mygdal/ogrsfdriver.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrsfdriver.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrsfdriver.cpp'; fi`
-
-ogrsfdriverregistrar.o: src/mygdal/ogrsfdriverregistrar.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrsfdriverregistrar.o -MD -MP -MF "$(DEPDIR)/ogrsfdriverregistrar.Tpo" -c -o ogrsfdriverregistrar.o `test -f 'src/mygdal/ogrsfdriverregistrar.cpp' || echo '$(srcdir)/'`src/mygdal/ogrsfdriverregistrar.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrsfdriverregistrar.Tpo" "$(DEPDIR)/ogrsfdriverregistrar.Po"; else rm -f "$(DEPDIR)/ogrsfdriverregistrar.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrsfdriverregistrar.cpp' object='ogrsfdriverregistrar.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrsfdriverregistrar.o `test -f 'src/mygdal/ogrsfdriverregistrar.cpp' || echo '$(srcdir)/'`src/mygdal/ogrsfdriverregistrar.cpp
-
-ogrsfdriverregistrar.obj: src/mygdal/ogrsfdriverregistrar.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrsfdriverregistrar.obj -MD -MP -MF "$(DEPDIR)/ogrsfdriverregistrar.Tpo" -c -o ogrsfdriverregistrar.obj `if test -f 'src/mygdal/ogrsfdriverregistrar.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrsfdriverregistrar.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrsfdriverregistrar.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrsfdriverregistrar.Tpo" "$(DEPDIR)/ogrsfdriverregistrar.Po"; else rm -f "$(DEPDIR)/ogrsfdriverregistrar.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrsfdriverregistrar.cpp' object='ogrsfdriverregistrar.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrsfdriverregistrar.obj `if test -f 'src/mygdal/ogrsfdriverregistrar.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrsfdriverregistrar.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrsfdriverregistrar.cpp'; fi`
-
-ogrspatialreference.o: src/mygdal/ogrspatialreference.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrspatialreference.o -MD -MP -MF "$(DEPDIR)/ogrspatialreference.Tpo" -c -o ogrspatialreference.o `test -f 'src/mygdal/ogrspatialreference.cpp' || echo '$(srcdir)/'`src/mygdal/ogrspatialreference.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrspatialreference.Tpo" "$(DEPDIR)/ogrspatialreference.Po"; else rm -f "$(DEPDIR)/ogrspatialreference.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrspatialreference.cpp' object='ogrspatialreference.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrspatialreference.o `test -f 'src/mygdal/ogrspatialreference.cpp' || echo '$(srcdir)/'`src/mygdal/ogrspatialreference.cpp
-
-ogrspatialreference.obj: src/mygdal/ogrspatialreference.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrspatialreference.obj -MD -MP -MF "$(DEPDIR)/ogrspatialreference.Tpo" -c -o ogrspatialreference.obj `if test -f 'src/mygdal/ogrspatialreference.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrspatialreference.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrspatialreference.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogrspatialreference.Tpo" "$(DEPDIR)/ogrspatialreference.Po"; else rm -f "$(DEPDIR)/ogrspatialreference.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogrspatialreference.cpp' object='ogrspatialreference.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogrspatialreference.obj `if test -f 'src/mygdal/ogrspatialreference.cpp'; then $(CYGPATH_W) 'src/mygdal/ogrspatialreference.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogrspatialreference.cpp'; fi`
 
 ogrutils.o: src/mygdal/ogrutils.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogrutils.o -MD -MP -MF "$(DEPDIR)/ogrutils.Tpo" -c -o ogrutils.o `test -f 'src/mygdal/ogrutils.cpp' || echo '$(srcdir)/'`src/mygdal/ogrutils.cpp; \
@@ -1970,20 +1720,6 @@ s57featuredefns.obj: src/mygdal/s57featuredefns.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o s57featuredefns.obj `if test -f 'src/mygdal/s57featuredefns.cpp'; then $(CYGPATH_W) 'src/mygdal/s57featuredefns.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/s57featuredefns.cpp'; fi`
 
-s57filecollector.o: src/mygdal/s57filecollector.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT s57filecollector.o -MD -MP -MF "$(DEPDIR)/s57filecollector.Tpo" -c -o s57filecollector.o `test -f 'src/mygdal/s57filecollector.cpp' || echo '$(srcdir)/'`src/mygdal/s57filecollector.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/s57filecollector.Tpo" "$(DEPDIR)/s57filecollector.Po"; else rm -f "$(DEPDIR)/s57filecollector.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/s57filecollector.cpp' object='s57filecollector.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o s57filecollector.o `test -f 'src/mygdal/s57filecollector.cpp' || echo '$(srcdir)/'`src/mygdal/s57filecollector.cpp
-
-s57filecollector.obj: src/mygdal/s57filecollector.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT s57filecollector.obj -MD -MP -MF "$(DEPDIR)/s57filecollector.Tpo" -c -o s57filecollector.obj `if test -f 'src/mygdal/s57filecollector.cpp'; then $(CYGPATH_W) 'src/mygdal/s57filecollector.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/s57filecollector.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/s57filecollector.Tpo" "$(DEPDIR)/s57filecollector.Po"; else rm -f "$(DEPDIR)/s57filecollector.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/s57filecollector.cpp' object='s57filecollector.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o s57filecollector.obj `if test -f 'src/mygdal/s57filecollector.cpp'; then $(CYGPATH_W) 'src/mygdal/s57filecollector.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/s57filecollector.cpp'; fi`
-
 s57reader.o: src/mygdal/s57reader.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT s57reader.o -MD -MP -MF "$(DEPDIR)/s57reader.Tpo" -c -o s57reader.o `test -f 'src/mygdal/s57reader.cpp' || echo '$(srcdir)/'`src/mygdal/s57reader.cpp; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/s57reader.Tpo" "$(DEPDIR)/s57reader.Po"; else rm -f "$(DEPDIR)/s57reader.Tpo"; exit 1; fi
@@ -1997,104 +1733,6 @@ s57reader.obj: src/mygdal/s57reader.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/s57reader.cpp' object='s57reader.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o s57reader.obj `if test -f 'src/mygdal/s57reader.cpp'; then $(CYGPATH_W) 'src/mygdal/s57reader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/s57reader.cpp'; fi`
-
-ogr_gensql.o: src/mygdal/ogr_gensql.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_gensql.o -MD -MP -MF "$(DEPDIR)/ogr_gensql.Tpo" -c -o ogr_gensql.o `test -f 'src/mygdal/ogr_gensql.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_gensql.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_gensql.Tpo" "$(DEPDIR)/ogr_gensql.Po"; else rm -f "$(DEPDIR)/ogr_gensql.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_gensql.cpp' object='ogr_gensql.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_gensql.o `test -f 'src/mygdal/ogr_gensql.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_gensql.cpp
-
-ogr_gensql.obj: src/mygdal/ogr_gensql.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_gensql.obj -MD -MP -MF "$(DEPDIR)/ogr_gensql.Tpo" -c -o ogr_gensql.obj `if test -f 'src/mygdal/ogr_gensql.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_gensql.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_gensql.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_gensql.Tpo" "$(DEPDIR)/ogr_gensql.Po"; else rm -f "$(DEPDIR)/ogr_gensql.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_gensql.cpp' object='ogr_gensql.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_gensql.obj `if test -f 'src/mygdal/ogr_gensql.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_gensql.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_gensql.cpp'; fi`
-
-ogr_srs_dict.o: src/mygdal/ogr_srs_dict.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srs_dict.o -MD -MP -MF "$(DEPDIR)/ogr_srs_dict.Tpo" -c -o ogr_srs_dict.o `test -f 'src/mygdal/ogr_srs_dict.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srs_dict.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srs_dict.Tpo" "$(DEPDIR)/ogr_srs_dict.Po"; else rm -f "$(DEPDIR)/ogr_srs_dict.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srs_dict.cpp' object='ogr_srs_dict.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srs_dict.o `test -f 'src/mygdal/ogr_srs_dict.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_srs_dict.cpp
-
-ogr_srs_dict.obj: src/mygdal/ogr_srs_dict.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_srs_dict.obj -MD -MP -MF "$(DEPDIR)/ogr_srs_dict.Tpo" -c -o ogr_srs_dict.obj `if test -f 'src/mygdal/ogr_srs_dict.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srs_dict.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srs_dict.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_srs_dict.Tpo" "$(DEPDIR)/ogr_srs_dict.Po"; else rm -f "$(DEPDIR)/ogr_srs_dict.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_srs_dict.cpp' object='ogr_srs_dict.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_srs_dict.obj `if test -f 'src/mygdal/ogr_srs_dict.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_srs_dict.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_srs_dict.cpp'; fi`
-
-ogr_attrind.o: src/mygdal/ogr_attrind.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_attrind.o -MD -MP -MF "$(DEPDIR)/ogr_attrind.Tpo" -c -o ogr_attrind.o `test -f 'src/mygdal/ogr_attrind.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_attrind.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_attrind.Tpo" "$(DEPDIR)/ogr_attrind.Po"; else rm -f "$(DEPDIR)/ogr_attrind.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_attrind.cpp' object='ogr_attrind.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_attrind.o `test -f 'src/mygdal/ogr_attrind.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_attrind.cpp
-
-ogr_attrind.obj: src/mygdal/ogr_attrind.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_attrind.obj -MD -MP -MF "$(DEPDIR)/ogr_attrind.Tpo" -c -o ogr_attrind.obj `if test -f 'src/mygdal/ogr_attrind.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_attrind.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_attrind.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_attrind.Tpo" "$(DEPDIR)/ogr_attrind.Po"; else rm -f "$(DEPDIR)/ogr_attrind.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_attrind.cpp' object='ogr_attrind.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_attrind.obj `if test -f 'src/mygdal/ogr_attrind.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_attrind.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_attrind.cpp'; fi`
-
-ogr_nullattrind.o: src/mygdal/ogr_nullattrind.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_nullattrind.o -MD -MP -MF "$(DEPDIR)/ogr_nullattrind.Tpo" -c -o ogr_nullattrind.o `test -f 'src/mygdal/ogr_nullattrind.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_nullattrind.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_nullattrind.Tpo" "$(DEPDIR)/ogr_nullattrind.Po"; else rm -f "$(DEPDIR)/ogr_nullattrind.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_nullattrind.cpp' object='ogr_nullattrind.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_nullattrind.o `test -f 'src/mygdal/ogr_nullattrind.cpp' || echo '$(srcdir)/'`src/mygdal/ogr_nullattrind.cpp
-
-ogr_nullattrind.obj: src/mygdal/ogr_nullattrind.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr_nullattrind.obj -MD -MP -MF "$(DEPDIR)/ogr_nullattrind.Tpo" -c -o ogr_nullattrind.obj `if test -f 'src/mygdal/ogr_nullattrind.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_nullattrind.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_nullattrind.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr_nullattrind.Tpo" "$(DEPDIR)/ogr_nullattrind.Po"; else rm -f "$(DEPDIR)/ogr_nullattrind.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr_nullattrind.cpp' object='ogr_nullattrind.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr_nullattrind.obj `if test -f 'src/mygdal/ogr_nullattrind.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr_nullattrind.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr_nullattrind.cpp'; fi`
-
-s57writer.o: src/mygdal/s57writer.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT s57writer.o -MD -MP -MF "$(DEPDIR)/s57writer.Tpo" -c -o s57writer.o `test -f 'src/mygdal/s57writer.cpp' || echo '$(srcdir)/'`src/mygdal/s57writer.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/s57writer.Tpo" "$(DEPDIR)/s57writer.Po"; else rm -f "$(DEPDIR)/s57writer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/s57writer.cpp' object='s57writer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o s57writer.o `test -f 'src/mygdal/s57writer.cpp' || echo '$(srcdir)/'`src/mygdal/s57writer.cpp
-
-s57writer.obj: src/mygdal/s57writer.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT s57writer.obj -MD -MP -MF "$(DEPDIR)/s57writer.Tpo" -c -o s57writer.obj `if test -f 'src/mygdal/s57writer.cpp'; then $(CYGPATH_W) 'src/mygdal/s57writer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/s57writer.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/s57writer.Tpo" "$(DEPDIR)/s57writer.Po"; else rm -f "$(DEPDIR)/s57writer.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/s57writer.cpp' object='s57writer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o s57writer.obj `if test -f 'src/mygdal/s57writer.cpp'; then $(CYGPATH_W) 'src/mygdal/s57writer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/s57writer.cpp'; fi`
-
-ogr2gmlgeometry.o: src/mygdal/ogr2gmlgeometry.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr2gmlgeometry.o -MD -MP -MF "$(DEPDIR)/ogr2gmlgeometry.Tpo" -c -o ogr2gmlgeometry.o `test -f 'src/mygdal/ogr2gmlgeometry.cpp' || echo '$(srcdir)/'`src/mygdal/ogr2gmlgeometry.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr2gmlgeometry.Tpo" "$(DEPDIR)/ogr2gmlgeometry.Po"; else rm -f "$(DEPDIR)/ogr2gmlgeometry.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr2gmlgeometry.cpp' object='ogr2gmlgeometry.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr2gmlgeometry.o `test -f 'src/mygdal/ogr2gmlgeometry.cpp' || echo '$(srcdir)/'`src/mygdal/ogr2gmlgeometry.cpp
-
-ogr2gmlgeometry.obj: src/mygdal/ogr2gmlgeometry.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ogr2gmlgeometry.obj -MD -MP -MF "$(DEPDIR)/ogr2gmlgeometry.Tpo" -c -o ogr2gmlgeometry.obj `if test -f 'src/mygdal/ogr2gmlgeometry.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr2gmlgeometry.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr2gmlgeometry.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ogr2gmlgeometry.Tpo" "$(DEPDIR)/ogr2gmlgeometry.Po"; else rm -f "$(DEPDIR)/ogr2gmlgeometry.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/ogr2gmlgeometry.cpp' object='ogr2gmlgeometry.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ogr2gmlgeometry.obj `if test -f 'src/mygdal/ogr2gmlgeometry.cpp'; then $(CYGPATH_W) 'src/mygdal/ogr2gmlgeometry.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/ogr2gmlgeometry.cpp'; fi`
-
-gml2ogrgeometry.o: src/mygdal/gml2ogrgeometry.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gml2ogrgeometry.o -MD -MP -MF "$(DEPDIR)/gml2ogrgeometry.Tpo" -c -o gml2ogrgeometry.o `test -f 'src/mygdal/gml2ogrgeometry.cpp' || echo '$(srcdir)/'`src/mygdal/gml2ogrgeometry.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gml2ogrgeometry.Tpo" "$(DEPDIR)/gml2ogrgeometry.Po"; else rm -f "$(DEPDIR)/gml2ogrgeometry.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/gml2ogrgeometry.cpp' object='gml2ogrgeometry.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gml2ogrgeometry.o `test -f 'src/mygdal/gml2ogrgeometry.cpp' || echo '$(srcdir)/'`src/mygdal/gml2ogrgeometry.cpp
-
-gml2ogrgeometry.obj: src/mygdal/gml2ogrgeometry.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gml2ogrgeometry.obj -MD -MP -MF "$(DEPDIR)/gml2ogrgeometry.Tpo" -c -o gml2ogrgeometry.obj `if test -f 'src/mygdal/gml2ogrgeometry.cpp'; then $(CYGPATH_W) 'src/mygdal/gml2ogrgeometry.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/gml2ogrgeometry.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/gml2ogrgeometry.Tpo" "$(DEPDIR)/gml2ogrgeometry.Po"; else rm -f "$(DEPDIR)/gml2ogrgeometry.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/mygdal/gml2ogrgeometry.cpp' object='gml2ogrgeometry.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gml2ogrgeometry.obj `if test -f 'src/mygdal/gml2ogrgeometry.cpp'; then $(CYGPATH_W) 'src/mygdal/gml2ogrgeometry.cpp'; else $(CYGPATH_W) '$(srcdir)/src/mygdal/gml2ogrgeometry.cpp'; fi`
 
 gdal_misc.o: src/mygdal/gdal_misc.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gdal_misc.o -MD -MP -MF "$(DEPDIR)/gdal_misc.Tpo" -c -o gdal_misc.o `test -f 'src/mygdal/gdal_misc.cpp' || echo '$(srcdir)/'`src/mygdal/gdal_misc.cpp; \
