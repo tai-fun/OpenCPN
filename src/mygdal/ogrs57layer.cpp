@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrs57layer.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $
+ * $Id: ogrs57layer.cpp,v 1.2 2008/03/30 23:05:47 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements OGRS57Layer class.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogrs57layer.cpp,v $
- * Revision 1.1  2006/08/21 05:52:19  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 23:05:47  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -76,7 +79,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrs57layer.cpp,v 1.1 2006/08/21 05:52:19 dsr Exp $");
+CPL_CVSID("$Id: ogrs57layer.cpp,v 1.2 2008/03/30 23:05:47 bdbcat Exp $");
 
 /************************************************************************/
 /*                            OGRS57Layer()                             */
@@ -232,14 +235,14 @@ OGRFeature *OGRS57Layer::GetNextFeature()
         poFeature = GetNextUnfilteredFeature();
         if( poFeature == NULL )
             break;
-
+/*
         if( (poFilterGeom == NULL
              || poFeature->GetGeometryRef() == NULL 
              || poFilterGeom->Intersect( poFeature->GetGeometryRef() ) )
             && (m_poAttrQuery == NULL
                 || m_poAttrQuery->Evaluate( poFeature )) )
             break;
-
+  */
         delete poFeature;
     }
 
@@ -304,7 +307,7 @@ OGRErr OGRS57Layer::GetExtent( OGREnvelope *psExtent, int bForce )
 int OGRS57Layer::GetFeatureCount (int bForce)
 {
     
-    if( poFilterGeom != NULL || m_poAttrQuery != NULL 
+    if( poFilterGeom != NULL /*|| m_poAttrQuery != NULL*/ 
         || nFeatureCount == -1 )
         return OGRLayer::GetFeatureCount( bForce );
     else
@@ -370,8 +373,8 @@ OGRErr OGRS57Layer::CreateFeature( OGRFeature *poFeature )
 /* -------------------------------------------------------------------- */
 /*      Create the isolated node feature.                               */
 /* -------------------------------------------------------------------- */
-    if( poDS->GetWriter()->WriteCompleteFeature( poFeature ) )
-        return OGRERR_NONE;
-    else
+//    if( poDS->GetWriter()->WriteCompleteFeature( poFeature ) )
+//        return OGRERR_NONE;
+//    else
         return OGRERR_FAILURE;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayer.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogrlayer.cpp,v 1.2 2008/03/30 23:01:34 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRSFLayer class.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogrlayer.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 23:01:34  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:29  dsr
  * Rename/Import to OpenCPN
@@ -98,7 +101,7 @@
 #include "ogr_p.h"
 #include "ogr_attrind.h"
 
-CPL_CVSID("$Id: ogrlayer.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: ogrlayer.cpp,v 1.2 2008/03/30 23:01:34 bdbcat Exp $");
 
 /************************************************************************/
 /*                              OGRLayer()                              */
@@ -108,7 +111,7 @@ OGRLayer::OGRLayer()
 
 {
     m_poStyleTable = NULL;
-    m_poAttrQuery = NULL;
+//    m_poAttrQuery = NULL;
     m_poAttrIndex = NULL;
     m_nRefCount = 0;
 }
@@ -126,11 +129,13 @@ OGRLayer::~OGRLayer()
         m_poAttrIndex = NULL;
     }
 
+/*
     if( m_poAttrQuery != NULL )
     {
         delete m_poAttrQuery;
         m_poAttrQuery = NULL;
     }
+*/
 }
 
 /************************************************************************/
@@ -253,13 +258,13 @@ OGRErr OGRLayer::GetExtent(OGREnvelope *psExtent, int bForce )
         else if (poGeom)
         {
             poGeom->getEnvelope(&oEnv);
-            if (oEnv.MinX < psExtent->MinX) 
+            if (oEnv.MinX < psExtent->MinX)
                 psExtent->MinX = oEnv.MinX;
-            if (oEnv.MinY < psExtent->MinY) 
+            if (oEnv.MinY < psExtent->MinY)
                 psExtent->MinY = oEnv.MinY;
-            if (oEnv.MaxX > psExtent->MaxX) 
+            if (oEnv.MaxX > psExtent->MaxX)
                 psExtent->MaxX = oEnv.MaxX;
-            if (oEnv.MaxY > psExtent->MaxY) 
+            if (oEnv.MaxY > psExtent->MaxY)
                 psExtent->MaxY = oEnv.MaxY;
         }
         delete poFeature;
@@ -289,7 +294,7 @@ OGRErr OGRLayer::SetAttributeFilter( const char *pszQuery )
 /* -------------------------------------------------------------------- */
 /*      Are we just clearing any existing query?                        */
 /* -------------------------------------------------------------------- */
-    if( pszQuery == NULL || strlen(pszQuery) == 0 )
+/*    if( pszQuery == NULL || strlen(pszQuery) == 0 )
     {
         if( m_poAttrQuery )
         {
@@ -299,12 +304,13 @@ OGRErr OGRLayer::SetAttributeFilter( const char *pszQuery )
         }
         return OGRERR_NONE;
     }
-
+ */
 /* -------------------------------------------------------------------- */
 /*      Or are we installing a new query?                               */
 /* -------------------------------------------------------------------- */
     OGRErr      eErr;
 
+/*
     if( !m_poAttrQuery )
         m_poAttrQuery = new OGRFeatureQuery();
 
@@ -314,6 +320,7 @@ OGRErr OGRLayer::SetAttributeFilter( const char *pszQuery )
         delete m_poAttrQuery;
         m_poAttrQuery = NULL;
     }
+*/
 
     ResetReading();
 
@@ -347,7 +354,7 @@ OGRFeature *OGRLayer::GetFeature( long nFID )
         else
             delete poFeature;
     }
-    
+
     return NULL;
 }
 
@@ -434,7 +441,7 @@ OGRErr OGRLayer::CreateField( OGRFieldDefn * poField, int bApproxOK )
 
     CPLError( CE_Failure, CPLE_NotSupported,
               "CreateField() not supported by this layer.\n" );
-              
+
     return OGRERR_UNSUPPORTED_OPERATION;
 }
 
@@ -442,11 +449,11 @@ OGRErr OGRLayer::CreateField( OGRFieldDefn * poField, int bApproxOK )
 /*                         OGR_L_CreateField()                          */
 /************************************************************************/
 
-OGRErr OGR_L_CreateField( OGRLayerH hLayer, OGRFieldDefnH hField, 
+OGRErr OGR_L_CreateField( OGRLayerH hLayer, OGRFieldDefnH hField,
                           int bApproxOK )
 
 {
-    return ((OGRLayer *) hLayer)->CreateField( (OGRFieldDefn *) hField, 
+    return ((OGRLayer *) hLayer)->CreateField( (OGRFieldDefn *) hField,
                                                bApproxOK );
 }
 
@@ -583,7 +590,7 @@ OGRErr OGRLayer::InitializeIndexSupport( const char *pszFilename )
 {
     OGRErr eErr;
 
-    m_poAttrIndex = OGRCreateDefaultLayerIndex();
+//    m_poAttrIndex = OGRCreateDefaultLayerIndex();
 
     eErr = m_poAttrIndex->Initialize( pszFilename, this );
     if( eErr != OGRERR_NONE )

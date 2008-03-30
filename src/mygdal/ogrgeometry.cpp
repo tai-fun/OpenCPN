@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometry.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogrgeometry.cpp,v 1.2 2008/03/30 22:59:17 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements a few base methods on OGRGeometry.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogrgeometry.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 22:59:17  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:29  dsr
  * Rename/Import to OpenCPN
@@ -110,7 +113,7 @@
 #include "ogr_p.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrgeometry.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: ogrgeometry.cpp,v 1.2 2008/03/30 22:59:17 bdbcat Exp $");
 
 int OGRGeometry::bGenerate_DB2_V72_BYTE_ORDER = FALSE;
 
@@ -133,7 +136,7 @@ OGRGeometry::~OGRGeometry()
 {
     if( poSRS != NULL )
     {
-        poSRS->Dereference();
+//        poSRS->Dereference();
     }
 }
 
@@ -155,7 +158,7 @@ void OGRGeometry::dumpReadable( FILE * fp, const char * pszPrefix )
 
 {
     char        *pszWkt = NULL;
-    
+
     if( pszPrefix == NULL )
         pszPrefix = "";
 
@@ -199,7 +202,7 @@ void OGR_G_DumpReadable( OGRGeometryH hGeom, FILE *fp, const char *pszPrefix )
  * is replaced, but under no circumstances does this result in the object
  * being reprojected.  It is just changing the interpretation of the existing
  * geometry.  Note that assigning a spatial reference increments the
- * reference count on the OGRSpatialReference, but does not copy it. 
+ * reference count on the OGRSpatialReference, but does not copy it.
  *
  * This is similar to the SFCOM IGeometry::put_SpatialReference() method.
  *
@@ -211,12 +214,12 @@ void OGR_G_DumpReadable( OGRGeometryH hGeom, FILE *fp, const char *pszPrefix )
 void OGRGeometry::assignSpatialReference( OGRSpatialReference * poSR )
 
 {
-    if( poSRS != NULL )
-        poSRS->Dereference();
+//    if( poSRS != NULL )
+//        poSRS->Dereference();
 
     poSRS = poSR;
-    if( poSRS != NULL )
-        poSRS->Reference();
+//    if( poSRS != NULL )
+//        poSRS->Reference();
 }
 
 /************************************************************************/
@@ -227,19 +230,19 @@ void OGRGeometry::assignSpatialReference( OGRSpatialReference * poSR )
  * is replaced, but under no circumstances does this result in the object
  * being reprojected.  It is just changing the interpretation of the existing
  * geometry.  Note that assigning a spatial reference increments the
- * reference count on the OGRSpatialReference, but does not copy it. 
+ * reference count on the OGRSpatialReference, but does not copy it.
  *
  * This is similar to the SFCOM IGeometry::put_SpatialReference() method.
  *
- * This function is the same as the CPP method 
+ * This function is the same as the CPP method
  * OGRGeometry::assignSpatialReference.
  *
- * @param hGeom handle on the geometry to apply the new spatial reference 
+ * @param hGeom handle on the geometry to apply the new spatial reference
  * system.
  * @param hSRS handle on the  new spatial reference system to apply.
  */
 
-void OGR_G_AssignSpatialReference( OGRGeometryH hGeom, 
+void OGR_G_AssignSpatialReference( OGRGeometryH hGeom,
                                    OGRSpatialReferenceH hSRS )
 
 {
@@ -256,14 +259,14 @@ void OGR_G_AssignSpatialReference( OGRGeometryH hGeom,
  *
  * Currently this is not implemented in a rigerous fashion, and generally
  * just tests whether the envelopes of the two features intersect.  Eventually
- * this will be made rigerous.  
+ * this will be made rigerous.
  *
  * The poOtherGeom argument may be safely NULL, but in this case the method
- * will always return FALSE.  
+ * will always return FALSE.
  *
  * This method is the same as the C function OGR_G_Intersect().
  *
- * @param poOtherGeom the other geometry to test against.  
+ * @param poOtherGeom the other geometry to test against.
  *
  * @return TRUE if the geometries intersect, otherwise FALSE.
  */
@@ -322,7 +325,7 @@ int OGR_G_Intersect( OGRGeometryH hGeom, OGRGeometryH hOtherGeom )
  * This method will transform the coordinates of a geometry from
  * their current spatial reference system to a new target spatial
  * reference system.  Normally this means reprojecting the vectors,
- * but it could include datum shifts, and changes of units. 
+ * but it could include datum shifts, and changes of units.
  *
  * This method will only work if the geometry already has an assigned
  * spatial reference system, and if it is transformable to the target
@@ -336,12 +339,12 @@ int OGR_G_Intersect( OGRGeometryH hGeom, OGRGeometryH hOtherGeom )
  * transforming a single geometry.
  *
  * This method is the same as the C function OGR_G_TransformTo().
- * 
+ *
  * @param poSR spatial reference system to transform to.
  *
  * @return OGRERR_NONE on success, or an error code.
  */
-
+/*
 OGRErr OGRGeometry::transformTo( OGRSpatialReference *poSR )
 
 {
@@ -365,7 +368,7 @@ OGRErr OGRGeometry::transformTo( OGRSpatialReference *poSR )
     return eErr;
 #endif
 }
-
+*/
 /************************************************************************/
 /*                         OGR_G_TransformTo()                          */
 /************************************************************************/
@@ -375,7 +378,7 @@ OGRErr OGRGeometry::transformTo( OGRSpatialReference *poSR )
  * This function will transform the coordinates of a geometry from
  * their current spatial reference system to a new target spatial
  * reference system.  Normally this means reprojecting the vectors,
- * but it could include datum shifts, and changes of units. 
+ * but it could include datum shifts, and changes of units.
  *
  * This function will only work if the geometry already has an assigned
  * spatial reference system, and if it is transformable to the target
@@ -389,19 +392,19 @@ OGRErr OGRGeometry::transformTo( OGRSpatialReference *poSR )
  * transforming a single geometry.
  *
  * This function is the same as the CPP method OGRGeometry::transformTo.
- * 
+ *
  * @param hGeom handle on the geometry to apply the transform to.
  * @param hSRS handle on the spatial reference system to apply.
  *
  * @return OGRERR_NONE on success, or an error code.
  */
-
+/*
 OGRErr OGR_G_TransformTo( OGRGeometryH hGeom, OGRSpatialReferenceH hSRS )
 
 {
     return ((OGRGeometry *) hGeom)->transformTo((OGRSpatialReference *) hSRS);
 }
-
+*/
 /**
  * \fn OGRErr OGRGeometry::transform( OGRCoordinateTransformation *poCT );
  *
@@ -410,8 +413,8 @@ OGRErr OGR_G_TransformTo( OGRGeometryH hGeom, OGRSpatialReferenceH hSRS )
  * This method will transform the coordinates of a geometry from
  * their current spatial reference system to a new target spatial
  * reference system.  Normally this means reprojecting the vectors,
- * but it could include datum shifts, and changes of units. 
- * 
+ * but it could include datum shifts, and changes of units.
+ *
  * Note that this method does not require that the geometry already
  * have a spatial reference system.  It will be assumed that they can
  * be treated as having the source spatial reference system of the
@@ -435,8 +438,8 @@ OGRErr OGR_G_TransformTo( OGRGeometryH hGeom, OGRSpatialReferenceH hSRS )
  * This function will transform the coordinates of a geometry from
  * their current spatial reference system to a new target spatial
  * reference system.  Normally this means reprojecting the vectors,
- * but it could include datum shifts, and changes of units. 
- * 
+ * but it could include datum shifts, and changes of units.
+ *
  * Note that this function does not require that the geometry already
  * have a spatial reference system.  It will be assumed that they can
  * be treated as having the source spatial reference system of the
@@ -452,7 +455,7 @@ OGRErr OGR_G_TransformTo( OGRGeometryH hGeom, OGRSpatialReferenceH hSRS )
  * @return OGRERR_NONE on success or an error code.
  */
 
-OGRErr OGR_G_Transform( OGRGeometryH hGeom, 
+OGRErr OGR_G_Transform( OGRGeometryH hGeom,
                         OGRCoordinateTransformationH hTransform )
 
 {
@@ -521,10 +524,10 @@ int OGR_G_GetDimension( OGRGeometryH hGeom )
  *
  * This function corresponds to the SFCOM IGeometry::GetDimension() method.
  *
- * This function is the same as the CPP method 
+ * This function is the same as the CPP method
  * OGRGeometry::getCoordinateDimension().
  *
- * @param hGeom handle on the geometry to get the dimension of the 
+ * @param hGeom handle on the geometry to get the dimension of the
  * coordinates from.
  * @return in practice this always returns 2 indicating that coordinates are
  * specified within a two dimensional space.
@@ -555,7 +558,7 @@ int OGR_G_GetCoordinateDimension( OGRGeometryH hGeom )
  * \fn OGRBoolean OGRGeometry::IsSimple();
  *
  * Returns TRUE if the geometry is simple.
- * 
+ *
  * Returns TRUE if the geometry has no anomalous geometric points, such
  * as self intersection or self tangency. The description of each
  * instantiable geometric class will include the specific conditions that
@@ -676,8 +679,8 @@ void OGR_G_GetEnvelope( OGRGeometryH hGeom, OGREnvelope *psEnvelope )
  * The object must have already been instantiated as the correct derived
  * type of geometry object to match the binaries type.  This method is used
  * by the OGRGeometryFactory class, but not normally called by application
- * code.  
- * 
+ * code.
+ *
  * This method relates to the SFCOM IWks::ImportFromWKB() method.
  *
  * This method is the same as the C function OGR_G_ImportFromWkb().
@@ -712,7 +715,7 @@ void OGR_G_GetEnvelope( OGRGeometryH hGeom, OGREnvelope *psEnvelope )
  * OGRERR_CORRUPT_DATA may be returned.
  */
 
-OGRErr OGR_G_ImportFromWkb( OGRGeometryH hGeom, 
+OGRErr OGR_G_ImportFromWkb( OGRGeometryH hGeom,
                             unsigned char *pabyData, int nSize )
 
 {
@@ -748,7 +751,7 @@ OGRErr OGR_G_ImportFromWkb( OGRGeometryH hGeom,
  *
  * This function is the same as the CPP method OGRGeometry::exportToWkb().
  *
- * @param hGeom handle on the geometry to convert to a well know binary 
+ * @param hGeom handle on the geometry to convert to a well know binary
  * data from.
  * @param eOrder One of wkbXDR or wkbNDR indicating MSB or LSB byte order
  *               respectively.
@@ -774,8 +777,8 @@ OGRErr OGR_G_ExportToWkb( OGRGeometryH hGeom, OGRwkbByteOrder eOrder,
  * The object must have already been instantiated as the correct derived
  * type of geometry object to match the text type.  This method is used
  * by the OGRGeometryFactory class, but not normally called by application
- * code.  
- * 
+ * code.
+ *
  * This method relates to the SFCOM IWks::ImportFromWKT() method.
  *
  * This method is the same as the C function OGR_G_ImportFromWkt().
@@ -796,7 +799,7 @@ OGRErr OGR_G_ExportToWkb( OGRGeometryH hGeom, OGRwkbByteOrder eOrder,
  *
  * The object must have already been instantiated as the correct derived
  * type of geometry object to match the text type.
- * 
+ *
  * This function relates to the SFCOM IWks::ImportFromWKT() method.
  *
  * This function is the same as the CPP method OGRGeometry::importFromWkt().
@@ -897,7 +900,7 @@ OGRwkbGeometryType OGR_G_GetGeometryType( OGRGeometryH hGeom )
  *
  * Fetch WKT name for geometry type.
  *
- * There is no SFCOM analog to this method.  
+ * There is no SFCOM analog to this method.
  *
  * This method is the same as the C function OGR_G_GetGeometryName().
  *
@@ -912,7 +915,7 @@ OGRwkbGeometryType OGR_G_GetGeometryType( OGRGeometryH hGeom )
 /**
  * Fetch WKT name for geometry type.
  *
- * There is no SFCOM analog to this function.  
+ * There is no SFCOM analog to this function.
  *
  * This function is the same as the CPP method OGRGeometry::getGeometryName().
  *
@@ -934,7 +937,7 @@ const char *OGR_G_GetGeometryName( OGRGeometryH hGeom )
  * This method relates to the SFCOM IGeometry::clone() method.
  *
  * This method is the same as the C function OGR_G_Clone().
- * 
+ *
  * @return a new object instance with the same geometry, and spatial
  * reference system as the original.
  */
@@ -948,7 +951,7 @@ const char *OGR_G_GetGeometryName( OGRGeometryH hGeom )
  * This function relates to the SFCOM IGeometry::clone() method.
  *
  * This function is the same as the CPP method OGRGeometry::clone().
- * 
+ *
  * @param hGeom handle on the geometry to clone from.
  * @return an handle on the  copy of the geometry with the spatial
  * reference system as the original.
@@ -981,7 +984,7 @@ OGRGeometryH OGR_G_Clone( OGRGeometryH hGeom )
  *
  * This function relates to the SFCOM IGeometry::get_SpatialReference() method.
  *
- * This function is the same as the CPP method 
+ * This function is the same as the CPP method
  * OGRGeometry::getSpatialReference().
  *
  * @param hGeom handle on the geometry to get spatial reference from.
@@ -991,7 +994,7 @@ OGRGeometryH OGR_G_Clone( OGRGeometryH hGeom )
 OGRSpatialReferenceH OGR_G_GetSpatialReference( OGRGeometryH hGeom )
 
 {
-    return (OGRSpatialReferenceH) 
+    return (OGRSpatialReferenceH)
         ((OGRGeometry *) hGeom)->getSpatialReference();
 }
 
@@ -1050,7 +1053,7 @@ const char *OGRGeometryTypeToName( OGRwkbGeometryType eType )
     {
       case wkbUnknown:
         return "Unknown (any)";
-        
+
       case wkbPoint:
         return "Point";
 
@@ -1132,28 +1135,6 @@ void OGR_G_FlattenTo2D( OGRGeometryH hGeom )
     ((OGRGeometry *) hGeom)->flattenTo2D();
 }
 
-/************************************************************************/
-/*                            exportToGML()                             */
-/************************************************************************/
-
-/**
- * \fn char *OGRGeometry::exportToGML() const;
- *
- * Convert a geometry into GML format.
- *
- * The GML geometry is expressed directly in terms of GML basic data
- * types assuming the this is available in the gml namespace.  The returned
- * string should be freed with CPLFree() when no longer required.
- *
- * This method is the same as the C function OGR_G_ExportToGML().
- *
- * @return A GML fragment or NULL in case of error.
- */
-
-char *OGRGeometry::exportToGML() const
-{
-    return OGR_G_ExportToGML( (OGRGeometryH) this );
-}
 
 /************************************************************************/
 /*                 OGRSetGenerate_DB2_V72_BYTE_ORDER()                  */

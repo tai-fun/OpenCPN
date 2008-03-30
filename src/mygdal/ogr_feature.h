@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_feature.h,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogr_feature.h,v 1.2 2008/03/30 22:58:43 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Class for representing a whole feature, and layer schemas.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogr_feature.h,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 22:58:43  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -219,6 +222,7 @@ class CPL_DLL OGRFeatureDefn
     OGRwkbGeometryType eGeomType;
 
     char        *pszFeatureClassName;
+    int         nOBJL;
     
   public:
                 OGRFeatureDefn( const char * pszName = NULL );
@@ -243,6 +247,9 @@ class CPL_DLL OGRFeatureDefn
 
     static OGRFeatureDefn  *CreateFeatureDefn( const char *pszName = NULL );
     static void         DestroyFeatureDefn( OGRFeatureDefn * );
+    void        SetOBJL(int OBJL) { nOBJL = OBJL; }
+    int         GetOBJL() { return nOBJL; }
+
 };
 
 /************************************************************************/

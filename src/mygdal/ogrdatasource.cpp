@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdatasource.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogrdatasource.cpp,v 1.2 2008/03/30 22:57:26 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRDataSource class.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogrdatasource.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 22:57:26  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -104,13 +107,13 @@
 #include "ogr_api.h"
 #include "ogr_p.h"
 #include "ogr_gensql.h"
-#include "ogr_attrind.h"
+//#include "ogr_attrind.h"
 
 CPL_C_START
 #include "swq.h"
 CPL_C_END
 
-CPL_CVSID("$Id: ogrdatasource.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: ogrdatasource.cpp,v 1.2 2008/03/30 22:57:26 bdbcat Exp $");
 
 /************************************************************************/
 /*                           ~OGRDataSource()                           */
@@ -246,7 +249,7 @@ OGRLayer *OGRDataSource::CreateLayer( const char * pszName,
 
     CPLError( CE_Failure, CPLE_NotSupported,
               "CreateLayer() not supported by this data source." );
-              
+
     return NULL;
 }
 
@@ -254,14 +257,14 @@ OGRLayer *OGRDataSource::CreateLayer( const char * pszName,
 /*                         OGR_DS_CreateLayer()                         */
 /************************************************************************/
 
-OGRLayerH OGR_DS_CreateLayer( OGRDataSourceH hDS, 
+OGRLayerH OGR_DS_CreateLayer( OGRDataSourceH hDS,
                               const char * pszName,
                               OGRSpatialReferenceH hSpatialRef,
                               OGRwkbGeometryType eType,
                               char ** papszOptions )
 
 {
-    return ((OGRDataSource *)hDS)->CreateLayer( 
+    return ((OGRDataSource *)hDS)->CreateLayer(
         pszName, (OGRSpatialReference *) hSpatialRef, eType, papszOptions );
 }
 
@@ -269,8 +272,8 @@ OGRLayerH OGR_DS_CreateLayer( OGRDataSourceH hDS,
 /*                             CopyLayer()                              */
 /************************************************************************/
 
-OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer, 
-                                    const char *pszNewName, 
+OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
+                                    const char *pszNewName,
                                     char **papszOptions )
 
 {
@@ -282,7 +285,7 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
 /* -------------------------------------------------------------------- */
     if( !TestCapability( ODsCCreateLayer ) )
     {
-        CPLError( CE_Failure, CPLE_NotSupported, 
+        CPLError( CE_Failure, CPLE_NotSupported,
                   "This datasource does not support creation of layers." );
         return NULL;
     }
@@ -290,7 +293,7 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
     CPLErrorReset();
     poDstLayer = CreateLayer( pszNewName, poSrcLayer->GetSpatialRef(),
                               poSrcDefn->GetGeomType(), papszOptions );
-    
+
     if( poDstLayer == NULL )
         return NULL;
 
@@ -301,7 +304,7 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
 /*      selected.                                                       */
 /* -------------------------------------------------------------------- */
     int         iField;
-    
+
     for( iField = 0; iField < poSrcDefn->GetFieldCount(); iField++ )
         poDstLayer->CreateField( poSrcDefn->GetFieldDefn(iField) );
 
@@ -309,7 +312,7 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
 /*      Transfer features.                                              */
 /* -------------------------------------------------------------------- */
     OGRFeature  *poFeature;
-    
+
     poSrcLayer->ResetReading();
 
     while( TRUE )
@@ -317,7 +320,7 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
         OGRFeature      *poDstFeature = NULL;
 
         poFeature = poSrcLayer->GetNextFeature();
-        
+
         if( poFeature == NULL )
             break;
 
@@ -354,12 +357,12 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
 /*                          OGR_DS_CopyLayer()                          */
 /************************************************************************/
 
-OGRLayerH OGR_DS_CopyLayer( OGRDataSourceH hDS, 
+OGRLayerH OGR_DS_CopyLayer( OGRDataSourceH hDS,
                             OGRLayerH hSrcLayer, const char *pszNewName,
                             char **papszOptions )
 
 {
-    return ((OGRDataSource *) hDS)->CopyLayer( (OGRLayer *) hSrcLayer, 
+    return ((OGRDataSource *) hDS)->CopyLayer( (OGRLayer *) hSrcLayer,
                                                pszNewName, papszOptions );
 }
 
@@ -373,7 +376,7 @@ OGRErr OGRDataSource::DeleteLayer( int iLayer )
     (void) iLayer;
     CPLError( CE_Failure, CPLE_NotSupported,
               "DeleteLayer() not supported by this data source." );
-              
+
     return OGRERR_UNSUPPORTED_OPERATION;
 }
 
@@ -444,14 +447,14 @@ OGRErr OGRDataSource::ProcessSQLCreateIndex( const char *pszSQLCommand )
 /* -------------------------------------------------------------------- */
 /*      Do some general syntax checking.                                */
 /* -------------------------------------------------------------------- */
-    if( CSLCount(papszTokens) != 6 
+    if( CSLCount(papszTokens) != 6
         || !EQUAL(papszTokens[0],"CREATE")
         || !EQUAL(papszTokens[1],"INDEX")
         || !EQUAL(papszTokens[2],"ON")
         || !EQUAL(papszTokens[4],"USING") )
     {
         CSLDestroy( papszTokens );
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Syntax error in CREATE INDEX command.\n"
                   "Was '%s'\n"
                   "Should be of form 'CREATE INDEX ON <table> USING <field>'",
@@ -468,14 +471,14 @@ OGRErr OGRDataSource::ProcessSQLCreateIndex( const char *pszSQLCommand )
     for( i = 0; i < GetLayerCount(); i++ )
     {
         poLayer = GetLayer(i);
-        
+
         if( EQUAL(poLayer->GetLayerDefn()->GetName(),papszTokens[3]) )
             break;
     }
 
     if( i >= GetLayerCount() )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "CREATE INDEX ON failed, no such layer as `%s'.",
                   papszTokens[3] );
         CSLDestroy( papszTokens );
@@ -487,7 +490,7 @@ OGRErr OGRDataSource::ProcessSQLCreateIndex( const char *pszSQLCommand )
 /* -------------------------------------------------------------------- */
     if( poLayer->GetIndex() == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "CREATE INDEX ON not supported by this driver." );
         CSLDestroy( papszTokens );
         return OGRERR_FAILURE;
@@ -507,7 +510,7 @@ OGRErr OGRDataSource::ProcessSQLCreateIndex( const char *pszSQLCommand )
 
     if( i >= poLayer->GetLayerDefn()->GetFieldCount() )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "`%s' failed, field not found.",
                   pszSQLCommand );
         return OGRERR_FAILURE;
@@ -545,11 +548,11 @@ OGRErr OGRDataSource::ProcessSQLDropIndex( const char *pszSQLCommand )
     if( (CSLCount(papszTokens) != 4 && CSLCount(papszTokens) != 6)
         || !EQUAL(papszTokens[0],"DROP")
         || !EQUAL(papszTokens[1],"INDEX")
-        || !EQUAL(papszTokens[2],"ON") 
+        || !EQUAL(papszTokens[2],"ON")
         || (CSLCount(papszTokens) == 6 && !EQUAL(papszTokens[4],"USING")) )
     {
         CSLDestroy( papszTokens );
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Syntax error in DROP INDEX command.\n"
                   "Was '%s'\n"
                   "Should be of form 'DROP INDEX ON <table> [USING <field>]'",
@@ -566,14 +569,14 @@ OGRErr OGRDataSource::ProcessSQLDropIndex( const char *pszSQLCommand )
     for( i = 0; i < GetLayerCount(); i++ )
     {
         poLayer = GetLayer(i);
-        
+
         if( EQUAL(poLayer->GetLayerDefn()->GetName(),papszTokens[3]) )
             break;
     }
 
     if( i >= GetLayerCount() )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "CREATE INDEX ON failed, no such layer as `%s'.",
                   papszTokens[3] );
         CSLDestroy( papszTokens );
@@ -585,7 +588,7 @@ OGRErr OGRDataSource::ProcessSQLDropIndex( const char *pszSQLCommand )
 /* -------------------------------------------------------------------- */
     if( poLayer->GetIndex() == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Indexes not supported by this driver." );
         CSLDestroy( papszTokens );
         return OGRERR_FAILURE;
@@ -629,7 +632,7 @@ OGRErr OGRDataSource::ProcessSQLDropIndex( const char *pszSQLCommand )
 
     if( i >= poLayer->GetLayerDefn()->GetFieldCount() )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "`%s' failed, field not found.",
                   pszSQLCommand );
         return OGRERR_FAILURE;
@@ -665,7 +668,7 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
         ProcessSQLCreateIndex( pszStatement );
         return NULL;
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Handle DROP INDEX statements specially.                         */
 /* -------------------------------------------------------------------- */
@@ -674,14 +677,14 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
         ProcessSQLDropIndex( pszStatement );
         return NULL;
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Preparse the SQL statement.                                     */
 /* -------------------------------------------------------------------- */
     pszError = swq_select_preparse( pszStatement, &psSelectInfo );
     if( pszError != NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "SQL: %s", pszError );
         return NULL;
     }
@@ -700,12 +703,12 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 
         if( psTableDef->data_source != NULL )
         {
-            poTableDS = (OGRDataSource *) 
+            poTableDS = (OGRDataSource *)
                 OGROpenShared( psTableDef->data_source, FALSE, NULL );
             if( poTableDS == NULL )
             {
                 if( strlen(CPLGetLastErrorMsg()) == 0 )
-                    CPLError( CE_Failure, CPLE_AppDefined, 
+                    CPLError( CE_Failure, CPLE_AppDefined,
                               "Unable to open secondary datasource\n"
                               "`%s' required by JOIN.",
                               psTableDef->data_source );
@@ -723,7 +726,7 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 
         if( poSrcLayer == NULL )
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
+            CPLError( CE_Failure, CPLE_AppDefined,
                       "SELECT from table %s failed, no such table/featureclass.",
                       psTableDef->table_name );
             swq_select_free( psSelectInfo );
@@ -732,7 +735,7 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 
         nFieldCount += poSrcLayer->GetLayerDefn()->GetFieldCount();
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Build the field list for all indicated tables.                  */
 /* -------------------------------------------------------------------- */
@@ -745,13 +748,13 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 
     sFieldList.count = 0;
     sFieldList.names = (char **) CPLMalloc( sizeof(char *) * (nFieldCount+1) );
-    sFieldList.types = (swq_field_type *)  
+    sFieldList.types = (swq_field_type *)
         CPLMalloc( sizeof(swq_field_type) * (nFieldCount+1) );
-    sFieldList.table_ids = (int *) 
+    sFieldList.table_ids = (int *)
         CPLMalloc( sizeof(int) * (nFieldCount+1) );
-    sFieldList.ids = (int *) 
+    sFieldList.ids = (int *)
         CPLMalloc( sizeof(int) * (nFieldCount+1) );
-    
+
     for( iTable = 0; iTable < psSelectInfo->table_count; iTable++ )
     {
         swq_table_def *psTableDef = psSelectInfo->table_defs + iTable;
@@ -761,7 +764,7 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 
         if( psTableDef->data_source != NULL )
         {
-            poTableDS = (OGRDataSource *) 
+            poTableDS = (OGRDataSource *)
                 OGROpenShared( psTableDef->data_source, FALSE, NULL );
             CPLAssert( poTableDS != NULL );
             poTableDS->Dereference();
@@ -769,7 +772,7 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 
         poSrcLayer = poTableDS->GetLayerByName( psTableDef->table_name );
 
-        for( iField = 0; 
+        for( iField = 0;
              iField < poSrcLayer->GetLayerDefn()->GetFieldCount();
              iField++ )
         {
@@ -797,12 +800,12 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 /*      Expand '*' in 'SELECT *' now before we add the pseudo field     */
 /*      'FID'.                                                          */
 /* -------------------------------------------------------------------- */
-    pszError = 
+    pszError =
         swq_select_expand_wildcard( psSelectInfo, &sFieldList );
 
     if( pszError != NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "SQL: %s", pszError );
         return NULL;
     }
@@ -811,13 +814,13 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
     sFieldList.types[sFieldList.count] = SWQ_INTEGER;
     sFieldList.table_ids[sFieldList.count] = 0;
     sFieldList.ids[sFieldList.count] = nFIDIndex;
-    
+
     sFieldList.count++;
 
 /* -------------------------------------------------------------------- */
 /*      Finish the parse operation.                                     */
 /* -------------------------------------------------------------------- */
-    
+
     pszError = swq_select_parse( psSelectInfo, &sFieldList, 0 );
 
     CPLFree( sFieldList.names );
@@ -827,7 +830,7 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 
     if( pszError != NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "SQL: %s", pszError );
         return NULL;
     }
@@ -837,7 +840,7 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 /* -------------------------------------------------------------------- */
     OGRGenSQLResultsLayer *poResults;
 
-    poResults = new OGRGenSQLResultsLayer( this, psSelectInfo, 
+    poResults = new OGRGenSQLResultsLayer( this, psSelectInfo,
                                            poSpatialFilter );
 
     // Eventually, we should keep track of layers to cleanup.
@@ -849,13 +852,13 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 /*                         OGR_DS_ExecuteSQL()                          */
 /************************************************************************/
 
-OGRLayerH OGR_DS_ExecuteSQL( OGRDataSourceH hDS, 
+OGRLayerH OGR_DS_ExecuteSQL( OGRDataSourceH hDS,
                              const char *pszStatement,
                              OGRGeometryH hSpatialFilter,
                              const char *pszDialect )
 
 {
-    return (OGRLayerH) 
+    return (OGRLayerH)
         ((OGRDataSource *)hDS)->ExecuteSQL( pszStatement,
                                             (OGRGeometry *) hSpatialFilter,
                                             pszDialect );

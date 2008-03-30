@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturedefn.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogrfeaturedefn.cpp,v 1.2 2008/03/30 22:58:12 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRFeatureDefn class implementation.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogrfeaturedefn.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 22:58:12  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:29  dsr
  * Rename/Import to OpenCPN
@@ -75,7 +78,7 @@
 #include "ogr_api.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrfeaturedefn.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: ogrfeaturedefn.cpp,v 1.2 2008/03/30 22:58:12 bdbcat Exp $");
 
 /************************************************************************/
 /*                           OGRFeatureDefn()                           */
@@ -102,6 +105,7 @@ OGRFeatureDefn::OGRFeatureDefn( const char * pszName )
     nFieldCount = 0;
     papoFieldDefn = NULL;
     eGeomType = wkbUnknown;
+    nOBJL = -1;
 }
 
 /************************************************************************/

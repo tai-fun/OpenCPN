@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsf_frmts.h,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogrsf_frmts.h,v 1.2 2008/03/30 23:06:07 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes related to format registration, and file opening.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogrsf_frmts.h,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 23:06:07  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -236,7 +239,7 @@ class CPL_DLL OGRLayer
 
  protected:
     OGRStyleTable       *m_poStyleTable;
-    OGRFeatureQuery     *m_poAttrQuery;
+//    OGRFeatureQuery     *m_poAttrQuery;
     OGRLayerAttrIndex   *m_poAttrIndex;
 
     int                  m_nRefCount;

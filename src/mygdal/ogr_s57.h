@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_s57.h,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogr_s57.h,v 1.2 2008/03/30 23:05:02 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Declarations for classes binding S57 support onto OGRLayer,
@@ -29,8 +29,11 @@
  ******************************************************************************
  *
  * $Log: ogr_s57.h,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 23:05:02  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -118,7 +121,7 @@ class OGRS57Layer : public OGRLayer
 /*                          OGRS57DataSource                            */
 /************************************************************************/
 
-class OGRS57DataSource : public OGRDataSource
+class OGRS57DataSource 
 {
     char                *pszName;
 
@@ -150,6 +153,7 @@ class OGRS57DataSource : public OGRDataSource
     const char         *GetOption( const char * );
     
     int                 Open( const char * pszName, int bTestOpen = FALSE );
+    int                 OpenMin( const char * pszName, int bTestOpen = FALSE );
     int                 Create( const char *pszName, char **papszOptions );
 
     const char          *GetName() { return pszName; }
@@ -165,6 +169,7 @@ class OGRS57DataSource : public OGRDataSource
     S57Writer          *GetWriter() { return poWriter; }
 
     S57ClassRegistrar  *GetS57Registrar() { return poRegistrar; }
+    void                SetS57Registrar(S57ClassRegistrar *p) { poRegistrar = p; }
 
     OGRErr      GetDSExtent(OGREnvelope *psExtent, int bForce = TRUE);
 };

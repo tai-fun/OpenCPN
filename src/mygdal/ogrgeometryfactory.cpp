@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometryfactory.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogrgeometryfactory.cpp,v 1.2 2008/03/30 22:59:54 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Factory for converting geometry to and from well known binary
@@ -29,8 +29,11 @@
  ******************************************************************************
  *
  * $Log: ogrgeometryfactory.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 22:59:54  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:29  dsr
  * Rename/Import to OpenCPN
@@ -104,7 +107,7 @@
 #include "ogr_p.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrgeometryfactory.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: ogrgeometryfactory.cpp,v 1.2 2008/03/30 22:59:54 bdbcat Exp $");
 
 /************************************************************************/
 /*                           createFromWkb()                            */
@@ -122,7 +125,7 @@ CPL_CVSID("$Id: ogrgeometryfactory.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
  * establish the number of bytes it required in WKB format.
  *
  * Also note that this is a static method, and that there
- * is no need to instantiate an OGRGeometryFactory object.  
+ * is no need to instantiate an OGRGeometryFactory object.
  *
  * The C function OGR_G_CreateFromWkb() is the same as this method.
  *
@@ -165,9 +168,9 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
 
     if( eByteOrder != wkbXDR && eByteOrder != wkbNDR )
     {
-        CPLDebug( "OGR", 
+        CPLDebug( "OGR",
                   "OGRGeometryFactory::createFromWkb() - got corrupt data.\n"
-                  "%X%X%X%X%X%X%X%X\n", 
+                  "%X%X%X%X%X%X%X%X\n",
                   pabyData[0],
                   pabyData[1],
                   pabyData[2],
@@ -195,7 +198,7 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
 /*      initialize from the input stream.                               */
 /* -------------------------------------------------------------------- */
     poGeom = createGeometry( eGeometryType );
-    
+
     if( poGeom == NULL )
         return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
 
@@ -240,7 +243,7 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
  * @param pabyData pointer to the input BLOB data.
  * @param hSRS handle to the spatial reference to be assigned to the
  *             created geometry object.  This may be NULL.
- * @param phGeometry the newly created geometry object will 
+ * @param phGeometry the newly created geometry object will
  * be assigned to the indicated handle on return.  This will be NULL in case
  *                  of failure.
  *
@@ -249,12 +252,12 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
  * OGRERR_CORRUPT_DATA may be returned.
  */
 
-OGRErr CPL_DLL OGR_G_CreateFromWkb( unsigned char *pabyData, 
+OGRErr CPL_DLL OGR_G_CreateFromWkb( unsigned char *pabyData,
                                     OGRSpatialReferenceH hSRS,
                                     OGRGeometryH *phGeometry )
 
 {
-    return OGRGeometryFactory::createFromWkb( pabyData, 
+    return OGRGeometryFactory::createFromWkb( pabyData,
                                               (OGRSpatialReference *) hSRS,
                                               (OGRGeometry **) phGeometry );
 }
@@ -276,7 +279,7 @@ OGRErr CPL_DLL OGR_G_CreateFromWkb( unsigned char *pabyData,
  *             created geometry object.  This may be NULL.
  * @param ppoReturn the newly created geometry object will be assigned to the
  *                  indicated pointer on return.  This will be NULL if the
- *                  method fails. 
+ *                  method fails.
  *
  * @return OGRERR_NONE if all goes well, otherwise any of
  * OGRERR_NOT_ENOUGH_DATA, OGRERR_UNSUPPORTED_GEOMETRY_TYPE, or
@@ -318,12 +321,12 @@ OGRErr OGRGeometryFactory::createFromWkt(char **ppszData,
     {
         poGeom = new OGRPolygon();
     }
-    
+
     else if( EQUAL(szToken,"GEOMETRYCOLLECTION") )
     {
         poGeom = new OGRGeometryCollection();
     }
-    
+
     else if( EQUAL(szToken,"MULTIPOLYGON") )
     {
         poGeom = new OGRMultiPolygon();
@@ -348,7 +351,7 @@ OGRErr OGRGeometryFactory::createFromWkt(char **ppszData,
 /*      Do the import.                                                  */
 /* -------------------------------------------------------------------- */
     eErr = poGeom->importFromWkt( &pszInput );
-    
+
 /* -------------------------------------------------------------------- */
 /*      Assign spatial reference system.                                */
 /* -------------------------------------------------------------------- */
@@ -362,7 +365,7 @@ OGRErr OGRGeometryFactory::createFromWkt(char **ppszData,
     {
         delete poGeom;
     }
-    
+
     return eErr;
 }
 
@@ -383,14 +386,14 @@ OGRErr OGRGeometryFactory::createFromWkt(char **ppszData,
  *             created geometry object.  This may be NULL.
  * @param phGeometry the newly created geometry object will be assigned to the
  *                  indicated handle on return.  This will be NULL if the
- *                  method fails. 
+ *                  method fails.
  *
  * @return OGRERR_NONE if all goes well, otherwise any of
  * OGRERR_NOT_ENOUGH_DATA, OGRERR_UNSUPPORTED_GEOMETRY_TYPE, or
  * OGRERR_CORRUPT_DATA may be returned.
  */
 
-OGRErr CPL_DLL OGR_G_CreateFromWkt( char **ppszData, 
+OGRErr CPL_DLL OGR_G_CreateFromWkt( char **ppszData,
                                     OGRSpatialReferenceH hSRS,
                                     OGRGeometryH *phGeometry )
 
@@ -404,12 +407,12 @@ OGRErr CPL_DLL OGR_G_CreateFromWkt( char **ppszData,
 /*                           createGeometry()                           */
 /************************************************************************/
 
-/** 
+/**
  * Create an empty geometry of desired type.
  *
  * This is equivelent to allocating the desired geometry with new, but
- * the allocation is guaranteed to take place in the context of the 
- * GDAL/OGR heap. 
+ * the allocation is guaranteed to take place in the context of the
+ * GDAL/OGR heap.
  *
  * This method is the same as the C function OGR_G_CreateGeometry().
  *
@@ -458,14 +461,14 @@ OGRGeometryFactory::createGeometry( OGRwkbGeometryType eGeometryType )
 /************************************************************************/
 /*                        OGR_G_CreateGeometry()                        */
 /************************************************************************/
-/** 
+/**
  * Create an empty geometry of desired type.
  *
  * This is equivelent to allocating the desired geometry with new, but
- * the allocation is guaranteed to take place in the context of the 
- * GDAL/OGR heap. 
+ * the allocation is guaranteed to take place in the context of the
+ * GDAL/OGR heap.
  *
- * This function is the same as the CPP method 
+ * This function is the same as the CPP method
  * OGRGeometryFactory::createGeometry.
  *
  * @param eGeometryType the type code of the geometry to be created.
@@ -487,7 +490,7 @@ OGRGeometryH OGR_G_CreateGeometry( OGRwkbGeometryType eGeometryType )
 /**
  * Destroy geometry object.
  *
- * Equivalent to invoking delete on a geometry, but it guaranteed to take 
+ * Equivalent to invoking delete on a geometry, but it guaranteed to take
  * place within the context of the GDAL/OGR heap.
  *
  * This method is the same as the C function OGR_G_DestroyGeometry().
@@ -508,10 +511,10 @@ void OGRGeometryFactory::destroyGeometry( OGRGeometry *poGeom )
 /**
  * Destroy geometry object.
  *
- * Equivalent to invoking delete on a geometry, but it guaranteed to take 
+ * Equivalent to invoking delete on a geometry, but it guaranteed to take
  * place within the context of the GDAL/OGR heap.
  *
- * This function is the same as the CPP method 
+ * This function is the same as the CPP method
  * OGRGeometryFactory::destroyGeometry.
  *
  * @param hGeom handle to the geometry to delete.
@@ -532,8 +535,8 @@ void OGR_G_DestroyGeometry( OGRGeometryH hGeom )
  *
  * Tries to force the provided geometry to be a polygon.  Currently
  * this just effects a change on multipolygons.  The passed in geometry is
- * consumed and a new one returned (or potentially the same one). 
- * 
+ * consumed and a new one returned (or potentially the same one).
+ *
  * @return new geometry.
  */
 
@@ -554,7 +557,7 @@ OGRGeometry *OGRGeometryFactory::forceToPolygon( OGRGeometry *poGeom )
 
     for( iGeom = 0; iGeom < poGC->getNumGeometries(); iGeom++ )
     {
-        if( wkbFlatten(poGC->getGeometryRef(iGeom)->getGeometryType()) 
+        if( wkbFlatten(poGC->getGeometryRef(iGeom)->getGeometryType())
             != wkbPolygon )
             continue;
 
@@ -566,7 +569,7 @@ OGRGeometry *OGRGeometryFactory::forceToPolygon( OGRGeometry *poGeom )
         for( iRing = 0; iRing < poOldPoly->getNumInteriorRings(); iRing++ )
             poPolygon->addRing( poOldPoly->getInteriorRing( iRing ) );
     }
-    
+
     delete poGC;
 
     return poPolygon;
@@ -581,8 +584,8 @@ OGRGeometry *OGRGeometryFactory::forceToPolygon( OGRGeometry *poGeom )
  *
  * Tries to force the provided geometry to be a multipolygon.  Currently
  * this just effects a change on polygons.  The passed in geometry is
- * consumed and a new one returned (or potentially the same one). 
- * 
+ * consumed and a new one returned (or potentially the same one).
+ *
  * @return new geometry.
  */
 
@@ -611,7 +614,7 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPolygon( OGRGeometry *poGeom )
 
         if( !bAllPoly )
             return poGeom;
-        
+
         OGRMultiPolygon *poMP = new OGRMultiPolygon();
 
         while( poGC->getNumGeometries() > 0 )
@@ -647,8 +650,8 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPolygon( OGRGeometry *poGeom )
  *
  * Tries to force the provided geometry to be a multipoint.  Currently
  * this just effects a change on points.  The passed in geometry is
- * consumed and a new one returned (or potentially the same one). 
- * 
+ * consumed and a new one returned (or potentially the same one).
+ *
  * @return new geometry.
  */
 
@@ -677,7 +680,7 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPoint( OGRGeometry *poGeom )
 
         if( !bAllPoint )
             return poGeom;
-        
+
         OGRMultiPoint *poMP = new OGRMultiPoint();
 
         while( poGC->getNumGeometries() > 0 )
@@ -709,8 +712,8 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPoint( OGRGeometry *poGeom )
  *
  * Tries to force the provided geometry to be a multilinestring.  Currently
  * this just effects a change on linestrings.  The passed in geometry is
- * consumed and a new one returned (or potentially the same one). 
- * 
+ * consumed and a new one returned (or potentially the same one).
+ *
  * @return new geometry.
  */
 
@@ -739,7 +742,7 @@ OGRGeometry *OGRGeometryFactory::forceToMultiLineString( OGRGeometry *poGeom )
 
         if( !bAllLines )
             return poGeom;
-        
+
         OGRMultiLineString *poMP = new OGRMultiLineString();
 
         while( poGC->getNumGeometries() > 0 )
@@ -760,34 +763,5 @@ OGRGeometry *OGRGeometryFactory::forceToMultiLineString( OGRGeometry *poGeom )
     poMP->addGeometry( poGeom );
 
     return poMP;
-}
-
-/************************************************************************/
-/*                           createFromGML()                            */
-/************************************************************************/
-
-/**
- * Create geometry from GML.
- *
- * This method translates a fragment of GML containing only the geometry
- * portion into a corresponding OGRGeometry.  There are many limitations
- * on the forms of GML geometries supported by this parser, but they are
- * too numerous to list here. 
- *
- * The C function OGR_G_CreateFromGML() is the same as this method.
- *
- * @param pszData The GML fragment for the geometry.
- *
- * @return a geometry on succes, or NULL on error.  
- */
-
-OGRGeometry *OGRGeometryFactory::createFromGML( const char *pszData )
-
-{
-    OGRGeometryH hGeom;
-
-    hGeom = OGR_G_CreateFromGML( pszData );
-    
-    return (OGRGeometry *) hGeom;
 }
 

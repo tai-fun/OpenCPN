@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_api.h,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: ogr_api.h,v 1.2 2008/03/30 22:56:29 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  C API for OGR Geometry, Feature, Layers, DataSource and drivers.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: ogr_api.h,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/03/30 22:56:29  bdbcat
+ * Cleanup
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -92,10 +95,10 @@
 
 /**
  * \file ogr_api.h
- * 
+ *
  * C API and defines for OGRFeature, OGRGeometry, and OGRDataSource
- * related classes. 
- * 
+ * related classes.
+ *
  * See also: ogr_geometry.h, ogr_feature.h, ogrsf_frmts.h
  */
 
@@ -111,7 +114,7 @@ typedef void *OGRGeometryH;
 #ifndef _DEFINED_OGRSpatialReferenceH
 #define _DEFINED_OGRSpatialReferenceH
 
-typedef void *OGRSpatialReferenceH;                               
+typedef void *OGRSpatialReferenceH;
 typedef void *OGRCoordinateTransformationH;
 
 #endif
@@ -120,9 +123,9 @@ struct _CPLXMLNode;
 
 /* From base OGRGeometry class */
 
-OGRErr CPL_DLL OGR_G_CreateFromWkb( unsigned char *, OGRSpatialReferenceH, 
+OGRErr CPL_DLL OGR_G_CreateFromWkb( unsigned char *, OGRSpatialReferenceH,
                                     OGRGeometryH * );
-OGRErr CPL_DLL OGR_G_CreateFromWkt( char **, OGRSpatialReferenceH, 
+OGRErr CPL_DLL OGR_G_CreateFromWkt( char **, OGRSpatialReferenceH,
                                     OGRGeometryH * );
 void   CPL_DLL OGR_G_DestroyGeometry( OGRGeometryH );
 OGRGeometryH CPL_DLL OGR_G_CreateGeometry( OGRwkbGeometryType );
@@ -141,16 +144,13 @@ const char CPL_DLL *OGR_G_GetGeometryName( OGRGeometryH );
 void   CPL_DLL OGR_G_DumpReadable( OGRGeometryH, FILE *, const char * );
 void   CPL_DLL OGR_G_FlattenTo2D( OGRGeometryH );
 
-OGRGeometryH CPL_DLL OGR_G_CreateFromGML( const char * );
-char   CPL_DLL *OGR_G_ExportToGML( OGRGeometryH );
-
 #if defined(_CPL_MINIXML_H_INCLUDED)
 OGRGeometryH CPL_DLL OGR_G_CreateFromGMLTree( const CPLXMLNode * );
 CPLXMLNode CPL_DLL *OGR_G_ExportToGMLTree( OGRGeometryH );
 CPLXMLNode CPL_DLL *OGR_G_ExportEnvelopeToGMLTree( OGRGeometryH );
 #endif
 
-void   CPL_DLL OGR_G_AssignSpatialReference( OGRGeometryH, 
+void   CPL_DLL OGR_G_AssignSpatialReference( OGRGeometryH,
                                              OGRSpatialReferenceH );
 OGRSpatialReferenceH CPL_DLL OGR_G_GetSpatialReference( OGRGeometryH );
 OGRErr CPL_DLL OGR_G_Transform( OGRGeometryH, OGRCoordinateTransformationH );
@@ -165,9 +165,9 @@ int    CPL_DLL OGR_G_GetPointCount( OGRGeometryH );
 double CPL_DLL OGR_G_GetX( OGRGeometryH, int );
 double CPL_DLL OGR_G_GetY( OGRGeometryH, int );
 double CPL_DLL OGR_G_GetZ( OGRGeometryH, int );
-void   CPL_DLL OGR_G_GetPoint( OGRGeometryH, int iPoint, 
+void   CPL_DLL OGR_G_GetPoint( OGRGeometryH, int iPoint,
                                double *, double *, double * );
-void   CPL_DLL OGR_G_SetPoint( OGRGeometryH, int iPoint, 
+void   CPL_DLL OGR_G_SetPoint( OGRGeometryH, int iPoint,
                                double, double, double );
 void   CPL_DLL OGR_G_AddPoint( OGRGeometryH, double, double, double );
 
@@ -180,12 +180,12 @@ OGRErr CPL_DLL OGR_G_AddGeometryDirectly( OGRGeometryH, OGRGeometryH );
 OGRErr CPL_DLL OGR_G_RemoveGeometry( OGRGeometryH, int, int );
 
 OGRGeometryH CPL_DLL OGRBuildPolygonFromEdges( OGRGeometryH hLinesAsCollection,
-                                       int bBestEffort, 
-                                       int bAutoClose, 
+                                       int bBestEffort,
+                                       int bAutoClose,
                                        double dfTolerance,
                                        OGRErr * peErr );
 
-OGRErr CPL_DLL OGRSetGenerate_DB2_V72_BYTE_ORDER( 
+OGRErr CPL_DLL OGRSetGenerate_DB2_V72_BYTE_ORDER(
     int bGenerate_DB2_V72_BYTE_ORDER );
 
 int CPL_DLL OGRGetGenerate_DB2_V72_BYTE_ORDER();
@@ -213,7 +213,7 @@ int    CPL_DLL OGR_Fld_GetWidth( OGRFieldDefnH );
 void   CPL_DLL OGR_Fld_SetWidth( OGRFieldDefnH, int );
 int    CPL_DLL OGR_Fld_GetPrecision( OGRFieldDefnH );
 void   CPL_DLL OGR_Fld_SetPrecision( OGRFieldDefnH, int );
-void   CPL_DLL OGR_Fld_Set( OGRFieldDefnH, const char *, OGRFieldType, 
+void   CPL_DLL OGR_Fld_Set( OGRFieldDefnH, const char *, OGRFieldType,
                             int, int, OGRJustification );
 
 const char CPL_DLL *OGR_GetFieldTypeName( OGRFieldType );
@@ -317,7 +317,7 @@ int    CPL_DLL OGR_DS_GetLayerCount( OGRDataSourceH );
 OGRLayerH CPL_DLL OGR_DS_GetLayer( OGRDataSourceH, int );
 OGRLayerH CPL_DLL OGR_DS_GetLayerByName( OGRDataSourceH, const char * );
 OGRErr    CPL_DLL OGR_DS_DeleteLayer( OGRDataSourceH, int );
-OGRLayerH CPL_DLL OGR_DS_CreateLayer( OGRDataSourceH, const char *, 
+OGRLayerH CPL_DLL OGR_DS_CreateLayer( OGRDataSourceH, const char *,
                                       OGRSpatialReferenceH, OGRwkbGeometryType,
                                       char ** );
 OGRLayerH CPL_DLL OGR_DS_CopyLayer( OGRDataSourceH, OGRLayerH, const char *,
@@ -339,7 +339,7 @@ OGRDataSourceH CPL_DLL OGR_Dr_Open( OGRSFDriverH, const char *, int );
 int CPL_DLL OGR_Dr_TestCapability( OGRSFDriverH, const char * );
 OGRDataSourceH CPL_DLL OGR_Dr_CreateDataSource( OGRSFDriverH, const char *,
                                                 char ** );
-OGRDataSourceH CPL_DLL OGR_Dr_CopyDataSource( OGRSFDriverH,  OGRDataSourceH, 
+OGRDataSourceH CPL_DLL OGR_Dr_CopyDataSource( OGRSFDriverH,  OGRDataSourceH,
                                               const char *, char ** );
 OGRErr CPL_DLL OGR_Dr_DeleteDataSource( OGRSFDriverH, const char * );
 
