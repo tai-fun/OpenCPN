@@ -4666,16 +4666,17 @@ rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 echo "${ECHO_T}$compat_24" >&6
 
 	if test $compat_24 = no; then
-      		{ echo "$as_me:$LINENO: WARNING: !!!opencpn for X11 Universal Mode requires that
-wxWidgets (for X11) prior to Release 2.8.4 be compiled with
-Version 2.4 compatibility mode enabled.
-Please rebuild wxWidgets with \"--enable-compat24\" configuration option.
-Meanwhile, GPSD Network data input is being disabled." >&5
-echo "$as_me: WARNING: !!!opencpn for X11 Universal Mode requires that
-wxWidgets (for X11) prior to Release 2.8.4 be compiled with
-Version 2.4 compatibility mode enabled.
-Please rebuild wxWidgets with \"--enable-compat24\" configuration option.
-Meanwhile, GPSD Network data input is being disabled." >&2;}
+      		{ echo "$as_me:$LINENO: WARNING: !!!opencpn for X11 Universal Mode requires that" >&5
+echo "$as_me: WARNING: !!!opencpn for X11 Universal Mode requires that" >&2;}
+		{ echo "$as_me:$LINENO: WARNING: wxWidgets (for X11) prior to Release 2.8.4 be compiled with" >&5
+echo "$as_me: WARNING: wxWidgets (for X11) prior to Release 2.8.4 be compiled with" >&2;}
+		{ echo "$as_me:$LINENO: WARNING: Version 2.4 compatibility mode enabled." >&5
+echo "$as_me: WARNING: Version 2.4 compatibility mode enabled." >&2;}
+		{ echo "$as_me:$LINENO: WARNING: Please rebuild wxWidgets with \"--enable-compat24\" configuration option." >&5
+echo "$as_me: WARNING: Please rebuild wxWidgets with \"--enable-compat24\" configuration option." >&2;}
+		{ echo "$as_me:$LINENO: WARNING: Meanwhile, GPSD Network data input is being disabled." >&5
+echo "$as_me: WARNING: Meanwhile, GPSD Network data input is being disabled." >&2;}
+
 
 cat >>confdefs.h <<\_ACEOF
 #define OCPN_DISABLE_SOCKETS 1
@@ -4686,7 +4687,7 @@ fi
 
 
 
-__
+
 echo "$as_me:$LINENO: checking for __WXGTK__" >&5
 echo $ECHO_N "checking for __WXGTK__... $ECHO_C" >&6
 cat >conftest.$ac_ext <<_ACEOF

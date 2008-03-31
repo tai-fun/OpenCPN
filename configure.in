@@ -244,13 +244,14 @@ if test $ac_buildfor_x11 = yes &&  test -n "$vers" && test "$vers" -lt 2008004; 
 	AC_MSG_RESULT([$compat_24])
 
 	if test $compat_24 = no; then
-      		AC_MSG_WARN([!!!opencpn for X11 Universal Mode requires that
-wxWidgets (for X11) prior to Release 2.8.4 be compiled with
-Version 2.4 compatibility mode enabled.
-Please rebuild wxWidgets with "--enable-compat24" configuration option.
-Meanwhile, GPSD Network data input is being disabled.])
-        AC_DEFINE(OCPN_DISABLE_SOCKETS, 1,
-            [Define if you need to disable TCP/IP Socket utilization.])
+      		AC_MSG_WARN([!!!opencpn for X11 Universal Mode requires that])
+		AC_MSG_WARN([wxWidgets (for X11) prior to Release 2.8.4 be compiled with])
+		AC_MSG_WARN([Version 2.4 compatibility mode enabled.])
+		AC_MSG_WARN([Please rebuild wxWidgets with "--enable-compat24" configuration option.])
+		AC_MSG_WARN([Meanwhile, GPSD Network data input is being disabled.])
+
+        	AC_DEFINE(OCPN_DISABLE_SOCKETS, 1,
+            		[Define if you need to disable TCP/IP Socket utilization.])
         fi
 fi
 
@@ -260,7 +261,7 @@ dnl  Get GTK+ paths as necessary
 dnl
 
 dnl  First, look for GTK in wx library
-__
+
 AC_MSG_CHECKING([for __WXGTK__])
 AC_TRY_COMPILE([
 #include	"wx/setup.h"],
