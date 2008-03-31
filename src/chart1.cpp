@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.20 2008/03/30 21:51:57 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.21 2008/03/31 00:23:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -27,11 +27,17 @@
  *
 <<<<<<< chart1.cpp
  * $Log: chart1.cpp,v $
+ * Revision 1.21  2008/03/31 00:23:06  bdbcat
+ * Correct merge problems
+ *
  * Revision 1.20  2008/03/30 21:51:57  bdbcat
  * Update for Mac OSX/Unicode
  *
 =======
  * $Log: chart1.cpp,v $
+ * Revision 1.21  2008/03/31 00:23:06  bdbcat
+ * Correct merge problems
+ *
  * Revision 1.20  2008/03/30 21:51:57  bdbcat
  * Update for Mac OSX/Unicode
  *
@@ -140,7 +146,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.20 2008/03/30 21:51:57 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.21 2008/03/31 00:23:06 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -1553,11 +1559,10 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
       wxLogMessage(_T("opencpn::MyFrame exiting cleanly..."));
 
 // begin rms
-#ifdef __WXOSX__
+//#ifdef __WXOSX__
       quitflag++ ;
-#endif // __WXOSX__
+//#endif // __WXOSX__
 // end rms
-<<<<<<< chart1.cpp
       FrameTimer1.Stop();
 
     /*
@@ -1583,9 +1588,8 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
                   pConfig->AddNewWayPoint(pWP, -1);       // use auto next num
             }
       }
-=======
+
    FrameTimer1.Stop();
->>>>>>> 1.19
 
       g_bframemax = IsMaximized();
 
