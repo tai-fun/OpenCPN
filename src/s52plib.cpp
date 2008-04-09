@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.14 2008/03/30 22:17:41 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.15 2008/04/09 03:52:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -27,11 +27,17 @@
  *
 <<<<<<< s52plib.cpp
  * $Log: s52plib.cpp,v $
+ * Revision 1.15  2008/04/09 03:52:50  bdbcat
+ * Cleanup
+ *
  * Revision 1.14  2008/03/30 22:17:41  bdbcat
  * Optimize HPGL cacheing
  *
 =======
  * $Log: s52plib.cpp,v $
+ * Revision 1.15  2008/04/09 03:52:50  bdbcat
+ * Cleanup
+ *
  * Revision 1.14  2008/03/30 22:17:41  bdbcat
  * Optimize HPGL cacheing
  *
@@ -105,7 +111,7 @@ extern s52plib          *ps52plib;
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.14 2008/03/30 22:17:41 bdbcat Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.15 2008/04/09 03:52:50 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -415,7 +421,7 @@ wxArrayOfLUPrec *s52plib::SelectLUPARRAY(LUPname TNAM)
 //          wxLogMessage(_T("S52:_selctLUP() ERROR"));
    }
 
-   return NULL;
+//   return NULL;
 }
 
 
