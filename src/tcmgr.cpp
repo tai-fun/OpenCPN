@@ -27,11 +27,17 @@
  *
 <<<<<<< tcmgr.cpp
  * $Log: tcmgr.cpp,v $
+ * Revision 1.6  2008/04/09 03:51:43  bdbcat
+ * Correct 64bit time_t math
+ *
  * Revision 1.5  2008/03/30 22:24:40  bdbcat
  * Update for Mac OSX/Unicode
  *
 =======
  * $Log: tcmgr.cpp,v $
+ * Revision 1.6  2008/04/09 03:51:43  bdbcat
+ * Correct 64bit time_t math
+ *
  * Revision 1.5  2008/03/30 22:24:40  bdbcat
  * Update for Mac OSX/Unicode
  *
@@ -79,7 +85,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.5 2008/03/30 22:24:40 bdbcat Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.6 2008/04/09 03:51:43 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters
@@ -1147,6 +1153,7 @@ time_t TCMgr::tm2gmt (struct tm *ht)
 {
   time_t guess, newguess, thebit;
   int loopcounter, compare;
+  struct tm *gt;
 
   /*
       "A thing not worth doing at all is not worth doing well."
@@ -1162,7 +1169,7 @@ time_t TCMgr::tm2gmt (struct tm *ht)
   /* For simplicity, I'm going to insist that the time_t we want is
      positive.  If time_t is signed, skip the sign bit.
    */
-  if ((signed long)thebit < (time_t)0) {
+  if ((signed long)thebit < (time_t)(0)) {
     /* You can't just shift thebit right because it propagates the sign bit. */
     loopcounter--;
     thebit = ((time_t)1) << (loopcounter-1);
@@ -1170,11 +1177,15 @@ time_t TCMgr::tm2gmt (struct tm *ht)
 
   for (; loopcounter; loopcounter--) {
     newguess = guess | thebit;
-    compare = compare_tm (gmtime(&newguess), ht);
+    gt = gmtime(&newguess);
+    if(NULL != gt)
+    {
+      compare = compare_tm (gt, ht);
     /* printf ("thebit=%lu  guess=%lu  newguess=%lu  compare=%d\n",
       thebit, guess, newguess, compare); */
-    if (compare <= 0)
-      guess = newguess;
+      if (compare <= 0)
+       guess = newguess;
+    }
     thebit >>= 1;
   }
 
