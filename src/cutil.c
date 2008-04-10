@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.7 2008/03/30 22:31:39 bdbcat Exp $
+ * $Id: cutil.c,v 1.8 2008/04/10 01:05:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Extern C Linked Utilities
@@ -27,6 +27,9 @@
  *
  *
  * $Log: cutil.c,v $
+ * Revision 1.8  2008/04/10 01:05:22  bdbcat
+ * Add mysnprintf
+ *
  * Revision 1.7  2008/03/30 22:31:39  bdbcat
  * Cleanup
  *
@@ -81,7 +84,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: cutil.c,v 1.7 2008/03/30 22:31:39 bdbcat Exp $");
+CPL_CVSID("$Id: cutil.c,v 1.8 2008/04/10 01:05:22 bdbcat Exp $");
 
 /*************************************************************************
 
@@ -341,4 +344,19 @@ long __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *Exception
     }
 }
 
+#endif
+
+/*          Replacement for __MSVC__ in absence of snprintf or _snprintf  */
+#ifdef __MSVC__
+extern int mysnprintf( char *buffer, int count, const char *format, ... )
+{
+      int ret;
+
+      va_list arg;
+      va_start(arg, format);
+      ret = _vsnprintf(buffer, count, format, arg);
+
+      va_end(arg);
+      return ret;
+}
 #endif
