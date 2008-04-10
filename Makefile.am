@@ -38,7 +38,7 @@ AM_CXXFLAGS += $(GL_CFLAGS)
 opencpn_LDADD += $(GL_LIBS)
 endif
 
-bin_PROGRAMS = opencpn
+bin_PROGRAMS = opencpn ocpnhelper
 
 opencpn_SOURCES = 	src/bbox.cpp \
  			src/ocpn_pixel.cpp \
@@ -83,18 +83,7 @@ opencpn_SOURCES +=	src/s52cnsy.cpp \
 			src/tri.c
 endif
 
-if BUILD_WITH_SHARED_GDAL
-opencpn_SOURCES +=	src/myiso8211/ddffielddefn.cpp \
-			src/myiso8211/ddfmodule.cpp \
-			src/myiso8211/ddfrecord.cpp \
-			src/myiso8211/ddfsubfielddefn.cpp \
-			src/myiso8211/ddfutils.cpp
-
-opencpn_LDADD += $(GDAL_LIBS)
-AM_CFLAGS += $(GDAL_CFLAGS)
-endif
-
-if BUILD_WITH_INTERNAL_GDAL
+if BUILD_WITH_S57
 opencpn_SOURCES +=	src/myiso8211/ddffielddefn.cpp \
 			src/myiso8211/ddfmodule.cpp \
 			src/myiso8211/ddfrecord.cpp \
@@ -143,6 +132,8 @@ if BUILD_WITH_WIFI_CLIENT
 AM_CXXFLAGS += -DUSE_WIFI_CLIENT
 opencpn_SOURCES += src/wificlient.cpp 
 endif
+
+ocpnhelper_SOURCES = src/ocpnhelper.c
 
 noinst_HEADERS = \
  	include/about.h \
@@ -260,6 +251,10 @@ uninstall-local:
 	rmdir $(pkgdatadir)/s57data 
 	rmdir $(pkgdatadir)/tcdata 
 	rmdir $(pkgdatadir)
+
+##  Make the ocpnhelper application SUID to root.
+install-exec-hook:
+	chmod +s $(DESTDIR)$(bindir)/ocpnhelper
 
 
 

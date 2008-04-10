@@ -71,37 +71,6 @@ else
 	AC_DEFINE_UNQUOTED(INSTALL_PREFIX, "$prefix")
 fi
 
-
-dnl
-dnl  Use/Dont Use system GDAL library
-dnl
-gdal_internal=true
-gdal_system=false
-AC_ARG_WITH(gdal_system,
-          [[  --with-gdal-system    use system GDAL/OGR library]],
-          [gdal_system=true]
-           )
-
-if [[ "$gdal_system" = "true" ]] ; then
-dnl  Look for and qualify an external GDAL library
- AC_CHECK_LIB(gdal, GDALVersionInfo, true, dnl here true is just a nop
-    AC_MSG_ERROR([*** libgdal not found.  Run configure without --with-gdal-system.]))
-
- gdal_internal=false
- GDALCONFIG=gdal-config
- GDAL_LIBS="`$GDALCONFIG --libs`"
- AC_SUBST(GDAL_LIBS)
- GDAL_CFLAGS="`$GDALCONFIG --cflags`"
- AC_SUBST(GDAL_CFLAGS)
-fi
-
-
-AM_CONDITIONAL(BUILD_WITH_INTERNAL_GDAL, test x$gdal_internal = xtrue)
-AC_SUBST(BUILD_WITH_INTERNAL_GDAL)
-
-AM_CONDITIONAL(BUILD_WITH_SHARED_GDAL, test x$gdal_system = xtrue)
-AC_SUBST(BUILD_WITH_SHARED_GDAL)
-
 dnl
 dnl Enable/Disable S57 ENC Support
 dnl

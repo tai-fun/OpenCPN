@@ -12,7 +12,7 @@ a.  Opencpn was built with the following objectives in mind.
     iii. Those and only those toolbar buttons really needed for
          daily operation.
     iv.  Portability, thus wxWidgets core components.  Currently
-         tested and in production use on W98, XP, and Linux.
+         tested and in production use on W98, XP, OSx, and Linux.
     v.   Conventional ( i.e. popular and modern ) chart format
          support.  In the real world, this means BSB format raster
          charts, and S57ENC format vector charts.
@@ -59,6 +59,7 @@ with the following wxWidgets hosts:
          Universal/Native X11 (__WXX11__)
          GTK2                 (__WXGTK__)
          MSWindows            (__WXMSW__)
+         MAC OSx              (__WXOSX__)
 
 See below for information on obtaining and installing wxWidgets.
 
@@ -169,6 +170,69 @@ makefile.wat, typically c:\Program Files\opencpn
 
 OpenCPN is now ready to run.
 
+c. For Macintosh OSx
+
+If you would like to build OpenCPN for Macintosh OSx from source, perform
+the following steps.
+
+If you experience difficulties, post a note on the OpenCPN project forum
+at sourceforge.net.  The development team will try to help you out.
+
+---------------------------
+STEP 0:  Background
+---------------------------
+
+OpenCPN for OSx (TM) is built using the XCode tools from Apple.
+You may download (for free) the latest version from:
+
+		http://developer.apple.com/tools/download/
+		
+Version 3.0 tools are current and is what the latest build was tested with.
+		
+ 
+---------------------------
+STEP 1:  OPTIONAL - Download wxWidgets
+---------------------------
+To simplify the implementation of a near-identical user
+interface across platforms, OpenCPN uses classes and
+resources from wxWidgets, a portable GUI framework for C++
+(and Python). You may download and build wxWidgets before
+attempting to compile OpenCPN. The build directory has a test version of
+the wxWidgets libraries that where used in testing the latest build.
+
+OpenCPN builds use wxWidgets 2.6.x series (or later) for 
+Macintosh OSx, available at 
+"http://www.wxwidgets.org/".
+
+When you download and execute the configuration tool for wxWidgets,
+the wxWidgets files will be installed to your system.
+Make a note of the base install location, which will be something like
+		
+		\Users\YourUserName\wxWidgets-2.8.3
+		
+You will need this later.		
+
+------------------------
+STEP 2:  OPTIONAL - Build wxWidgets
+------------------------
+When you have downloaded and installed wxWidgets, you must
+build it.   The standard wxWidgets build procedures work fine,
+and are dependent on your system build tools and environment.
+See the README files in the wxWidgets installation directory.
+
+Copy the new libraries to the OpenCpn directory. These libraries
+are normally in \Users\YourUserName\opencpn\buildosx\libraries
+
+------------------------
+STEP4:  Build OpenCPN 
+------------------------
+
+Start the XCode Tools and open the openCPNOSx.xcodeproj in \Users\YourUserName\opencpn\buildosx\
+
+Select 'Build' from the build menu
+
+OpenCPN is now ready to run.
+
 -------------------------
 Notes For Advanced Users:
 
@@ -261,6 +325,7 @@ are installed by the installer into the following locations by default:
 
       Linux   - /usr/local/share/opencpn/
       Windows - \Program Files\opencpn\
+      Mac     - /Users/YourUserName/openCPNfiles/
 
 The following directories exist within the above:
          .../bitmaps                     - self evident
@@ -323,3 +388,4 @@ may have OS-level problems with your serial support, but more likely
 have the wrong device or permissions.  Look again.
 
 b.  Windows
+        Stay Tuned.....

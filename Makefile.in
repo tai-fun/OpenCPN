@@ -15,7 +15,7 @@
 @SET_MAKE@
 
 
-SOURCES = $(opencpn_SOURCES)
+SOURCES = $(ocpnhelper_SOURCES) $(opencpn_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -46,66 +46,53 @@ POST_UNINSTALL = :
 @BUILD_WITH_GLU_TESS_TRUE@am__append_3 = $(GL_CFLAGS)
 @BUILD_WITH_GLU_TESS_TRUE@am__append_4 = $(GL_CFLAGS)
 @BUILD_WITH_GLU_TESS_TRUE@am__append_5 = $(GL_LIBS)
-bin_PROGRAMS = opencpn$(EXEEXT)
-@BUILD_WITH_S57_TRUE@am__append_6 = src/s52cnsy.cpp \
-@BUILD_WITH_S57_TRUE@			src/s52plib.cpp \
-@BUILD_WITH_S57_TRUE@			src/s52utils.cpp \
-@BUILD_WITH_S57_TRUE@			src/s57chart.cpp \
-@BUILD_WITH_S57_TRUE@			src/mygeom.cpp \
-@BUILD_WITH_S57_TRUE@			src/tri.c
-
-@BUILD_WITH_SHARED_GDAL_TRUE@am__append_7 = src/myiso8211/ddffielddefn.cpp \
-@BUILD_WITH_SHARED_GDAL_TRUE@			src/myiso8211/ddfmodule.cpp \
-@BUILD_WITH_SHARED_GDAL_TRUE@			src/myiso8211/ddfrecord.cpp \
-@BUILD_WITH_SHARED_GDAL_TRUE@			src/myiso8211/ddfsubfielddefn.cpp \
-@BUILD_WITH_SHARED_GDAL_TRUE@			src/myiso8211/ddfutils.cpp
-
-@BUILD_WITH_SHARED_GDAL_TRUE@am__append_8 = $(GDAL_LIBS)
-@BUILD_WITH_SHARED_GDAL_TRUE@am__append_9 = $(GDAL_CFLAGS)
-@BUILD_WITH_INTERNAL_GDAL_TRUE@am__append_10 = src/myiso8211/ddffielddefn.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/myiso8211/ddfmodule.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/myiso8211/ddfrecord.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/myiso8211/ddfsubfielddefn.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/myiso8211/ddffield.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/myiso8211/ddfutils.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ddfrecordindex.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cpl_conv.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cpl_csv.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cpl_dir.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cpl_error.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	 		src/mygdal/cpl_findfile.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cpl_minixml.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cpl_path.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	 		src/mygdal/cpl_string.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cpl_vsisimple.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/cplgetsymbol.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ograssemblepolygon.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrcurve.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrfeature.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrfeaturedefn.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrfielddefn.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrgeometry.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrgeometrycollection.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrgeometryfactory.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrlinearring.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrlinestring.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrmultilinestring.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrmultipoint.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrmultipolygon.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrpoint.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrpolygon.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrs57datasource.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrlayer.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrs57layer.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/ogrutils.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/s57classregistrar.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/s57featuredefns.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/s57reader.cpp \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@			src/mygdal/gdal_misc.cpp 
-
-@BUILD_WITH_INTERNAL_GDAL_TRUE@am__append_11 = -I./$(srcdir)/src/mygdal
-@BUILD_WITH_WIFI_CLIENT_TRUE@am__append_12 = -DUSE_WIFI_CLIENT
-@BUILD_WITH_WIFI_CLIENT_TRUE@am__append_13 = src/wificlient.cpp 
+bin_PROGRAMS = opencpn$(EXEEXT) ocpnhelper$(EXEEXT)
+@BUILD_WITH_S57_TRUE@am__append_6 = src/s52cnsy.cpp src/s52plib.cpp \
+@BUILD_WITH_S57_TRUE@	src/s52utils.cpp src/s57chart.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygeom.cpp src/tri.c \
+@BUILD_WITH_S57_TRUE@	src/myiso8211/ddffielddefn.cpp \
+@BUILD_WITH_S57_TRUE@	src/myiso8211/ddfmodule.cpp \
+@BUILD_WITH_S57_TRUE@	src/myiso8211/ddfrecord.cpp \
+@BUILD_WITH_S57_TRUE@	src/myiso8211/ddfsubfielddefn.cpp \
+@BUILD_WITH_S57_TRUE@	src/myiso8211/ddffield.cpp \
+@BUILD_WITH_S57_TRUE@	src/myiso8211/ddfutils.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ddfrecordindex.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_conv.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_csv.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_dir.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_error.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_findfile.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_minixml.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_path.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_string.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cpl_vsisimple.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/cplgetsymbol.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ograssemblepolygon.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrcurve.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrfeature.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrfeaturedefn.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrfielddefn.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrgeometry.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrgeometrycollection.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrgeometryfactory.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrlinearring.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrlinestring.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrmultilinestring.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrmultipoint.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrmultipolygon.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrpoint.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrpolygon.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrs57datasource.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrlayer.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrs57layer.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/ogrutils.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/s57classregistrar.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/s57featuredefns.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/s57reader.cpp \
+@BUILD_WITH_S57_TRUE@	src/mygdal/gdal_misc.cpp
+@BUILD_WITH_S57_TRUE@am__append_7 = -I./$(srcdir)/src/mygdal
+@BUILD_WITH_WIFI_CLIENT_TRUE@am__append_8 = -DUSE_WIFI_CLIENT
+@BUILD_WITH_WIFI_CLIENT_TRUE@am__append_9 = src/wificlient.cpp 
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
@@ -123,6 +110,9 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
+am_ocpnhelper_OBJECTS = ocpnhelper.$(OBJEXT)
+ocpnhelper_OBJECTS = $(am_ocpnhelper_OBJECTS)
+ocpnhelper_LDADD = $(LDADD)
 am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 	src/chart1.cpp src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
 	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
@@ -138,8 +128,8 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 	src/s52plib.cpp src/s52utils.cpp src/s57chart.cpp \
 	src/mygeom.cpp src/tri.c src/myiso8211/ddffielddefn.cpp \
 	src/myiso8211/ddfmodule.cpp src/myiso8211/ddfrecord.cpp \
-	src/myiso8211/ddfsubfielddefn.cpp src/myiso8211/ddfutils.cpp \
-	src/myiso8211/ddffield.cpp src/mygdal/ddfrecordindex.cpp \
+	src/myiso8211/ddfsubfielddefn.cpp src/myiso8211/ddffield.cpp \
+	src/myiso8211/ddfutils.cpp src/mygdal/ddfrecordindex.cpp \
 	src/mygdal/cpl_conv.cpp src/mygdal/cpl_csv.cpp \
 	src/mygdal/cpl_dir.cpp src/mygdal/cpl_error.cpp \
 	src/mygdal/cpl_findfile.cpp src/mygdal/cpl_minixml.cpp \
@@ -161,53 +151,38 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 @BUILD_WITH_S57_TRUE@am__objects_1 = s52cnsy.$(OBJEXT) \
 @BUILD_WITH_S57_TRUE@	s52plib.$(OBJEXT) s52utils.$(OBJEXT) \
 @BUILD_WITH_S57_TRUE@	s57chart.$(OBJEXT) mygeom.$(OBJEXT) \
-@BUILD_WITH_S57_TRUE@	tri.$(OBJEXT)
-@BUILD_WITH_SHARED_GDAL_TRUE@am__objects_2 = ddffielddefn.$(OBJEXT) \
-@BUILD_WITH_SHARED_GDAL_TRUE@	ddfmodule.$(OBJEXT) \
-@BUILD_WITH_SHARED_GDAL_TRUE@	ddfrecord.$(OBJEXT) \
-@BUILD_WITH_SHARED_GDAL_TRUE@	ddfsubfielddefn.$(OBJEXT) \
-@BUILD_WITH_SHARED_GDAL_TRUE@	ddfutils.$(OBJEXT)
-@BUILD_WITH_INTERNAL_GDAL_TRUE@am__objects_3 = ddffielddefn.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ddfmodule.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ddfrecord.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ddfsubfielddefn.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ddffield.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ddfutils.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ddfrecordindex.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_conv.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_csv.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_dir.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_error.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_findfile.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_minixml.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_path.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_string.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cpl_vsisimple.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	cplgetsymbol.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ograssemblepolygon.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrcurve.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrfeature.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrfeaturedefn.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrfielddefn.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrgeometry.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrgeometrycollection.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrgeometryfactory.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrlinearring.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrlinestring.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrmultilinestring.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrmultipoint.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrmultipolygon.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrpoint.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrpolygon.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrs57datasource.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrlayer.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrs57layer.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	ogrutils.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	s57classregistrar.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	s57featuredefns.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	s57reader.$(OBJEXT) \
-@BUILD_WITH_INTERNAL_GDAL_TRUE@	gdal_misc.$(OBJEXT)
-@BUILD_WITH_WIFI_CLIENT_TRUE@am__objects_4 = wificlient.$(OBJEXT)
+@BUILD_WITH_S57_TRUE@	tri.$(OBJEXT) ddffielddefn.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ddfmodule.$(OBJEXT) ddfrecord.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ddfsubfielddefn.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ddffield.$(OBJEXT) ddfutils.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ddfrecordindex.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	cpl_conv.$(OBJEXT) cpl_csv.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	cpl_dir.$(OBJEXT) cpl_error.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	cpl_findfile.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	cpl_minixml.$(OBJEXT) cpl_path.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	cpl_string.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	cpl_vsisimple.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	cplgetsymbol.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ograssemblepolygon.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrcurve.$(OBJEXT) ogrfeature.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrfeaturedefn.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrfielddefn.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrgeometry.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrgeometrycollection.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrgeometryfactory.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrlinearring.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrlinestring.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrmultilinestring.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrmultipoint.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrmultipolygon.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrpoint.$(OBJEXT) ogrpolygon.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrs57datasource.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrlayer.$(OBJEXT) ogrs57layer.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	ogrutils.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	s57classregistrar.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	s57featuredefns.$(OBJEXT) \
+@BUILD_WITH_S57_TRUE@	s57reader.$(OBJEXT) gdal_misc.$(OBJEXT)
+@BUILD_WITH_WIFI_CLIENT_TRUE@am__objects_2 = wificlient.$(OBJEXT)
 am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
 	chart1.$(OBJEXT) chartdb.$(OBJEXT) chartimg.$(OBJEXT) \
 	chcanv.$(OBJEXT) concanv.$(OBJEXT) cutil.$(OBJEXT) \
@@ -219,15 +194,11 @@ am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
 	nmea0183.$(OBJEXT) response.$(OBJEXT) rmb.$(OBJEXT) \
 	sentence.$(OBJEXT) talkerid.$(OBJEXT) rmc.$(OBJEXT) \
 	hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_2) $(am__objects_3) \
-	$(am__objects_4)
+	$(am__objects_1) $(am__objects_2)
 opencpn_OBJECTS = $(am_opencpn_OBJECTS)
 am__DEPENDENCIES_1 =
 @BUILD_WITH_GLU_TESS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
-@BUILD_WITH_SHARED_GDAL_TRUE@am__DEPENDENCIES_3 =  \
-@BUILD_WITH_SHARED_GDAL_TRUE@	$(am__DEPENDENCIES_1)
-opencpn_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
-	$(am__DEPENDENCIES_3)
+opencpn_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -240,8 +211,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(opencpn_SOURCES)
-DIST_SOURCES = $(am__opencpn_SOURCES_DIST)
+SOURCES = $(ocpnhelper_SOURCES) $(opencpn_SOURCES)
+DIST_SOURCES = $(ocpnhelper_SOURCES) $(am__opencpn_SOURCES_DIST)
 HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -267,18 +238,12 @@ AWK = @AWK@
 BUILD_WITH_GLU_TESS = @BUILD_WITH_GLU_TESS@
 BUILD_WITH_GLU_TESS_FALSE = @BUILD_WITH_GLU_TESS_FALSE@
 BUILD_WITH_GLU_TESS_TRUE = @BUILD_WITH_GLU_TESS_TRUE@
-BUILD_WITH_INTERNAL_GDAL = @BUILD_WITH_INTERNAL_GDAL@
-BUILD_WITH_INTERNAL_GDAL_FALSE = @BUILD_WITH_INTERNAL_GDAL_FALSE@
-BUILD_WITH_INTERNAL_GDAL_TRUE = @BUILD_WITH_INTERNAL_GDAL_TRUE@
 BUILD_WITH_INTERNAL_TESS = @BUILD_WITH_INTERNAL_TESS@
 BUILD_WITH_INTERNAL_TESS_FALSE = @BUILD_WITH_INTERNAL_TESS_FALSE@
 BUILD_WITH_INTERNAL_TESS_TRUE = @BUILD_WITH_INTERNAL_TESS_TRUE@
 BUILD_WITH_S57 = @BUILD_WITH_S57@
 BUILD_WITH_S57_FALSE = @BUILD_WITH_S57_FALSE@
 BUILD_WITH_S57_TRUE = @BUILD_WITH_S57_TRUE@
-BUILD_WITH_SHARED_GDAL = @BUILD_WITH_SHARED_GDAL@
-BUILD_WITH_SHARED_GDAL_FALSE = @BUILD_WITH_SHARED_GDAL_FALSE@
-BUILD_WITH_SHARED_GDAL_TRUE = @BUILD_WITH_SHARED_GDAL_TRUE@
 BUILD_WITH_WIFI_CLIENT = @BUILD_WITH_WIFI_CLIENT@
 BUILD_WITH_WIFI_CLIENT_FALSE = @BUILD_WITH_WIFI_CLIENT_FALSE@
 BUILD_WITH_WIFI_CLIENT_TRUE = @BUILD_WITH_WIFI_CLIENT_TRUE@
@@ -299,8 +264,6 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-GDAL_CFLAGS = @GDAL_CFLAGS@
-GDAL_LIBS = @GDAL_LIBS@
 GL_CFLAGS = @GL_CFLAGS@
 GL_LIBS = @GL_LIBS@
 GTK_CFLAGS = @GTK_CFLAGS@
@@ -362,12 +325,11 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 INCLUDES = -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183 \
-	-I/usr/X11R6/include $(am__append_11)
-AM_CFLAGS = -Wall -g $(am__append_1) $(am__append_3) $(am__append_9)
-AM_CXXFLAGS = -Wall -g $(am__append_2) $(am__append_4) \
-	$(am__append_12)
+	-I/usr/X11R6/include $(am__append_7)
+AM_CFLAGS = -Wall -g $(am__append_1) $(am__append_3)
+AM_CXXFLAGS = -Wall -g $(am__append_2) $(am__append_4) $(am__append_8)
 opencpn_LDFLAGS = 
-opencpn_LDADD = $(WX_LIBS) $(am__append_5) $(am__append_8)
+opencpn_LDADD = $(WX_LIBS) $(am__append_5)
 opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
 	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
@@ -380,7 +342,8 @@ opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/nmea0183/sentence.cpp src/nmea0183/talkerid.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
 	src/nmea0183/lat.cpp src/nmea0183/expid.cpp $(am__append_6) \
-	$(am__append_7) $(am__append_10) $(am__append_13)
+	$(am__append_9)
+ocpnhelper_SOURCES = src/ocpnhelper.c
 noinst_HEADERS = \
  	include/about.h \
  	include/ais.h \
@@ -538,6 +501,9 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+ocpnhelper$(EXEEXT): $(ocpnhelper_OBJECTS) $(ocpnhelper_DEPENDENCIES) 
+	@rm -f ocpnhelper$(EXEEXT)
+	$(LINK) $(ocpnhelper_LDFLAGS) $(ocpnhelper_OBJECTS) $(ocpnhelper_LDADD) $(LIBS)
 opencpn$(EXEEXT): $(opencpn_OBJECTS) $(opencpn_DEPENDENCIES) 
 	@rm -f opencpn$(EXEEXT)
 	$(CXXLINK) $(opencpn_LDFLAGS) $(opencpn_OBJECTS) $(opencpn_LDADD) $(LIBS)
@@ -586,6 +552,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmea.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmea0183.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ocpn_pixel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ocpnhelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ograssemblepolygon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrcurve.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrfeature.Po@am__quote@
@@ -641,6 +608,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+
+ocpnhelper.o: src/ocpnhelper.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ocpnhelper.o -MD -MP -MF "$(DEPDIR)/ocpnhelper.Tpo" -c -o ocpnhelper.o `test -f 'src/ocpnhelper.c' || echo '$(srcdir)/'`src/ocpnhelper.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ocpnhelper.Tpo" "$(DEPDIR)/ocpnhelper.Po"; else rm -f "$(DEPDIR)/ocpnhelper.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ocpnhelper.c' object='ocpnhelper.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ocpnhelper.o `test -f 'src/ocpnhelper.c' || echo '$(srcdir)/'`src/ocpnhelper.c
+
+ocpnhelper.obj: src/ocpnhelper.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ocpnhelper.obj -MD -MP -MF "$(DEPDIR)/ocpnhelper.Tpo" -c -o ocpnhelper.obj `if test -f 'src/ocpnhelper.c'; then $(CYGPATH_W) 'src/ocpnhelper.c'; else $(CYGPATH_W) '$(srcdir)/src/ocpnhelper.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ocpnhelper.Tpo" "$(DEPDIR)/ocpnhelper.Po"; else rm -f "$(DEPDIR)/ocpnhelper.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/ocpnhelper.c' object='ocpnhelper.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ocpnhelper.obj `if test -f 'src/ocpnhelper.c'; then $(CYGPATH_W) 'src/ocpnhelper.c'; else $(CYGPATH_W) '$(srcdir)/src/ocpnhelper.c'; fi`
 
 cutil.o: src/cutil.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cutil.o -MD -MP -MF "$(DEPDIR)/cutil.Tpo" -c -o cutil.o `test -f 'src/cutil.c' || echo '$(srcdir)/'`src/cutil.c; \
@@ -1244,20 +1225,6 @@ ddfsubfielddefn.obj: src/myiso8211/ddfsubfielddefn.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ddfsubfielddefn.obj `if test -f 'src/myiso8211/ddfsubfielddefn.cpp'; then $(CYGPATH_W) 'src/myiso8211/ddfsubfielddefn.cpp'; else $(CYGPATH_W) '$(srcdir)/src/myiso8211/ddfsubfielddefn.cpp'; fi`
 
-ddfutils.o: src/myiso8211/ddfutils.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ddfutils.o -MD -MP -MF "$(DEPDIR)/ddfutils.Tpo" -c -o ddfutils.o `test -f 'src/myiso8211/ddfutils.cpp' || echo '$(srcdir)/'`src/myiso8211/ddfutils.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ddfutils.Tpo" "$(DEPDIR)/ddfutils.Po"; else rm -f "$(DEPDIR)/ddfutils.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/myiso8211/ddfutils.cpp' object='ddfutils.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ddfutils.o `test -f 'src/myiso8211/ddfutils.cpp' || echo '$(srcdir)/'`src/myiso8211/ddfutils.cpp
-
-ddfutils.obj: src/myiso8211/ddfutils.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ddfutils.obj -MD -MP -MF "$(DEPDIR)/ddfutils.Tpo" -c -o ddfutils.obj `if test -f 'src/myiso8211/ddfutils.cpp'; then $(CYGPATH_W) 'src/myiso8211/ddfutils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/myiso8211/ddfutils.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ddfutils.Tpo" "$(DEPDIR)/ddfutils.Po"; else rm -f "$(DEPDIR)/ddfutils.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/myiso8211/ddfutils.cpp' object='ddfutils.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ddfutils.obj `if test -f 'src/myiso8211/ddfutils.cpp'; then $(CYGPATH_W) 'src/myiso8211/ddfutils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/myiso8211/ddfutils.cpp'; fi`
-
 ddffield.o: src/myiso8211/ddffield.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ddffield.o -MD -MP -MF "$(DEPDIR)/ddffield.Tpo" -c -o ddffield.o `test -f 'src/myiso8211/ddffield.cpp' || echo '$(srcdir)/'`src/myiso8211/ddffield.cpp; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ddffield.Tpo" "$(DEPDIR)/ddffield.Po"; else rm -f "$(DEPDIR)/ddffield.Tpo"; exit 1; fi
@@ -1271,6 +1238,20 @@ ddffield.obj: src/myiso8211/ddffield.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/myiso8211/ddffield.cpp' object='ddffield.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ddffield.obj `if test -f 'src/myiso8211/ddffield.cpp'; then $(CYGPATH_W) 'src/myiso8211/ddffield.cpp'; else $(CYGPATH_W) '$(srcdir)/src/myiso8211/ddffield.cpp'; fi`
+
+ddfutils.o: src/myiso8211/ddfutils.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ddfutils.o -MD -MP -MF "$(DEPDIR)/ddfutils.Tpo" -c -o ddfutils.o `test -f 'src/myiso8211/ddfutils.cpp' || echo '$(srcdir)/'`src/myiso8211/ddfutils.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ddfutils.Tpo" "$(DEPDIR)/ddfutils.Po"; else rm -f "$(DEPDIR)/ddfutils.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/myiso8211/ddfutils.cpp' object='ddfutils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ddfutils.o `test -f 'src/myiso8211/ddfutils.cpp' || echo '$(srcdir)/'`src/myiso8211/ddfutils.cpp
+
+ddfutils.obj: src/myiso8211/ddfutils.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ddfutils.obj -MD -MP -MF "$(DEPDIR)/ddfutils.Tpo" -c -o ddfutils.obj `if test -f 'src/myiso8211/ddfutils.cpp'; then $(CYGPATH_W) 'src/myiso8211/ddfutils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/myiso8211/ddfutils.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/ddfutils.Tpo" "$(DEPDIR)/ddfutils.Po"; else rm -f "$(DEPDIR)/ddfutils.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/myiso8211/ddfutils.cpp' object='ddfutils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ddfutils.obj `if test -f 'src/myiso8211/ddfutils.cpp'; then $(CYGPATH_W) 'src/myiso8211/ddfutils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/myiso8211/ddfutils.cpp'; fi`
 
 ddfrecordindex.o: src/mygdal/ddfrecordindex.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ddfrecordindex.o -MD -MP -MF "$(DEPDIR)/ddfrecordindex.Tpo" -c -o ddfrecordindex.o `test -f 'src/mygdal/ddfrecordindex.cpp' || echo '$(srcdir)/'`src/mygdal/ddfrecordindex.cpp; \
@@ -1993,6 +1974,8 @@ info-am:
 install-data-am: install-data-local
 
 install-exec-am: install-binPROGRAMS
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 
 install-info: install-info-am
 
@@ -2028,11 +2011,11 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am uninstall-local
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am install-binPROGRAMS \
 	install-data install-data-am install-data-local install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	install-exec-am install-exec-hook install-info install-info-am \
+	install-man install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
+	ps ps-am tags uninstall uninstall-am uninstall-binPROGRAMS \
 	uninstall-info-am uninstall-local
 
 
@@ -2050,6 +2033,9 @@ uninstall-local:
 	rmdir $(pkgdatadir)/s57data 
 	rmdir $(pkgdatadir)/tcdata 
 	rmdir $(pkgdatadir)
+
+install-exec-hook:
+	chmod +s $(DESTDIR)$(bindir)/ocpnhelper
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

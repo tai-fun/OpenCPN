@@ -1,69 +1,75 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="16" >
+ <DocsAndViews NumberOfDocuments="17" >
   <Doc0 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/s52cnsy.cpp" >
    <View0 Type="Source" />
   </Doc0>
   <Doc1 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/s52plib.cpp" >
-   <View0 line="1064" Type="Source" />
+   <View0 line="104" Type="Source" />
   </Doc1>
   <Doc2 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/include/chcanv.h" >
-   <View0 line="424" Type="Source" />
+   <View0 line="62" Type="Source" />
   </Doc2>
   <Doc3 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/s57chart.cpp" >
-   <View0 line="4564" Type="Source" />
+   <View0 line="3170" Type="Source" />
   </Doc3>
   <Doc4 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/chart1.cpp" >
-   <View0 line="3490" Type="Source" />
+   <View0 line="3527" Type="Source" />
   </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/options.cpp" >
-   <View0 line="386" Type="Source" />
+  <Doc5 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/chartdb.cpp" >
+   <View0 line="396" Type="Source" />
   </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/nmea.cpp" >
-   <View0 line="1188" Type="Source" />
+  <Doc6 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/options.cpp" >
+   <View0 line="102" Type="Source" />
   </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/wvschart.cpp" >
-   <View0 line="128" Type="Source" />
+  <Doc7 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/include/dychart.h" >
+   <View0 line="68" Type="Source" />
   </Doc7>
-  <Doc8 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/mygdal/s57reader.cpp" >
-   <View0 line="392" Type="Source" />
+  <Doc8 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/include/macsercomm.h" >
+   <View0 line="9" Type="Source" />
   </Doc8>
-  <Doc9 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/mygdal/cpl_conv.cpp" >
-   <View0 line="1049" Type="Source" />
+  <Doc9 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/include/chart1.h" >
+   <View0 line="96" Type="Source" />
   </Doc9>
-  <Doc10 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/mygdal/cpl_error.cpp" >
-   <View0 line="303" Type="Source" />
+  <Doc10 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/include/nmea.h" >
+   <View0 line="290" Type="Source" />
   </Doc10>
-  <Doc11 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/myiso8211/ddfmodule.cpp" >
-   <View0 line="579" Type="Source" />
+  <Doc11 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/include/chartimg.h" >
+   <View0 line="131" Type="Source" />
   </Doc11>
-  <Doc12 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/myiso8211/ddfrecord.cpp" >
-   <View0 line="667" Type="Source" />
+  <Doc12 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/include/ocpn_pixel.h" >
+   <View0 line="70" Type="Source" />
   </Doc12>
-  <Doc13 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/mygdal/cpl_config.h" >
-   <View0 line="62" Type="Source" />
+  <Doc13 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/navutil.cpp" >
+   <View0 line="1460" Type="Source" />
   </Doc13>
-  <Doc14 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/mygdal/s57classregistrar.cpp" >
-   <View0 line="206" Type="Source" />
+  <Doc14 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/chcanv.cpp" >
+   <View0 line="4379" Type="Source" />
   </Doc14>
-  <Doc15 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/s57mgr.cpp" >
-   <View0 line="101" Type="Source" />
+  <Doc15 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/nmea.cpp" >
+   <View0 line="816" Type="Source" />
   </Doc15>
+  <Doc16 NumberOfViews="1" URL="file:///home/dsr/Projects/opencpn_sf/opencpn/src/concanv.cpp" >
+   <View0 line="99" Type="Source" />
+  </Doc16>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
    <breakpointList>
-    <breakpoint0 location="/home/dsr/Projects/opencpn_sf/opencpn/src/s57chart.cpp:3597" type="1" condition="" enabled="1" />
+    <breakpoint0 location="/home/dsr/Projects/opencpn_sf/opencpn/src/chartdb.cpp:360" type="1" condition="" enabled="1" />
+    <breakpoint1 location="/home/dsr/Projects/opencpn_sf/opencpn/src/chartdb.cpp:397" type="1" condition="" enabled="1" />
+    <breakpoint2 location="/home/dsr/Projects/opencpn_sf/opencpn/src/s57chart.cpp:3588" type="1" condition="" enabled="1" />
+    <breakpoint3 location="/home/dsr/Projects/opencpn_sf/opencpn/src/options.cpp:824" type="1" condition="" enabled="1" />
    </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>
    <bookmarks>
     <bookmark url="/home/dsr/Projects/opencpn_sf/opencpn/src/chart1.cpp" >
-     <mark line="1394" />
-     <mark line="1889" />
-     <mark line="1840" />
-     <mark line="1355" />
+     <mark line="1907" />
+     <mark line="1858" />
+     <mark line="1354" />
+     <mark line="1393" />
     </bookmark>
     <bookmark url="/home/dsr/Projects/opencpn_sf/opencpn/src/s52cnsy.cpp" >
      <mark line="1467" />

@@ -45,57 +45,6 @@ WX_RELEASE_NODOT = 28
 #################################################################################
 
 
-################################################################################
-
-# Specify the GDAL/OGR build type
-#
-# Opencpn uses the OGR/GDAL library for S57ENC support.
-# If USE_S57 is enabled (USE_S57 = 1), you must choose one.
-# Otherwise, ignore this section 
-# You may link against OGR/GDAL library in one of three ways
-#
-# Static:  Link against gdal.lib or gdald.lib static libraries.
-# DLL:  Link against gdal_i.lib, and so dynamically to gdalxx.dll
-# INTERNAL : Compile and link against src\mygdal, requiring no
-#            external GDAL dependencies
-
-#GDAL_LINK = STATIC
-#GDAL_LINK = DLL
-GDAL_LINK = INTERNAL
-
-#---------------------STATIC BUILD OPTION-------------------------------------
-# Specify static GDAL library Location and names
-GDAL_STATIC_BASE_LIB = "c:/gdal-1.2.0"
-GDAL_STATIC_LIB = $(GDAL_STATIC_BASE_LIB)"\gdal.lib"
-GDAL_STATIC_LIB_DEBUG = $(GDAL_STATIC_BASE_LIB)"\gdald.lib"
-
-# Specify the GDAL/OGR include directory location
-GDAL_STATIC_INC_BASE = "c:/GDALBuild/include"
-
-
-
-#----------------------DLL BUILD OPTION--------------------------------------
-# Specify GDAL DLL Import Library Location and name
-# Depending on which toolset built the GDAL dll,
-# the import library name may look like these examples:
-#   MSVC build.......GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\gdal_i.lib"
-#   MINGW32 build....GDAL_IMP_LIB = $(GDAL_BASE_LIB)"\libgdal13.a"
-# Debug versions are probably named the same.
-# Only required for external (i.e. STATIC or DLL) gdal library 
-
-GDAL_DLL_BASE_LIB = "c:/GDALBuild"
-GDAL_DLL_IMP_LIB = $(GDAL_DLL_BASE_LIB)"\lib\gdal_i.lib"
-GDAL_DLL_IMP_LIB_DEBUG = $(GDAL_DLL_BASE_LIB)"\lib\gdal_i.lib"
-
-# Specify the GDAL/OGR include directory location, for example
-GDAL_DLL_INC_BASE = "c:/GDALBuild/include"
-
-##################################################################################
-
-
-
-
-
 #################################################################################
 #  Probably do not need modifications in following....
 #################################################################################
@@ -364,7 +313,7 @@ PROJ_CXXFLAGS = $(__DEBUGINFO_0) $(__OPTIMIZEFLAG_2) $(__THREADSFLAG_5) &
 	$(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) &
 	$(__UNICODE_DEFINE_p) $(__GFXCTX_DEFINE_p) -i=$(SETUPHDIR) &
 	-i=.\include -wx -wcd=549 -wcd=656 -wcd=657 -wcd=667 -i=. $(__DLLFLAG_p) &
-	-wcd=726 -wcd=389 -wcd=716 &
+	-wcd=726 -wcd=389 -wcd=716 -wcd=391 &
 	-i=$(GDAL_INCLUDE) $(__DS57) $(__DGLUTESS) $(__DGLUDLL) &
 	-i=$(WX_BASE)\include -dNOPCH $(__RTTIFLAG_7) $(__EXCEPTIONSFLAG_8) $(CPPFLAGS) &
 	$(CXXFLAGS) -hc -fr=$*.err 
@@ -483,7 +432,8 @@ LINK32_OBJS= &
 	$(INTDIR)/chcanv.obj &
 	$(INTDIR)/chartimg.obj &
 	$(INTDIR)/rmb.obj &
- 	$(INTDIR)/cutil.obj
+ 	$(INTDIR)/cutil.obj &
+	$(INTDIR)/routeprop.obj
 
 ISO8211_OBJS = &
 	$(INTDIR)/ddfrecord.obj &
@@ -493,7 +443,6 @@ ISO8211_OBJS = &
 	$(INTDIR)/ddfmodule.obj &
     $(INTDIR)/ddfutils.obj
 
-!ifeq GDAL_LINK INTERNAL
 GDAL_OBJS = &
 	$(INTDIR)/gdal_misc.obj &
 	$(INTDIR)/cpl_csv.obj &
@@ -506,24 +455,10 @@ GDAL_OBJS = &
 	$(INTDIR)/cpl_vsisimple.obj &
 	$(INTDIR)/cpl_conv.obj &
 	$(INTDIR)/cplgetsymbol.obj &
-	$(INTDIR)/gml2ogrgeometry.obj &
-	$(INTDIR)/ogr_attrind.obj &
-	$(INTDIR)/ogr_fromepsg.obj &
-	$(INTDIR)/ogr_gensql.obj &
-	$(INTDIR)/ogr_nullattrind.obj &
-	$(INTDIR)/ogr_srs_dict.obj &
-	$(INTDIR)/ogr_srs_esri.obj &
-	$(INTDIR)/ogr_srs_proj4.obj &
-	$(INTDIR)/ogr_srs_xml.obj &
-	$(INTDIR)/ogr_srsnode.obj &
-	$(INTDIR)/ogr2gmlgeometry.obj &
 	$(INTDIR)/ograssemblepolygon.obj &
-	$(INTDIR)/ogrct.obj &
 	$(INTDIR)/ogrcurve.obj &
-	$(INTDIR)/ogrdatasource.obj &
 	$(INTDIR)/ogrfeature.obj &
 	$(INTDIR)/ogrfeaturedefn.obj &
-	$(INTDIR)/ogrfeaturequery.obj &
 	$(INTDIR)/ogrfielddefn.obj &
 	$(INTDIR)/ogrgeometry.obj &
 	$(INTDIR)/ogrgeometrycollection.obj &
@@ -537,22 +472,12 @@ GDAL_OBJS = &
 	$(INTDIR)/ogrpoint.obj &
 	$(INTDIR)/ogrpolygon.obj &
 	$(INTDIR)/ogrs57datasource.obj &
-	$(INTDIR)/ogrs57driver.obj &
 	$(INTDIR)/ogrs57layer.obj &
-	$(INTDIR)/ogrsfdriver.obj &
-	$(INTDIR)/ogrsfdriverregistrar.obj &
-	$(INTDIR)/ogrspatialreference.obj &
 	$(INTDIR)/ogrutils.obj &
 	$(INTDIR)/s57classregistrar.obj &
 	$(INTDIR)/s57featuredefns.obj &
-	$(INTDIR)/s57filecollector.obj &
 	$(INTDIR)/s57reader.obj &
-	$(INTDIR)/s57writer.obj &
-	$(INTDIR)/swq.obj &
 	$(INTDIR)/ddfrecordindex.obj
-!else
-GDAL_LINK =
-!endif
 
 !ifeq USE_S57 1
 S57_OBJS = &
@@ -737,9 +662,7 @@ DEP_CPP_CHART=&
 	.\include\about.h&
 	.\include\wificlient.h&
 	.\include\s52plib.h&
-	.\include\s57mgr.h&
 	.\include\thumbwin.h&
-	.\include\tcmgr.h&
 	.\include\s57chart.h
 
 
@@ -755,7 +678,6 @@ SOURCE=.\src\chartdb.cpp
 DEP_CPP_CHARTD=&
 	.\include\chartdb.h&
 	.\include\chartimg.h&
-	.\include\s57mgr.h&
 	.\include\s57chart.h&
 	.\include\chart1.h
 
@@ -996,22 +918,7 @@ $(OUTDIR)/s57chart.obj : .\src\s57chart.cpp $(DEP_CPP_S57CH)
 
 
 # End Source File
-################################################################################
-# Begin Source File
 
-SOURCE=.\src\s57mgr.cpp
-DEP_CPP_S57MG=&
-	$(GDAL_INCLUDE)\ogrsf_frmts.h&
-	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\s57mgr.h&
-	.\include\s57chart.h
-
-
-$(OUTDIR)/s57mgr.obj : .\src\s57mgr.cpp $(DEP_CPP_S57MG)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\s57mgr.cpp
-
-# End Source File
 ################################################################################
 # Begin Source File
 
@@ -1129,9 +1036,27 @@ $(OUTDIR)/about.obj : .\src\about.cpp
 ################################################################################
 # Begin Source File
 
+SOURCE=.\src\routeprop.cpp
+DEP_CPP_RTPRO=&
+	.\include\dychart.h&
+	.\include\chcanv.h&
+	.\include\routeman.h&
+	.\include\navutil.h&
+	.\include\georef.h&
+	.\include\chart1.h&
+	.\include\routeprop.h
+
+
+$(OUTDIR)/routeprop.obj : .\src\routeprop.cpp $(DEP_CPP_RTPRO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\routeprop.cpp
+
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=.\src\myiso8211\ddfutils.cpp
 DEP_CPP_DDFUT=&
-	.\include\iso8211.h&
+	.\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
@@ -1145,7 +1070,7 @@ $(OUTDIR)/ddfutils.obj : .\src\myiso8211\ddfutils.cpp $(DEP_CPP_DDFUT)
 
 SOURCE=.\src\myiso8211\ddffielddefn.cpp
 DEP_CPP_DDFFI=&
-	.\include\iso8211.h&
+	.\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
@@ -1159,7 +1084,7 @@ $(OUTDIR)/ddffielddefn.obj : .\src\myiso8211\ddffielddefn.cpp $(DEP_CPP_DDFFI)
 
 SOURCE=.\src\myiso8211\ddfmodule.cpp
 DEP_CPP_DDFMO=&
-	.\include\iso8211.h
+	.\src\mygdal\iso8211.h
 
 
 $(OUTDIR)/ddfmodule.obj : .\src\myiso8211\ddfmodule.cpp $(DEP_CPP_DDFMO)
@@ -1172,7 +1097,7 @@ $(OUTDIR)/ddfmodule.obj : .\src\myiso8211\ddfmodule.cpp $(DEP_CPP_DDFMO)
 
 SOURCE=.\src\myiso8211\ddfrecord.cpp
 DEP_CPP_DDFRE=&
-	.\include\iso8211.h&
+	.\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
@@ -1185,7 +1110,7 @@ $(OUTDIR)/ddfrecord.obj : .\src\myiso8211\ddfrecord.cpp $(DEP_CPP_DDFRE)
 
 SOURCE=.\src\myiso8211\ddfsubfielddefn.cpp
 DEP_CPP_DDFSU=&
-	.\include\iso8211.h&
+	.\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
@@ -1199,7 +1124,7 @@ $(OUTDIR)/ddfsubfielddefn.obj : .\src\myiso8211\ddfsubfielddefn.cpp $(DEP_CPP_DD
 
 SOURCE=.\src\myiso8211\ddffield.cpp
 DEP_CPP_DDFFIE=&
-	.\include\iso8211.h&
+	.\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
@@ -2799,286 +2724,6 @@ $(OUTDIR)/cplgetsymbol.obj : .\src\mygdal\cplgetsymbol.cpp $(DEP_CPP_CPLGE)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\gml2ogrgeometry.cpp
-
-
-DEP_CPP_GML2O=&
-	.\src\mygdal\cpl_minixml.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\ogr_srs_api.h
-
-
-$(OUTDIR)/gml2ogrgeometry.obj : .\src\mygdal\gml2ogrgeometry.cpp $(DEP_CPP_GML2O)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\gml2ogrgeometry.cpp
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_attrind.cpp
-
-DEP_CPP_OGR_A=&
-	.\src\mygdal\ogr_attrind.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\ogrsf_frmts.h&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogr_attrind.obj : .\src\mygdal\ogr_attrind.cpp $(DEP_CPP_OGR_A)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_attrind.cpp
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_fromepsg.cpp
-
-DEP_CPP_OGR_F=&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_csv.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-$(OUTDIR)/ogr_fromepsg.obj : .\src\mygdal\ogr_fromepsg.cpp $(DEP_CPP_OGR_F)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_fromepsg.cpp
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_gensql.cpp
-
-
-DEP_CPP_OGR_G=&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\swq.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h&
-    .\src\mygdal\ogr_gensql.h
-
-
-$(OUTDIR)/ogr_gensql.obj : .\src\mygdal\ogr_gensql.cpp $(DEP_CPP_OGR_G)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_gensql.cpp
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_nullattrind.cpp
-
-DEP_CPP_OGR_N=&
-	.\src\mygdal\ogr_attrind.h&
-	.\src\mygdal\ogrsf_frmts.h&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h
-
-
-$(OUTDIR)/ogr_nullattrind.obj : .\src\mygdal\ogr_nullattrind.cpp $(DEP_CPP_OGR_N)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_nullattrind.cpp
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_srs_dict.cpp
-
-
-DEP_CPP_OGR_S=&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogr_srs_dict.obj : .\src\mygdal\ogr_srs_dict.cpp $(DEP_CPP_OGR_S)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_srs_dict.cpp
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_srs_esri.cpp
-
-
-DEP_CPP_OGR_SR=&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\cpl_csv.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogr_srs_esri.obj : .\src\mygdal\ogr_srs_esri.cpp $(DEP_CPP_OGR_SR)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_srs_esri.cpp
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_srs_proj4.cpp
-
-DEP_CPP_OGR_SRS=&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogr_srs_proj4.obj : .\src\mygdal\ogr_srs_proj4.cpp $(DEP_CPP_OGR_SRS)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_srs_proj4.cpp
-
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_srs_xml.cpp
-
-
-DEP_CPP_OGR_SRS_=&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\cpl_minixml.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogr_srs_xml.obj : .\src\mygdal\ogr_srs_xml.cpp $(DEP_CPP_OGR_SRS_)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_srs_xml.cpp
-
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr_srsnode.cpp
-
-DEP_CPP_OGR_SRSN=&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogr_srsnode.obj : .\src\mygdal\ogr_srsnode.cpp $(DEP_CPP_OGR_SRSN)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr_srsnode.cpp
-
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogr2gmlgeometry.cpp
-
-
-DEP_CPP_OGR2G=&
-	.\src\mygdal\cpl_minixml.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\cpl_vsi.h
-
-
-
-
-$(OUTDIR)/ogr2gmlgeometry.obj : .\src\mygdal\ogr2gmlgeometry.cpp $(DEP_CPP_OGR2G)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogr2gmlgeometry.cpp
-
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\src\mygdal\ograssemblepolygon.cpp
 
 
@@ -3090,7 +2735,6 @@ DEP_CPP_OGRAS=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_vsi.h&
 	.\src\mygdal\cpl_error.h
 
@@ -3099,30 +2743,6 @@ DEP_CPP_OGRAS=&
 
 $(OUTDIR)/ograssemblepolygon.obj : .\src\mygdal\ograssemblepolygon.cpp $(DEP_CPP_OGRAS)
   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ograssemblepolygon.cpp
-
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogrct.cpp
-
-DEP_CPP_OGRCT=&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_vsi.h
-
-
-$(OUTDIR)/ogrct.obj : .\src\mygdal\ogrct.cpp $(DEP_CPP_OGRCT)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrct.cpp
 
 
 
@@ -3141,7 +2761,6 @@ DEP_CPP_OGRCU=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3160,38 +2779,6 @@ $(OUTDIR)/ogrcurve.obj : .\src\mygdal\ogrcurve.cpp $(DEP_CPP_OGRCU)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrdatasource.cpp
-
-
-DEP_CPP_OGRDA=&
-	.\src\mygdal\ogrsf_frmts.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_attrind.h&
-	.\src\mygdal\swq.h&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\ogr_gensql.h
-
-
-$(OUTDIR)/ogrdatasource.obj : .\src\mygdal\ogrdatasource.cpp $(DEP_CPP_OGRDA)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrdatasource.cpp
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\src\mygdal\ogrfeature.cpp
 
 DEP_CPP_OGRFE=&
@@ -3203,7 +2790,6 @@ DEP_CPP_OGRFE=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3233,7 +2819,6 @@ DEP_CPP_OGRFEA=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3244,37 +2829,6 @@ DEP_CPP_OGRFEA=&
 
 $(OUTDIR)/ogrfeaturedefn.obj : .\src\mygdal\ogrfeaturedefn.cpp $(DEP_CPP_OGRFEA)
    $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrfeaturedefn.cpp
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogrfeaturequery.cpp
-
-DEP_CPP_OGRFEAT=&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogrsf_frmts.h&
-	.\src\mygdal\ogr_attrind.h&
-	.\src\mygdal\swq.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogrfeaturequery.obj : .\src\mygdal\ogrfeaturequery.cpp $(DEP_CPP_OGRFEAT)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrfeaturequery.cpp
 
 
 
@@ -3294,7 +2848,6 @@ DEP_CPP_OGRFI=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3323,7 +2876,6 @@ DEP_CPP_OGRGE=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3350,7 +2902,6 @@ DEP_CPP_OGRGEO=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3379,7 +2930,6 @@ DEP_CPP_OGRGEOM=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3411,7 +2961,6 @@ DEP_CPP_OGRLA=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3440,7 +2989,6 @@ DEP_CPP_OGRLI=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3468,7 +3016,6 @@ DEP_CPP_OGRLIN=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3496,7 +3043,6 @@ DEP_CPP_OGRMU=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3525,7 +3071,6 @@ DEP_CPP_OGRMUL=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3553,7 +3098,6 @@ DEP_CPP_OGRMULT=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3582,7 +3126,6 @@ DEP_CPP_OGRPO=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3611,7 +3154,6 @@ DEP_CPP_OGRPOL=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3652,26 +3194,6 @@ $(OUTDIR)/ogrs57datasource.obj : .\src\mygdal\ogrs57datasource.cpp $(DEP_CPP_OGR
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrs57driver.cpp
-
-DEP_CPP_OGRS57=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_s57.h
-
-
-$(OUTDIR)/ogrs57driver.obj : .\src\mygdal\ogrs57driver.cpp $(DEP_CPP_OGRS57)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrs57driver.cpp
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\src\mygdal\ogrs57layer.cpp
 
 
@@ -3694,97 +3216,6 @@ $(OUTDIR)/ogrs57layer.obj : .\src\mygdal\ogrs57layer.cpp $(DEP_CPP_OGRS57L)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrsfdriver.cpp
-
-
-DEP_CPP_OGRSF=&
-	.\src\mygdal\ogrsf_frmts.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogrsfdriver.obj : .\src\mygdal\ogrsfdriver.cpp $(DEP_CPP_OGRSF)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrsfdriver.cpp
-
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogrsfdriverregistrar.cpp
-
-
-DEP_CPP_OGRSFD=&
-	.\src\mygdal\ogrsf_frmts.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogrsfdriverregistrar.obj : .\src\mygdal\ogrsfdriverregistrar.cpp $(DEP_CPP_OGRSFD)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrsfdriverregistrar.cpp
-
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\ogrspatialreference.cpp
-
-
-DEP_CPP_OGRSP=&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_srs_api.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
-
-
-
-
-$(OUTDIR)/ogrspatialreference.obj : .\src\mygdal\ogrspatialreference.cpp $(DEP_CPP_OGRSP)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrspatialreference.cpp
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\src\mygdal\ogrutils.cpp
 
 
@@ -3795,7 +3226,6 @@ DEP_CPP_OGRUT=&
 	.\src\mygdal\ogr_spatialref.h&
 	.\src\mygdal\cpl_port.h&
 	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_srs_api.h&
 	.\src\mygdal\cpl_string.h&
 	.\src\mygdal\cpl_conv.h&
 	.\src\mygdal\cpl_vsi.h&
@@ -3859,27 +3289,6 @@ $(OUTDIR)/s57featuredefns.obj : .\src\mygdal\s57featuredefns.cpp $(DEP_CPP_S57FE
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\s57filecollector.cpp
-
-
-DEP_CPP_S57FI=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\s57.h
-
-
-$(OUTDIR)/s57filecollector.obj : .\src\mygdal\s57filecollector.cpp $(DEP_CPP_S57FI)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\s57filecollector.cpp
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\src\mygdal\s57reader.cpp
 
 
@@ -3905,30 +3314,6 @@ $(OUTDIR)/s57reader.obj : .\src\mygdal\s57reader.cpp $(DEP_CPP_S57RE)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\s57writer.cpp
-
-
-DEP_CPP_S57WR=&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\s57.h
-
-
-$(OUTDIR)/s57writer.obj : .\src\mygdal\s57writer.cpp $(DEP_CPP_S57WR)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\s57writer.cpp
-
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\src\mygdal\cpl_conv.cpp
 
 DEP_CPP_CPL_CO=&
@@ -3945,21 +3330,6 @@ DEP_CPP_CPL_CO=&
 
 $(OUTDIR)/cpl_conv.obj : .\src\mygdal\cpl_conv.cpp $(DEP_CPP_CPL_CO)
    $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_conv.cpp
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\src\mygdal\swq.c
-DEP_CPP_SWQ_C=&
-	.\src\mygdal\swq.h
-
-
-$(OUTDIR)/swq.obj : .\src\mygdal\swq.c $(DEP_CPP_SWQ_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\swq.c
-
-
-
 
 # End Source File
 ################################################################################
