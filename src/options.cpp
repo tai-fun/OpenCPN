@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.6 2008/03/30 22:09:48 bdbcat Exp $
+ * $Id: options.cpp,v 1.7 2008/04/10 01:07:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -27,11 +27,17 @@
  *
 <<<<<<< options.cpp
  * $Log: options.cpp,v $
+ * Revision 1.7  2008/04/10 01:07:52  bdbcat
+ * Cleanup and fix EOL problem on wxTextCtrl
+ *
  * Revision 1.6  2008/03/30 22:09:48  bdbcat
  * Cleanup
  *
 =======
  * $Log: options.cpp,v $
+ * Revision 1.7  2008/04/10 01:07:52  bdbcat
+ * Cleanup and fix EOL problem on wxTextCtrl
+ *
  * Revision 1.6  2008/03/30 22:09:48  bdbcat
  * Cleanup
  *
@@ -98,17 +104,8 @@ extern s52plib          *ps52plib;
 //    Some constants
 #define ID_CHOICE_NMEA  wxID_HIGHEST + 1
 
-/*
-//begin rms
-#ifdef __WXOSX__
-#include "macutils.h"
-      char* paPortNames[MAX_SERIAL_PORTS] ;
-      int iPortNameCount ;
-#endif
-//end rms
-*/
 
-extern wxArrayString *EnumerateSerialPorts(void);
+extern wxArrayString *EnumerateSerialPorts(void);           // in chart1.cpp
 
 IMPLEMENT_DYNAMIC_CLASS( options, wxDialog )
 
@@ -188,6 +185,7 @@ bool options::Create( wxWindow* parent, wxWindowID id, const wxString& caption, 
 
 void options::CreateControls()
 {
+    unsigned int iPortIndex;
 
     options* itemDialog1 = this;
 
@@ -277,7 +275,7 @@ void options::CreateControls()
     m_itemNMEAListBox->Append( _T("None"));
 
       //    Fill in the listbox with all detected serial ports
-    for (unsigned int iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+    for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
           m_itemNMEAListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
 #ifndef OCPN_DISABLE_SOCKETS
@@ -350,31 +348,8 @@ void options::CreateControls()
       m_itemNMEAAutoListBox->Append( _T("None"));
 
       //    Fill in the listbox with all detected serial ports
-      for (unsigned int iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+      for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
             m_itemNMEAAutoListBox->Append( m_pSerialArray->Item(iPortIndex) );
-
-      /*
-#ifdef __WXMSW__
-      m_itemNMEAAutoListBox->Append( _T("COM1"));
-      m_itemNMEAAutoListBox->Append( _T("COM2"));
-      m_itemNMEAAutoListBox->Append( _T("COM3"));
-      m_itemNMEAAutoListBox->Append( _T("COM4"));
-
-//begin rms
-#elif defined (__WXOSX__)
-      memset(paPortNames,0x00,sizeof(paPortNames)) ;
-      iPortNameCount = FindSerialPortNames(&paPortNames[0],MAX_SERIAL_PORTS) ;
-      for (int iPortIndex=0;iPortIndex<iPortNameCount;iPortIndex++)
-      {
-          m_itemNMEAAutoListBox->Append( _T(paPortNames[iPortIndex]));
-          free(paPortNames[iPortIndex]) ;
-      }
-// end rms
-#else
-      m_itemNMEAAutoListBox->Append( _T("/dev/ttyS0"));
-      m_itemNMEAAutoListBox->Append( _T("/dev/ttyS1"));
-#endif
-      */
 
       wxString ap_com;
       if(pNMEA_AP_Port->Contains(_T("Serial")))
@@ -396,7 +371,7 @@ void options::CreateControls()
       m_itemAISListBox->Append( _T("None"));
 
       //    Fill in the listbox with all detected serial ports
-      for (unsigned int iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+      for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
             m_itemAISListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
 
@@ -818,7 +793,13 @@ void options::OnXidOkClick( wxCommandEvent& event )
                     {
                         dirname = pTextCtl->GetLineText(i);
                         if(!dirname.IsEmpty())
-                                m_pWorkDirList->Add(dirname);
+                        {
+                              //    This is a fix for OSX, which appends EOL to results of GetLineText()
+                              while (( dirname.Last() == wxChar(_T('\n')) ) || ( dirname.Last()  == wxChar(_T('\r')) ))
+                                   dirname.RemoveLast() ;
+
+                              m_pWorkDirList->Add(dirname);
+                        }
                     }
             }
       }
