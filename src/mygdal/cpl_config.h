@@ -5,7 +5,7 @@
 #undef HAVE_DOPRNT
 
 /* Define if you have the vprintf function.  */
-/* Note that some are predefined by wxWidgets	*/
+/* Note that some are predefined by wxWidgets   */
 
 #define HAVE_VPRINTF
 
@@ -13,14 +13,11 @@
 //DSR ....comment for MSW #define HAVE_VSNPRINTF
 #endif
 
-//DSR ....comment for MSW #define HAVE_SNPRINTF
-//#define vsnprintf _vsnprintf
 #ifdef __WXMSW__
 #undef HAVE_SNPRINTF
-//#define snprintf _snprintf
 #endif
 
-#ifdef WINDOWS		/*  This definition comes from cpl_port.h  */
+#ifdef WINDOWS          /*  This definition comes from cpl_port.h  */
 #undef HAVE_SNPRINTF
 #endif
 
@@ -38,7 +35,7 @@
 /* Define if you have the <stdint.h> header file.  */
 #undef HAVE_STDINT_H
 
-#undef HAVE_LIBDL 
+#undef HAVE_LIBDL
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
@@ -53,16 +50,5 @@
 
 /* #define CPL_DISABLE_DLL */
 
-
-//	MSW doesn't do getenv properly.
-//	getenv() is needed by GDAL, so...
-//	Replacement function is in s57mgr.cpp
-#ifdef __WXMSW__
-#ifndef __MYGETENV__
-#define __MYGETENV__
-#define getenv mygetenv
-
-#endif
-#endif	//__WXMSW__
 
 #endif

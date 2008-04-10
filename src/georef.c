@@ -51,8 +51,11 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 
 #endif
 
+#ifdef __MSVC__
+#define snprintf mysnprintf
+#endif
 
-CPL_CVSID("$Id: georef.c,v 1.7 2008/03/30 22:32:55 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.8 2008/04/10 01:04:50 bdbcat Exp $");
 
 
 /* For NAD27 shift table */

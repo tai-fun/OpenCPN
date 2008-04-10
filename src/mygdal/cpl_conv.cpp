@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: cpl_conv.cpp,v 1.2 2008/04/10 01:09:45 bdbcat Exp $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: cpl_conv.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/04/10 01:09:45  bdbcat
+ * Cleanup for snprintf
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
@@ -148,7 +151,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: cpl_conv.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: cpl_conv.cpp,v 1.2 2008/04/10 01:09:45 bdbcat Exp $");
 
 static char **papszConfigOptions = NULL;
 
@@ -1046,8 +1049,8 @@ const char *CPLGetConfigOption( const char *pszKey, const char *pszDefault )
 {
     const char *pszResult = CSLFetchNameValue( papszConfigOptions, pszKey );
 
-    if( pszResult == NULL )
-        pszResult = getenv( pszKey );
+//    if( pszResult == NULL )
+//        pszResult = getenv( pszKey );
 
     if( pszResult == NULL )
         return pszDefault;
