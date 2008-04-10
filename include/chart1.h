@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.12 2008/03/30 23:21:21 bdbcat Exp $
+ * $Id: chart1.h,v 1.13 2008/04/10 01:01:32 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -27,11 +27,17 @@
  *
 <<<<<<< chart1.h
  * $Log: chart1.h,v $
+ * Revision 1.13  2008/04/10 01:01:32  bdbcat
+ * Cleanup
+ *
  * Revision 1.12  2008/03/30 23:21:21  bdbcat
  * *** empty log message ***
  *
 =======
  * $Log: chart1.h,v $
+ * Revision 1.13  2008/04/10 01:01:32  bdbcat
+ * Cleanup
+ *
  * Revision 1.12  2008/03/30 23:21:21  bdbcat
  * *** empty log message ***
  *
@@ -84,23 +90,18 @@
 #include "cpl_error.h"
 
 
-// begin rms
-//#if defined(__WXOSX__) || defined(__LINUX__)
 enum NMEA_EVENT_STATE
 {
       NMEA_STATE_NONE = 0 ,
       NMEA_STATE_RDY,
       NMEA_STATE_DONE
 } ;
-//#endif
-// end rms
 
 extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
                              const char * pszErrorMsg );
 
-#ifdef __WXMSW__
 wxArrayString *EnumerateSerialPorts(void);
-#endif
+
 
 //----------------------------------------------------------------------------
 //   constants

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.cpp,v 1.4 2008/03/30 22:27:32 bdbcat Exp $
+ * $Id: ocpn_pixel.cpp,v 1.5 2008/04/10 01:03:09 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Optimized wxBitmap Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ocpn_pixel.cpp,v $
+ * Revision 1.5  2008/04/10 01:03:09  bdbcat
+ * Cleanup
+ *
  * Revision 1.4  2008/03/30 22:27:32  bdbcat
  * Update for Mac OSX/Unicode
  *
@@ -115,7 +118,7 @@
 #endif
 
 
-CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.4 2008/03/30 22:27:32 bdbcat Exp $");
+CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.5 2008/04/10 01:03:09 bdbcat Exp $");
 
 
 #ifdef  __WXX11__
@@ -289,6 +292,7 @@ PixelCache::PixelCache(int width, int height, int depth)
     m_depth = depth;
     m_pbm = NULL;
     m_rgbo = RGB;                        // default value;
+    pData = NULL;
 
     line_pitch_bytes =
             bytes_per_pixel = BPP / 8;

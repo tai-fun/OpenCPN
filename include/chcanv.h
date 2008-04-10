@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.12 2008/03/30 23:26:50 bdbcat Exp $
+ * $Id: chcanv.h,v 1.13 2008/04/10 00:58:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.13  2008/04/10 00:58:53  bdbcat
+ * Cleanup
+ *
  * Revision 1.12  2008/03/30 23:26:50  bdbcat
  * Cleanup
  *
@@ -54,13 +57,7 @@
 
 #include "bbox.h"
 
-#ifdef __WXMSW__
 #include <wx/datetime.h>
-#endif
-
-#ifdef __WXOSX__              // begin rms
-#include <wx/datetime.h>
-#endif                        // end rms
 
 //----------------------------------------------------------------------------
 //    Forward Declarations

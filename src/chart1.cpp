@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.21 2008/03/31 00:23:06 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.22 2008/04/10 01:06:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -27,6 +27,9 @@
  *
 <<<<<<< chart1.cpp
  * $Log: chart1.cpp,v $
+ * Revision 1.22  2008/04/10 01:06:38  bdbcat
+ * Cleanup
+ *
  * Revision 1.21  2008/03/31 00:23:06  bdbcat
  * Correct merge problems
  *
@@ -35,6 +38,9 @@
  *
 =======
  * $Log: chart1.cpp,v $
+ * Revision 1.22  2008/04/10 01:06:38  bdbcat
+ * Cleanup
+ *
  * Revision 1.21  2008/03/31 00:23:06  bdbcat
  * Correct merge problems
  *
@@ -116,13 +122,7 @@
 #include "chartimg.h"               // for ChartBaseBSB
 #include "routeprop.h"
 
-#ifdef __WXMSW__
 #include <wx/image.h>
-#endif
-
-#ifdef __WXMAC__                          // begin rms
-#include <wx/image.h>
-#endif                                    // end rms
 
 // begin rms
 #ifdef __WXOSX__
@@ -146,7 +146,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.21 2008/03/31 00:23:06 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.22 2008/04/10 01:06:38 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -213,7 +213,7 @@ wxString        *pTC_Dir;
 wxString        *pHome_Locn;
 wxString        *pWVS_Locn;
 wxString        *pInit_Chart_Dir;
-wxString        *pcsv_locn;
+wxString        *g_pcsv_locn;
 
 int             user_user_id;
 int             file_user_id;
@@ -338,7 +338,7 @@ int               g_iNMEAEventState = NMEA_STATE_NONE ;
 #endif
 
 // begin rms
-#if defined(__WXOSX__) || defined(__LINUX__)
+#ifdef __POSIX__
 wxDateTime*       g_pMMEAeventTime = NULL ;
 uint64_t          g_ulLastNEMATicktime = 0 ;
 #endif
@@ -512,21 +512,20 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pHome_Locn->Append(_T("/"));
 #endif
 
+#ifdef __WXMAC__
+        pHome_Locn->Append(_T("openCPNfiles/"));                // avoid clutter in the home directory
+#endif
+
+        // create the opencpn "home" directory if we need to
+        wxFileName wxHomeFiledir(*pHome_Locn) ;
+        if(true != wxHomeFiledir.DirExists(wxHomeFiledir.GetPath()))
+            if(!wxHomeFiledir.Mkdir(wxHomeFiledir.GetPath()))
+                  {
+                        wxASSERT_MSG(false,_T("Cannot create config file directory for log directory"));
+                        return false ;
+                  }
 
 //      Establish Log File location
- // begin rms
-#ifdef __WXMAC__
-        pHome_Locn->Append(_T("openCPNfiles/"));                                    // avoid clutter in the home directory
-            // create the directory if we need too
-        wxFileName wxHomeFiledir(*pHome_Locn) ;
-                  if(true != wxHomeFiledir.DirExists(wxHomeFiledir.GetPath()))
-                                if(!wxHomeFiledir.Mkdir(wxHomeFiledir.GetPath()))
-                                {
-                                    wxASSERT_MSG(false,_T("Cannot create config file directory for log directory"));
-                                     return false ;
-                                }
-#endif // end rms
-
         wxString log(*pHome_Locn);
         log.Append(_T("opencpn.log"));
         char *mode = "a";
@@ -555,7 +554,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pNMEA_AP_Port = new wxString();
         pWIFIServerName = new wxString();
         pAIS_Port = new wxString();
-        pcsv_locn = new wxString();
+        g_pcsv_locn = new wxString();
         pInit_Chart_Dir = new wxString();
 
 
@@ -603,11 +602,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pSData_Locn->Append(std_path.GetDataDir());
         pSData_Locn->Append("\\");
 
-// begin rms
 #elif defined __WXMAC__
         // put in common directory for the user
         pSData_Locn = pHome_Locn ;
-// end rms
+
 #else
 //        wxString prefix(wxString(INSTALL_PREFIX,  wxConvUTF8));
 //        pSData_Locn->Append(prefix);
@@ -642,15 +640,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
               if(mdlg.ShowModal() == wxID_YES)
               {
                   wxLogMessage(_T("Creating new Config_File: ") + Config_File);
-// begin rms
-#ifdef __WXMAC__
+
                   if(true != config_test_file_name.DirExists(config_test_file_name.GetPath()))
-                   if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
+                       if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
                                wxLogMessage(_T("Cannot create config file directory for ") + Config_File);
-#else
-                  if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
-                              wxLogMessage(_T("Cannot create config file directory for ") + Config_File);
-#endif // end rms
               }
               else
               {
@@ -671,13 +664,13 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 //      If the config file contains an entry for s57 .csv files, use it.
 //      Otherwise, default to [shared data dir]/s57_data
-        if(pcsv_locn->IsEmpty())
+        if(g_pcsv_locn->IsEmpty())
         {
-            pcsv_locn->Append(*pSData_Locn);
-            pcsv_locn->Append(_T("s57data"));
+            g_pcsv_locn->Append(*pSData_Locn);
+            g_pcsv_locn->Append(_T("s57data"));
         }
 
-// Todo Maybe verify that the required support files are really present in pcsv_locn
+// Todo Maybe verify that the required support files are really present in g_pcsv_locn
 // If not, then look in fixed location *pSData_Locn/s57data
 
         // s57attributes.csv
@@ -687,19 +680,19 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         // S52RAZDS.RLE
         // SP52COL.DAT
 
-        ps52plib = new s52plib(*pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
+        ps52plib = new s52plib(*g_pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
 
         //  If the library load failed, try looking for the s57 data elsewhere
         if(!ps52plib->m_bOK)
         {
             delete ps52plib;
 
-            pcsv_locn->Clear();
-            pcsv_locn->Append(*pSData_Locn);
-            pcsv_locn->Append(_T("s57data"));
+            g_pcsv_locn->Clear();
+            g_pcsv_locn->Append(*pSData_Locn);
+            g_pcsv_locn->Append(_T("s57data"));
 
-            wxLogMessage(_T("Looking for s57data in ") + *pcsv_locn);
-            ps52plib = new s52plib(*pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
+            wxLogMessage(_T("Looking for s57data in ") + *g_pcsv_locn);
+            ps52plib = new s52plib(*g_pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
 
             if(!ps52plib->m_bOK)
             {
@@ -708,7 +701,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         }
 
 // Todo Maybe initialize only when an s57 chart is actually opened???
-        s57_initialize(*pcsv_locn, flog);
+        s57_initialize(*g_pcsv_locn, flog);
 
 
 #endif  // S57
@@ -758,13 +751,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pConfig->LoadMyConfig(1);
 
 
-        //  Set up the frame initial visual parameters
-// begin rms
-#ifdef __WXOSX__
-          if (false == ValidateSerialPortName(pNMEADataSource->mb_str(),MAX_SERIAL_PORTS))
-                  *pNMEADataSource = _T("NONE") ;
-#endif
-// end rms
+//  Set up the frame initial visual parameters
 //      Default size, resized later
         wxSize new_frame_size(-1, -1);
         int cx, cy, cw, ch;
@@ -807,6 +794,15 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         stats = new StatWin(gFrame);
 
+#ifdef __WXOSX__
+        if (false == ValidateSerialPortName(pNMEADataSource->mb_str(),MAX_SERIAL_PORTS))
+              *pNMEADataSource = _T("NONE") ;
+        if (false == ValidateSerialPortName(pAIS_Port->mb_str(),MAX_SERIAL_PORTS))
+              *pAIS_Port = _T("NONE") ;
+        if (false == ValidateSerialPortName(pNMEA_AP_Port->mb_str(), MAX_SERIAL_PORTS))
+              *pNMEA_AP_Port = _T("NONE") ;
+#endif
+
         pNMEA0183 = new NMEA0183();
         nmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource);
 
@@ -814,23 +810,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port);
 
         pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port);
-// begin rms
-#ifdef __WXOSX__
-          if (false == ValidateSerialPortName(pAIS_Port->mb_str(),MAX_SERIAL_PORTS))
-                  *pNMEADataSource = _T("NONE") ;
-#endif
-            // end rms
 
 #ifdef USE_WIFI_CLIENT
-            // begin rms
-#ifdef __WXOSX__
-          if (false == ValidateSerialPortName(pNMEA_AP_Port->mb_str(), MAX_SERIAL_PORTS))
-                  *pNMEADataSource = _T("NONE") ;
-#endif
-            // end rms
         pWIFI = new WIFIWindow(gFrame, *pWIFIServerName );
 #endif
-
 
         pthumbwin = new ThumbWin(gFrame);
 
@@ -844,7 +827,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         if(g_bframemax)
             gFrame->Maximize(true);
 
-
+/*
 #ifdef USE_S57
 //      Try to validate the ISO8211 library
 //      especially the ability to do ddfrecord updates
@@ -859,7 +842,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
             mdlg.ShowModal();
         }
 #endif
-
+*/
 
 //      Try to load the current chart list Data file
         ChartData = new ChartDB(gFrame);
@@ -953,7 +936,7 @@ int MyApp::OnExit()
         delete pChartListFileName;
         delete pHome_Locn;
         delete pSData_Locn;
-        delete pcsv_locn;
+        delete g_pcsv_locn;
         delete pTC_Dir;
         delete phost_name;
         delete pInit_Chart_Dir;
@@ -1519,9 +1502,20 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
             break;
     }
 
+#ifdef __WXOSX__
+    // RMS Problems with 2.8.3 on the mac and Destroy toolbar
+    //DestroyMyToolbar();
+    if (0 == toolBar)
+{
+      toolBar = CreateAToolbar();
+      SetToolBar((wxToolBar *)toolBar);
+}
+#else
     DestroyMyToolbar();
     toolBar = CreateAToolbar();
     SetToolBar((wxToolBar *)toolBar);
+#endif
+
 
     //  Set background
     toolBar->SetBackgroundColour(back_color);
@@ -1558,11 +1552,8 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
 {
       wxLogMessage(_T("opencpn::MyFrame exiting cleanly..."));
 
-// begin rms
-//#ifdef __WXOSX__
       quitflag++ ;
-//#endif // __WXOSX__
-// end rms
+
       FrameTimer1.Stop();
 
     /*
@@ -2215,7 +2206,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
       }
 
 //      Update the memory status, and display
-#ifdef __LINUX__
+#ifdef __WXGTK__
       int mem_current;
       GetMemoryStatus(mem_total, mem_current);
 
@@ -2513,7 +2504,11 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
         toolBar->DeleteTool(ID_TBEXIT);
 
 //      Delete the current status tool
+//  begin rms
+#ifndef __WXOSX__
         toolBar->DeleteTool(ID_TBSTAT);
+#endif
+// end rms
        }
 
 //      Create the new control tool
@@ -3498,49 +3493,17 @@ void MyPrintout::DrawPageOne(wxDC *dc)
 }
 
 
-WX_DECLARE_STRING_HASH_MAP( wxString, EnvHash );
-static EnvHash env;
-
-
-//----------------------------------------------------------------------------------
-//      mygetenv
-//
-//      Replacement for posix getenv() which works for __WXMSW__
-//      Todo Make this thing into a couple of string arrays to stop leakage
-//----------------------------------------------------------------------------------
-
-
-extern "C" char *mygetenv(char *pvar)
-{
-        wxString key(wxString(pvar, wxConvUTF8));
-        wxString test_val = env[key];
-        if(test_val.Len())
-        {
-                pval->Empty();
-                pval->Append(wxString(test_val));
-                return((char *)pval->c_str());
-
-        }
-        else
-        {
-                wxString val;
-                wxGetEnv(key, &val);
-                env[key] = val;
-                pval->Empty();
-                pval->Append(wxString(val));
-                return((char *)pval->c_str());
-        }
-
-}
-
-
 /*
 *     Enumerate all the serial ports on the system
 *
 *     wxArrayString *EnumerateSerialPorts(void)
 
-*     Very system specific, unaviodably.
+*     Very system specific, unavoidably.
 */
+
+#ifdef __WXGTK__
+extern "C" int wait(int *);                     // POSIX wait() for process
+#endif
 
 wxArrayString *EnumerateSerialPorts(void)
 {
@@ -3554,8 +3517,8 @@ wxArrayString *EnumerateSerialPorts(void)
 *     and /proc/tty/driver/usbserial to identify
 *     available serial ports.
 *     A complicating factor is that most (all??) linux
-*     systems require root prvileges to access these files.
-*     We will use suid method here, despite implied vulnerability.
+*     systems require root privileges to access these files.
+*     We will use a helper program method here, despite implied vulnerability.
 */
 
 char buf[256]; // enough to hold one line from serial devices list
@@ -3564,23 +3527,44 @@ char right_digit;
 int port_num;
 FILE *f;
 
+      pid_t pID = vfork();
 
+      if (pID == 0)                // child
+      {
 //    Temporarily gain root privileges
-      seteuid(file_user_id);
+            seteuid(file_user_id);
+
+//  Execute the helper program
+            execlp("ocpnhelper", "ocpnhelper", "-T", NULL);
+
+//  Return to user privileges
+            seteuid(user_user_id);
+
+            wxLogMessage(_T("Warning: ocpnhelper failed...."));
+            _exit(0); // If exec fails then exit forked process.
+       }
+
+
+       wait(NULL);                  // for the child to quit
 
 //    Read and parse the files
 
 /*
       * see if we have any traditional ttySx ports available
 */
-      f = fopen("/proc/tty/driver/serial", "r");
+      f = fopen("/var/tmp/serial", "r");
 
       if (f != NULL)
       {
+            wxLogMessage(_T("Parsing copy of /proc/tty/driver/serial..."));
 
             /* read in each line of the file */
             while(fgets(buf, sizeof(buf), f) != NULL)
             {
+                  wxString sm(buf, wxConvUTF8);
+                  sm.Prepend(_T("   "));
+                  sm.Replace(_T("\n"), _T(" "));
+                  wxLogMessage(sm);
 
                   /* if the line doesn't start with a number get the next line */
                   if (buf[0] < '0' || buf[0] > '9')
@@ -3621,16 +3605,20 @@ FILE *f;
 /*
       * Same for USB ports
 */
-      f = fopen("/proc/tty/driver/usb-serial", "r");
-      if (f == NULL)
-            f = fopen("/proc/tty/driver/usbserial", "r");
+      f = fopen("/var/tmp/usbserial", "r");
 
       if (f != NULL)
       {
+            wxLogMessage(_T("Parsing copy of /proc/tty/driver/usbserial..."));
 
             /* read in each line of the file */
             while(fgets(buf, sizeof(buf), f) != NULL)
             {
+
+                  wxString sm(buf, wxConvUTF8);
+                  sm.Prepend(_T("   "));
+                  sm.Replace(_T("\n"), _T(" "));
+                  wxLogMessage(sm);
 
                   /* if the line doesn't start with a number get the next line */
                   if (buf[0] < '0' || buf[0] > '9')
@@ -3667,8 +3655,6 @@ FILE *f;
             fclose(f);
       }
 
-      /*  Return to user privileges */
-      seteuid(user_user_id);
 
       //    As a fallback, in case seteuid doesn't work....
       //    provide some defaults
@@ -3682,6 +3668,23 @@ FILE *f;
             preturn->Add( _T("/dev/ttyUSB0"));
             preturn->Add( _T("/dev/ttyUSB1"));
       }
+
+//    Clean up the temporary files created by helper.
+      pid_t cpID = vfork();
+
+      if (cpID == 0)                // child
+      {
+//    Temporarily gain root privileges
+            seteuid(file_user_id);
+
+//  Execute the helper program
+            execlp("ocpnhelper", "ocpnhelper", "-U", NULL);
+
+//  Return to user privileges
+            seteuid(user_user_id);
+            _exit(0); // If exec fails then exit forked process.
+      }
+
 #endif      // __WXGTK__
 
 #ifdef __WXOSX__

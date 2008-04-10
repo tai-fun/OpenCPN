@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.13 2008/03/30 22:19:19 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.14 2008/04/10 01:09:01 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,11 +27,17 @@
  *
 <<<<<<< s57chart.cpp
  * $Log: s57chart.cpp,v $
+ * Revision 1.14  2008/04/10 01:09:01  bdbcat
+ * Cleanup
+ *
  * Revision 1.13  2008/03/30 22:19:19  bdbcat
  * Improve messages
  *
 =======
  * $Log: s57chart.cpp,v $
+ * Revision 1.14  2008/04/10 01:09:01  bdbcat
+ * Cleanup
+ *
  * Revision 1.13  2008/03/30 22:19:19  bdbcat
  * Improve messages
  *
@@ -101,7 +107,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.13 2008/03/30 22:19:19 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.14 2008/04/10 01:09:01 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -119,6 +125,7 @@ const char *MyCSVGetField( const char * pszFilename,
 
 extern s52plib  *ps52plib;
 extern S57ClassRegistrar *g_poRegistrar;
+extern wxString          *g_pcsv_locn;
 
 extern int    user_user_id;
 extern int    file_user_id;
@@ -861,14 +868,10 @@ s57chart::s57chart()
     pRigidATONArray = NULL;
 
     tmpup_array = NULL;
-    m_pcsv_locn = NULL;
+    m_pcsv_locn = new wxString(*g_pcsv_locn);
 
     pDepthUnits->Append(_T("METERS"));
     m_depth_unit_id = DEPTH_UNIT_METERS;
-
-    wxString csv_dir;
-    if(wxGetEnv(_T("S57_CSV"), &csv_dir))
-        m_pcsv_locn = new wxString(csv_dir);
 
     bGLUWarningSent = false;
 
@@ -1558,10 +1561,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                                 int most_recent_update_file = GetUpdateFileArray(DirName, NULL);
 
                                 if(last_update != most_recent_update_file)
-                                {
-                                    bool bupdate_possible = s57_ddfrecord_test();
-                                    bbuild_new_senc = bupdate_possible;
-                                }
+                                    bbuild_new_senc = true;
 
                                 else if(senc_file_version != CURRENT_SENC_FORMAT_VERSION)
                                     bbuild_new_senc = true;
@@ -2122,7 +2122,7 @@ int s57chart::CountUpdates( const wxString& DirName, wxString &LastUpdateDate)
 
 
             //      Extract the date field from the last of the update files
-            //      which is by definition a vail, present update file....
+            //      which is by definition a valid, present update file....
             bool bSuccess;
             DDFModule oUpdateModule;
 
@@ -2152,7 +2152,7 @@ int s57chart::BuildS57File(const wxString& FullPath)
 {
       wxStopWatch sw_build;
 
-      wxString msg0(_T("Building SENC file for"));
+      wxString msg0(_T("Building SENC file for "));
       msg0.Append(FullPath);
       wxLogMessage(msg0);
 
@@ -2168,9 +2168,6 @@ int s57chart::BuildS57File(const wxString& FullPath)
     s57file.SetExt(_T("S57"));
 
     OGREnvelope xt;
-
-    //      Only allow updates if ISO8211 library can do it.
-    bool benable_update = s57_ddfrecord_test();
 
 
     wxString date000;
@@ -2196,7 +2193,7 @@ int s57chart::BuildS57File(const wxString& FullPath)
     int nSuccess;
     nGeoRecords = pr->GetIntSubfield("DSSI", 0, "NOGR", 0, &nSuccess);
 
-// Todo I'll use ISDT here... but what is UADT?
+//  Use ISDT here, which is the same as UADT for .000 files
     char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0, &nSuccess));
     if(u)
         date000 = wxString(u, wxConvUTF8);
@@ -2269,8 +2266,7 @@ int s57chart::BuildS57File(const wxString& FullPath)
 
     int last_applied_update = 0;
     wxString LastUpdateDate = date000;
-    if(benable_update)
-        last_applied_update = CountUpdates( s57file.GetPath((int)wxPATH_GET_SEPARATOR), LastUpdateDate);
+    last_applied_update = CountUpdates( s57file.GetPath((int)wxPATH_GET_SEPARATOR), LastUpdateDate);
 
     fprintf(fps57, "UPDT=%d\n", last_applied_update);
 
@@ -2312,15 +2308,10 @@ int s57chart::BuildS57File(const wxString& FullPath)
     CPLPushErrorHandler( OpenCPN_OGRErrorHandler );
 
 
-    //  Read all features, layer by layer
-    //  Using the api defined by <ogrsf_frmts.h>
     bool bcont = true;
     int iObj = 0;
     OGRwkbGeometryType geoType;
     wxString sobj;
-//    int iLayObj;
-
-    //int nLayers = poDS->GetLayerCount();
 
     wxStopWatch sw_polygon;
     sw_polygon.Pause();
@@ -2336,8 +2327,15 @@ int s57chart::BuildS57File(const wxString& FullPath)
 
 
 
+    //  Here comes the actual ISO8211 file reading
     OGRS57DataSource *poS57DS = new OGRS57DataSource;
     poS57DS->SetS57Registrar(g_poRegistrar);
+
+    //  Set up the options
+    char ** papszReaderOptions = NULL;
+    papszReaderOptions = CSLSetNameValue(papszReaderOptions, S57O_LNAM_REFS, "ON" );
+    papszReaderOptions = CSLSetNameValue( papszReaderOptions, S57O_UPDATES, "ON");
+    poS57DS->SetOptionList(papszReaderOptions);
 
     wxStopWatch sw_ingest;
     poS57DS->Open(FullPath.mb_str(), TRUE);
@@ -2701,12 +2699,14 @@ int s57chart::BuildS57File(const wxString& FullPath)
 
       sw_build.Pause();
 
+/*
       wxLogMessage(_T("sw_build: %ld"), sw_build.Time());
       wxLogMessage(_T("sw_ingest: %ld"), sw_ingest.Time());
       wxLogMessage(_T("sw_polygon: %ld"), sw_polygon.Time());
       wxLogMessage(_T("sw_other: %ld"), sw_other.Time());
       wxLogMessage(_T("sw_create_senc_record: %ld"), sw_create_senc_record.Time());
       wxLogMessage(_T("sw_get_next_feature: %ld"), sw_get_next_feature.Time());
+*/
 
       return ret_code;
 }
@@ -3141,18 +3141,10 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
 
                                 const char *pType = OGRFieldDefn::GetFieldTypeName(poFDefn->GetType()) ;
 
-#ifdef __MSVC__
-                                _snprintf( line, MAX_HDR_LINE - 2, "  %s (%c) = %s",
-                                         poFDefn->GetNameRef(),
-                                         *pType,
-                                         pFeature->GetFieldAsString( iField ));
-#else
                                 snprintf( line, MAX_HDR_LINE - 2, "  %s (%c) = %s",
                                          poFDefn->GetNameRef(),
                                          *pType,
                                          pFeature->GetFieldAsString( iField ));
-#endif
-
 
                         sheader += wxString(line, wxConvUTF8);
                         sheader += '\n';
@@ -3170,7 +3162,6 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
               int nqual = pp->getnQual();
               if(10 != nqual)                         // only add attribute if nQual is not "precisely known"
               {
-// for msw                    _snprintf( line, MAX_HDR_LINE - 2, "  %s (%c) = %d","QUALTY", 'I', nqual);
                     snprintf( line, MAX_HDR_LINE - 2, "  %s (%c) = %d","QUALTY", 'I', nqual);
                     sheader += wxString(line, wxConvUTF8);
                     sheader += '\n';
@@ -4134,7 +4125,7 @@ void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
     char buf[ERR_BUF_LEN + 1];
 
     if( eErrClass == CE_Debug )
-        sprintf( buf, "%s\n", pszErrorMsg );
+        sprintf( buf, "%s", pszErrorMsg );
     else if( eErrClass == CE_Warning )
         sprintf( buf, "Warning %d: %s\n", nError, pszErrorMsg );
     else
@@ -4197,12 +4188,6 @@ const char *MyCSVGetField( const char * pszFilename,
 }
 
 
-//------------------------------------------------------------------------
-//
-//          Some s57 Utilities
-//          Meant to be called "bare", usually with no class instance.
-//
-//------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
 //  Initialize GDAL/OGR S57ENC support
@@ -4211,61 +4196,6 @@ const char *MyCSVGetField( const char * pszFilename,
 int s57_initialize(const wxString& csv_dir, FILE *flog)
 {
 
-    //  MS Windows Build Note:
-    //  In a .dll GDAL build, the following _putenv() call DOES NOT properly
-    //  set the environment accessible to GDAL/OGR.  So, S57 Reader options
-    //  are not set AT ALL.  Defaults will apply.
-    //  See the README file
-
-#ifdef __WXMSW__
-    wxString envs1(_T("S57_CSV="));
-    envs1.Append(csv_dir);
-    _putenv((char *) envs1.mb_str());
-#else
-    wxSetEnv( _T("S57_CSV"), csv_dir);
-#endif
-
-
-        //  Set some S57 OGR Options thru environment variables
-
-        //  n.b. THERE IS A BUG in GDAL/OGR 1.2.0 wherein the sense of the flag UPDATES= is reversed.
-        //  That is, anything other than UPDATES=APPLY selects update mode.
-        //  Conversely, UPDATES=APPLY deselects updates.
-        //  Fixed in GDAL 1.3.2, at least, maybe earlier??
-        //  Detect by GDALVersion check
-
-    const char *version_string = GDALVersionInfo("VERSION_NUM");
-    int ver_num = (int)CPLScanLong((char *)version_string, 4);
-
-    wxString set1, set2;
-
-    set1 =_T("LNAM_REFS=ON");
-    set1.Append(_T(",SPLIT_MULTIPOINT=OFF"));
-    set1.Append(_T(",ADD_SOUNDG_DEPTH=OFF"));
-    set1.Append(_T(",PRESERVE_EMPTY_NUMBERS=OFF"));
-    if(ver_num >= 1320)
-        set1.Append(_T(",RETURN_PRIMITIVES=OFF"));              // older GDALs handle some "off" option poorly
-    set1.Append(_T(",RETURN_LINKAGES=OFF"));
-
-
-
-    if(ver_num < 1320)
-        set2 = _T(",UPDATES=BUGBUG");               // updates ENABLED
-    else
-        set2 = _T(",UPDATES=APPLY");
-
-    set1.Append(set2);
-
-#ifdef __WXMSW__
-    wxString envs2(_T("OGR_S57_OPTIONS="));
-    envs2.Append(set1);
-    _putenv( (char *)envs2.mb_str());
-
-#else
-    wxSetEnv(_T("OGR_S57_OPTIONS"),set1);
-#endif
-
-
     //      Get one instance of the s57classregistrar,
     //      And be prepared to give it to any module that needs it
 
@@ -4273,248 +4203,29 @@ int s57_initialize(const wxString& csv_dir, FILE *flog)
     {
         g_poRegistrar = new S57ClassRegistrar();
 
-        if( !g_poRegistrar->LoadInfo( NULL, FALSE ) )
+        if( !g_poRegistrar->LoadInfo( csv_dir.mb_str(), FALSE ) )
         {
             delete g_poRegistrar;
             g_poRegistrar = NULL;
         }
     }
 
-///    RegisterOGRS57();
-
-    //      Testing
-    /*
-      OGRS57DataSource *pDS;
-      OGRFeature *pFeat;
-      OGRFeature *pLastFeat;
-      OGRFeatureDefn *pFD;
-      int catcov;
-
-    //Get the first M_COVR object
-      s57_GetChartFirstM_COVR("/ENC_ROOT/US5FL11M/US5FL11M.000", &pDS, &pFeat, &pFD, catcov);
-      pLastFeat = pFeat;
-      s57_GetChartNextM_COVR(pDS, pFD, pLastFeat, &pFeat, catcov);
-    */
     return 0;
 }
 
 
-
-
-
-//----------------------------------------------------------------------------------
-// Get Chart Scale
-// By opening and reading directly the iso8211 file
-//----------------------------------------------------------------------------------
-int s57_GetChartScale(const wxString& FullPath)
-{
-
-    DDFModule   *poModule;
-    DDFRecord   *poRecord;
-    int scale;
-
-    poModule = new DDFModule();
-
-    if( !poModule->Open(FullPath.mb_str()) )
-    {
-        delete poModule;
-        return 0;
-    }
-
-    poRecord = poModule->ReadRecord();
-    if( poRecord == NULL )
-    {
-        poModule->Close();
-        delete poModule;
-        return 0;
-    }
-
-    scale = 1;
-    for( ; poRecord != NULL; poRecord = poModule->ReadRecord() )
-    {
-        if( poRecord->FindField( "DSPM" ) != NULL )
-        {
-            scale = poRecord->GetIntSubfield("DSPM",0,"CSCL",0);
-            break;
-        }
-    }
-
-    poModule->Close();
-    delete poModule;
-
-    return scale;
-
-}
-
-
-/*    How To
-
-        1. Instantiate class registrar
-        2. new ogrs57datasource
-        3. Open minimal (includes ingest, but no OGRFeatureDefn creation, no layers0)
-        4. Get module
-        5. From class registrar, set cless = M_COVR
-        6. OGRFeatureDefn *p = GenerateObjectClassDefn
-        7. Add p to module
-        8.  Loop on module::GetNextFeature(p)
-            this will only return M_COVR objects
-*/
-//----------------------------------------------------------------------------------
-// Get First Chart M_COVR Object
-// Directly from the ios8211 file
-//              n.b. Caller owns the data source and the feature on success
-//----------------------------------------------------------------------------------
-bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRS57DataSource **pDS, OGRFeature **pFeature,
-                                 OGRFeatureDefn **pFD, int &catcov)
-{
-      OGRFeature *objectDef;
-      OGRS57DataSource *poS57DS = new OGRS57DataSource;
-      *pDS = poS57DS;                                    // give to caller
-
-      if(g_poRegistrar)
-            poS57DS->SetS57Registrar(g_poRegistrar);
-
-      poS57DS->OpenMin(FullPath.mb_str(), TRUE);
-
-      S57Reader   *poReader = poS57DS->GetModule(0);
-      poReader->SetClassBased( g_poRegistrar );
-
-//      Select the proper class
-      g_poRegistrar->SelectClass( "M_COVR");
-
-
-//      Build a new feature definition for this class
-      OGRFeatureDefn *poFDefn = S57GenerateObjectClassDefn( g_poRegistrar, g_poRegistrar->GetOBJL(),
-                                                poReader->GetOptionFlags() );
-
-//      Add this feature definition to the module
-      poReader->AddFeatureDefn(poFDefn);
-      *pFD = poFDefn;                                       //  give to caller
-
-//      find this feature
-      objectDef = poReader->ReadNextFeature(poFDefn );
-      if(objectDef)
-      {
-        *pFeature = objectDef;                  // Give to caller
-
-    //  Fetch the CATCOV attribute
-        for( int iField = 0; iField < objectDef->GetFieldCount(); iField++ )
-        {
-            if( objectDef->IsFieldSet( iField ) )
-            {
-                OGRFieldDefn *poFDefn = objectDef->GetDefnRef()->GetFieldDefn(iField);
-                if(!strcmp(poFDefn->GetNameRef(), "CATCOV"))
-                {
-                    catcov = objectDef->GetFieldAsInteger( iField );
-                    break;
-                }
-            }
-        }
-        return true;
-      }
-
-      else
-      {
-        delete poS57DS;
-        *pDS = NULL;
-        return false;
-      }
-
-
-//      new code here
-/*
-    OGRDataSource *poDS = OGRSFDriverRegistrar::Open( FullPath.mb_str() );
-
-    *pDS = poDS;                                    // give to caller
-
-    if( poDS == NULL )
-    {
-        *pFeature = NULL;
-        return false;
-    }
-
-    OGRLayer *pLay = poDS->GetLayerByName("M_COVR");
-//begin rms
-    if (NULL == pLay)
-        return false ;
-// end rms
-    *pLayer = pLay;                         // Give to caller
-    pLay->ResetReading();
-    OGRFeature *objectDef = pLay->GetNextFeature();
-    *pFeature = objectDef;                  // Give to caller
-
-    if(objectDef)
-    {
-    //  Fetch the CATCOV attribute
-        for( int iField = 0; iField < objectDef->GetFieldCount(); iField++ )
-        {
-            if( objectDef->IsFieldSet( iField ) )
-            {
-                OGRFieldDefn *poFDefn = objectDef->GetDefnRef()->GetFieldDefn(iField);
-                if(!strcmp(poFDefn->GetNameRef(), "CATCOV"))
-                    catcov = objectDef->GetFieldAsInteger( iField );
-            }
-        }
-        return true;
-    }
-
-    else
-    {
-        delete poDS;
-        *pDS = NULL;
-        return false;
-    }
-  */
-      return false;
-}
-
-//----------------------------------------------------------------------------------
-// GetNext Chart M_COVR Object
-// Directly from the iso8211 file
-// Companion to s57_GetChartFirstM_COVR
-//              n.b. Caller still owns the data source and the feature on success
-//----------------------------------------------------------------------------------
-bool s57_GetChartNextM_COVR(OGRS57DataSource *pDS, OGRFeatureDefn *pFD, OGRFeature *pLastFeature,
-                                OGRFeature **pFeature, int &catcov)
-{
-    if( pDS == NULL )
-        return false;
-
-    catcov = -1;
-
-
-    S57Reader   *poReader = pDS->GetModule(0);
-
-    int fid = pLastFeature->GetFID();
-    poReader->SetNextFEIndex( fid + 1, 100 );
-
-    OGRFeature *objectDef = poReader->ReadNextFeature(pFD);
-    *pFeature = objectDef;                  // Give to caller
-
-    if(objectDef)
-    {
-        for( int iField = 0; iField < objectDef->GetFieldCount(); iField++ )
-        {
-            if( objectDef->IsFieldSet( iField ) )
-            {
-                OGRFieldDefn *poFDefn = objectDef->GetDefnRef()->GetFieldDefn(iField);
-                if(!strcmp(poFDefn->GetNameRef(), "CATCOV"))
-                {
-                    catcov = objectDef->GetFieldAsInteger( iField );
-                    break;
-                }
-            }
-        }
-        return true;
-    }
-
-    return false;
-}
+//------------------------------------------------------------------------
+//
+//          Some s57 Utilities
+//          Meant to be called "bare", usually with no class instance.
+//
+//------------------------------------------------------------------------
 
 
 //----------------------------------------------------------------------------------
 // Get Chart Extents
 //----------------------------------------------------------------------------------
+
 bool s57_GetChartExtent(const wxString& FullPath, Extent *pext)
 {
  //   Fix this  find extents of which?? layer??
@@ -4540,57 +4251,3 @@ bool s57_GetChartExtent(const wxString& FullPath, Extent *pext)
 
 }
 
-//----------------------------------------------------------------------------------
-//      ddfrecord_test
-//----------------------------------------------------------------------------------
-
-        /*
-        GDAL/OGR 1.2.0 may have a bug in ddfrecord.cpp
-        The bug is manifest on ENC updates only.
-        This behaviour has been observed on ddfrecord.cpp Version 1.25 and earlier,
-        and is corrected in ddfrecord.cpp Version 1.27 and above.
-
-        This (relatively) safe run-time test will identify the pathology
-        allowing run-time election of ENC update policy
-        */
-
-bool s57_ddfrecord_test()
-{
-        // Create a ddfrecord and populate the two simple text fields
-
-    DDFRecord dr(NULL);
-    DDFFieldDefn dfd1;
-    DDFFieldDefn dfd2;
-
-    dfd1.Create("tag1", "name", NULL, dsc_elementary, dtc_char_string);
-    dfd1.AddSubfield( "sub1", "A" );
-    dr.AddField( &dfd1 );
-    dr.SetStringSubfield( "tag1", 0, "sub1",0, "testlongrrrrrrrrrrrrrrrrrrrr11");
-
-    dfd2.Create("tag2", "name", NULL, dsc_elementary, dtc_char_string);
-    dfd2.AddSubfield( "sub21", "A" );
-    dr.AddField( &dfd2 );
-    dr.SetStringSubfield( "tag2", 0, "sub21",0, "testlonggggggggggggggggggggg21");
-
-
-        //  The hallmark of obsolete ddfrecord code is that shortening a data record
-        //  corrupts some data following the shortened target
-
-    char buf1[40], buf2[40];
-        // get reference copy
-    const char *before = dr.GetStringSubfield( "tag2", 0, "sub21", 0);
-    strcpy(buf1, before);
-
-        // Shorten early data
-    dr.SetStringSubfield( "tag1", 0, "sub1",0, "test12a");
-
-        //  and get it again
-    const char *after = dr.GetStringSubfield( "tag2", 0, "sub21", 0);
-    strcpy(buf2, after);
-
-    if(strcmp(buf1, buf2))
-        return false;
-    else
-        return true;
-
-}

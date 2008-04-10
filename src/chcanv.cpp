@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.22 2008/03/30 21:59:33 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.23 2008/04/10 01:06:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -27,11 +27,17 @@
  *
 <<<<<<< chcanv.cpp
  * $Log: chcanv.cpp,v $
+ * Revision 1.23  2008/04/10 01:06:26  bdbcat
+ * Cleanup
+ *
  * Revision 1.22  2008/03/30 21:59:33  bdbcat
  * Correct stack smashing of char buffers
  *
 =======
  * $Log: chcanv.cpp,v $
+ * Revision 1.23  2008/04/10 01:06:26  bdbcat
+ * Cleanup
+ *
  * Revision 1.22  2008/03/30 21:59:33  bdbcat
  * Correct stack smashing of char buffers
  *
@@ -148,7 +154,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.22 2008/03/30 21:59:33 bdbcat Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.23 2008/04/10 01:06:26 bdbcat Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -381,10 +387,12 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
 
       canvas_scale_factor = 1000.;
 //begin rms debug
+/*
 #ifdef __WXOSX__
       VPoint.clat = 29.50;
       VPoint.clon = -81.2;
 #endif
+*/
 // end rms
 
       m_ownship_predictor_minutes = 5.;     // Minutes shown on ownship position predictor graphic

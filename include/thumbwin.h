@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: thumbwin.h,v 1.3 2008/03/30 23:29:52 bdbcat Exp $
+ * $Id: thumbwin.h,v 1.4 2008/04/10 01:01:32 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Chart Thumbnail Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: thumbwin.h,v $
+ * Revision 1.4  2008/04/10 01:01:32  bdbcat
+ * Cleanup
+ *
  * Revision 1.3  2008/03/30 23:29:52  bdbcat
  * Cleanup/optimize
  *
@@ -65,11 +68,6 @@
 #ifndef __thumbwin_H__
 #define __thumbwin_H__
 
-/*
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "thumbwin.cpp"
-#endif
-*/
 
 // Include wxWindows' headers
 

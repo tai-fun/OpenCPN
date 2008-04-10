@@ -27,11 +27,17 @@
  *
 <<<<<<< navutil.cpp
  * $Log: navutil.cpp,v $
+ * Revision 1.12  2008/04/10 01:03:51  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2008/03/30 22:05:53  bdbcat
  * Support Route/Mark Properties
  *
 =======
  * $Log: navutil.cpp,v $
+ * Revision 1.12  2008/04/10 01:03:51  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2008/03/30 22:05:53  bdbcat
  * Support Route/Mark Properties
  *
@@ -93,7 +99,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.11 2008/03/30 22:05:53 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.12 2008/04/10 01:03:51 bdbcat Exp $");
 
 //    Statics
 
@@ -116,7 +122,7 @@ extern wxToolBarBase    *toolBar;
 extern wxString         *pNMEADataSource;
 extern wxString         *pNMEA_AP_Port;
 extern wxString         *pWIFIServerName;
-extern wxString         *pcsv_locn;
+extern wxString         *g_pcsv_locn;
 extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
 extern wxString         *pAIS_Port;
@@ -1216,7 +1222,7 @@ int MyConfig::LoadMyConfig(int iteration)
       SetPath(_T("/Settings"));
 // begin rms
 #ifdef __WXOSX__
-        st_bFollow = false ;
+//        st_bFollow = false ;
 #endif
 // end rms
 
@@ -1299,10 +1305,10 @@ int MyConfig::LoadMyConfig(int iteration)
     wxString dirname(val);
     if(!dirname.IsEmpty())
     {
-        if(pcsv_locn->IsEmpty())      // on second pass, don't overwrite
+        if(g_pcsv_locn->IsEmpty())      // on second pass, don't overwrite
         {
-            pcsv_locn->Clear();
-            pcsv_locn->Append(val);
+            g_pcsv_locn->Clear();
+            g_pcsv_locn->Append(val);
         }
     }
 
@@ -1458,11 +1464,13 @@ int MyConfig::LoadMyConfig(int iteration)
                 {
 
 // begin rms
+/*  Fixed in options.cpp
 #ifdef __WXOSX__
                         while ((dirname.Last() == 0x0a) || (dirname.Last() == 0x0d ))
                               dirname.RemoveLast() ;
 #endif
-// end rms
+ */
+ // end rms
  /*     Special case for first time run after Windows install with sample chart data...
         We desire that the sample configuration file opencpn.ini should not contain any
         installation dependencies, so...
@@ -2126,7 +2134,7 @@ void MyConfig::UpdateSettings()
       Write(_T("S52_MAR_TWO_SHADES"), S52_getMarinerParam(S52_MAR_TWO_SHADES));
 
       SetPath(_T("/Directories"));
-      Write(_T("S57DataLocation"), *pcsv_locn);
+      Write(_T("S57DataLocation"), *g_pcsv_locn);
 
 #endif
 
@@ -2844,7 +2852,6 @@ void X11FontPicker::CreateWidgets()
       itemBoxSizer3->Add(itemBoxSizer25, 0, wxGROW, 5);
       itemBoxSizer25->Add(5, 5, 1, wxGROW|wxALL, 5);
 
-#ifdef __WXMAC__
     wxButton* itemButton28 = new wxButton( this, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     if (ShowToolTips())
           itemButton28->SetToolTip(_("Click to cancel the font selection."));
@@ -2856,19 +2863,6 @@ void X11FontPicker::CreateWidgets()
     if (ShowToolTips())
           itemButton27->SetToolTip(_("Click to confirm the font selection."));
     itemBoxSizer25->Add(itemButton27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-#else
-    wxButton* itemButton27 = new wxButton( this, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemButton27->SetDefault();
-    itemButton27->SetHelpText(_("Click to confirm the font selection."));
-    if (ShowToolTips())
-          itemButton27->SetToolTip(_("Click to confirm the font selection."));
-    itemBoxSizer25->Add(itemButton27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-
-    wxButton* itemButton28 = new wxButton( this, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    if (ShowToolTips())
-          itemButton28->SetToolTip(_("Click to cancel the font selection."));
-    itemBoxSizer25->Add(itemButton28, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-#endif
 
     familyChoice = (wxChoice*) FindWindow(wxID_FONT_FAMILY);
     styleChoice = (wxChoice*) FindWindow(wxID_FONT_STYLE);

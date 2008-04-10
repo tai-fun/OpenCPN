@@ -12,10 +12,6 @@
 #ifndef _ROUTEPROP_H_
 #define _ROUTEPROP_H_
 
-#if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface "routeprop.cpp"
-#endif
-
 /*!
  * Includes
  */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.11 2008/03/30 23:24:11 bdbcat Exp $
+ * $Id: s57chart.h,v 1.12 2008/04/10 01:01:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,11 +27,17 @@
  *
 <<<<<<< s57chart.h
  * $Log: s57chart.h,v $
+ * Revision 1.12  2008/04/10 01:01:32  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2008/03/30 23:24:11  bdbcat
  * Cleanup
  *
 =======
  * $Log: s57chart.h,v $
+ * Revision 1.12  2008/04/10 01:01:32  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2008/03/30 23:24:11  bdbcat
  * Cleanup
  *
@@ -98,14 +104,7 @@
 // S57 Utility Prototypes
 // ----------------------------------------------------------------------------
 extern "C" int  s57_initialize(const wxString& csv_dir, FILE *flog);
-extern "C" int  s57_GetChartScale(const wxString& FullPath);
 extern "C" bool s57_GetChartExtent(const wxString& FullPath, Extent *pext);
-extern "C" bool s57_GetChartFirstM_COVR(const wxString& FullPath, OGRS57DataSource **pDS, OGRFeature **pFeature,
-                               OGRFeatureDefn **pFD, int &catcov);
-extern "C" bool s57_GetChartNextM_COVR(OGRS57DataSource *pDS, OGRFeatureDefn *pFD, OGRFeature *pLastFeature,
-                              OGRFeature **pFeature, int &catcov);
-extern "C" bool s57_ddfrecord_test();
-
 
 
 //----------------------------------------------------------------------------

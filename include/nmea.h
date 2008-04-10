@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.11 2008/03/30 23:22:37 bdbcat Exp $
+ * $Id: nmea.h,v 1.12 2008/04/10 01:01:32 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -27,11 +27,17 @@
  *
 <<<<<<< nmea.h
  * $Log: nmea.h,v $
+ * Revision 1.12  2008/04/10 01:01:32  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2008/03/30 23:22:37  bdbcat
  * *** empty log message ***
  *
 =======
  * $Log: nmea.h,v $
+ * Revision 1.12  2008/04/10 01:01:32  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2008/03/30 23:22:37  bdbcat
  * *** empty log message ***
  *
@@ -60,21 +66,16 @@
 #ifndef __NMEA_H__
 #define __NMEA_H__
 
-// begin rms // use same threading as Linux, i.e. POSIX, probably should change most of __LINUX__ to __POSIX__
-// for legibility
-#ifdef __WXOSX__
-#define __LINUX__
-#endif
-
 // Include wxWindows' headers
-
-
 
 #include "wx/wxprec.h"
 
 #ifndef  WX_PRECOMP
   #include "wx/wx.h"
 #endif //precompiled header
+
+#include "wx/socket.h"
+#include <wx/datetime.h>
 
 
 #ifdef __WXMSW__
@@ -84,15 +85,10 @@
     #endif
 #endif
 
-#ifdef __LINUX__
+#ifdef __POSIX__
 #include <sys/termios.h>
 #endif
 
-#include "wx/socket.h"
-
-#ifdef __WXMSW__
-#include <wx/datetime.h>
-#endif
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
@@ -223,7 +219,7 @@ private:
       unsigned long           error;
       MyFrame                 *m_parent_frame;
 
-#if defined ( __LINUX__ ) || defined ( __WXOSX__)
+#ifdef  __POSIX__
       termios                 *pttyset;
       termios                 *pttyset_old;
 
@@ -277,7 +273,7 @@ private:
 
 
     wxString        *m_pdata_ap_port_string;
-#ifdef __LINUX__
+#ifdef __POSIX__
     termios         *pttyset;
     termios         *pttyset_old;
 
@@ -287,11 +283,7 @@ private:
 #ifdef __WXMSW__
     CSyncSerialComm   *pWinComm;
 #endif
-// begin rms
-#ifdef __WXOSX__
-    CSyncSerialComm   *pWinComm;
-#endif
-//end rms
+
     bool            bOK;
 
 DECLARE_EVENT_TABLE()

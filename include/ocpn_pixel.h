@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.h,v 1.3 2008/01/10 03:40:21 bdbcat Exp $
+ * $Id: ocpn_pixel.h,v 1.4 2008/04/10 01:01:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Optimized wxBitmap Object
@@ -68,10 +68,9 @@ void *x_malloc(size_t t);
 #define     ocpnUSE_ocpnBitmap
 #endif
 
-//#ifdef __WXOSX__										   // begin rms
-//#define     ocpnUSE_ocpnBitmap
-//#endif													   // end rms
-
+#ifdef __WXOSX__
+#define __PIX_CACHE_WXIMAGE__
+#endif
 
 //          Use ocpnBitmap (Optimized wxBitmap)
 //          Required for X11 native systems, optional on MSW
@@ -100,6 +99,11 @@ void *x_malloc(size_t t);
 #endif
 #ifdef __PIX_CACHE_PIXBUF__                                // for GTK
 #define BPP 32
+#endif
+
+//    A fall back position is good....
+#ifndef BPP
+#define BPP 24
 #endif
 
 //      Extended includes

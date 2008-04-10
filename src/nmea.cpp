@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.18 2008/03/30 22:08:25 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.19 2008/04/10 01:03:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -27,11 +27,17 @@
  *
 <<<<<<< nmea.cpp
  * $Log: nmea.cpp,v $
+ * Revision 1.19  2008/04/10 01:03:59  bdbcat
+ * Cleanup
+ *
  * Revision 1.18  2008/03/30 22:08:25  bdbcat
  * Cleanup
  *
 =======
  * $Log: nmea.cpp,v $
+ * Revision 1.19  2008/04/10 01:03:59  bdbcat
+ * Cleanup
+ *
  * Revision 1.18  2008/03/30 22:08:25  bdbcat
  * Cleanup
  *
@@ -73,6 +79,7 @@
 #endif //precompiled headers
 
 #include "wx/tokenzr.h"
+#include <wx/datetime.h>
 
 #include <stdlib.h>
 #include <math.h>
@@ -86,18 +93,14 @@
 #include "nmea0183/nmea0183.h"
 
 #ifdef __WXOSX__              // begin rms
-#include <wx/datetime.h>
 #include "macsercomm.h"
-#endif                                    // end rms
+#endif                        // end rms
 
-#ifdef __WXOSX__
-#define __LINUX__
-#endif
 
-//#ifdef __LINUX__ // begin rms
+#ifdef __POSIX__
 extern wxMutex    s_pmutexNMEAEventState;
 extern int        g_iNMEAEventState ;
-//#endif                        // end rms
+#endif
 
 #ifdef __WXMSW__
     #ifdef ocpnUSE_MSW_SERCOMM
@@ -105,7 +108,7 @@ extern int        g_iNMEAEventState ;
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.18 2008/03/30 22:08:25 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.19 2008/04/10 01:03:59 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -202,7 +205,7 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
             pNMEA_Thread->Run();
 #endif
 
-#ifdef __LINUX__
+#ifdef __POSIX__
 //    Kick off the NMEA RX thread
             pNMEA_Thread = new OCP_NMEA_Thread(frame, comx);
             pNMEA_Thread->Run();
@@ -678,24 +681,10 @@ void OCP_NMEA_Thread::OnExit(void)
     pNMEA_Thread = NULL;
 }
 
-#ifdef __LINUX__
-
-#if defined (HAVE_SYS_TERMIOS_H)
-#include <sys/termios.h>
-#else
-#if defined (HAVE_TERMIOS_H)
-#include <termios.h>
-#endif
-#endif
-
-#include <sys/termios.h>
-#endif
-
-
 //      Sadly, the thread itself must implement the underlying OS serial port
 //      in a very machine specific way....
 
-#ifdef __LINUX__
+#ifdef __POSIX__
 //    Entry Point
 void *OCP_NMEA_Thread::Entry()
 {
@@ -965,7 +954,7 @@ void *OCP_NMEA_Thread::Entry()
 }
 
 
-#endif          //__LINUX__
+#endif          //__POSIX__
 
 
 #ifdef __WXMSW_SINGLE__
@@ -1540,19 +1529,9 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 #endif
 #endif
 
-#ifdef __LINUX__
+#ifdef __POSIX__
 
             bOK = OpenPort(port);
-// begin rms
-#ifdef __WXOSX__
-            pWinComm = NULL;
-            pWinComm = new CSyncSerialComm(port.mb_str());
-            pWinComm->Open();
-            pWinComm->ConfigPort(4800, 5);
-            bAutoPilotOut = true;
-#endif
-// end rms
-
             if(bOK)
                  bAutoPilotOut = true;
 #endif
@@ -1578,14 +1557,9 @@ void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 #endif
 #endif
 
-#ifdef __LINUX__
+#ifdef __POSIX__
     bAutoPilotOut = false;
     if(bOK)
-//begin rms
-#ifdef __WXOSX__
-      delete pWinComm;
-#endif
-// end rms
     {
         (void)close(m_ap_fd);
         free (pttyset);
@@ -1596,7 +1570,7 @@ void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 
 bool AutoPilotWindow::OpenPort(wxString &port)
 {
-#ifdef __LINUX__
+#ifdef __POSIX__
     // Allocate the termios data structures
 
     pttyset = (termios *)malloc(sizeof (termios));
@@ -1674,7 +1648,7 @@ bool AutoPilotWindow::OpenPort(wxString &port)
 
         return true;
     }
-#endif      //__LINUX__
+#endif      //__POSIX__
 
     return false;
 
@@ -1693,18 +1667,11 @@ void AutoPilotWindow::AutopilotOut(const wxString& Sentence)
 #endif
 #endif
 
-      // begin rms
-#ifdef __WXOSX__
-      pWinComm->Write(Sentence, char_count);
-#else
-#ifdef __LINUX__
-
+#ifdef __POSIX__
       ssize_t status;
       status = write(m_ap_fd, Sentence, char_count);
+#endif
 
-#endif
-#endif
-      // end rms
 
 }
 

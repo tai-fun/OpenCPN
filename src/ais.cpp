@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.9 2008/03/30 21:36:27 bdbcat Exp $
+ * $Id: ais.cpp,v 1.10 2008/04/10 01:02:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -27,11 +27,17 @@
  *
 <<<<<<< ais.cpp
  * $Log: ais.cpp,v $
+ * Revision 1.10  2008/04/10 01:02:59  bdbcat
+ * Cleanup
+ *
  * Revision 1.9  2008/03/30 21:36:27  bdbcat
  * Correct Target Age calculation
  *
 =======
  * $Log: ais.cpp,v $
+ * Revision 1.10  2008/04/10 01:02:59  bdbcat
+ * Cleanup
+ *
  * Revision 1.9  2008/03/30 21:36:27  bdbcat
  * Correct Target Age calculation
  *
@@ -59,16 +65,9 @@
  *
  */
 
-#ifdef __WXMAC__  // begin rms
-#define __LINUX__
-#endif                        // end rms
-
 #include "wx/wx.h"
 #include "wx/tokenzr.h"
-
-#ifdef __WXMAC__  //begin rms
 #include "wx/datetime.h"
-#endif                        // end rms
 
 #include <stdlib.h>
 #include <math.h>
@@ -86,7 +85,7 @@ extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 
-CPL_CVSID("$Id: ais.cpp,v 1.9 2008/03/30 21:36:27 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.10 2008/04/10 01:02:59 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -925,7 +924,7 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
 #endif
 
 
-#ifdef __LINUX__
+#ifdef __POSIX__
 //    Kick off the NMEA RX thread
             pAIS_Thread = new OCP_AIS_Thread(this, comx);
             pAIS_Thread->Run();
@@ -1162,19 +1161,6 @@ void OCP_AIS_Thread::OnExit(void)
     pAIS_Thread = NULL;
 }
 
-#ifdef __LINUX__
-
-#if defined (HAVE_SYS_TERMIOS_H)
-#include <sys/termios.h>
-#else
-#if defined (HAVE_TERMIOS_H)
-#include <termios.h>
-#endif
-#endif
-
-#include <sys/termios.h>
-#endif
-
 bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
 {
     // Copy the characters into circular buffer
@@ -1263,7 +1249,7 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
 //      Sadly, the thread itself must implement the underlying OS serial port
 //      in a very machine specific way....
 
-#ifdef __LINUX__
+#ifdef __POSIX__
 //    Entry Point
 void *OCP_AIS_Thread::Entry()
 {
@@ -1470,7 +1456,7 @@ void *OCP_AIS_Thread::Entry()
 }
 
 
-#endif          //__LINUX__
+#endif          //__POSIX__
 
 
 #ifdef __WXMSW__

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.9 2008/03/30 23:20:36 bdbcat Exp $
+ * $Id: ais.h,v 1.10 2008/04/10 00:57:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -28,6 +28,9 @@
 <<<<<<< ais.h
 <<<<<<< ais.h
  * $Log: ais.h,v $
+ * Revision 1.10  2008/04/10 00:57:08  bdbcat
+ * Cleanup
+ *
  * Revision 1.9  2008/03/30 23:20:36  bdbcat
  * *** empty log message ***
  *
@@ -36,6 +39,9 @@
 <<<<<<< ais.h
 >>>>>>> 1.8
  * $Log: ais.h,v $
+ * Revision 1.10  2008/04/10 00:57:08  bdbcat
+ * Cleanup
+ *
  * Revision 1.9  2008/03/30 23:20:36  bdbcat
  * *** empty log message ***
  *
@@ -44,6 +50,9 @@
  *
 =======
  * $Log: ais.h,v $
+ * Revision 1.10  2008/04/10 00:57:08  bdbcat
+ * Cleanup
+ *
  * Revision 1.9  2008/03/30 23:20:36  bdbcat
  * *** empty log message ***
  *
@@ -82,26 +91,15 @@
   #include "wx/wx.h"
 #endif //precompiled headers
 
-//#include "wx/tokenzr.h"
-
-//#include <stdlib.h>
-//#include <math.h>
-//#include <time.h>
-
-#include "dychart.h"
-
-
-#ifdef __LINUX__
-#include <sys/termios.h>
-#endif
-
+#include <wx/datetime.h>
 #include "wx/socket.h"
 
-#ifdef __WXMSW__
-#include <wx/datetime.h>
-#endif
-
+#include "dychart.h"
 #include "chart1.h"
+
+#ifdef __POSIX__
+#include <sys/termios.h>
+#endif
 
 #define TIMER_AIS_MSEC      998
 
@@ -304,7 +302,7 @@ private:
       unsigned long           error;
       int                     nl_count;
 
-#ifdef __LINUX__
+#ifdef __POSIX__
       termios                 *pttyset;
       termios                 *pttyset_old;
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.7 2008/03/30 22:00:27 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.8 2008/04/10 01:05:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -27,11 +27,17 @@
  *
 <<<<<<< concanv.cpp
  * $Log: concanv.cpp,v $
+ * Revision 1.8  2008/04/10 01:05:49  bdbcat
+ * Cleanup
+ *
  * Revision 1.7  2008/03/30 22:00:27  bdbcat
  * Cleanup
  *
 =======
  * $Log: concanv.cpp,v $
+ * Revision 1.8  2008/04/10 01:05:49  bdbcat
+ * Cleanup
+ *
  * Revision 1.7  2008/03/30 22:00:27  bdbcat
  * Cleanup
  *
@@ -85,19 +91,10 @@
 
 #include "dychart.h"
 
-#ifdef __WXMSW__
-  #include <stdlib.h>
-  #include <math.h>
-  #include <time.h>
-  #include "wx/datetime.h"
-#endif
-
-#ifdef __WXOSX__        // begin rms
-  #include <stdlib.h>
-  #include <math.h>
-  #include <time.h>
-  #include "wx/datetime.h"
-#endif                              // end rms
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+#include "wx/datetime.h"
 
 #include "chart1.h"
 #include "concanv.h"
@@ -111,7 +108,7 @@ extern                  float gCog;
 extern                  float gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.7 2008/03/30 22:00:27 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.8 2008/04/10 01:05:49 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------

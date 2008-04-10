@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.15 2008/04/09 03:52:50 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.16 2008/04/10 01:08:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -27,6 +27,9 @@
  *
 <<<<<<< s52plib.cpp
  * $Log: s52plib.cpp,v $
+ * Revision 1.16  2008/04/10 01:08:50  bdbcat
+ * Cleanup
+ *
  * Revision 1.15  2008/04/09 03:52:50  bdbcat
  * Cleanup
  *
@@ -35,6 +38,9 @@
  *
 =======
  * $Log: s52plib.cpp,v $
+ * Revision 1.16  2008/04/10 01:08:50  bdbcat
+ * Cleanup
+ *
  * Revision 1.15  2008/04/09 03:52:50  bdbcat
  * Cleanup
  *
@@ -101,17 +107,11 @@
 
 #include "wx/image.h"                   // Missing from wxprec.h
 
-#ifndef __WXMSW__
-#ifndef __WXOSX__             // begin rms
-#include <malloc.h>
-#endif                                    // end rms
-#endif
-
 extern s52plib          *ps52plib;
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.15 2008/04/09 03:52:50 bdbcat Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.16 2008/04/10 01:08:50 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
