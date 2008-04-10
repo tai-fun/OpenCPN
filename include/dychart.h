@@ -65,7 +65,10 @@
 #define notdef 1
 
 #ifdef __MSVC__
-#define snprintf _snprintf
+#define snprintf mysnprintf
+//    __MSVC__ randomly does not link snprintf, or _snprintf
+//    Replace it with a local version, code is in cutil.c
+extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
 //------------------------------------------------------------------------------
@@ -174,5 +177,23 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 
 #endif
 
+/***********************************************************************
+ * Define __POSIX__ to imply posix thread model compatibility
+ * Especially used for communication port multithreading.
+ *
+ * Posix thread model is available on selected platforms, see code.
+ */
+
+#ifdef __POSIX__
+#undef __POSIX__
+#endif
+
+#ifdef  __WXOSX__
+#define __POSIX__
+#endif
+
+#ifdef  __WXGTK__
+#define __POSIX__
+#endif
 
 #endif      // __FILE__
