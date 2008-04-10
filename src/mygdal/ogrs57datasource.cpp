@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrs57datasource.cpp,v 1.2 2008/03/30 23:04:34 bdbcat Exp $
+ * $Id: ogrs57datasource.cpp,v 1.3 2008/04/10 01:10:54 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements OGRS57DataSource class
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: ogrs57datasource.cpp,v $
+ * Revision 1.3  2008/04/10 01:10:54  bdbcat
+ * Disallow option setup from environment
+ *
  * Revision 1.2  2008/03/30 23:04:34  bdbcat
  * Add OpenMin method
  *
@@ -118,7 +121,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrs57datasource.cpp,v 1.2 2008/03/30 23:04:34 bdbcat Exp $");
+CPL_CVSID("$Id: ogrs57datasource.cpp,v 1.3 2008/04/10 01:10:54 bdbcat Exp $");
 
 S57ClassRegistrar *OGRS57DataSource::poRegistrar = NULL;
 
@@ -149,12 +152,14 @@ OGRS57DataSource::OGRS57DataSource()
 /* -------------------------------------------------------------------- */
     papszOptions = NULL;
 
+    /*
     if( CPLGetConfigOption("OGR_S57_OPTIONS",NULL) != NULL )
     {
         papszOptions =
             CSLTokenizeStringComplex( CPLGetConfigOption("OGR_S57_OPTIONS",""),
                                       ",", FALSE, FALSE );
     }
+    */
 }
 
 /************************************************************************/
