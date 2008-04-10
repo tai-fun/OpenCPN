@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57reader.cpp,v 1.2 2008/03/30 23:09:35 bdbcat Exp $
+ * $Id: s57reader.cpp,v 1.3 2008/04/10 01:13:17 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Reader class.
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: s57reader.cpp,v $
+ * Revision 1.3  2008/04/10 01:13:17  bdbcat
+ * Enhanced warning messages
+ *
  * Revision 1.2  2008/03/30 23:09:35  bdbcat
  * Cleanup/optimize
  *
@@ -177,7 +180,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57reader.cpp,v 1.2 2008/03/30 23:09:35 bdbcat Exp $");
+CPL_CVSID("$Id: s57reader.cpp,v 1.3 2008/04/10 01:13:17 bdbcat Exp $");
 
 /************************************************************************/
 /*                             S57Reader()                              */
@@ -1956,10 +1959,12 @@ int S57Reader::ApplyRecordUpdate( DDFRecord *poTarget, DDFRecord *poUpdate )
     if( poTarget->GetIntSubfield( pszKey, 0, "RVER", 0 ) + 1
         != poUpdate->GetIntSubfield( pszKey, 0, "RVER", 0 )  )
     {
-        CPLDebug( "S57",
-                  "Mismatched RVER value on RCNM=%d,RCID=%d.\n",
+          CPLError( CE_Warning, CPLE_AppDefined,
+                  "On RecordUpdate, mismatched RVER value for RCNM=%d,RCID=%d...update RVER is %d, target RVER is %d.",
                   poTarget->GetIntSubfield( pszKey, 0, "RCNM", 0 ),
-                  poTarget->GetIntSubfield( pszKey, 0, "RCID", 0 ) );
+                  poTarget->GetIntSubfield( pszKey, 0, "RCID", 0 ),
+                  poUpdate->GetIntSubfield( pszKey, 0, "RVER", 0 ),
+                  poTarget->GetIntSubfield( pszKey, 0, "RVER", 0 ) );
 
         CPLAssert( FALSE );
         return FALSE;
@@ -2219,13 +2224,12 @@ int S57Reader::ApplyRecordUpdate( DDFRecord *poTarget, DDFRecord *poUpdate )
         DDFField *poSrcATTF = poUpdate->FindField( "ATTF" );
         DDFField *poDstATTF = poTarget->FindField( "ATTF" );
 
-        if((NULL == poDstATTF) || (NULL == poSrcATTF))
+        if(NULL == poDstATTF)
         {
-              CPLDebug( "S57",
-                        "Found NULL ATTF Src or dst, src=%08X, dst= %08X",
-                        poSrcATTF, poDstATTF);
-
-              return false;
+              //  This probably means that the update applies to an attribute that doesn't (yet) exist
+              //  To fix, we need to add an attribute, then update it.
+              CPLDebug( "S57","Could not find target ATTF field for attribute update");
+              return FALSE;
         }
 
         int     nRepeatCount = poSrcATTF->GetRepeatCount();
@@ -2323,11 +2327,13 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
             {
                 if( nRUIN == 1 )  /* insert */
                 {
-                    poIndex->AddRecord( nRCID, poRecord->CloneOn(poModule) );
+//                      CPLDebug( "S57","Insert Record, RCID=%d", nRCID);
+                      poIndex->AddRecord( nRCID, poRecord->CloneOn(poModule) );
                 }
                 else if( nRUIN == 2 ) /* delete */
                 {
-                    DDFRecord   *poTarget;
+//                      CPLDebug( "S57","Remove Record, RCID=%d", nRCID);
+                      DDFRecord   *poTarget;
 
                     poTarget = poIndex->FindRecord( nRCID );
                     if( poTarget == NULL )
@@ -2340,17 +2346,21 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
                              != nRVER - 1 )
                     {
                         CPLError( CE_Warning, CPLE_AppDefined,
-                                  "Mismatched RVER value on RCNM=%d,RCID=%d.\n",
+                                  "On RecordRemove, mismatched RVER value for RCNM=%d,RCID=%d...update RVER is %d, target RVER is %d.",
+                                  nRCNM, nRCID, nRVER, poTarget->GetIntSubfield( pszKey, 0, "RVER", 0 ) );
+                        CPLError( CE_Warning, CPLE_AppDefined,
+                                  "Removal of RCNM=%d,RCID=%d failed.\n",
                                   nRCNM, nRCID );
                     }
                     else
                     {
-                        poIndex->RemoveRecord( nRCID );
+                          poIndex->RemoveRecord( nRCID );
                     }
                 }
 
                 else if( nRUIN == 3 ) /* modify in place */
                 {
+//                    CPLDebug( "S57","Update Record, RCID=%d", nRCID);
                     DDFRecord   *poTarget;
 
                     poTarget = poIndex->FindRecord( nRCID );
@@ -2381,7 +2391,7 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
         else
         {
             CPLDebug( "S57",
-                      "Skipping %s record in S57Reader::ApplyUpdates().\n",
+                      "Skipping %s record in S57Reader::ApplyUpdates().",
                       pszKey );
         }
     }
