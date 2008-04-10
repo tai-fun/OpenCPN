@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57classregistrar.cpp,v 1.2 2008/03/30 23:08:01 bdbcat Exp $
+ * $Id: s57classregistrar.cpp,v 1.3 2008/04/10 01:12:10 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57ClassRegistrar class for keeping track of
@@ -29,6 +29,9 @@
  ******************************************************************************
  *
  * $Log: s57classregistrar.cpp,v $
+ * Revision 1.3  2008/04/10 01:12:10  bdbcat
+ * Disallow data directory setup from environment
+ *
  * Revision 1.2  2008/03/30 23:08:01  bdbcat
  * Cleanup leaks
  *
@@ -69,7 +72,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57classregistrar.cpp,v 1.2 2008/03/30 23:08:01 bdbcat Exp $");
+CPL_CVSID("$Id: s57classregistrar.cpp,v 1.3 2008/04/10 01:12:10 bdbcat Exp $");
 
 
 #ifdef S57_BUILTIN_CLASSES
@@ -203,12 +206,11 @@ const char *S57ClassRegistrar::ReadLine( FILE * fp )
 
 int S57ClassRegistrar::LoadInfo( const char * pszDirectory,
                                  int bReportErr )
-
 {
     FILE        *fp;
 
-    if( pszDirectory == NULL && getenv( "S57_CSV" ) != NULL )
-        pszDirectory = getenv( "S57_CSV" );
+    if( NULL == pszDirectory)
+        return FALSE;
 
 /* ==================================================================== */
 /*      Read the s57objectclasses file.                                 */
