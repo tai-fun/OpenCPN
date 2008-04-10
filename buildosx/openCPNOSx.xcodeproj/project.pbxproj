@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		791762120D4E7A6700635077 /* libiconv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 791762100D4E7A6700635077 /* libiconv.a */; };
+		792B49E20DA83A12005621E0 /* routeman.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55C10BFDF550006EAA19 /* routeman.cpp */; };
+		792B49EE0DA83AB7005621E0 /* ogrcurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55330BFDF3FD006EAA19 /* ogrcurve.cpp */; };
+		792B49F30DA83B45005621E0 /* routeprop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792B49F20DA83B45005621E0 /* routeprop.cpp */; };
+		792B4A220DA84667005621E0 /* opencp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792B4A1F0DA84667005621E0 /* opencp.cpp */; };
+		792B4A240DA84667005621E0 /* sercomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792B4A210DA84667005621E0 /* sercomm.cpp */; };
 		792F54AC0BFDF0DB006EAA19 /* about.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54A90BFDF0DB006EAA19 /* about.cpp */; };
 		792F54AD0BFDF0DB006EAA19 /* ais.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54AA0BFDF0DB006EAA19 /* ais.cpp */; };
 		792F54AE0BFDF0DB006EAA19 /* bbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54AB0BFDF0DB006EAA19 /* bbox.cpp */; };
@@ -25,24 +30,9 @@
 		792F555F0BFDF3FD006EAA19 /* cplgetsymbol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55120BFDF3FD006EAA19 /* cplgetsymbol.cpp */; };
 		792F55600BFDF3FD006EAA19 /* ddfrecordindex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55130BFDF3FD006EAA19 /* ddfrecordindex.cpp */; };
 		792F55610BFDF3FD006EAA19 /* gdal_misc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55160BFDF3FD006EAA19 /* gdal_misc.cpp */; };
-		792F55620BFDF3FD006EAA19 /* gml2ogrgeometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F551A0BFDF3FD006EAA19 /* gml2ogrgeometry.cpp */; };
-		792F55630BFDF3FD006EAA19 /* ogr_attrind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F551D0BFDF3FD006EAA19 /* ogr_attrind.cpp */; };
-		792F55640BFDF3FD006EAA19 /* ogr_fromepsg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55220BFDF3FD006EAA19 /* ogr_fromepsg.cpp */; };
-		792F55650BFDF3FD006EAA19 /* ogr_gensql.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55230BFDF3FD006EAA19 /* ogr_gensql.cpp */; };
-		792F55660BFDF3FD006EAA19 /* ogr_nullattrind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55260BFDF3FD006EAA19 /* ogr_nullattrind.cpp */; };
-		792F55670BFDF3FD006EAA19 /* ogr_srs_dict.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F552B0BFDF3FD006EAA19 /* ogr_srs_dict.cpp */; };
-		792F55680BFDF3FD006EAA19 /* ogr_srs_esri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F552C0BFDF3FD006EAA19 /* ogr_srs_esri.cpp */; };
-		792F55690BFDF3FD006EAA19 /* ogr_srs_proj4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F552D0BFDF3FD006EAA19 /* ogr_srs_proj4.cpp */; };
-		792F556A0BFDF3FD006EAA19 /* ogr_srs_xml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F552E0BFDF3FD006EAA19 /* ogr_srs_xml.cpp */; };
-		792F556B0BFDF3FD006EAA19 /* ogr_srsnode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F552F0BFDF3FD006EAA19 /* ogr_srsnode.cpp */; };
-		792F556C0BFDF3FD006EAA19 /* ogr2gmlgeometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55300BFDF3FD006EAA19 /* ogr2gmlgeometry.cpp */; };
 		792F556D0BFDF3FD006EAA19 /* ograssemblepolygon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55310BFDF3FD006EAA19 /* ograssemblepolygon.cpp */; };
-		792F556E0BFDF3FD006EAA19 /* ogrct.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55320BFDF3FD006EAA19 /* ogrct.cpp */; };
-		792F556F0BFDF3FD006EAA19 /* ogrcurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55330BFDF3FD006EAA19 /* ogrcurve.cpp */; };
-		792F55700BFDF3FD006EAA19 /* ogrdatasource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55340BFDF3FD006EAA19 /* ogrdatasource.cpp */; };
 		792F55710BFDF3FD006EAA19 /* ogrfeature.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55350BFDF3FD006EAA19 /* ogrfeature.cpp */; };
 		792F55720BFDF3FD006EAA19 /* ogrfeaturedefn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55360BFDF3FD006EAA19 /* ogrfeaturedefn.cpp */; };
-		792F55730BFDF3FD006EAA19 /* ogrfeaturequery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55370BFDF3FD006EAA19 /* ogrfeaturequery.cpp */; };
 		792F55740BFDF3FD006EAA19 /* ogrfielddefn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55380BFDF3FD006EAA19 /* ogrfielddefn.cpp */; };
 		792F55750BFDF3FD006EAA19 /* ogrgeometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55390BFDF3FD006EAA19 /* ogrgeometry.cpp */; };
 		792F55760BFDF3FD006EAA19 /* ogrgeometrycollection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F553A0BFDF3FD006EAA19 /* ogrgeometrycollection.cpp */; };
@@ -56,18 +46,11 @@
 		792F557E0BFDF3FD006EAA19 /* ogrpoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55420BFDF3FD006EAA19 /* ogrpoint.cpp */; };
 		792F557F0BFDF3FD006EAA19 /* ogrpolygon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55430BFDF3FD006EAA19 /* ogrpolygon.cpp */; };
 		792F55800BFDF3FD006EAA19 /* ogrs57datasource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55440BFDF3FD006EAA19 /* ogrs57datasource.cpp */; };
-		792F55810BFDF3FD006EAA19 /* ogrs57driver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55450BFDF3FD006EAA19 /* ogrs57driver.cpp */; };
 		792F55820BFDF3FD006EAA19 /* ogrs57layer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55460BFDF3FD006EAA19 /* ogrs57layer.cpp */; };
-		792F55830BFDF3FD006EAA19 /* ogrsfdriver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55480BFDF3FD006EAA19 /* ogrsfdriver.cpp */; };
-		792F55840BFDF3FD006EAA19 /* ogrsfdriverregistrar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55490BFDF3FD006EAA19 /* ogrsfdriverregistrar.cpp */; };
-		792F55850BFDF3FD006EAA19 /* ogrspatialreference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F554A0BFDF3FD006EAA19 /* ogrspatialreference.cpp */; };
 		792F55860BFDF3FD006EAA19 /* ogrutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F554B0BFDF3FD006EAA19 /* ogrutils.cpp */; };
 		792F55870BFDF3FD006EAA19 /* s57classregistrar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F554D0BFDF3FD006EAA19 /* s57classregistrar.cpp */; };
 		792F55880BFDF3FD006EAA19 /* s57featuredefns.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F554E0BFDF3FD006EAA19 /* s57featuredefns.cpp */; };
-		792F55890BFDF3FD006EAA19 /* s57filecollector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F554F0BFDF3FD006EAA19 /* s57filecollector.cpp */; };
 		792F558A0BFDF3FD006EAA19 /* s57reader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55500BFDF3FD006EAA19 /* s57reader.cpp */; };
-		792F558B0BFDF3FD006EAA19 /* s57writer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55510BFDF3FD006EAA19 /* s57writer.cpp */; };
-		792F558C0BFDF3FD006EAA19 /* swq.c in Sources */ = {isa = PBXBuildFile; fileRef = 792F55540BFDF3FD006EAA19 /* swq.c */; };
 		792F55910BFDF4B4006EAA19 /* mygeom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55900BFDF4B4006EAA19 /* mygeom.cpp */; };
 		792F55980BFDF4D6006EAA19 /* ddffield.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55920BFDF4D6006EAA19 /* ddffield.cpp */; };
 		792F55990BFDF4D6006EAA19 /* ddffielddefn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55930BFDF4D6006EAA19 /* ddffielddefn.cpp */; };
@@ -86,7 +69,6 @@
 		792F55BD0BFDF527006EAA19 /* sentence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55B10BFDF527006EAA19 /* sentence.cpp */; };
 		792F55CD0BFDF550006EAA19 /* ocpn_pixel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55BF0BFDF550006EAA19 /* ocpn_pixel.cpp */; };
 		792F55CE0BFDF550006EAA19 /* options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55C00BFDF550006EAA19 /* options.cpp */; };
-		792F55CF0BFDF550006EAA19 /* routeman.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55C10BFDF550006EAA19 /* routeman.cpp */; };
 		792F55D00BFDF550006EAA19 /* s52cnsy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55C20BFDF550006EAA19 /* s52cnsy.cpp */; };
 		792F55D10BFDF550006EAA19 /* s52plib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55C30BFDF550006EAA19 /* s52plib.cpp */; };
 		792F55D30BFDF550006EAA19 /* s57chart.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55C50BFDF550006EAA19 /* s57chart.cpp */; };
@@ -97,10 +79,8 @@
 		792F55DA0BFDF550006EAA19 /* wvschart.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55CC0BFDF550006EAA19 /* wvschart.cpp */; };
 		792F55E50BFDF5C9006EAA19 /* s52utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55C40BFDF550006EAA19 /* s52utils.cpp */; };
 		792F55E70BFDF5CF006EAA19 /* openCPN-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 792F545F0BFCF74F006EAA19 /* openCPN-Info.plist */; };
-		792F55E80BFDF5DF006EAA19 /* chcanv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54B60BFDF145006EAA19 /* chcanv.cpp */; };
 		792F55E90BFDF5E0006EAA19 /* chartimg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54B50BFDF145006EAA19 /* chartimg.cpp */; };
 		792F55EA0BFDF5E1006EAA19 /* chartdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54B40BFDF145006EAA19 /* chartdb.cpp */; };
-		792F55EB0BFDF5E4006EAA19 /* chart1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54630BFCF79B006EAA19 /* chart1.cpp */; };
 		792F564F0BFDFC91006EAA19 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 792F564E0BFDFC91006EAA19 /* Carbon.framework */; };
 		792F57930BFDFE09006EAA19 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 792F57920BFDFE09006EAA19 /* Cocoa.framework */; };
 		792F584E0BFE0075006EAA19 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 792F584B0BFE0075006EAA19 /* IOKit.framework */; };
@@ -117,11 +97,16 @@
 		79701D260D4FA4F9005B834E /* expid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79701D250D4FA4F9005B834E /* expid.cpp */; };
 		79701D290D4FA53C005B834E /* talkerid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79701D280D4FA53C005B834E /* talkerid.cpp */; };
 		798D41020D5A309800478865 /* libwxzlibd-2.8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 798D41010D5A309800478865 /* libwxzlibd-2.8.a */; };
+		79D3A78A0DA834470003D34D /* chart1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54630BFCF79B006EAA19 /* chart1.cpp */; };
+		79D3A78B0DA834490003D34D /* chcanv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54B60BFDF145006EAA19 /* chcanv.cpp */; };
 		79FFF07A0D3EBC0200BFB4C0 /* georef.c in Sources */ = {isa = PBXBuildFile; fileRef = 79FFF0790D3EBC0200BFB4C0 /* georef.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		791762100D4E7A6700635077 /* libiconv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiconv.a; path = libraries/libiconv.a; sourceTree = "<group>"; };
+		792B49F20DA83B45005621E0 /* routeprop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = routeprop.cpp; path = ../src/routeprop.cpp; sourceTree = SOURCE_ROOT; };
+		792B4A1F0DA84667005621E0 /* opencp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = opencp.cpp; path = ../src/opencp.cpp; sourceTree = SOURCE_ROOT; };
+		792B4A210DA84667005621E0 /* sercomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sercomm.cpp; path = ../src/sercomm.cpp; sourceTree = SOURCE_ROOT; };
 		792F545C0BFCF74F006EAA19 /* openCPN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = openCPN.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		792F545F0BFCF74F006EAA19 /* openCPN-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "openCPN-Info.plist"; sourceTree = "<group>"; };
 		792F54630BFCF79B006EAA19 /* chart1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = chart1.cpp; path = ../src/chart1.cpp; sourceTree = SOURCE_ROOT; };
@@ -181,42 +166,24 @@
 		792F55110BFDF3FD006EAA19 /* cpl_vsisimple.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = cpl_vsisimple.cpp; path = ../src/mygdal/cpl_vsisimple.cpp; sourceTree = SOURCE_ROOT; };
 		792F55120BFDF3FD006EAA19 /* cplgetsymbol.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = cplgetsymbol.cpp; path = ../src/mygdal/cplgetsymbol.cpp; sourceTree = SOURCE_ROOT; };
 		792F55130BFDF3FD006EAA19 /* ddfrecordindex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ddfrecordindex.cpp; path = ../src/mygdal/ddfrecordindex.cpp; sourceTree = SOURCE_ROOT; };
-		792F55140BFDF3FD006EAA19 /* gdal_alg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gdal_alg.h; path = ../src/mygdal/gdal_alg.h; sourceTree = SOURCE_ROOT; };
 		792F55150BFDF3FD006EAA19 /* gdal_frmts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gdal_frmts.h; path = ../src/mygdal/gdal_frmts.h; sourceTree = SOURCE_ROOT; };
 		792F55160BFDF3FD006EAA19 /* gdal_misc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gdal_misc.cpp; path = ../src/mygdal/gdal_misc.cpp; sourceTree = SOURCE_ROOT; };
 		792F55170BFDF3FD006EAA19 /* gdal_priv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gdal_priv.h; path = ../src/mygdal/gdal_priv.h; sourceTree = SOURCE_ROOT; };
 		792F55180BFDF3FD006EAA19 /* gdal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gdal.h; path = ../src/mygdal/gdal.h; sourceTree = SOURCE_ROOT; };
-		792F55190BFDF3FD006EAA19 /* gdalwarper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gdalwarper.h; path = ../src/mygdal/gdalwarper.h; sourceTree = SOURCE_ROOT; };
-		792F551A0BFDF3FD006EAA19 /* gml2ogrgeometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gml2ogrgeometry.cpp; path = ../src/mygdal/gml2ogrgeometry.cpp; sourceTree = SOURCE_ROOT; };
-		792F551B0BFDF3FD006EAA19 /* iso8211.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = iso8211.h; path = ../include/iso8211.h; sourceTree = SOURCE_ROOT; };
 		792F551C0BFDF3FD006EAA19 /* ogr_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_api.h; path = ../src/mygdal/ogr_api.h; sourceTree = SOURCE_ROOT; };
-		792F551D0BFDF3FD006EAA19 /* ogr_attrind.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_attrind.cpp; path = ../src/mygdal/ogr_attrind.cpp; sourceTree = SOURCE_ROOT; };
 		792F551E0BFDF3FD006EAA19 /* ogr_attrind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_attrind.h; path = ../src/mygdal/ogr_attrind.h; sourceTree = SOURCE_ROOT; };
 		792F551F0BFDF3FD006EAA19 /* ogr_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_core.h; path = ../src/mygdal/ogr_core.h; sourceTree = SOURCE_ROOT; };
 		792F55200BFDF3FD006EAA19 /* ogr_feature.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_feature.h; path = ../src/mygdal/ogr_feature.h; sourceTree = SOURCE_ROOT; };
-		792F55210BFDF3FD006EAA19 /* ogr_featurestyle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_featurestyle.h; path = ../src/mygdal/ogr_featurestyle.h; sourceTree = SOURCE_ROOT; };
-		792F55220BFDF3FD006EAA19 /* ogr_fromepsg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_fromepsg.cpp; path = ../src/mygdal/ogr_fromepsg.cpp; sourceTree = SOURCE_ROOT; };
-		792F55230BFDF3FD006EAA19 /* ogr_gensql.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_gensql.cpp; path = ../src/mygdal/ogr_gensql.cpp; sourceTree = SOURCE_ROOT; };
-		792F55240BFDF3FD006EAA19 /* ogr_gensql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_gensql.h; path = ../src/mygdal/ogr_gensql.h; sourceTree = SOURCE_ROOT; };
 		792F55250BFDF3FD006EAA19 /* ogr_geometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_geometry.h; path = ../src/mygdal/ogr_geometry.h; sourceTree = SOURCE_ROOT; };
-		792F55260BFDF3FD006EAA19 /* ogr_nullattrind.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_nullattrind.cpp; path = ../src/mygdal/ogr_nullattrind.cpp; sourceTree = SOURCE_ROOT; };
 		792F55270BFDF3FD006EAA19 /* ogr_p.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_p.h; path = ../src/mygdal/ogr_p.h; sourceTree = SOURCE_ROOT; };
 		792F55280BFDF3FD006EAA19 /* ogr_s57.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_s57.h; path = ../src/mygdal/ogr_s57.h; sourceTree = SOURCE_ROOT; };
 		792F55290BFDF3FD006EAA19 /* ogr_spatialref.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_spatialref.h; path = ../src/mygdal/ogr_spatialref.h; sourceTree = SOURCE_ROOT; };
-		792F552A0BFDF3FD006EAA19 /* ogr_srs_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogr_srs_api.h; path = ../src/mygdal/ogr_srs_api.h; sourceTree = SOURCE_ROOT; };
-		792F552B0BFDF3FD006EAA19 /* ogr_srs_dict.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_srs_dict.cpp; path = ../src/mygdal/ogr_srs_dict.cpp; sourceTree = SOURCE_ROOT; };
-		792F552C0BFDF3FD006EAA19 /* ogr_srs_esri.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_srs_esri.cpp; path = ../src/mygdal/ogr_srs_esri.cpp; sourceTree = SOURCE_ROOT; };
-		792F552D0BFDF3FD006EAA19 /* ogr_srs_proj4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_srs_proj4.cpp; path = ../src/mygdal/ogr_srs_proj4.cpp; sourceTree = SOURCE_ROOT; };
-		792F552E0BFDF3FD006EAA19 /* ogr_srs_xml.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_srs_xml.cpp; path = ../src/mygdal/ogr_srs_xml.cpp; sourceTree = SOURCE_ROOT; };
-		792F552F0BFDF3FD006EAA19 /* ogr_srsnode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr_srsnode.cpp; path = ../src/mygdal/ogr_srsnode.cpp; sourceTree = SOURCE_ROOT; };
-		792F55300BFDF3FD006EAA19 /* ogr2gmlgeometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogr2gmlgeometry.cpp; path = ../src/mygdal/ogr2gmlgeometry.cpp; sourceTree = SOURCE_ROOT; };
 		792F55310BFDF3FD006EAA19 /* ograssemblepolygon.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ograssemblepolygon.cpp; path = ../src/mygdal/ograssemblepolygon.cpp; sourceTree = SOURCE_ROOT; };
 		792F55320BFDF3FD006EAA19 /* ogrct.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrct.cpp; path = ../src/mygdal/ogrct.cpp; sourceTree = SOURCE_ROOT; };
 		792F55330BFDF3FD006EAA19 /* ogrcurve.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrcurve.cpp; path = ../src/mygdal/ogrcurve.cpp; sourceTree = SOURCE_ROOT; };
 		792F55340BFDF3FD006EAA19 /* ogrdatasource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrdatasource.cpp; path = ../src/mygdal/ogrdatasource.cpp; sourceTree = SOURCE_ROOT; };
 		792F55350BFDF3FD006EAA19 /* ogrfeature.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrfeature.cpp; path = ../src/mygdal/ogrfeature.cpp; sourceTree = SOURCE_ROOT; };
 		792F55360BFDF3FD006EAA19 /* ogrfeaturedefn.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrfeaturedefn.cpp; path = ../src/mygdal/ogrfeaturedefn.cpp; sourceTree = SOURCE_ROOT; };
-		792F55370BFDF3FD006EAA19 /* ogrfeaturequery.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrfeaturequery.cpp; path = ../src/mygdal/ogrfeaturequery.cpp; sourceTree = SOURCE_ROOT; };
 		792F55380BFDF3FD006EAA19 /* ogrfielddefn.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrfielddefn.cpp; path = ../src/mygdal/ogrfielddefn.cpp; sourceTree = SOURCE_ROOT; };
 		792F55390BFDF3FD006EAA19 /* ogrgeometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrgeometry.cpp; path = ../src/mygdal/ogrgeometry.cpp; sourceTree = SOURCE_ROOT; };
 		792F553A0BFDF3FD006EAA19 /* ogrgeometrycollection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrgeometrycollection.cpp; path = ../src/mygdal/ogrgeometrycollection.cpp; sourceTree = SOURCE_ROOT; };
@@ -233,20 +200,11 @@
 		792F55450BFDF3FD006EAA19 /* ogrs57driver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrs57driver.cpp; path = ../src/mygdal/ogrs57driver.cpp; sourceTree = SOURCE_ROOT; };
 		792F55460BFDF3FD006EAA19 /* ogrs57layer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrs57layer.cpp; path = ../src/mygdal/ogrs57layer.cpp; sourceTree = SOURCE_ROOT; };
 		792F55470BFDF3FD006EAA19 /* ogrsf_frmts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ogrsf_frmts.h; path = ../src/mygdal/ogrsf_frmts.h; sourceTree = SOURCE_ROOT; };
-		792F55480BFDF3FD006EAA19 /* ogrsfdriver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrsfdriver.cpp; path = ../src/mygdal/ogrsfdriver.cpp; sourceTree = SOURCE_ROOT; };
-		792F55490BFDF3FD006EAA19 /* ogrsfdriverregistrar.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrsfdriverregistrar.cpp; path = ../src/mygdal/ogrsfdriverregistrar.cpp; sourceTree = SOURCE_ROOT; };
-		792F554A0BFDF3FD006EAA19 /* ogrspatialreference.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrspatialreference.cpp; path = ../src/mygdal/ogrspatialreference.cpp; sourceTree = SOURCE_ROOT; };
 		792F554B0BFDF3FD006EAA19 /* ogrutils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ogrutils.cpp; path = ../src/mygdal/ogrutils.cpp; sourceTree = SOURCE_ROOT; };
 		792F554C0BFDF3FD006EAA19 /* s57.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = s57.h; path = ../src/mygdal/s57.h; sourceTree = SOURCE_ROOT; };
 		792F554D0BFDF3FD006EAA19 /* s57classregistrar.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = s57classregistrar.cpp; path = ../src/mygdal/s57classregistrar.cpp; sourceTree = SOURCE_ROOT; };
 		792F554E0BFDF3FD006EAA19 /* s57featuredefns.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = s57featuredefns.cpp; path = ../src/mygdal/s57featuredefns.cpp; sourceTree = SOURCE_ROOT; };
-		792F554F0BFDF3FD006EAA19 /* s57filecollector.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = s57filecollector.cpp; path = ../src/mygdal/s57filecollector.cpp; sourceTree = SOURCE_ROOT; };
 		792F55500BFDF3FD006EAA19 /* s57reader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = s57reader.cpp; path = ../src/mygdal/s57reader.cpp; sourceTree = SOURCE_ROOT; };
-		792F55510BFDF3FD006EAA19 /* s57writer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = s57writer.cpp; path = ../src/mygdal/s57writer.cpp; sourceTree = SOURCE_ROOT; };
-		792F55520BFDF3FD006EAA19 /* sfclsid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sfclsid.h; path = ../src/mygdal/sfclsid.h; sourceTree = SOURCE_ROOT; };
-		792F55530BFDF3FD006EAA19 /* sfiiddef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sfiiddef.h; path = ../src/mygdal/sfiiddef.h; sourceTree = SOURCE_ROOT; };
-		792F55540BFDF3FD006EAA19 /* swq.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = swq.c; path = ../src/mygdal/swq.c; sourceTree = SOURCE_ROOT; };
-		792F55550BFDF3FD006EAA19 /* swq.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = swq.h; path = ../src/mygdal/swq.h; sourceTree = SOURCE_ROOT; };
 		792F55900BFDF4B4006EAA19 /* mygeom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = mygeom.cpp; path = ../src/mygeom.cpp; sourceTree = SOURCE_ROOT; };
 		792F55920BFDF4D6006EAA19 /* ddffield.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ddffield.cpp; path = ../src/myiso8211/ddffield.cpp; sourceTree = SOURCE_ROOT; };
 		792F55930BFDF4D6006EAA19 /* ddffielddefn.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ddffielddefn.cpp; path = ../src/myiso8211/ddffielddefn.cpp; sourceTree = SOURCE_ROOT; };
@@ -300,6 +258,7 @@
 		79701D250D4FA4F9005B834E /* expid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = expid.cpp; path = ../src/nmea0183/expid.cpp; sourceTree = SOURCE_ROOT; };
 		79701D280D4FA53C005B834E /* talkerid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = talkerid.cpp; path = ../src/nmea0183/talkerid.cpp; sourceTree = SOURCE_ROOT; };
 		798D41010D5A309800478865 /* libwxzlibd-2.8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libwxzlibd-2.8.a"; path = "libraries/libwxzlibd-2.8.a"; sourceTree = "<group>"; };
+		79D3A7980DA835D40003D34D /* routeprop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = routeprop.h; path = ../include/routeprop.h; sourceTree = SOURCE_ROOT; };
 		79FFF0790D3EBC0200BFB4C0 /* georef.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = georef.c; path = ../src/georef.c; sourceTree = SOURCE_ROOT; };
 		79FFF10A0D3EBC3600BFB4C0 /* georef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = georef.h; path = ../include/georef.h; sourceTree = SOURCE_ROOT; };
 		79FFF1120D3EBE9A00BFB4C0 /* dychart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dychart.h; path = ../include/dychart.h; sourceTree = SOURCE_ROOT; };
@@ -333,6 +292,9 @@
 		792F544C0BFCF735006EAA19 = {
 			isa = PBXGroup;
 			children = (
+				792B4A1F0DA84667005621E0 /* opencp.cpp */,
+				792B4A210DA84667005621E0 /* sercomm.cpp */,
+				792B49F20DA83B45005621E0 /* routeprop.cpp */,
 				792F584B0BFE0075006EAA19 /* IOKit.framework */,
 				792F584C0BFE0075006EAA19 /* QuickTime.framework */,
 				792F584D0BFE0075006EAA19 /* System.framework */,
@@ -356,7 +318,6 @@
 				792F55A50BFDF527006EAA19 /* latlong.cpp */,
 				792F55A60BFDF527006EAA19 /* LatLong.hpp */,
 				792F55A70BFDF527006EAA19 /* long.cpp */,
-				792F55A90BFDF527006EAA19 /* nmea0183.h */,
 				792F55AA0BFDF527006EAA19 /* nmea0183.hpp */,
 				792F55AB0BFDF527006EAA19 /* response.cpp */,
 				792F55AC0BFDF527006EAA19 /* Response.hpp */,
@@ -400,43 +361,13 @@
 				792F55120BFDF3FD006EAA19 /* cplgetsymbol.cpp */,
 				792F55130BFDF3FD006EAA19 /* ddfrecordindex.cpp */,
 				79701D250D4FA4F9005B834E /* expid.cpp */,
-				792F55140BFDF3FD006EAA19 /* gdal_alg.h */,
-				792F55150BFDF3FD006EAA19 /* gdal_frmts.h */,
 				792F55160BFDF3FD006EAA19 /* gdal_misc.cpp */,
-				792F55170BFDF3FD006EAA19 /* gdal_priv.h */,
-				79FFF11F0D3EC6E100BFB4C0 /* cutil.h */,
-				792F55180BFDF3FD006EAA19 /* gdal.h */,
-				792F55190BFDF3FD006EAA19 /* gdalwarper.h */,
-				792F551A0BFDF3FD006EAA19 /* gml2ogrgeometry.cpp */,
-				792F551B0BFDF3FD006EAA19 /* iso8211.h */,
-				792F551C0BFDF3FD006EAA19 /* ogr_api.h */,
-				792F551D0BFDF3FD006EAA19 /* ogr_attrind.cpp */,
-				792F551E0BFDF3FD006EAA19 /* ogr_attrind.h */,
-				792F551F0BFDF3FD006EAA19 /* ogr_core.h */,
-				792F55200BFDF3FD006EAA19 /* ogr_feature.h */,
-				792F55210BFDF3FD006EAA19 /* ogr_featurestyle.h */,
-				792F55220BFDF3FD006EAA19 /* ogr_fromepsg.cpp */,
-				792F55230BFDF3FD006EAA19 /* ogr_gensql.cpp */,
-				792F55240BFDF3FD006EAA19 /* ogr_gensql.h */,
-				792F55250BFDF3FD006EAA19 /* ogr_geometry.h */,
-				792F55260BFDF3FD006EAA19 /* ogr_nullattrind.cpp */,
-				792F55270BFDF3FD006EAA19 /* ogr_p.h */,
-				792F55280BFDF3FD006EAA19 /* ogr_s57.h */,
-				792F55290BFDF3FD006EAA19 /* ogr_spatialref.h */,
-				792F552A0BFDF3FD006EAA19 /* ogr_srs_api.h */,
-				792F552B0BFDF3FD006EAA19 /* ogr_srs_dict.cpp */,
-				792F552C0BFDF3FD006EAA19 /* ogr_srs_esri.cpp */,
-				792F552D0BFDF3FD006EAA19 /* ogr_srs_proj4.cpp */,
-				792F552E0BFDF3FD006EAA19 /* ogr_srs_xml.cpp */,
-				792F552F0BFDF3FD006EAA19 /* ogr_srsnode.cpp */,
-				792F55300BFDF3FD006EAA19 /* ogr2gmlgeometry.cpp */,
 				792F55310BFDF3FD006EAA19 /* ograssemblepolygon.cpp */,
 				792F55320BFDF3FD006EAA19 /* ogrct.cpp */,
 				792F55330BFDF3FD006EAA19 /* ogrcurve.cpp */,
 				792F55340BFDF3FD006EAA19 /* ogrdatasource.cpp */,
 				792F55350BFDF3FD006EAA19 /* ogrfeature.cpp */,
 				792F55360BFDF3FD006EAA19 /* ogrfeaturedefn.cpp */,
-				792F55370BFDF3FD006EAA19 /* ogrfeaturequery.cpp */,
 				792F55380BFDF3FD006EAA19 /* ogrfielddefn.cpp */,
 				792F55390BFDF3FD006EAA19 /* ogrgeometry.cpp */,
 				792F553A0BFDF3FD006EAA19 /* ogrgeometrycollection.cpp */,
@@ -452,23 +383,12 @@
 				792F55440BFDF3FD006EAA19 /* ogrs57datasource.cpp */,
 				792F55450BFDF3FD006EAA19 /* ogrs57driver.cpp */,
 				792F55460BFDF3FD006EAA19 /* ogrs57layer.cpp */,
-				792F55470BFDF3FD006EAA19 /* ogrsf_frmts.h */,
-				792F55480BFDF3FD006EAA19 /* ogrsfdriver.cpp */,
-				792F55490BFDF3FD006EAA19 /* ogrsfdriverregistrar.cpp */,
-				792F554A0BFDF3FD006EAA19 /* ogrspatialreference.cpp */,
 				792F554B0BFDF3FD006EAA19 /* ogrutils.cpp */,
-				792F554C0BFDF3FD006EAA19 /* s57.h */,
 				792F554D0BFDF3FD006EAA19 /* s57classregistrar.cpp */,
 				792F554E0BFDF3FD006EAA19 /* s57featuredefns.cpp */,
-				792F554F0BFDF3FD006EAA19 /* s57filecollector.cpp */,
 				792F55500BFDF3FD006EAA19 /* s57reader.cpp */,
 				79701D170D4F9F9C005B834E /* nmea0183.cpp */,
-				792F55510BFDF3FD006EAA19 /* s57writer.cpp */,
 				79701D1D0D4FA364005B834E /* macsercomm.cpp */,
-				792F55520BFDF3FD006EAA19 /* sfclsid.h */,
-				792F55530BFDF3FD006EAA19 /* sfiiddef.h */,
-				792F55540BFDF3FD006EAA19 /* swq.c */,
-				792F55550BFDF3FD006EAA19 /* swq.h */,
 				792F54D90BFDF340006EAA19 /* Includes */,
 				792F54A90BFDF0DB006EAA19 /* about.cpp */,
 				798D41010D5A309800478865 /* libwxzlibd-2.8.a */,
@@ -478,9 +398,6 @@
 				79554FEE0D4FD3240080E442 /* libwx_macd-2.8.a */,
 				791762100D4E7A6700635077 /* libiconv.a */,
 				792F54AA0BFDF0DB006EAA19 /* ais.cpp */,
-				79FFF1160D3EBED800BFB4C0 /* navutil.h */,
-				79701D120D4E8D66005B834E /* macsercomm.h */,
-				79FFF1120D3EBE9A00BFB4C0 /* dychart.h */,
 				792F54AB0BFDF0DB006EAA19 /* bbox.cpp */,
 				792F54630BFCF79B006EAA19 /* chart1.cpp */,
 				79FFF11B0D3EBFE000BFB4C0 /* macutils.h */,
@@ -506,6 +423,25 @@
 		792F54D90BFDF340006EAA19 /* Includes */ = {
 			isa = PBXGroup;
 			children = (
+				792F55150BFDF3FD006EAA19 /* gdal_frmts.h */,
+				792F55170BFDF3FD006EAA19 /* gdal_priv.h */,
+				79FFF11F0D3EC6E100BFB4C0 /* cutil.h */,
+				792F55180BFDF3FD006EAA19 /* gdal.h */,
+				792F551C0BFDF3FD006EAA19 /* ogr_api.h */,
+				792F551E0BFDF3FD006EAA19 /* ogr_attrind.h */,
+				792F551F0BFDF3FD006EAA19 /* ogr_core.h */,
+				792F55200BFDF3FD006EAA19 /* ogr_feature.h */,
+				792F55250BFDF3FD006EAA19 /* ogr_geometry.h */,
+				792F55270BFDF3FD006EAA19 /* ogr_p.h */,
+				792F55280BFDF3FD006EAA19 /* ogr_s57.h */,
+				792F55290BFDF3FD006EAA19 /* ogr_spatialref.h */,
+				792F55470BFDF3FD006EAA19 /* ogrsf_frmts.h */,
+				792F554C0BFDF3FD006EAA19 /* s57.h */,
+				79FFF1160D3EBED800BFB4C0 /* navutil.h */,
+				79701D120D4E8D66005B834E /* macsercomm.h */,
+				79FFF1120D3EBE9A00BFB4C0 /* dychart.h */,
+				792F55A90BFDF527006EAA19 /* nmea0183.h */,
+				79D3A7980DA835D40003D34D /* routeprop.h */,
 				792F54DA0BFDF387006EAA19 /* about.h */,
 				792F54DB0BFDF387006EAA19 /* ais.h */,
 				792F54DC0BFDF387006EAA19 /* bbox.h */,
@@ -608,24 +544,9 @@
 				792F555F0BFDF3FD006EAA19 /* cplgetsymbol.cpp in Sources */,
 				792F55600BFDF3FD006EAA19 /* ddfrecordindex.cpp in Sources */,
 				792F55610BFDF3FD006EAA19 /* gdal_misc.cpp in Sources */,
-				792F55620BFDF3FD006EAA19 /* gml2ogrgeometry.cpp in Sources */,
-				792F55630BFDF3FD006EAA19 /* ogr_attrind.cpp in Sources */,
-				792F55640BFDF3FD006EAA19 /* ogr_fromepsg.cpp in Sources */,
-				792F55650BFDF3FD006EAA19 /* ogr_gensql.cpp in Sources */,
-				792F55660BFDF3FD006EAA19 /* ogr_nullattrind.cpp in Sources */,
-				792F55670BFDF3FD006EAA19 /* ogr_srs_dict.cpp in Sources */,
-				792F55680BFDF3FD006EAA19 /* ogr_srs_esri.cpp in Sources */,
-				792F55690BFDF3FD006EAA19 /* ogr_srs_proj4.cpp in Sources */,
-				792F556A0BFDF3FD006EAA19 /* ogr_srs_xml.cpp in Sources */,
-				792F556B0BFDF3FD006EAA19 /* ogr_srsnode.cpp in Sources */,
-				792F556C0BFDF3FD006EAA19 /* ogr2gmlgeometry.cpp in Sources */,
 				792F556D0BFDF3FD006EAA19 /* ograssemblepolygon.cpp in Sources */,
-				792F556E0BFDF3FD006EAA19 /* ogrct.cpp in Sources */,
-				792F556F0BFDF3FD006EAA19 /* ogrcurve.cpp in Sources */,
-				792F55700BFDF3FD006EAA19 /* ogrdatasource.cpp in Sources */,
 				792F55710BFDF3FD006EAA19 /* ogrfeature.cpp in Sources */,
 				792F55720BFDF3FD006EAA19 /* ogrfeaturedefn.cpp in Sources */,
-				792F55730BFDF3FD006EAA19 /* ogrfeaturequery.cpp in Sources */,
 				792F55740BFDF3FD006EAA19 /* ogrfielddefn.cpp in Sources */,
 				792F55750BFDF3FD006EAA19 /* ogrgeometry.cpp in Sources */,
 				792F55760BFDF3FD006EAA19 /* ogrgeometrycollection.cpp in Sources */,
@@ -639,18 +560,11 @@
 				792F557E0BFDF3FD006EAA19 /* ogrpoint.cpp in Sources */,
 				792F557F0BFDF3FD006EAA19 /* ogrpolygon.cpp in Sources */,
 				792F55800BFDF3FD006EAA19 /* ogrs57datasource.cpp in Sources */,
-				792F55810BFDF3FD006EAA19 /* ogrs57driver.cpp in Sources */,
 				792F55820BFDF3FD006EAA19 /* ogrs57layer.cpp in Sources */,
-				792F55830BFDF3FD006EAA19 /* ogrsfdriver.cpp in Sources */,
-				792F55840BFDF3FD006EAA19 /* ogrsfdriverregistrar.cpp in Sources */,
-				792F55850BFDF3FD006EAA19 /* ogrspatialreference.cpp in Sources */,
 				792F55860BFDF3FD006EAA19 /* ogrutils.cpp in Sources */,
 				792F55870BFDF3FD006EAA19 /* s57classregistrar.cpp in Sources */,
 				792F55880BFDF3FD006EAA19 /* s57featuredefns.cpp in Sources */,
-				792F55890BFDF3FD006EAA19 /* s57filecollector.cpp in Sources */,
 				792F558A0BFDF3FD006EAA19 /* s57reader.cpp in Sources */,
-				792F558B0BFDF3FD006EAA19 /* s57writer.cpp in Sources */,
-				792F558C0BFDF3FD006EAA19 /* swq.c in Sources */,
 				792F55910BFDF4B4006EAA19 /* mygeom.cpp in Sources */,
 				792F55980BFDF4D6006EAA19 /* ddffield.cpp in Sources */,
 				792F55990BFDF4D6006EAA19 /* ddffielddefn.cpp in Sources */,
@@ -669,7 +583,6 @@
 				792F55BD0BFDF527006EAA19 /* sentence.cpp in Sources */,
 				792F55CD0BFDF550006EAA19 /* ocpn_pixel.cpp in Sources */,
 				792F55CE0BFDF550006EAA19 /* options.cpp in Sources */,
-				792F55CF0BFDF550006EAA19 /* routeman.cpp in Sources */,
 				792F55D00BFDF550006EAA19 /* s52cnsy.cpp in Sources */,
 				792F55D10BFDF550006EAA19 /* s52plib.cpp in Sources */,
 				792F55D30BFDF550006EAA19 /* s57chart.cpp in Sources */,
@@ -679,10 +592,8 @@
 				792F55D80BFDF550006EAA19 /* tri.c in Sources */,
 				792F55DA0BFDF550006EAA19 /* wvschart.cpp in Sources */,
 				792F55E50BFDF5C9006EAA19 /* s52utils.cpp in Sources */,
-				792F55E80BFDF5DF006EAA19 /* chcanv.cpp in Sources */,
 				792F55E90BFDF5E0006EAA19 /* chartimg.cpp in Sources */,
 				792F55EA0BFDF5E1006EAA19 /* chartdb.cpp in Sources */,
-				792F55EB0BFDF5E4006EAA19 /* chart1.cpp in Sources */,
 				79FFF07A0D3EBC0200BFB4C0 /* georef.c in Sources */,
 				79701D0E0D4E897B005B834E /* nmea.cpp in Sources */,
 				79701D180D4F9F9C005B834E /* nmea0183.cpp in Sources */,
@@ -690,6 +601,13 @@
 				79701D210D4FA42C005B834E /* macutils.c in Sources */,
 				79701D260D4FA4F9005B834E /* expid.cpp in Sources */,
 				79701D290D4FA53C005B834E /* talkerid.cpp in Sources */,
+				79D3A78A0DA834470003D34D /* chart1.cpp in Sources */,
+				79D3A78B0DA834490003D34D /* chcanv.cpp in Sources */,
+				792B49E20DA83A12005621E0 /* routeman.cpp in Sources */,
+				792B49EE0DA83AB7005621E0 /* ogrcurve.cpp in Sources */,
+				792B49F30DA83B45005621E0 /* routeprop.cpp in Sources */,
+				792B4A220DA84667005621E0 /* opencp.cpp in Sources */,
+				792B4A240DA84667005621E0 /* sercomm.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
