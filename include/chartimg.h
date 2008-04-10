@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.9 2008/01/10 03:38:55 bdbcat Exp $
+ * $Id: chartimg.h,v 1.10 2008/04/10 00:58:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.10  2008/04/10 00:58:04  bdbcat
+ * Change to opncpnPalette vs Pelette
+ *
  * Revision 1.9  2008/01/10 03:38:55  bdbcat
  * Update for Mac OSX
  *
@@ -129,19 +132,6 @@ public:
       bool              bValid;
 };
 
-#ifndef __WXOSX__ // begin rms
-class Palette
-{
-public:
-    Palette();
-    ~Palette();
-    int *FwdPalette;
-    int *RevPalette;
-    int nFwd;
-    int nRev;
-
-};
-#else
 class opncpnPalette
 {
     public:
@@ -153,7 +143,6 @@ class opncpnPalette
         int nFwd;
         int nRev;
 };
-#endif // end rms
 
 // ----------------------------------------------------------------------------
 // ChartBaseBSB
@@ -301,11 +290,7 @@ protected:
       bool              bHaveImbeddedGeoref;
       double            m_cph;
 
-#ifndef __WXMAC__ // begin rms
-      Palette           *pPalettes[N_BSB_COLORS];
-#else
       opncpnPalette     *pPalettes[N_BSB_COLORS];
-#endif // end rms
 
       BSB_Color_Capability m_mapped_color_index;
 
