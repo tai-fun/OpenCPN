@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.4 2008/03/30 23:29:52 bdbcat Exp $
+ * $Id: options.h,v 1.5 2008/04/11 03:26:33 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.5  2008/04/11 03:26:33  bdbcat
+ * Implement Auto Anchor Mark
+ *
  * Revision 1.4  2008/03/30 23:29:52  bdbcat
  * Cleanup/optimize
  *
@@ -92,7 +95,8 @@ enum {
         ID_METACHECKBOX,
         ID_TEXTCHECKBOX,
         ID_SCAMINCHECKBOX,
-        ID_SHOWDEPTHUNITSBOX1
+        ID_SHOWDEPTHUNITSBOX1,
+        ID_AUTOANCHORMARKBOX1
 };
 
 //    Define an int bit field for dialog return value
@@ -155,6 +159,7 @@ public:
     wxCheckBox              *pPrintShowIcon;
     wxCheckBox              *pCDOOutlines;
     wxCheckBox              *pSDepthUnits;
+    wxCheckBox              *pAutoAnchorMark;
 
 //    For "S57" page
     wxPanel                 *ps57Ctl;

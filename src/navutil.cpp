@@ -27,6 +27,9 @@
  *
 <<<<<<< navutil.cpp
  * $Log: navutil.cpp,v $
+ * Revision 1.13  2008/04/11 03:25:08  bdbcat
+ * Implement Auto Anchor Mark
+ *
  * Revision 1.12  2008/04/10 01:03:51  bdbcat
  * Cleanup
  *
@@ -35,6 +38,9 @@
  *
 =======
  * $Log: navutil.cpp,v $
+ * Revision 1.13  2008/04/11 03:25:08  bdbcat
+ * Implement Auto Anchor Mark
+ *
  * Revision 1.12  2008/04/10 01:03:51  bdbcat
  * Cleanup
  *
@@ -99,7 +105,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.12 2008/04/10 01:03:51 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.13 2008/04/11 03:25:08 bdbcat Exp $");
 
 //    Statics
 
@@ -132,9 +138,9 @@ extern wxString         *pInit_Chart_Dir;
 extern WayPointman      *pWayPointMan;
 extern Routeman         *pRouteMan;
 
-
 extern bool             s_bSetSystemTime;
 extern bool             g_bShowDepthUnits;
+extern bool             g_bAutoAnchorMark;
 
 extern int              g_nframewin_x;
 extern int              g_nframewin_y;
@@ -1238,6 +1244,9 @@ int MyConfig::LoadMyConfig(int iteration)
       g_bShowDepthUnits = false;
       Read(_T("ShowDepthUnits"), &g_bShowDepthUnits);
 
+      g_bAutoAnchorMark = false;
+      Read(_T("AutoAnchorDrop"),  &g_bAutoAnchorMark);
+
       wxString stps;
       Read(_T("PlanSpeed"),  &stps);
       stps.ToDouble(&g_PlanSpeed);
@@ -1248,6 +1257,7 @@ int MyConfig::LoadMyConfig(int iteration)
       Read(_T("FrameWinX"), &g_nframewin_x);
       Read(_T("FrameWinY"), &g_nframewin_y);
       Read(_T("FrameMax"),  &g_bframemax);
+
 
 #ifdef USE_S57
     if(NULL != ps52plib)
@@ -2069,6 +2079,7 @@ void MyConfig::UpdateSettings()
     Write(_T("ShowPrintIcon"), g_bShowPrintIcon);
     Write(_T("SetSystemTime"), s_bSetSystemTime);
     Write(_T("ShowDepthUnits"), g_bShowDepthUnits);
+    Write(_T("AutoAnchorDrop"),  g_bAutoAnchorMark);
 
     wxString st0;
     st0.Printf(_T("%g"), g_PlanSpeed);

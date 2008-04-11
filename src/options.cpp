@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.7 2008/04/10 01:07:52 bdbcat Exp $
+ * $Id: options.cpp,v 1.8 2008/04/11 03:25:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -27,6 +27,9 @@
  *
 <<<<<<< options.cpp
  * $Log: options.cpp,v $
+ * Revision 1.8  2008/04/11 03:25:08  bdbcat
+ * Implement Auto Anchor Mark
+ *
  * Revision 1.7  2008/04/10 01:07:52  bdbcat
  * Cleanup and fix EOL problem on wxTextCtrl
  *
@@ -35,6 +38,9 @@
  *
 =======
  * $Log: options.cpp,v $
+ * Revision 1.8  2008/04/11 03:25:08  bdbcat
+ * Implement Auto Anchor Mark
+ *
  * Revision 1.7  2008/04/10 01:07:52  bdbcat
  * Cleanup and fix EOL problem on wxTextCtrl
  *
@@ -92,6 +98,7 @@ extern wxString         *pNMEA_AP_Port;
 extern FontMgr          *pFontMgr;
 extern wxString         *pAIS_Port;
 extern wxString         *pInit_Chart_Dir;
+extern bool             g_bAutoAnchorMark;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -256,6 +263,12 @@ void options::CreateControls()
     pSDepthUnits->SetValue(FALSE);
     itemStaticBoxSizerCDO->Add(pSDepthUnits, 1, wxALIGN_LEFT|wxALL, 5);
 
+
+    //  Auto Anchor Mark
+    pAutoAnchorMark = new wxCheckBox( itemPanel5, ID_AUTOANCHORMARKBOX1, _("Automatic Anchor Mark"), wxDefaultPosition,
+                                   wxSize(-1, -1), 0 );
+    pAutoAnchorMark->SetValue(FALSE);
+    itemStaticBoxSizerCDO->Add(pAutoAnchorMark, 1, wxALIGN_LEFT|wxALL, 5);
 
 
 
@@ -621,6 +634,7 @@ void options::SetInitialSettings()
       pPrintShowIcon->SetValue(g_bShowPrintIcon);
       pCDOOutlines->SetValue(g_bShowOutlines);
       pSDepthUnits->SetValue(g_bShowDepthUnits);
+      pAutoAnchorMark->SetValue(g_bAutoAnchorMark);
 
 #ifdef USE_S57
 //    S52 Primary Filters
@@ -830,6 +844,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
     g_bShowPrintIcon = pPrintShowIcon->GetValue();
     g_bShowOutlines = pCDOOutlines->GetValue();
     g_bShowDepthUnits = pSDepthUnits->GetValue();
+    g_bAutoAnchorMark = pAutoAnchorMark->GetValue();
 
 
 //    NMEA Options

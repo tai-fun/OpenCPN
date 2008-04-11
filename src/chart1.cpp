@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.22 2008/04/10 01:06:38 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.23 2008/04/11 03:25:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -27,6 +27,9 @@
  *
 <<<<<<< chart1.cpp
  * $Log: chart1.cpp,v $
+ * Revision 1.23  2008/04/11 03:25:08  bdbcat
+ * Implement Auto Anchor Mark
+ *
  * Revision 1.22  2008/04/10 01:06:38  bdbcat
  * Cleanup
  *
@@ -38,6 +41,9 @@
  *
 =======
  * $Log: chart1.cpp,v $
+ * Revision 1.23  2008/04/11 03:25:08  bdbcat
+ * Implement Auto Anchor Mark
+ *
  * Revision 1.22  2008/04/10 01:06:38  bdbcat
  * Cleanup
  *
@@ -146,7 +152,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.22 2008/04/10 01:06:38 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.23 2008/04/11 03:25:08 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -308,6 +314,8 @@ wxSocketServer  *s_s_sock;
 int              g_nframewin_x;
 int              g_nframewin_y;
 bool             g_bframemax;
+
+bool             g_bAutoAnchorMark;
 
 wxRect           g_blink_rect;
 double           g_PlanSpeed;
@@ -1521,6 +1529,7 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
     toolBar->SetBackgroundColour(back_color);
 
 #ifdef __WXGTK__
+#ifdef ocpnUSE_GTK_OPTIMIZE
     //  On GTK, need to be more explicit
     GdkColor color;
 
@@ -1529,6 +1538,7 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
     color.blue = back_color.Blue() << 8;
 
     gtk_widget_modify_bg (GTK_WIDGET(toolBar->m_toolbar), GTK_STATE_NORMAL, &color);
+#endif
 #endif
 
     //  Re-establish toggle states
@@ -1564,7 +1574,7 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
           3.  Opencpn has been up at least 30 minutes
           4.  And, of course, opencpn is going down now.
     */
-      if(1)
+      if(g_bAutoAnchorMark)
       {
             wxDateTime now = wxDateTime::Now();
             wxTimeSpan uptime = now.Subtract(g_start_time);
