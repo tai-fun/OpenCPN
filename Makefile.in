@@ -38,16 +38,20 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 
+#	The variable BUILD_WITH_GTK_OPTIMIZATION comes from configure script AM_CONDITIONAL()
+@BUILD_WITH_GTK_OPTIMIZATION_TRUE@am__append_1 = -DocpnUSE_GTK_OPTIMIZE
+@BUILD_WITH_GTK_OPTIMIZATION_TRUE@am__append_2 = -DocpnUSE_GTK_OPTIMIZE
+
 #	The variable BUILD_WITH_S57 comes from configure script AM_CONDITIONAL()
-@BUILD_WITH_S57_TRUE@am__append_1 = -DUSE_S57
-@BUILD_WITH_S57_TRUE@am__append_2 = -DUSE_S57
+@BUILD_WITH_S57_TRUE@am__append_3 = -DUSE_S57
+@BUILD_WITH_S57_TRUE@am__append_4 = -DUSE_S57
 
 #	The variable BUILD_WITH_GLU_TESS comes from configure script AM_CONDITIONAL()
-@BUILD_WITH_GLU_TESS_TRUE@am__append_3 = $(GL_CFLAGS)
-@BUILD_WITH_GLU_TESS_TRUE@am__append_4 = $(GL_CFLAGS)
-@BUILD_WITH_GLU_TESS_TRUE@am__append_5 = $(GL_LIBS)
+@BUILD_WITH_GLU_TESS_TRUE@am__append_5 = $(GL_CFLAGS)
+@BUILD_WITH_GLU_TESS_TRUE@am__append_6 = $(GL_CFLAGS)
+@BUILD_WITH_GLU_TESS_TRUE@am__append_7 = $(GL_LIBS)
 bin_PROGRAMS = opencpn$(EXEEXT) ocpnhelper$(EXEEXT)
-@BUILD_WITH_S57_TRUE@am__append_6 = src/s52cnsy.cpp src/s52plib.cpp \
+@BUILD_WITH_S57_TRUE@am__append_8 = src/s52cnsy.cpp src/s52plib.cpp \
 @BUILD_WITH_S57_TRUE@	src/s52utils.cpp src/s57chart.cpp \
 @BUILD_WITH_S57_TRUE@	src/mygeom.cpp src/tri.c \
 @BUILD_WITH_S57_TRUE@	src/myiso8211/ddffielddefn.cpp \
@@ -90,9 +94,8 @@ bin_PROGRAMS = opencpn$(EXEEXT) ocpnhelper$(EXEEXT)
 @BUILD_WITH_S57_TRUE@	src/mygdal/s57featuredefns.cpp \
 @BUILD_WITH_S57_TRUE@	src/mygdal/s57reader.cpp \
 @BUILD_WITH_S57_TRUE@	src/mygdal/gdal_misc.cpp
-@BUILD_WITH_S57_TRUE@am__append_7 = -I./$(srcdir)/src/mygdal
-@BUILD_WITH_WIFI_CLIENT_TRUE@am__append_8 = -DUSE_WIFI_CLIENT
-@BUILD_WITH_WIFI_CLIENT_TRUE@am__append_9 = src/wificlient.cpp 
+@BUILD_WITH_WIFI_CLIENT_TRUE@am__append_9 = -DUSE_WIFI_CLIENT
+@BUILD_WITH_WIFI_CLIENT_TRUE@am__append_10 = src/wificlient.cpp 
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
@@ -238,6 +241,9 @@ AWK = @AWK@
 BUILD_WITH_GLU_TESS = @BUILD_WITH_GLU_TESS@
 BUILD_WITH_GLU_TESS_FALSE = @BUILD_WITH_GLU_TESS_FALSE@
 BUILD_WITH_GLU_TESS_TRUE = @BUILD_WITH_GLU_TESS_TRUE@
+BUILD_WITH_GTK_OPTIMIZATION = @BUILD_WITH_GTK_OPTIMIZATION@
+BUILD_WITH_GTK_OPTIMIZATION_FALSE = @BUILD_WITH_GTK_OPTIMIZATION_FALSE@
+BUILD_WITH_GTK_OPTIMIZATION_TRUE = @BUILD_WITH_GTK_OPTIMIZATION_TRUE@
 BUILD_WITH_INTERNAL_TESS = @BUILD_WITH_INTERNAL_TESS@
 BUILD_WITH_INTERNAL_TESS_FALSE = @BUILD_WITH_INTERNAL_TESS_FALSE@
 BUILD_WITH_INTERNAL_TESS_TRUE = @BUILD_WITH_INTERNAL_TESS_TRUE@
@@ -324,12 +330,16 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-INCLUDES = -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183 \
-	-I/usr/X11R6/include $(am__append_7)
-AM_CFLAGS = -Wall -g $(am__append_1) $(am__append_3)
-AM_CXXFLAGS = -Wall -g $(am__append_2) $(am__append_4) $(am__append_8)
+INCLUDES = \
+	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
+	 -I/usr/X11R6/include\
+	 -I./$(srcdir)/src/mygdal
+
+AM_CFLAGS = -Wall -g $(am__append_1) $(am__append_3) $(am__append_5)
+AM_CXXFLAGS = -Wall -g $(am__append_2) $(am__append_4) $(am__append_6) \
+	$(am__append_9)
 opencpn_LDFLAGS = 
-opencpn_LDADD = $(WX_LIBS) $(am__append_5)
+opencpn_LDADD = $(WX_LIBS) $(am__append_7)
 opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
 	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
@@ -341,8 +351,8 @@ opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
 	src/nmea0183/sentence.cpp src/nmea0183/talkerid.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
-	src/nmea0183/lat.cpp src/nmea0183/expid.cpp $(am__append_6) \
-	$(am__append_9)
+	src/nmea0183/lat.cpp src/nmea0183/expid.cpp $(am__append_8) \
+	$(am__append_10)
 ocpnhelper_SOURCES = src/ocpnhelper.c
 noinst_HEADERS = \
  	include/about.h \

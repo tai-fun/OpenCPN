@@ -4,7 +4,8 @@ VERSION=1.2.4
 
 INCLUDES = \
 	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
-	 -I/usr/X11R6/include
+	 -I/usr/X11R6/include\
+	 -I./$(srcdir)/src/mygdal
 
 
 
@@ -23,6 +24,11 @@ opencpn_LDADD =  \
 
 
 
+#	The variable BUILD_WITH_GTK_OPTIMIZATION comes from configure script AM_CONDITIONAL()
+if BUILD_WITH_GTK_OPTIMIZATION
+AM_CFLAGS += -DocpnUSE_GTK_OPTIMIZE
+AM_CXXFLAGS += -DocpnUSE_GTK_OPTIMIZE
+endif
 
 
 #	The variable BUILD_WITH_S57 comes from configure script AM_CONDITIONAL()
@@ -125,7 +131,6 @@ opencpn_SOURCES +=	src/myiso8211/ddffielddefn.cpp \
 			src/mygdal/s57reader.cpp \
 			src/mygdal/gdal_misc.cpp 
  
-INCLUDES += -I./$(srcdir)/src/mygdal
 endif
 
 if BUILD_WITH_WIFI_CLIENT

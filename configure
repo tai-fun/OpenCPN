@@ -273,7 +273,7 @@ PACKAGE_BUGREPORT=
 
 ac_unique_file="src/chart1.cpp"
 ac_default_prefix=/usr/local
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP BUILD_WITH_S57_TRUE BUILD_WITH_S57_FALSE BUILD_WITH_S57 GL_LIBS GL_CFLAGS BUILD_WITH_INTERNAL_TESS_TRUE BUILD_WITH_INTERNAL_TESS_FALSE BUILD_WITH_INTERNAL_TESS BUILD_WITH_GLU_TESS_TRUE BUILD_WITH_GLU_TESS_FALSE BUILD_WITH_GLU_TESS BUILD_WITH_WIFI_CLIENT_TRUE BUILD_WITH_WIFI_CLIENT_FALSE BUILD_WITH_WIFI_CLIENT WX_LIBS PKG_CONFIG GTK_CFLAGS GTK_LIBS GTK_CONFIG LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CPP EGREP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP BUILD_WITH_S57_TRUE BUILD_WITH_S57_FALSE BUILD_WITH_S57 GL_LIBS GL_CFLAGS BUILD_WITH_INTERNAL_TESS_TRUE BUILD_WITH_INTERNAL_TESS_FALSE BUILD_WITH_INTERNAL_TESS BUILD_WITH_GLU_TESS_TRUE BUILD_WITH_GLU_TESS_FALSE BUILD_WITH_GLU_TESS BUILD_WITH_WIFI_CLIENT_TRUE BUILD_WITH_WIFI_CLIENT_FALSE BUILD_WITH_WIFI_CLIENT WX_LIBS PKG_CONFIG GTK_CFLAGS GTK_LIBS BUILD_WITH_GTK_OPTIMIZATION_TRUE BUILD_WITH_GTK_OPTIMIZATION_FALSE BUILD_WITH_GTK_OPTIMIZATION GTK_CONFIG LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -823,7 +823,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
-  --enable-s57enc    Enable S57 ENC Support
+  --disable-s57enc        Disable S57 ENC Support
   --disable-gtktest       do not try to compile and run a test GTK+ program
   --disable-gtktest       Do not try to compile and run a test GTK program
 
@@ -831,7 +831,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-tess-internal    use Internal Polygon Tesselator
-  --with-wifi-client    Enable wifi client
+  --with-wifi-client      Enable wifi client
   --with-wx-config=FILE     Use the given path to wx-config when determining
                             wxWidgets configuration; defaults to "wx-config"
   --with-gtk-prefix=PFX   Prefix where GTK is installed (optional)
@@ -4214,16 +4214,11 @@ fi
 # Check whether --enable-s57enc or --disable-s57enc was given.
 if test "${enable_s57enc+set}" = set; then
   enableval="$enable_s57enc"
-  case "${enableval}" in
-       yes) s57enc=true ;;
-       no)  s57enc=false ;;
-       *) { { echo "$as_me:$LINENO: error: bad value ${enableval} for --enable-s57enc" >&5
-echo "$as_me: error: bad value ${enableval} for --enable-s57enc" >&2;}
-   { (exit 1); exit 1; }; } ;;
-     esac
+
 else
   s57enc=true
 fi;
+
 
 
 if test x$s57enc = xtrue; then
@@ -4620,9 +4615,400 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ac_buildfor_gtk=no
 fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-
 echo "$as_me:$LINENO: result: $ac_buildfor_gtk" >&5
 echo "${ECHO_T}$ac_buildfor_gtk" >&6
+
+
+# Check whether --enable-gtktest or --disable-gtktest was given.
+if test "${enable_gtktest+set}" = set; then
+  enableval="$enable_gtktest"
+
+else
+  my_enable_gtktest=yes
+fi;
+
+enable_gtktest=no
+
+CPPSAVE="$CPPFLAGS"
+
+# Check whether --enable-gtktest or --disable-gtktest was given.
+if test "${enable_gtktest+set}" = set; then
+  enableval="$enable_gtktest"
+
+else
+  enable_gtktest=yes
+fi;
+
+  pkg_config_args=gtk+-2.0
+  for module in . $GTK_MODULES
+  do
+      case "$module" in
+         gthread)
+             pkg_config_args="$pkg_config_args gthread-2.0"
+         ;;
+      esac
+  done
+
+  no_gtk=""
+
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+
+if test -n "$PKG_CONFIG"; then
+  echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+
+  if test x$PKG_CONFIG != xno ; then
+    if pkg-config --atleast-pkgconfig-version 0.7 ; then
+      :
+    else
+      echo "*** pkg-config too old; version 0.7 or better required."
+      no_gtk=yes
+      PKG_CONFIG=no
+    fi
+  else
+    no_gtk=yes
+  fi
+
+  min_gtk_version=2.0.0
+  echo "$as_me:$LINENO: checking for GTK+ - version >= $min_gtk_version" >&5
+echo $ECHO_N "checking for GTK+ - version >= $min_gtk_version... $ECHO_C" >&6
+
+  if test x$PKG_CONFIG != xno ; then
+    ## don't try to run the test against uninstalled libtool libs
+    if $PKG_CONFIG --uninstalled $pkg_config_args; then
+	  echo "Will use uninstalled version of GTK+ found in PKG_CONFIG_PATH"
+	  enable_gtktest=no
+    fi
+
+    if $PKG_CONFIG --atleast-version $min_gtk_version $pkg_config_args; then
+	  :
+    else
+	  no_gtk=yes
+    fi
+  fi
+
+  if test x"$no_gtk" = x ; then
+    GTK_CFLAGS=`$PKG_CONFIG $pkg_config_args --cflags`
+    GTK_LIBS=`$PKG_CONFIG $pkg_config_args --libs`
+    gtk_config_major_version=`$PKG_CONFIG --modversion gtk+-2.0 | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+    gtk_config_minor_version=`$PKG_CONFIG --modversion gtk+-2.0 | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+    gtk_config_micro_version=`$PKG_CONFIG --modversion gtk+-2.0 | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+    if test "x$enable_gtktest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $GTK_CFLAGS"
+      LIBS="$GTK_LIBS $LIBS"
+      rm -f conf.gtktest
+      if test "$cross_compiling" = yes; then
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <gtk/gtk.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main ()
+{
+  int major, minor, micro;
+  char *tmp_version;
+
+  system ("touch conf.gtktest");
+
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = g_strdup("$min_gtk_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string\n", "$min_gtk_version");
+     exit(1);
+   }
+
+  if ((gtk_major_version != $gtk_config_major_version) ||
+      (gtk_minor_version != $gtk_config_minor_version) ||
+      (gtk_micro_version != $gtk_config_micro_version))
+    {
+      printf("\n*** 'pkg-config --modversion gtk+-2.0' returned %d.%d.%d, but GTK+ (%d.%d.%d)\n",
+             $gtk_config_major_version, $gtk_config_minor_version, $gtk_config_micro_version,
+             gtk_major_version, gtk_minor_version, gtk_micro_version);
+      printf ("*** was found! If pkg-config was correct, then it is best\n");
+      printf ("*** to remove the old version of GTK+. You may also be able to fix the error\n");
+      printf("*** by modifying your LD_LIBRARY_PATH enviroment variable, or by editing\n");
+      printf("*** /etc/ld.so.conf. Make sure you have run ldconfig if that is\n");
+      printf("*** required on your system.\n");
+      printf("*** If pkg-config was wrong, set the environment variable PKG_CONFIG_PATH\n");
+      printf("*** to point to the correct configuration files\n");
+    }
+  else if ((gtk_major_version != GTK_MAJOR_VERSION) ||
+	   (gtk_minor_version != GTK_MINOR_VERSION) ||
+           (gtk_micro_version != GTK_MICRO_VERSION))
+    {
+      printf("*** GTK+ header files (version %d.%d.%d) do not match\n",
+	     GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
+      printf("*** library (version %d.%d.%d)\n",
+	     gtk_major_version, gtk_minor_version, gtk_micro_version);
+    }
+  else
+    {
+      if ((gtk_major_version > major) ||
+        ((gtk_major_version == major) && (gtk_minor_version > minor)) ||
+        ((gtk_major_version == major) && (gtk_minor_version == minor) && (gtk_micro_version >= micro)))
+      {
+        return 0;
+       }
+     else
+      {
+        printf("\n*** An old version of GTK+ (%d.%d.%d) was found.\n",
+               gtk_major_version, gtk_minor_version, gtk_micro_version);
+        printf("*** You need a version of GTK+ newer than %d.%d.%d. The latest version of\n",
+	       major, minor, micro);
+        printf("*** GTK+ is always available from ftp://ftp.gtk.org.\n");
+        printf("***\n");
+        printf("*** If you have already installed a sufficiently new version, this error\n");
+        printf("*** probably means that the wrong copy of the pkg-config shell script is\n");
+        printf("*** being found. The easiest way to fix this is to remove the old version\n");
+        printf("*** of GTK+, but you can also set the PKG_CONFIG environment to point to the\n");
+        printf("*** correct copy of pkg-config. (In this case, you will have to\n");
+        printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
+        printf("*** so that the correct libraries are found at run-time))\n");
+      }
+    }
+  return 1;
+}
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  :
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+no_gtk=yes
+fi
+rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+  fi
+  if test "x$no_gtk" = x ; then
+     echo "$as_me:$LINENO: result: yes (version $gtk_config_major_version.$gtk_config_minor_version.$gtk_config_micro_version)" >&5
+echo "${ECHO_T}yes (version $gtk_config_major_version.$gtk_config_minor_version.$gtk_config_micro_version)" >&6
+     :
+  else
+     echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+     if test "$PKG_CONFIG" = "no" ; then
+       echo "*** A new enough version of pkg-config was not found."
+       echo "*** See http://pkgconfig.sourceforge.net"
+     else
+       if test -f conf.gtktest ; then
+        :
+       else
+          echo "*** Could not run GTK+ test program, checking why..."
+	  ac_save_CFLAGS="$CFLAGS"
+	  ac_save_LIBS="$LIBS"
+          CFLAGS="$CFLAGS $GTK_CFLAGS"
+          LIBS="$LIBS $GTK_LIBS"
+          cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <gtk/gtk.h>
+#include <stdio.h>
+
+int
+main ()
+{
+ return ((gtk_major_version) || (gtk_minor_version) || (gtk_micro_version));
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+   echo "*** The test program compiled, but did not run. This usually means"
+          echo "*** that the run-time linker is not finding GTK+ or finding the wrong"
+          echo "*** version of GTK+. If it is not finding GTK+, you'll need to set your"
+          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+          echo "*** is required on your system"
+	  echo "***"
+          echo "*** If you have an old version installed, it is best to remove it, although"
+          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** exact error that occured. This usually means GTK+ is incorrectly installed."
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+          CFLAGS="$ac_save_CFLAGS"
+          LIBS="$ac_save_LIBS"
+       fi
+     fi
+     GTK_CFLAGS=""
+     GTK_LIBS=""
+     :
+  fi
+
+
+  rm -f conf.gtktest
+
+
+CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"
+
+echo "$as_me:$LINENO: checking for libgtk+2-devel" >&5
+echo $ECHO_N "checking for libgtk+2-devel... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <gtk/gtk.h>
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  have_gtkdevel=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+have_gtkdevel=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+echo "$as_me:$LINENO: result: $have_gtkdevel" >&5
+echo "${ECHO_T}$have_gtkdevel" >&6
+
+enable_gtktest="$my_enable_gtktest"
+
+
+
+if test x$have_gtkdevel = xyes; then
+  BUILD_WITH_GTK_OPTIMIZATION_TRUE=
+  BUILD_WITH_GTK_OPTIMIZATION_FALSE='#'
+else
+  BUILD_WITH_GTK_OPTIMIZATION_TRUE='#'
+  BUILD_WITH_GTK_OPTIMIZATION_FALSE=
+fi
+
+
+
+if test $have_gtkdevel = no; then
+    enable_gtktest=no
+    { echo "$as_me:$LINENO: WARNING: Disabling some GTK display optimizations" >&5
+echo "$as_me: WARNING: Disabling some GTK display optimizations" >&2;}
+    { echo "$as_me:$LINENO: WARNING: You may want to consider installing libgtk+2-devel" >&5
+echo "$as_me: WARNING: You may want to consider installing libgtk+2-devel" >&2;}
+fi
+
     if test $ac_buildfor_gtk = yes; then
                 echo "$as_me:$LINENO: checking for GTK+ version" >&5
 echo $ECHO_N "checking for GTK+ version... $ECHO_C" >&6
@@ -4756,10 +5142,6 @@ echo $ECHO_N "checking for GTK+ - version >= $min_gtk_version... $ECHO_C" >&6
       ac_save_LIBS="$LIBS"
       CFLAGS="$CFLAGS $GTK_CFLAGS"
       LIBS="$GTK_LIBS $LIBS"
-
-      CXXFLAGS="$CXXFLAGS $GTK_CFLAGS"
-
-
       rm -f conf.gtktest
       if test "$cross_compiling" = yes; then
   echo $ac_n "cross compiling; assumed OK... $ac_c"
@@ -5746,6 +6128,13 @@ echo "$as_me: error: conditional \"BUILD_WITH_WIFI_CLIENT\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${BUILD_WITH_GTK_OPTIMIZATION_TRUE}" && test -z "${BUILD_WITH_GTK_OPTIMIZATION_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"BUILD_WITH_GTK_OPTIMIZATION\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"BUILD_WITH_GTK_OPTIMIZATION\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
@@ -6336,6 +6725,9 @@ s,@WX_LIBS@,$WX_LIBS,;t t
 s,@PKG_CONFIG@,$PKG_CONFIG,;t t
 s,@GTK_CFLAGS@,$GTK_CFLAGS,;t t
 s,@GTK_LIBS@,$GTK_LIBS,;t t
+s,@BUILD_WITH_GTK_OPTIMIZATION_TRUE@,$BUILD_WITH_GTK_OPTIMIZATION_TRUE,;t t
+s,@BUILD_WITH_GTK_OPTIMIZATION_FALSE@,$BUILD_WITH_GTK_OPTIMIZATION_FALSE,;t t
+s,@BUILD_WITH_GTK_OPTIMIZATION@,$BUILD_WITH_GTK_OPTIMIZATION,;t t
 s,@GTK_CONFIG@,$GTK_CONFIG,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
