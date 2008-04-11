@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.h,v 1.4 2008/04/10 01:01:32 bdbcat Exp $
+ * $Id: ocpn_pixel.h,v 1.5 2008/04/11 03:26:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Optimized wxBitmap Object
@@ -32,6 +32,7 @@
 #ifndef _OCPN_PIXEL_H_
 #define _OCPN_PIXEL_H_
 
+#include "dychart.h"                // for configuration stuff
 void *x_malloc(size_t t);
 
 
@@ -51,15 +52,13 @@ void *x_malloc(size_t t);
 
 //  I use these shortcuts....
 #ifdef __WXX11__
-//#define __PIX_CACHE_WXIMAGE__
-#define     __PIX_CACHE_X11IMAGE__
-#define     ocpnUSE_ocpnBitmap
+#define __PIX_CACHE_WXIMAGE__
+//#define     __PIX_CACHE_X11IMAGE__
 #endif
 
 #ifdef __WXGTK__
 #define __PIX_CACHE_WXIMAGE__
 //#define __PIX_CACHE_PIXBUF__
-//#define     ocpnUSE_ocpnBitmap
 #endif
 
 #ifdef __WXMSW__
@@ -72,10 +71,17 @@ void *x_malloc(size_t t);
 #define __PIX_CACHE_WXIMAGE__
 #endif
 
+//    Some configuration sanity checks
+
 //          Use ocpnBitmap (Optimized wxBitmap)
 //          Required for X11 native systems, optional on MSW
+//          Also required for GTK PixBuf optimized configuration
 
 #ifdef      __PIX_CACHE_X11IMAGE__
+#define     ocpnUSE_ocpnBitmap
+#endif
+
+#ifdef      __PIX_CACHE_PIXBUF__
 #define     ocpnUSE_ocpnBitmap
 #endif
 
@@ -97,11 +103,11 @@ void *x_malloc(size_t t);
 #ifdef __PIX_CACHE_X11IMAGE__                              // for X11/Universal
 #define BPP 32
 #endif
-#ifdef __PIX_CACHE_PIXBUF__                                // for GTK
+#ifdef __PIX_CACHE_PIXBUF__                                // for GTK Optimized
 #define BPP 32
 #endif
 
-//    A fall back position is good....
+//    A fall back position is smart....
 #ifndef BPP
 #define BPP 24
 #endif
@@ -118,10 +124,6 @@ void *x_malloc(size_t t);
 
 #ifdef __WXMSW__
 #include "wx/msw/dib.h"                     // for ocpnMemDC
-#endif
-
-#ifdef __WXGTK__
-#include <gtk/gtk.h>
 #endif
 
 // ============================================================================
@@ -256,8 +258,6 @@ class WXDLLEXPORT ocpnBitmap : public wxBitmap
 public:
     // default ctor creates an invalid bitmap, you must Create() it later
     ocpnBitmap(); //{ Init(); }
-//    virtual ~wxBitmapo();
-
 
       // ctor
       // Create from Data

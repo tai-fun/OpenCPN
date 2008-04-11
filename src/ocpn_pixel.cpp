@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.cpp,v 1.5 2008/04/10 01:03:09 bdbcat Exp $
+ * $Id: ocpn_pixel.cpp,v 1.6 2008/04/11 03:25:59 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Optimized wxBitmap Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ocpn_pixel.cpp,v $
+ * Revision 1.6  2008/04/11 03:25:59  bdbcat
+ * Clean up GTK Optimize option
+ *
  * Revision 1.5  2008/04/10 01:03:09  bdbcat
  * Cleanup
  *
@@ -118,7 +121,7 @@
 #endif
 
 
-CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.5 2008/04/10 01:03:09 bdbcat Exp $");
+CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.6 2008/04/11 03:25:59 bdbcat Exp $");
 
 
 #ifdef  __WXX11__
@@ -465,6 +468,7 @@ ocpnBitmap::ocpnBitmap()
 
 /// This is the GDK version
 #ifdef  __WXGTK__
+#ifdef opcnUSE_GTK_OPTIMIZE
 
 // ----------------------------------------------------------------------------
 // Create from Data
@@ -605,8 +609,8 @@ bool wxBitmap::CreateFromImageAsPixbuf(const wxImage& image)
     return true;
 }
 */
+#endif //opcnUSE_GTK_OPTIMIZE
 #endif
-
 
 
 
