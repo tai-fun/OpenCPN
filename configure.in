@@ -42,7 +42,6 @@ dnl CXXFLAGS="$CPPFLAGS -Wall -g -fexceptions"
 
 dnl
 dnl Check for -fno-stack-protector, present on gcc >4.1
-CPPFLAGS="$CPPFLAGS -Wall -g -fexceptions -fno-stack-protector"
 CXXFLAGS="$CPPFLAGS -Wall -g -fexceptions -fno-stack-protector"
 AC_MSG_CHECKING([for SSP support/disable])
 AC_TRY_COMPILE([ ],
@@ -52,7 +51,6 @@ ac_buildfor_SSP=yes, ac_buildfor_SSP=no)
 AC_MSG_RESULT([$ac_buildfor_SSP])
 
 if test $ac_buildfor_SSP = no; then
-         CPPFLAGS="$CPPSAVE -Wall -g -fexceptions"
          CXXFLAGS="$CPPSAVE -Wall -g -fexceptions"
 fi
 
@@ -234,50 +232,120 @@ AC_TRY_COMPILE([
 #else
 Some error
 #endif],
-ac_buildfor_gtk=yes, ac_buildfor_gtk=no)
-AC_MSG_RESULT([$ac_buildfor_gtk])
+ac_buildfor_wxgtk=yes, ac_buildfor_wxgtk=no)
+AC_MSG_RESULT([$ac_buildfor_wxgtk])
+
+dnl    provisionally try a gtk test
+ac_testcompile_gtk=no
+if test $ac_buildfor_wxgtk = yes; then
+     ac_testcompile_gtk=yes
+fi
 
 dnl
-dnl   Check for presence of libgtk2.0-devel
+dnl   Check for presence of libgtk2.0-dev
 dnl
 
-dnl    Capture the user input for gtktest
-AC_ARG_ENABLE(gtktest, [  --disable-gtktest       do not try to compile and run a test GTK+ program],
-                         , my_enable_gtktest=yes)
+dnl    Use pkg-config to get the gtk cflags
 
-dnl  Override the gtktest variable temporarily
-enable_gtktest=no
+  my_pkg_config_args=gtk+-2.0
+  for module in $GTK_MODULES
+  do
+      case "$module" in
+         gthread) 
+             pkg_config_args="$pkg_config_args gthread-2.0"
+         ;;
+      esac
+  done
 
-dnl    Save the current CPPLAGS
-CPPSAVE="$CPPFLAGS"
+  my_no_gtk=""
 
-dnl  Call the macro to get cflags, etc
-AM_PATH_GTK_2_0(2.0.0, , , $GTK_MODULES)
+  AC_PATH_PROG(MY_PKG_CONFIG, pkg-config, no)
 
-CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"
+  if test x$MY_PKG_CONFIG != xno ; then
+    if pkg-config --atleast-pkgconfig-version 0.7 ; then
+      :
+    else
+      echo "*** pkg-config too old; version 0.7 or better required."
+      my_no_gtk=yes
+      MY_PKG_CONFIG=no
+    fi
+  else
+    my_no_gtk=yes
+  fi
 
-AC_MSG_CHECKING([for libgtk+2-devel])
+  my_min_gtk_version=2.0.0
+  AC_MSG_CHECKING(for GTK+ - version >= $my_min_gtk_version)
+
+  if test x$MY_PKG_CONFIG != xno ; then
+    if $MY_PKG_CONFIG --atleast-version $my_min_gtk_version $my_pkg_config_args; then
+	  :
+    else
+	  my_no_gtk=yes
+    fi
+  fi
+
+  if test x"$my_no_gtk" = x ; then
+    AC_MSG_RESULT(yes)
+    MY_GTK_CFLAGS=`$MY_PKG_CONFIG $my_pkg_config_args --cflags`
+  else
+    AC_MSG_RESULT(no)  
+  fi
+
+dnl    if there is no pkg-config for gtk+-2.0, cannot run the test program
+
+if test x$my_no_gtk = xyes; then
+    have_gtkdevel=no
+    ac_testcompile_gtk=no
+else
+    CXXFLAGS="$CXXFLAGS $MY_GTK_CFLAGS"
+
+dnl  At this point, pkg-config reports ok for gtk+-2.0
+dnl  However, on some systems the correct include files
+dnl  may still not be present.
+dnl  Run a test compile to be sure
+
+    AC_MSG_CHECKING([for libgtk2.0-dev include files])
 dnl try a simple compile
-AC_TRY_COMPILE([#include <gtk/gtk.h>],
+    AC_TRY_COMPILE([#include <gtk/gtk.h>],
                [ ], have_gtkdevel=yes, have_gtkdevel=no)
-AC_MSG_RESULT([$have_gtkdevel])
+    AC_MSG_RESULT([$have_gtkdevel])
+fi
 
-dnl  restore variables
-enable_gtktest="$my_enable_gtktest"
-dnl CPPFLAGS="$CPPSAVE"
+dnl  Some systems have trouble finding cairo.h
+dnl  Make an explicit check
+
+    AC_MSG_CHECKING([for cairo.h in include path])
+dnl try a simple compile
+    AC_TRY_COMPILE([#include <cairo.h>],
+               [ ], have_goodcairo=yes, have_goodcairo=no)
+    AC_MSG_RESULT([$have_goodcairo])
+
+if test x$have_goodcairo = xno; then
+    CXXFLAGS="$CXXFLAGS -I/usr/include/cairo"
+fi
+
+
+
 
 dnl    Pass the option to makefile.am
 AM_CONDITIONAL(BUILD_WITH_GTK_OPTIMIZATION, test x$have_gtkdevel = xyes)
 AC_SUBST(BUILD_WITH_GTK_OPTIMIZATION)
 
-dnl     if libgtk+2-devel is not available...
+dnl     if fully useable libgtk+2-devel(libgtk2.0-dev) is not available...
 if test $have_gtkdevel = no; then
     enable_gtktest=no
+    ac_testcompile_gtk=no
     AC_MSG_WARN([Disabling some GTK display optimizations])
-    AC_MSG_WARN([You may want to consider installing libgtk+2-devel])
+    AC_MSG_WARN([You may want to consider installing libgtk2.0-dev])
 fi
 
-    if test $ac_buildfor_gtk = yes; then
+
+
+if test $ac_testcompile_gtk = yes; then
+
+    AC_MSG_CHECKING([for GTK+-2.0 test compile and run])
+    AC_MSG_RESULT()
+
 dnl   if test "$wxUSE_GTK" = 1; then
         dnl GTK+ test program must be compiled with C compiler
         AC_MSG_CHECKING([for GTK+ version])
