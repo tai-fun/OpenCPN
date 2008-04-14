@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.23 2008/04/11 03:25:08 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.24 2008/04/14 19:38:00 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -27,6 +27,9 @@
  *
 <<<<<<< chart1.cpp
  * $Log: chart1.cpp,v $
+ * Revision 1.24  2008/04/14 19:38:00  bdbcat
+ * Add quitflag++ to OnExit()
+ *
  * Revision 1.23  2008/04/11 03:25:08  bdbcat
  * Implement Auto Anchor Mark
  *
@@ -41,6 +44,9 @@
  *
 =======
  * $Log: chart1.cpp,v $
+ * Revision 1.24  2008/04/14 19:38:00  bdbcat
+ * Add quitflag++ to OnExit()
+ *
  * Revision 1.23  2008/04/11 03:25:08  bdbcat
  * Implement Auto Anchor Mark
  *
@@ -152,7 +158,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.23 2008/04/11 03:25:08 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.24 2008/04/14 19:38:00 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -1556,6 +1562,10 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
 // Intercept menu commands
 void MyFrame::OnExit(wxCommandEvent& event)
 {
+//#ifdef __WXOSX__
+        quitflag++;                             // signal to the timer loop
+//#endif
+
 }
 
 void MyFrame::OnCloseWindow(wxCloseEvent& event)
