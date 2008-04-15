@@ -1,4 +1,15 @@
 NEWS
+
+Opencpn Version 1.2.4 Released
+Opencpn Version 1.2.4 was released on 15 April, 2008.  This is a maintenance
+and feature release containing several bug-fixes and optimizations as follows:
+
+   Configure/build modifications for Unicode systems, especially Ubuntu.
+   Added Route and Mark property sheets.
+   Improved S57 ENC symbology
+
+
+
 Opencpn Version 1.2.2 Released
 
 Opencpn Version 1.2.2 was released on 2 Jan, 2008.  This is a maintenance
@@ -11,4 +22,5 @@ release containing several bug-fixes and optimizations as follows:
   Improved accuaracy of Great Circle distance/bearing calculations.
   Optional Depth Units displayable on chart as embossed character image.
   Ownship position indicator on thumbnail charts accurately follow true GPS position.
+
  
