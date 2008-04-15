@@ -105,8 +105,11 @@ extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
 //#define START_LAT   26.783               // Green Turtle Key  (Ver 1.2)
 //#define START_LON  -77.333
 
-#define START_LAT   25.786               //  Miami Beach (Ver 1.2.2)
-#define START_LON  -80.148
+//#define START_LAT   25.786               //  Miami Beach (Ver 1.2.2)
+//#define START_LON  -80.148
+
+#define START_LAT   33.358               //  Georgetown, SC (Ver 1.2.4)
+#define START_LON  -79.282
 
 //------------------------------------------------------------------------------
 //          Some MSW and MSVCRT Specific Includes
