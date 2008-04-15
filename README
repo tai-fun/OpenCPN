@@ -191,14 +191,13 @@ Version 3.0 tools are current and is what the latest build was tested with.
 		
  
 ---------------------------
-STEP 1:  OPTIONAL - Download wxWidgets
+STEP 1:  Download wxWidgets
 ---------------------------
 To simplify the implementation of a near-identical user
 interface across platforms, OpenCPN uses classes and
 resources from wxWidgets, a portable GUI framework for C++
-(and Python). You may download and build wxWidgets before
-attempting to compile OpenCPN. The build directory has a test version of
-the wxWidgets libraries that where used in testing the latest build.
+(and Python). You must download and build wxWidgets before
+attempting to compile OpenCPN.
 
 OpenCPN builds use wxWidgets 2.6.x series (or later) for 
 Macintosh OSx, available at 
@@ -213,12 +212,24 @@ Make a note of the base install location, which will be something like
 You will need this later.		
 
 ------------------------
-STEP 2:  OPTIONAL - Build wxWidgets
+STEP 2:  Build wxWidgets
 ------------------------
 When you have downloaded and installed wxWidgets, you must
 build it.   The standard wxWidgets build procedures work fine,
 and are dependent on your system build tools and environment.
 See the README files in the wxWidgets installation directory.
+
+The build system for wxWidgets uses a configure command to setup the
+many options provided. These are the configure commands used to build
+the libraries we tested with. they are a good place to start.
+
+system 10.4 building wxMac 2.6.4
+
+../configure --with-mac --enable-monolithic --disable-shared --disable-dynlib --disable-dynamicloader -enable-debug -enable-debug_gdb --enable-stdpathscd
+
+system 10.5 building wxMac 2.8.7
+
+../configure  --with-libpng --enable-monolithic --disable-shared --disable-dynlib --disable-dynamicloader -enable-debug -enable-debug_gdb --with-macosx-sdk=/Developer/SDKs/MacOSX10.5.sdk --with-macosx-version-min=10.4 --with-zlib=builtin
 
 Copy the new libraries to the OpenCpn directory. These libraries
 are normally in \Users\YourUserName\opencpn\buildosx\libraries
@@ -269,14 +280,13 @@ configuration.
 
 Some configure options specific to opencpn are available:
 
-        --enable-s57enc             Compile and enable S57ENC support
-        --enable-s57enc=0           ...or not...
+        --disable-s57enc            Disable S57ENC support
                                     Default is ENABLED.
 
         --with-gdal-system          Deprecated from Version 1.2.4
 
         --with-tess-internal        Use internal tesselator, as opposed
-                                    to OpenGL gluTess.
+                                    to system library OpenGL gluTess.
                                     Default is OFF, use system OpenGL.
 
         --with-wifi-client          Use (undocumented) wifi monitor client
@@ -287,9 +297,9 @@ Some configure options specific to opencpn are available:
                                     script as created by wxWidgets installation.
                                     Default is as found in $PATH.            
 
-GDAL/OGR and WxWidgets linkages and include paths are discovered by the
-makefile using conventional gdal-config and wx-config scripts as
-normally installed by those packages.
+WxWidgets linkages and include paths are discovered by the
+makefile using conventional wx-config scripts as
+normally installed by this packages.
 
 iii.  Known Build Bugs/Gotchas
 
@@ -389,3 +399,6 @@ have the wrong device or permissions.  Look again.
 
 b.  Windows
         Stay Tuned.....
+
+c.  Mac
+        Stay tuned.....

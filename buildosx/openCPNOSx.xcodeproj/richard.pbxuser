@@ -8,7 +8,7 @@
 			sepNavWindowFrame = "{{38, 7}, {1243, 845}}";
 		};
 	};
-	792B4A520DA91A88005621E0 /* chart1.cpp:2560 */ = {
+	792B4A520DA91A88005621E0 /* chart1.cpp:2566 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -20,12 +20,12 @@
 		functionName = "MyFrame::SelectChartFromStack(int index)";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 2560;
+		lineNumber = 2566;
 		location = openCPN;
-		modificationTime = 229436333.589208;
+		modificationTime = 229812770.6883389;
 		state = 1;
 	};
-	792B4A550DA91B1B005621E0 /* chart1.cpp:2639 */ = {
+	792B4A550DA91B1B005621E0 /* chart1.cpp:2645 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -37,9 +37,9 @@
 		functionName = "MyFrame::SetChartThumbnail(int index)";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 2639;
+		lineNumber = 2645;
 		location = openCPN;
-		modificationTime = 229436333.590545;
+		modificationTime = 229812770.688546;
 		state = 1;
 	};
 	792B4AA80DA93192005621E0 /* chartdb.cpp:358 */ = {
@@ -56,88 +56,8 @@
 		ignoreCount = 0;
 		lineNumber = 358;
 		location = openCPN;
-		modificationTime = 229436333.591691;
+		modificationTime = 229812770.688675;
 		state = 1;
-	};
-	792B4FDA0DACF1F7005621E0 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 792F55C00BFDF550006EAA19 /* options.cpp */;
-		name = "options.cpp: 977";
-		rLen = 0;
-		rLoc = 34019;
-		rType = 0;
-		vrLen = 1189;
-		vrLoc = 29008;
-	};
-	792B4FDB0DACF1F7005621E0 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 792F54B40BFDF145006EAA19 /* chartdb.cpp */;
-		name = "chartdb.cpp: 360";
-		rLen = 0;
-		rLoc = 10319;
-		rType = 0;
-		vrLen = 1463;
-		vrLoc = 10602;
-	};
-	792B4FDC0DACF1F7005621E0 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 792F54B50BFDF145006EAA19 /* chartimg.cpp */;
-		name = "chartimg.cpp: 1275";
-		rLen = 0;
-		rLoc = 38307;
-		rType = 0;
-		vrLen = 765;
-		vrLoc = 37911;
-	};
-	792B4FDD0DACF1F7005621E0 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 792F54630BFCF79B006EAA19 /* chart1.cpp */;
-		name = "chart1.cpp: 2544";
-		rLen = 0;
-		rLoc = 71961;
-		rType = 0;
-		vrLen = 1423;
-		vrLoc = 71180;
-	};
-	792B515A0DAD658A005621E0 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 792F55C00BFDF550006EAA19 /* options.cpp */;
-		name = "options.cpp: 977";
-		rLen = 0;
-		rLoc = 34019;
-		rType = 0;
-		vrLen = 1141;
-		vrLoc = 29008;
-	};
-	792B515B0DAD658A005621E0 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 792F54B40BFDF145006EAA19 /* chartdb.cpp */;
-		name = "chartdb.cpp: 360";
-		rLen = 0;
-		rLoc = 10319;
-		rType = 0;
-		vrLen = 1463;
-		vrLoc = 10602;
-	};
-	792B515C0DAD658A005621E0 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 792F54B50BFDF145006EAA19 /* chartimg.cpp */;
-		name = "chartimg.cpp: 1275";
-		rLen = 0;
-		rLoc = 38307;
-		rType = 0;
-		vrLen = 813;
-		vrLoc = 37911;
-	};
-	792B515D0DAD658A005621E0 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 792F54630BFCF79B006EAA19 /* chart1.cpp */;
-		name = "chart1.cpp: 2544";
-		rLen = 0;
-		rLoc = 71961;
-		rType = 0;
-		vrLen = 1474;
-		vrLoc = 71129;
 	};
 	792F544E0BFCF735006EAA19 /* Project object */ = {
 		activeArchitecture = i386;
@@ -148,9 +68,10 @@
 			792F545B0BFCF74F006EAA19 /* openCPN */,
 		);
 		breakpoints = (
-			792B4A520DA91A88005621E0 /* chart1.cpp:2560 */,
-			792B4A550DA91B1B005621E0 /* chart1.cpp:2639 */,
+			792B4A520DA91A88005621E0 /* chart1.cpp:2566 */,
+			792B4A550DA91B1B005621E0 /* chart1.cpp:2645 */,
 			792B4AA80DA93192005621E0 /* chartdb.cpp:358 */,
+			794B18CB0DB2A88C00B5CA85 /* chart1.cpp:1563 */,
 		);
 		codeSenseManager = 792F54530BFCF735006EAA19 /* Code sense */;
 		executables = (
@@ -276,18 +197,18 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 229465962;
-			PBXWorkspaceStateSaveDate = 229465962;
+			PBXPerProjectTemplateStateSaveDate = 229869034;
+			PBXWorkspaceStateSaveDate = 229869034;
 		};
 		perUserProjectItems = {
-			792B4FDA0DACF1F7005621E0 /* PBXTextBookmark */ = 792B4FDA0DACF1F7005621E0 /* PBXTextBookmark */;
-			792B4FDB0DACF1F7005621E0 /* PBXTextBookmark */ = 792B4FDB0DACF1F7005621E0 /* PBXTextBookmark */;
-			792B4FDC0DACF1F7005621E0 /* PBXTextBookmark */ = 792B4FDC0DACF1F7005621E0 /* PBXTextBookmark */;
-			792B4FDD0DACF1F7005621E0 /* PBXTextBookmark */ = 792B4FDD0DACF1F7005621E0 /* PBXTextBookmark */;
-			792B515A0DAD658A005621E0 /* PBXTextBookmark */ = 792B515A0DAD658A005621E0 /* PBXTextBookmark */;
-			792B515B0DAD658A005621E0 /* PBXTextBookmark */ = 792B515B0DAD658A005621E0 /* PBXTextBookmark */;
-			792B515C0DAD658A005621E0 /* PBXTextBookmark */ = 792B515C0DAD658A005621E0 /* PBXTextBookmark */;
-			792B515D0DAD658A005621E0 /* PBXTextBookmark */ = 792B515D0DAD658A005621E0 /* PBXTextBookmark */;
+			799EFA570DB3843600B7ADB3 /* PBXTextBookmark */ = 799EFA570DB3843600B7ADB3 /* PBXTextBookmark */;
+			799EFA580DB3843600B7ADB3 /* PBXTextBookmark */ = 799EFA580DB3843600B7ADB3 /* PBXTextBookmark */;
+			799EFA590DB3843600B7ADB3 /* PBXTextBookmark */ = 799EFA590DB3843600B7ADB3 /* PBXTextBookmark */;
+			799EFA5A0DB3843600B7ADB3 /* PBXTextBookmark */ = 799EFA5A0DB3843600B7ADB3 /* PBXTextBookmark */;
+			79D9210A0DB38AC400503790 /* PBXTextBookmark */ = 79D9210A0DB38AC400503790 /* PBXTextBookmark */;
+			79D9210B0DB38AC400503790 /* PBXTextBookmark */ = 79D9210B0DB38AC400503790 /* PBXTextBookmark */;
+			79D9210C0DB38AC400503790 /* PBXTextBookmark */ = 79D9210C0DB38AC400503790 /* PBXTextBookmark */;
+			79D9210D0DB38AC400503790 /* PBXTextBookmark */ = 79D9210D0DB38AC400503790 /* PBXTextBookmark */;
 		};
 		sourceControlManager = 792F54520BFCF735006EAA19 /* Source Control */;
 		userBuildSettings = {
@@ -344,9 +265,9 @@
 	};
 	792F54630BFCF79B006EAA19 /* chart1.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1030, 52318}}";
-			sepNavSelRange = "{71961, 0}";
-			sepNavVisRange = "{71129, 1474}";
+			sepNavIntBoundsRect = "{{0, 0}, {1030, 53354}}";
+			sepNavSelRange = "{44511, 0}";
+			sepNavVisRange = "{43888, 1293}";
 			sepNavVisRect = "{{1, 33373}, {699, 321}}";
 			sepNavWindowFrame = "{{48, 65}, {1089, 798}}";
 		};
@@ -371,18 +292,18 @@
 	};
 	792F54B40BFDF145006EAA19 /* chartdb.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1030, 25662}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1030, 25466}}";
 			sepNavSelRange = "{10319, 0}";
-			sepNavVisRange = "{10602, 1463}";
+			sepNavVisRange = "{10589, 1551}";
 			sepNavVisRect = "{{0, 9442}, {699, 321}}";
 			sepNavWindowFrame = "{{81, 59}, {1089, 798}}";
 		};
 	};
 	792F54B50BFDF145006EAA19 /* chartimg.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {795, 52094}}";
+			sepNavIntBoundsRect = "{{0, 0}, {795, 51814}}";
 			sepNavSelRange = "{38307, 0}";
-			sepNavVisRange = "{37911, 813}";
+			sepNavVisRange = "{37916, 746}";
 			sepNavVisRect = "{{0, 0}, {740, 180}}";
 			sepNavWindowFrame = "{{47, 99}, {854, 688}}";
 		};
@@ -509,9 +430,9 @@
 	};
 	792F55C00BFDF550006EAA19 /* options.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {879, 17374}}";
+			sepNavIntBoundsRect = "{{0, 0}, {879, 17262}}";
 			sepNavSelRange = "{34019, 0}";
-			sepNavVisRange = "{29008, 1141}";
+			sepNavVisRange = "{28891, 1316}";
 			sepNavVisRect = "{{0, 13858}, {986, 186}}";
 			sepNavWindowFrame = "{{34, 90}, {938, 772}}";
 		};
@@ -561,11 +482,36 @@
 			sepNavWindowFrame = "{{176, 276}, {738, 450}}";
 		};
 	};
+	794B18CB0DB2A88C00B5CA85 /* chart1.cpp:1563 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 792F54630BFCF79B006EAA19 /* chart1.cpp */;
+		functionName = "MyFrame::OnExit(wxCommandEvent& event)";
+		hitCount = 1;
+		ignoreCount = 0;
+		lineNumber = 1563;
+		location = openCPN;
+		modificationTime = 229812871.577806;
+		state = 1;
+	};
 	79701D0D0D4E897B005B834E /* nmea.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {900, 23590}}";
-			sepNavSelRange = "{2712, 12}";
-			sepNavVisRange = "{2440, 415}";
+			sepNavIntBoundsRect = "{{0, 0}, {900, 23576}}";
+			sepNavSelRange = "{3002, 24}";
+			sepNavVisRange = "{2810, 412}";
+		};
+	};
+	79701D120D4E8D66005B834E /* macsercomm.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {985, 1036}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{117, 1028}";
+			sepNavWindowFrame = "{{15, 174}, {1044, 699}}";
 		};
 	};
 	79701D200D4FA42C005B834E /* macutils.c */ = {
@@ -576,11 +522,91 @@
 			sepNavWindowFrame = "{{38, 38}, {832, 814}}";
 		};
 	};
+	799EFA570DB3843600B7ADB3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 792F54630BFCF79B006EAA19 /* chart1.cpp */;
+		name = "chart1.cpp: 1559";
+		rLen = 96;
+		rLoc = 44510;
+		rType = 0;
+		vrLen = 1415;
+		vrLoc = 44113;
+	};
+	799EFA580DB3843600B7ADB3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 792F55C00BFDF550006EAA19 /* options.cpp */;
+		name = "options.cpp: 963";
+		rLen = 0;
+		rLoc = 34019;
+		rType = 0;
+		vrLen = 1317;
+		vrLoc = 28891;
+	};
+	799EFA590DB3843600B7ADB3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 792F54B40BFDF145006EAA19 /* chartdb.cpp */;
+		name = "chartdb.cpp: 362";
+		rLen = 0;
+		rLoc = 10319;
+		rType = 0;
+		vrLen = 1551;
+		vrLoc = 10589;
+	};
+	799EFA5A0DB3843600B7ADB3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 792F54B50BFDF145006EAA19 /* chartimg.cpp */;
+		name = "chartimg.cpp: 1278";
+		rLen = 0;
+		rLoc = 38307;
+		rType = 0;
+		vrLen = 724;
+		vrLoc = 37938;
+	};
+	79D9210A0DB38AC400503790 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 792F54630BFCF79B006EAA19 /* chart1.cpp */;
+		name = "chart1.cpp: 1562";
+		rLen = 0;
+		rLoc = 44511;
+		rType = 0;
+		vrLen = 1293;
+		vrLoc = 43888;
+	};
+	79D9210B0DB38AC400503790 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 792F55C00BFDF550006EAA19 /* options.cpp */;
+		name = "options.cpp: 963";
+		rLen = 0;
+		rLoc = 34019;
+		rType = 0;
+		vrLen = 1316;
+		vrLoc = 28891;
+	};
+	79D9210C0DB38AC400503790 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 792F54B40BFDF145006EAA19 /* chartdb.cpp */;
+		name = "chartdb.cpp: 362";
+		rLen = 0;
+		rLoc = 10319;
+		rType = 0;
+		vrLen = 1551;
+		vrLoc = 10589;
+	};
+	79D9210D0DB38AC400503790 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 792F54B50BFDF145006EAA19 /* chartimg.cpp */;
+		name = "chartimg.cpp: 1278";
+		rLen = 0;
+		rLoc = 38307;
+		rType = 0;
+		vrLen = 746;
+		vrLoc = 37916;
+	};
 	79FFF11B0D3EBFE000BFB4C0 /* macutils.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {900, 310}}";
-			sepNavSelRange = "{7, 10}";
-			sepNavVisRange = "{0, 481}";
+			sepNavIntBoundsRect = "{{0, 0}, {1184, 717}}";
+			sepNavSelRange = "{281, 19}";
+			sepNavVisRange = "{0, 486}";
 			sepNavWindowFrame = "{{15, 28}, {1243, 845}}";
 		};
 	};
