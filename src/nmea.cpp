@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.19 2008/04/10 01:03:59 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.20 2008/04/15 15:55:23 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -27,14 +27,19 @@
  *
 <<<<<<< nmea.cpp
  * $Log: nmea.cpp,v $
+ * Revision 1.20  2008/04/15 15:55:23  bdbcat
+ * Cleanup
+ *
  * Revision 1.19  2008/04/10 01:03:59  bdbcat
  * Cleanup
  *
  * Revision 1.18  2008/03/30 22:08:25  bdbcat
  * Cleanup
  *
-=======
  * $Log: nmea.cpp,v $
+ * Revision 1.20  2008/04/15 15:55:23  bdbcat
+ * Cleanup
+ *
  * Revision 1.19  2008/04/10 01:03:59  bdbcat
  * Cleanup
  *
@@ -47,30 +52,6 @@
  * Revision 1.16  2008/01/11 01:39:46  bdbcat
  * Update for Mac OSX
  *
->>>>>>> 1.17
- * Revision 1.15  2008/01/10 03:36:48  bdbcat
- * Update for Mac OSX
- *
- * Revision 1.13  2007/06/13 22:46:44  bdbcat
- * Cleanup
- *
- * Revision 1.12  2007/06/10 02:30:19  bdbcat
- * Cleanup
- *
- * Revision 1.11  2007/05/03 13:23:55  dsr
- * Major refactor for 1.2.0
- *
- * Revision 1.10  2007/01/18 03:19:50  dsr
- * Optimize date/time set logic and exec command
- *
- * Revision 1.9  2006/12/03 21:31:41  dsr
- * Implement new ctor with window ID argument.
- * Change time set logic to run once per session only.
- *
- * Revision 1.8  2006/11/01 02:16:37  dsr
- * AIS Support Touchup
- *
-
  */
 #include "wx/wxprec.h"
 
@@ -97,10 +78,8 @@
 #endif                        // end rms
 
 
-#ifdef __POSIX__
 extern wxMutex    s_pmutexNMEAEventState;
 extern int        g_iNMEAEventState ;
-#endif
 
 #ifdef __WXMSW__
     #ifdef ocpnUSE_MSW_SERCOMM
@@ -108,7 +87,7 @@ extern int        g_iNMEAEventState ;
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.19 2008/04/10 01:03:59 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.20 2008/04/15 15:55:23 bdbcat Exp $");
 
 //    Forward Declarations
 
