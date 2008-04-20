@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.23 2008/04/10 01:06:26 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.24 2008/04/20 20:54:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -25,16 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< chcanv.cpp
  * $Log: chcanv.cpp,v $
+ * Revision 1.24  2008/04/20 20:54:16  bdbcat
+ * Optimize object query logic
+ *
  * Revision 1.23  2008/04/10 01:06:26  bdbcat
  * Cleanup
  *
  * Revision 1.22  2008/03/30 21:59:33  bdbcat
  * Correct stack smashing of char buffers
  *
-=======
  * $Log: chcanv.cpp,v $
+ * Revision 1.24  2008/04/20 20:54:16  bdbcat
+ * Optimize object query logic
+ *
  * Revision 1.23  2008/04/10 01:06:26  bdbcat
  * Cleanup
  *
@@ -44,7 +48,6 @@
  * Revision 1.21  2008/01/12 06:23:35  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.21
  * Revision 1.20  2008/01/10 03:36:09  bdbcat
  * Update for Mac OSX
  *
@@ -154,7 +157,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.23 2008/04/10 01:06:26 bdbcat Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.24 2008/04/20 20:54:16 bdbcat Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -744,6 +747,14 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
         }
       }
 
+//      Save present values for necessary corrections
+
+      double last_lat = VPoint.clat;
+      double last_lon = VPoint.clon;
+      double last_scale = VPoint.view_scale_ppm;
+      double prev_easting_c = VPoint.c_east;
+      double prev_northing_c = VPoint.c_north;
+
 
 
       VPoint.clat = lat;
@@ -759,14 +770,6 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
         if(Current_Ch->ChartType == CHART_TYPE_S57)
         {
     #ifdef USE_S57
-//      Save present values for necessary corrections
-
-            double last_lat = VPoint.clat;
-            double last_lon = VPoint.clon;
-            double last_scale = VPoint.view_scale_ppm;
-            double prev_easting_c = VPoint.c_east;
-            double prev_northing_c = VPoint.c_north;
-
 
             s57chart *Cur_S57_Ch = dynamic_cast<s57chart *>(Current_Ch);
             double ref_lat = Cur_S57_Ch->ref_lat;
@@ -2107,11 +2110,10 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
       wxString *QueryResult;
 
 #ifdef USE_S57
-      unsigned int i;
       float SelectRadius;
       int sel_rad_pix;
       S57QueryDialog *pdialog;
-      ArrayOfS57Obj *array;
+      ListOfS57Obj *obj_list;
       s57chart *Chs57;
       wxString *description;
 #endif
@@ -2174,32 +2176,38 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
 //    Go get the array of all objects at the cursor lat/lon
                 Chs57 = dynamic_cast<s57chart*>(Current_Ch);
 
-                sel_rad_pix = 10;
+                sel_rad_pix = 5;
                 SelectRadius = sel_rad_pix/(VPoint.view_scale_ppm * 1852 * 60);
 
                 QueryResult = new wxString;
-                array = Chs57->GetObjArrayAtLatLon( zlat, zlon, SelectRadius, &VPoint);
+                obj_list = Chs57->GetObjListAtLatLon( zlat, zlon, SelectRadius, &VPoint);
 
-                if(!array->IsEmpty())
+                if(!obj_list->IsEmpty())
                 {
-                      for(i = 0 ; i < array->GetCount() ; i++)
+                      for ( ListOfS57Obj::Node *node = obj_list->GetFirst(); node; node = node->GetNext() )
                       {
-                            description = Chs57->CreateObjDescription(array->Item(i));
+                            S57Obj *current = node->GetData();
+ 
+                            description = Chs57->CreateObjDescription(current);
                             QueryResult->Append(*description);
                             delete description;
                       }
                 }
 
+ 
                 pdialog = new S57QueryDialog();
                 pdialog->SetText(*QueryResult);
 
                 pdialog->Create(this, -1, wxT("Object Query"));
+                pdialog->SetSize(800, -1);
+                pdialog->Centre();
+
                 pdialog->ShowModal();
 
+                delete obj_list;
                 delete pdialog;
                 delete QueryResult;
 
-//                m_bForceReDraw = true;
             }
             break;
           }
