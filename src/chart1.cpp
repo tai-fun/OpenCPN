@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.24 2008/04/14 19:38:00 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.25 2008/04/20 20:52:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -25,8 +25,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< chart1.cpp
  * $Log: chart1.cpp,v $
+ * Revision 1.25  2008/04/20 20:52:18  bdbcat
+ * Improved Refresh() algorithm
+ *
  * Revision 1.24  2008/04/14 19:38:00  bdbcat
  * Add quitflag++ to OnExit()
  *
@@ -42,8 +44,10 @@
  * Revision 1.20  2008/03/30 21:51:57  bdbcat
  * Update for Mac OSX/Unicode
  *
-=======
  * $Log: chart1.cpp,v $
+ * Revision 1.25  2008/04/20 20:52:18  bdbcat
+ * Improved Refresh() algorithm
+ *
  * Revision 1.24  2008/04/14 19:38:00  bdbcat
  * Add quitflag++ to OnExit()
  *
@@ -146,6 +150,7 @@
 #include "s52plib.h"
 #include "s57chart.h"
 #include "s57.h"
+#include "cpl_csv.h"
 #endif
 
 #ifdef USE_WIFI_CLIENT
@@ -158,7 +163,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.24 2008/04/14 19:38:00 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.25 2008/04/20 20:52:18 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -442,7 +447,7 @@ bool MyApp::OnInit()
 #endif
 
 
-//      _CrtSetBreakAlloc(466328);
+//      _CrtSetBreakAlloc(38844);
 
 #ifdef __MSVC__
 _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
@@ -967,6 +972,7 @@ int MyApp::OnExit()
 
 #ifdef USE_S57
         delete g_poRegistrar;
+        CSVDeaccess(NULL);
 #endif
 
 #ifdef USE_S57
@@ -1069,6 +1075,8 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_TIMER(FRAME_TC_TIMER, MyFrame::OnFrameTCTimer)
   EVT_ACTIVATE(MyFrame::OnActivate)
   EVT_COMMAND(ID_NMEA_WINDOW, EVT_NMEA, MyFrame::OnEvtNMEA)
+  EVT_ERASE_BACKGROUND(MyFrame::OnEraseBackground)
+
 END_EVENT_TABLE()
 
 
@@ -1134,17 +1142,28 @@ MyFrame::~MyFrame()
 }
 
 
+void MyFrame::OnEraseBackground(wxEraseEvent& event)
+{
+}
+
 void MyFrame::OnActivate(wxActivateEvent& event)
 {
+//    Code carefully in this method.
+//    It is called in some unexpected places,
+//    such as on closure of dialogs, etc.
+
 //      Activating?
+/*
     if(event.GetActive())
     {
         if(!bDBUpdateInProgress)
             if(Current_Ch)
                 Current_Ch->InvalidateCache();
 
-        Refresh(false);
+        Refresh(false);     // This frame Refresh() invalidates children (i.e.canvas) on MSW!!
     }
+*/
+    event.Skip();
 }
 
 
@@ -1747,11 +1766,7 @@ void MyFrame::OnSize(wxSizeEvent& event)
 
 void MyFrame::OnChar(wxKeyEvent &event)
 {
-
 }
-
-
-
 
 
 void MyFrame::OnToolLeftClick(wxCommandEvent& event)
@@ -1848,9 +1863,11 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 //              Apply various system settings
             ApplyGlobalSettings(true, bnewtoolbar);                 // flying update
 
+//  The chart display options may have changed, especially on S57 ENC,
+//  So, flush the cache and redraw
+
             if(Current_Ch)
                 Current_Ch->InvalidateCache();
- //           cc1->m_bForceReDraw = true;
             cc1->Refresh(false);
             break;
         }
@@ -1981,6 +1998,8 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
                     m_pStatusBar = NULL;
                     SetStatusBar(NULL);
 
+//    Since the chart canvas will need to be resized, we need
+//    to refresh the entire frame.
                     Refresh();
                 }
         }
@@ -1992,7 +2011,7 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 
       if(bFlyingUpdate)
       {
-           wxSizeEvent sevt;
+//           wxSizeEvent sevt;
 //           OnSize(sevt);
       }
 
@@ -2597,7 +2616,8 @@ void MyFrame::SelectChartFromStack(int index)
             if(Current_Ch->ChartType == CHART_TYPE_S57)
                 cc1->SetViewPoint(zLat, zLon, cc1->GetVPScale(),
                                   Current_Ch->GetChartSkew() * PI / 180., 0, new_sample_mode);
-            else
+
+            else if((Current_Ch->ChartType == CHART_TYPE_KAP) || (Current_Ch->ChartType == CHART_TYPE_GEO))
             {
                 //  New chart is raster type
                 // try to match new viewport scale to the previous view scale when going to a smaller scale chart
@@ -2800,10 +2820,16 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 //    If the current viewpoint is invalid, set the default scale to something reasonable.
                 double set_scale = cc1->GetVPScale();
                 if(!cc1->VPoint.bValid)
-                    set_scale = 1./20000.;
+                    set_scale = 1./200000.;
 
                 cc1->SetViewPoint(tLat, tLon, set_scale, 0, 0, CURRENT_RENDER);
-                bNewPiano = true;
+
+        //      If the chart stack has just changed, there is new status
+                if(!ChartData->EqualStacks(pWorkStack, pCurrentStack))
+                {
+                  bNewPiano = true;
+                  bNewChart = true;
+                }
 
         //      Copy the new (by definition empty) stack into the target stack
                 ChartData->CopyStack(pCurrentStack, pWorkStack);
@@ -2874,6 +2900,16 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
                                     break;
                               }
+                              else
+                              {
+                                    wxString fp = ChartData->GetFullPath(pCurrentStack, CurrentStackEntry);
+                                    fp.Prepend(_T("chart1.cpp:DoChartUpdate...Could not open chart "));
+                                    wxString id;
+                                    id.Printf(_T(" at index %d"), CurrentStackEntry);
+                                    fp.Append(id);
+                                    wxLogMessage(fp);
+                              }
+
                         }
                         CurrentStackEntry++;
                   }
@@ -2907,23 +2943,57 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                         gLat = START_LAT;                               // GPS position, as default
                         gLon = START_LON;
 */
-//  Open a Dummy Chart
-                        if(NULL == pDummyChart)
+
+//  Try to open an S57 chart
+//  Find the smallest scale chart that opens OK
+                        CurrentStackEntry = 0;
+                        ChartBase *ptc = NULL;
+                        while(CurrentStackEntry < pCurrentStack->nEntry)
                         {
-                            pDummyChart = new ChartDummy;
-                            bNewChart = true;
+                              if(ChartData->GetCSChartType(pCurrentStack, CurrentStackEntry) == CHART_TYPE_S57)
+                              {
+                                    ptc = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry);
+
+                                    if (NULL != ptc)
+                                    {
+                                          break;
+                                    }
+                                    else
+                                    {
+                                          wxString fp = ChartData->GetFullPath(pCurrentStack, CurrentStackEntry);
+                                          fp.Prepend(_T("chart1.cpp:DoChartUpdate...Could not open chart "));
+                                          wxString id;
+                                          id.Printf(_T(" at index %d"), CurrentStackEntry);
+                                          fp.Append(id);
+                                          wxLogMessage(fp);
+                                    }
+                              }
+                              CurrentStackEntry++;
                         }
+                        Current_Ch = ptc;
+                        bNewChart = true;
 
-                        if(Current_Ch)
-                            if(Current_Ch->ChartType != CHART_TYPE_DUMMY)
-                                bNewChart = true;
+//  If no go, then
+//  Open a Dummy Chart
+                        if(NULL == Current_Ch)
+                        {
+                              if(NULL == pDummyChart)
+                              {
+                                    pDummyChart = new ChartDummy;
+                                    bNewChart = true;
+                              }
 
-                        Current_Ch = pDummyChart;
+                              if(Current_Ch)
+                                    if(Current_Ch->ChartType != CHART_TYPE_DUMMY)
+                                          bNewChart = true;
 
-                        cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(), 0, 0, CURRENT_RENDER);
+                              Current_Ch = pDummyChart;
 
+                              cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(), 0, 0, CURRENT_RENDER);
+                        }
                 }
 
+// Arriving here, Current_Ch is opened and OK, or NULL
                 if(NULL != Current_Ch)
                 {
 
@@ -3555,7 +3625,7 @@ FILE *f;
             seteuid(file_user_id);
 
 //  Execute the helper program
-            execlp("ocpnhelper", "ocpnhelper", "-T", NULL);
+            execlp("ocpnhelper", "ocpnhelper", "-SB", NULL);
 
 //  Return to user privileges
             seteuid(user_user_id);
