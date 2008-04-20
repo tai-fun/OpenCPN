@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.14 2008/04/10 01:09:01 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.15 2008/04/20 20:56:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 <<<<<<< s57chart.cpp
  * $Log: s57chart.cpp,v $
+ * Revision 1.15  2008/04/20 20:56:44  bdbcat
+ * Implement ocpnhelper support for SENC/BMP
+ *
  * Revision 1.14  2008/04/10 01:09:01  bdbcat
  * Cleanup
  *
@@ -35,6 +38,9 @@
  *
 =======
  * $Log: s57chart.cpp,v $
+ * Revision 1.15  2008/04/20 20:56:44  bdbcat
+ * Implement ocpnhelper support for SENC/BMP
+ *
  * Revision 1.14  2008/04/10 01:09:01  bdbcat
  * Cleanup
  *
@@ -107,7 +113,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.14 2008/04/10 01:09:01 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.15 2008/04/20 20:56:44 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -121,6 +127,9 @@ const char *MyCSVGetField( const char * pszFilename,
                          CSVCompareCriteria eCriteria,
                          const char * pszTargetField ) ;
 
+#ifdef __POSIX__
+extern "C" int wait(int *);                     // POSIX wait() for process
+#endif
 
 
 extern s52plib  *ps52plib;
@@ -878,8 +887,8 @@ s57chart::s57chart()
     m_pENCDS = NULL;
 
     m_nvaldco = 0;
-    m_nvaldco_alloc = 5;
-    m_pvaldco_array = (double *)calloc(m_nvaldco_alloc, sizeof(double));
+    m_nvaldco_alloc = 0;
+    m_pvaldco_array = NULL;
 
 }
 
@@ -1384,7 +1393,7 @@ bool s57chart::DCRenderLPB(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
         if(rect)
         {
             wxRect nr = *rect;
- //         pdcc = new wxDCClipper(dcinput, nr);
+//         pdcc = new wxDCClipper(dcinput, nr);
         }
 
         top = razRules[i][2];           //LINES
@@ -1572,7 +1581,6 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                                 if(bbuild_new_senc)
                                       build_ret_val = BuildS57File( name );
 
-
                         }
                 }
         }
@@ -1584,160 +1592,36 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
         }
 
         if(0 == build_ret_val)
-                return INIT_FAIL_RETRY;
+                return INIT_FAIL_REMOVE;
 
 
         BuildRAZFromS57File( pS57FileName->GetFullPath() );
 
-
-        //      Check for and if necessary build Thumbnail
+//      Check for and if necessary build Thumbnail
         wxFileName ThumbFileName(name);
         ThumbFileName.SetExt(_T("BMP"));
 
         if(!ThumbFileName.FileExists() || bbuild_new_senc)
         {
+              BuildThumbnail(ThumbFileName.GetFullPath());
 
-                //      Set up a private ViewPort
-                ViewPort vp;
-
-                vp.clon = (FullExtent.ELON + FullExtent.WLON) / 2.;
-                vp.clat = (FullExtent.NLAT + FullExtent.SLAT) / 2.;
-                vp.lat_top =   FullExtent.NLAT;
-                vp.lat_bot =   FullExtent.SLAT;
-                vp.lon_left =  FullExtent.WLON;
-                vp.lon_right = FullExtent.ELON;
-
-                float ext_max = fmax((vp.lat_top - vp.lat_bot), (vp.lon_right - vp.lon_left));
-
-                vp.view_scale_ppm = (S57_THUMB_SIZE/ ext_max) / (1852 * 60);
-
-                vp.pix_height = S57_THUMB_SIZE;
-                vp.pix_width  = S57_THUMB_SIZE;
-
-                vp.vpBBox.SetMin(vp.lon_left, vp.lat_bot);
-                vp.vpBBox.SetMax(vp.lon_right, vp.lat_top);
-
-                vp.chart_scale = 10000000 - 1;
-                vp.bValid = true;
-                //Todo this becomes last_vp.bValid = false;
-                last_vp.view_scale_ppm = -1;                // cause invalidation of cache
-                SetVPParms(&vp);
-
-
-//      Borrow the OBJLArray temporarily to set the object type visibility for this render
-//      First, make a copy for the curent OBJLArray viz settings, setting current value to invisible
-
-                unsigned int OBJLCount = ps52plib->pOBJLArray->GetCount();
-                int *psave_viz = new int[OBJLCount];
-                int *psvr = psave_viz;
-                OBJLElement *pOLE;
-                unsigned int iPtr;
-
-                for(iPtr = 0 ; iPtr < OBJLCount ; iPtr++)
-                {
-                        pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
-                        *psvr++ = pOLE->nViz;
-                        pOLE->nViz = 0;
-                }
-
-//      Also, save some other settings
-                bool bsavem_bShowSoundgp = ps52plib->m_bShowSoundg;
-
-//      Now, set up what I want for this render
-                for(iPtr = 0 ; iPtr < OBJLCount ; iPtr++)
-                {
-                        pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
-                        if(!strncmp(pOLE->OBJLName, "LNDARE", 6))
-                                pOLE->nViz = 1;
-                        if(!strncmp(pOLE->OBJLName, "DEPARE", 6))
-                                pOLE->nViz = 1;
-                }
-
-                ps52plib->m_bShowSoundg = false;
-
-//      Use display category MARINERS_STANDARD to force use of OBJLArray
-                DisCat dsave = ps52plib->m_nDisplayCategory;
-                ps52plib->m_nDisplayCategory = MARINERS_STANDARD;
-
-#ifdef ocpnUSE_DIBSECTION
-                ocpnMemDC memdc, dc_org;
-#else
-                wxMemoryDC memdc, dc_org;
-#endif
-
-//      set the color scheme
-                ps52plib->SetColorScheme(S52_DAY_BRIGHT);
-
-//      Do the render
-                DoRenderViewOnDC(memdc, vp, DC_RENDER_ONLY);
-
-//      Release the DIB
-                memdc.SelectObject(wxNullBitmap);
-
-//      Restore the plib to previous state
-                psvr = psave_viz;
-                for(iPtr = 0 ; iPtr < OBJLCount ; iPtr++)
-                {
-                        pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
-                        pOLE->nViz = *psvr++;
-                }
-
-                ps52plib->m_nDisplayCategory = dsave;
-                ps52plib->m_bShowSoundg = bsavem_bShowSoundgp;
-
-//      Reset the color scheme
-                ps52plib->SetColorScheme(m_S52_color_index);
-
-                delete psave_viz;
-
-//      Clone pDIB into pThumbData;
-                wxBitmap *pBMP;
-
-#ifdef ocpnUSE_ocpnBitmap
-                pBMP = new ocpnBitmap((unsigned char *)NULL,
-                vp.pix_width, vp.pix_height, BPP);
-#else
-                pBMP = new wxBitmap(/*NULL,*/
-                        vp.pix_width, vp.pix_height, BPP);
-#endif
-                wxMemoryDC dc_clone;
-                dc_clone.SelectObject(*pBMP);
-
-                pDIB->SelectIntoDC(dc_org);
-
-                dc_clone.Blit(0,0,vp.pix_width, vp.pix_height,
-                              (wxDC *)&dc_org, 0,0);
-
-                dc_clone.SelectObject(wxNullBitmap);
-                dc_org.SelectObject(wxNullBitmap);
-
-//    May Need root to create the Thumbnail file
-#ifndef __WXMSW__
-                seteuid(file_user_id);
-#endif
-                pBMP->SaveFile(ThumbFileName.GetFullPath(), wxBITMAP_TYPE_BMP);
 
 //  Update the member thumbdata structure
-                wxBitmap *pBMP_NEW;
-#ifdef ocpnUSE_ocpnBitmap
-                pBMP_NEW =  new ocpnBitmap;
-#else
-                pBMP_NEW =  new wxBitmap;
-#endif
-                if(pBMP_NEW->LoadFile(ThumbFileName.GetFullPath(), wxBITMAP_TYPE_BMP ))
+                if(ThumbFileName.FileExists())
                 {
+                  wxBitmap *pBMP_NEW;
+#ifdef ocpnUSE_ocpnBitmap
+                  pBMP_NEW =  new ocpnBitmap;
+#else
+                  pBMP_NEW =  new wxBitmap;
+#endif
+                  if(pBMP_NEW->LoadFile(ThumbFileName.GetFullPath(), wxBITMAP_TYPE_BMP ))
+                  {
                     delete pThumbData;
                     pThumbData = new ThumbData;
                     pThumbData->pDIBThumb = pBMP_NEW;
+                  }
                 }
-
-
-
- //   Return to default user priveleges
-#ifndef __WXMSW__
-                seteuid(user_user_id);
-#endif
-
         }
         delete pS57FileName;
 
@@ -1745,6 +1629,13 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
         SetColorScheme(cs, false);
 
 //    Build array of contour values for later use by conditional symbology
+
+    if(0 == m_nvaldco_alloc)
+    {
+        m_nvaldco_alloc = 5;
+        m_pvaldco_array = (double *)calloc(m_nvaldco_alloc, sizeof(double));
+    }
+
 
     ObjRazRules *top;
     for (int i=0; i<PRIO_NUM; ++i)
@@ -1818,6 +1709,182 @@ void s57chart::InvalidateCache()
                 pDIB = NULL;
         }
 
+}
+
+bool s57chart::BuildThumbnail(const wxString &bmpname)
+{
+      bool ret_code;
+      //      Set up a private ViewPort
+      ViewPort vp;
+
+      vp.clon = (FullExtent.ELON + FullExtent.WLON) / 2.;
+      vp.clat = (FullExtent.NLAT + FullExtent.SLAT) / 2.;
+      vp.lat_top =   FullExtent.NLAT;
+      vp.lat_bot =   FullExtent.SLAT;
+      vp.lon_left =  FullExtent.WLON;
+      vp.lon_right = FullExtent.ELON;
+
+      float ext_max = fmax((vp.lat_top - vp.lat_bot), (vp.lon_right - vp.lon_left));
+
+      vp.view_scale_ppm = (S57_THUMB_SIZE/ ext_max) / (1852 * 60);
+
+      vp.pix_height = S57_THUMB_SIZE;
+      vp.pix_width  = S57_THUMB_SIZE;
+
+      vp.vpBBox.SetMin(vp.lon_left, vp.lat_bot);
+      vp.vpBBox.SetMax(vp.lon_right, vp.lat_top);
+
+      vp.chart_scale = 10000000 - 1;
+      vp.bValid = true;
+                //Todo this becomes last_vp.bValid = false;
+      last_vp.view_scale_ppm = -1;                // cause invalidation of cache
+      SetVPParms(&vp);
+
+
+//      Borrow the OBJLArray temporarily to set the object type visibility for this render
+//      First, make a copy for the curent OBJLArray viz settings, setting current value to invisible
+
+      unsigned int OBJLCount = ps52plib->pOBJLArray->GetCount();
+      int *psave_viz = new int[OBJLCount];
+      int *psvr = psave_viz;
+      OBJLElement *pOLE;
+      unsigned int iPtr;
+
+      for(iPtr = 0 ; iPtr < OBJLCount ; iPtr++)
+      {
+            pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
+            *psvr++ = pOLE->nViz;
+            pOLE->nViz = 0;
+      }
+
+//      Also, save some other settings
+      bool bsavem_bShowSoundgp = ps52plib->m_bShowSoundg;
+
+//      Now, set up what I want for this render
+      for(iPtr = 0 ; iPtr < OBJLCount ; iPtr++)
+      {
+            pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
+            if(!strncmp(pOLE->OBJLName, "LNDARE", 6))
+                  pOLE->nViz = 1;
+            if(!strncmp(pOLE->OBJLName, "DEPARE", 6))
+                  pOLE->nViz = 1;
+      }
+
+      ps52plib->m_bShowSoundg = false;
+
+//      Use display category MARINERS_STANDARD to force use of OBJLArray
+      DisCat dsave = ps52plib->m_nDisplayCategory;
+      ps52plib->m_nDisplayCategory = MARINERS_STANDARD;
+
+#ifdef ocpnUSE_DIBSECTION
+                ocpnMemDC memdc, dc_org;
+#else
+                wxMemoryDC memdc, dc_org;
+#endif
+
+//      set the color scheme
+                ps52plib->SetColorScheme(S52_DAY_BRIGHT);
+
+//      Do the render
+                DoRenderViewOnDC(memdc, vp, DC_RENDER_ONLY);
+
+//      Release the DIB
+                memdc.SelectObject(wxNullBitmap);
+
+//      Restore the plib to previous state
+                psvr = psave_viz;
+                for(iPtr = 0 ; iPtr < OBJLCount ; iPtr++)
+                {
+                      pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
+                      pOLE->nViz = *psvr++;
+                }
+
+                ps52plib->m_nDisplayCategory = dsave;
+                ps52plib->m_bShowSoundg = bsavem_bShowSoundgp;
+
+//      Reset the color scheme
+                ps52plib->SetColorScheme(m_S52_color_index);
+
+                delete psave_viz;
+
+//      Clone pDIB into pThumbData;
+                wxBitmap *pBMP;
+
+#ifdef ocpnUSE_ocpnBitmap
+                pBMP = new ocpnBitmap((unsigned char *)NULL,
+                                       vp.pix_width, vp.pix_height, BPP);
+#else
+                pBMP = new wxBitmap(/*NULL,*/
+                        vp.pix_width, vp.pix_height, BPP);
+#endif
+                wxMemoryDC dc_clone;
+                dc_clone.SelectObject(*pBMP);
+
+                pDIB->SelectIntoDC(dc_org);
+
+                dc_clone.Blit(0,0,vp.pix_width, vp.pix_height,
+                              (wxDC *)&dc_org, 0,0);
+
+                dc_clone.SelectObject(wxNullBitmap);
+                dc_org.SelectObject(wxNullBitmap);
+
+                //      Save the BMP in a temporary file
+                wxFileName tfn;
+                wxString tmp_file = tfn.CreateTempFileName(_T(""));
+
+                pBMP->SaveFile(tmp_file, wxBITMAP_TYPE_BMP);
+//                pBMP->SaveFile(ThumbFileName.GetFullPath(), wxBITMAP_TYPE_BMP);
+
+                //      Copy temporary file to proper location
+//    Linux/Posix file protection mechanisms require some extra steps here...
+#ifdef __POSIX__
+
+                pid_t pID = vfork();
+                if (pID == 0)                // child
+                {
+//    Temporarily gain root privileges
+                      seteuid(file_user_id);
+
+//  Execute the helper program
+                      char arg2[200];
+                      char arg3[200];
+                      strncpy(arg2, tmp_file.mb_str(), 199);
+                      strncpy(arg3, bmpname.mb_str(), 199);
+
+                      execlp("ocpnhelper", "ocpnhelper", "-R", arg2, arg3,  NULL);
+
+//  Return to user privileges
+                      seteuid(user_user_id);
+
+                      wxLogMessage(_T("Warning: ocpnhelper failed on BMP move...."));
+                      _exit(0); // If exec fails then exit forked process.
+                 }
+                 wait(NULL);                  // for the child to quit
+
+                 ret_code = true;
+
+#endif
+
+#ifdef __WXMSW__
+                 remove(bmpname.mb_str());
+                 unlink(bmpname.mb_str());       //  Delete any existing BMP file....
+                 int err = rename(tmp_file.mb_str(), bmpname.mb_str()); //   mv temp file to target
+                 if(err)
+                 {
+                       wxString msg(_T("Could not rename temporary BMP file "));
+                       msg.Append(tmp_file);
+                       msg.Append(_T(" to "));
+                       msg.Append(bmpname);
+                       wxLogMessage(msg);
+
+                       ret_code = false;
+                 }
+                 else
+                       ret_code = true;
+
+#endif
+
+      return ret_code;
 }
 
 
@@ -2180,7 +2247,7 @@ int s57chart::BuildS57File(const wxString& FullPath)
     DDFModule *poModule = new DDFModule();
     if(!poModule->Open( FullPath.mb_str() ))
     {
-        wxString msg(_T("s57chart::BuildS57File  Unable to open"));
+        wxString msg(_T("s57chart::BuildS57File  Unable to open "));
         msg.Append(FullPath);
         wxLogMessage(msg);
         return 0;
@@ -2487,170 +2554,10 @@ int s57chart::BuildS57File(const wxString& FullPath)
           else
                 break;
 
-
     }
     delete poS57DS;
 
 //    VSIFClose( s_fpdebug);
-
-    //////////////////
-    /*
-    for(int iL=0 ; iL < nLayers ; iL++)
-    {
-        OGRLayer *pLay = poDS->GetLayer(iL);
-
-        pLay->ResetReading();
-
-        iLayObj = 0;
-
-        while (bcont)
-        {
-            //  Prepare for possible CE_Fatal error in GDAL
-            //  Corresponding longjmp() is in the local error handler
-            int setjmp_ret = 0;
-            setjmp_ret = setjmp(env_ogrf);
-            if(setjmp_ret == 1)                 //  CE_Fatal happened in GDAL library
-                                                //  in the GetNextFeature() call below.
-                                                //  Seems odd, but that's setjmp/longjmp behaviour
-            {
-                wxString sLay(_T("Unknown"));
-                if(iLayObj)
-                    sLay = sobj;
-
-                char msg[1000];
-                char lay_name[20];
-                strncpy(lay_name, sLay.mb_str(), 20);
-                sprintf(msg, "s57chart(): GDAL/OGR Fatal Error caught on Obj #%d.\n \
-                        Skipping all remaining objects on Layer %s.", iObj, lay_name);
-
-                wxLogMessage(wxString(msg, wxConvUTF8));
-
-                delete objectDef;
-                break;                                  // pops out of while(bcont) to next layer
-            }
-//            sw_get_next_feature.Resume();
-            objectDef = pLay->GetNextFeature();
-//            sw_get_next_feature.Pause();
-
-            iObj++;
-            iLayObj++;
-
-            if(objectDef == NULL)
-                break;
-
-//  Debug Hook, can safely go away
-//            if(objectDef->GetFID() == 3867)
-//                int hhd = 4;
-
-            sobj = wxString(objectDef->GetDefnRef()->GetName(),  wxConvUTF8);
-            wxString idx;
-            idx.Printf(_T("  %d/%d       "), iObj, nGeoRecords);
-            sobj += idx;
-
-//  Update the progress dialog
-
-            nProg = iObj;
-            if(nProg > nGeoRecords - 1)
-                nProg = nGeoRecords - 1;
-
-            if(0 == (nProg % 100))
-                bcont = SENC_prog->Update(nProg, sobj);
-
-
-            geoType = wkbUnknown;
-//      This test should not be necessary for real (i.e not C_AGGR) features
-//      However... some update files contain errors, and have deleted some
-//      geometry without deleting the corresponding feature(s).
-//      So, GeometryType becomes Unknown.
-//      e.g. US5MD11M.017
-//      In this case, all we can do is skip the feature....sigh.
-
-            if (objectDef->GetGeometryRef() != NULL)
-                geoType = objectDef->GetGeometryRef()->getGeometryType();
-
-// Debug
-//            if(!strncmp(objectDef->GetDefnRef()->GetName(), "LIGHTS", 6))
-//                int ggk = 5;
-
-//      Look for polygons to process
-            if(geoType == wkbPolygon)
-            {
-                int error_code;
-                PolyTessGeo *ppg;
-
-                OGRPolygon *poly = (OGRPolygon *)(objectDef->GetGeometryRef());
-
-
-//              if(1)
-                {
-                        bcont = SENC_prog->Update(nProg, sobj);
-
-                        sw_create_senc_record.Resume();
-                        CreateSENCRecord( objectDef, fps57, 0 );
-                        sw_create_senc_record.Pause();
-
-                        sw_polygon.Resume();
-                        ppg = new PolyTessGeo(poly, true, ref_lat, ref_lon, 0);   //try to use glu library
-                        sw_polygon.Pause();
-
-                        error_code = ppg->ErrorCode;
-                        if(error_code == ERROR_NO_DLL)
-                        {
-                            if(!bGLUWarningSent)
-                            {
-                                wxLogMessage(_T("Warning...Could not find glu32.dll, trying internal tess."));
-                                bGLUWarningSent = true;
-                            }
-
-                            delete ppg;
-                                //  Try with internal tesselator
-                            ppg = new PolyTessGeo(poly, true, ref_lat, ref_lon, 1);
-                            error_code = ppg->ErrorCode;
-                         }
-
-
-                        if(error_code)
-                        {
-                            wxLogMessage(_T("Error: S57 SENC Create Error %d"), ppg->ErrorCode);
-
-                            delete ppg;
-                            delete objectDef;
-                            delete SENC_prog;
-                            fclose(fps57);
-                            delete poDS;
-                            CPLPopErrorHandler();
-                            unlink(tmp_file.mb_str());           // delete the temp file....
-
-                            return 0;                           // soft error return
-                        }
-
-                        ppg->Write_PolyTriGroup( fps57 );
-                        delete ppg;
-                  }
-            }
-
-//      n.b  This next line causes skip of C_AGGR features w/o geometry
-            else if( geoType != wkbUnknown )                                // Write only if has wkbGeometry
-            {
-                  sw_other.Resume();
-                  sw_create_senc_record.Resume();
-
-                  CreateSENCRecord( objectDef, fps57, 1 );
-
-                  sw_create_senc_record.Pause();
-                  sw_other.Pause();
-            }
-
-            delete objectDef;
-
-
-        }           // while bcont
-
-    }               // for
-
-    delete poDS;
-
-    */
 
     delete SENC_prog;
 
@@ -2658,19 +2565,47 @@ int s57chart::BuildS57File(const wxString& FullPath)
 
     CPLPopErrorHandler();
 
-//    Need root to create the SENC file
-#ifndef __WXMSW__
-      seteuid(file_user_id);
-#endif
-
     int ret_code = 0;
-//      Was the operation cancelled?
+
     if(!bcont)
     {
-        unlink(tmp_file.mb_str());               //      Delete the temp file....
-        ret_code = 0;
+          unlink(tmp_file.mb_str());               //      Delete the temp file....
+          ret_code = 0;
     }
-    else
+
+//    Linux/Posix file protection mechanisms require some extra steps here...
+#ifdef __POSIX__
+    if(bcont)
+    {
+
+          pid_t pID = vfork();
+          if (pID == 0)                // child
+          {
+//    Temporarily gain root privileges
+                seteuid(file_user_id);
+
+//  Execute the helper program
+                char arg2[200];
+                char arg3[200];
+                strncpy(arg2, tmp_file.mb_str(), 199);
+                strncpy(arg3, s57file.GetFullPath().mb_str(), 199);
+
+                execlp("ocpnhelper", "ocpnhelper", "-R", arg2, arg3,  NULL);
+
+//  Return to user privileges
+                seteuid(user_user_id);
+
+                wxLogMessage(_T("Warning: ocpnhelper failed moving temporary SENC file...."));
+                _exit(0); // If exec fails then exit forked process.
+          }
+          wait(NULL);                  // for the child to quit
+
+          ret_code = 1;
+    }
+#endif
+
+#ifdef __WXMSW__
+    if(bcont)
     {
         remove(s57file.GetFullPath().mb_str());
         unlink(s57file.GetFullPath().mb_str());       //  Delete any existing SENC file....
@@ -2682,19 +2617,12 @@ int s57chart::BuildS57File(const wxString& FullPath)
             msg.Append(_T(" to "));
             msg.Append(s57file.GetFullPath());
             wxLogMessage(msg);
-//            wxString msg1("Could not create SENC file, perhaps permissions not set to read/write?");
-//            wxMessageDialog mdlg(this, msg1, wxString("OpenCPN"),wxICON_ERROR  );
-//            if(mdlg.ShowModal() == wxID_YES)
 
             ret_code = 0;
         }
         else
             ret_code = 1;
      }
-
- //   Return to default user priveleges
-#ifndef __WXMSW__
-      seteuid(user_user_id);
 #endif
 
       sw_build.Pause();
@@ -3417,10 +3345,10 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
       bool        m_bUseSCAMIN;
 */
 
-ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint)
+ListOfS57Obj *s57chart::GetObjListAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint)
 {
 
-    ArrayOfS57Obj *ret_ptr = new ArrayOfS57Obj;
+    ListOfS57Obj *ret_ptr = new ListOfS57Obj;
 
 
 //    Iterate thru the razRules array, by object/rule type
@@ -3443,7 +3371,7 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
             if(ps52plib->ObjectRenderCheck(crnt, VPoint))
             {
                 if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                    ret_ptr->Add(crnt->obj);
+                    ret_ptr->Append(crnt->obj);
             }
 
         }
@@ -3460,7 +3388,7 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
             if(ps52plib->ObjectRenderCheck(crnt, VPoint))
             {
                 if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                    ret_ptr->Add(crnt->obj);
+                    ret_ptr->Append(crnt->obj);
             }
         }         // while
 
@@ -3475,7 +3403,7 @@ ArrayOfS57Obj *s57chart::GetObjArrayAtLatLon(float lat, float lon, float select_
             if(ps52plib->ObjectRenderCheck(crnt, VPoint))
             {
                 if(DoesLatLonSelectObject(lat, lon, select_radius, crnt->obj))
-                ret_ptr->Add(crnt->obj);
+                ret_ptr->Append(crnt->obj);
             }
           }
       }
@@ -3574,16 +3502,15 @@ bool s57chart::DoesLatLonSelectObject(float lat, float lon, float select_radius,
       return false;
 }
 
-wxString *s57chart::CreateObjDescription(const S57Obj& obj)
+wxString *s57chart::CreateObjDescription(const S57Obj *obj)
 {
       wxString *ret_str = new wxString;
-
       char *curr_att;
       int iatt;
       wxString att, value;
       S57attVal *pval;
 
-      switch(obj.Primitive_type)
+      switch(obj->Primitive_type)
       {
             case  GEO_POINT:
             case  GEO_AREA:
@@ -3591,7 +3518,7 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
             {
 
                   //    Get Name
-                      wxString name(obj.FeatureName,  wxConvUTF8);
+                      wxString name(obj->FeatureName,  wxConvUTF8);
                       *ret_str << name;
                       *ret_str << _T(" - ");
 
@@ -3605,7 +3532,7 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
                     oc_file.Append(_T("/s57objectclasses.csv"));
                     name_desc = MyCSVGetField(oc_file.mb_str(),
                                      "Acronym",                  // match field
-                                     obj.FeatureName,            // match value
+                                     obj->FeatureName,            // match value
                                      CC_ExactString,
                                      "ObjectClass");             // return field
                   }
@@ -3618,14 +3545,14 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
 
 
                   wxString index;
-                  index.Printf(_T("    Feature Index: %d\n"), obj.Index);
+                  index.Printf(_T("    Feature Index: %d\n"), obj->Index);
                   *ret_str << index;
 
 
                   //    Get the Attributes and values
 
-                  char *curr_att0 = (char *)calloc(obj.attList->Len()+1, 1);
-                  strncpy(curr_att0, obj.attList->mb_str(), obj.attList->Len());
+                  char *curr_att0 = (char *)calloc(obj->attList->Len()+1, 1);
+                  strncpy(curr_att0, obj->attList->mb_str(), obj->attList->Len());
                   curr_att = curr_att0;
 
                   iatt = 0;
@@ -3669,7 +3596,7 @@ wxString *s57chart::CreateObjDescription(const S57Obj& obj)
 //    Attribute encoded value
                     value.Clear();
 
-                    pval = obj.attVal->Item(iatt);
+                    pval = obj->attVal->Item(iatt);
                     switch(pval->valType)
                     {
                         case OGR_STR:
@@ -3839,10 +3766,9 @@ wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
                                   "Code");             // return field
 
 
-    // Now, get a nice description from s57expectedinput.csv
-    //  This will have to be a 2-d search, using ID field and Code field
 
-    bool more = true;
+
+/*    bool more = true;
     wxString ei_file(*m_pcsv_locn);
     ei_file.Append(_T("/s57expectedinput.csv"));
 
@@ -3872,6 +3798,54 @@ wxString *s57chart::GetAttributeDecode(wxString& att, int ival)
 
 
     VSIFClose(fp);
+*/
+/*    char *att_code_nc = (char *)att_code;
+    const char *ival_str;
+
+    ival_str = MyCSVGetField(ei_file.mb_str(),
+                                  "Code",                  // match field
+                                  att_code_nc,               // match value
+                                  CC_ExactString,
+                                  "ID");             // return field
+*/
+
+    // Now, get a nice description from s57expectedinput.csv
+    //  This will have to be a 2-d search, using ID field and Code field
+
+
+    // Ingest, and get a pointer to the ingested table for "Expected Input" file
+    wxString ei_file(*m_pcsv_locn);
+    ei_file.Append(_T("/s57expectedinput.csv"));
+
+    CSVTable *psTable = CSVAccess( ei_file.mb_str() );
+    CSVIngest( ei_file.mb_str() );
+
+    char        **papszFields = NULL;
+    int         bSelected = FALSE;
+
+/* -------------------------------------------------------------------- */
+/*      Scan from in-core lines.                                        */
+/* -------------------------------------------------------------------- */
+    int iline = 0;
+    while( !bSelected && iline+1 < psTable->nLineCount )
+    {
+        iline++;
+        papszFields = CSVSplitLine( psTable->papszLines[iline] );
+
+
+        if(!strcmp(papszFields[0], att_code))
+        {
+              if(atoi(papszFields[1]) == ival)
+              {
+                    ret_val = new wxString(papszFields[2],  wxConvUTF8);
+                    bSelected = TRUE;
+              }
+        }
+
+        CSLDestroy( papszFields );
+    }
+
+
     return ret_val;
 }
 
