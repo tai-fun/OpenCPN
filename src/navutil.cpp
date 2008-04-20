@@ -27,6 +27,9 @@
  *
 <<<<<<< navutil.cpp
  * $Log: navutil.cpp,v $
+ * Revision 1.14  2008/04/20 20:54:40  bdbcat
+ * Set defaults
+ *
  * Revision 1.13  2008/04/11 03:25:08  bdbcat
  * Implement Auto Anchor Mark
  *
@@ -38,6 +41,9 @@
  *
 =======
  * $Log: navutil.cpp,v $
+ * Revision 1.14  2008/04/20 20:54:40  bdbcat
+ * Set defaults
+ *
  * Revision 1.13  2008/04/11 03:25:08  bdbcat
  * Implement Auto Anchor Mark
  *
@@ -105,7 +111,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.13 2008/04/11 03:25:08 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.14 2008/04/20 20:54:40 bdbcat Exp $");
 
 //    Statics
 
@@ -1235,13 +1241,13 @@ int MyConfig::LoadMyConfig(int iteration)
       s_bSetSystemTime = false;
       Read(_T("SetSystemTime"), &s_bSetSystemTime);
 
-      m_bShowDebugWindows = false;
+      m_bShowDebugWindows = true;
       Read(_T("ShowDebugWindows"), &m_bShowDebugWindows);
 
       g_bShowPrintIcon = false;
       Read(_T("ShowPrintIcon"), &g_bShowPrintIcon);
 
-      g_bShowDepthUnits = false;
+      g_bShowDepthUnits = true;
       Read(_T("ShowDepthUnits"), &g_bShowDepthUnits);
 
       g_bAutoAnchorMark = false;
