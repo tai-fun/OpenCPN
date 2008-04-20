@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.8 2008/03/30 21:54:29 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.9 2008/04/20 20:53:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -27,11 +27,17 @@
  *
 <<<<<<< chartdb.cpp
  * $Log: chartdb.cpp,v $
+ * Revision 1.9  2008/04/20 20:53:04  bdbcat
+ * Cache optimization
+ *
  * Revision 1.8  2008/03/30 21:54:29  bdbcat
  * Update for Mac OSX/Unicode
  *
 =======
  * $Log: chartdb.cpp,v $
+ * Revision 1.9  2008/04/20 20:53:04  bdbcat
+ * Cache optimization
+ *
  * Revision 1.8  2008/03/30 21:54:29  bdbcat
  * Update for Mac OSX/Unicode
  *
@@ -86,7 +92,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.8 2008/03/30 21:54:29 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.9 2008/04/20 20:53:04 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -665,6 +671,15 @@ int ChartDB::SearchDirAndAddBSB(wxString& dir_name, const wxString& filespec,
 bool ChartDB::CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
 {
       wxFileName fn(full_name);
+
+//    Quick sanity check for file existence
+      if(!fn.FileExists())
+            return false;
+
+      wxString msg(_T("Create ChartTable Entry for "));
+      msg.Append(full_name);
+      wxLogMessage(msg);
+
       wxString charttype = fn.GetExt();
       ChartBaseBSB *pch = NULL;
 
@@ -1485,7 +1500,8 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
       if(!bInCache)                    // not in cache
       {
 
-#ifndef __WXMSW__
+#ifndef __WXMSW__       // for MSW, we assume the cache upper size limit is unbounded,
+                        // and so NEVER remove a chart from the cache
 
 #ifdef CACHE_MEM_LIMIT
 #define MEM_FREE_THRESHOLD    CACHE_MEM_LIMIT             // in KBytes
