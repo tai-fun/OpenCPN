@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.16 2008/04/10 01:08:50 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.17 2008/04/20 20:56:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -27,6 +27,9 @@
  *
 <<<<<<< s52plib.cpp
  * $Log: s52plib.cpp,v $
+ * Revision 1.17  2008/04/20 20:56:05  bdbcat
+ * Cleanup memory leaks
+ *
  * Revision 1.16  2008/04/10 01:08:50  bdbcat
  * Cleanup
  *
@@ -38,6 +41,9 @@
  *
 =======
  * $Log: s52plib.cpp,v $
+ * Revision 1.17  2008/04/20 20:56:05  bdbcat
+ * Cleanup memory leaks
+ *
  * Revision 1.16  2008/04/10 01:08:50  bdbcat
  * Cleanup
  *
@@ -111,7 +117,7 @@ extern s52plib          *ps52plib;
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
-CPL_CVSID("$Id: s52plib.cpp,v 1.16 2008/04/10 01:08:50 bdbcat Exp $");
+CPL_CVSID("$Id: s52plib.cpp,v 1.17 2008/04/20 20:56:05 bdbcat Exp $");
 
 //-----------------------------------------------------------------------------
 //      s52plib implementation
@@ -1266,8 +1272,8 @@ int s52plib::S52_load_Plib(const wxString& PLPath, const wxString& PLLib, const 
 
    if (fp == NULL)
    {
-       wxString msg(_T("S52PLIB: Cannot open S52 rules file:"));
-       msg.Append(*PLib);
+       wxString msg(_T("S52PLIB: Cannot open S52 rules file "));
+       msg.Append(PLib);
        wxLogMessage(msg);
        return 0;
    }
@@ -3161,6 +3167,7 @@ int s52plib::RenderMPS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp)
 
         _draw(pdc, point_rzRules, vp);
 
+        free (ru->INST0);                         
         delete ru;
         delete point_obj;
         delete point_rzRules;
