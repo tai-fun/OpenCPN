@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.12 2008/04/10 01:01:32 bdbcat Exp $
+ * $Id: s57chart.h,v 1.13 2008/04/20 21:04:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 <<<<<<< s57chart.h
  * $Log: s57chart.h,v $
+ * Revision 1.13  2008/04/20 21:04:36  bdbcat
+ * Cleanup
+ *
  * Revision 1.12  2008/04/10 01:01:32  bdbcat
  * Cleanup
  *
@@ -35,6 +38,9 @@
  *
 =======
  * $Log: s57chart.h,v $
+ * Revision 1.13  2008/04/20 21:04:36  bdbcat
+ * Cleanup
+ *
  * Revision 1.12  2008/04/10 01:01:32  bdbcat
  * Cleanup
  *
@@ -167,10 +173,10 @@ public:
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
       void UpdateLUPs();
 
-      ArrayOfS57Obj *GetObjArrayAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint);
+      ListOfS57Obj *GetObjListAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint);
       bool DoesLatLonSelectObject(float lat, float lon, float select_radius, S57Obj *obj);
       bool IsPointInObjArea(float lat, float lon, float select_radius, S57Obj *obj);
-      wxString *CreateObjDescription(const S57Obj& obj);
+      wxString *CreateObjDescription(const S57Obj *obj);
       wxString *GetAttributeDecode(wxString& att, int ival);
 
       //    Access to raw ENC DataSet
@@ -205,6 +211,7 @@ private:
       void CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode );
 
       void GetChartNameFromTXT(const wxString& FullPath, wxString &Name);
+      bool BuildThumbnail(const wxString &bmpname);
 
       void FreeObjectsAndRules();
       const char *getName(OGRFeature *feature);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.13 2008/04/10 01:01:32 bdbcat Exp $
+ * $Id: chart1.h,v 1.14 2008/04/20 21:04:26 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -27,6 +27,9 @@
  *
 <<<<<<< chart1.h
  * $Log: chart1.h,v $
+ * Revision 1.14  2008/04/20 21:04:26  bdbcat
+ * Cleanup
+ *
  * Revision 1.13  2008/04/10 01:01:32  bdbcat
  * Cleanup
  *
@@ -35,6 +38,9 @@
  *
 =======
  * $Log: chart1.h,v $
+ * Revision 1.14  2008/04/20 21:04:26  bdbcat
+ * Cleanup
+ *
  * Revision 1.13  2008/04/10 01:01:32  bdbcat
  * Cleanup
  *
@@ -209,6 +215,7 @@ class MyFrame: public wxFrame
 
     ~MyFrame();
 
+    void OnEraseBackground(wxEraseEvent& event);
     void OnActivate(wxActivateEvent& event);
     void OnCloseWindow(wxCloseEvent& event);
     void OnExit(wxCommandEvent& event);

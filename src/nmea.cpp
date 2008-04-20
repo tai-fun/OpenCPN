@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.20 2008/04/15 15:55:23 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.21 2008/04/20 21:02:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -25,11 +25,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< nmea.cpp
- * $Log: nmea.cpp,v $
  * Revision 1.20  2008/04/15 15:55:23  bdbcat
  * Cleanup
- *
  * Revision 1.19  2008/04/10 01:03:59  bdbcat
  * Cleanup
  *
@@ -37,9 +34,15 @@
  * Cleanup
  *
  * $Log: nmea.cpp,v $
- * Revision 1.20  2008/04/15 15:55:23  bdbcat
+ * Revision 1.21  2008/04/20 21:02:11  bdbcat
  * Cleanup
  *
+ * $Log: nmea.cpp,v $
+ * Revision 1.21  2008/04/20 21:02:11  bdbcat
+ * Cleanup
+ *
+ * Revision 1.20  2008/04/15 15:55:23  bdbcat
+ * Cleanup
  * Revision 1.19  2008/04/10 01:03:59  bdbcat
  * Cleanup
  *
@@ -87,7 +90,7 @@ extern int        g_iNMEAEventState ;
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.20 2008/04/15 15:55:23 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.21 2008/04/20 21:02:11 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -531,8 +534,8 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 //--------------TEST
 #if(0)
       {
-            kCog = 180.;
-            kSog = 12.;
+            kCog = 63.;
+            kSog = 6.5;
 
             float pred_lat = kLat +  (cos(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
             float pred_lon = kLon +  (sin(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
@@ -541,11 +544,19 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
             kLon = pred_lon;
 
     //    Signal the main program thread
+            // avoid signal to the main window if the last one has not been used.
+            wxMutexLocker* pstateLocker = new wxMutexLocker(s_pmutexNMEAEventState) ;
+            if ( NMEA_STATE_RDY != g_iNMEAEventState )
+            {
+                  g_iNMEAEventState = NMEA_STATE_RDY ;
+                  //    Signal the main program thread
+                  wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+                  event.SetEventObject( (wxObject *)this );
+                  event.SetExtraLong(EVT_NMEA_DIRECT);
+                  parent_frame->GetEventHandler()->AddPendingEvent(event);
 
-            wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
-            event.SetEventObject( (wxObject *)this );
-            event.SetExtraLong(EVT_NMEA_DIRECT);
-            m_pParentEventHandler->AddPendingEvent(event);
+            }
+            delete (pstateLocker) ;
 
       }
 #endif
