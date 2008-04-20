@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_csv.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $
+ * $Id: cpl_csv.cpp,v 1.2 2008/04/20 21:03:18 bdbcat Exp $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CSV (comma separated value) file access.
@@ -28,8 +28,11 @@
  ******************************************************************************
  *
  * $Log: cpl_csv.cpp,v $
- * Revision 1.1  2006/08/21 05:52:20  dsr
- * Initial revision
+ * Revision 1.2  2008/04/20 21:03:18  bdbcat
+ * Export more csv functions
+ *
+ * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
+ * Initial import as opencpn, GNU Automake compliant.
  *
  * Revision 1.1.1.1  2006/04/19 03:23:29  dsr
  * Rename/Import to OpenCPN
@@ -72,7 +75,7 @@
 #include "cpl_csv.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: cpl_csv.cpp,v 1.1 2006/08/21 05:52:20 dsr Exp $");
+CPL_CVSID("$Id: cpl_csv.cpp,v 1.2 2008/04/20 21:03:18 bdbcat Exp $");
 
 CPL_C_START
 const char * GDALDefaultCSVFilename( const char *pszBasename );
@@ -84,6 +87,8 @@ CPL_C_END
 /*      or in-memory copy of the table, it could be changed to do so    */
 /*      in the future.                                                  */
 /* ==================================================================== */
+/*
+/*    Moved to pcl_csv.h
 typedef struct ctb {
     FILE        *fp;
 
@@ -97,12 +102,12 @@ typedef struct ctb {
 
     int         iLastLine;
 
-    /* Cache for whole file */
     int         nLineCount;
     char        **papszLines;
     int         *panLineIndex;
     char        *pszRawData;
 } CSVTable;
+*/
 
 static CSVTable *psCSVTableList = NULL;
 
@@ -117,7 +122,7 @@ static CSVTable *psCSVTableList = NULL;
 /*      isn't done.                                                     */
 /************************************************************************/
 
-static CSVTable *CSVAccess( const char * pszFilename )
+CSVTable *CSVAccess( const char * pszFilename )
 
 {
     CSVTable    *psTable;
@@ -238,7 +243,7 @@ void CSVDeaccess( const char * pszFilename )
 /*      semantics.                                                      */
 /************************************************************************/
 
-static char **CSVSplitLine( const char *pszString )
+char **CSVSplitLine( const char *pszString )
 
 {
     char        **papszRetList = NULL;
@@ -348,7 +353,7 @@ static char *CSVFindNextLine( char *pszThisLine )
 /*      Load entire file into memory and setup index if possible.       */
 /************************************************************************/
 
-static void CSVIngest( const char *pszFilename )
+void CSVIngest( const char *pszFilename )
 
 {
     CSVTable *psTable = CSVAccess( pszFilename );
