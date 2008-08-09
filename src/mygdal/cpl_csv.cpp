@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_csv.cpp,v 1.2 2008/04/20 21:03:18 bdbcat Exp $
+ * $Id: cpl_csv.cpp,v 1.3 2008/08/09 23:44:26 bdbcat Exp $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CSV (comma separated value) file access.
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: cpl_csv.cpp,v $
+ * Revision 1.3  2008/08/09 23:44:26  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.2  2008/04/20 21:03:18  bdbcat
  * Export more csv functions
  *
@@ -75,7 +78,7 @@
 #include "cpl_csv.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: cpl_csv.cpp,v 1.2 2008/04/20 21:03:18 bdbcat Exp $");
+CPL_CVSID("$Id: cpl_csv.cpp,v 1.3 2008/08/09 23:44:26 bdbcat Exp $");
 
 CPL_C_START
 const char * GDALDefaultCSVFilename( const char *pszBasename );
@@ -88,7 +91,7 @@ CPL_C_END
 /*      in the future.                                                  */
 /* ==================================================================== */
 /*
-/*    Moved to pcl_csv.h
+    Moved to pcl_csv.h
 typedef struct ctb {
     FILE        *fp;
 
@@ -139,7 +142,7 @@ CSVTable *CSVAccess( const char * pszFilename )
              * Eventually we should consider promoting to the front of
              * the list to accelerate frequently accessed tables.
              */
-            
+
             return( psTable );
         }
     }
@@ -160,7 +163,7 @@ CSVTable *CSVAccess( const char * pszFilename )
     psTable->fp = fp;
     psTable->pszFilename = CPLStrdup( pszFilename );
     psTable->psNext = psCSVTableList;
-    
+
     psCSVTableList = psTable;
 
 /* -------------------------------------------------------------------- */
@@ -179,7 +182,7 @@ void CSVDeaccess( const char * pszFilename )
 
 {
     CSVTable    *psLast, *psTable;
-    
+
 /* -------------------------------------------------------------------- */
 /*      A NULL means deaccess all tables.                               */
 /* -------------------------------------------------------------------- */
@@ -187,7 +190,7 @@ void CSVDeaccess( const char * pszFilename )
     {
         while( psCSVTableList != NULL )
             CSVDeaccess( psCSVTableList->pszFilename );
-        
+
         return;
     }
 
@@ -252,13 +255,13 @@ char **CSVSplitLine( const char *pszString )
 
     pszToken = (char *) CPLCalloc(10,1);
     nTokenMax = 10;
-    
+
     while( pszString != NULL && *pszString != '\0' )
     {
         int     bInString = FALSE;
 
         nTokenLen = 0;
-        
+
         /* Try to find the next delimeter, marking end of token */
         for( ; *pszString != '\0'; pszString++ )
         {
@@ -269,7 +272,7 @@ char **CSVSplitLine( const char *pszString )
                 pszString++;
                 break;
             }
-            
+
             if( *pszString == '"' )
             {
                 if( !bInString || pszString[1] != '"' )
@@ -297,7 +300,7 @@ char **CSVSplitLine( const char *pszString )
         papszRetList = CSLAddString( papszRetList, pszToken );
 
         /* If the last token is an empty token, then we have to catch
-         * it now, otherwise we won't reenter the loop and it will be lost. 
+         * it now, otherwise we won't reenter the loop and it will be lost.
          */
         if ( *pszString == '\0' && *(pszString-1) == ',' )
         {
@@ -371,13 +374,13 @@ void CSVIngest( const char *pszFilename )
     VSIRewind( psTable->fp );
 
     psTable->pszRawData = (char *) CPLMalloc(nFileLen+1);
-    if( (int) VSIFRead( psTable->pszRawData, 1, nFileLen, psTable->fp ) 
+    if( (int) VSIFRead( psTable->pszRawData, 1, nFileLen, psTable->fp )
         != nFileLen )
     {
         CPLFree( psTable->pszRawData );
         psTable->pszRawData = NULL;
 
-        CPLError( CE_Failure, CPLE_FileIO, "Read of file %s failed.", 
+        CPLError( CE_Failure, CPLE_FileIO, "Read of file %s failed.",
                   psTable->pszFilename );
         return;
     }
@@ -395,7 +398,7 @@ void CSVIngest( const char *pszFilename )
     }
 
     psTable->papszLines = (char **) CPLCalloc(sizeof(char*),nMaxLineCount);
-    
+
 /* -------------------------------------------------------------------- */
 /*      Build a list of record pointers into the raw data buffer        */
 /*      based on line terminators.  Zero terminate the line             */
@@ -456,7 +459,7 @@ char **CSVReadParseLine( FILE * fp )
     CPLAssert( fp != NULL );
     if( fp == NULL )
         return( NULL );
-    
+
     pszLine = CPLReadLine( fp );
     if( pszLine == NULL )
         return( NULL );
@@ -497,7 +500,7 @@ char **CSVReadParseLine( FILE * fp )
                        strlen(pszWorkLine) + strlen(pszLine) + 1);
         strcat( pszWorkLine, pszLine );
     }
-    
+
     papszReturn = CSVSplitLine( pszWorkLine );
 
     CPLFree( pszWorkLine );
@@ -550,9 +553,9 @@ char **CSVScanLines( FILE *fp, int iKeyField, const char * pszValue,
     CPLAssert( pszValue != NULL );
     CPLAssert( iKeyField >= 0 );
     CPLAssert( fp != NULL );
-    
+
     nTestValue = atoi(pszValue);
-    
+
     while( !bSelected ) {
         papszFields = CSVReadParseLine( fp );
         if( papszFields == NULL )
@@ -579,7 +582,7 @@ char **CSVScanLines( FILE *fp, int iKeyField, const char * pszValue,
             papszFields = NULL;
         }
     }
-    
+
     return( papszFields );
 }
 
@@ -626,7 +629,7 @@ CSVScanLinesIndexed( CSVTable *psTable, int nKeyValue )
 /*      Parse target line, and update iLastLine indicator.              */
 /* -------------------------------------------------------------------- */
     psTable->iLastLine = iResult;
-    
+
     return CSVSplitLine( psTable->papszLines[iResult] );
 }
 
@@ -650,14 +653,14 @@ CSVScanLinesIngested( CSVTable *psTable, int iKeyField, const char * pszValue,
     CPLAssert( iKeyField >= 0 );
 
     nTestValue = atoi(pszValue);
-    
+
 /* -------------------------------------------------------------------- */
 /*      Short cut for indexed files.                                    */
 /* -------------------------------------------------------------------- */
-    if( iKeyField == 0 && eCriteria == CC_Integer 
+    if( iKeyField == 0 && eCriteria == CC_Integer
         && psTable->panLineIndex != NULL )
         return CSVScanLinesIndexed( psTable, nTestValue );
-    
+
 /* -------------------------------------------------------------------- */
 /*      Scan from in-core lines.                                        */
 /* -------------------------------------------------------------------- */
@@ -686,7 +689,7 @@ CSVScanLinesIngested( CSVTable *psTable, int iKeyField, const char * pszValue,
             papszFields = NULL;
         }
     }
-    
+
     return( papszFields );
 }
 
@@ -714,7 +717,7 @@ char **CSVScanFile( const char * pszFilename, int iKeyField,
     psTable = CSVAccess( pszFilename );
     if( psTable == NULL )
         return NULL;
-    
+
     CSVIngest( pszFilename );
 
 /* -------------------------------------------------------------------- */
@@ -736,13 +739,13 @@ char **CSVScanFile( const char * pszFilename, int iKeyField,
     CSLDestroy( psTable->papszRecFields );
 
     if( psTable->pszRawData != NULL )
-        psTable->papszRecFields = 
+        psTable->papszRecFields =
             CSVScanLinesIngested( psTable, iKeyField, pszValue, eCriteria );
     else
     {
         VSIRewind( psTable->fp );
         CPLReadLine( psTable->fp );         /* throw away the header line */
-    
+
         psTable->papszRecFields =
             CSVScanLines( psTable->fp, iKeyField, pszValue, eCriteria );
     }
@@ -766,7 +769,7 @@ int CSVGetFieldId( FILE * fp, const char * pszFieldName )
 {
     char        **papszFields;
     int         i;
-    
+
     CPLAssert( fp != NULL && pszFieldName != NULL );
 
     VSIRewind( fp );
@@ -798,7 +801,7 @@ int CSVGetFileFieldId( const char * pszFilename, const char * pszFieldName )
 {
     CSVTable    *psTable;
     int         i;
-    
+
 /* -------------------------------------------------------------------- */
 /*      Get access to the table.                                        */
 /* -------------------------------------------------------------------- */
@@ -867,7 +870,7 @@ const char *CSVGetField( const char * pszFilename,
     CSVTable    *psTable;
     char        **papszRecord;
     int         iTargetField;
-    
+
 /* -------------------------------------------------------------------- */
 /*      Find the table.                                                 */
 /* -------------------------------------------------------------------- */
@@ -920,7 +923,7 @@ const char * GDALDefaultCSVFilename( const char *pszBasename )
 
         if( CPLGetConfigOption("GEOTIFF_CSV",NULL) != NULL )
             CPLPushFinderLocation( CPLGetConfigOption("GEOTIFF_CSV",NULL));
-            
+
         if( CPLGetConfigOption("GDAL_DATA",NULL) != NULL )
             CPLPushFinderLocation( CPLGetConfigOption("GDAL_DATA",NULL) );
 
@@ -929,7 +932,7 @@ const char * GDALDefaultCSVFilename( const char *pszBasename )
         if( pszResult != NULL )
             return pszResult;
     }
-            
+
     if( (fp = fopen( "csv/horiz_cs.csv", "rt" )) != NULL )
     {
         sprintf( szPath, "csv/%s", pszBasename );
@@ -943,7 +946,7 @@ const char * GDALDefaultCSVFilename( const char *pszBasename )
 
     if( fp != NULL )
         fclose( fp );
-        
+
     return( szPath );
 }
 
@@ -1006,9 +1009,9 @@ static const char *CSVFileOverride( const char * pszInput )
 
 #ifdef WIN32
     sprintf( szPath, "%s\\%s", CSVDirName, pszInput );
-#else    
+#else
     sprintf( szPath, "%s/%s", CSVDirName, pszInput );
-#endif    
+#endif
 
     return( szPath );
 }
