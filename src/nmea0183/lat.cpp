@@ -38,7 +38,8 @@ bool LATITUDE::IsDataValid( void )
 
 void LATITUDE::Parse( int position_field_number, int north_or_south_field_number, const SENTENCE& sentence )
 {
-   Set( sentence.Double( position_field_number ), sentence.Field( north_or_south_field_number ) );
+   wxString n_or_s = sentence.Field( north_or_south_field_number );
+   Set( sentence.Double( position_field_number ), n_or_s );
 }
 
 void LATITUDE::Set( double position, const wxString& north_or_south )

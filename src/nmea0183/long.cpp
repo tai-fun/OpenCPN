@@ -38,8 +38,8 @@ bool LONGITUDE::IsDataValid( void )
 
 void LONGITUDE::Parse( int position_field_number, int east_or_west_field_number, const SENTENCE& sentence )
 {
-
-   Set( sentence.Double( position_field_number ), sentence.Field( east_or_west_field_number ) );
+   wxString w_or_e = sentence.Field( east_or_west_field_number );
+   Set( sentence.Double( position_field_number ), w_or_e );
 }
 
 void LONGITUDE::Set( double position, const wxString& east_or_west )

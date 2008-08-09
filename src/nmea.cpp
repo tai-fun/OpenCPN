@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.21 2008/04/20 21:02:11 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.22 2008/08/09 23:57:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -25,7 +25,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
- * Revision 1.20  2008/04/15 15:55:23  bdbcat
  * Cleanup
  * Revision 1.19  2008/04/10 01:03:59  bdbcat
  * Cleanup
@@ -33,11 +32,17 @@
  * Revision 1.18  2008/03/30 22:08:25  bdbcat
  * Cleanup
  *
- * $Log: nmea.cpp,v $
- * Revision 1.21  2008/04/20 21:02:11  bdbcat
+ *
  * Cleanup
+ * Revision 1.21  2008/04/20 21:02:11  bdbcat
+ * $Log: nmea.cpp,v $
+ * Revision 1.22  2008/08/09 23:57:15  bdbcat
+ * Correct East Lon and South Lat math
  *
  * $Log: nmea.cpp,v $
+ * Revision 1.22  2008/08/09 23:57:15  bdbcat
+ * Correct East Lon and South Lat math
+ *
  * Revision 1.21  2008/04/20 21:02:11  bdbcat
  * Cleanup
  *
@@ -55,6 +60,7 @@
  * Revision 1.16  2008/01/11 01:39:46  bdbcat
  * Update for Mac OSX
  *
+
  */
 #include "wx/wxprec.h"
 
@@ -90,7 +96,7 @@ extern int        g_iNMEAEventState ;
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.21 2008/04/20 21:02:11 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.22 2008/08/09 23:57:15 bdbcat Exp $");
 
 //    Forward Declarations
 
@@ -865,13 +871,16 @@ void *OCP_NMEA_Thread::Entry()
                                     float lat_deg = lat_deg_int;
                                     float lat_min = llt - (lat_deg * 100);
                                     kLat = lat_deg + (lat_min/60.);
+                                    if(pNMEA0183->Rmc.Position.Latitude.Northing == South)
+                                          kLat = -kLat;
 
                                     float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
                                     int lon_deg_int = (int)(lln / 100);
                                     float lon_deg = lon_deg_int;
                                     float lon_min = lln - (lon_deg * 100);
-                                    float tgLon = lon_deg + (lon_min/60.);
-                                    kLon = -tgLon;
+                                    kLon = lon_deg + (lon_min/60.);
+                                    if(pNMEA0183->Rmc.Position.Longitude.Easting == West)
+                                           kLon = -kLon;
 
                                     kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
                                     kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
@@ -1132,13 +1141,16 @@ void *OCP_NMEA_Thread::Entry()
                                                             float lat_deg = lat_deg_int;
                                                             float lat_min = llt - (lat_deg * 100);
                                                             kLat = lat_deg + (lat_min/60.);
+                                                            if(pNMEA0183->Rmc.Position.Latitude.Northing == South)
+                                                                kLat = -kLat;
 
                                                             float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
                                                             int lon_deg_int = (int)(lln / 100);
                                                             float lon_deg = lon_deg_int;
                                                             float lon_min = lln - (lon_deg * 100);
-                                                            float tgLon = lon_deg + (lon_min/60.);
-                                                            kLon = -tgLon;
+                                                            kLon = lon_deg + (lon_min/60.);
+                                                            if(pNMEA0183->Rmc.Position.Longitude.Easting == West)
+                                                                kLon = -kLon;
 
                                                             kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
                                                             kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
@@ -1424,13 +1436,16 @@ HandleASuccessfulRead:
                                 float lat_deg = lat_deg_int;
                                 float lat_min = llt - (lat_deg * 100);
                                 kLat = lat_deg + (lat_min/60.);
+                                if(pNMEA0183->Rmc.Position.Latitude.Northing == South)
+                                      kLat = -kLat;
 
                                 float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
                                 int lon_deg_int = (int)(lln / 100);
                                 float lon_deg = lon_deg_int;
                                 float lon_min = lln - (lon_deg * 100);
-                                float tgLon = lon_deg + (lon_min/60.);
-                                kLon = -tgLon;
+                                kLon = lon_deg + (lon_min/60.);
+                                if(pNMEA0183->Rmc.Position.Longitude.Easting == West)
+                                    kLon = -kLon;
 
                                 kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
                                 kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
@@ -1653,13 +1668,13 @@ void AutoPilotWindow::AutopilotOut(const wxString& Sentence)
 
 #ifdef __WXMSW__
 #ifdef ocpnUSE_MSW_SERCOMM
-      pWinComm->Write(Sentence, char_count);
+      pWinComm->Write(Sentence.mb_str(), char_count);
 #endif
 #endif
 
 #ifdef __POSIX__
       ssize_t status;
-      status = write(m_ap_fd, Sentence, char_count);
+      status = write(m_ap_fd, Sentence.mb_str(), char_count);
 #endif
 
 
