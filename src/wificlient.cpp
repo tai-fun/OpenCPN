@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wificlient.cpp,v 1.10 2008/03/30 22:25:29 bdbcat Exp $
+ * $Id: wificlient.cpp,v 1.11 2008/08/09 23:54:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -27,11 +27,17 @@
  *
 <<<<<<< wificlient.cpp
  * $Log: wificlient.cpp,v $
+ * Revision 1.11  2008/08/09 23:54:20  bdbcat
+ * Unicode-ify
+ *
  * Revision 1.10  2008/03/30 22:25:29  bdbcat
  * Update for Mac OSX/Unicode
  *
 =======
  * $Log: wificlient.cpp,v $
+ * Revision 1.11  2008/08/09 23:54:20  bdbcat
+ * Unicode-ify
+ *
  * Revision 1.10  2008/03/30 22:25:29  bdbcat
  * Update for Mac OSX/Unicode
  *
@@ -84,7 +90,7 @@ extern StatWin          *stats;
 
 static int              wifi_s_dns_test_flag;
 
-CPL_CVSID("$Id: wificlient.cpp,v 1.10 2008/03/30 22:25:29 bdbcat Exp $");
+CPL_CVSID("$Id: wificlient.cpp,v 1.11 2008/08/09 23:54:20 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    WIFI Window Implementation
@@ -168,9 +174,9 @@ WIFIWindow::WIFIWindow(wxFrame *frame, const wxString& WiFiServerName):
                 {
 
                     wxString msg(WIFI_data_ip);
-                    msg.Prepend("Could not resolve TCP/IP host '");
-                    msg.Append("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation");
-                    wxMessageDialog md(this, msg, "OpenCPN Message", wxICON_ERROR );
+                    msg.Prepend(_T("Could not resolve TCP/IP host '"));
+                    msg.Append(_T("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation"));
+                    wxMessageDialog md(this, msg, _T("OpenCPN Message"), wxICON_ERROR );
                     md.ShowModal();
 
                     m_sock->Notify(FALSE);
