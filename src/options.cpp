@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.8 2008/04/11 03:25:08 bdbcat Exp $
+ * $Id: options.cpp,v 1.9 2008/08/09 23:58:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -25,8 +25,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< options.cpp
  * $Log: options.cpp,v $
+ * Revision 1.9  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.8  2008/04/11 03:25:08  bdbcat
  * Implement Auto Anchor Mark
  *
@@ -36,8 +38,10 @@
  * Revision 1.6  2008/03/30 22:09:48  bdbcat
  * Cleanup
  *
-=======
  * $Log: options.cpp,v $
+ * Revision 1.9  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.8  2008/04/11 03:25:08  bdbcat
  * Implement Auto Anchor Mark
  *
@@ -50,7 +54,6 @@
  * Revision 1.5  2008/01/12 06:20:47  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.5
  * Revision 1.4  2008/01/10 03:37:18  bdbcat
  * Update for Mac OSX
  *
@@ -883,7 +886,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
 // WiFi
     wxString WiFiSource;
     WiFiSource.Empty();
-    WiFiSource.Append("TCP/IP:");
+    WiFiSource.Append(_T("TCP/IP:"));
     WiFiSource.Append(m_itemWIFI_TCPIP_Source->GetLineText(0));
     *pWIFIServerName = WiFiSource;
 #endif
@@ -1110,7 +1113,7 @@ void options::OnPageChange(wxNotebookEvent& event)
 
           pTextCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL, _T(""),
                                      wxDefaultPosition, wxSize(-1, -1), tc_flags  );
-          pTextCtl->SetMinSize(wxSize(-1, 100));
+          pTextCtl->SetMinSize(wxSize(-1, 200));
           itemStaticBoxSizer16->Add(pTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
 
           wxButton* itemButton18 = new wxButton( itemPanel9, ID_BUTTONDELETE, _("Delete Selection"), wxDefaultPosition, wxDefaultSize, 0 );

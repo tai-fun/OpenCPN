@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.7 2008/03/30 22:15:45 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.8 2008/08/09 23:58:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -28,20 +28,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< s52cnsy.cpp
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.8  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.7  2008/03/30 22:15:45  bdbcat
  * Add missing symbology OBSTRN, etc.
  *
-=======
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.8  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.7  2008/03/30 22:15:45  bdbcat
  * Add missing symbology OBSTRN, etc.
  *
  * Revision 1.6  2008/01/12 06:21:06  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.6
  * Revision 1.5  2008/01/10 03:37:31  bdbcat
  * Update for Mac OSX
  *
@@ -97,7 +100,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.7 2008/03/30 22:15:45 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.8 2008/08/09 23:58:40 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -202,7 +205,6 @@ bool GetIntAttr(S57Obj *obj, char *AttrName, int &val)
 {
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
     strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
-//        char *attList = (char *)(obj->attList->mb_str());        //attList is wxString
 
         char *patl = attList;
         char *patr;
@@ -314,6 +316,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val)
 
 bool GetStringAttr(S57Obj *obj, char *AttrName, char *pval, int nc)
 {
+    *pval = 0;
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
     strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
 //        char *attList = (char *)(obj->attList->);        //attList is wxString
@@ -395,13 +398,14 @@ wxString *GetStringAttrWXS(S57Obj *obj, char *AttrName)
         return ret;
 }
 
-static int      _parseList(const char *str, char *buf)
+static int      _parseList(const char *str_in, char *buf)
 // Put a string of comma delimited number in an array (buf).
 // Return: the number of value in buf.
 // Assume: - number < 256,
 //         - list size less then LISTSIZE-1 .
 // Note: buf is \0 terminated for strpbrk().
 {
+    char *str = (char *)str_in;
     int i = 0;
 
     if (NULL != str && *str != '\0') {
@@ -420,7 +424,8 @@ static int      _parseList(const char *str, char *buf)
 
             buf[i++] = (unsigned char) atoi(str);
 
-            while(isdigit(*str++));   // next
+            while(isdigit(*str))
+                  str++;   // next
             //while( g_ascii_isdigit(c));   // next
 
         } while(*str++ != '\0');      // skip ',' or exit
@@ -493,6 +498,67 @@ static int      _atPtPos(S57Obj *objNew, wxArrayPtrVoid *curntList, int bSectorC
     return FALSE;
 }
 
+wxString _selSYcol(char *buf, bool bsectr)
+{
+    wxString sym;
+
+    if(!bsectr)
+    {
+
+      sym = _T(";SY(LITDEF11");                 // default
+
+    // max 1 color
+      if ('\0' == buf[1])
+      {
+        if (strpbrk(buf, "\003"))
+              sym = _T(";SY(LIGHTS11");
+        else if (strpbrk(buf, "\004"))
+              sym = _T(";SY(LIGHTS12");
+        else if (strpbrk(buf, "\001\006\011"))
+              sym = _T(";SY(LIGHTS13");
+      }
+      else
+      {
+        // max 2 color
+        if ('\0' == buf[2]) {
+            if (strpbrk(buf, "\001") && strpbrk(buf, "\003"))
+                  sym = _T(";SY(LIGHTS11");
+            else if (strpbrk(buf, "\001") && strpbrk(buf, "\004"))
+                  sym = _T(";SY(LIGHTS12");
+        }
+      }
+    }
+
+    else
+    {
+       // max 1 color
+      if ('\0' == buf[1])
+      {
+          if (strpbrk(buf, "\003"))
+                sym = _T(",LITRD, 2");
+          else if (strpbrk(buf, "\004"))
+                sym = _T(",LITGN, 2");
+          else if (strpbrk(buf, "\001\006\011"))
+                sym = _T(",LITYW, 2");
+      }
+      else  if ('\0' == buf[2])       // or 2 color
+      {
+                if (strpbrk(buf, "\001") && strpbrk(buf, "\003"))
+                      sym = _T(",LITRD, 2");
+                else if (strpbrk(buf, "\001") && strpbrk(buf, "\004"))
+                      sym = _T(",LITGN, 2");
+
+      }
+      else
+          sym = _T(",CHMGD, 2");
+
+    sym.Prepend(_T(";CA(OUTLW, 4"));
+    sym.Append(_T(",0,360,8,0"));                  // arc radius 8 mm, sector radius 0
+    }
+
+
+    return sym;
+}
 
 static double   _DEPVAL01(S57Obj *obj, double least_depth)
 // Remarks: S-57 Appendix B1 Annex A requires in Section 6 that areas of rocks be
@@ -544,8 +610,10 @@ static wxString *_UDWHAZ03(S57Obj *obj, double depth_value, ObjRazRules *rzRules
     int      danger         = FALSE;
     double   safety_contour = S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR);
 
+    if(depth_value == UNKNOWN)
+          danger = TRUE;
 
-    if (depth_value <= safety_contour) {
+    else if (depth_value <= safety_contour) {
         // that intersect this point/line/area for OBSTRN04
         // that intersect this point/area      for WRECKS02
 
@@ -583,6 +651,7 @@ static wxString *_UDWHAZ03(S57Obj *obj, double depth_value, ObjRazRules *rzRules
         }
 
         delete pobj_list;
+    }
 /*
         while (NULL != (geoTmp = S57_nextObj(geoTmp))) {
 
@@ -609,9 +678,8 @@ static wxString *_UDWHAZ03(S57Obj *obj, double depth_value, ObjRazRules *rzRules
         }
 
 */
-        //danger = TRUE;   // true
-        if (TRUE == danger)
-        {
+    if (TRUE == danger)
+    {
               int watlev;
               GetIntAttr(obj, "WATLEV", watlev);
 
@@ -633,21 +701,12 @@ static wxString *_UDWHAZ03(S57Obj *obj, double depth_value, ObjRazRules *rzRules
                 S57_setAtt(geo, "SCAMIN", "INFINITE");
             }
 */
-        }
     }
+
 
     wxString *ret_str = new wxString(udwhaz03str);
     return ret_str;
 
-/*  if(!udwhaz03str.IsEmpty())
-    {
-      char *r = (char *)malloc(udwhaz03str.Len() + 1);
-      strcpy(r, udwhaz03str.mb_str());
-      return r;
-    }
-    else
-      return NULL;
-*/
 }
 
 
@@ -805,7 +864,7 @@ static void *DEPCNT02 (void *param)
       ObjRazRules *rzRules = (ObjRazRules *)param;
       S57Obj *obj = rzRules->obj;
 // Debug
-//      if(obj->Index == 1719)
+//      if(obj->Index == 812)
 //            int tty = 5;
 
       if ((!strncmp(obj->FeatureName, "DEPARE", 6)) && GEO_LINE==obj->Primitive_type)
@@ -923,10 +982,12 @@ static void *DEPCNT02 (void *param)
       char quaposstr[20];
       quaposstr[0] = 0;
       GetStringAttr(obj, "QUAPOS", quaposstr, 19);
-      int quapos;
+      int quapos = 0;
+      GetIntAttr(obj, "QUAPOS", quapos);        // QUAPOS is an E (Enumerated) type attribute
+
 //      S57_getAttVal(geo, "QUAPOS");
-      if (0 != quaposstr[0]) {
-            quapos = atoi(quaposstr);
+      if (0 != quapos/*0 != quaposstr[0]*/) {
+//            quapos = atoi(quaposstr);
             if ( 2 <= quapos && quapos < 10) {
                   if (safe)
                         rule_str = _T(";LS(DASH,2,DEPSC)");  //depcnt02 = g_string_new(";LS(DASH,2,DEPSC)");
@@ -995,13 +1056,13 @@ static void *LEGLIN02(void *param)
    return NULL;
 }
 
-static void *LIGHTS04(void *param)
+/*
+static void *LIGHTS04A(void *param)
 {
         ObjRazRules *rzRules = (ObjRazRules *)param;
         S57Obj *obj = rzRules->obj;
 
         wxString rule_str;
-
 
         char col_str[2];
         GetStringAttr(obj, "COLOUR", col_str, 1);
@@ -1015,70 +1076,57 @@ static void *LIGHTS04(void *param)
 //      Different symbology depending upon Paper or Simplified Mariner Selection
 
 
-    wxString key;
     if(ps52plib->m_nSymbolStyle == PAPER_CHART)
     {
             if(col_str[0] == '3')
-            {                                                                       // red
+            {                                                     // red
                     if(height_val)
-                    {
-                        key = _T("LIGHTS93");                       // all round
-                        rule_str = _T("SY(LIGHTS93)");
-                    }
+                        rule_str = _T("SY(LIGHTS93)");            // all round
                     else
-                    {
-                        key = _T("LIGHTS01");                       // flare
-                        rule_str = _T("SY(LIGHTS01)");
-                    }
+                        rule_str = _T("SY(LIGHTS01)");            // flare
             }
 
-            else if(col_str[0] == '4')                      // green
+            else if(col_str[0] == '4')                            // green
             {
                     if(height_val)
-                    {
-                        key = _T("LIGHTS92");                       // all round
                         rule_str = _T("SY(LIGHTS92)");
-                    }
                     else
-                    {
-                        key = _T("LIGHTS02");                       // flare
                         rule_str = _T("SY(LIGHTS02)");
-                    }
             }
 
-            else                                                            // Generic, shows as yellow
+            else                                                  // Generic, shows as yellow
             {
                     if(height_val)
-                    {
-                        key = _T("LIGHTS91");                       // all round
                         rule_str = _T("SY(LIGHTS91)");
-                    }
                     else
-                    {
-                        key = _T("LIGHTS03");                       // flare
                         rule_str = _T("SY(LIGHTS03)");
-                    }
             }
     }
 
-    else                                                                    // must be Simplified, so use flares
+    else                                                     // must be Simplified
     {
             if(col_str[0] == '3')
-            {                                                                       // red
-                key = _T("LIGHTS01");
-                rule_str = _T("SY(LIGHTS01)");
+            {                                                     // red
+                    if(height_val)
+                        rule_str = _T("SY(LIGHTS93)");            // all round
+                    else
+                        rule_str = _T("SY(LIGHTS01)");            // flare
             }
 
-            else if(col_str[0] == '4')                      // green
+            else if(col_str[0] == '4')                            // green
             {
-                key = _T("LIGHTS02");
-                rule_str = _T("SY(LIGHTS02)");
+                    if(height_val)
+                        rule_str = _T("SY(LIGHTS92)");
+                    else
+                        rule_str = _T("SY(LIGHTS02)");
             }
 
-            else                                                            // generic, shows as yellow
+            else                                                  // Generic, shows as yellow
             {
-                key = _T("LIGHTS03");
-                rule_str = _T("SY(LIGHTS03)");
+                    if(height_val)
+                        rule_str = _T("SY(LIGHTS91)");
+                    else
+                        rule_str = _T("SY(LIGHTS03)");
             }
     }
 
@@ -1090,6 +1138,355 @@ static void *LIGHTS04(void *param)
     strcpy(r, rule_str.mb_str());
     return r;
 }
+
+//    A simple placeholder for Conditional Symbology method LIGHTS05
+static void *LIGHTS05A(void *param)
+{
+      ObjRazRules *rzRules = (ObjRazRules *)param;
+      S57Obj *obj = rzRules->obj;
+
+      wxString rule_str;
+
+      char col_str[2];
+      GetStringAttr(obj, "COLOUR", col_str, 1);
+
+      double height_val = 0;
+      GetDoubleAttr(obj, "HEIGHT", height_val);
+
+      if(col_str[0] == '3')
+      {                                                     // red
+                  rule_str = _T("SY(LIGHTS11)");            // flare
+      }
+
+      else if(col_str[0] == '4')                            // green
+                  rule_str = _T("SY(LIGHTS12)");
+
+      else                                                  // Generic, shows as yellow
+                  rule_str = _T("SY(LIGHTS13)");
+
+
+
+      rule_str.Append('\037');
+
+      char *r = (char *)malloc(rule_str.Len() + 1);
+      strcpy(r, rule_str.mb_str());
+      return r;
+}
+*/
+
+static void *LIGHTS05 (void *param)
+// Remarks: A light is one of the most complex S-57 objects. Its presentation depends on
+// whether it is a light on a floating or fixed platform, its range, it's colour and
+// so on. This conditional symbology procedure derives the correct
+// presentation from these parameters and also generates an area that shows the
+// coverage of the light.
+//
+// Notes on light sectors:
+// 1.) The radial leg-lines defining the light sectors are normally drawn to only 25mm
+// from the light to avoid clutter (see Part C). However, the mariner should be able to
+// select "full light-sector lines" and have the leg-lines extended to the nominal range
+// of the light (VALMAR).
+//
+// 2.) Part C of this procedure symbolizes the sectors at the light itself. In addition,
+// it should be possible, upon request, for the mariner to be capable of identifying
+// the colour and sector limit lines of the sectors affecting the ship even if the light
+// itself is off the display.
+// [ed. last sentence in bold]
+
+
+{
+#define UNKNOWN_DOUBLE -9;
+    wxString lights05;
+
+    ObjRazRules *rzRules = (ObjRazRules *)param;
+    S57Obj *obj = rzRules->obj;
+
+    double valnmr = UNKNOWN_DOUBLE;
+    GetDoubleAttr(obj, "VALNMR", valnmr);
+
+
+    char catlitstr[20];
+    GetStringAttr(obj, "CATLIT", catlitstr, 19);
+
+    char litvisstr[20];
+    GetStringAttr(obj, "LITVIS", litvisstr, 19);
+
+
+    char     catlit[LISTSIZE]  = {'\0'};
+    char     litvis[LISTSIZE]  = {'\0'};
+    bool     flare_at_45       = false;
+    double   sectr1            = UNKNOWN_DOUBLE;
+    double   sectr2            = UNKNOWN_DOUBLE;
+    double   sweep;
+    char     colist[LISTSIZE]  = {'\0'};   // colour list
+
+    wxString orientstr;
+
+// Debug
+//      if(obj->Index == 27)
+//            int tty = 5;
+
+
+
+    if ( strlen(catlitstr))
+    {
+        _parseList(catlitstr, catlit);
+
+        // FIXME: OR vs AND/OR
+        if (strpbrk(catlit, "\010\013")) {
+            lights05.Append(_T(";SY(LIGHTS82)"));
+            goto l05_end;
+        }
+
+        if (strpbrk(catlit, "\011")) {
+            lights05.Append(_T(";SY(LIGHTS81)"));
+            goto l05_end;
+        }
+
+/*
+        if (strpbrk(catlit, "\001\020")) {
+            orientstr = S57_getAttVal(geo, "ORIENT");
+            if (NULL != orientstr) {
+                // FIXME: create a geo object (!?) LINE of lenght VALNMR
+                // using ORIENT (from seaward) & POINT_T position
+                g_string_append(lights05, ";LS(DASH,1,CHBLK)");
+            }
+        }
+*/
+    }
+
+    // Continuation A
+
+    char col_str[20];
+    GetStringAttr(obj, "COLOUR", col_str, 19);
+
+    if (strlen(col_str))
+        _parseList(col_str, colist);
+    else
+    {
+        colist[0] = '\014';  // magenta (12)
+        colist[1] = '\000';
+    }
+
+    GetDoubleAttr(obj, "SECTR1", sectr1);
+    GetDoubleAttr(obj, "SECTR2", sectr2);
+
+
+    if ((-9 == sectr1) || (-9 == sectr2))
+    {
+        // This is not a sector light
+
+          //      What follows is one interpretation of the modern (3_3 +)
+          //      Presentation Library CS flow chart, which I(dsr) have never seen.
+          //      We will use flare light symbols for floating aids, and
+          //      all round sector lights for fixed aids.
+
+        wxString ssym;
+
+        if(_atPtPos(obj, rzRules->chart->pFloatingATONArray, false))          // Is this LIGHTS feature colocated with ...ANY... floating aid?
+        {
+            flare_at_45 = false;
+
+            //Todo  create LightArray in s57chart.
+            //  Then, if another LIGHT object is colocated here, set flare_at_45
+/*            if(_atPtPos(obj, rzRules->chart->pLIGHTSArray, false))          // Is this LIGHTS feature colocated with another LIGHTS?
+
+
+            //    If the light is white, yellow, or orange, make it a flare at 45 degrees
+                  if(strpbrk(colist, "\001\005\011"))
+                    flare_at_45 = true;
+*/
+            ssym = _selSYcol(colist, 0);              // flare
+        }
+        else
+            ssym = _selSYcol(colist, 1);              // all round light
+
+        //  Is the light a directional or moire?
+        if (strpbrk(catlit, "\001\016"))
+        {
+            if (orientstr.Len())
+            {
+                lights05.Append(ssym);
+                lights05.Append(orientstr);
+                lights05.Append(_T(";TE('%03.0lf deg','ORIENT',3,3,3,'15110',3,1,CHBLK,23)" ));
+            }
+            else
+                lights05.Append(_T(";SY(QUESMRK1)"));
+        }
+        else
+        {
+            lights05.Append(ssym);
+            if (flare_at_45)
+                lights05.Append(_T(",45)"));
+            else
+                lights05.Append(_T(",135)"));
+
+        }
+
+/*
+        if (TRUE == S52_getMarinerParam(S52_MAR_SHOW_TEXT))
+        {
+            GString *litdsn01 = _LITDSN01(geo);
+            if (NULL != litdsn01){
+                lights05.Append(_T(";TX('");
+                lights05.Append(_T(litdsn01->str);
+                g_string_free(litdsn01, TRUE);
+
+                if (flare_at_45)
+                    lights05.Append(_T("',3,3,3,'15110',2,-1,CHBLK,23)" );
+                else
+                    lights05.Append(_T("',3,2,3,'15110',2,0,CHBLK,23)" );
+            }
+        }
+*/
+
+        goto l05_end;
+    }
+
+    // Continuation B --sector light
+    if (-9 == sectr1)
+    {
+        sectr1 = 0.0;
+        sectr2 = 0.0;
+    }
+    else
+        sweep = (sectr1 > sectr2) ? sectr2-sectr1+360 : sectr2-sectr1;
+
+
+    if (sweep<1.0 || sweep==360.0)
+    {
+        // handle all round light
+      wxString ssym = _selSYcol(colist, 1);           // all round light
+      lights05.Append(ssym);
+
+
+/*
+        if (TRUE == S52_getMarinerParam(S52_MAR_SHOW_TEXT)) {
+            GString *litdsn01 = _LITDSN01(geo);
+            if (NULL != litdsn01) {
+                g_string_append(lights05, ";TX('");
+                g_string_append(lights05, litdsn01->str);
+                g_string_append(lights05, "',3,2,3,'15110',2,0,CHBLK,23)" );
+                g_string_free(litdsn01, TRUE);
+            }
+
+        }
+*/
+      goto l05_end;
+    }
+
+/*
+    // scan for other lights with sector overlap at this position
+    // compute light sector radius according to other sector
+    if (1 == S52_state)
+    {
+        _setPtPos(geo, SECTRLIST);
+        g_string_free(lights05, TRUE);
+        return NULL;
+    }
+    else
+    {
+        extend_arc_radius = _atPtPos(geo, SECTRLIST);
+
+        // passe value via attribs to _renderAC
+        if (extend_arc_radius)
+            // FIXME: draw radius 25 mm
+            S57_setAtt(geo, "extend_arc_radius", "Y");
+        else
+            // FIXME: draw radius 20 mm
+            S57_setAtt(geo, "extend_arc_radius", "N");
+    }
+*/
+    // setup sector
+    {
+             //        Build the (opencpn private) command string like this:
+            //        e.g.  ";CA(OUTLW, 4,LITRD, 2, sectr1, sectr2, radius)"
+
+          char sym[80];
+
+
+          double arc_radius = 20.;                // mm
+          double sector_radius = 25.;
+
+          if ( strlen(litvisstr))               // Obscured/faint sector?
+          {
+            _parseList(litvisstr, litvis);
+
+            if (strpbrk(litvis, "\003\007\010"))
+            {
+                  strcpy(sym, ";CA(CHBLK, 1");
+                  strcat(sym, ",CHBLK, 0");
+            }
+          }
+
+
+          else
+          {
+
+            strcpy(sym,";CA(OUTLW, 4");
+
+            // max 1 color
+            if ('\0' == colist[1])
+            {
+                if (strpbrk(colist, "\003"))
+                    strcat(sym, ",LITRD, 2");
+                else if (strpbrk(colist, "\004"))
+                      strcat(sym, ",LITGN, 2");
+                else if (strpbrk(colist, "\001\006\013"))
+                      strcat(sym, ",LITYW, 2");
+            }
+            else if ('\0' == colist[2])
+            {
+                    if (strpbrk(colist, "\001") && strpbrk(colist, "\003"))
+                          strcat(sym, ",LITRD, 2");
+                    else if (strpbrk(colist, "\001") && strpbrk(colist, "\004"))
+                          strcat(sym, " LITGN, 2");
+            }
+            else
+                  strcat(sym, ",CHMGD, 2");                 // default is magenta
+          }
+
+
+            if(sectr2 <= sectr1)
+                  sectr2 += 360;
+
+            //    Sectors are defined from seaward
+            if(sectr1 > 180)
+                  sectr1 -= 180;
+            else
+                  sectr1 += 180;
+
+            if(sectr2 > 180)
+                  sectr2 -= 180;
+            else
+                  sectr2 += 180;
+
+            char arc_data[80];
+            sprintf(arc_data, ",%5.0f, %5.0f, %5.0f, %5.0f", sectr1, sectr2, arc_radius, sector_radius);
+
+            strcat(sym, arc_data);
+
+            wxString ssym(sym, wxConvUTF8);
+            lights05 = ssym;
+
+            goto l05_end;
+
+
+    }
+
+
+l05_end:
+    lights05.Append('\037');
+
+    char *r = (char *)malloc(lights05.Len() + 1);
+    strcpy(r, lights05.mb_str());
+
+    return r;
+}
+
+
+
+
 
 static void *LITDSN01(void *param)
 {
@@ -1133,6 +1530,10 @@ static void *OBSTRN04 (void *param)
 
       ObjRazRules *rzRules = (ObjRazRules *)param;
       S57Obj *obj = rzRules->obj;
+
+      //    Debug Hook
+//      if(obj->Index == 4163)
+//            int yyp = 5;
 
       double   valsou      = UNKNOWN;
       double   depth_value = UNKNOWN;
@@ -1232,7 +1633,7 @@ static void *OBSTRN04 (void *param)
                                     switch (watlev) {
                                           case 1:
                                           case 2: obstrn04str.Append(_T(";SY(OBSTRN11)")); sounding = FALSE; break;
-                                          case 3: obstrn04str.Append(_T(";SY(DANGER51)")); sounding = TRUE;  break;
+                                          case 3: obstrn04str.Append(_T(";SY(DANGER52)")); sounding = TRUE;  break;
                                           case 4:
                                           case 5: obstrn04str.Append(_T(";SY(DANGER53)")); sounding = TRUE; break;
                                           default : obstrn04str.Append(_T(";SY(DANGER51)")); sounding = TRUE; break;
@@ -1243,7 +1644,7 @@ static void *OBSTRN04 (void *param)
                   else
                   {  // valsou > 20.0
                         obstrn04str.Append(_T(";SY(DANGER52)"));
-                        sounding = FALSE;
+                        sounding = TRUE;
                   }
             }
             else
@@ -1338,7 +1739,61 @@ static void *OBSTRN04 (void *param)
 
             else
             {
-                      goto end;
+                  quapnt01str = CSQUAPNT01(obj);
+
+                  if (0 != udwhaz03str->Len())
+                  {
+                       obstrn04str.Append(_T(";AC(DEPVS);AP(FOULAR01)"));
+                       obstrn04str.Append(_T(";LS(DOTT,2,CHBLK)"));
+                       obstrn04str.Append(*udwhaz03str);
+                       obstrn04str.Append(*quapnt01str);
+
+                        goto end;
+                  }
+
+                  if (UNKNOWN != valsou) {
+                // BUG in CA49995B.000 if we get here because there is no color
+                // beside NODATA (ie there is a hole in group 1 area!)
+                //g_string_append(obstrn04, ";AC(UINFR)");
+
+                        if (valsou <= 20.0)
+                              obstrn04str.Append(_T(";LS(DOTT,2,CHBLK)"));
+                        else
+                              obstrn04str.Append(_T(";LS(DASH,2,CHBLK)"));
+
+                        obstrn04str.Append(*sndfrm02str);
+
+                  } else {
+                        int watlev = -9;
+                        GetIntAttr(obj, "WATLEV", watlev);
+//                        GString *watlevstr = S57_getAttVal(geo, "WATLEV");
+
+                        if (watlev == -9)   // default
+                              obstrn04str.Append(_T(";AC(DEPVS);LS(DOTT,2,CHBLK)"));
+                        else {
+                              if (3 == watlev) {
+                                    int catobs = -9;
+                                    GetIntAttr(obj, "CATOBS", catobs);
+//                                    GString *catobsstr = S57_getAttVal(geo, "CATOBS");
+                                    if (6 == catobs)
+                                          obstrn04str.Append(_T(";AC(DEPVS);AP(FOULAR01);LS(DOTT,2,CHBLK)"));
+                              } else {
+                                    switch (watlev) {
+                                          case 1:
+                                          case 2: obstrn04str.Append(_T(";AC(CHBRN);LS(SOLD,2,CSTLN)")); break;
+                                          case 4: obstrn04str.Append(_T(";AC(DEPIT);LS(DASH,2,CSTLN)")); break;
+                                          case 5:
+                                          case 3:
+                                                default : obstrn04str.Append(_T(";AC(DEPVS);LS(DOTT,2,CHBLK)"));  break;
+                                    }
+                              }
+                        }
+                  }
+
+                  obstrn04str.Append(*quapnt01str);
+                  goto end;
+
+
 /*
             // Continuation C (AREAS_T)
                   GString *quapnt01str = CSQUAPNT01(geo);
@@ -1391,7 +1846,7 @@ static void *OBSTRN04 (void *param)
 
                   return obstrn04str;
 */
-            }
+            }     // area
       }
 
 end:
@@ -1584,7 +2039,9 @@ wxString *CSQUAPNT01(S57Obj *obj)
 
     quapnt01.Append('\037');
 
-    wxString *r = new wxString(*quapnt01);
+    wxString *r = new wxString;
+
+    *r = quapnt01;
 
 /*    char *r = (char *)malloc(quapnt01.Len() + 1);
     strcpy(r, quapnt01.mb_str());
@@ -2120,7 +2577,8 @@ wxString *SNDFRM02(S57Obj *obj, double depth_value)
         sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, (int)ABS(leading_digit));
         sndfrm02.Append(wxString(temp_str, wxConvUTF8));
         sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix_a, fraction);
-        sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+        if(fraction > 0)
+            sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
         // above sea level (negative)
         if (depth_value < 0.0)
@@ -2147,7 +2605,8 @@ wxString *SNDFRM02(S57Obj *obj, double depth_value)
             sprintf(temp_str, ";SY(%s1%1i)", symbol_prefix_a, secnd_digit/*(int)leading_digit*/);
             sndfrm02.Append(wxString(temp_str, wxConvUTF8));
             sprintf(temp_str, ";SY(%s5%1i)", symbol_prefix_a, (int)fraction);
-            sndfrm02.Append(wxString(temp_str, wxConvUTF8));
+            if((int)fraction > 0)
+                sndfrm02.Append(wxString(temp_str, wxConvUTF8));
 
             goto return_point;
         }
@@ -2540,6 +2999,7 @@ static void *WRECKS02 (void *param)
             if (UNKNOWN != valsou) {
 ///////////////////////////////////////////
 //    DSR New logic here, FIXME check s52 specs
+
 /*
                 if (valsou <= 20.0)
                 {
@@ -2550,8 +3010,9 @@ static void *WRECKS02 (void *param)
                 else
                     wrecks02str = wxString(";SY(DANGER52)");
 */
-                if((valsou < safety_contour) || (2 == catwrk))    // maybe redundant, seems like wrecks with valsou < 20
+                if((valsou < safety_contour)/* || (2 == catwrk)*/)    // maybe redundant, seems like wrecks with valsou < 20
                                                                   // are always coded as "dangerous wrecks"
+                                                                  // Excluding (2 == catwrk) matches Caris logic
                       wrecks02str = wxString(_T(";SY(DANGER51)"));
                 else
                       wrecks02str = wxString(_T(";SY(DANGER52)"));
@@ -2694,10 +3155,11 @@ Cond condTable[] = {
    {"DATCVR01",DATCVR01},
    {"DATCVR01",DATCVR01},
    {"DEPARE01",DEPARE01},
+   {"DEPARE02",DEPARE01},                 // new in PLIB 3_3, opencpn defaults to DEPARE01
    {"DEPCNT02",DEPCNT02},
    {"DEPVAL01",DEPVAL01},
    {"LEGLIN02",LEGLIN02},
-   {"LIGHTS04",LIGHTS04},
+   {"LIGHTS05",LIGHTS05},                 // new in PLIB 3_3, replaces LIGHTS04
    {"LITDSN01",LITDSN01},
    {"OBSTRN04",OBSTRN04},
    {"OWNSHP02",OWNSHP02},
@@ -2939,32 +3401,6 @@ static int      _parseList(const char *str, char *buf)
     return i;
 }
 
-static char    *_selSYcol(char *buf)
-{
-    // FIXME: C1 3.1 use LIGHTS0x          and specs 3.2 use LIGHTS1x
-
-    char *sym = ";SY(LIGHTDEF";            //sym = ";SY(LITDEF11";
-
-    // max 1 color
-    if ('\0' == buf[1]) {
-        if (strpbrk(buf, "\003"))
-            sym = ";SY(LIGHTS01";          //sym = ";SY(LIGHTS11";
-        else if (strpbrk(buf, "\004"))
-            sym = ";SY(LIGHTS02";          //sym = ";SY(LIGHTS12";
-        else if (strpbrk(buf, "\001\006\013"))
-            sym = ";SY(LIGHTS03";          //sym = ";SY(LIGHTS13";
-    } else {
-        // max 2 color
-        if ('\0' == buf[2]) {
-            if (strpbrk(buf, "\001") && strpbrk(buf, "\003"))
-                sym = ";SY(LIGHTS01";          //sym = ";SY(LIGHTS11";
-            else if (strpbrk(buf, "\001") && strpbrk(buf, "\004"))
-                sym = ";SY(LIGHTS02";          //sym = ";SY(LIGHTS12";
-        }
-    }
-
-    return sym;
-}
 
 static GString *CLRLIN01 (S57_geo *geo)
 // Remarks: A clearing line shows a single arrow head at one of its ends. The direction

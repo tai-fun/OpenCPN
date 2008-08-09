@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52utils.cpp,v 1.4 2008/03/30 22:28:43 bdbcat Exp $
+ * $Id: s52utils.cpp,v 1.5 2008/08/09 23:58:40 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Utility Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52utils.cpp,v $
+ * Revision 1.5  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.4  2008/03/30 22:28:43  bdbcat
  * Cleanup
  *
@@ -64,7 +67,7 @@
  */
 
 #include "dychart.h"
-CPL_CVSID("$Id: s52utils.cpp,v 1.4 2008/03/30 22:28:43 bdbcat Exp $");
+CPL_CVSID("$Id: s52utils.cpp,v 1.5 2008/08/09 23:58:40 bdbcat Exp $");
 
 #include "s52utils.h"
 #include <stdio.h>        // FILE
@@ -260,14 +263,14 @@ int S52_getConfig(const char *label, valueBuf *vbuf)
 
 }
 
-float S52_getMarinerParam(S52_MAR_param_t param)
+double S52_getMarinerParam(S52_MAR_param_t param)
 // return Mariner parameter or '0.0' if fail
 // FIXME: check mariner param against groups selection
 {
 //    valueBuf vbuf;
 
 //      DSR
-    return (float)_MARparamVal[param];
+    return _MARparamVal[param];
 /*
     if (S52_MAR_NONE<param && param<S52_MAR_NUM)
     {

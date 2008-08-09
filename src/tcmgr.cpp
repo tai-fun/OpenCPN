@@ -25,16 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< tcmgr.cpp
  * $Log: tcmgr.cpp,v $
+ * Revision 1.7  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.6  2008/04/09 03:51:43  bdbcat
  * Correct 64bit time_t math
  *
  * Revision 1.5  2008/03/30 22:24:40  bdbcat
  * Update for Mac OSX/Unicode
  *
-=======
  * $Log: tcmgr.cpp,v $
+ * Revision 1.7  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.6  2008/04/09 03:51:43  bdbcat
  * Correct 64bit time_t math
  *
@@ -44,7 +48,6 @@
  * Revision 1.4  2008/01/12 06:21:55  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.4
  * Revision 1.3  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -85,7 +88,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.6 2008/04/09 03:51:43 bdbcat Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.7 2008/08/09 23:58:40 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters
@@ -820,6 +823,9 @@ Station_Data *TCMgr::find_or_load_harm_data(IDX_entry *pIDX)
                         if (!strstr (linrec, "Current"))
                               continue;
 //    See the note above about station names
+//                  if(!strncmp(linrec, "Rivi", 4))
+//                        int ggl = 4;
+
                   if (slackcmp (linrec, pIDX->IDX_reference_name))
                         continue;
 
@@ -1291,7 +1297,9 @@ char * TCMgr::nojunk (char *linrec)
 
 /* Slackful strcmp; 0 = match.  It's case-insensitive and accepts a
    prefix instead of the entire string.  The second argument is the
-   one that can be shorter. */
+   one that can be shorter. Second argument can contain '?' as wild
+   card character.
+*/
 int TCMgr::slackcmp (char *a, char *b)
 {
   int c, cmp, n;
@@ -1300,6 +1308,9 @@ int TCMgr::slackcmp (char *a, char *b)
     return 1;
   for (c=0;c<n;c++)
   {
+    if(b[c] == '?')
+          continue;
+
     cmp = ((a[c] >= 'A' && a[c] <= 'Z') ? a[c] - 'A' + 'a' : a[c])
             -
           ((b[c] >= 'A' && b[c] <= 'Z') ? b[c] - 'A' + 'a' : b[c]);
@@ -1673,11 +1684,14 @@ char stz[80];
             &pIDX->IDX_type,&pIDX->IDX_zone[0],&pIDX->IDX_lon,&pIDX->IDX_lat,&TZHr,&TZMin,
             &pIDX->IDX_station_name[0])) return(1);
 
+//      if(!strncmp(pIDX->IDX_station_name, "Rivi", 4))
+//            int hhk = 4;
+
       pIDX->IDX_time_zone = TZHr*60 + TZMin;
 
       if (strchr("tcUu",index_line[0])) { // Substation so get second line of info
                   IndexFileIO(IFF_READ, 0);
-            if(index_line[0] == '^')                  // DYAD special
+            if(index_line[0] == '^')                  // Opencpn special
             {
                   if (11 != sscanf(index_line, "%*c%d %f %f %d %f %f %d %d %d %d%*c%[^\r\n]",
                         &pIDX->IDX_ht_time_off, &pIDX->IDX_ht_mpy, &pIDX->IDX_ht_off,

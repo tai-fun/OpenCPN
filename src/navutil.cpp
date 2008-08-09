@@ -25,8 +25,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< navutil.cpp
+ *
  * $Log: navutil.cpp,v $
+ * Revision 1.15  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.14  2008/04/20 20:54:40  bdbcat
  * Set defaults
  *
@@ -39,10 +42,9 @@
  * Revision 1.11  2008/03/30 22:05:53  bdbcat
  * Support Route/Mark Properties
  *
-=======
  * $Log: navutil.cpp,v $
- * Revision 1.14  2008/04/20 20:54:40  bdbcat
- * Set defaults
+ * Revision 1.15  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
  *
  * Revision 1.13  2008/04/11 03:25:08  bdbcat
  * Implement Auto Anchor Mark
@@ -56,7 +58,6 @@
  * Revision 1.10  2008/01/12 06:20:35  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.10
  * Revision 1.9  2008/01/10 03:36:33  bdbcat
  * Update for Mac OSX
  *
@@ -111,7 +112,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.14 2008/04/20 20:54:40 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.15 2008/08/09 23:58:40 bdbcat Exp $");
 
 //    Statics
 
@@ -135,6 +136,9 @@ extern wxString         *pNMEADataSource;
 extern wxString         *pNMEA_AP_Port;
 extern wxString         *pWIFIServerName;
 extern wxString         *g_pcsv_locn;
+extern wxString         *g_pSENCPrefix;
+extern wxString         *g_pPresLibData;
+
 extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
 extern wxString         *pAIS_Port;
@@ -147,6 +151,7 @@ extern Routeman         *pRouteMan;
 extern bool             s_bSetSystemTime;
 extern bool             g_bShowDepthUnits;
 extern bool             g_bAutoAnchorMark;
+extern bool             g_bShowOutlines;
 
 extern int              g_nframewin_x;
 extern int              g_nframewin_y;
@@ -154,6 +159,8 @@ extern bool             g_bframemax;
 
 extern double           g_PlanSpeed;
 extern wxRect           g_blink_rect;
+
+extern wxArrayString    *pMessageOnceArray;
 
 #ifdef USE_S57
 extern s52plib          *ps52plib;
@@ -1253,7 +1260,10 @@ int MyConfig::LoadMyConfig(int iteration)
       g_bAutoAnchorMark = false;
       Read(_T("AutoAnchorDrop"),  &g_bAutoAnchorMark);
 
-      wxString stps;
+      g_bShowOutlines = false;
+      Read(_T("ShowChartOutlines"),  &g_bShowOutlines);
+
+       wxString stps;
       Read(_T("PlanSpeed"),  &stps);
       stps.ToDouble(&g_PlanSpeed);
 
@@ -1313,10 +1323,18 @@ int MyConfig::LoadMyConfig(int iteration)
       ps52plib->UpdateMarinerParams();
     }
 
+    wxString strpres(_T("PresentationLibraryData"));
+    wxString valpres;
+    SetPath(_T("/Directories"));
+    Read(strpres, &valpres);                 // Get the File name
+    if(iteration == 0)
+          *g_pPresLibData = valpres;
+
     wxString strd(_T("S57DataLocation"));
     wxString val;
     SetPath(_T("/Directories"));
     Read(strd, &val);                 // Get the Directory name
+
 
     wxString dirname(val);
     if(!dirname.IsEmpty())
@@ -1328,7 +1346,13 @@ int MyConfig::LoadMyConfig(int iteration)
         }
     }
 
+    wxString strs(_T("SENCFileLocation"));
+    SetPath(_T("/Directories"));
+    wxString vals;
+    Read(strs, &vals);                 // Get the Directory name
 
+    if(iteration == 0)
+        *g_pSENCPrefix = vals;
 
 #endif
 
@@ -1402,6 +1426,7 @@ int MyConfig::LoadMyConfig(int iteration)
                   vLon = st_lon;
 
             st_view_scale = fmax(st_view_scale, .001/32);
+            st_view_scale = fmin(st_view_scale, 4);
             initial_scale_ppm = st_view_scale;
       }
 
@@ -2086,6 +2111,7 @@ void MyConfig::UpdateSettings()
     Write(_T("SetSystemTime"), s_bSetSystemTime);
     Write(_T("ShowDepthUnits"), g_bShowDepthUnits);
     Write(_T("AutoAnchorDrop"),  g_bAutoAnchorMark);
+    Write(_T("ShowChartOutlines"),  g_bShowOutlines);
 
     wxString st0;
     st0.Printf(_T("%g"), g_PlanSpeed);
@@ -2152,6 +2178,8 @@ void MyConfig::UpdateSettings()
 
       SetPath(_T("/Directories"));
       Write(_T("S57DataLocation"), *g_pcsv_locn);
+      Write(_T("SENCFileLocation"), *g_pSENCPrefix);
+      Write(_T("PresentationLibraryData"), *g_pPresLibData);
 
 #endif
 
@@ -3318,5 +3346,26 @@ double vVectorMagnitude(PVECTOR2D v0)
 }
 
 
+/**************************************************************************/
+/*          LogMessageOnce                                                */
+/**************************************************************************/
+
+bool LogMessageOnce(wxString &msg)
+{
+      //    Search the array for a match
+
+      for(unsigned int i=0 ; i < pMessageOnceArray->GetCount() ; i++)
+      {
+            if(msg.IsSameAs(pMessageOnceArray->Item(i)))
+                  return false;
+      }
+
+      // Not found, so add to the array
+      pMessageOnceArray->Add(msg);
+
+      //    And print it
+      wxLogMessage(msg);
+      return true;
+}
 
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ocpn_pixel.cpp,v 1.6 2008/04/11 03:25:59 bdbcat Exp $
+ * $Id: ocpn_pixel.cpp,v 1.7 2008/08/09 23:58:40 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Optimized wxBitmap Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ocpn_pixel.cpp,v $
+ * Revision 1.7  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.6  2008/04/11 03:25:59  bdbcat
  * Clean up GTK Optimize option
  *
@@ -90,6 +93,7 @@
     #include "wx/icon.h"
 #endif
 
+
 #ifdef __WXMSW__
       #include "wx/msw/private.h"
       #include "wx/log.h"
@@ -121,7 +125,7 @@
 #endif
 
 
-CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.6 2008/04/11 03:25:59 bdbcat Exp $");
+CPL_CVSID("$Id: ocpn_pixel.cpp,v 1.7 2008/08/09 23:58:40 bdbcat Exp $");
 
 
 #ifdef  __WXX11__

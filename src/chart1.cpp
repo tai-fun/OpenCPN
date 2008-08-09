@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.25 2008/04/20 20:52:18 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.26 2008/08/09 23:58:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
- * Revision 1.25  2008/04/20 20:52:18  bdbcat
- * Improved Refresh() algorithm
+ * Revision 1.26  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
  *
  * Revision 1.24  2008/04/14 19:38:00  bdbcat
  * Add quitflag++ to OnExit()
@@ -45,8 +45,8 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
- * Revision 1.25  2008/04/20 20:52:18  bdbcat
- * Improved Refresh() algorithm
+ * Revision 1.26  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
  *
  * Revision 1.24  2008/04/14 19:38:00  bdbcat
  * Add quitflag++ to OnExit()
@@ -69,7 +69,6 @@
  * Revision 1.18  2008/01/11 01:39:32  bdbcat
  * Update for Mac OSX
  *
->>>>>>> 1.19
  * Revision 1.17  2008/01/10 03:35:45  bdbcat
  * Update for Mac OSX
  *
@@ -139,6 +138,7 @@
 #include "routeprop.h"
 
 #include <wx/image.h>
+#include "wx/apptrait.h"
 
 // begin rms
 #ifdef __WXOSX__
@@ -163,7 +163,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.25 2008/04/20 20:52:18 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.26 2008/08/09 23:58:40 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -193,7 +193,6 @@ ChartBase       *Current_Vector_Ch;
 ChartBase       *Current_Ch;
 ChartDB         *ChartData;
 ChartStack      *pCurrentStack;
-int             CurrentStackEntry;
 wxString        *pdir_list[20];
 
 RouteList       *pRouteList;
@@ -231,6 +230,8 @@ wxString        *pHome_Locn;
 wxString        *pWVS_Locn;
 wxString        *pInit_Chart_Dir;
 wxString        *g_pcsv_locn;
+wxString        *g_pSENCPrefix;
+wxString        *g_pPresLibData;
 
 int             user_user_id;
 int             file_user_id;
@@ -331,7 +332,12 @@ bool             g_bAutoAnchorMark;
 wxRect           g_blink_rect;
 double           g_PlanSpeed;
 
+wxArrayString    *pMessageOnceArray;
+
 FILE *s_fpdebug;
+bool             bAutoOpen;
+bool             bFirstAuto;
+
 //-----------------------------------------------------------------------------------------------------
 //      OCP_NMEA_Thread Static data store
 //-----------------------------------------------------------------------------------------------------
@@ -382,6 +388,8 @@ WX_USE_THEME(Metal);
 #ifdef __WXMSW__
      extern  long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
 #endif
+
+void appendOSDirSlash(wxString* pString);
 
 // ----------------------------------------------------------------------------
 // Icon resources
@@ -447,7 +455,7 @@ bool MyApp::OnInit()
 #endif
 
 
-//      _CrtSetBreakAlloc(38844);
+ //     _CrtSetBreakAlloc(120244);
 
 #ifdef __MSVC__
 _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
@@ -519,33 +527,49 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         t.AddHandler(th);
 
 //      Establish a "home" location
-        pHome_Locn= new wxString;
-#ifdef __WXMSW__
-///   This will point to the application (opencpn.exe) directory in Windows
-        wxStandardPaths std_path;
+        wxStandardPathsBase& std_path = wxApp::GetTraits()->GetStandardPaths();
         std_path.Get();
-        pHome_Locn->Append(std_path.GetDataDir());
-        pHome_Locn->Append("\\");
-#else
-        pHome_Locn->Append(::wxGetHomeDir());                   // in the current users home
-        pHome_Locn->Append(_T("/"));
-#endif
+
+        pHome_Locn= new wxString;
+        pHome_Locn->Append(std_path.GetUserConfigDir());          // on w98, produces "/windows/Application Data"
+        appendOSDirSlash(pHome_Locn) ;
 
 #ifdef __WXMAC__
-        pHome_Locn->Append(_T("openCPNfiles/"));                // avoid clutter in the home directory
+        pHome_Locn->Append(_T("openCPN/"));
+#elif defined __WXMSW__
+        pHome_Locn->Append(_T("opencpn\\"));
 #endif
+
 
         // create the opencpn "home" directory if we need to
         wxFileName wxHomeFiledir(*pHome_Locn) ;
         if(true != wxHomeFiledir.DirExists(wxHomeFiledir.GetPath()))
             if(!wxHomeFiledir.Mkdir(wxHomeFiledir.GetPath()))
                   {
-                        wxASSERT_MSG(false,_T("Cannot create config file directory for log directory"));
+                        wxASSERT_MSG(false,_T("Cannot create opencpn home directory"));
                         return false ;
                   }
 
 //      Establish Log File location
-        wxString log(*pHome_Locn);
+        wxString log;
+        log.Append(std_path.GetUserConfigDir());
+        appendOSDirSlash(&log);
+
+#ifdef __WXMAC__
+        log.Append(_T("Logs/"));
+#elif defined __WXMSW__
+        log.Append(_T("opencpn\\"));
+#endif
+
+        // create the opencpn "log" directory if we need to
+        wxFileName wxLogFiledir(log) ;
+        if(true != wxLogFiledir.DirExists(wxLogFiledir.GetPath()))
+              if(!wxLogFiledir.Mkdir(wxLogFiledir.GetPath()))
+        {
+              wxASSERT_MSG(false,_T("Cannot create opencpn log directory"));
+              return false ;
+        }
+
         log.Append(_T("opencpn.log"));
         char *mode = "a";
         flog = fopen(log.mb_str(), mode);
@@ -575,7 +599,12 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pAIS_Port = new wxString();
         g_pcsv_locn = new wxString();
         pInit_Chart_Dir = new wxString();
+        g_pSENCPrefix = new wxString();
+        g_pPresLibData = new wxString;
 
+//      Create an array string to hold repeating messages, so they don't
+//      overwhelm the log
+        pMessageOnceArray = new wxArrayString;
 
 //      Init the Chart Dir Array(s)
         pChartDirArray = new wxArrayString();
@@ -613,22 +642,21 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
     #endif
 #endif
 
-
-
 //      Establish a "shared data" location
         pSData_Locn= new wxString;
 #ifdef __WXMSW__
-        pSData_Locn->Append(std_path.GetDataDir());
-        pSData_Locn->Append("\\");
+        pSData_Locn->Append(std_path.GetDataDir());         // where the application is located
+        appendOSDirSlash(pSData_Locn) ;
 
 #elif defined __WXMAC__
-        // put in common directory for the user
-        pSData_Locn = pHome_Locn ;
+        pSData_Locn->Append(std_path.GetUserDataDir());    // should be ~/Library/Application Support/appname
+        appendOSDirSlash(pSData_Locn) ;
 
 #else
-//        wxString prefix(wxString(INSTALL_PREFIX,  wxConvUTF8));
-//        pSData_Locn->Append(prefix);
-        pSData_Locn->Append( _T("/usr/local/share/opencpn/"));    // ./configure script sets this
+        wxString prefix(wxString(INSTALL_PREFIX,  wxConvUTF8));
+        pSData_Locn->Append(prefix);
+        appendOSDirSlash(pSData_Locn) ;
+        pSData_Locn->Append( _T("share/opencpn/"));
 #endif
 
 
@@ -636,14 +664,15 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 #ifdef __WXMSW__
         wxString Config_File("opencpn.ini");
         Config_File.Prepend(*pHome_Locn);
- // begin rms
+
 #elif defined __WXMAC__
-        wxString Config_File("opencpn.ini");
-        Config_File.Prepend(*pHome_Locn);
-// end rms
+        wxString Config_File = std_path.GetUserConfigDir(); // should be ~/Library/Preferences
+        appendOSDirSlash(&Config_File) ;
+        Config_File.Append("opencpn.ini");
 #else
-        wxString Config_File(_T(".opencpn/opencpn.conf"));
-        Config_File.Prepend(*pHome_Locn);
+        wxString Config_File = std_path.GetUserDataDir(); // should be ~/.opencpn
+        appendOSDirSlash(&Config_File) ;
+        Config_File.Append(_T("opencpn.conf"));
 #endif
 
         wxFileName config_test_file_name(Config_File);
@@ -679,7 +708,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 #ifdef USE_S57
 //      Init the s57 chart object, specifying the location of the required csv files
-//      and error log.
 
 //      If the config file contains an entry for s57 .csv files, use it.
 //      Otherwise, default to [shared data dir]/s57_data
@@ -687,6 +715,15 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         {
             g_pcsv_locn->Append(*pSData_Locn);
             g_pcsv_locn->Append(_T("s57data"));
+        }
+
+//      If the config file contains an entry for SENC file prefix, use it.
+//      Otherwise, default to std_path.GetUserDataDir()
+        if(g_pSENCPrefix->IsEmpty())
+        {
+              g_pSENCPrefix->Append(std_path.GetUserDataDir());
+              appendOSDirSlash(g_pSENCPrefix);
+              g_pSENCPrefix->Append(_T("SENC"));
         }
 
 // Todo Maybe verify that the required support files are really present in g_pcsv_locn
@@ -697,9 +734,25 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         // s57expectedinput.csv
         // s57objectclasses.csv
         // S52RAZDS.RLE
-        // SP52COL.DAT
 
-        ps52plib = new s52plib(*g_pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
+        wxString plib_data;
+
+//      If the config file contains an entry for PresentationLibraryData, use it.
+//      Otherwise, default to conditionally set spot under g_pcsv_locn
+        if(g_pPresLibData->IsEmpty())
+        {
+              plib_data = *g_pcsv_locn;
+              appendOSDirSlash(&plib_data);
+              plib_data.Append(_T("S52RAZDS.RLE"));
+        }
+        else
+        {
+              plib_data = *g_pPresLibData;
+        }
+
+
+
+        ps52plib = new s52plib(plib_data);
 
         //  If the library load failed, try looking for the s57 data elsewhere
         if(!ps52plib->m_bOK)
@@ -710,14 +763,22 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
             g_pcsv_locn->Append(*pSData_Locn);
             g_pcsv_locn->Append(_T("s57data"));
 
+            plib_data = *g_pcsv_locn;
+            appendOSDirSlash(&plib_data);
+            plib_data.Append(_T("S52RAZDS.RLE"));
+
             wxLogMessage(_T("Looking for s57data in ") + *g_pcsv_locn);
-            ps52plib = new s52plib(*g_pcsv_locn, _T("/S52RAZDS.RLE"), _T("/SP52COL.DAT"));
+            ps52plib = new s52plib(plib_data);
 
             if(!ps52plib->m_bOK)
             {
-                wxLogMessage(_T("S52PLIB Initialization failed, disabling S57 charts..."));
+                wxLogMessage(_T("   S52PLIB Initialization failed, disabling S57 charts."));
             }
         }
+
+
+        if(ps52plib->m_bOK)
+            wxLogMessage(_T("Using s57data in ") + *g_pcsv_locn);
 
 // Todo Maybe initialize only when an s57 chart is actually opened???
         s57_initialize(*g_pcsv_locn, flog);
@@ -733,14 +794,14 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 //      Establish location and name of chart database
 #ifdef __WXMSW__
         pChartListFileName = new wxString(_T("CHRTLIST.DAT"));
- // begin rms
-#elif defined __WXMAC__
-        pChartListFileName = new wxString(_T("/chartlist.dat"));
-//end rms
-#else
-        pChartListFileName = new wxString(_T(".opencpn/chartlist.dat"));
-#endif
         pChartListFileName->Prepend(*pHome_Locn);
+
+#else
+        pChartListFileName = new wxString(_T(""));
+        pChartListFileName->Append(std_path.GetUserDataDir());
+        appendOSDirSlash(pChartListFileName) ;
+        pChartListFileName->Append(_T("chartlist.dat"));
+#endif
 
 
 
@@ -749,6 +810,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pTC_Dir = new wxString(_T("tcdata"));
         pTC_Dir->Prepend(*pSData_Locn);
         pTC_Dir->Append(wxFileName::GetPathSeparator());
+
+        wxLogMessage(_T("Using Tide/Current data from:  ") + *pTC_Dir);
+
+
 
 
 //      Establish guessed location of chart tree
@@ -898,7 +963,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
                 bDBUpdateInProgress = false;
         }
 
-
         pCurrentStack = new ChartStack;
 
 
@@ -956,6 +1020,7 @@ int MyApp::OnExit()
         delete pHome_Locn;
         delete pSData_Locn;
         delete g_pcsv_locn;
+        delete g_pSENCPrefix;
         delete pTC_Dir;
         delete phost_name;
         delete pInit_Chart_Dir;
@@ -969,6 +1034,8 @@ int MyApp::OnExit()
         delete pWIFIServerName;
 
         delete pFontMgr;
+
+        delete pMessageOnceArray;
 
 #ifdef USE_S57
         delete g_poRegistrar;
@@ -1120,6 +1187,7 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 
 #endif
 
+        bFirstAuto = true;
 }
 
 MyFrame::~MyFrame()
@@ -1255,8 +1323,6 @@ wxToolBar *MyFrame::CreateAToolbar()
 
 //Set up the ToolBar
 
-//      Think about wxUNIV themes here....
-
 
 //      Set up the margins, etc...
 //      All this is poorly documented, and very clumsy
@@ -1269,7 +1335,6 @@ wxToolBar *MyFrame::CreateAToolbar()
 
 //  On MSW, ToolMargins does nothing
     wxSize defMargins = tb->GetMargins();
-//    toolBar->SetMargins(wxSize(6, defMargins.y));
     tb->SetMargins(6, defMargins.y);
     wxSize tool_margin = tb->GetMargins();
 
@@ -1280,8 +1345,9 @@ wxToolBar *MyFrame::CreateAToolbar()
 //      Calculate the tool and separator pitches
     wxSize toolsize = tb->GetToolSize();
 
-    int x;                                          // running position
+    int x = 0;                                          // running position
     int pitch_tool, pitch_sep;
+
     pitch_tool = toolsize.x + tool_packing + tool_margin.x;
     pitch_sep =  tool_sep   + tool_packing + tool_margin.x;
     x =tool_packing + tool_margin.x;
@@ -1295,14 +1361,15 @@ wxToolBar *MyFrame::CreateAToolbar()
 
 #ifdef __WXGTK__
     {
-        pitch_tool += 2;
-        x -= 1;
+        pitch_tool += 5;  //2
 
       //    More hacks to this sorry class.
         if((wxMAJOR_VERSION == 2) && (wxMINOR_VERSION >= 8))
-            x += 2;
+            x = 0;
     }
 #endif
+
+//    printf("toolsize.x: %d    tool_packing: %d    tool_margin.x %d  tool_sep: %d x0: %d\n", toolsize.x, tool_packing, tool_margin.x, tool_sep, x);
 
     //  Fetch a sample bitmap for a placeholder
     string_to_pbitmap_hash *phash;
@@ -1377,6 +1444,7 @@ wxToolBar *MyFrame::CreateAToolbar()
 #define DUMMY_HEIGHT    40
     m_tool_dummy_size_x = filler_width;
     m_tool_dummy_size_y = DUMMY_HEIGHT;
+//    printf("x: %d   filler_pad: %d  filler_width: %d  m_tool_dummy_size_x: %d \n", x, filler_pad, filler_width, m_tool_dummy_size_x);
 
     //  Make sure to always create a reasonable dummy
     if(m_tool_dummy_size_x <= 0)
@@ -1785,7 +1853,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     case ID_ZOOMIN:
     {
         //      Bound the zoomin of raster charts to at most 2x overzoom
-        if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+        if((Current_Ch->m_ChartType == CHART_TYPE_GEO) || (Current_Ch->m_ChartType == CHART_TYPE_KAP))
         {
             double target_scale = cc1->GetVPScale() * 2;
             ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
@@ -1802,7 +1870,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     case ID_ZOOMOUT:
     {
         //      Bound the zoomout of raster charts to at most 8x underzoom
-        if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+        if((Current_Ch->m_ChartType == CHART_TYPE_GEO) || (Current_Ch->m_ChartType == CHART_TYPE_KAP))
         {
             double target_scale = cc1->GetVPScale() / 2;
             ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
@@ -1828,7 +1896,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             {
                 cc1->m_bFollow = true;
 //      Warp speed jump to current position
-//            Current_Ch->InvalidateCache();            // Add back for wxx11 This might be needed??? 8/19/06
                 cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(),
                               Current_Ch->GetChartSkew() * PI / 180., 1, FORCE_SUBSAMPLE);     // set mod 4
                 cc1->Refresh(false);
@@ -2122,7 +2189,7 @@ int MyFrame::DoOptionsDialog()
                 {
                     CacheEntry *pce = (CacheEntry *)(ChartData->pChartCache->Item(i));
                     ChartBase *Ch = (ChartBase *)pce->pChart;
-                    if(Ch->ChartType == CHART_TYPE_S57)
+                    if(Ch->m_ChartType == CHART_TYPE_S57)
                     {
                         s57chart *S57_Ch = dynamic_cast<s57chart *>(Ch);
                         S57_Ch->UpdateLUPs();
@@ -2165,15 +2232,15 @@ void MyFrame::ClearRouteTool()
 
 void MyFrame::DoStackDown(void)
 {
-        if(CurrentStackEntry)                   // not below 0
-                SelectChartFromStack(CurrentStackEntry - 1);
+      if(pCurrentStack->CurrentStackEntry)                   // not below 0
+            SelectChartFromStack(pCurrentStack->CurrentStackEntry - 1);
 }
 
 
 void MyFrame::DoStackUp(void)
 {
-        if(CurrentStackEntry < pCurrentStack->nEntry-1)
-                SelectChartFromStack(CurrentStackEntry + 1);
+      if(pCurrentStack->CurrentStackEntry < pCurrentStack->nEntry-1)
+            SelectChartFromStack(pCurrentStack->CurrentStackEntry + 1);
 }
 
 
@@ -2308,7 +2375,6 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
         if(console->IsShown())
            console->Refresh(false);
 
-
 }
 
 //    Cause refresh of active Tide/Current data, if displayed
@@ -2322,13 +2388,13 @@ void MyFrame::OnFrameTCTimer(wxTimerEvent& event)
 void MyFrame::UpdateChartStatusField(int i)
 {
         char buf[80], buf1[80];
-        ChartData->ChartDB::GetChartID(pCurrentStack, CurrentStackEntry, buf, sizeof(buf));
-        sprintf (buf1, "  %d/%d", CurrentStackEntry, pCurrentStack->nEntry-1);
+        ChartData->GetChartID(pCurrentStack, pCurrentStack->CurrentStackEntry, buf, sizeof(buf));
+        sprintf (buf1, "  %d/%d", pCurrentStack->CurrentStackEntry, pCurrentStack->nEntry-1);
         strcat(buf, "  ");
         strcat(buf, buf1);
         strcat(buf, "  ");
 
-        ChartData->GetStackChartScale(pCurrentStack, CurrentStackEntry, buf1, sizeof(buf1));
+        ChartData->GetStackChartScale(pCurrentStack, pCurrentStack->CurrentStackEntry, buf1, sizeof(buf1));
         strcat(buf, buf1);
 
         if(m_pStatusBar)
@@ -2491,6 +2557,13 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       dc.SetFont(*pSWFont3);
 
 
+      /*************************************************************************************/
+      /*        All of this name encoding has been rendered redundant with conversion      */
+      /*        of opencpn to Unicode internally.  The chart name is reported as a         */
+      /*        properly converted wxString, printable directly with the appropriate font. */
+      /*************************************************************************************/
+
+      /*
       //    The Chart Nice Name may be encoded with 8-bit ascii encoding set,
       //    especially some French chart names in NDI data sets.
       //    Use an Encoding Converter to ensure that the name string can be
@@ -2506,6 +2579,10 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       wxEncodingConverter ec;
       ec.Init( wxFONTENCODING_ISO8859_2,  wxFONTENCODING_ISO8859_1, wxCONVERT_SUBSTITUTE);
       wxString name = ec.Convert(name_possibly_intl);
+      */
+
+      wxString name;
+      pchart->GetName(name);
 
 //    Possibly adjust the font?
       GetTextExtent(name, &w, &h, NULL, NULL, pSWFont3);
@@ -2583,7 +2660,7 @@ void MyFrame::SelectChartFromStack(int index)
             if(pTentative_Chart)
             {
                 Current_Ch = pTentative_Chart;
-                CurrentStackEntry = index;
+                pCurrentStack->CurrentStackEntry = index;
             }
             else
             {
@@ -2613,11 +2690,11 @@ void MyFrame::SelectChartFromStack(int index)
                 new_sample_mode = FORCE_SUBSAMPLE;
 
 
-            if(Current_Ch->ChartType == CHART_TYPE_S57)
+            if(Current_Ch->m_ChartType == CHART_TYPE_S57)
                 cc1->SetViewPoint(zLat, zLon, cc1->GetVPScale(),
                                   Current_Ch->GetChartSkew() * PI / 180., 0, new_sample_mode);
 
-            else if((Current_Ch->ChartType == CHART_TYPE_KAP) || (Current_Ch->ChartType == CHART_TYPE_GEO))
+            else if((Current_Ch->m_ChartType == CHART_TYPE_KAP) || (Current_Ch->m_ChartType == CHART_TYPE_GEO))
             {
                 //  New chart is raster type
                 // try to match new viewport scale to the previous view scale when going to a smaller scale chart
@@ -2768,15 +2845,23 @@ void MyFrame::SetChartThumbnail(int index)
 //      DoChartUpdate
 //      Create a chartstack based on current lat/lon.
 //      Update Current_Ch, using either current chart, if still in stack, or
-//      smallest scale raster chart if not.
+//      smallest scale new chart in stack if not.
+//      Maybe Additionally, if not in bFollow mode, do NOT automatically open charts.
+//      This improves useability for large scale pans
 //      Return true if Current_Ch has been changed, implying need for a full redraw
 //----------------------------------------------------------------------------------
 bool MyFrame::DoChartUpdate(int bSelectType)
 {
         float tLat, tLon;
-        float new_binary_scale_factor;
+        ChartStack LastStack;
+        double new_binary_scale_factor = 1;
         bool bNewChart = false;
         bool bNewPiano = false;
+        ChartBase *pLast_Ch = Current_Ch;
+
+        bool bOpenSmallest =  bFirstAuto;
+        bFirstAuto = false;                           // Auto open smallest once, on program start
+        bAutoOpen = true;                             // debugging
 
         if(bDBUpdateInProgress)
                 return false;
@@ -2812,7 +2897,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                 }
 
                 if(Current_Ch)
-                    if(Current_Ch->ChartType != CHART_TYPE_DUMMY)
+                    if(Current_Ch->m_ChartType != CHART_TYPE_DUMMY)
                         bNewChart = true;
 
                 Current_Ch = pDummyChart;
@@ -2843,19 +2928,16 @@ bool MyFrame::DoChartUpdate(int bSelectType)
         {
 
         //      New chart stack, so...
-
                 bNewPiano = true;
+
+        //      Save a copy of the current stack
+                ChartData->CopyStack(&LastStack, pCurrentStack);
 
         //      Copy the new stack into the target stack
                 ChartData->CopyStack(pCurrentStack, pWorkStack);
 
-
         //      Note current scale
-                double current_binary_scale_factor;
-                if(Current_Ch)
-                    current_binary_scale_factor = cc1->GetVPBinaryScaleFactor();
-                else
-                    current_binary_scale_factor = 1;
+                double current_ppm = cc1->GetVPScale();
 
         //  Is Current Chart in new stack?
 
@@ -2865,162 +2947,117 @@ bool MyFrame::DoChartUpdate(int bSelectType)
 
                 if(tEntry != -1)                // Current_Ch is in the new stack
                 {
-                        CurrentStackEntry = tEntry;
-                        new_binary_scale_factor = current_binary_scale_factor;
+                        pCurrentStack->CurrentStackEntry = tEntry;
+                        if((Current_Ch->m_ChartType == CHART_TYPE_KAP) || (Current_Ch->m_ChartType == CHART_TYPE_GEO))
+                        {
+                              ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
+                              new_binary_scale_factor = Cur_BSB_Ch->GetPPM() / current_ppm;
+                        }
                         bNewChart = false;
                 }
 
                 else                            // Current_Ch is NOT in new stack
                 {                                       // So, need to open a new chart
                                                         //      Find the smallest scale raster chart that opens OK
-                  CurrentStackEntry = 0;
-                  ChartBase *ptc = NULL;
-                  while(CurrentStackEntry < pCurrentStack->nEntry)
+                  if(bAutoOpen)
                   {
-                        if(ChartData->GetCSChartType(pCurrentStack, CurrentStackEntry) != CHART_TYPE_S57)
+                        bool search_direction = false;            // default is to search from lowest to highest
+
+                        //    A special case:  If panning at high scale, open lrgest scale chart first
+                        if((LastStack.CurrentStackEntry == LastStack.nEntry - 1) || (LastStack.nEntry == 0))
+                              search_direction = true;
+
+                        //    Another special case, open smallest on program start
+                        if(bOpenSmallest)
+                              search_direction = false;
+
+                        ChartBase *ptc = ChartData->OpenStackChartConditional(pCurrentStack, search_direction, false);
+                        if (NULL != ptc)
                         {
-                              ptc = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry);
-
-                              if (NULL != ptc)
+                              ChartBaseBSB *ptc_BSB_Ch = dynamic_cast<ChartBaseBSB *>(ptc);
+                              new_binary_scale_factor = ptc_BSB_Ch->GetPPM() / current_ppm;
+                        // For Raster Charts, scale must be 1,2,4,8... etc.
+                              if(new_binary_scale_factor - floor(new_binary_scale_factor))
                               {
-                                  new_binary_scale_factor = current_binary_scale_factor;    // Try to set scale to current value
-
-// For Raster Charts, scale must be 1,2,4,8... etc.
-                                  if(new_binary_scale_factor - floor(new_binary_scale_factor))
-                                  {
-                                      float sct = 1.0;
-                                      while(sct < 16.0)
-                                      {
+                                    float sct = 1.0;
+                                    while(sct < 16.0)
+                                    {
                                           if(sct > new_binary_scale_factor)
-                                              break;
+                                                break;
                                           sct *= 2;
-                                      }
-                                      new_binary_scale_factor = sct;
-                                  }
-
-                                    break;
-                              }
-                              else
-                              {
-                                    wxString fp = ChartData->GetFullPath(pCurrentStack, CurrentStackEntry);
-                                    fp.Prepend(_T("chart1.cpp:DoChartUpdate...Could not open chart "));
-                                    wxString id;
-                                    id.Printf(_T(" at index %d"), CurrentStackEntry);
-                                    fp.Append(id);
-                                    wxLogMessage(fp);
-                              }
-
-                        }
-                        CurrentStackEntry++;
-                  }
-                  Current_Ch = ptc;
-                  bNewChart = true;
-                }
-
-        // Arriving here, Current_Ch is opened and OK, or NULL
-                if(NULL == Current_Ch)
-                        CurrentStackEntry = 0;                                          // safe value
-
-        // If NULL, there is just no raster chart available.  Punt...
-                if(NULL == Current_Ch)
-                {
-/*
-                        wxMessageDialog mdlg(this,
-                                        wxString("Unable to open any raster charts...Try to return to HomeBase?"),
-                                        wxString("OpenCPN"),
-                                        wxICON_ERROR | wxOK | wxCANCEL);
-
-                        int dlg_ret = mdlg.ShowModal();
-
-                        if(wxID_OK != dlg_ret)
-                                quitflag++;                             // induce controlled exit if other than OK
-
-//              Reset Lat/Lon to home position
-//              This handles the case of "really lost..."
-                        vLat = START_LAT;                               // display viewpoint
-                        vLon = START_LON;
-
-                        gLat = START_LAT;                               // GPS position, as default
-                        gLon = START_LON;
-*/
-
-//  Try to open an S57 chart
-//  Find the smallest scale chart that opens OK
-                        CurrentStackEntry = 0;
-                        ChartBase *ptc = NULL;
-                        while(CurrentStackEntry < pCurrentStack->nEntry)
-                        {
-                              if(ChartData->GetCSChartType(pCurrentStack, CurrentStackEntry) == CHART_TYPE_S57)
-                              {
-                                    ptc = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry);
-
-                                    if (NULL != ptc)
-                                    {
-                                          break;
                                     }
-                                    else
-                                    {
-                                          wxString fp = ChartData->GetFullPath(pCurrentStack, CurrentStackEntry);
-                                          fp.Prepend(_T("chart1.cpp:DoChartUpdate...Could not open chart "));
-                                          wxString id;
-                                          id.Printf(_T(" at index %d"), CurrentStackEntry);
-                                          fp.Append(id);
-                                          wxLogMessage(fp);
-                                    }
+                                    new_binary_scale_factor = sct;
                               }
-                              CurrentStackEntry++;
-                        }
+
+                       }
+
+
                         Current_Ch = ptc;
                         bNewChart = true;
 
+                        if(Current_Ch == NULL)
+                        {
+//  Try to open an S57 chart
+//  Find the smallest scale chart that opens OK
+                              ptc = ChartData->OpenStackChartConditional(pCurrentStack, search_direction, true);
+                              Current_Ch = ptc;
+                        }
+
+                  }     // bAutoOpen
+
+                  else
+                        Current_Ch = NULL;
+
+
+
 //  If no go, then
 //  Open a Dummy Chart
-                        if(NULL == Current_Ch)
-                        {
-                              if(NULL == pDummyChart)
-                              {
-                                    pDummyChart = new ChartDummy;
-                                    bNewChart = true;
-                              }
+                  if(NULL == Current_Ch)
+                  {
+                      if(NULL == pDummyChart)
+                      {
+                          pDummyChart = new ChartDummy;
+                          bNewChart = true;
+                      }
 
-                              if(Current_Ch)
-                                    if(Current_Ch->ChartType != CHART_TYPE_DUMMY)
-                                          bNewChart = true;
+                      if(pLast_Ch)
+                         if(pLast_Ch->m_ChartType != CHART_TYPE_DUMMY)
+                               bNewChart = true;
 
-                              Current_Ch = pDummyChart;
+                      Current_Ch = pDummyChart;
+                   }
 
-                              cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(), 0, 0, CURRENT_RENDER);
-                        }
-                }
+                }   // need new chart
 
 // Arriving here, Current_Ch is opened and OK, or NULL
                 if(NULL != Current_Ch)
                 {
-
 //      Update the Status Line
-                  UpdateChartStatusField(0);
+                    UpdateChartStatusField(0);
 
 //      Setup the view using the current scale
-                  double set_scale = cc1->GetVPScale();
+                    double set_scale = cc1->GetVPScale();
+
+//    If the current viewpoint is invalid, set the default scale to something reasonable.
+                    if(!cc1->VPoint.bValid)
+                        set_scale = 1./200000.;
 
                   // However, if current chart is a raster chart, set scale to a "nice" (i.e. binary) scale
-                  if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
-                  {
+                    if((Current_Ch->m_ChartType == CHART_TYPE_GEO) || (Current_Ch->m_ChartType == CHART_TYPE_KAP))
+                    {
                       ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
                       set_scale = Cur_BSB_Ch->GetPPM() / new_binary_scale_factor;
-                  }
+                    }
 
+                    cc1->SetViewPoint(tLat, tLon, set_scale, Current_Ch->GetChartSkew() * PI / 180., 1, CURRENT_RENDER);
 
-                  cc1->SetViewPoint(tLat, tLon, set_scale,
-                                    Current_Ch->GetChartSkew() * PI / 180., 1, CURRENT_RENDER);
                 }
-        }
+        }         // new stack
 
         else                                                                    // No change in Chart Stack
         {
                 if(cc1->m_bFollow)
-                    cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(),
-                                      Current_Ch->GetChartSkew() * PI / 180., 1, CURRENT_RENDER);
+                    cc1->SetViewPoint(tLat, tLon, cc1->GetVPScale(), Current_Ch->GetChartSkew() * PI / 180., 1, CURRENT_RENDER);
         }
 
 
@@ -3030,7 +3067,10 @@ update_finish:
             UpdateToolbarStatusWindow(Current_Ch, false);
 
         if(bNewPiano)
+        {
             stats->FormatStat();
+            stats->Refresh(true);
+        }
 
         //  Update the ownship position on thumbnail chart, if shown
         if(pthumbwin->IsShown())
@@ -3039,29 +3079,8 @@ update_finish:
                 pthumbwin->Refresh(TRUE);
         }
 
-
-        //  Some debug
-        //  Open the smallest scale vector chart available
-#if 0
-        CurrentStackEntry = 0;
-        ChartBase *ptcv = NULL;
-        while(CurrentStackEntry < pCurrentStack->nEntry)
-        {
-            if(ChartData->GetCSChartType(pCurrentStack, CurrentStackEntry) == CHART_TYPE_S57)
-            {
-                if ((ptcv = ChartData->OpenChartFromStack(pCurrentStack, CurrentStackEntry)))
-                {
-                      break;
-                }
-            }
-            CurrentStackEntry++;
-        }
-        Current_Vector_Ch = ptcv;
-#endif
         delete pWorkStack;
-
         return bNewChart;
-
 }
 
 
@@ -3859,4 +3878,11 @@ FILE *f;
 
       return preturn;
 }
+
+ void appendOSDirSlash(wxString* pString)
+ {
+       wxChar sep = wxFileName::GetPathSeparator();
+       if (pString->Last() != sep)
+         pString->Append(sep);
+ }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.10 2008/04/10 01:24:05 bdbcat Exp $
+ * $Id: about.cpp,v 1.11 2008/08/09 23:58:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -26,16 +26,20 @@
  ***************************************************************************
  *
  *
-<<<<<<< about.cpp
  * $Log: about.cpp,v $
+ * Revision 1.11  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.10  2008/04/10 01:24:05  bdbcat
  * Update Version to 1.2.4
  *
  * Revision 1.9  2008/03/30 21:34:03  bdbcat
  * Update for Mac OSX/Unicode
  *
-=======
  * $Log: about.cpp,v $
+ * Revision 1.11  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.10  2008/04/10 01:24:05  bdbcat
  * Update Version to 1.2.4
  *
@@ -45,7 +49,6 @@
  * Revision 1.8  2008/01/12 06:23:02  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.8
  * Revision 1.7  2008/01/10 03:35:19  bdbcat
  * Update for Mac OSX
  *
@@ -76,12 +79,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.10 2008/04/10 01:24:05 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.11 2008/08/09 23:58:40 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.2.4"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.2.5"};
 
 
 char AboutText[] =
@@ -136,7 +139,11 @@ char AuthorText[] =
       UTM Conversion Algorithms\n\n\
    Ed Williams\n\
       http://williams.best.vwh.net/avform.htm\n\
-      Great Circle Formulary"
+      Great Circle Formulary\n\n\
+   Philippe Bekaert\n\
+                   \n\
+      CIE->RGB Color Conversion Matrix\n"
+
 };
 
 

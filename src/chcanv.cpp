@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.24 2008/04/20 20:54:16 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.25 2008/08/09 23:58:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.25  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
+ *
  * Revision 1.24  2008/04/20 20:54:16  bdbcat
  * Optimize object query logic
  *
@@ -36,8 +39,8 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
- * Revision 1.24  2008/04/20 20:54:16  bdbcat
- * Optimize object query logic
+ * Revision 1.25  2008/08/09 23:58:40  bdbcat
+ * Numerous revampings....
  *
  * Revision 1.23  2008/04/10 01:06:26  bdbcat
  * Cleanup
@@ -100,6 +103,7 @@
 #include "chart1.h"
 #include "cutil.h"
 #include "routeprop.h"
+#include "tcmgr.h"
 
 #ifdef USE_S57
 #include "s57chart.h"               // for ArrayOfS57Obj
@@ -118,7 +122,6 @@ extern ChartBase        *Current_Ch;
 extern float            gLat, gLon, gCog, gSog;
 extern float            vLat, vLon;
 extern ChartDB          *ChartData;
-extern int              CurrentStackEntry;
 extern bool             bDBUpdateInProgress;
 
 
@@ -157,7 +160,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID("$Id: chcanv.cpp,v 1.24 2008/04/20 20:54:16 bdbcat Exp $");
+CPL_CVSID("$Id: chcanv.cpp,v 1.25 2008/08/09 23:58:40 bdbcat Exp $");
 
 
 //  These are xpm images used to make cursors for this class.
@@ -376,8 +379,10 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
       int sx, sy;
       wxDisplaySize(&sx, &sy);
 
+      m_pix_per_mm = ((double)sx) / ((double)mmx);
+
       int mm_per_knot = 25;
-      current_draw_scaler =  mm_per_knot * (((float)sx) / ((float)mmx));
+      current_draw_scaler =  mm_per_knot * m_pix_per_mm;
 
       pscratch_bm = NULL;
       proute_bm = NULL;
@@ -386,17 +391,9 @@ ChartCanvas::ChartCanvas(wxFrame *frame):
 
       VPoint.clat = 0;
       VPoint.clon = 0;
-      VPoint.view_scale_ppm = 0;
+      VPoint.view_scale_ppm = 1;
 
       canvas_scale_factor = 1000.;
-//begin rms debug
-/*
-#ifdef __WXOSX__
-      VPoint.clat = 29.50;
-      VPoint.clon = -81.2;
-#endif
-*/
-// end rms
 
       m_ownship_predictor_minutes = 5.;     // Minutes shown on ownship position predictor graphic
       m_ais_predictor_minutes     = 5.;     // Minutes shown on AIS target position predictor graphic
@@ -570,12 +567,13 @@ void ChartCanvas::GetPointPix(double rlat, double rlon, wxPoint *r)
           // then fall back to mercater estimate from canvas parameters
           bool bUseMercator = true;
 
-          if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+          if((Current_Ch->m_ChartType == CHART_TYPE_GEO) || (Current_Ch->m_ChartType == CHART_TYPE_KAP))
           {
               ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
-
-              bool bInside = G_FloatPtInPolygon((MyFlPoint *)Cur_BSB_Ch->pPlyTable,
-                      Cur_BSB_Ch->nPlypoint, rlon, rlat);
+              bool bInside = G_FloatPtInPolygon((MyFlPoint *)Cur_BSB_Ch->GetCOVRTableHead(0),
+                          Cur_BSB_Ch->GetCOVRTablenPoints(0), rlon, rlat);
+//              bool bInside = G_FloatPtInPolygon((MyFlPoint *)Cur_BSB_Ch->pPlyTable,
+//                          Cur_BSB_Ch->nPlypoint, rlon, rlat);
               if(bInside)
               {
                   if(0 == Cur_BSB_Ch->latlong_to_pix_vp(rlat, rlon, rpixxd, rpixyd, VPoint))
@@ -615,7 +613,7 @@ void ChartCanvas::GetPixPoint(int x, int y, double &lat, double &lon)
           // then fall back to mercater estimate from canvas parameters
       bool bUseMercator = true;
 
-      if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+      if((Current_Ch->m_ChartType == CHART_TYPE_GEO) || (Current_Ch->m_ChartType == CHART_TYPE_KAP))
       {
           ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
 
@@ -678,7 +676,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 {
       int pixxd, pixyd;
       int pixx, pixy;
-
+      double binary_scale_factor = 1;
 //      printf("Scale: %.1f %.1f\n", scale, VPoint.view_scale);
 
       // Useability optimization...
@@ -726,7 +724,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 
       if(Current_Ch)
       {
-        if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+        if((Current_Ch->m_ChartType == CHART_TYPE_GEO) || (Current_Ch->m_ChartType == CHART_TYPE_KAP))
         {
             ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
             double sc = scale_ppm / Cur_BSB_Ch->GetPPM();           // native (1X) scale
@@ -767,7 +765,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 
       if(Current_Ch)
       {
-        if(Current_Ch->ChartType == CHART_TYPE_S57)
+        if(Current_Ch->m_ChartType == CHART_TYPE_S57)
         {
     #ifdef USE_S57
 
@@ -832,7 +830,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
     #endif
         }
 
-        else if((Current_Ch->ChartType == CHART_TYPE_GEO) || (Current_Ch->ChartType == CHART_TYPE_KAP))
+        else if((Current_Ch->m_ChartType == CHART_TYPE_GEO) || (Current_Ch->m_ChartType == CHART_TYPE_KAP))
         {
                 ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
 
@@ -844,8 +842,9 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
                 //  n.b.  parameter "scale_ppm" is always contrived to be binary multiple of native scale
                 //        in pixels per meter when this method is called for raster charts.
                 //        Phasing: (binary_scale_factor = 2.0) means zoom OUT.
+                //                  (binary_scale_factor < 1) means overzoom
 
-                VPoint.binary_scale_factor = (round(100 * Cur_BSB_Ch->GetPPM() / scale_ppm)) / 100.;
+                binary_scale_factor = (round(100 * Cur_BSB_Ch->GetPPM() / scale_ppm)) / 100.;
 
                 if(!Cur_BSB_Ch->latlong_to_pix(lat, lon, pixxd, pixyd))
                 {
@@ -855,10 +854,10 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 
                     if(mode == 1)           // mod 4
                     {
-                        int xmod = (pixx - (int)(VPoint.pix_width  * VPoint.binary_scale_factor / 2))/4;
+                        int xmod = (pixx - (int)(VPoint.pix_width  * binary_scale_factor / 2))/4;
                         xmod *= 4;
                         int newx = xmod;
-                        int ymod = (pixy - (int)(VPoint.pix_height * VPoint.binary_scale_factor / 2))/4;
+                        int ymod = (pixy - (int)(VPoint.pix_height * binary_scale_factor / 2))/4;
                         ymod *= 4;
                         int newy = ymod;
 
@@ -866,8 +865,8 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 
                         //    Possible adjustment to clat/clon
                         double alat, alon;
-                        Cur_BSB_Ch->pix_to_latlong((int)(((VPoint.pix_width /2) * VPoint.binary_scale_factor) + newx),
-                                                    (int)(((VPoint.pix_height/2) * VPoint.binary_scale_factor) + newy),
+                        Cur_BSB_Ch->pix_to_latlong((int)(((VPoint.pix_width /2) * binary_scale_factor) + newx),
+                                                    (int)(((VPoint.pix_height/2) * binary_scale_factor) + newy),
                                                     &alat, &alon);
                         VPoint.clat = alat;
                         VPoint.clon = alon;
@@ -876,7 +875,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
 
                 //  Check to see if source rectangle has changed....
                 //  If not, then override the m_bNewVP flag.  Don't need a full chart blit.
-                //  If so, abort in background renderer.
+                //  If so, abort any background renderer.
 
                 Current_Ch->SetVPParms(&VPoint);
                 wxRect new_source;
@@ -890,11 +889,10 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
                 }
         }
 
-        else if(Current_Ch->ChartType == CHART_TYPE_DUMMY)
+        else if(Current_Ch->m_ChartType == CHART_TYPE_DUMMY)
             //  Set the ppm to some useful value???
         {
             VPoint.view_scale_ppm = scale_ppm;
-            VPoint.binary_scale_factor = 1; //(round(100 * Current_Ch->GetPPM() / scale_ppm)) / 100.;
         }
       }
 
@@ -977,7 +975,7 @@ void ChartCanvas::SetViewPoint(double lat, double lon, double scale_ppm, double 
       if(parent_frame->m_pStatusBar)
       {
             char buf[20];
-            snprintf(buf, 19, "Scale: %8.0f %g", VPoint.chart_scale, VPoint.binary_scale_factor);
+            snprintf(buf, 19, "Scale: %8.0f %g", VPoint.chart_scale, binary_scale_factor);
             parent_frame->SetStatusText(wxString(buf, wxConvUTF8), 4);
       }
 
@@ -2061,7 +2059,7 @@ void ChartCanvas::CanvasPopupMenu(int x, int y, int seltype)
                   pdef_menu->Append(ID_DEF_MENU_SCALE_OUT,  _T("Scale Out"));
                   pdef_menu->Append(ID_DEF_MENU_DROP_WP,    _T("Drop Mark Here"));
 
-                  if(Current_Ch->ChartType == CHART_TYPE_S57)
+                  if(Current_Ch->m_ChartType == CHART_TYPE_S57)
                         pdef_menu->Append(ID_DEF_MENU_QUERY,  _T("Object Query"));
 
                   PopupMenu(pdef_menu, x, y);
@@ -2171,7 +2169,7 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
 #ifdef USE_S57
       case ID_DEF_MENU_QUERY:
           {
-            if(Current_Ch->ChartType == CHART_TYPE_S57)
+            if(Current_Ch->m_ChartType == CHART_TYPE_S57)
             {
 //    Go get the array of all objects at the cursor lat/lon
                 Chs57 = dynamic_cast<s57chart*>(Current_Ch);
@@ -2187,14 +2185,14 @@ void ChartCanvas::PopupMenuHandler(wxCommandEvent& event)
                       for ( ListOfS57Obj::Node *node = obj_list->GetFirst(); node; node = node->GetNext() )
                       {
                             S57Obj *current = node->GetData();
- 
+
                             description = Chs57->CreateObjDescription(current);
                             QueryResult->Append(*description);
                             delete description;
                       }
                 }
 
- 
+
                 pdialog = new S57QueryDialog();
                 pdialog->SetText(*QueryResult);
 
@@ -2519,6 +2517,57 @@ void ChartCanvas::RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool 
                         0, vp.pix_width, 0, vp.pix_height);
         if(res != Invisible)
                   pdc->DrawLine(pixx, pixy, pixx1, pixy1);
+
+        //       Draw Aux Ply Points
+/*
+        if(ChartData->GetDBChartType(dbIndex) == CHART_TYPE_S57)
+        {
+              wxPen mPen(wxColour(255,0,255), 2, wxSOLID);
+              pdc->SetPen(mPen);
+
+              int nAuxPlyEntries = ChartData->GetnAuxPlyEntries(dbIndex);
+              for(int j=0 ; j<nAuxPlyEntries ; j++)
+              {
+
+                  int nAuxPly =  ChartData->GetDBAuxPlyPoint(dbIndex, 0, j, &plylat, &plylon);
+                  GetPointPix(plylat, plylon, &r);
+                  pixx = r.x;
+                  pixy = r.y;
+
+                  for( int i=0 ; i<nAuxPly-1 ; i++)
+                  {
+                    ChartData->GetDBAuxPlyPoint(dbIndex, i+1, j, &plylat1, &plylon1);
+
+                    GetPointPix(plylat1, plylon1, &r1);
+                    pixx1 = r1.x;
+                    pixy1 = r1.y;
+
+                    int pixxs1 = pixx1;
+                    int pixys1 = pixy1;
+
+                    ClipResult res = cohen_sutherland_line_clip_i (&pixx, &pixy, &pixx1, &pixy1,
+                                0, vp.pix_width, 0, vp.pix_height);
+                    if(res != Invisible)
+                          pdc->DrawLine(pixx, pixy, pixx1, pixy1);
+
+                    plylat = plylat1;
+                    plylon = plylon1;
+                    pixx = pixxs1;
+                    pixy = pixys1;
+                  }
+
+                  ChartData->GetDBAuxPlyPoint(dbIndex, 0, j, &plylat1, &plylon1);
+                  GetPointPix(plylat1, plylon1, &r1);
+                  pixx1 = r1.x;
+                  pixy1 = r1.y;
+
+                  ClipResult res = cohen_sutherland_line_clip_i (&pixx, &pixy, &pixx1, &pixy1,
+                          0, vp.pix_width, 0, vp.pix_height);
+                  if(res != Invisible)
+                    pdc->DrawLine(pixx, pixy, pixx1, pixy1);
+              }
+        }
+*/
 }
 
 void ChartCanvas::WarpPointerDeferred(int x, int y)
@@ -2563,7 +2612,7 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 #endif
 
       if(Current_Ch)
-            type = Current_Ch->ChartType;
+            type = Current_Ch->m_ChartType;
 
 
 //    In case Console is shown, set up dc clipper and blt iterator regions
@@ -2623,6 +2672,28 @@ void ChartCanvas::OnPaint(wxPaintEvent& event)
 //    Make a region covering the current chart on the canvas
       wxRegion CValidRegion;
       Current_Ch->GetValidCanvasRegion(VPoint, &CValidRegion);
+
+/*
+      if(Current_Ch->ChartType != CHART_TYPE_DUMMY)
+      {
+      // test code
+            Extent ext;
+            Current_Ch->GetChartExtent(&ext);
+
+            wxPoint lower_left;
+            wxPoint upper_right;
+
+            GetPointPix(ext.SLAT, ext.WLON, &lower_left);
+            GetPointPix(ext.NLAT, ext.ELON, &upper_right);
+
+            CValidRegion.Clear();
+            CValidRegion.Union(lower_left.x,  upper_right.y, upper_right.x - lower_left.x, lower_left.y - upper_right.y);
+      }
+*/
+
+//      CValidRegion.Clear(); CValidRegion.Union(0,  0, 1, 1);          // This line for debug, to show all of WVS chart
+
+
 
 //    Copy current chart region
       wxRegion WVSRegion(rgn_chart);
@@ -4517,6 +4588,7 @@ void S57QueryDialog::SetText(wxString &text_string)
 /*
 * S57QueryDialog creator
 */
+
 bool S57QueryDialog::Create( wxWindow* parent,
             wxWindowID id, const wxString& caption,
             const wxPoint& pos, const wxSize& size, long style )
@@ -4526,6 +4598,9 @@ bool S57QueryDialog::Create( wxWindow* parent,
 //      SetExtraStyle(wxWS_EX_BLOCK_EVENTS|wxDIALOG_EX_CONTEXTHELP);
     if (!wxDialog::Create( parent, id, caption, pos, size, wxDEFAULT_FRAME_STYLE ))
             return false;
+
+    wxColour back_color = ps52plib->S52_getwxColour(_T("UIBDR"));
+    SetBackgroundColour(back_color);
 
     wxFont *dFont = wxTheFontList->FindOrCreateFont(10, wxFONTFAMILY_TELETYPE,
           wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
@@ -4576,6 +4651,13 @@ void S57QueryDialog::CreateControls()
 
       wxTextCtrl *pQueryTextCtl = new wxTextCtrl( this, -1, _T(""),
             wxDefaultPosition, wxSize(500, 500), tcstyle);
+
+      wxColour back_color = ps52plib->S52_getwxColour(_T("UIBCK"));
+      pQueryTextCtl->SetBackgroundColour(back_color);
+
+      wxColour text_color = ps52plib->S52_getwxColour(_T("UINFF"));
+      pQueryTextCtl->SetForegroundColour(text_color);
+
       boxSizer->Add(pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxGROW|wxADJUST_MINSIZE, 5);
 
       wxFont *qFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_TELETYPE,
@@ -4593,17 +4675,23 @@ void S57QueryDialog::CreateControls()
       wxBoxSizer* okCancelBox = new wxBoxSizer(wxHORIZONTAL);
       boxSizer->Add(okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
 
+//    Button color
+      wxColour button_color = ps52plib->S52_getwxColour(_T("UIBCK"));
+
 // The OK button
       wxButton* ok = new wxButton ( this, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
       okCancelBox->Add(ok, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+      ok->SetBackgroundColour(button_color);
 
 // The Cancel button
       wxButton* cancel = new wxButton ( this, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
       okCancelBox->Add(cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+      cancel->SetBackgroundColour(button_color);
 
 // The Help button
       wxButton* help = new wxButton( this, wxID_HELP, _T("&Help"), wxDefaultPosition, wxDefaultSize, 0 );
       okCancelBox->Add(help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+      help->SetBackgroundColour(button_color);
 
 }
 
@@ -4660,6 +4748,9 @@ bool AISTargetQueryDialog::Create( wxWindow* parent,
     if (!wxDialog::Create( parent, id, caption, pos, size, style ))
             return false;
 
+    wxColour back_color = ps52plib->S52_getwxColour(_T("UIBDR"));
+    SetBackgroundColour(back_color);
+
     wxFont *dFont = wxTheFontList->FindOrCreateFont(10, wxFONTFAMILY_TELETYPE,
           wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
 
@@ -4700,6 +4791,13 @@ void AISTargetQueryDialog::CreateControls()
 
       wxTextCtrl *pQueryTextCtl = new wxTextCtrl( this, -1, _T(""),
               wxDefaultPosition, wxSize(500, 500), wxTE_MULTILINE /*| wxTE_DONTWRAP*/ | wxTE_READONLY);
+
+      wxColour back_color = ps52plib->S52_getwxColour(_T("UIBCK"));
+      pQueryTextCtl->SetBackgroundColour(back_color);
+
+      wxColour text_color = ps52plib->S52_getwxColour(_T("UINFF"));
+      pQueryTextCtl->SetForegroundColour(text_color);
+
       boxSizer->Add(pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE, 5);
 
       wxFont *qFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_TELETYPE,
@@ -4717,20 +4815,28 @@ void AISTargetQueryDialog::CreateControls()
       wxBoxSizer* okCancelBox = new wxBoxSizer(wxHORIZONTAL);
             boxSizer->Add(okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,
             5);
+
+//    Button color
+      wxColour button_color = ps52plib->S52_getwxColour(_T("UIBCK"));;
+
 // The OK button
       wxButton* ok = new wxButton ( this, wxID_OK, wxT("&OK"),
             wxDefaultPosition, wxDefaultSize, 0 );
       okCancelBox->Add(ok, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+      ok->SetBackgroundColour(button_color);
 
 // The Cancel button
       wxButton* cancel = new wxButton ( this, wxID_CANCEL,
             wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
       okCancelBox->Add(cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+      cancel->SetBackgroundColour(button_color);
 
 // The Help button
       wxButton* help = new wxButton( this, wxID_HELP, _T("&Help"),
             wxDefaultPosition, wxDefaultSize, 0 );
       okCancelBox->Add(help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+      help->SetBackgroundColour(button_color);
+
 }
 
 
