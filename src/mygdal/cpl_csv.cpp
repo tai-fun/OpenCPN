@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_csv.cpp,v 1.3 2008/08/09 23:44:26 bdbcat Exp $
+ * $Id: cpl_csv.cpp,v 1.4 2008/08/09 23:52:56 bdbcat Exp $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CSV (comma separated value) file access.
@@ -28,11 +28,8 @@
  ******************************************************************************
  *
  * $Log: cpl_csv.cpp,v $
- * Revision 1.3  2008/08/09 23:44:26  bdbcat
+ * Revision 1.4  2008/08/09 23:52:56  bdbcat
  * *** empty log message ***
- *
- * Revision 1.2  2008/04/20 21:03:18  bdbcat
- * Export more csv functions
  *
  * Revision 1.1.1.1  2006/08/21 05:52:20  dsr
  * Initial import as opencpn, GNU Automake compliant.
@@ -78,7 +75,7 @@
 #include "cpl_csv.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: cpl_csv.cpp,v 1.3 2008/08/09 23:44:26 bdbcat Exp $");
+CPL_CVSID("$Id: cpl_csv.cpp,v 1.4 2008/08/09 23:52:56 bdbcat Exp $");
 
 CPL_C_START
 const char * GDALDefaultCSVFilename( const char *pszBasename );

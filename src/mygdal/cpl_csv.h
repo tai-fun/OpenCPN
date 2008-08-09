@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_csv.h,v 1.3 2008/08/09 23:45:10 bdbcat Exp $
+ * $Id: cpl_csv.h,v 1.4 2008/08/09 23:53:12 bdbcat Exp $
  *
  * Project:  Common Portability Library
  * Purpose:  Functions for reading and scaning CSV (comma separated,
@@ -29,11 +29,8 @@
  ******************************************************************************
  *
  * $Log: cpl_csv.h,v $
- * Revision 1.3  2008/08/09 23:45:10  bdbcat
+ * Revision 1.4  2008/08/09 23:53:12  bdbcat
  * *** empty log message ***
- *
- * Revision 1.2  2008/04/20 21:03:18  bdbcat
- * Export more csv functions
  *
  * Revision 1.1.1.1  2006/08/21 05:52:19  dsr
  * Initial import as opencpn, GNU Automake compliant.
@@ -63,38 +60,6 @@ typedef enum {
     CC_ApproxString,
     CC_Integer
 } CSVCompareCriteria;
-
-
-/* ==================================================================== */
-/*      The CSVTable is a persistant set of info about an open CSV      */
-/*      table.  While it doesn't currently maintain a record index,     */
-/*      or in-memory copy of the table, it could be changed to do so    */
-/*      in the future.                                                  */
-/* ==================================================================== */
-typedef struct ctb {
-    FILE        *fp;
-
-    struct ctb *psNext;
-
-    char        *pszFilename;
-
-    char        **papszFieldNames;
-
-    char        **papszRecFields;
-
-    int         iLastLine;
-
-    /* Cache for whole file */
-    int         nLineCount;
-    char        **papszLines;
-    int         *panLineIndex;
-    char        *pszRawData;
-} CSVTable;
-
-CSVTable *CSVAccess( const char * pszFilename );
-CPL_DLL char **CSVSplitLine( const char *pszString );
-CPL_DLL void CSVIngest( const char *pszFilename );
-
 
 
 /* ==================================================================== */
