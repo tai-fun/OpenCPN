@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57classregistrar.cpp,v 1.4 2008/04/20 21:03:43 bdbcat Exp $
+ * $Id: s57classregistrar.cpp,v 1.5 2008/08/09 23:40:25 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57ClassRegistrar class for keeping track of
@@ -29,6 +29,9 @@
  ******************************************************************************
  *
  * $Log: s57classregistrar.cpp,v $
+ * Revision 1.5  2008/08/09 23:40:25  bdbcat
+ * Fix leaks
+ *
  * Revision 1.4  2008/04/20 21:03:43  bdbcat
  * Cleanup memory leaks
  *
@@ -75,7 +78,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57classregistrar.cpp,v 1.4 2008/04/20 21:03:43 bdbcat Exp $");
+CPL_CVSID("$Id: s57classregistrar.cpp,v 1.5 2008/08/09 23:40:25 bdbcat Exp $");
 
 
 #ifdef S57_BUILTIN_CLASSES
