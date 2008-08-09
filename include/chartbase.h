@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.9 2008/03/30 23:26:07 bdbcat Exp $
+ * $Id: chartbase.h,v 1.10 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.10  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.9  2008/03/30 23:26:07  bdbcat
  * Cleanup
  *
@@ -156,13 +159,15 @@ public:
       virtual ThumbData *GetThumbData() = 0;
       virtual bool UpdateThumbData(float lat, float lon) = 0;
 
-      virtual float GetNativeScale() = 0;
+      virtual int GetNativeScale() = 0;
       virtual float GetChartSkew() = 0;
-      virtual void GetChartExtent(Extent *pext) = 0;
+      virtual bool GetChartExtent(Extent *pext) = 0;
 
       virtual void GetPubDate(wxString &data){ data = *pPubYear;}
+      virtual wxDateTime GetEditionDate(void){ return m_EdDate;}
+
       virtual void GetFullPath(wxString &data){ data = *m_pFullPath;}
-      virtual void GetName(wxString &data){ data = *pName;}
+      virtual void GetName(wxString &data){ data = *m_pName;}
       virtual ChartDepthUnitType GetDepthUnitType(void) { return m_depth_unit_id;}
 
       virtual bool IsReadyToRender(){ return bReadyToRender;}
@@ -179,10 +184,12 @@ public:
 
       virtual bool IsCacheValid(void) = 0;
 
-      ChartTypeEnum     ChartType;
-      int               Chart_Scale;
+      virtual int  GetCOVRTablenPoints(int iTable){ return m_pCOVRContourTable[iTable]; }
+      virtual float *GetCOVRTableHead(int iTable){ return m_pCOVRTable[iTable]; }
+
+      ChartTypeEnum     m_ChartType;
       wxString          *m_pFullPath;
-      wxString          *pName;
+      wxString          *m_pName;
 
       wxString          *pPubYear;
       wxString          *pDepthUnits;
@@ -197,6 +204,25 @@ public:
       double            Chart_Error_Factor;
 
       ChartDepthUnitType m_depth_unit_id;
+
+      //    Chart region coverage information
+      //    Charts may have multiple valid regions within the lat/lon box described by the chart extent
+      //    The following table structure contains this imbedded information
+
+      //    Typically, BSB charts will contain only one entry, corresponding to the PLY information in the chart header
+      //    ENC charts often contain multiple entries
+
+      int         m_nCOVREntries;                       // number of coverage table entries
+      int         *m_pCOVRContourTable;                 // int table of number of points in each coverage table entry
+      float       **m_pCOVRTable;                       // table of pointers to list of floats describing valid COVR
+
+      //    Todo  Define invalid COVR regions
+
+protected:
+      int               m_Chart_Scale;
+      wxDateTime        m_EdDate;
+
+
 };
 
 
@@ -218,10 +244,10 @@ public:
       virtual ThumbData *GetThumbData() {return pThumbData;}
       virtual bool UpdateThumbData(float lat, float lon);
 
-      virtual float GetNativeScale();
+      virtual int GetNativeScale();
       virtual void GetPubDate(wxString &data);
       virtual float GetChartSkew(){ return 0.0;}
-      virtual void GetChartExtent(Extent *pext);
+      virtual bool GetChartExtent(Extent *pext);
 
       virtual void InvalidateCache(void);
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.8 2008/03/30 23:21:45 bdbcat Exp $
+ * $Id: chartdb.h,v 1.9 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -25,20 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< chartdb.h
  * $Log: chartdb.h,v $
+ * Revision 1.9  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.8  2008/03/30 23:21:45  bdbcat
  * *** empty log message ***
  *
-=======
  * $Log: chartdb.h,v $
+ * Revision 1.9  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.8  2008/03/30 23:21:45  bdbcat
  * *** empty log message ***
  *
  * Revision 1.7  2008/01/12 06:18:22  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.7
  * Revision 1.6  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -79,7 +82,7 @@
 //    Constants, etc.
 // ----------------------------------------------------------------------------
 
-#define           DB_VERSION  13
+#define           DB_VERSION  14
 
 
 typedef struct  {
@@ -108,6 +111,7 @@ public:
       float       LonMin;
       char        *pFullPath;
       int         Scale;
+      time_t      edition_date;
       float       *pPlyTable;
       int         nPlyEntries;
       int         nAuxPlyEntries;
@@ -123,6 +127,7 @@ public:
       ChartStack() { nEntry = 0; }
 
       int         nEntry;
+      int         CurrentStackEntry;
       int         DBIndex[MAXSTACK];
 };
 
@@ -168,12 +173,16 @@ public:
       bool GetChartID(ChartStack *ps, int stackindex, char *buf, int nbuf);
       int  GetStackChartScale(ChartStack *ps, int stackindex, char *buf, int nbuf);
       int  GetCSPlyPoint(ChartStack *ps, int stackindex, int plyindex, float *lat, float *lon);
-      int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);
       int  GetCSChartType(ChartStack *ps, int stackindex);
       int  GetDBChartType(int dbIndex);
       bool GetDBFullPath(int dbIndex, char *buf);
       bool GetDBBoundingBox(int dbindex, wxBoundingBox *box);
       bool SearchForChartDir(wxString &dir);
+      ChartBase *OpenStackChartConditional(ChartStack *ps, bool bLargest, bool bVector);
+
+      int  GetnAuxPlyEntries(int dbIndex){ return pChartTable[dbIndex].nAuxPlyEntries; }
+      int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);
+      int  GetDBAuxPlyPoint(int dbIndex, int plyindex, int iAuxPly, float *lat, float *lon);
 
 
       virtual int  GetStackEntry(ChartStack *ps, wxString *pfp);
@@ -189,13 +198,12 @@ public:
 
 private:
 
-      bool CreateBSBChartTableEntry(wxString full_name, ChartTableEntry *pEntry);
-      bool CreateS57ChartTableEntry(wxString full_name, ChartTableEntry *pEntry, Extent *pext);
-      int TraverseDirAndAddBSB(wxString dir_name, bool bshow_prog, bool bupdate);
-      int SearchDirAndAddBSB(wxString& dir, const wxString& filespec, bool bshow_prog, bool bupdate);
-      int TraverseDirAndAddS57(wxString dir_name, bool bshow_prog, bool bupdate);
-      int SearchDirAndAddS57(wxString& dir, bool bshow_prog, bool bupdate);
+      bool CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry);
+      int TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate);
+      int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, bool bshow_prog, bool bupdate);
 
+      int SearchDirAndAddSENC(wxString& dir, bool bshow_prog, bool bupdate);
+      bool CreateS57SENCChartTableEntry(wxString full_name, ChartTableEntry *pEntry, Extent *pext);
 
       MyFrame           *pParent;
       wxFileInputStream *ifs;
@@ -206,26 +214,5 @@ private:
 };
 
 
-//--------------------------------------------------------------------------------------------------------
-//    Dir Traverser used for Chart file search
-//--------------------------------------------------------------------------------------------------------
-    class wxDirTraverserCharts : public wxDirTraverser    {
-          public:
-                wxDirTraverserCharts(wxArrayString& files, wxArrayString& dirs ) : m_files(files),
-                m_dirs(dirs) { }
-                virtual wxDirTraverseResult OnFile(const wxString& filename)
-                {
-                      m_files.Add(filename);
-                      return wxDIR_CONTINUE;
-                }
-                virtual wxDirTraverseResult OnDir(const wxString& dirname)
-                {
-                      m_dirs.Add(dirname);
-                      return wxDIR_CONTINUE;
-                }
-          private:
-                wxArrayString& m_files;
-                wxArrayString& m_dirs;
-    };
 #endif
 

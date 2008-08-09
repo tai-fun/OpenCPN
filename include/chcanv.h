@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.13 2008/04/10 00:58:53 bdbcat Exp $
+ * $Id: chcanv.h,v 1.14 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.14  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.13  2008/04/10 00:58:53  bdbcat
  * Cleanup
  *
@@ -53,8 +56,6 @@
 #ifndef __CHCANV_H__
 #define __CHCANV_H__
 
-#include "tcmgr.h"                     // for pIDX
-
 #include "bbox.h"
 
 #include <wx/datetime.h>
@@ -73,6 +74,7 @@
       class ChartBaseBSB;
       class ChartBase;
       class AIS_Target_Data;
+      class IDX_entry;
 
 //----------------------------------------------------------------------------
 //   constants
@@ -120,7 +122,6 @@ class ViewPort
     double   clat;                   // center point
     double   clon;
     double   view_scale_ppm;
-    double   binary_scale_factor;    // Meaningful for Raster Charts only
     double   skew;
     double   c_east, c_north;       // SM co-ordinates of ViewPort center
                                     // relative to (near) chart centroid
@@ -192,7 +193,6 @@ public:
       int GetCanvas_height(){ return canvas_height;}
       float GetVPScale(){return VPoint.view_scale_ppm;}
       float GetVPChartScale(){return VPoint.chart_scale;}
-      double GetVPBinaryScaleFactor(){return VPoint.binary_scale_factor;}
 
       void  SetbNewVP(bool f){ m_bNewVP = f;}
       bool  GetbNewVP(){ return m_bNewVP;}
@@ -203,6 +203,8 @@ public:
       bool  GetbShowCurrent(){ return m_bShowCurrent;}
       void  SetbShowTide(bool f){ m_bShowTide = f;}
       bool  GetbShowTide(){ return m_bShowTide;}
+      double GetPixPerMM(){ return m_pix_per_mm;}
+
 
       //Todo build more accessors
       bool        m_bFollow;
@@ -360,6 +362,8 @@ private:
       int *pEM_Feet;                // maps for depth unit emboss pattern
       int *pEM_Meters;
       int *pEM_Fathoms;
+
+      double      m_pix_per_mm;     // pixels per millimeter on the screen
 
 DECLARE_EVENT_TABLE()
 };

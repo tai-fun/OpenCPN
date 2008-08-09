@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.8 2008/03/30 23:23:29 bdbcat Exp $
+ * $Id: s52s57.h,v 1.9 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -25,20 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< s52s57.h
  * $Log: s52s57.h,v $
+ * Revision 1.9  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.8  2008/03/30 23:23:29  bdbcat
  * *** empty log message ***
  *
-=======
  * $Log: s52s57.h,v $
+ * Revision 1.9  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.8  2008/03/30 23:23:29  bdbcat
  * *** empty log message ***
  *
  * Revision 1.7  2008/01/12 06:19:11  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.7
  * Revision 1.6  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -78,7 +81,7 @@
 
 #include "bbox.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  115
+#define CURRENT_SENC_FORMAT_VERSION  117
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
@@ -143,15 +146,6 @@ typedef enum _DisCat{
    DISP_CAT_NUM,                          // value not defined
 }DisCat;
 
-//    display Color Scheme
-typedef enum _col_schem{
-      S52_DAY_BRIGHT,
-      S52_DAY_WHITEBACK,
-      S52_DAY_BLACKBACK,
-      S52_DUSK,
-      S52_NIGHT,
-      S52_COL_SCHEME_MAX
-}Col_Scheme_t;
 
 typedef enum _Rules_t{
    RUL_NONE,                        // no rule type (init)
@@ -163,7 +157,8 @@ typedef enum _Rules_t{
    RUL_ARE_CO,                      // AC
    RUL_ARE_PA,                      // AP
    RUL_CND_SY,                      // CS
-   RUL_MUL_SG                       // Multipoint Sounding
+   RUL_MUL_SG,                      // Multipoint Sounding
+   RUL_ARC_2C                       // Circular Arc, used for sector lights, opencpn private
 }Rules_t;
 
 //-- SYMBOLISATION MODULE STRUCTURE -----------------------------
@@ -239,7 +234,7 @@ typedef struct _Cond{
 
 
 typedef struct _color{
-   char colName[5];
+   char colName[6];
    float x;
    float y;
    float L;
@@ -362,6 +357,7 @@ public:
 
       S52_Text                *FText;
       int                     bFText_Added;
+      wxBoundingBox           BBText;
 
       int                     Scamin;                 // SCAMIN attribute decoded during load
       bool                    bIsClone;

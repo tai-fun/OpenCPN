@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.10 2008/04/10 00:58:04 bdbcat Exp $
+ * $Id: chartimg.h,v 1.11 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.11  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.10  2008/04/10 00:58:04  bdbcat
  * Change to opncpnPalette vs Pelette
  *
@@ -161,15 +164,15 @@ class  ChartBaseBSB     :public ChartBase
       virtual ThumbData *GetThumbData() {return pThumbData;}
       virtual bool UpdateThumbData(float lat, float lon);
 
-      float GetNativeScale(){return (float)Chart_Scale;}
+      int GetNativeScale(){return m_Chart_Scale;}
       float GetChartSkew(){return Chart_Skew;}
       int GetSize_X(){ return Size_X;}
       int GetSize_Y(){ return Size_Y;}
       double GetPPM(){ return ppm_avg;}
       bool IsCacheValid(){ return cached_image_ok; }
       void InvalidateCache(){cached_image_ok = 0;}
-      Plypoint *GetPlyTable(){ return pPlyTable;}
-      int       GetnPlypoints(){ return nPlypoint;}
+//      Plypoint *GetPlyTable(){ return pPlyTable;}
+//      int       GetnPlypoints(){ return nPlypoint;}
       void GetSourceRect(wxRect *rect);
 
 
@@ -188,7 +191,7 @@ class  ChartBaseBSB     :public ChartBase
 
       void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion  *pValidRegion);
 
-      virtual void GetChartExtent(Extent *pext);
+      virtual bool GetChartExtent(Extent *pext);
 
 
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
@@ -201,11 +204,6 @@ class  ChartBaseBSB     :public ChartBase
       bool ContinueBackgroundRender(void);
       bool FinishBackgroundRender(void);
 
-      PixelCache        *pPixCache;
-
-      //Todo  Convert to accessors
-      Plypoint    *pPlyTable;
-      int         nPlypoint;
 
 
 protected:
@@ -241,6 +239,7 @@ protected:
 
 
 //    Protected Data
+      PixelCache        *pPixCache;
 
       int         Size_X;                 // Chart native pixel dimensions
       int         Size_Y;
@@ -314,6 +313,8 @@ protected:
 
       double      ppm_avg;              // Calculated true scale factor of the 1X chart,
                                         // pixels per meter
+
+      double      m_current_binary_scale_factor;            //Set in UpdateViewPortParms()
 
       //    Storage for background render machine
 

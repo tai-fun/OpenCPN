@@ -69,6 +69,6 @@ typedef enum _S52_MAR_param_t {
 typedef char valueBuf[MAXL];
 
 extern int    S52_getConfig(const char *label, valueBuf *vbuf);
-extern float  S52_getMarinerParam(S52_MAR_param_t param);
+extern double S52_getMarinerParam(S52_MAR_param_t param);
 extern int    S52_setMarinerParam(S52_MAR_param_t param, double val);
 #endif

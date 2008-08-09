@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tcmgr.h,v 1.4 2008/03/30 23:24:57 bdbcat Exp $
+ * $Id: tcmgr.h,v 1.5 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tide and Current Manager
@@ -26,20 +26,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< tcmgr.h
  * $Log: tcmgr.h,v $
+ * Revision 1.5  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.4  2008/03/30 23:24:57  bdbcat
  * *** empty log message ***
  *
-=======
  * $Log: tcmgr.h,v $
+ * Revision 1.5  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.4  2008/03/30 23:24:57  bdbcat
  * *** empty log message ***
  *
  * Revision 1.3  2008/01/12 06:19:53  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.3
  * Revision 1.2  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -99,7 +102,7 @@ typedef struct {
 #define M_PI 3.141592654
 #endif
 
-#define linelen 3000
+#define linelen 300
 
 #define TIDE_MAX_DERIV (2)      // Maximum derivative supported
 /* TIDE_TIME_PREC
@@ -135,6 +138,7 @@ typedef struct {
 #define COUNTRY 2
 #define STATE 3
 
+/*
 typedef struct {
    void     *IDX_next;                      // Points to next linked item
    int       IDX_rec_num;                   // Keeps track of multiple entries w/same name
@@ -164,6 +168,40 @@ typedef struct {
    char      IDX_reference_name[MAXNAMELEN];// Name of reference station
    Station_Data   *pref_sta_data;           // Pointer to the Reference Station Data
 } IDX_entry;
+*/
+
+
+class IDX_entry
+{
+public:
+      void     *IDX_next;                      // Points to next linked item
+      int       IDX_rec_num;                   // Keeps track of multiple entries w/same name
+      char      IDX_type;                      // Entry "TCtcIUu" identifier
+      char      IDX_zone[40];                  // Alpha region/country/state ID
+      char      IDX_station_name[MAXNAMELEN];  // Name of station
+      double    IDX_lon;                       // Longitude (+East)
+      double    IDX_lat;                       // Latitude (+North)
+      int       IDX_time_zone;                 // Minutes offset from UTC
+      int       IDX_ht_time_off;               // High tide offset in minutes
+      float     IDX_ht_mpy;                    // High tide multiplier (nom 1.0)
+      float     IDX_ht_off;                    // High tide level offset (feet?)
+      int       IDX_lt_time_off;               // Low tide offset in minutes
+      float     IDX_lt_mpy;                    // Low tide multiplier (nom 1.0)
+      float     IDX_lt_off;                    // Low tide level offset (feet?)
+      int       IDX_sta_num;                   // Subordinate station number
+      int       IDX_flood_dir;                 // Added DSR opencpn
+      int       IDX_ebb_dir;
+      int       IDX_tried_once;                // Master station search control
+      int       IDX_Useable;
+      int       Valid15;
+      float     Value15;
+      float     Dir15;
+      bool      Ret15;
+      char     *IDX_tzname;                    // Timezone name
+      int       IDX_ref_file_num;              // # of reference file where reference station is
+      char      IDX_reference_name[MAXNAMELEN];// Name of reference station
+      Station_Data   *pref_sta_data;           // Pointer to the Reference Station Data
+};
 
 typedef struct {
    void     *next;

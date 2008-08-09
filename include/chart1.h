@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.14 2008/04/20 21:04:26 bdbcat Exp $
+ * $Id: chart1.h,v 1.15 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -25,21 +25,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< chart1.h
  * $Log: chart1.h,v $
- * Revision 1.14  2008/04/20 21:04:26  bdbcat
- * Cleanup
- *
- * Revision 1.13  2008/04/10 01:01:32  bdbcat
- * Cleanup
- *
- * Revision 1.12  2008/03/30 23:21:21  bdbcat
+ * Revision 1.15  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
- *
-=======
- * $Log: chart1.h,v $
- * Revision 1.14  2008/04/20 21:04:26  bdbcat
- * Cleanup
  *
  * Revision 1.13  2008/04/10 01:01:32  bdbcat
  * Cleanup
@@ -50,7 +38,6 @@
  * Revision 1.11  2008/01/12 06:18:10  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.11
  * Revision 1.10  2008/01/10 03:38:47  bdbcat
  * Update for Mac OSX
  *

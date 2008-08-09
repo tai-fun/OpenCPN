@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.5 2008/03/30 23:29:52 bdbcat Exp $
+ * $Id: navutil.h,v 1.6 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.6  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.5  2008/03/30 23:29:52  bdbcat
  * Cleanup/optimize
  *
@@ -82,6 +85,7 @@
 
 extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
+extern bool LogMessageOnce(wxString &msg);
 // ----------------------------------------------------------------------------
 // resources
 // ----------------------------------------------------------------------------

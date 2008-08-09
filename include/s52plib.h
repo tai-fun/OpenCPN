@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.7 2008/03/30 23:23:08 bdbcat Exp $
+ * $Id: s52plib.h,v 1.8 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -25,20 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< s52plib.h
  * $Log: s52plib.h,v $
+ * Revision 1.8  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.7  2008/03/30 23:23:08  bdbcat
  * *** empty log message ***
  *
-=======
  * $Log: s52plib.h,v $
+ * Revision 1.8  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.7  2008/03/30 23:23:08  bdbcat
  * *** empty log message ***
  *
  * Revision 1.6  2008/01/12 06:18:50  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.6
  * Revision 1.5  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -57,10 +60,6 @@
 
 #ifndef _S52PLIB_H_
 #define _S52PLIB_H_
-
-
-
-
 
 
 #include "s52s57.h"                 //types
@@ -84,6 +83,10 @@ WX_DECLARE_HASH_MAP( wxString, Rule*, wxStringHash , wxStringEqual, RuleHash );
 
 WX_DEFINE_SORTED_ARRAY(LUPrec *, wxArrayOfLUPrec);
 
+WX_DECLARE_STRING_HASH_MAP( wxColour, ColourHash );
+
+WX_DECLARE_LIST(wxBoundingBox, BBList);
+
 
 
 class ViewPort;
@@ -96,19 +99,27 @@ class PixelCache;
 class s52plib
 {
 public:
-
-      s52plib(const wxString& PLPath, const wxString& PLLib, const wxString& PLCol);
+      s52plib(const wxString& PLib);
       ~s52plib();
 
       void  SetPPMM(float ppmm){ canvas_pix_per_mm = ppmm;}
       LUPrec  *S52_LUPLookup(LUPname LUP_name, const char * objectName, S57Obj *pObj, bool bStrict = 0);
       int   _LUP2rules(LUPrec *LUP, S57Obj *pObj);
       color *S52_getColor(char *colorName);
+      wxColour S52_getwxColour(const wxString &colorName);
 
       void UpdateMarinerParams(void);
       void ClearCNSYLUPArray(void);
 
+      void SetPLIBColorScheme(char *scheme);
+
+//    Temporarily save/restore the current colortable index
+//    Useful for Thumbnail rendering
+      void SaveColorScheme(void){m_colortable_index_save = m_colortable_index;}
+      void RestoreColorScheme(void){m_colortable_index_save = m_colortable_index_save;}
+
 //    Rendering stuff
+      void PrepareForRender();
       int _draw(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp);
       int RenderArea(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp, render_canvas_parms *pb_spec);
       bool ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp);
@@ -117,9 +128,8 @@ public:
       bool GetShowS57Text(){return m_bShowS57Text;}
       void SetShowS57Text(bool f){m_bShowS57Text = f;}
 
-      bool GetColorScheme(){return m_ColorScheme;}
-      void SetColorScheme(Col_Scheme_t c);
-
+      int GetMajorVersion(void){return m_VersionMajor;}
+      int GetMinorVersion(void){return m_VersionMinor;}
 
 
  //Todo accessors
@@ -138,11 +148,8 @@ public:
       RuleHash          *_symb_sym;     // symbol symbolisation rules
 
   private:
-      int   S52_load_Plib(char *pPLPath, char *pPLLib, char *pPLCol);
-//      int   S52Load_Plib_Ext(char *pPLPath, char *pPLExtensionDir, char *pPLExtensionType);
-      int   S52_load_Plib(const wxString& PLPath, const wxString& PLLib, const wxString& PLCol);
+      int   S52_load_Plib(const wxString& PLib);
       bool  S52_flush_Plib();
-
 
       int RenderTX(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int RenderTE(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
@@ -150,6 +157,7 @@ public:
       int RenderLS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int RenderLC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       int RenderMPS(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
+      int RenderCARC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp);
       char *RenderCS(ObjRazRules *rzRules, Rules *rules);
 
       int RenderToBufferAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp, render_canvas_parms *pb_spec);
@@ -161,14 +169,16 @@ public:
       void draw_lc_poly(wxDC *pdc, wxPoint *ptp, int npt,
                         float sym_len, float sym_factor, Rule *draw_rule, ViewPort *vp);
 
-      bool RenderHPGLtoDC(char *str, char *col, wxDC *pdc, wxPoint &r, wxPoint &pivot, double rot_angle = 0.);
-      bool RenderHPGL(Rule * rule_in, wxDC *pdc, wxPoint &r, float rot_angle = 0);
-      bool RenderRasterSymbol(Rule *prule, wxDC *pdc, wxPoint &r, float rot_angle = 0);
-      wxImage *RuleXBMToImage(Rule *prule);
+      bool RenderHPGLtoDC(char *str, char *col, wxDC *pdc, wxPoint &r, wxPoint &pivot, double rot_angle = 0);
+      bool RenderHPGL(ObjRazRules *rzRules, Rule * rule_in, wxDC *pdc, wxPoint &r,  ViewPort *vp, float rot_angle = 0.);
+      bool RenderRasterSymbol(ObjRazRules *rzRules, Rule *prule, wxDC *pdc, wxPoint &r,  ViewPort *vp, float rot_angle = 0.);
+      wxImage RuleXBMToImage(Rule *prule);
+      void RenderText(wxDC *pdc, wxFont *pFont, const wxString& str,
+            int x, int y, color *pcol, int &dx, int &dy,bool bCheckOverlap);
+      bool CheckTextBBList( const wxBoundingBox &test_box);
 
 
       int dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec);
-      int LoadColors(const wxString& ColorFile);
 
       wxArrayOfLUPrec *SelectLUPARRAY(LUPname TNAM);
 
@@ -187,7 +197,10 @@ public:
       int ParseLNST(FILE *fp);
       int ParsePATT(FILE *fp);
       int ParseSYMB(FILE *fp, RuleHash *pHash);
-
+      int _CIE2RGB(void);
+      bool FindUnusedColor(void);
+      void CreateColourHash(void);
+//      int LoadColors(const wxString& ColorFile);
 
       void DestroyPattRules(RuleHash *rh);
       void DestroyPatternRuleNode(Rule *pR);
@@ -225,12 +238,12 @@ public:
       wxArrayOfLUPrec *pointPaperLUPArray;      // points: PAPER_CHART
       wxArrayOfLUPrec *condSymbolLUPArray;      // Dynamic Conditional Symbology
 
-      wxArrayPtrVoid *_colTables;
+      wxArrayPtrVoid *ColorTableArray;
+      wxArrayPtrVoid *ColourHashTableArray;
 
       float       canvas_pix_per_mm;            // Set by parent, used to scale symbols/lines/patterns
 
-// collect LUP that match object name
-      wxArrayPtrVoid *nameMatch;
+
 
       wxFont      *pSmallFont;
 
@@ -242,8 +255,15 @@ public:
       int         *ledge;
       int         *redge;
 
-      Col_Scheme_t  m_ColorScheme;
-      int         n_colTables;
+      int         m_colortable_index;
+      int         m_colortable_index_save;
+
+      BBList      m_textBBList;
+
+      int         m_VersionMajor;
+      int         m_VersionMinor;
+
+      double      m_display_pix_per_mm;
 };
 
 #endif //_S52PLIB_H_

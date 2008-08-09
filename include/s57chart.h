@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.13 2008/04/20 21:04:36 bdbcat Exp $
+ * $Id: s57chart.h,v 1.14 2008/08/09 23:36:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -25,21 +25,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< s57chart.h
  * $Log: s57chart.h,v $
- * Revision 1.13  2008/04/20 21:04:36  bdbcat
- * Cleanup
- *
- * Revision 1.12  2008/04/10 01:01:32  bdbcat
- * Cleanup
- *
- * Revision 1.11  2008/03/30 23:24:11  bdbcat
- * Cleanup
- *
-=======
- * $Log: s57chart.h,v $
- * Revision 1.13  2008/04/20 21:04:36  bdbcat
- * Cleanup
+ * Revision 1.14  2008/08/09 23:36:46  bdbcat
+ * *** empty log message ***
  *
  * Revision 1.12  2008/04/10 01:01:32  bdbcat
  * Cleanup
@@ -50,7 +38,6 @@
  * Revision 1.10  2008/01/12 06:19:18  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.10
  * Revision 1.9  2008/01/02 21:06:00  bdbcat
  * Update for Version 1.2.2
  *
@@ -117,6 +104,13 @@ extern "C" bool s57_GetChartExtent(const wxString& FullPath, Extent *pext);
 // Constants
 //----------------------------------------------------------------------------
 
+enum
+{
+      BUILD_SENC_OK,
+      BUILD_SENC_NOK_RETRY,
+      BUILD_SENC_NOK_PERMANENT
+};
+
 //----------------------------------------------------------------------------
 // Fwd Defns
 //----------------------------------------------------------------------------
@@ -151,7 +145,9 @@ public:
       ThumbData *GetThumbData() {return pThumbData;}
       bool UpdateThumbData(float lat, float lon);
 
-      float GetNativeScale(){return NativeScale;}
+      int GetNativeScale(){return m_Chart_Scale;}
+      void SetNativeScale(int s){m_Chart_Scale = s;}
+
       float GetChartSkew(){return 0.0;}
 
       void InvalidateCache();
@@ -168,7 +164,7 @@ public:
 
       void SetVPParms(ViewPort *pvpt);
       void SetFullExtent(Extent& ext);
-      void GetChartExtent(Extent *pext);
+      bool GetChartExtent(Extent *pext);
 
       void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
       void UpdateLUPs();
@@ -179,11 +175,9 @@ public:
       wxString *CreateObjDescription(const S57Obj *obj);
       wxString *GetAttributeDecode(wxString& att, int ival);
 
-      //    Access to raw ENC DataSet
-      bool InitENCMinimal( const wxString& FullPath );
-      int GetENCScale();
-      OGRFeature *GetChartFirstM_COVR(int &catcov);
-      OGRFeature *GetChartNextM_COVR(int &catcov);
+
+      //    Initialize from an existing SENC file
+      bool InitFromSENCMinimal( const wxString& FullPath );
 
       //    DEPCNT VALDCO array access
       bool GetNearestSafeContour(double safe_cnt, double &next_safe_cnt);
@@ -205,47 +199,56 @@ private:
       int DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect *rect);
       bool DCRenderLPB(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect);
 
-      int BuildS57File(const wxString& FullPath);
-      int BuildRAZFromS57File(const wxString& FullPath);
+      InitReturn PostInit( ChartInitFlag flags, ColorScheme cs );
+      InitReturn FindOrCreateSenc( const wxString& name );
+      int BuildSENCFile(const wxString& FullPath000, const wxString& SENCFileName);
+      int BuildRAZFromSENCFile(const wxString& SENCPath);
 
       void CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode );
 
       void GetChartNameFromTXT(const wxString& FullPath, wxString &Name);
       bool BuildThumbnail(const wxString &bmpname);
+      bool CreateHeaderDataFromENC(void);
+      bool CreateHeaderDataFromSENC(void);
+
+           //    Access to raw ENC DataSet
+      bool InitENCMinimal( const wxString& FullPath );
+      int GetENCScale();
+      OGRFeature *GetChartFirstM_COVR(int &catcov);
+      OGRFeature *GetChartNextM_COVR(int &catcov);
 
       void FreeObjectsAndRules();
       const char *getName(OGRFeature *feature);
       int GetUpdateFileArray(const wxString& DirName, wxArrayString *UpFiles);
-      int CountUpdates( const wxString& DirName, wxString &LastUpdateDate);
+      int ValidateAndCountUpdates( const wxString DirName000, const wxString SENCDir, wxString &LastUpdateDate);
 
       int _insertRules(S57Obj *obj, LUPrec *LUP);
 
       int my_fgets( char *buf, int buf_len_max, wxBufferedInputStream& ifs );
 
-
  // Private Data
       wxString    *m_pcsv_locn;
       int         nGeoRecords;
-      float       NativeScale;
 
       ViewPort    last_vp;
 
       char        *hdr_buf;
       char        *mybuf_ptr;
       int         hdr_len;
-      wxFileName  *pS57FileName;
+      wxFileName  m_SENCFileName;
       ObjRazRules *razRules[PRIO_NUM][LUPNAME_NUM];
 
-      Extent      FullExtent;
+      Extent     m_FullExtent;
 
-      wxArrayString *tmpup_array;
+      wxArrayString *m_tmpup_array;
       PixelCache   *pDIB;
 
       bool         bGLUWarningSent;
-      Col_Scheme_t m_S52_color_index;
+      bool         m_bExtentSet;
+
 
 //  SM Projection parms
-      double     easting_vp_center, northing_vp_center;
+      double    easting_vp_center, northing_vp_center;
       double    x_vp_center, y_vp_center;
       double    view_scale_ppm;
       double    prev_easting_ul, prev_northing_ul;
