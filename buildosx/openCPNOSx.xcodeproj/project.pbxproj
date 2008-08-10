@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7901B3500E3636D500E10E7E /* libwx_mac_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7901B34F0E3636D400E10E7E /* libwx_mac_static.a */; };
+		7901B35F0E36385B00E10E7E /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7901B35E0E36385B00E10E7E /* OpenGL.framework */; };
+		7901B3630E3639D500E10E7E /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7901B3620E3639D500E10E7E /* AppKit.framework */; };
+		7901B3660E363A3B00E10E7E /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7901B3650E363A3B00E10E7E /* WebKit.framework */; };
+		7901B37C0E36443B00E10E7E /* libwxzlibd-2.8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7901B37B0E36443B00E10E7E /* libwxzlibd-2.8.a */; };
 		791762120D4E7A6700635077 /* libiconv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 791762100D4E7A6700635077 /* libiconv.a */; };
 		792B49E20DA83A12005621E0 /* routeman.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55C10BFDF550006EAA19 /* routeman.cpp */; };
 		792B49EE0DA83AB7005621E0 /* ogrcurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F55330BFDF3FD006EAA19 /* ogrcurve.cpp */; };
@@ -86,23 +91,23 @@
 		792F584E0BFE0075006EAA19 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 792F584B0BFE0075006EAA19 /* IOKit.framework */; };
 		792F584F0BFE0075006EAA19 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 792F584C0BFE0075006EAA19 /* QuickTime.framework */; };
 		792F58500BFE0075006EAA19 /* System.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 792F584D0BFE0075006EAA19 /* System.framework */; };
-		79554FEF0D4FD3240080E442 /* libwx_macd-2.8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 79554FEE0D4FD3240080E442 /* libwx_macd-2.8.a */; };
-		79554FF80D511B3B0080E442 /* libwxjpegd-2.8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 79554FF50D511B3B0080E442 /* libwxjpegd-2.8.a */; };
-		79554FF90D511B3B0080E442 /* libwxpngd-2.8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 79554FF60D511B3B0080E442 /* libwxpngd-2.8.a */; };
-		79554FFA0D511B3B0080E442 /* libwxtiffd-2.8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 79554FF70D511B3B0080E442 /* libwxtiffd-2.8.a */; };
 		79701D0E0D4E897B005B834E /* nmea.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79701D0D0D4E897B005B834E /* nmea.cpp */; };
 		79701D180D4F9F9C005B834E /* nmea0183.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79701D170D4F9F9C005B834E /* nmea0183.cpp */; };
 		79701D1E0D4FA364005B834E /* macsercomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79701D1D0D4FA364005B834E /* macsercomm.cpp */; };
 		79701D210D4FA42C005B834E /* macutils.c in Sources */ = {isa = PBXBuildFile; fileRef = 79701D200D4FA42C005B834E /* macutils.c */; };
 		79701D260D4FA4F9005B834E /* expid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79701D250D4FA4F9005B834E /* expid.cpp */; };
 		79701D290D4FA53C005B834E /* talkerid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79701D280D4FA53C005B834E /* talkerid.cpp */; };
-		798D41020D5A309800478865 /* libwxzlibd-2.8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 798D41010D5A309800478865 /* libwxzlibd-2.8.a */; };
 		79D3A78A0DA834470003D34D /* chart1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54630BFCF79B006EAA19 /* chart1.cpp */; };
 		79D3A78B0DA834490003D34D /* chcanv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54B60BFDF145006EAA19 /* chcanv.cpp */; };
 		79FFF07A0D3EBC0200BFB4C0 /* georef.c in Sources */ = {isa = PBXBuildFile; fileRef = 79FFF0790D3EBC0200BFB4C0 /* georef.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		7901B34F0E3636D400E10E7E /* libwx_mac_static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwx_mac_static.a; path = "../../wxMac-2.8.8/src/build/Development/libwx_mac_static.a"; sourceTree = SOURCE_ROOT; };
+		7901B35E0E36385B00E10E7E /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		7901B3620E3639D500E10E7E /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
+		7901B3650E363A3B00E10E7E /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
+		7901B37B0E36443B00E10E7E /* libwxzlibd-2.8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libwxzlibd-2.8.a"; path = "libraries/libwxzlibd-2.8.a"; sourceTree = "<group>"; };
 		791762100D4E7A6700635077 /* libiconv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiconv.a; path = libraries/libiconv.a; sourceTree = "<group>"; };
 		792B49F20DA83B45005621E0 /* routeprop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = routeprop.cpp; path = ../src/routeprop.cpp; sourceTree = SOURCE_ROOT; };
 		792B4A1F0DA84667005621E0 /* opencp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = opencp.cpp; path = ../src/opencp.cpp; sourceTree = SOURCE_ROOT; };
@@ -246,10 +251,6 @@
 		792F584B0BFE0075006EAA19 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
 		792F584C0BFE0075006EAA19 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
 		792F584D0BFE0075006EAA19 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = /System/Library/Frameworks/System.framework; sourceTree = "<absolute>"; };
-		79554FEE0D4FD3240080E442 /* libwx_macd-2.8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libwx_macd-2.8.a"; path = "libraries/libwx_macd-2.8.a"; sourceTree = "<group>"; };
-		79554FF50D511B3B0080E442 /* libwxjpegd-2.8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libwxjpegd-2.8.a"; path = "libraries/libwxjpegd-2.8.a"; sourceTree = "<group>"; };
-		79554FF60D511B3B0080E442 /* libwxpngd-2.8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libwxpngd-2.8.a"; path = "libraries/libwxpngd-2.8.a"; sourceTree = "<group>"; };
-		79554FF70D511B3B0080E442 /* libwxtiffd-2.8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libwxtiffd-2.8.a"; path = "libraries/libwxtiffd-2.8.a"; sourceTree = "<group>"; };
 		79701D0D0D4E897B005B834E /* nmea.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = nmea.cpp; path = ../src/nmea.cpp; sourceTree = SOURCE_ROOT; };
 		79701D120D4E8D66005B834E /* macsercomm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = macsercomm.h; path = ../include/macsercomm.h; sourceTree = SOURCE_ROOT; };
 		79701D170D4F9F9C005B834E /* nmea0183.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = nmea0183.cpp; path = ../src/nmea0183/nmea0183.cpp; sourceTree = SOURCE_ROOT; };
@@ -257,7 +258,6 @@
 		79701D200D4FA42C005B834E /* macutils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = macutils.c; path = ../src/macutils.c; sourceTree = SOURCE_ROOT; };
 		79701D250D4FA4F9005B834E /* expid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = expid.cpp; path = ../src/nmea0183/expid.cpp; sourceTree = SOURCE_ROOT; };
 		79701D280D4FA53C005B834E /* talkerid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = talkerid.cpp; path = ../src/nmea0183/talkerid.cpp; sourceTree = SOURCE_ROOT; };
-		798D41010D5A309800478865 /* libwxzlibd-2.8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libwxzlibd-2.8.a"; path = "libraries/libwxzlibd-2.8.a"; sourceTree = "<group>"; };
 		79D3A7980DA835D40003D34D /* routeprop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = routeprop.h; path = ../include/routeprop.h; sourceTree = SOURCE_ROOT; };
 		79FFF0790D3EBC0200BFB4C0 /* georef.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = georef.c; path = ../src/georef.c; sourceTree = SOURCE_ROOT; };
 		79FFF10A0D3EBC3600BFB4C0 /* georef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = georef.h; path = ../include/georef.h; sourceTree = SOURCE_ROOT; };
@@ -278,11 +278,11 @@
 				792F584F0BFE0075006EAA19 /* QuickTime.framework in Frameworks */,
 				792F58500BFE0075006EAA19 /* System.framework in Frameworks */,
 				791762120D4E7A6700635077 /* libiconv.a in Frameworks */,
-				79554FEF0D4FD3240080E442 /* libwx_macd-2.8.a in Frameworks */,
-				79554FF80D511B3B0080E442 /* libwxjpegd-2.8.a in Frameworks */,
-				79554FF90D511B3B0080E442 /* libwxpngd-2.8.a in Frameworks */,
-				79554FFA0D511B3B0080E442 /* libwxtiffd-2.8.a in Frameworks */,
-				798D41020D5A309800478865 /* libwxzlibd-2.8.a in Frameworks */,
+				7901B3500E3636D500E10E7E /* libwx_mac_static.a in Frameworks */,
+				7901B35F0E36385B00E10E7E /* OpenGL.framework in Frameworks */,
+				7901B3630E3639D500E10E7E /* AppKit.framework in Frameworks */,
+				7901B3660E363A3B00E10E7E /* WebKit.framework in Frameworks */,
+				7901B37C0E36443B00E10E7E /* libwxzlibd-2.8.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -292,6 +292,11 @@
 		792F544C0BFCF735006EAA19 = {
 			isa = PBXGroup;
 			children = (
+				7901B37B0E36443B00E10E7E /* libwxzlibd-2.8.a */,
+				7901B3650E363A3B00E10E7E /* WebKit.framework */,
+				7901B3620E3639D500E10E7E /* AppKit.framework */,
+				7901B35E0E36385B00E10E7E /* OpenGL.framework */,
+				7901B34F0E3636D400E10E7E /* libwx_mac_static.a */,
 				792B4A1F0DA84667005621E0 /* opencp.cpp */,
 				792B4A210DA84667005621E0 /* sercomm.cpp */,
 				792B49F20DA83B45005621E0 /* routeprop.cpp */,
@@ -391,11 +396,6 @@
 				79701D1D0D4FA364005B834E /* macsercomm.cpp */,
 				792F54D90BFDF340006EAA19 /* Includes */,
 				792F54A90BFDF0DB006EAA19 /* about.cpp */,
-				798D41010D5A309800478865 /* libwxzlibd-2.8.a */,
-				79554FF50D511B3B0080E442 /* libwxjpegd-2.8.a */,
-				79554FF60D511B3B0080E442 /* libwxpngd-2.8.a */,
-				79554FF70D511B3B0080E442 /* libwxtiffd-2.8.a */,
-				79554FEE0D4FD3240080E442 /* libwx_macd-2.8.a */,
 				791762100D4E7A6700635077 /* libiconv.a */,
 				792F54AA0BFDF0DB006EAA19 /* ais.cpp */,
 				792F54AB0BFDF0DB006EAA19 /* bbox.cpp */,
@@ -617,6 +617,7 @@
 		792F54500BFCF735006EAA19 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DEBUGGING_SYMBOLS = default;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -625,21 +626,32 @@
 					__XCODE_BUILD__,
 					__WXDEBUG__,
 					USE_S57,
+					"__WXMAC_XCODE__=1",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
 				MACOSX_DEPLOYMENT_TARGET = 10.2;
-				OTHER_LDFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"visibility=hidden",
+				);
 				PRELINK_LIBS = "$(inherited) iconv";
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
-				USER_HEADER_SEARCH_PATHS = "$(inherited) /Users/richard/wxMac-2.8.7/include /Users/richard/wxMac-2.8.7/osx-build/lib/wx/include/mac-ansi-debug-static-2.8 ../../../samples/opencpn/include ../../../samples/opencpn/src/mygdal";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) /Users/richard/wxMac-2.8.8/include/ /Users/richard/wxMac-2.8.8/osx-build/lib/wx/include/mac-ansi-debug-static-2.8 ../../../samples/opencpn/include ../../../samples/opencpn/src/mygdal";
 			};
 			name = Debug;
 		};
 		792F54510BFCF735006EAA19 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				COPY_PHASE_STRIP = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					USE_S57,
+					__XCODE_BUILD__,
+					__WXMAC__,
+					"__WXMAC_XCODE__=1",
+				);
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Release;
@@ -669,6 +681,9 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_4)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_5)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_6)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_7)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/../../lib\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_DEVELOPER_DIR)/SDKs/MacOSX10.4u.sdk/usr/lib/gcc/i686-apple-darwin8/4.0.0\"";
@@ -680,7 +695,11 @@
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/libraries\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "\"$(SRCROOT)/libraries\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_4 = "\"$(SRCROOT)/libraries\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_5 = "\"$(SRCROOT)/../../wxMac-2.8.8/src/build/Development\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_6 = "\"$(SRCROOT)/../../wxMac-2.8.8/src/build/Development\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_7 = "\"$(SRCROOT)/libraries\"";
 				OTHER_LDFLAGS = (
+					"-fvisibility=hidden",
 					"-framework",
 					Carbon,
 				);
@@ -714,6 +733,9 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_8)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_9)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_4)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/../../lib\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYSTEM_DEVELOPER_DIR)/SDKs/MacOSX10.4u.sdk/usr/lib/gcc/i686-apple-darwin8/4.0.0\"";
@@ -725,6 +747,9 @@
 				LIBRARY_SEARCH_PATHS_QUOTED_8 = "\"$(SRCROOT)/libraries\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_9 = "\"$(SRCROOT)/libraries\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/libraries\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/../../wxMac-2.8.8/src/build/Development\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "\"$(SRCROOT)/../../wxMac-2.8.8/src/build/Development\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_4 = "\"$(SRCROOT)/libraries\"";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Carbon,
