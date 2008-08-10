@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57reader.cpp,v 1.3 2008/04/10 01:13:17 bdbcat Exp $
+ * $Id: s57reader.cpp,v 1.4 2008/08/10 00:03:05 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Reader class.
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: s57reader.cpp,v $
+ * Revision 1.4  2008/08/10 00:03:05  bdbcat
+ * Cleanup
+ *
  * Revision 1.3  2008/04/10 01:13:17  bdbcat
  * Enhanced warning messages
  *
@@ -180,7 +183,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57reader.cpp,v 1.3 2008/04/10 01:13:17 bdbcat Exp $");
+CPL_CVSID("$Id: s57reader.cpp,v 1.4 2008/08/10 00:03:05 bdbcat Exp $");
 
 /************************************************************************/
 /*                             S57Reader()                              */
@@ -397,7 +400,7 @@ void S57Reader::SetOptions( char ** papszOptionsIn )
         nOptionFlags &= ~S57M_LNAM_REFS;
 
     pszOptionValue = CSLFetchNameValue( papszOptions, S57O_UPDATES );
-    if( pszOptionValue != NULL && !EQUAL(pszOptionValue,"APPLY") )
+    if( pszOptionValue != NULL && !EQUAL(pszOptionValue,"OFF") )
         nOptionFlags |= S57M_UPDATES;
     else
         nOptionFlags &= ~S57M_UPDATES;
