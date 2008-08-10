@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-VERSION=1.2.4
+VERSION=1.2.6
 
 INCLUDES = \
 	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
@@ -210,11 +210,9 @@ EXTRA_DIST = \
 	data/wvsdata/wvs43.dat \
 	data/s57data/attdecode.csv \
 	data/s57data/S52RAZDS.RLE \
-	data/s57data/S52RGB.TXT \
 	data/s57data/s57attributes.csv \
 	data/s57data/s57expectedinput.csv \
 	data/s57data/s57objectclasses.csv \
-	data/s57data/SP52COL.DAT \
 	data/tcdata/HARMONIC \
 	data/tcdata/HARMONIC.IDX \
 	src/bitmaps/down.xpm \
@@ -243,19 +241,30 @@ EXTRA_DIST = \
 ##  The static data files will go into @prefix@/share/opencpn, default is e.g. /usr/local/share/opencpn
 
 install-data-local:
-	mkdir -p $(pkgdatadir)
-	cp -r ./$(srcdir)/data/wvsdata $(pkgdatadir)
-	cp -r ./$(srcdir)/data/s57data $(pkgdatadir)
-	cp -r ./$(srcdir)/data/tcdata  $(pkgdatadir)
+	mkdir -p $(DESTDIR)$(pkgdatadir)
+	mkdir -p $(DESTDIR)$(pkgdatadir)/wvsdata
+	cp -p ./$(srcdir)/data/wvsdata/wvs1.dat $(DESTDIR)$(pkgdatadir)/wvsdata
+	cp -p ./$(srcdir)/data/wvsdata/wvs43.dat $(DESTDIR)$(pkgdatadir)/wvsdata
+	cp -p ./$(srcdir)/data/wvsdata/readmewvs.txt $(DESTDIR)$(pkgdatadir)/wvsdata
+	mkdir -p $(DESTDIR)$(pkgdatadir)/s57data
+	cp -p ./$(srcdir)/data/s57data/s57attributes.csv $(DESTDIR)$(pkgdatadir)/s57data
+	cp -p ./$(srcdir)/data/s57data/s57objectclasses.csv $(DESTDIR)$(pkgdatadir)/s57data
+	cp -p ./$(srcdir)/data/s57data/s57expectedinput.csv $(DESTDIR)$(pkgdatadir)/s57data
+	cp -p ./$(srcdir)/data/s57data/attdecode.csv $(DESTDIR)$(pkgdatadir)/s57data
+	cp -p ./$(srcdir)/data/s57data/S52RAZDS.RLE $(DESTDIR)$(pkgdatadir)/s57data
+	mkdir -p $(DESTDIR)$(pkgdatadir)/tcdata
+	cp -p ./$(srcdir)/data/tcdata/HARMONIC  $(DESTDIR)$(pkgdatadir)/tcdata
+	cp -p ./$(srcdir)/data/tcdata/HARMONIC.IDX  $(DESTDIR)$(pkgdatadir)/tcdata
+	cp -p ./$(srcdir)/data/license.txt  $(DESTDIR)$(pkgdatadir)
 
 uninstall-local:
-	rm -fr $(pkgdatadir)/wvsdata/*
-	rm -fr $(pkgdatadir)/s57data/* 
-	rm -fr $(pkgdatadir)/tcdata/* 
-	rmdir $(pkgdatadir)/wvsdata
-	rmdir $(pkgdatadir)/s57data 
-	rmdir $(pkgdatadir)/tcdata 
-	rmdir $(pkgdatadir)
+	rm -fr $(DESTDIR)$(pkgdatadir)/wvsdata/*
+	rm -fr $(DESTDIR) $(pkgdatadir)/s57data/* 
+	rm -fr $(DESTDIR)$(pkgdatadir)/tcdata/* 
+	rmdir $(DESTDIR)$(pkgdatadir)/wvsdata
+	rmdir $(DESTDIR)$(pkgdatadir)/s57data 
+	rmdir $(DESTDIR)$(pkgdatadir)/tcdata 
+	rmdir $(DESTDIR)$(pkgdatadir)
 
 ##  Make the ocpnhelper application SUID to root.
 install-exec-hook:

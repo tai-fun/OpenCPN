@@ -33,7 +33,7 @@ a.  Opencpn was built with the following objectives in mind.
 ----------------------------------------------------------------------
 
 a.  External OGR/GDAL library support is deprecated from OpenCPN Version
- 1.2.4 and greater.  The required support modules and classes are
+1.2.4 and greater.  The required support modules and classes are
 integrated into the OpenCPN source tree. See src/mygdal.
 
 b.  iso8211 class support is required to build OpenCPN from source with
@@ -187,7 +187,8 @@ You may download (for free) the latest version from:
 
 		http://developer.apple.com/tools/download/
 		
-Version 3.0 tools are current and is what the latest build was tested with.
+Version 3.0 tools are what the latest build was tested with.
+Version 3.1 is available but has not been tested.
 		
  
 ---------------------------
@@ -197,9 +198,10 @@ To simplify the implementation of a near-identical user
 interface across platforms, OpenCPN uses classes and
 resources from wxWidgets, a portable GUI framework for C++
 (and Python). You must download and build wxWidgets before
-attempting to compile OpenCPN.
+attempting to compile OpenCPN. Currently testing is being
+done with 2.8.8
 
-OpenCPN builds use wxWidgets 2.6.x series (or later) for 
+OpenCPN builds use wxWidgets 2.8.7 series (or later) for 
 Macintosh OSx, available at 
 "http://www.wxwidgets.org/".
 
@@ -207,7 +209,7 @@ When you download and execute the configuration tool for wxWidgets,
 the wxWidgets files will be installed to your system.
 Make a note of the base install location, which will be something like
 		
-		\Users\YourUserName\wxWidgets-2.8.3
+		\Users\YourUserName\wxWidgets-2.8.8
 		
 You will need this later.		
 
@@ -218,6 +220,14 @@ When you have downloaded and installed wxWidgets, you must
 build it.   The standard wxWidgets build procedures work fine,
 and are dependent on your system build tools and environment.
 See the README files in the wxWidgets installation directory.
+
+Currently testing is being done with the XCode build, Xcode 3.0, and the
+default settings. Locate the wxWindows.xcodeproj and open it with
+XCode. You will need to copy the setup.h file from the src/mac directory
+to /src before the build.
+
+If you are using a different version of wxWidgets or Xcode here are the
+basic steps you will need to follow.
 
 The build system for wxWidgets uses a configure command to setup the
 many options provided. These are the configure commands used to build
@@ -231,12 +241,16 @@ system 10.5 building wxMac 2.8.7
 
 ../configure  --with-libpng --enable-monolithic --disable-shared --disable-dynlib --disable-dynamicloader -enable-debug -enable-debug_gdb --with-macosx-sdk=/Developer/SDKs/MacOSX10.5.sdk --with-macosx-version-min=10.4 --with-zlib=builtin
 
-Copy the new libraries to the OpenCpn directory. These libraries
+Copy the new libraries to the opencpn directory. These libraries
 are normally in \Users\YourUserName\opencpn\buildosx\libraries
 
 ------------------------
 STEP4:  Build OpenCPN 
 ------------------------
+
+Note: The current project setup assumes the opencpn and wxWidgets-2.8.8 are at the same level in the same directory.
+If this is not the case, you will have to adjust the search paths in the project 
+to point to the include files for wxWidgets.
 
 Start the XCode Tools and open the openCPNOSx.xcodeproj in \Users\YourUserName\opencpn\buildosx\
 
@@ -316,12 +330,11 @@ You may workaround this bug by rebuilding wxWidgets with "--enable-compat24".
 4.  File and Directory Permissions under Linux
 ----------------------------------------------------------------------
 
-a.  The directory tree containing the ENC vector charts must be
-read and write enabled for the current user.  This allows the dynamic
-creation of SENC files and chart thumbnail images as needed.
-
-Since this tree, e.g. /usr/local/share/opencpn/ENC_ROOT, is typically
-owned by root, it must be given (recursively) 0777 permissions.
+a.  As from opencpn Version 1.2.6, the SENC files and thumbnail bitmaps
+are stored in user space.  Accordingly, the directory tree containing
+the ENC chart files need no longer export write permission for opencpn.
+Unix permissions of 0755 are sufficient, assuming the directory is owned
+by root.
 
 b.  It is sufficient for all other directories in /usr/share/opencpn
 to have permissions 0755, i.e. exec/searchable and readable by all.
