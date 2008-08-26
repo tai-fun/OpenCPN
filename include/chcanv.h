@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.14 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: chcanv.h,v 1.15 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.15  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.14  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -60,6 +63,7 @@
 
 #include <wx/datetime.h>
 
+#include "chart1.h"                 // for enum types
 //----------------------------------------------------------------------------
 //    Forward Declarations
 //----------------------------------------------------------------------------
@@ -104,6 +108,13 @@ enum
       MID_TOP,
       MID_BOT,
 };
+
+typedef enum ownship_state_t
+{
+      SHIP_NORMAL        = 0,
+      SHIP_LOWACCURACY,
+      SHIP_INVALID
+}_ownship_state_t;
 
 
 //----------------------------------------------------------------------------
@@ -178,7 +189,6 @@ public:
 
 
       void SetViewPoint(double lat, double lon, double scale_ppm, double skew, int mod_mode, int sample_mode);
-
       void SetVPScale(double sc);
 
       void GetPointPix(double rlat, double rlon, wxPoint *r);
@@ -187,6 +197,8 @@ public:
       void UpdateShips();
       void UpdateAIS();
       void FlushBackgroundRender(void);
+
+      void SetColorScheme(ColorScheme cs);
 
       //    Accessors
       int GetCanvas_width(){ return canvas_width;}
@@ -205,6 +217,8 @@ public:
       bool  GetbShowTide(){ return m_bShowTide;}
       double GetPixPerMM(){ return m_pix_per_mm;}
 
+      void SetOwnShipState(ownship_state_t state){ m_ownship_state = state;}
+
 
       //Todo build more accessors
       bool        m_bFollow;
@@ -216,8 +230,6 @@ public:
       TCWin       *pCwin;
       ViewPort    VPoint;
       wxBitmap    *pscratch_bm;
-      wxColour    Ship_Color;
-      int         Ship_Size;
 
 private:
       bool        m_bShowCurrent;
@@ -298,10 +310,11 @@ private:
       void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono = false);
       wxBitmap *DrawTCCBitmap(bool bAddNewSelpoints = true);
       void AISDraw(wxDC& dc);
+      void ScaleBarDraw( wxDC& dc, int x_origin, int y_origin );
 
       void EmbossDepthScale(wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, int emboss_ident);
-      int *CreateEmbossMap(wxFont &font, int width, int height, char *str);
-      void CreateDepthUnitEmbossMaps(void);
+      int *CreateEmbossMap(wxFont &font, int width, int height, char *str, ColorScheme cs);
+      void CreateDepthUnitEmbossMaps(ColorScheme cs);
 
 
       //    Data
@@ -358,12 +371,16 @@ private:
       double   m_ais_predictor_minutes;          // Minutes shown on AIS target position predictor graphic
                                                 // defaults to 5
 
-      int emboss_width, emboss_height;
-      int *pEM_Feet;                // maps for depth unit emboss pattern
-      int *pEM_Meters;
-      int *pEM_Fathoms;
+      int         m_emboss_width, m_emboss_height;
+      int         *m_pEM_Feet;                // maps for depth unit emboss pattern
+      int         *m_pEM_Meters;
+      int         *m_pEM_Fathoms;
 
       double      m_pix_per_mm;     // pixels per millimeter on the screen
+
+      double      m_true_scale_ppm;
+
+      ownship_state_t   m_ownship_state;
 
 DECLARE_EVENT_TABLE()
 };

@@ -16,6 +16,7 @@
  * Includes
  */
 #include "wx/listctrl.h"
+#include "chart1.h"                 // for ColorScheme
 
 /*!
  * Forward declarations
@@ -76,6 +77,7 @@ class   RoutePoint;
  * RouteProp class declaration
  */
 
+
 class RouteProp: public wxDialog
 {
     DECLARE_DYNAMIC_CLASS( RouteProp )
@@ -100,6 +102,8 @@ public:
 
     void CreateControls();
 
+    void SetColorScheme(ColorScheme cs);
+
     void OnRoutepropCancelClick( wxCommandEvent& event );
     void OnRoutepropOkClick( wxCommandEvent& event );
     void OnPlanSpeedCtlUpdated( wxCommandEvent& event );
@@ -123,6 +127,9 @@ public:
     wxTextCtrl* m_RouteDestCtl;
 
     wxListCtrl* m_wpList;
+
+    wxButton*     m_CancelButton;
+    wxButton*     m_OKButton;
 
     Route       *m_pRoute;
     double      m_planspeed;
@@ -158,6 +165,8 @@ public:
       void SetRoutePoint(RoutePoint *pRP);
       RoutePoint *GetRoutePoint(void){return m_pRoutePoint;}
 
+      void SetColorScheme(ColorScheme cs);
+
       void CreateControls();
 
       void OnMarkpropCancelClick( wxCommandEvent& event );
@@ -177,6 +186,9 @@ public:
       wxTextCtrl*   m_MarkLonCtl;
       wxListCtrl*   m_IconList;
       wxCheckBox*   m_ShowNameCheckbox;
+      wxButton*     m_CancelButton;
+      wxButton*     m_OKButton;
+
       int           m_current_icon_Index;
       double        m_lat_save;
       double        m_lon_save;

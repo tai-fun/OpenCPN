@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.8 2008/04/10 01:05:49 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.9 2008/08/26 13:46:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -25,16 +25,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< concanv.cpp
  * $Log: concanv.cpp,v $
+ * Revision 1.9  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.8  2008/04/10 01:05:49  bdbcat
  * Cleanup
  *
  * Revision 1.7  2008/03/30 22:00:27  bdbcat
  * Cleanup
  *
-=======
  * $Log: concanv.cpp,v $
+ * Revision 1.9  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.8  2008/04/10 01:05:49  bdbcat
  * Cleanup
  *
@@ -44,7 +48,6 @@
  * Revision 1.6  2008/01/12 06:23:42  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.6
  * Revision 1.5  2008/01/10 03:36:19  bdbcat
  * Update for Mac OSX
  *
@@ -108,7 +111,7 @@ extern                  float gCog;
 extern                  float gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.8 2008/04/10 01:05:49 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.9 2008/08/26 13:46:25 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -122,12 +125,8 @@ END_EVENT_TABLE()
 
 // Define a constructor for my canvas
 ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
-            wxControl(frame, wxID_ANY,   wxPoint(20,20), wxSize(5,5),
-                      wxSUNKEN_BORDER | wxCLIP_CHILDREN   )
-
-
+            wxWindow(frame, wxID_ANY,   wxPoint(20,20), wxSize(5,5),wxNO_BORDER/*wxSUNKEN_BORDER | wxCLIP_CHILDREN*/ )
 {
-      SetBackgroundColour(wxColour(128,128,128));
 
       pThisLegBox = new wxStaticBox(this, -1, _T("This Leg"), wxPoint(1,1),
                                     wxSize(170,200), 0, _T("staticBox"));
@@ -155,7 +154,6 @@ ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
 //    Create CDI Display Window
 
       pCDI = new CDI(this, -1, wxPoint(0,200), wxSize(100, 200), wxSIMPLE_BORDER, _T("CDI"));
-      pCDI->SetBackgroundColour(wxColour(192,192,192));
 
       m_bShowRouteTotal = false;
 
@@ -178,32 +176,18 @@ void ConsoleCanvas::OnSize(wxSizeEvent& event)
       pThisLegBox->SetSize(1,1,canvas_width-2,240);
 
       int CDIHeight = canvas_width /2;
-      pCDI->SetSize(2, canvas_height - CDIHeight - 4, canvas_width-4, CDIHeight);
+      pCDI->SetSize(2, canvas_height - CDIHeight - 12, canvas_width-4, CDIHeight);
+
 }
 
 void ConsoleCanvas::SetColorScheme(ColorScheme cs)
 {
-    wxColour back_color;
-
-    switch(cs)
-    {
-        case GLOBAL_COLOR_SCHEME_DAY:
-            back_color = wxColour(150,150,150);
-            break;
-        case GLOBAL_COLOR_SCHEME_DUSK:
-            back_color = wxColour(128,128,128);
-            break;
-        case GLOBAL_COLOR_SCHEME_NIGHT:
-            back_color = wxColour(64,64,64);
-            break;
-        default:
-            back_color = wxColour(150,150,150);
-            break;
-    }
-
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("DILG1"/*UIBDR*/)), wxSOLID);
+    SetBackgroundColour(GetGlobalColor(_T("DILG1"/*"UIBDR"*/)));
 
     //  Also apply color scheme to all known children
+
+    pThisLegBox->SetBackgroundColour(GetGlobalColor(_T("DILG1"/*"UIBDR"*/)));
 
     pXTE->SetColorScheme(cs);
     pBRG->SetColorScheme(cs);
@@ -418,10 +402,8 @@ END_EVENT_TABLE()
 
 AnnunText::AnnunText(wxWindow *parent, wxWindowID id,
                                const wxPoint& pos, const wxSize& size, const wxString& LegendElement, const wxString& ValueElement):
-        wxWindow(parent, id, pos, size, wxSUNKEN_BORDER, wxString(_T("")))
+        wxWindow(parent, id, pos, size, wxSIMPLE_BORDER/*wxSUNKEN_BORDER*/, wxString(_T("")))
 {
-      SetBackgroundColour(wxColour(0,0,0));
-
       label = new wxString(_T("Label"));
       value = new wxString(_T("-----"));
 
@@ -522,31 +504,9 @@ AnnunText::~AnnunText()
 }
 void AnnunText::SetColorScheme(ColorScheme cs)
 {
-    wxColour back_color, text_color;
+      pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UBLCK"/*"UIBCK"*/)), wxSOLID);
 
-    switch(cs)
-    {
-        case GLOBAL_COLOR_SCHEME_DAY:
-            back_color = wxColour(0,0,0);
-            text_color = wxColour(0,255,0);
-            break;
-        case GLOBAL_COLOR_SCHEME_DUSK:
-            back_color = wxColour(0,0,0);
-            text_color = wxColour(0,128,0);
-            break;
-        case GLOBAL_COLOR_SCHEME_NIGHT:
-            back_color = wxColour(0,0,0);
-            text_color = wxColour(0,100,0);
-            break;
-        default:
-            back_color = wxColour(0,0,0);
-            text_color = wxColour(0,255,0);
-            break;
-    }
-
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
-    m_text_color = text_color;
-
+      m_text_color = GetGlobalColor(_T("GREEN4"/*"UINFD"*/));
 }
 
 
@@ -640,36 +600,13 @@ CDI::CDI(wxWindow *parent, wxWindowID id,
             wxWindow(parent, id, pos, size, style, name)
 
 {
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(wxColour(254, 254, 254), wxSOLID);
 }
 
 void CDI::SetColorScheme(ColorScheme cs)
 {
-    wxColour back_color, road_color;
-
-    switch(cs)
-    {
-        case GLOBAL_COLOR_SCHEME_DAY:
-            back_color = wxColour(150,150,150);
-            road_color = wxColour(254,254,254);
-            break;
-        case GLOBAL_COLOR_SCHEME_DUSK:
-            back_color = wxColour(128,128,128);
-            road_color = wxColour(200,200,200);
-            break;
-        case GLOBAL_COLOR_SCHEME_NIGHT:
-            back_color = wxColour(64,64,64);
-            road_color = wxColour(100,100,100);
-            break;
-        default:
-            back_color = wxColour(150,150,150);
-            road_color = wxColour(100,100,100);
-            break;
-    }
-
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
-    proadBrush = wxTheBrushList->FindOrCreateBrush(road_color, wxSOLID);
-
+    m_pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("DILG2")), wxSOLID);
+    m_proadBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("DILG1")), wxSOLID);
+    m_proadPen = wxThePenList->FindOrCreatePen(GetGlobalColor(_T("CHBLK")), 1, wxSOLID);
 }
 
 
@@ -684,7 +621,7 @@ void CDI::OnPaint(wxPaintEvent& event)
 
       wxBitmap m_bitmap(sx, sy, -1);
       mdc.SelectObject(m_bitmap);
-      mdc.SetBackground(*pbackBrush);
+      mdc.SetBackground(*m_pbackBrush);
       mdc.Clear();
 
       int xp = sx/2;
@@ -695,19 +632,17 @@ void CDI::OnPaint(wxPaintEvent& event)
 
       if(pRouteMan->GetpActiveRoute())
       {
-            float angle = 90 - (pRouteMan->GetCurrentSegmentCourse() - gCog);
+            double angle = 90 - (pRouteMan->GetCurrentSegmentCourse() - gCog);
 
-            float PI = 3.14159;
-
-            float dy = path_length * sin(angle *PI/180.);
-            float dx = path_length * cos(angle *PI/180.);
+            double dy = path_length * sin(angle *PI/180.);
+            double dx = path_length * cos(angle *PI/180.);
 
             int xtedir;
             xtedir = pRouteMan->GetXTEDir();
-            float xte = pRouteMan->GetCurrentXTEToActivePoint();
+            double xte = pRouteMan->GetCurrentXTEToActivePoint();
 
-            float ddy = xtedir * pix_per_xte * xte * sin((90 - angle) *PI/180.);
-            float ddx = xtedir * pix_per_xte * xte * cos((90 - angle) *PI/180.);
+            double ddy = xtedir * pix_per_xte * xte * sin((90 - angle) *PI/180.);
+            double ddx = xtedir * pix_per_xte * xte * cos((90 - angle) *PI/180.);
 
             int ddxi = (int)ddx;
             int ddyi = (int)ddy;
@@ -735,7 +670,8 @@ void CDI::OnPaint(wxPaintEvent& event)
             road[3].x = xc1 + (int)(road_bot_width * cos((90 - angle) *PI/180.));
             road[3].y = yc1 + (int)(road_bot_width * sin((90 - angle) *PI/180.));
 
-            mdc.SetBrush(*proadBrush);
+            mdc.SetBrush(*m_proadBrush);
+            mdc.SetPen(*m_proadPen);
             mdc.DrawPolygon(4, road,0,0,wxODDEVEN_RULE);
 
             mdc.DrawLine(xc1, yc1, xc2, yc2);

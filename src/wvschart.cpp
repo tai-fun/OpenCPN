@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.6 2008/03/30 22:26:40 bdbcat Exp $
+ * $Id: wvschart.cpp,v 1.7 2008/08/26 13:46:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -25,20 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< wvschart.cpp
  * $Log: wvschart.cpp,v $
+ * Revision 1.7  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.6  2008/03/30 22:26:40  bdbcat
  * Update for Mac OSX/Unicode
  *
-=======
  * $Log: wvschart.cpp,v $
+ * Revision 1.7  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.6  2008/03/30 22:26:40  bdbcat
  * Update for Mac OSX/Unicode
  *
  * Revision 1.5  2008/01/12 06:22:12  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.5
  * Revision 1.4  2007/05/03 13:23:56  dsr
  * Major refactor for 1.2.0
  *
@@ -96,7 +99,7 @@
 #include "cutil.h"
 #include "georef.h"
 
-CPL_CVSID("$Id: wvschart.cpp,v 1.6 2008/03/30 22:26:40 bdbcat Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.7 2008/08/26 13:46:25 bdbcat Exp $");
 
 //      Local Prototypes
 extern "C" int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray, int **segray);
@@ -125,12 +128,8 @@ WVSChart::WVSChart(wxWindow *parent, const wxString& wvs_chart_home)
         FILE *fp = fopen (pwvs_file_name->mb_str(), "rb");
         if(NULL == fp)
         {
-//                wxString str("Unable to open WVSChart file:");
-//                str.Append(*pwvs_file_name);
-//                wxMessageDialog dlg(parent, str, _T("OpenCPN Message"), wxOK);
-//                dlg.ShowModal();
                 m_ok = false;
-                wxString msg(_T("Unable to open WVSChart datafile: "));
+                wxString msg(_T("   Unable to open WVSChart datafile: "));
                 msg.Append(*pwvs_file_name);
                 wxLogMessage(msg);
                 return;
@@ -169,10 +168,11 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
         int x,y;
         if(!m_ok)
                 return;
+
 //      Set Color
-        wxColour color(0,0,255);
-        wxPen *pthispen = wxThePenList->FindOrCreatePen(color, 1, wxSOLID);
+        wxPen *pthispen = wxThePenList->FindOrCreatePen(GetGlobalColor(_T("BLUE3")), 1, wxSOLID);
         dc.SetPen(*pthispen);
+
 //      Compute the 1 degree cell boundaries
         int lat_min = (int)floor(VPoint.pref_c_lat);
         int lat_max = (int)ceil(VPoint.pref_a_lat);

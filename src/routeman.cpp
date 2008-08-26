@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.6 2008/03/30 22:11:41 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.7 2008/08/26 13:46:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -25,20 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< routeman.cpp
  * $Log: routeman.cpp,v $
+ * Revision 1.7  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.6  2008/03/30 22:11:41  bdbcat
  * Add RoutePoint manager
  *
-=======
  * $Log: routeman.cpp,v $
+ * Revision 1.7  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.6  2008/03/30 22:11:41  bdbcat
  * Add RoutePoint manager
  *
  * Revision 1.5  2008/01/12 06:20:56  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.5
  * Revision 1.4  2007/06/10 02:32:30  bdbcat
  * Improve mercator bearing calculation
  *
@@ -148,6 +151,7 @@
 #include "bitmaps/xmgreen.xpm"
 #include "bitmaps/xmred.xpm"
 #include "bitmaps/diamond.xpm"
+#include "bitmaps/activepoint.xpm"
 
 extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
@@ -167,10 +171,6 @@ extern wxRect           g_blink_rect;
 extern float            gLat, gLon, gSog, gCog;
 extern bool             bAutoPilotOut;
 
-#ifndef PI
-#define PI        3.1415926535897931160E0      /* pi */
-#endif
-
 
 //    List definitions for Waypoint Manager Icons
 WX_DECLARE_LIST(wxBitmap, markicon_bitmap_list_type);
@@ -185,7 +185,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.6 2008/03/30 22:11:41 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.7 2008/08/26 13:46:25 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -271,6 +271,8 @@ bool Routeman::ActivateRoutePoint(Route *pA, RoutePoint *pRP_target)
         {
               RoutePoint *pn = node->GetData();
               pn->m_bBlink = false;                     // turn off all blinking points
+              pn->m_bIsActive = false;
+
               node = node->GetNext();
         }
 
@@ -309,6 +311,8 @@ bool Routeman::ActivateRoutePoint(Route *pA, RoutePoint *pRP_target)
         }
 
         pRP_target->m_bBlink = true;                               // blink the active point
+        pRP_target->m_bIsActive = true;                            // and active
+
         g_blink_rect = pRP_target->CurrentRect_in_DC;               // set up global blinker
 
         m_bArrival = false;
@@ -318,7 +322,10 @@ bool Routeman::ActivateRoutePoint(Route *pA, RoutePoint *pRP_target)
 bool Routeman::ActivateNextPoint(Route *pr)
 {
       if(pActivePoint)
+      {
             pActivePoint->m_bBlink = false;
+            pActivePoint->m_bIsActive = false;
+      }
 
       int n_index_active = pActiveRoute->GetIndexOf(pActivePoint);
       if((n_index_active + 1) <= pActiveRoute->GetnPoints())
@@ -330,6 +337,7 @@ bool Routeman::ActivateNextPoint(Route *pr)
           pActivePoint = pActiveRoute->GetPoint(n_index_active + 1);
 
           pActivePoint->m_bBlink = true;
+          pActivePoint->m_bIsActive = true;
           g_blink_rect = pActivePoint->CurrentRect_in_DC;               // set up global blinker
 
           m_bArrival = false;
@@ -358,9 +366,8 @@ bool Routeman::UpdateProgress()
                 else
                     CurrentBrgToActivePoint = 270. - (a * 180/PI);
 
-//      Calculate Range using SM coordinates
 
-//      Or, Calculate using Great Circle Formula
+//      Calculate range using Great Circle Formula
 
                 float d5 = DistGreatCircle(gLat, gLon, pActivePoint->m_lat, pActivePoint->m_lon );
                 CurrentRngToActivePoint = d5;
@@ -389,15 +396,22 @@ bool Routeman::UpdateProgress()
                 CurrentRangeToActiveNormalCrossing = d6;
 
 
-//      Compute XTE direction
+//          Compute current segment course
+//          Using simple Mercater projection
+                double x1, y1, x2, y2;
+                toSM(pActiveRouteSegmentBeginPoint->m_lat,  pActiveRouteSegmentBeginPoint->m_lon,
+                     pActiveRouteSegmentBeginPoint->m_lat,  pActiveRouteSegmentBeginPoint->m_lon, &x1, &y1);
 
-                double e = atan((pActivePoint->m_lat - pActiveRouteSegmentBeginPoint->m_lat) /
-                        (pActivePoint->m_lon - pActiveRouteSegmentBeginPoint->m_lon));
-                if(pActivePoint->m_lon > pActiveRouteSegmentBeginPoint->m_lon)
-                        CurrentSegmentCourse = 90. - (e * 180/PI);
-                else
-                        CurrentSegmentCourse = 270. - (e * 180/PI);
+                toSM(pActivePoint->m_lat,  pActivePoint->m_lon,
+                     pActiveRouteSegmentBeginPoint->m_lat,  pActiveRouteSegmentBeginPoint->m_lon, &x2, &y2);
 
+                double e1 = atan2((x2 - x1), (y2-y1));
+                CurrentSegmentCourse = e1 * 180/PI;
+                if(CurrentSegmentCourse < 0)
+                      CurrentSegmentCourse += 360;
+
+
+ //      Compute XTE direction
                 double h = atan(vn.y / vn.x);
                 if(vn.x > 0)
                         CourseToRouteSegment = 90. - (h * 180/PI);
@@ -448,7 +462,11 @@ bool Routeman::UpdateProgress()
 bool Routeman::DeactivateRoute()
 {
       if(pActivePoint)
+      {
             pActivePoint->m_bBlink = false;
+            pActivePoint->m_bIsActive = false;
+      }
+
 
       if(pActiveRoute)
       {
@@ -591,154 +609,172 @@ void Routeman::AssembleAllRoutes(void)
       }
 }
 
+void Routeman::SetColorScheme(ColorScheme cs)
+{
+      // Re-Create the pens and colors
+      m_pRoutePen =             wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
+      m_pSelectedRoutePen =     wxThePenList->FindOrCreatePen(wxColour(255,0,0), 2, wxSOLID);
+      m_pActiveRoutePen =       wxThePenList->FindOrCreatePen(wxColour(255,0,255), 2, wxSOLID);
+      m_pActiveRoutePointPen =  wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
+      m_pRoutePointPen =        wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
+
+//    Or in something like S-52 compliance
+
+      m_pRoutePen =             wxThePenList->FindOrCreatePen(GetGlobalColor(_T("UINFB")), 2, wxSOLID);
+      m_pSelectedRoutePen =     wxThePenList->FindOrCreatePen(GetGlobalColor(_T("CHRED")), 2, wxSOLID);
+      m_pActiveRoutePen =       wxThePenList->FindOrCreatePen(GetGlobalColor(_T("PLRTE")), 2, wxSOLID);
+//      m_pActiveRoutePointPen =  wxThePenList->FindOrCreatePen(GetGlobalColor(_T("PLRTE")), 2, wxSOLID);
+//      m_pRoutePointPen =        wxThePenList->FindOrCreatePen(GetGlobalColor(_T("CHBLK")), 2, wxSOLID);
+
+
+            //    Iterate on the RouteList to reload Icons
+/*
+      wxRouteListNode *node = pRouteList->GetFirst();
+      while(node)
+      {
+            Route *proute = node->GetData();
+            proute->ReloadRoutePointIcons();
+            node = node->GetNext();                   // Route
+      }
+*/
+ }
 
 //--------------------------------------------------------------------------------
 //      WayPointman   Implementation
 //--------------------------------------------------------------------------------
 
-//    This macro (with apologies) creates the two hashmaps for manipulating mark icons by key name.
-//    Allows the assignemnt of static XPM images and desciptive strings to specific wxString keys.
-
-#define MAKEHASH(key, xpm_ptr, description)        markicon_xpm_hash[_T(key)]  =      (char *)  xpm_ptr;\
-                                                   markicon_description_hash[_T(key)] = new wxString(_T(description));
 
 
-//    This macro makes the three lists needed for manipulating icons by name.
-//    We use wxLists becuase we like to guarantee the order of items in the list
-//    for display purposes, and this is not possible with wxHashmap.
 
-#define MAKEICONLISSTS(key, xpm_ptr, description)     pmarkiconBitmap = new wxBitmap((char **)xpm_ptr);\
-                                                   pmarkicon_image_list->Add(*pmarkiconBitmap);\
-                                                   pmarkicon_bitmap_list->Append(pmarkiconBitmap);\
-                                                   pmarkicon_description_list->Append(new wxString(_T(description)));\
-                                                   pmarkicon_key_list->Append(new wxString(_T(key)));
 
+#define MAKEICONARRAYS(key, xpm_ptr, description)      pmarkiconImage = new wxImage((char **)xpm_ptr);\
+                                                   pmarkiconBitmap = new wxBitmap(*pmarkiconImage);\
+                                                   delete pmarkiconImage;\
+                                                   pmi = new MarkIcon;\
+                                                   pmi->picon_bitmap = pmarkiconBitmap;\
+                                                   pmi->icon_name = _T(key);\
+                                                   pmi->icon_description = _T(description);\
+                                                   DayIconArray.Add((void *)pmi);\
+                                                            pmarkiconImage = new wxImage((char **)xpm_ptr);\
+                                                            pmarkiconBitmap = new wxBitmap(*pmarkiconImage);\
+                                                            delete pmarkiconImage;\
+                                                            pmarkiconBitmapDim = CreateDimBitmap(pmarkiconBitmap, .50);\
+                                                            delete pmarkiconBitmap;\
+                                                            pmi = new MarkIcon;\
+                                                            pmi->picon_bitmap = pmarkiconBitmapDim;\
+                                                            pmi->icon_name = _T(key);\
+                                                            pmi->icon_description = _T(description);\
+                                                            DuskIconArray.Add((void *)pmi);\
+                                                                   pmarkiconImage = new wxImage((char **)xpm_ptr);\
+                                                                   pmarkiconBitmap = new wxBitmap(*pmarkiconImage);\
+                                                                   delete pmarkiconImage;\
+                                                                   pmarkiconBitmapDim = CreateDimBitmap(pmarkiconBitmap, .25);\
+                                                                   delete pmarkiconBitmap;\
+                                                                   pmi = new MarkIcon;\
+                                                                   pmi->picon_bitmap = pmarkiconBitmapDim;\
+                                                                   pmi->icon_name = _T(key);\
+                                                                   pmi->icon_description = _T(description);\
+                                                                   NightIconArray.Add((void *)pmi);\
 
 
 WayPointman::WayPointman()
 {
+      MarkIcon *pmi;
+
       m_pWayPointList = new RoutePointList;
 
-
-      //    Get the icon image size
-      wxBitmap BitmapTest((char **)airplane);
-      int bitmap_sizex = BitmapTest.GetWidth();
-      int bitmap_sizey = BitmapTest.GetHeight();
-      pmarkicon_image_list = new wxImageList(bitmap_sizex, bitmap_sizey);
-
-      pmarkicon_description_list    = new markicon_description_list_type;
-      pmarkicon_bitmap_list         = new markicon_bitmap_list_type;
-      pmarkicon_key_list            = new markicon_key_list_type;
-
+      wxImage *pmarkiconImage;
       wxBitmap *pmarkiconBitmap;
-
-      MAKEICONLISSTS("empty", empty, "Empty")
-      MAKEICONLISSTS("airplane", airplane, "Airplane")
-      MAKEICONLISSTS("anchorage", anchorage, "Anchorage")
-      MAKEICONLISSTS("anchor", anchor, "Anchor")
-      MAKEICONLISSTS("boarding", boarding, "Boarding Location")
-      MAKEICONLISSTS("boundary", boundary, "Boundary Mark")
-      MAKEICONLISSTS("bouy1", bouy1, "Bouy Type A")
-      MAKEICONLISSTS("bouy2", bouy2, "Bouy Type B")
-      MAKEICONLISSTS("campfire", campfire, "Campfire")
-      MAKEICONLISSTS("camping", camping, "Camping Spot")
-      MAKEICONLISSTS("coral", coral, "Coral")
-      MAKEICONLISSTS("fishhaven", fishhaven, "Fish Haven")
-      MAKEICONLISSTS("fishing", fishing, "Fishing Spot")
-      MAKEICONLISSTS("fish", fish, "Fish")
-      MAKEICONLISSTS("floating", floating, "Float")
-      MAKEICONLISSTS("food", food, "Food")
-      MAKEICONLISSTS("fuel", fuel, "Fuel")
-      MAKEICONLISSTS("greenlite", greenlite, "Green Light")
-      MAKEICONLISSTS("kelp", kelp, "Kelp")
-      MAKEICONLISSTS("light1", light1, "Light Type A")
-      MAKEICONLISSTS("light", light, "Light Type B")
-      MAKEICONLISSTS("litevessel", litevessel, "Light Vessel")
-      MAKEICONLISSTS("mob", mob, "MOB")
-      MAKEICONLISSTS("mooring", mooring, "Mooring Bouy")
-      MAKEICONLISSTS("oilbouy", oilbouy, "Oil Bouy")
-      MAKEICONLISSTS("platform", platform, "Platform")
-      MAKEICONLISSTS("redgreenlite", redgreenlite, "Red/Green Light")
-      MAKEICONLISSTS("redlite", redlite, "Red Light")
-      MAKEICONLISSTS("rock1", rock1, "Rock (exposed)")
-      MAKEICONLISSTS("rock2", rock2, "Rock, (awash)")
-      MAKEICONLISSTS("sand", sand, "Sand")
-      MAKEICONLISSTS("scuba", scuba, "Scuba")
-      MAKEICONLISSTS("shoal", shoal, "Shoal")
-      MAKEICONLISSTS("snag", snag, "Snag")
-      MAKEICONLISSTS("square", square, "Square")
-      MAKEICONLISSTS("triangle", triangle, "Triangle")
-      MAKEICONLISSTS("diamond", diamond, "Diamond")
-      MAKEICONLISSTS("circle", circle, "Circle")
-      MAKEICONLISSTS("wreck1", wreck1, "Wreck A")
-      MAKEICONLISSTS("wreck2", wreck2, "Wreck B")
-      MAKEICONLISSTS("xmblue", xmblue, "Blue X")
-      MAKEICONLISSTS("xmgreen", xmgreen, "Green X")
-      MAKEICONLISSTS("xmred", xmred, "Red X")
-
-      m_nIcons = pmarkicon_key_list->GetCount();
+      wxBitmap *pmarkiconBitmapDim;
 
 /*
-// Load up all the icon xpm data pointers into a hash map
-      markicon_xpm_hash.clear();
+      pmarkiconImage = new wxImage((char **)airplane);
+      if(pmarkiconImage->HasMask())
+            int ddl = 4;
+      pmarkiconBitmap = new wxBitmap(*pmarkiconImage);
+      if(!pmarkiconBitmap->Ok())
+            int ggl = 4;
+      if(pmarkiconBitmap->GetDepth() == 1)
+            int ggk = 5;
+//      pmarkiconMask = new wxMask(*pmarkiconBitmap);
+//      pmarkiconBitmap->SetMask(pmarkiconMask);
+
+ */
 
 
-      MAKEHASH("airplane", airplane, "Airplane")
 
 
-//      markicon_xpm_hash[_T("airplane")]  =      (char *)  airplane;
-      MAKEHASH("anchorage", anchorage, "Anchorage")
-      MAKEHASH("anchor", anchor, "")
-      MAKEHASH("boarding", boarding, "Boarding Location")
-      MAKEHASH("boundary", boundary, "Boundary Mark")
-      MAKEHASH("bouy1", bouy1, "Bouy Type A")
-      MAKEHASH("bouy2", bouy2, "Bouy Type B")
-      MAKEHASH("campfire", campfire, "Campfire")
-      MAKEHASH("camping", camping, "Camping Spot")
-      MAKEHASH("circle", circle, "Circle")
-      MAKEHASH("coral", coral, "Coral")
-      MAKEHASH("fishhaven", fishhaven, "Fish Haven")
-      MAKEHASH("fishing", fishing, "Fishing Spot")
-      MAKEHASH("fish", fish, "Fish")
-      MAKEHASH("floating", floating, "Float")
-      MAKEHASH("food", food, "Food")
-      MAKEHASH("fuel", fuel, "Fuel")
-      MAKEHASH("greenlite", greenlite, "Green Light")
-      MAKEHASH("kelp", kelp, "Kelp")
-      MAKEHASH("light1", light1, "Light Type A")
-      MAKEHASH("light", light, "Light Type B")
-      MAKEHASH("litevessel", litevessel, "Light Vessel")
-      MAKEHASH("mob", mob, "MOB")
-      MAKEHASH("mooring", mooring, "Mooring Bouy")
-      MAKEHASH("oilbouy", oilbouy, "Oil Bouy")
-      MAKEHASH("platform", platform, "Platform")
-      MAKEHASH("redgreenlite", redgreenlite, "Red/Green Light")
-      MAKEHASH("redlite", redlite, "Red Light")
-      MAKEHASH("rock1", rock1, "Rock (exposed)")
-      MAKEHASH("rock2", rock2, "Rock, (awash)")
-      MAKEHASH("sand", sand, "Sand")
-      MAKEHASH("scuba", scuba, "Scuba")
-      MAKEHASH("shoal", shoal, "Shoal")
-      MAKEHASH("snag", snag, "Snag")
-      MAKEHASH("square", square, "")
-      MAKEHASH("triangle", triangle, "Triangle")
-      MAKEHASH("wreck1", wreck1, "Wreck A")
-      MAKEHASH("wreck2", wreck2, "Wreck B")
-      MAKEHASH("xmblue", xmblue, "Blue X")
-      MAKEHASH("xmgreen", xmgreen, "Green X")
-      MAKEHASH("xmred", xmred, "Red X")
 
 
-      //    Create one default icon bitmap
-      //    Deferring creation of others until needed by GetIconBitmap()
 
-      wxString default_icon(_T("square"));
-      char **px1 = (char **)markicon_xpm_hash[default_icon];          // default
 
-      wxBitmap *pmarkiconBitmap = new wxBitmap(px1);
-      // store it
-      markicon_bitmap_hash[default_icon] = pmarkiconBitmap;
-*/
+
+
+
+
+
+
+
+
+      MAKEICONARRAYS("empty", empty, "Empty")
+      MAKEICONARRAYS("airplane", airplane, "Airplane")
+      MAKEICONARRAYS("anchorage", anchorage, "Anchorage")
+      MAKEICONARRAYS("anchor", anchor, "Anchor")
+      MAKEICONARRAYS("boarding", boarding, "Boarding Location")
+      MAKEICONARRAYS("boundary", boundary, "Boundary Mark")
+      MAKEICONARRAYS("bouy1", bouy1, "Bouy Type A")
+      MAKEICONARRAYS("bouy2", bouy2, "Bouy Type B")
+      MAKEICONARRAYS("campfire", campfire, "Campfire")
+      MAKEICONARRAYS("camping", camping, "Camping Spot")
+      MAKEICONARRAYS("coral", coral, "Coral")
+      MAKEICONARRAYS("fishhaven", fishhaven, "Fish Haven")
+      MAKEICONARRAYS("fishing", fishing, "Fishing Spot")
+      MAKEICONARRAYS("fish", fish, "Fish")
+      MAKEICONARRAYS("floating", floating, "Float")
+      MAKEICONARRAYS("food", food, "Food")
+      MAKEICONARRAYS("fuel", fuel, "Fuel")
+      MAKEICONARRAYS("greenlite", greenlite, "Green Light")
+      MAKEICONARRAYS("kelp", kelp, "Kelp")
+      MAKEICONARRAYS("light1", light1, "Light Type A")
+      MAKEICONARRAYS("light", light, "Light Type B")
+      MAKEICONARRAYS("litevessel", litevessel, "Light Vessel")
+      MAKEICONARRAYS("mob", mob, "MOB")
+      MAKEICONARRAYS("mooring", mooring, "Mooring Bouy")
+      MAKEICONARRAYS("oilbouy", oilbouy, "Oil Bouy")
+      MAKEICONARRAYS("platform", platform, "Platform")
+      MAKEICONARRAYS("redgreenlite", redgreenlite, "Red/Green Light")
+      MAKEICONARRAYS("redlite", redlite, "Red Light")
+      MAKEICONARRAYS("rock1", rock1, "Rock (exposed)")
+      MAKEICONARRAYS("rock2", rock2, "Rock, (awash)")
+      MAKEICONARRAYS("sand", sand, "Sand")
+      MAKEICONARRAYS("scuba", scuba, "Scuba")
+      MAKEICONARRAYS("shoal", shoal, "Shoal")
+      MAKEICONARRAYS("snag", snag, "Snag")
+      MAKEICONARRAYS("square", square, "Square")
+      MAKEICONARRAYS("triangle", triangle, "Triangle")
+      MAKEICONARRAYS("diamond", diamond, "Diamond")
+      MAKEICONARRAYS("circle", circle, "Circle")
+      MAKEICONARRAYS("wreck1", wreck1, "Wreck A")
+      MAKEICONARRAYS("wreck2", wreck2, "Wreck B")
+      MAKEICONARRAYS("xmblue", xmblue, "Blue X")
+      MAKEICONARRAYS("xmgreen", xmgreen, "Green X")
+      MAKEICONARRAYS("xmred", xmred, "Red X")
+      MAKEICONARRAYS("activepoint", activepoint, "Active WP")
+
+      m_nIcons = DayIconArray.GetCount();
+      m_pcurrent_icon_array = &DayIconArray;
+
+      //    Create a default wxImageList
+      int w = (((MarkIcon *)m_pcurrent_icon_array->Item(0))->picon_bitmap)->GetWidth();
+      int h = (((MarkIcon *)m_pcurrent_icon_array->Item(0))->picon_bitmap)->GetHeight();
+
+      pmarkicon_image_list = new wxImageList(w, h);
+
+      for( unsigned int i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
+      {
+            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
+            pmarkicon_image_list->Add(*pmi->picon_bitmap);
+      }
 
 }
 
@@ -768,25 +804,93 @@ WayPointman::~WayPointman()
       m_pWayPointList->Clear();
       delete m_pWayPointList;
 
-      pmarkicon_description_list->DeleteContents(true);
-      pmarkicon_bitmap_list->DeleteContents(true);
-      pmarkicon_key_list->DeleteContents(true);
+      for( unsigned int i = 0 ; i< DayIconArray.GetCount() ; i++)
+      {
+            MarkIcon *pmi = (MarkIcon *)NightIconArray.Item(i);
+            delete pmi->picon_bitmap;
+            delete pmi;
 
-      delete pmarkicon_description_list;
-      delete pmarkicon_bitmap_list;
-      delete pmarkicon_key_list;
+            pmi = (MarkIcon *)DuskIconArray.Item(i);
+            delete pmi->picon_bitmap;
+            delete pmi;
+
+            pmi = (MarkIcon *)DayIconArray.Item(i);
+            delete pmi->picon_bitmap;
+            delete pmi;
+      }
+
+
+      NightIconArray.Empty();
+      DuskIconArray.Empty();
+      DayIconArray.Empty();
+
+      pmarkicon_image_list->RemoveAll();
       delete pmarkicon_image_list;
+}
 
-/*
-    //      Delete the created mark icon bitmaps
-    string_to_pchar_hash::iterator it;
-    for( it = markicon_xpm_hash.begin(); it != markicon_xpm_hash.end(); ++it )
-    {
+wxBitmap *WayPointman::CreateDimBitmap(wxBitmap *pBitmap, double factor)
+{
+      wxImage img = pBitmap->ConvertToImage();
+      int sx = img.GetWidth();
+      int sy = img.GetHeight();
 
-        wxString index = it->first;
-        delete markicon_bitmap_hash[index];
-    }
-*/
+      wxImage new_img(img);
+
+      for(int i = 0 ; i < sx ; i++)
+      {
+            for(int j = 0 ; j < sy ; j++)
+            {
+                  if(!img.IsTransparent(i,j))
+                  {
+                        new_img.SetRGB(i, j, (unsigned char)(img.GetRed(i, j) * factor),
+                                             (unsigned char)(img.GetGreen(i, j) * factor),
+                                             (unsigned char)(img.GetBlue(i, j) * factor));
+                  }
+            }
+      }
+
+      wxBitmap *pret = new wxBitmap(new_img);
+
+      return pret;
+
+}
+
+void WayPointman::SetColorScheme(ColorScheme cs)
+{
+      switch(cs)
+      {
+            case GLOBAL_COLOR_SCHEME_DAY:
+                  m_pcurrent_icon_array = &DayIconArray;
+                  break;
+            case GLOBAL_COLOR_SCHEME_DUSK:
+                  m_pcurrent_icon_array = &DuskIconArray;
+                  break;
+            case GLOBAL_COLOR_SCHEME_NIGHT:
+                  m_pcurrent_icon_array = &NightIconArray;
+                  break;
+            default:
+                  m_pcurrent_icon_array = &DayIconArray;
+                  break;
+      }
+
+      //    Iterate on the RoutePoint list, requiring each to reload icon
+
+      wxRoutePointListNode *node = m_pWayPointList->GetFirst();
+      while(node)
+      {
+            RoutePoint *pr = node->GetData();
+            pr->ReLoadIcon();
+            node = node->GetNext();
+      }
+
+
+      //    Remake the wxImageList
+      pmarkicon_image_list->RemoveAll();
+      for( unsigned int i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
+      {
+            MarkIcon *pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
+            pmarkicon_image_list->Add(*pmi->picon_bitmap);
+      }
 
 }
 
@@ -794,48 +898,23 @@ WayPointman::~WayPointman()
 wxBitmap *WayPointman::GetIconBitmap(const wxString& icon_key)
 {
       wxBitmap *pret = NULL;
-      int index = -1;
+      MarkIcon *pmi;
+      unsigned int i;
 
-//    Get the common list index by brute search
-      markicon_key_list_type::Node *node = pmarkicon_key_list->GetFirst();
-      while(node)
+      for( i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
       {
-            wxString *ps = node->GetData();
-
-            if(ps->IsSameAs(icon_key))
-            {
-                  index = pmarkicon_key_list->IndexOf(ps);
+            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
+            if(pmi->icon_name.IsSameAs(icon_key))
                   break;
-            }
-            node = node->GetNext();
       }
 
-      if(index == -1)               // key was not found, use empty (transparent)Icon at index 0
-            index = 0;
+      if(i == m_pcurrent_icon_array->GetCount())              // not found
+            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(0);       // use item 0
 
-      if(index >= 0)
-      {
-            markicon_bitmap_list_type::Node *bitmap_node = pmarkicon_bitmap_list->Item(index);
-            pret = bitmap_node->GetData();
-      }
 
-    /* hashmap
-      wxBitmap *pret = markicon_bitmap_hash[icon_key];
 
-      if(NULL == pret)                          // has not been made yet
-      {
-        char **px1 = (char **)markicon_xpm_hash[icon_key];
-        if(NULL != px1)
-        {
-            wxBitmap *pmarkiconBitmap = new wxBitmap(px1);
-            markicon_bitmap_hash[icon_key] = pmarkiconBitmap;
-            pret = pmarkiconBitmap;
-        }
-        else
-          pret = markicon_bitmap_hash[_T("square")];  // default
-      }
+      pret = pmi->picon_bitmap;
 
-  */
 
       return pret;
 }
@@ -846,10 +925,9 @@ wxBitmap *WayPointman::GetIconBitmap(int index)
 
       if(index >= 0)
       {
-            markicon_bitmap_list_type::Node *bnode = pmarkicon_bitmap_list->Item(index);
-            pret = bnode->GetData();
+            MarkIcon *pmi = (MarkIcon *)m_pcurrent_icon_array->Item(index);
+            pret = pmi->picon_bitmap;
       }
-
       return pret;
 }
 
@@ -860,10 +938,9 @@ wxString *WayPointman::GetIconDescription(int index)
 
       if(index >= 0)
       {
-            markicon_description_list_type::Node *dnode = pmarkicon_description_list->Item(index);
-            pret = dnode->GetData();
+            MarkIcon *pmi = (MarkIcon *)m_pcurrent_icon_array->Item(index);
+            pret = &pmi->icon_description;
       }
-
       return pret;
 }
 
@@ -873,31 +950,25 @@ wxString *WayPointman::GetIconKey(int index)
 
       if(index >= 0)
       {
-            markicon_key_list_type::Node *knode = pmarkicon_key_list->Item(index);
-            pret = knode->GetData();
+            MarkIcon *pmi = (MarkIcon *)m_pcurrent_icon_array->Item(index);
+            pret = &pmi->icon_name;
       }
-
       return pret;
 }
 
 int WayPointman::GetIconIndex(const wxBitmap *pbm)
 {
-//    Get the common list index by brute search
-      int index = -1;
-      markicon_bitmap_list_type::Node *node = pmarkicon_bitmap_list->GetFirst();
-      while(node)
-      {
-            wxBitmap *pbmt = node->GetData();
+      unsigned int i;
 
-            if(pbmt == pbm)
-            {
-                  index = pmarkicon_bitmap_list->IndexOf((wxBitmap *)pbm);
+      for( i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
+      {
+            MarkIcon *pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
+            if(pmi->picon_bitmap == pbm)
                   break;
-            }
-            node = node->GetNext();
       }
 
-      return index;
+      return i;
+
 }
 
      //  Create the unique identifier
@@ -910,3 +981,4 @@ wxString WayPointman::CreateGUID(RoutePoint *pRP)
       GUID.Printf(_T("%d-%d-%d"), ((int)fabs(pRP->m_lat * 1e4)), ((int)fabs(pRP->m_lon * 1e4)), (int)ticks);
       return GUID;
 }
+

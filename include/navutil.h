@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.6 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: navutil.h,v 1.7 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.7  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.6  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -113,6 +116,8 @@ public:
       void DrawPoint(wxDC& dc, wxPoint *rpn = NULL);
       void DrawTransparentBox(wxDC& dc, int x, int y, int size_x, int size_y,
                                           unsigned char rval, unsigned char gval, unsigned char bval, unsigned char transparency);
+      void ReLoadIcon(void);
+
       void SetPosition(double lat, double lon);
       void CalculateDCRect(wxDC& dc, wxRect *prect);
 
@@ -123,19 +128,20 @@ public:
       bool              m_bPtIsSelected;
       bool              m_bIsBeingEdited;
       bool              m_bIsInRoute;
+      bool              m_bIsActive;
       int               m_ConfigWPNum;
       wxString          m_MarkName;
       wxString          m_MarkDescription;
       wxString          m_GUID;
       wxString          m_IconName;
       wxBitmap          *m_pbmIcon;
-      int               m_icon_x2;
-      int               m_icon_y2;
+//      int               m_icon_x2;
+//      int               m_icon_y2;
       bool              m_bBlink;
       bool              m_bDynamicName;
       bool              m_bShowName;
       wxRect            CurrentRect_in_DC;
-      wxRect            m_hilitebox;
+//      wxRect            m_hilitebox;
       int               m_NameLocationOffsetX;
       int               m_NameLocationOffsetY;
 
@@ -173,6 +179,7 @@ public:
       void RebuildGUIDList(void);
       void AssembleRoute();
       void RenameRoutePoints();
+      void ReloadRoutePointIcons();
 
       int         m_ConfigRouteNum;
       bool        m_bRtIsSelected;
@@ -236,13 +243,6 @@ public:
 
       int m_NextRouteNum;
       int m_NextWPNum;
-
-
-//    Members describing the current config and runtime environment
-      wxPen *pRoutePen;
-      wxPen *pSelectedRoutePen;
-      wxPen *pActiveRoutePen;
-      wxPen *pActiveRoutePointPen;
 
       float st_lat, st_lon, st_view_scale;            // startup values
       bool  st_bFollow;

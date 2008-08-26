@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.h,v 1.4 2008/03/30 23:22:08 bdbcat Exp $
+ * $Id: concanv.h,v 1.5 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Console Canvas
@@ -25,20 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< concanv.h
  * $Log: concanv.h,v $
+ * Revision 1.5  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.4  2008/03/30 23:22:08  bdbcat
  * *** empty log message ***
  *
-=======
  * $Log: concanv.h,v $
+ * Revision 1.5  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.4  2008/03/30 23:22:08  bdbcat
  * *** empty log message ***
  *
  * Revision 1.3  2008/01/12 06:18:30  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.3
  * Revision 1.2  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -88,8 +91,9 @@ public:
       void OnPaint(wxPaintEvent& event);
       void SetColorScheme(ColorScheme cs);
 
-      wxBrush *pbackBrush;
-      wxBrush *proadBrush;
+      wxBrush *m_pbackBrush;
+      wxBrush *m_proadBrush;
+      wxPen   *m_proadPen;
 
 DECLARE_EVENT_TABLE()
 
@@ -137,7 +141,7 @@ DECLARE_EVENT_TABLE()
 //----------------------------------------------------------------------------
 // ConsoleCanvas
 //----------------------------------------------------------------------------
-class ConsoleCanvas: public wxControl
+class ConsoleCanvas: public wxWindow
 {
 public:
       ConsoleCanvas(wxFrame *frame);

@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.16  2008/08/26 13:48:15  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.15  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -43,6 +46,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.16  2008/08/26 13:48:15  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.15  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -112,7 +118,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.15 2008/08/09 23:58:40 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.16 2008/08/26 13:48:15 bdbcat Exp $");
 
 //    Statics
 
@@ -578,6 +584,7 @@ RoutePoint::RoutePoint(double lat, double lon, const wxString& icon_ident, const
       m_bDynamicName = false;
       m_bPtIsSelected = false;
       m_bIsBeingEdited = false;
+      m_bIsActive = false;
       m_bBlink = false;
       m_bIsInRoute = false;
       m_bShowName = true;
@@ -602,24 +609,7 @@ RoutePoint::RoutePoint(double lat, double lon, const wxString& icon_ident, const
 
       //      Get Icon bitmap
       m_IconName = icon_ident;
-      m_pbmIcon = pWayPointMan->GetIconBitmap(icon_ident);
-
-      if(m_pbmIcon)
-      {
-            m_icon_x2 = m_pbmIcon->GetWidth()/2;
-            m_icon_y2 = m_pbmIcon->GetHeight()/2;
-      }
-      else
-      {
-            m_icon_x2 = 2;
-            m_icon_y2 = 2;
-      }
-
-      //    Default hilite box
-      m_hilitebox.x = -(m_icon_x2 + 2);
-      m_hilitebox.y = -(m_icon_y2 + 2);
-      m_hilitebox.width  = (m_icon_x2 * 2) + 4;
-      m_hilitebox.height = (m_icon_y2 * 2) + 4;
+      ReLoadIcon();
 
       m_MarkName = name;
 
@@ -637,19 +627,44 @@ RoutePoint::~RoutePoint(void)
         pWayPointMan->m_pWayPointList->DeleteObject(this);
 }
 
+void RoutePoint::ReLoadIcon(void)
+{
+      m_pbmIcon = pWayPointMan->GetIconBitmap(m_IconName);
+}
+
 
 void RoutePoint::DrawPoint(wxDC& dc, wxPoint *rpn)
 {
       wxPoint r;
+      wxRect            hilitebox;
       unsigned char transparency = 200;
-      unsigned char ol_red   = 50;
-      unsigned char ol_green = 100;
-      unsigned char ol_blue  = 255;
+
+      wxPen *pen;
+      if(m_bBlink)
+            pen = pRouteMan->GetActiveRoutePointPen();
+      else
+            pen = pRouteMan->GetRoutePointPen();
+
+      unsigned char ol_red   = pen->GetColour().Red(); //50;
+      unsigned char ol_green = pen->GetColour().Green(); //100;
+      unsigned char ol_blue  = pen->GetColour().Blue(); //255;
 
       cc1->GetPointPix(m_lat, m_lon, &r);
 
+//    Substitue icon?
+      wxBitmap *pbm;
+      if(m_bIsActive)
+            pbm = pWayPointMan->GetIconBitmap(_T("activepoint"));
+      else
+            pbm =m_pbmIcon;
+
+      int sx2 = pbm->GetWidth()/2;
+      int sy2 = pbm->GetHeight()/2;
+
+
+
 //    Calculate the mark drawing extents
-      wxRect r1(r.x-m_icon_x2, r.y-m_icon_y2, m_icon_x2 * 2, m_icon_y2 * 2);
+      wxRect r1(r.x-sx2, r.y-sy2, sx2 * 2, sy2 * 2);
       if(m_bShowName)
       {
             dc.SetFont(*pFontMgr->GetFont(_T("Marks")));
@@ -658,15 +673,15 @@ void RoutePoint::DrawPoint(wxDC& dc, wxPoint *rpn)
             wxRect r2(r.x + m_NameLocationOffsetX, r.y + m_NameLocationOffsetY, stextx, stexty);
             r1.Union(r2);
       }
-      m_hilitebox = r1;
-      m_hilitebox.x -= r.x;
-      m_hilitebox.y -= r.y;
-      m_hilitebox.Inflate(2);
+      hilitebox = r1;
+      hilitebox.x -= r.x;
+      hilitebox.y -= r.y;
+      hilitebox.Inflate(2);
 
       //  Highlite any selected point
       if(m_bPtIsSelected)
       {
-            DrawTransparentBox(dc, r.x + m_hilitebox.x, r.y + m_hilitebox.y, m_hilitebox.width, m_hilitebox.height,
+            DrawTransparentBox(dc, r.x + hilitebox.x, r.y + hilitebox.y, hilitebox.width, hilitebox.height,
                                ol_red, ol_green, ol_blue, transparency);
       }
 
@@ -677,11 +692,12 @@ void RoutePoint::DrawPoint(wxDC& dc, wxPoint *rpn)
 
       if((!bDrawHL) && (NULL != m_pbmIcon))
       {
-            dc.DrawBitmap(*m_pbmIcon, r.x - m_icon_x2, r.y - m_icon_y2, true);
+                  dc.DrawBitmap(*pbm, r.x - sx2, r.y - sy2, true);
             // on MSW, the dc Bounding box is not updated on DrawBitmap() method.
             // Do it explicitely here for all platforms.
-            dc.CalcBoundingBox(r.x - m_icon_x2, r.y - m_icon_y2);
-            dc.CalcBoundingBox(r.x + m_icon_x2, r.y + m_icon_y2);
+                  dc.CalcBoundingBox(r.x - sx2, r.y - sy2);
+                  dc.CalcBoundingBox(r.x + sx2, r.y + sy2);
+
       }
 
       if(m_bShowName)
@@ -697,10 +713,10 @@ void RoutePoint::DrawPoint(wxDC& dc, wxPoint *rpn)
 
       //  Save the current draw rectangle in the current DC
       //    This will be useful for fast icon redraws
-      CurrentRect_in_DC.x      = r.x + m_hilitebox.x;
-      CurrentRect_in_DC.y      = r.y + m_hilitebox.y;
-      CurrentRect_in_DC.width  = m_hilitebox.width;
-      CurrentRect_in_DC.height = m_hilitebox.height;
+      CurrentRect_in_DC.x      = r.x + hilitebox.x;
+      CurrentRect_in_DC.y      = r.y + hilitebox.y;
+      CurrentRect_in_DC.width  = hilitebox.width;
+      CurrentRect_in_DC.height = hilitebox.height;
 
 
 
@@ -868,11 +884,11 @@ void Route::DrawPointWhich(wxDC& dc, int iPoint, wxPoint *rpn)
 void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2)
 {
       if(m_bRtIsSelected)
-            dc.SetPen(*pConfig->pSelectedRoutePen);
+            dc.SetPen(*pRouteMan->GetSelectedRoutePen());
       else if(m_bRtIsActive)
-            dc.SetPen(*pConfig->pActiveRoutePen);
+            dc.SetPen(*pRouteMan->GetActiveRoutePen());
       else
-            dc.SetPen(*pConfig->pRoutePen);
+            dc.SetPen(*pRouteMan->GetRoutePen());
 
       DrawRouteLine(dc, rp1->x, rp1->y, rp2->x, rp2->y);            // with clipping
 }
@@ -884,11 +900,11 @@ void Route::DrawRoute(wxDC& dc)
 {
 
       if(m_bRtIsSelected)
-            dc.SetPen(*pConfig->pSelectedRoutePen);
+            dc.SetPen(*pRouteMan->GetRoutePen());
       else if(m_bRtIsActive)
-            dc.SetPen(*pConfig->pActiveRoutePen);
+            dc.SetPen(*pRouteMan->GetActiveRoutePen());
       else
-            dc.SetPen(*pConfig->pRoutePen);
+            dc.SetPen(*pRouteMan->GetRoutePen());
 
 
       wxPoint rpt, rptn;
@@ -928,7 +944,7 @@ void Route::DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb)
 
 RoutePoint *Route::InsertPointBefore(RoutePoint *pRP, float rlat, float rlon)
 {
-      RoutePoint *newpoint = new RoutePoint(rlat, rlon, wxString(_T("square")), wxString(_T("")), NULL);
+      RoutePoint *newpoint = new RoutePoint(rlat, rlon, wxString(_T("diamond")), wxString(_T("")), NULL);
       newpoint->m_bIsInRoute = true;
       newpoint->m_bDynamicName = true;
 
@@ -1027,6 +1043,22 @@ void Route::DeSelectRoute()
             node = node->GetNext();
       }
 }
+
+
+void Route::ReloadRoutePointIcons()
+{
+      wxRoutePointListNode *node = pRoutePointList->GetFirst();
+
+      RoutePoint *rp;
+      while (node)
+      {
+            rp = node->GetData();
+            rp->ReLoadIcon();
+
+            node = node->GetNext();
+      }
+}
+
 
 
 void Route::CalculateBBox()
@@ -1549,12 +1581,6 @@ int MyConfig::LoadMyConfig(int iteration)
               pConfig->UpdateChartDirs(pChartDirArray);
       }
 
-
-//    Pens and Colors
-      pRoutePen =             wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
-      pSelectedRoutePen = wxThePenList->FindOrCreatePen(wxColour(255,0,0), 2, wxSOLID);
-      pActiveRoutePen =   wxThePenList->FindOrCreatePen(wxColour(255,0,255), 2, wxSOLID);
-      pActiveRoutePointPen = wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
 
 
 //    Fonts

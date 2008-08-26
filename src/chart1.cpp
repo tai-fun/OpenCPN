@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.26 2008/08/09 23:58:40 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.27 2008/08/26 13:46:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.27  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.26  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -45,6 +48,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.27  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.26  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -163,7 +169,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.26 2008/08/09 23:58:40 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.27 2008/08/26 13:46:25 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -272,6 +278,10 @@ bool            g_bShowDepthUnits;
 FontMgr         *pFontMgr;
 
 ColorScheme     global_color_scheme;
+int             Usercolortable_index;
+wxArrayPtrVoid  *UserColorTableArray;
+wxArrayPtrVoid  *UserColourHashTableArray;
+ColourHash      *pcurrent_user_color_hash;
 
 int             gsp_watchdog_timeout_ticks;
 int             gGPS_Watchdog;
@@ -370,6 +380,34 @@ uint64_t          g_ulLastNEMATicktime = 0 ;
 // end rms
 
 
+#ifdef __WXMSW__
+//    System color control support
+
+typedef DWORD (WINAPI *SetSysColors_t)(DWORD, DWORD *, DWORD *);
+typedef DWORD (WINAPI *GetSysColor_t)(DWORD);
+
+SetSysColors_t pSetSysColors;
+GetSysColor_t  pGetSysColor;
+
+void SaveSystemColors(void);
+void RestoreSystemColors(void);
+
+DWORD       color_3dface;
+DWORD       color_3dhilite;
+DWORD       color_3dshadow;
+DWORD       color_3ddkshadow;
+DWORD       color_3dlight;
+DWORD       color_activecaption;
+DWORD       color_gradientactivecaption;
+DWORD       color_captiontext;
+DWORD       color_windowframe;
+DWORD       color_inactiveborder;
+
+#endif
+
+
+
+
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
 
@@ -380,16 +418,21 @@ static int tick_idx;
 #endif
 
 
-#ifdef __WXUNIVERSAL__
-WX_USE_THEME(gtk);
-WX_USE_THEME(Metal);
-#endif
+//#ifdef __WXUNIVERSAL__
+//WX_USE_THEME(gtk);
+//WX_USE_THEME(Metal);
+//#endif
 
 #ifdef __WXMSW__
      extern  long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
 #endif
 
+
+//    Some static helpers
 void appendOSDirSlash(wxString* pString);
+void InitializeUserColors(void);
+void DeInitializeUserColors(void);
+void SetSystemColors(ColorScheme cs);
 
 // ----------------------------------------------------------------------------
 // Icon resources
@@ -436,6 +479,8 @@ catch_sig_usr1(int signo)
 //------------------------------------------------------------------------------
 
 IMPLEMENT_APP(MyApp)
+
+#include "wx/dynlib.h"
 
 bool MyApp::OnInit()
 {
@@ -534,12 +579,11 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pHome_Locn->Append(std_path.GetUserConfigDir());          // on w98, produces "/windows/Application Data"
         appendOSDirSlash(pHome_Locn) ;
 
-#ifdef __WXMAC__
-        pHome_Locn->Append(_T("openCPN/"));
-#elif defined __WXMSW__
-        pHome_Locn->Append(_T("opencpn\\"));
-#endif
 
+#if defined( __WXMAC__) || defined ( __WXMSW__ )
+        pHome_Locn->Append(_T("opencpn"));
+        appendOSDirSlash(pHome_Locn) ;
+#endif
 
         // create the opencpn "home" directory if we need to
         wxFileName wxHomeFiledir(*pHome_Locn) ;
@@ -641,6 +685,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         file_user_id = user_user_id;
     #endif
 #endif
+
 
 //      Establish a "shared data" location
         pSData_Locn= new wxString;
@@ -841,6 +886,8 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         int cx, cy, cw, ch;
         ::wxClientDisplayRect(&cx, &cy, &cw, &ch);
 
+        InitializeUserColors();
+
 //  For Windows and GTK, provide the expected application Minimize/Close bar
        long app_style = wxDEFAULT_FRAME_STYLE;
 
@@ -1037,6 +1084,8 @@ int MyApp::OnExit()
 
         delete pMessageOnceArray;
 
+        DeInitializeUserColors();
+
 #ifdef USE_S57
         delete g_poRegistrar;
         CSVDeaccess(NULL);
@@ -1054,6 +1103,11 @@ int MyApp::OnExit()
 #endif
 
 //        _CrtDumpMemoryLeaks( );
+
+        //      Restore any changed system colors
+#ifdef __WXMSW__
+    RestoreSystemColors();
+#endif
 
         return TRUE;
 }
@@ -1143,7 +1197,6 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_ACTIVATE(MyFrame::OnActivate)
   EVT_COMMAND(ID_NMEA_WINDOW, EVT_NMEA, MyFrame::OnEvtNMEA)
   EVT_ERASE_BACKGROUND(MyFrame::OnEraseBackground)
-
 END_EVENT_TABLE()
 
 
@@ -1188,6 +1241,19 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 #endif
 
         bFirstAuto = true;
+
+#ifdef __WXMSW__
+//    Establish the entry points in USER32.DLL for system color control
+
+        wxDynamicLibrary dllUser32(_T("user32.dll"));
+
+        pSetSysColors = (SetSysColors_t)dllUser32.GetSymbol(wxT("SetSysColors"));
+        pGetSysColor = (GetSysColor_t)dllUser32.GetSymbol(wxT("GetSysColor"));
+
+        SaveSystemColors();
+#endif
+
+
 }
 
 MyFrame::~MyFrame()
@@ -1240,39 +1306,77 @@ ColorScheme MyFrame::GetColorScheme()
        return global_color_scheme;
 }
 
+
 void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
 {
       global_color_scheme = cs;
 
-      wxColour back_color;
+      SetSystemColors(cs);
+
+      wxString SchemeName;
       switch(cs)
       {
-          case GLOBAL_COLOR_SCHEME_DAY:
-              back_color = wxColour(150,150,150);
-              break;
-          case GLOBAL_COLOR_SCHEME_DUSK:
-              back_color = wxColour(128,128,128);
-              break;
-          case GLOBAL_COLOR_SCHEME_NIGHT:
-              back_color = wxColour(64,64,64);
-              break;
-          default:
-              back_color = wxColour(150,150,150);
-              break;
+            case GLOBAL_COLOR_SCHEME_DAY:
+                  SchemeName = _T("DAY");
+                  break;
+            case GLOBAL_COLOR_SCHEME_DUSK:
+                  SchemeName = _T("DUSK");
+                  break;
+            case GLOBAL_COLOR_SCHEME_NIGHT:
+                  SchemeName = _T("NIGHT");
+                  break;
+            default:
+                  SchemeName = _T("DAY");
+                  break;
       }
+
+      if(ps52plib)
+             ps52plib->SetPLIBColorScheme(SchemeName);
+
+
+        //Search the user color table array to find the proper hash table
+      Usercolortable_index = 0;
+      for ( unsigned int i=0 ; i< UserColorTableArray->GetCount() ; i++ )
+      {
+            colTable *ct = ( colTable * ) UserColorTableArray->Item ( i );
+            if ( SchemeName.IsSameAs(*ct->tableName ))
+            {
+                  Usercolortable_index = i;
+                  break;
+            }
+      }
+
+      //    Set up a pointer to the proper hash table
+      pcurrent_user_color_hash = ( ColourHash * ) UserColourHashTableArray->Item ( Usercolortable_index );
+
+      if(cc1)
+            cc1->SetColorScheme(cs);
+
+      if(pWayPointMan)
+            pWayPointMan->SetColorScheme(cs);
 
       if(ChartData)
             ChartData->ApplyColorSchemeToCachedCharts(cs);
 
       if(stats)
-          stats->SetColorScheme(cs);
+            stats->SetColorScheme(cs);
 
       if(console)
-          console->SetColorScheme(cs);
+            console->SetColorScheme(cs);
+
+      if(pRouteMan)
+            pRouteMan->SetColorScheme(cs);
+
+      if(pMarkPropDialog)
+            pMarkPropDialog->SetColorScheme(cs);
+
+      if(pRoutePropDialog)
+            pRoutePropDialog->SetColorScheme(cs);
 
       if(m_pStatusBar != NULL)
       {
-          m_pStatusBar->SetBackgroundColour(back_color);
+          m_pStatusBar->SetBackgroundColour(GetGlobalColor(_T("UINFF")));
+          m_pStatusBar->ClearBackground();
 
           //    As an optimization, if color scheme is anything other than GLOBAL_COLOR_SCHEME_DAY,
           //    adjust the status bar field styles to be simple flat fields, with no unmanageable 3-D
@@ -1293,7 +1397,7 @@ void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
 
           m_pStatusBar->SetStatusStyles(m_StatusBarFieldCount, (const int *)&sb_styles[0]);
 
-          m_pStatusBar->Refresh();
+//          m_pStatusBar->Refresh(false);
       }
 
       UpdateToolbar(cs);
@@ -1525,33 +1629,40 @@ void MyFrame::PrepareToolbarBitmaps(void)
 
 //  Build Night Bitmap
         pimg = new wxImage(px1);
-        BuildToolBitmap(pimg,  64, index, tool_bitmap_hash_night);
+        BuildToolBitmap(pimg,  32, index, tool_bitmap_hash_night);
         delete pimg;
     }
 }
 
 void MyFrame::BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index, string_to_pbitmap_hash &hash)
 {
+        wxImage img_dup(*pimg);
+
+        if(back_color < 200)
+        {
+              wxImage img_dupG = img_dup.ConvertToGreyscale();
+              img_dup = img_dupG;
+        }
 
         // Substitute the mask color with a fixed background color
         unsigned char mask_r, mask_g, mask_b;
-        pimg->GetOrFindMaskColour(&mask_r, &mask_g, &mask_b);
+        img_dup.GetOrFindMaskColour(&mask_r, &mask_g, &mask_b);
 
-        pimg->Replace(mask_r, mask_g, mask_b, back_color,back_color,back_color);
+        img_dup.Replace(mask_r, mask_g, mask_b, back_color,back_color,back_color);
 
         //Remove the mask from the image
-        pimg->SetMask(false);
+        img_dup.SetMask(false);
 
         //  Make a bitmap
-        wxBitmap tbmp(pimg->GetWidth(),pimg->GetHeight(),-1);
+        wxBitmap tbmp(img_dup.GetWidth(),img_dup.GetHeight(),-1);
         wxMemoryDC dwxdc;
         dwxdc.SelectObject(tbmp);
         wxBitmap *ptoolBarBitmap;
 
 #ifdef __WXMSW__
-        ptoolBarBitmap = new wxBitmap(*pimg, (wxDC &)dwxdc);
+        ptoolBarBitmap = new wxBitmap(img_dup, (wxDC &)dwxdc);
 #else
-        ptoolBarBitmap = new wxBitmap(*pimg);
+        ptoolBarBitmap = new wxBitmap(img_dup);
 #endif
 
         // store it
@@ -1580,25 +1691,20 @@ void MyFrame::ReSizeToolbar(void)
 //      Update inplace the current toolbar with bitmaps corresponding to the current color scheme
 void MyFrame::UpdateToolbar(ColorScheme cs)
 {
-    wxColour back_color;
 
     //  Select the correct bitmap hash table and background color
     switch(cs)
     {
         case GLOBAL_COLOR_SCHEME_DAY:
             m_phash = &tool_bitmap_hash_day;
-            back_color = wxColour(230,230,230);
             break;
         case GLOBAL_COLOR_SCHEME_DUSK:
             m_phash = &tool_bitmap_hash_dusk;
-            back_color = wxColour(128,128,128);
             break;
         case GLOBAL_COLOR_SCHEME_NIGHT:
             m_phash = &tool_bitmap_hash_night;
-            back_color = wxColour(64,64,64);
             break;
         default:
-            back_color = wxColour(150,150,150);
             m_phash = &tool_bitmap_hash_day;
             break;
     }
@@ -1617,13 +1723,21 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
     SetToolBar((wxToolBar *)toolBar);
 #endif
 
+#ifdef __WXMSW__
+    wxColour back_color = GetGlobalColor(_T("GREY1"));
+#else
+    wxColour back_color = GetGlobalColor(_T("GREY2"));
+#endif
 
     //  Set background
     toolBar->SetBackgroundColour(back_color);
+    toolBar->ClearBackground();
 
 #ifdef __WXGTK__
 #ifdef ocpnUSE_GTK_OPTIMIZE
+#ifndef __WXUNIVERSAL__
     //  On GTK, need to be more explicit
+    //  This code changes the background(transparent) colors on the toolbar icons
     GdkColor color;
 
     color.red = back_color.Red() << 8;
@@ -1631,6 +1745,12 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
     color.blue = back_color.Blue() << 8;
 
     gtk_widget_modify_bg (GTK_WIDGET(toolBar->m_toolbar), GTK_STATE_NORMAL, &color);
+
+//    wxToolBarToolBase *tool_base = toolBar->FindById(ID_FOLLOW);
+//    wxToolBarTool* tool = wx_static_cast(wxToolBarTool*, tool_base);
+//    GtkWidget *pthis_tool_item = tool_base->m_item;
+//    gtk_widget_modify_bg (GTK_WIDGET(toolBar->m_toolbar), GTK_STATE_ACTIVE, &color);
+#endif
 #endif
 #endif
 
@@ -1721,7 +1841,9 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
         pAIS = NULL;
     }
 
-    console->Destroy();
+    if(NULL != console)
+          console->Destroy();
+
     stats->Destroy();
 
 //    pthumbwin->Destroy();
@@ -1753,6 +1875,7 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
 
     //      Automatically drop an anchorage waypoint, if enabled
     this->Destroy();
+
 }
 
 void MyFrame::OnSize(wxSizeEvent& event)
@@ -1896,8 +2019,8 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             {
                 cc1->m_bFollow = true;
 //      Warp speed jump to current position
-                cc1->SetViewPoint(vLat, vLon, cc1->GetVPScale(),
-                              Current_Ch->GetChartSkew() * PI / 180., 1, FORCE_SUBSAMPLE);     // set mod 4
+                cc1->SetViewPoint(gLat, gLon, cc1->GetVPScale(),
+                                  Current_Ch->GetChartSkew() * PI / 180., 1, FORCE_SUBSAMPLE);     // set mod 4
                 cc1->Refresh(false);
             }
             else
@@ -2031,6 +2154,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
             if(cc1)
             {
+                cc1->SetbTCUpdate(true);                        // force re-render of tide/current locators
                 cc1->FlushBackgroundRender();
                 cc1->Refresh(false);
             }
@@ -2052,10 +2176,18 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 {
  //             ShowDebugWindow as a wxStatusBar
         m_StatusBarFieldCount = 6;
+
+#ifdef __WXMSW__
+        UseNativeStatusBar(false);              // better for MSW, undocumented in frame.cpp
+#endif
+
         if(pConfig->m_bShowDebugWindows)
         {
                 if(!m_pStatusBar)
+                {
                     m_pStatusBar = CreateStatusBar(m_StatusBarFieldCount, 0);       // No wxST_SIZEGRIP needed
+                }
+
         }
         else
         {
@@ -2335,29 +2467,20 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 #endif
 
 //  Force own-ship drawing parameters
-        cc1->Ship_Color = *wxRED;
-        cc1->Ship_Size  = 10;
+      cc1->SetOwnShipState(SHIP_NORMAL);
 
         if(Current_Ch)
         {
            if(Current_Ch->Chart_Error_Factor > 0.02)
-            {
-                cc1->Ship_Color = wxColor(255,255,0);
-                cc1->Ship_Size  = 20;
-            }
+               cc1->SetOwnShipState(SHIP_LOWACCURACY);
         }
 
         if(!bGPSValid)
-        {
-            cc1->Ship_Color = *wxWHITE;
-            cc1->Ship_Size  = 10;
-        }
+            cc1->SetOwnShipState(SHIP_INVALID);
+
 
 
         FrameTimer1.Start(TIMER_GFRAME_1, wxTIMER_CONTINUOUS);
-
-//        cc1->Refresh(false);
-
 
 //  Invalidate the ChartCanvas window appropriately
         cc1->UpdateShips();
@@ -2372,8 +2495,9 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
             cc1->Refresh(false);
         }
 
-        if(console->IsShown())
-           console->Refresh(false);
+        if(NULL != console)
+            if(console->IsShown())
+                 console->Refresh(false);
 
 }
 
@@ -2414,7 +2538,7 @@ void RenderShadowText(wxDC *pdc, wxFont *pFont, wxString& str, int x, int y)
         wxFont oldfont = pdc->GetFont(); // save current font
 
         pdc->SetFont(*pFont);
-        pdc->SetTextForeground(wxColour(255,255,255));
+        pdc->SetTextForeground(GetGlobalColor(_T("CHGRF")));
         pdc->SetBackgroundMode(wxTRANSPARENT);
 
         pdc->DrawText(str, x, y+1);
@@ -2422,7 +2546,7 @@ void RenderShadowText(wxDC *pdc, wxFont *pFont, wxString& str, int x, int y)
         pdc->DrawText(str, x+1, y);
         pdc->DrawText(str, x-1, y);
 
-        pdc->SetTextForeground(wxColour(0,0,0));
+        pdc->SetTextForeground(GetGlobalColor(_T("CHBLK")));
 
         pdc->DrawText(str, x, y);
 
@@ -2445,22 +2569,17 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 
     if(m_tool_dummy_size_x <= 0)
         return;
-//begin rms
-      int iSysDescent = 0 ;
-//end rms
+
+    int iSysDescent = 0 ;
 #ifdef __WXMSW__
-//      int font1_size = 24;
       int font2_size = 10;
       int font3_size = 14;
-//begin rms
 #elif defined(__WXOSX__)
       int font2_size = 10;
       int font3_size = 12;
-// end rms
 #else
-//      int font1_size = 22;
       int font2_size = 12;
-      int font3_size = 16;
+      int font3_size = 14;
 #endif
 
 
@@ -2478,22 +2597,18 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 // First, clear background
 // Using a color depending on the state of bGPSValid and Chart_Error_Factor
       wxBrush *p_brush;
-      p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(200,220,200), wxSOLID);   // quiet green
-
-      //    If the color sceme is "NIGHT", use a darker color
-      if(global_color_scheme == GLOBAL_COLOR_SCHEME_NIGHT)
-          p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(100,110,100), wxSOLID);   // quiet green
+      p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN3")), wxSOLID);   // quiet green
 
 
       if(Current_Ch->Chart_Error_Factor > .02)                                       // X percent error
-          p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,255,0), wxSOLID);   // loud yellow
+            p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("CHYLW")), wxSOLID);   // loud yellow
 
       if(!bGPSValid)
       {
           if(Current_Ch->Chart_Error_Factor > .02)                                       // X percent error
-              p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(255,108,0), wxSOLID);  // orange
+                p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UINFO")), wxSOLID);  // orange
           else
-              p_brush = wxTheBrushList->FindOrCreateBrush(wxColour(220,200,200), wxSOLID);  // soft red
+              p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("RED1")), wxSOLID);  // soft red
       }
 
       dc.SetBackground(*p_brush);
@@ -2501,16 +2616,17 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 
 // Show Pub date
 // Get a Font
-      wxFont *pSWFont1;
-//begin rms
-#ifndef __WXOSX__
-      pSWFont1 = wxTheFontList->FindOrCreateFont(font3_size, wxDEFAULT,wxNORMAL, wxBOLD,
-        FALSE, wxString(_T("Eurostile Extended")), wxFONTENCODING_SYSTEM );
-#else
-      pSWFont1 = wxTheFontList->FindOrCreateFont(font3_size, wxFONTFAMILY_ROMAN,wxNORMAL, wxNORMAL,
-        FALSE, wxString(_T("Roman")), wxFONTENCODING_SYSTEM );
+      wxFontFamily family = wxFONTFAMILY_ROMAN;
+      wxString font_name(_T("Roman"));
+#ifdef __WXMSW__
+      family = (enum wxFontFamily)wxDEFAULT;
+      font_name = _T("Arial");
 #endif
-//end rms
+
+      wxFont *pSWFont1;
+      pSWFont1 = wxTheFontList->FindOrCreateFont(font3_size, family, wxNORMAL, wxNORMAL,
+        FALSE, font_name, wxFONTENCODING_SYSTEM );
+
       dc.SetFont(*pSWFont1);
 
 //      Get and show the Chart Publish Date
@@ -2522,13 +2638,17 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 
       int date_locn_x = size_x - w - 2;
       int date_locn_y = size_y - h;
-//  begin rms
-#ifdef __WXOSX__
+
+      //    GTK appears to return height as total height, including descenders.
+      //    Other platforms return height as height above baseline...
+#ifndef __WXGTK__
       iSysDescent = descent ;
 #endif
-// end rms
-      //    + descent for linux??
-      RenderShadowText(&dc, pSWFont1, pub_date, date_locn_x, date_locn_y - iSysDescent/*inline rms*/);
+
+//      RenderShadowText(&dc, pSWFont1, pub_date, date_locn_x, date_locn_y - iSysDescent);
+
+      dc.SetFont(*pSWFont1);
+      dc.DrawText(pub_date, date_locn_x, date_locn_y - iSysDescent);
 
 
 //    Show File Name
@@ -2545,7 +2665,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       int height_font_2;
       GetTextExtent(full_path, &w, &height_font_2, NULL, NULL, pSWFont2);
 
-      dc.DrawText(full_path, 0, 0);
+      dc.DrawText(full_path, 4, 0);
 
 
 //    Show Chart Nice Name
@@ -2553,7 +2673,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 //   Get and show the Chart Nice Name
       wxFont *pSWFont3;
       pSWFont3 = wxTheFontList->FindOrCreateFont(font3_size, wxDEFAULT,wxNORMAL, wxBOLD,
-              FALSE, wxString(_T("Eurostile Extended")), wxFONTENCODING_SYSTEM );
+              FALSE, wxString(_T("Arial")), wxFONTENCODING_SYSTEM );
       dc.SetFont(*pSWFont3);
 
 
@@ -2584,13 +2704,15 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       wxString name;
       pchart->GetName(name);
 
+      int x_offset = 4;
+
 //    Possibly adjust the font?
       GetTextExtent(name, &w, &h, NULL, NULL, pSWFont3);
-      if(w > date_locn_x)
+      if(w + x_offset > date_locn_x)
       {
             dc.SetFont(*pSWFont2);
             GetTextExtent(name, &w, &h, NULL, NULL, pSWFont2);
-            if(w > date_locn_x)                                     // still too long, so shorten it
+            if(w + x_offset > date_locn_x)                   // still too long, so shorten it
             {
               wxString nameshort;
               int l = name.Len();
@@ -2600,17 +2722,17 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
                 nameshort = name.Mid(0, l);
                 nameshort.Append(_T("..."));
                 GetTextExtent(nameshort, &w, &h, NULL, NULL, pSWFont2);
-                if(w < date_locn_x)
+                if(w + x_offset < date_locn_x)
                   break;
                 l -= 1;
               }
-              dc.DrawText(nameshort, 0, size_y - h - iSysDescent/*inline rms*/);                  // properly placed
+              dc.DrawText(nameshort, x_offset, size_y - h - iSysDescent);    // properly placed
             }
             else
-                  dc.DrawText(name, 0, size_y - h - iSysDescent/*inline rms*/);
+                  dc.DrawText(name, x_offset, size_y - h - iSysDescent);
       }
       else
-        dc.DrawText(name, 0, size_y - h - iSysDescent/*inline rms*/);
+        dc.DrawText(name, x_offset, size_y - h - iSysDescent);
 
 //   Delete the current status tool, if present
       int ct_pos = toolBar->GetToolPos(ID_TBSTAT);
@@ -3885,4 +4007,422 @@ FILE *f;
        if (pString->Last() != sep)
          pString->Append(sep);
  }
+
+
+/*************************************************************************
+ * Global color management routines
+ *
+ *************************************************************************/
+
+
+wxColour GetGlobalColor(wxString colorName)
+{
+      wxColour ret_color;
+      //    Use the S52 Presentation library if present
+      if(ps52plib)
+      {
+            ret_color = ps52plib->S52_getwxColour(colorName);
+
+            if(!ret_color.Ok())           //261 likes Ok(), 283 likes IsOk()...
+            {
+                  if(NULL != pcurrent_user_color_hash)
+                        ret_color = ( *pcurrent_user_color_hash ) [colorName];
+            }
+      }
+
+      else
+      {
+            if(NULL != pcurrent_user_color_hash)
+                  ret_color = ( *pcurrent_user_color_hash ) [colorName];
+      }
+
+      //    Default
+      if(!ret_color.Ok())
+            ret_color.Set(128,128,128);  // Simple Grey
+
+      return ret_color;
+}
+
+
+static char *usercolors[] = {
+"Table:DAY",
+"GREEN1;120;255;120;",
+"GREEN2; 45;150; 45;",
+"GREEN3;200;220;200;",
+"GREEN4;  0;255;  0;",
+"BLUE1; 170;170;255;",
+"BLUE2;  45; 45;170;",
+"BLUE3;   0;  0;255;",
+"GREY1; 150;150;150;",
+"GREY2; 230;230;230;",
+"RED1;  220;200;200;",
+"UBLCK;   0;  0;  0;",
+"UWHIT; 255;255;255;",
+"URED;  255;  0;  0;",
+"UGREN;   0;255;  0;",
+"UYELLOW; 243;229; 47;",
+"DILG0; 238;239;242;",                  // Dialog Background white
+"DILG1; 212;208;200;",			// Dialog Background
+"DILG2; 255;255;255;",			// Control Background
+"DILG3;   0;  0;  0;",			// Text
+
+"Table:DUSK",
+"GREEN1; 60;128; 60;",
+"GREEN2; 22; 75; 22;",
+"GREEN3; 80;100; 80;",
+"GREEN4;  0;128;  0;",
+"BLUE1;  80; 80;160;",
+"BLUE2;  30; 30;120;",
+"BLUE3;   0;  0;128;",
+"GREY1; 100;100;100;",
+"GREY2; 128;128;128;",
+"RED1;  150;100;100;",
+"UBLCK;   0;  0;  0;",
+"UWHIT; 255;255;255;",
+"URED;  120; 54; 11;",
+"UGREN;  35;110; 20;",
+"UYELLOW; 243;229; 47;",
+"DILG0; 110;110;110;",                  // Dialog Background
+"DILG1; 110;110;110;",			// Dialog Background
+"DILG2; 100;100;100;",			// Control Background
+"DILG3; 130;130;130;",			// Text
+
+"Table:NIGHT",
+"GREEN1; 30; 80; 30;",
+"GREEN2; 15; 60; 15;",
+"GREEN3; 12; 23;  9;",
+"GREEN4;  0;100;  0;",
+"BLUE1;  60; 60;100;",
+"BLUE2;  22; 22; 85;",
+"BLUE3;   0;  0; 40;",
+"GREY1;  64; 64; 64;",
+"GREY2;  64; 64; 64;",
+"RED1;  100; 50; 50;",
+"UWHIT; 255;255;255;",
+"UBLCK;   0;  0;  0;",
+"URED;   60; 27;  5;",
+"UGREN;  17; 55; 10;",
+"UYELLOW; 243;229; 47;",
+"DILG0;  80; 80; 80;",                  // Dialog Background
+"DILG1;  80; 80; 80;",			// Dialog Background
+"DILG2;  52; 52; 52;",			// Control Background
+"DILG3;  65; 65; 65;",			// Text
+
+"*****"
+};
+
+
+int get_static_line(char *d, char **p, int index, int n)
+{
+      if(!strcmp(p[index], "*****"))
+            return 0;
+
+      strncpy(d, p[index], n);
+      return strlen(d);
+}
+
+void InitializeUserColors(void)
+{
+      char **p = usercolors;
+      char buf[80];
+      int index = 0;
+      char TableName[20];
+      colTable *ctp;
+      colTable *ct;
+      int colIdx = 0;
+      int R,G,B;
+
+      UserColorTableArray = new wxArrayPtrVoid;
+      UserColourHashTableArray = new wxArrayPtrVoid;
+
+      //    Create 3 color table entries
+      ct = new colTable;
+      ct->tableName = new wxString ( _T("DAY"));
+      ct->color     = new wxArrayPtrVoid;
+      UserColorTableArray->Add ( ( void * ) ct );
+
+      ct = new colTable;
+      ct->tableName = new wxString ( _T("DUSK"));
+      ct->color     = new wxArrayPtrVoid;
+      UserColorTableArray->Add ( ( void * ) ct );
+
+      ct = new colTable;
+      ct->tableName = new wxString ( _T("NIGHT"));
+      ct->color     = new wxArrayPtrVoid;
+      UserColorTableArray->Add ( ( void * ) ct );
+
+
+      while((get_static_line(buf, p, index,80)))
+      {
+            if(!strncmp(buf, "Table", 5))
+            {
+                  sscanf(buf, "Table:%s", TableName);
+
+                  for(unsigned int it=0 ; it < UserColorTableArray->GetCount() ; it++)
+                  {
+                        ctp = (colTable *)(UserColorTableArray->Item(it));
+                        if(!strcmp(TableName, ctp->tableName->mb_str()))
+                        {
+                              ct = ctp;
+                              colIdx = 0;
+                              break;
+                        }
+                  }
+
+            }
+            else
+            {
+                  char name[80];
+                  int j=0;
+                  while(buf[j] != ';')
+                  {
+                        name[j] = buf[j];
+                        j++;
+                  }
+                  name[j] = 0;
+
+                  color *c = new color;
+                  strcpy(c->colName, name);
+
+
+                  sscanf(&buf[j], ";%i;%i;%i", &R, &G, &B);
+                  c->R = (char)R;
+                  c->G = (char)G;
+                  c->B = (char)B;
+
+                  ct->color->Add ( c );
+
+            }
+
+           index ++;
+      }
+
+      //    Now create the Hash tables
+
+            for ( unsigned int its=0 ; its < UserColorTableArray->GetCount() ; its++ )
+            {
+                  ColourHash *phash = new ColourHash;
+                  UserColourHashTableArray->Add ( ( void * ) phash );
+
+                  colTable *ctp = ( colTable * ) ( UserColorTableArray->Item ( its ) );
+
+                  for ( unsigned int ic=0 ; ic < ctp->color->GetCount() ; ic++ )
+                  {
+                        color *c2 = ( color * ) ( ctp->color->Item ( ic ) );
+
+                        wxColour c ( c2->R, c2->G, c2->B );
+                        wxString key ( c2->colName, wxConvUTF8 );
+                        ( *phash ) [key] = c;
+
+                  }
+            }
+
+            //    Establish a default hash table pointer
+            //    in case a color is needed before ColorScheme is set
+            pcurrent_user_color_hash = (ColourHash *)UserColourHashTableArray->Item(0);
+}
+
+void DeInitializeUserColors(void)
+{
+      unsigned int i;
+      for( i = 0 ; i< UserColorTableArray->GetCount() ; i++)
+      {
+            colTable *ct = (colTable *)UserColorTableArray->Item(i);
+
+            for(unsigned int j = 0 ; j<ct->color->GetCount() ; j++)
+            {
+                  color *c = (color *)ct->color->Item(j);
+                  delete c;                     //color
+            }
+
+            delete ct->tableName;               // wxString
+            delete ct->color;                   // wxArrayPtrVoid
+
+            delete ct;                          // colTable
+      }
+
+      delete UserColorTableArray;
+
+      for( i = 0 ; i< UserColourHashTableArray->GetCount() ; i++)
+      {
+            ColourHash *phash = (ColourHash *)UserColourHashTableArray->Item(i);
+            delete phash;
+      }
+
+      delete UserColourHashTableArray;
+
+}
+
+
+#ifdef __WXMSW__
+void SaveSystemColors()
+{
+      color_3dface = pGetSysColor(COLOR_3DFACE);
+      color_3dhilite = pGetSysColor(COLOR_3DHILIGHT);
+      color_3dshadow = pGetSysColor(COLOR_3DSHADOW);
+      color_3ddkshadow = pGetSysColor(COLOR_3DDKSHADOW);
+      color_3dlight = pGetSysColor(COLOR_3DLIGHT);
+	  color_activecaption = pGetSysColor(COLOR_ACTIVECAPTION);
+      color_gradientactivecaption = pGetSysColor(27); //COLOR_3DLIGHT);
+      color_captiontext = pGetSysColor(COLOR_CAPTIONTEXT);
+      color_windowframe = pGetSysColor(COLOR_WINDOWFRAME);
+      color_inactiveborder = pGetSysColor(COLOR_INACTIVEBORDER);
+
+}
+
+void RestoreSystemColors()
+{
+      int element[20];
+      int rgbcolor[20];
+      int i=0;
+
+      element[i] = COLOR_3DFACE;
+      rgbcolor[i] = color_3dface;
+      i++;
+
+      element[i] = COLOR_3DHILIGHT;
+      rgbcolor[i] = color_3dhilite;
+      i++;
+
+      element[i] = COLOR_3DSHADOW;
+      rgbcolor[i] = color_3dshadow;
+      i++;
+
+      element[i] = COLOR_3DDKSHADOW;
+      rgbcolor[i] = color_3ddkshadow;
+      i++;
+
+      element[i] = COLOR_3DLIGHT;
+      rgbcolor[i] = color_3dlight;
+      i++;
+
+      element[i] = COLOR_ACTIVECAPTION;
+      rgbcolor[i] = color_activecaption;
+      i++;
+
+      element[i] = 27; //COLOR_GRADIENTACTIVECAPTION;
+      rgbcolor[i] = color_gradientactivecaption;
+      i++;
+
+      element[i] = COLOR_CAPTIONTEXT;
+      rgbcolor[i] = color_captiontext;
+      i++;
+
+      element[i] = COLOR_WINDOWFRAME;
+      rgbcolor[i] = color_windowframe;
+      i++;
+
+      element[i] = COLOR_INACTIVEBORDER;
+      rgbcolor[i] = color_inactiveborder;
+      i++;
+
+      pSetSysColors(i, (unsigned long *)&element[0], (unsigned long *)&rgbcolor[0]);
+
+}
+
+#endif
+
+void SetSystemColors ( ColorScheme cs )
+{
+//---------------
+#ifdef __WXMSW__
+        int element[20];
+        int rgbcolor[20];
+        if ( ( GLOBAL_COLOR_SCHEME_DUSK == cs ) || ( GLOBAL_COLOR_SCHEME_NIGHT == cs ) )
+        {
+                int i=0;
+                element[i] = COLOR_3DFACE;
+                rgbcolor[0] = 0x00404040;
+                i++;
+
+                element[i] = COLOR_3DHILIGHT;
+                rgbcolor[i] = 0x00505050;
+                i++;
+
+                element[i] = COLOR_3DSHADOW;
+                rgbcolor[i] = 0x00505050;
+                i++;
+
+                element[i] = COLOR_3DDKSHADOW;
+                rgbcolor[i] = 0x00505050;
+                i++;
+
+                element[i] = COLOR_3DLIGHT;
+                rgbcolor[i] = 0x00505050;
+                i++;
+
+                element[i] = COLOR_ACTIVECAPTION;
+                rgbcolor[i] = 0x00505050;
+                i++;
+
+                element[i] = 27; //COLOR_GRADIENTACTIVECAPTION;
+                rgbcolor[i] = 0x00555555;
+                i++;
+
+                element[i] = COLOR_CAPTIONTEXT;
+                rgbcolor[i] = 0x00606060;
+                i++;
+
+                element[i] = COLOR_WINDOWFRAME;
+                rgbcolor[i] = 0x00303030;
+                i++;
+
+                element[i] = COLOR_INACTIVEBORDER;
+                rgbcolor[i] = 0x00303030;
+                i++;
+
+                pSetSysColors ( i, ( unsigned long * ) &element[0], ( unsigned long * ) &rgbcolor[0] );
+
+
+        }
+        else
+        {
+                int i=0;
+                element[i] = COLOR_3DFACE;
+                rgbcolor[i] = color_3dface;
+                i++;
+
+                element[i] = COLOR_3DHILIGHT;
+                rgbcolor[i] = color_3dhilite;
+                i++;
+
+                element[i] = COLOR_3DSHADOW;
+                rgbcolor[i] = color_3dshadow;
+                i++;
+
+                element[i] = COLOR_3DDKSHADOW;
+                rgbcolor[i] = color_3ddkshadow;
+                i++;
+
+                element[i] = COLOR_3DLIGHT;
+                rgbcolor[i] = color_3dlight;
+                i++;
+
+                element[i] = COLOR_ACTIVECAPTION;
+                rgbcolor[i] = color_activecaption;
+                i++;
+
+                element[i] = 27; //COLOR_GRADIENTACTIVECAPTION;
+                rgbcolor[i] = color_gradientactivecaption;
+                i++;
+
+                element[i] = COLOR_CAPTIONTEXT;
+                rgbcolor[i] = color_captiontext;
+                i++;
+
+                element[i] = COLOR_WINDOWFRAME;
+                rgbcolor[i] = color_windowframe;
+                i++;
+
+                element[i] = COLOR_INACTIVEBORDER;
+                rgbcolor[i] = color_inactiveborder;
+                i++;
+
+                pSetSysColors ( i, ( unsigned long * ) &element[0], ( unsigned long * ) &rgbcolor[0] );
+
+        }
+#endif
+}
+
+
 

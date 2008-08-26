@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: thumbwin.cpp,v 1.4 2008/03/30 22:29:22 bdbcat Exp $
+ * $Id: thumbwin.cpp,v 1.5 2008/08/26 13:46:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Thumbnail Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: thumbwin.cpp,v $
+ * Revision 1.5  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.4  2008/03/30 22:29:22  bdbcat
  * Cleanup
  *
@@ -91,7 +94,7 @@ extern ChartBase        *Current_Ch;
 extern ChartCanvas      *cc1;
 
 
-CPL_CVSID("$Id: thumbwin.cpp,v 1.4 2008/03/30 22:29:22 bdbcat Exp $");
+CPL_CVSID("$Id: thumbwin.cpp,v 1.5 2008/08/26 13:46:25 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    Thumbwin Implementation
@@ -148,9 +151,9 @@ void ThumbWin::OnPaint(wxPaintEvent& event)
             if(pThumbChart->GetThumbData()->pDIBThumb)
                   dc.DrawBitmap(*(pThumbChart->GetThumbData()->pDIBThumb), 0, 0, false);
 
-            wxPen ppPen(wxColour(0,0,0), 1, wxSOLID);
+            wxPen ppPen(GetGlobalColor(_T("CHBLK")), 1, wxSOLID);
             dc.SetPen(ppPen);
-            wxBrush yBrush(wxColour(255,255,0), wxSOLID);
+            wxBrush yBrush(GetGlobalColor(_T("CHYLW")), wxSOLID);
             dc.SetBrush(yBrush);
             dc.DrawCircle(pThumbChart->GetThumbData()->ShipX, pThumbChart->GetThumbData()->ShipY, 6);
       }

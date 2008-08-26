@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.5 2008/04/11 03:26:33 bdbcat Exp $
+ * $Id: options.h,v 1.6 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.6  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.5  2008/04/11 03:26:33  bdbcat
  * Implement Auto Anchor Mark
  *
@@ -130,6 +133,7 @@ public:
              long style = SYMBOL_OPTIONS_STYLE, const wxString& init_chart_dir = _(""));
 
     void CreateControls();
+    void SetColorScheme(ColorScheme cs);
 
     void SetInitialSettings();
 
@@ -151,10 +155,17 @@ public:
     void OnPageChange(wxNotebookEvent& event);
     void OnNMEASourceChoice(wxCommandEvent& event);
 
+    void SetControlColors(wxWindow *ctrl, ColorScheme cs);
+
 // Should we show tooltips?
     static bool ShowToolTips();
 
+    wxNotebook*             itemNotebook4;
+    wxButton*               m_OKButton;
+    wxButton*               m_CancelButton;
+
 //    For General Options
+    wxPanel*                itemPanel5;
     wxCheckBox              *pDebugShowStat;
     wxCheckBox              *pPrintShowIcon;
     wxCheckBox              *pCDOOutlines;
@@ -203,6 +214,7 @@ public:
 #endif
 
 //    For Fonts page
+    wxPanel*                itemPanelFont;
     wxComboBox              *m_itemFontElementListBox;
 
 //    For "AIS Options"

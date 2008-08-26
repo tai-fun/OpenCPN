@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.9 2008/08/09 23:58:40 bdbcat Exp $
+ * $Id: options.cpp,v 1.10 2008/08/26 13:46:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.10  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.9  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -39,6 +42,9 @@
  * Cleanup
  *
  * $Log: options.cpp,v $
+ * Revision 1.10  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.9  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -84,7 +90,7 @@
 
 
 #include "dychart.h"
-
+#include "chart1.h"
 #include "options.h"
 
 #include "navutil.h"
@@ -102,6 +108,7 @@ extern FontMgr          *pFontMgr;
 extern wxString         *pAIS_Port;
 extern wxString         *pInit_Chart_Dir;
 extern bool             g_bAutoAnchorMark;
+extern ColorScheme      global_color_scheme;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -154,7 +161,18 @@ options::options( wxWindow* parent, wxWindowID id, const wxString& caption, cons
 
       pParent = parent;
 
-      Create(parent, id, caption, pos, size, style, Initial_Chart_Dir);
+      //    As a display optimization....
+      //    if current color scheme is other than DAY,
+      //    Then create the dialog ..WITHOUT.. borders and title bar.
+      //    This way, any window decorations set by external themes, etc
+      //    will not detract from night-vision
+
+      long wstyle = wxDEFAULT_DIALOG_STYLE;
+//      if(global_color_scheme != GLOBAL_COLOR_SCHEME_DAY)
+//            wstyle |= (wxNO_BORDER);
+
+
+      Create(parent, id, caption, pos, size, wstyle, Initial_Chart_Dir);
 }
 
 
@@ -203,7 +221,7 @@ void options::CreateControls()
     itemDialog1->SetSizer(itemBoxSizer2);
 
 
-    wxNotebook* itemNotebook4 = new wxNotebook( itemDialog1, ID_NOTEBOOK, wxDefaultPosition,
+    itemNotebook4 = new wxNotebook( itemDialog1, ID_NOTEBOOK, wxDefaultPosition,
             wxSize(-1, -1), wxNB_TOP );
     itemBoxSizer2->Add(itemNotebook4, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL|wxGROW, 10);
 
@@ -211,17 +229,17 @@ void options::CreateControls()
     wxBoxSizer* itemBoxSizer28 = new wxBoxSizer(wxHORIZONTAL);
     itemBoxSizer2->Add(itemBoxSizer28, 0, wxALIGN_RIGHT|wxALL, 5);
 
-    wxButton* itemButton29 = new wxButton( itemDialog1, xID_OK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemButton29->SetDefault();
-    itemBoxSizer28->Add(itemButton29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    m_OKButton = new wxButton( itemDialog1, xID_OK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0 );
+    m_OKButton->SetDefault();
+    itemBoxSizer28->Add(m_OKButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
-    wxButton* itemButton30 = new wxButton( itemDialog1, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemBoxSizer28->Add(itemButton30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    m_CancelButton = new wxButton( itemDialog1, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemBoxSizer28->Add(m_CancelButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
 
     //  Create "Settings" panel
 
-    wxPanel* itemPanel5 = new wxPanel( itemNotebook4, ID_PANEL2, wxDefaultPosition, wxDefaultSize,
+    itemPanel5 = new wxPanel( itemNotebook4, ID_PANEL2, wxDefaultPosition, wxDefaultSize,
                                        wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
     wxBoxSizer* itemBoxSizer6 = new wxBoxSizer(wxVERTICAL);
     itemPanel5->SetSizer(itemBoxSizer6);
@@ -272,8 +290,6 @@ void options::CreateControls()
                                    wxSize(-1, -1), 0 );
     pAutoAnchorMark->SetValue(FALSE);
     itemStaticBoxSizerCDO->Add(pAutoAnchorMark, 1, wxALIGN_LEFT|wxALL, 5);
-
-
 
 
 //    Add NMEA Options Box
@@ -569,7 +585,7 @@ void options::CreateControls()
 
 
     //      Build Fonts panel
-    wxPanel* itemPanelFont = new wxPanel( itemNotebook4, ID_PANELFONT, wxDefaultPosition, wxDefaultSize,
+    itemPanelFont = new wxPanel( itemNotebook4, ID_PANELFONT, wxDefaultPosition, wxDefaultSize,
                                           wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
     wxBoxSizer* itemBoxSizerFontPanel = new wxBoxSizer(wxVERTICAL);
     itemPanelFont->SetSizer(itemBoxSizerFontPanel);
@@ -605,8 +621,31 @@ void options::CreateControls()
 
 
     pSettingsCB1 = pDebugShowStat;
+
+    SetColorScheme((ColorScheme)0);
+
 }
 
+void options::SetColorScheme(ColorScheme cs)
+{
+      SetBackgroundColour(GetGlobalColor(_T("DILG0")));
+
+      wxColour back_color = GetGlobalColor(_T("DILG2"));
+      wxColour text_color = GetGlobalColor(_T("DILG3"));
+
+      SetControlColors(itemNotebook4, cs);
+      SetControlColors(itemPanel5, cs);
+      SetControlColors(itemPanel9, cs);
+      SetControlColors(ps57Ctl, cs);
+      SetControlColors(itemPanelFont, cs);
+      SetControlColors(pDirCtl, cs);
+      SetControlColors(pSelCtl, cs);
+      SetControlColors(pTextCtl, cs);
+
+      SetControlColors(m_CancelButton, cs);
+      SetControlColors(m_OKButton, cs);
+
+}
 
 
 void options::SetInitialSettings()
@@ -633,7 +672,9 @@ void options::SetInitialSettings()
 
 //    Settings too
 
-      pSettingsCB1->SetValue(m_pConfig->m_bShowDebugWindows);
+      if(m_pConfig)
+            pSettingsCB1->SetValue(m_pConfig->m_bShowDebugWindows);
+
       pPrintShowIcon->SetValue(g_bShowPrintIcon);
       pCDOOutlines->SetValue(g_bShowOutlines);
       pSDepthUnits->SetValue(g_bShowDepthUnits);
@@ -1119,6 +1160,11 @@ void options::OnPageChange(wxNotebookEvent& event)
           wxButton* itemButton18 = new wxButton( itemPanel9, ID_BUTTONDELETE, _("Delete Selection"), wxDefaultPosition, wxDefaultSize, 0 );
           itemStaticBoxSizer16->Add(itemButton18, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
+          //      Establish control colors on deferred creation
+          SetControlColors(pDirCtl, (ColorScheme)0);
+          SetControlColors(pSelCtl, (ColorScheme)0);
+          SetControlColors(pTextCtl, (ColorScheme)0);
+
           //        Fill in the control variable data
 
           //        Currently selected chart dirs
@@ -1184,3 +1230,39 @@ void options::OnNMEASourceChoice(wxCommandEvent& event)
     }
 }
 
+void options::SetControlColors(wxWindow *ctrl, ColorScheme cs)
+{
+      if(NULL != ctrl)
+      {
+            ctrl->SetBackgroundColour(GetGlobalColor(_T("DILG0")));
+
+            wxColour back_color =GetGlobalColor(_T("DILG2"));
+            wxColour text_color = GetGlobalColor(_T("DILG3"));
+
+            ctrl->SetForegroundColour(text_color);
+
+            wxWindowList kids = ctrl->GetChildren();
+            for(unsigned int i = 0 ; i < kids.GetCount() ; i++)
+            {
+                  wxWindowListNode *node = kids.Item(i);
+                  wxWindow *win = node->GetData();
+
+                  if(win->IsKindOf(CLASSINFO(wxListBox)))
+                        win->SetBackgroundColour(back_color);
+
+                  else if(win->IsKindOf(CLASSINFO(wxGenericDirCtrl)))
+                        win->SetBackgroundColour(back_color);
+
+                  else if(win->IsKindOf(CLASSINFO(wxTextCtrl)))
+                        win->SetBackgroundColour(back_color);
+
+                  else if(win->IsKindOf(CLASSINFO(wxComboBox)))               // note ComboBoxes don't change bg properly on gtk
+                        win->SetBackgroundColour(back_color);
+
+                  else
+                        win->SetBackgroundColour(GetGlobalColor(_T("DILG0")));      // msw looks better here
+
+                  win->SetForegroundColour(text_color);
+            }
+      }
+}

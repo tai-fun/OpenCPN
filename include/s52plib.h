@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.8 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: s52plib.h,v 1.9 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.9  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.8  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -33,6 +36,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.9  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.8  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -111,7 +117,8 @@ public:
       void UpdateMarinerParams(void);
       void ClearCNSYLUPArray(void);
 
-      void SetPLIBColorScheme(char *scheme);
+      void SetPLIBColorScheme(wxString scheme);
+      bool ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp);
 
 //    Temporarily save/restore the current colortable index
 //    Useful for Thumbnail rendering
@@ -122,7 +129,6 @@ public:
       void PrepareForRender();
       int _draw(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp);
       int RenderArea(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp, render_canvas_parms *pb_spec);
-      bool ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp);
 
  // Accessors
       bool GetShowS57Text(){return m_bShowS57Text;}
@@ -186,8 +192,6 @@ public:
       Rules *StringToRules(const wxString& str_in);
       void GetAndAddCSRules(ObjRazRules *rzRules, Rules *rules);
 
-
-
       int ReadS52Line( char *pBuffer, char *delim, int nCount, FILE *fp );
       int ChopS52Line(char *pBuffer, char c);
       int ParsePos(position *pos, char *buf, bool patt);
@@ -242,10 +246,6 @@ public:
       wxArrayPtrVoid *ColourHashTableArray;
 
       float       canvas_pix_per_mm;            // Set by parent, used to scale symbols/lines/patterns
-
-
-
-      wxFont      *pSmallFont;
 
       color       unused_color;
       bool        bUseRasterSym;

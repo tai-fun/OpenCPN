@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.9 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: s52s57.h,v 1.10 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.10  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.9  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -33,6 +36,9 @@
  * *** empty log message ***
  *
  * $Log: s52s57.h,v $
+ * Revision 1.10  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.9  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -234,7 +240,7 @@ typedef struct _Cond{
 
 
 typedef struct _color{
-   char colName[6];
+   char colName[20];
    float x;
    float y;
    float L;

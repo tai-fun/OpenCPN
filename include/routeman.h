@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.h,v 1.2 2008/03/30 23:29:52 bdbcat Exp $
+ * $Id: routeman.h,v 1.3 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.h,v $
+ * Revision 1.3  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.2  2008/03/30 23:29:52  bdbcat
  * Cleanup/optimize
  *
@@ -57,7 +60,9 @@
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
-
+#ifndef PI
+#define PI        3.1415926535897931160E0      /* pi */
+#endif
 
 //----------------------------------------------------------------------------
 //    forward class declarations
@@ -73,6 +78,13 @@ class markicon_bitmap_list_type;
 class markicon_key_list_type;
 class markicon_description_list_type;
 
+class MarkIcon
+{
+      public:
+            wxBitmap   *picon_bitmap;
+            wxString   icon_name;
+            wxString   icon_description;
+};
 
 
 //----------------------------------------------------------------------------
@@ -96,6 +108,8 @@ public:
       bool UpdateAutopilot();
       bool DeactivateRoute();
 
+      void SetColorScheme(ColorScheme cs);
+
       Route *GetpActiveRoute(){ return pActiveRoute;}
       RoutePoint *GetpActivePoint(){ return pActivePoint;}
       float GetCurrentRngToActivePoint(){ return CurrentRngToActivePoint;}
@@ -104,6 +118,12 @@ public:
       float GetCurrentXTEToActivePoint(){ return CurrentXTEToActivePoint;}
       float GetCurrentSegmentCourse(){ return CurrentSegmentCourse;}
       int   GetXTEDir(){ return XTEDir;}
+
+      wxPen * GetRoutePen(void){return m_pRoutePen;}
+      wxPen * GetSelectedRoutePen(void){return m_pSelectedRoutePen;}
+      wxPen * GetActiveRoutePen(void){return m_pActiveRoutePen;}
+      wxPen * GetActiveRoutePointPen(void){return m_pActiveRoutePointPen;}
+      wxPen * GetRoutePointPen(void){return m_pRoutePointPen;}
 
       bool        m_bDataValid;
 
@@ -123,6 +143,12 @@ private:
       float       CurrentSegmentCourse;
       int         XTEDir;
       bool        m_bArrival;
+      wxPen       *m_pRoutePen;
+      wxPen       *m_pSelectedRoutePen;
+      wxPen       *m_pActiveRoutePen;
+      wxPen       *m_pActiveRoutePointPen;
+      wxPen       *m_pRoutePointPen;
+
 
 };
 
@@ -141,24 +167,28 @@ public:
       int GetNumIcons(void){ return m_nIcons; }
       wxString CreateGUID(RoutePoint *pRP);
 
+      void SetColorScheme(ColorScheme cs);
+
       wxBitmap *GetIconBitmap(int index);
       wxString *GetIconDescription(int index);
       wxString *GetIconKey(int index);
 
+      wxImageList *Getpmarkicon_image_list(void){return pmarkicon_image_list;}
+
       RoutePointList    *m_pWayPointList;
 
-//      string_to_pchar_hash      markicon_xpm_hash;         // hash map of [static] mark icon xpms
-//      string_to_pbitmap_hash    markicon_bitmap_hash;      // and to created bitmaps with same index
-//      string_to_string_hash     markicon_description_hash; // and to nice readable description of Icon
-
-      markicon_description_list_type      *pmarkicon_description_list;
-      markicon_bitmap_list_type           *pmarkicon_bitmap_list;
-      markicon_key_list_type              *pmarkicon_key_list;
-      wxImageList                         *pmarkicon_image_list;
-
-
 private:
+      wxBitmap *CreateDimBitmap(wxBitmap *pBitmap, double factor);
+
       int m_nIcons;
+
+      wxImageList       *pmarkicon_image_list;        // Current wxImageList, updated on colorscheme change
+
+      wxArrayPtrVoid    DayIconArray;
+      wxArrayPtrVoid    DuskIconArray;
+      wxArrayPtrVoid    NightIconArray;
+
+      wxArrayPtrVoid    *m_pcurrent_icon_array;
 
 };
 

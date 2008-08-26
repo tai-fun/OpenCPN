@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.8 2008/08/09 23:58:40 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.9 2008/08/26 13:49:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.9  2008/08/26 13:49:15  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.8  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -36,6 +39,9 @@
  * Add missing symbology OBSTRN, etc.
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.9  2008/08/26 13:49:15  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.8  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -100,7 +106,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.8 2008/08/09 23:58:40 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.9 2008/08/26 13:49:15 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -529,31 +535,32 @@ wxString _selSYcol(char *buf, bool bsectr)
       }
     }
 
-    else
+    else                // all-round fixed light symbolized as a circle, radius depends on color
+                        // This treatment is seen on SeeMyDenc by SevenCs
+                        // This may not be S-52 compliant....
     {
        // max 1 color
       if ('\0' == buf[1])
       {
           if (strpbrk(buf, "\003"))
-                sym = _T(",LITRD, 2");
+                sym = _T(",LITRD, 2,0,360,4,0");
           else if (strpbrk(buf, "\004"))
-                sym = _T(",LITGN, 2");
+                sym = _T(",LITGN, 2,0,360,3,0");
           else if (strpbrk(buf, "\001\006\011"))
-                sym = _T(",LITYW, 2");
+                sym = _T(",LITYW, 2,0,360,5,0");
       }
       else  if ('\0' == buf[2])       // or 2 color
       {
                 if (strpbrk(buf, "\001") && strpbrk(buf, "\003"))
-                      sym = _T(",LITRD, 2");
+                      sym = _T(",LITRD, 2,0,360,4,0");
                 else if (strpbrk(buf, "\001") && strpbrk(buf, "\004"))
-                      sym = _T(",LITGN, 2");
+                      sym = _T(",LITGN, 2,0,360,3,0");
 
       }
       else
-          sym = _T(",CHMGD, 2");
+            sym = _T(",CHMGD, 2,0,360,8,0");
 
     sym.Prepend(_T(";CA(OUTLW, 4"));
-    sym.Append(_T(",0,360,8,0"));                  // arc radius 8 mm, sector radius 0
     }
 
 
@@ -1223,8 +1230,8 @@ static void *LIGHTS05 (void *param)
     wxString orientstr;
 
 // Debug
-//      if(obj->Index == 27)
-//            int tty = 5;
+//      if(obj->Index == 856)
+//            return NULL; //int tty = 5;
 
 
 
@@ -1402,28 +1409,13 @@ static void *LIGHTS05 (void *param)
              //        Build the (opencpn private) command string like this:
             //        e.g.  ";CA(OUTLW, 4,LITRD, 2, sectr1, sectr2, radius)"
 
-          char sym[80];
-
 
           double arc_radius = 20.;                // mm
           double sector_radius = 25.;
 
-          if ( strlen(litvisstr))               // Obscured/faint sector?
-          {
-            _parseList(litvisstr, litvis);
+          char sym[80];
+          strcpy(sym,";CA(OUTLW, 4");
 
-            if (strpbrk(litvis, "\003\007\010"))
-            {
-                  strcpy(sym, ";CA(CHBLK, 1");
-                  strcat(sym, ",CHBLK, 0");
-            }
-          }
-
-
-          else
-          {
-
-            strcpy(sym,";CA(OUTLW, 4");
 
             // max 1 color
             if ('\0' == colist[1])
@@ -1444,8 +1436,15 @@ static void *LIGHTS05 (void *param)
             }
             else
                   strcat(sym, ",CHMGD, 2");                 // default is magenta
-          }
 
+
+            if ( strlen(litvisstr))               // Obscured/faint sector?
+            {
+                _parseList(litvisstr, litvis);
+
+                if (strpbrk(litvis, "\003\007\010"))
+                     strcpy(sym, ";CA(CHBLK, 1,CHBLK, 0");
+            }
 
             if(sectr2 <= sectr1)
                   sectr2 += 360;

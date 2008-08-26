@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.14 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: s57chart.h,v 1.15 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.15  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.14  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -245,6 +248,10 @@ private:
 
       bool         bGLUWarningSent;
       bool         m_bExtentSet;
+
+      wxBitmap    *m_pDIBThumbDay;
+      wxBitmap    *m_pDIBThumbDim;
+      wxBitmap    *m_pDIBThumbOrphan;
 
 
 //  SM Projection parms

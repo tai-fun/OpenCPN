@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.13  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.12  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -33,6 +36,9 @@
  * Cleanup
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.13  2008/08/26 13:46:25  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.12  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -90,7 +96,7 @@
 extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.12 2008/08/09 23:58:40 bdbcat Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.13 2008/08/26 13:46:25 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -109,7 +115,11 @@ StatWin::StatWin(wxFrame *frame):
       int x,y;
       GetClientSize(&x, &y);
 
-      SetBackgroundColour(wxColour(150,150,150));
+      m_pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
+
+      SetBackgroundColour(GetGlobalColor(_T("UIBDR")));
+
+      SetBackgroundStyle(wxBG_STYLE_CUSTOM);  // on WXMSW, this prevents flashing on solor scheme change
 
       m_rows = 1;
 
@@ -134,7 +144,7 @@ StatWin::~StatWin()
 void StatWin::OnPaint(wxPaintEvent& event)
 {
       wxPaintDC dc(this);
-      dc.SetBackground(*pbackBrush);
+      dc.SetBackground(*m_pbackBrush);
       dc.Clear();
 }
 
@@ -181,25 +191,8 @@ int StatWin::GetFontHeight()
 
 void StatWin::SetColorScheme(ColorScheme cs)
 {
-    wxColour back_color;
 
-    switch(cs)
-    {
-        case GLOBAL_COLOR_SCHEME_DAY:
-            back_color = wxColour(150,150,150);
-            break;
-        case GLOBAL_COLOR_SCHEME_DUSK:
-            back_color = wxColour(128,128,128);
-            break;
-        case GLOBAL_COLOR_SCHEME_NIGHT:
-            back_color = wxColour(64,64,64);
-            break;
-        default:
-            back_color = wxColour(150,150,150);
-            break;
-    }
-
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+    m_pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
 
     //  Also apply color scheme to all known children
     pPiano->SetColorScheme(cs);
@@ -223,7 +216,7 @@ END_EVENT_TABLE()
 TStatWin::TStatWin(wxFrame *frame):
       wxWindow(frame, wxID_ANY,wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 {
-      SetBackgroundColour(wxColour(150,150,150));
+      SetBackgroundColour(GetGlobalColor(_T("UIBDR")));
       pText = new wxString();
       bTextSet = false;
 
@@ -268,20 +261,14 @@ END_EVENT_TABLE()
 PianoWin::PianoWin(wxFrame *frame):
       wxWindow(frame, wxID_ANY, wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 {
-    index_last = -1;
-
- // Create/Get some default brush pointers
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(wxColour(150,150,150), wxSOLID);    // Solid background
-    ptBrush =    wxTheBrushList->FindOrCreateBrush(wxColour( 45, 45,170), wxSOLID);    // Raster Chart
-    pslBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(170,170,255), wxSOLID);
-
-    pvBrush =    wxTheBrushList->FindOrCreateBrush(wxColour( 45, 150,45), wxSOLID);    // Vector Chart
-    psvBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(120,255,120), wxSOLID);    // and selected
-    puvBrush =   wxTheBrushList->FindOrCreateBrush(wxColour( 96, 96, 96), wxSOLID);    // and unavailable
+    m_index_last = -1;
 
     gparent = (MyFrame *)GetGrandParent();
 
-    nRegions = 0;
+    m_nRegions = 0;
+
+    SetBackgroundStyle(wxBG_STYLE_CUSTOM);  // on WXMSW, this prevents flashing on solor scheme change
+
  }
 
 PianoWin::~PianoWin()
@@ -296,47 +283,18 @@ void PianoWin::OnSize(wxSizeEvent& event)
 
 void PianoWin::SetColorScheme(ColorScheme cs)
 {
-    wxColour back_color;
-    wxColour raster_selected;
-    wxColour raster_unselected;
-    wxColour vector_selected;
-    wxColour vector_unselected;
 
-    switch(cs)
-    {
-        case GLOBAL_COLOR_SCHEME_DAY:
-            back_color = wxColour(150,150,150);
-            raster_selected = wxColour(170,170,255);
-            raster_unselected = wxColour( 45, 45,170);
-            vector_unselected = wxColour( 45, 150,45);
-            vector_selected = wxColour(120,255,120);
-            break;
-        case GLOBAL_COLOR_SCHEME_DUSK:
-            back_color = wxColour(128,128,128);
-            raster_selected = wxColour(170,170,255);
-            raster_unselected = wxColour( 45, 45,170);
-            vector_unselected = wxColour( 45, 150,45);
-            vector_selected = wxColour(120,255,120);
-            break;
-        case GLOBAL_COLOR_SCHEME_NIGHT:
-            back_color = wxColour(64,64,64);
-            raster_selected = wxColour(85,85,128);
-            raster_unselected = wxColour( 22, 22, 85);
-            vector_unselected = wxColour( 22, 75, 22);
-            vector_selected = wxColour(60,128,60);
-            break;
-        default:
-            back_color = wxColour(150,150,150);
-            break;
-    }
+      //    Recreate the local brushes
 
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
-    ptBrush =    wxTheBrushList->FindOrCreateBrush(raster_unselected, wxSOLID);    // Raster Chart
-    pslBrush =   wxTheBrushList->FindOrCreateBrush(raster_selected, wxSOLID);
+    m_pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
 
-    pvBrush =    wxTheBrushList->FindOrCreateBrush(vector_unselected, wxSOLID);    // Vector Chart
-    psvBrush =   wxTheBrushList->FindOrCreateBrush(vector_selected, wxSOLID);    // and selected
-    puvBrush =   wxTheBrushList->FindOrCreateBrush(wxColour( 96, 96, 96), wxSOLID);    // and unavailable
+    m_ptBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("BLUE2")), wxSOLID);    // Raster Chart unselected
+    m_pslBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("BLUE1")), wxSOLID);    // and selected
+
+    m_pvBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN2")), wxSOLID);    // Vector Chart unselected
+    m_psvBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN1")), wxSOLID);    // and selected
+
+    m_puvBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UINFD")), wxSOLID);    // and unavailable
 
 }
 
@@ -350,7 +308,7 @@ void PianoWin::OnPaint(wxPaintEvent& event)
       if(!pCurrentStack)                        // Stack must be valid
             return;
 
-      dc.SetBackground(*pbackBrush);
+      dc.SetBackground(*m_pbackBrush);
       dc.Clear();
 
 //    Create the Piano Keys
@@ -361,34 +319,34 @@ void PianoWin::OnPaint(wxPaintEvent& event)
 
       if(nKeys)
       {
-            wxPen ppPen(wxColour(0,0,0), 1, wxSOLID);
+            wxPen ppPen(GetGlobalColor(_T("CHBLK")), 1, wxSOLID);
             dc.SetPen(ppPen);
 
-            dc.SetBrush(*ptBrush);
+            dc.SetBrush(*m_ptBrush);
 
 //      If no S57 support, mark the chart as "unavailable"
             for(int i=0 ; i<nKeys ; i++)
             {
                   if(ChartData->GetCSChartType(pCurrentStack, i) == CHART_TYPE_S57)
 #ifndef USE_S57
-                        dc.SetBrush(*puvBrush);
+                        dc.SetBrush(*m_puvBrush);
 #else
-                        dc.SetBrush(*pvBrush);
+                        dc.SetBrush(*m_pvBrush);
 #endif
                   else
-                        dc.SetBrush(*ptBrush);
+                        dc.SetBrush(*m_ptBrush);
 
                   dc.DrawRectangle(KeyRegion[i].GetBox());
             }
 
             if(ChartData->GetCSChartType(pCurrentStack, pCurrentStack->CurrentStackEntry) == CHART_TYPE_S57)
 #ifndef USE_S57
-                dc.SetBrush(*puvBrush);
+                  dc.SetBrush(*m_puvBrush);
 #else
-                dc.SetBrush(*psvBrush);
+                  dc.SetBrush(*m_psvBrush);
 #endif
             else
-                  dc.SetBrush(*pslBrush);
+                  dc.SetBrush(*m_pslBrush);
 
             dc.DrawRectangle(KeyRegion[pCurrentStack->CurrentStackEntry].GetBox());
 
@@ -411,7 +369,7 @@ void PianoWin::FormatKeys(void)
 
 //    Build the Key Regions
 
-            assert(nKeys <= KEY_REGIONS_MAX);
+//            assert(nKeys <= KEY_REGIONS_MAX);
 
             for(int i=0 ; i<nKeys ; i++)
             {
@@ -419,7 +377,7 @@ void PianoWin::FormatKeys(void)
                   KeyRegion[i] = r;
             }
       }
-      nRegions = nKeys;
+      m_nRegions = nKeys;
 }
 
 void PianoWin::MouseEvent(wxMouseEvent& event)
@@ -432,9 +390,9 @@ void PianoWin::MouseEvent(wxMouseEvent& event)
 
       if(event.LeftDown())
       {
-            if(nRegions)
+            if(m_nRegions)
             {
-                  for(int i=0 ; i<nRegions ; i++)
+                  for(int i=0 ; i<m_nRegions ; i++)
                   {
                         if(KeyRegion[i].Contains(x,y)  == wxInRegion)
                         {
@@ -446,16 +404,16 @@ void PianoWin::MouseEvent(wxMouseEvent& event)
 
       else
       {
-            if(nRegions)
+            if(m_nRegions)
             {
-                  for(int i=0 ; i<nRegions ; i++)
+                  for(int i=0 ; i<m_nRegions ; i++)
                   {
                         if(KeyRegion[i].Contains(x,y)  == wxInRegion)
                         {
-                              if(i != index_last)
+                              if(i != m_index_last)
                               {
                                     gparent->SetChartThumbnail(i);
-                                    index_last = i;
+                                    m_index_last = i;
                               }
 
                         }
@@ -466,7 +424,7 @@ void PianoWin::MouseEvent(wxMouseEvent& event)
       if(event.Leaving())
       {
             gparent->SetChartThumbnail(-1);
-            index_last = -1;
+            m_index_last = -1;
       }
 
       /*
@@ -494,20 +452,14 @@ BEGIN_EVENT_TABLE(WiFiStatWin, wxWindow)
 WiFiStatWin::WiFiStatWin(wxFrame *frame):
         wxWindow(frame, wxID_ANY,wxPoint(20,20), wxSize(5,5), wxSIMPLE_BORDER)
 {
-//    SetBackgroundColour(wxColour(150,150,150));
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(wxColour(150,150,150), wxSOLID);    // Solid background
+    SetBackgroundStyle(wxBG_STYLE_CUSTOM);  // on WXMSW, this prevents flashing on solor scheme change
 
-    pqual_hiBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(240,240,000), wxSOLID);    //Yellow
-    psecureBrush =    wxTheBrushList->FindOrCreateBrush(wxColour(255,140, 50), wxSOLID);    //Orange
-
-    pqual_hiNewBrush =   wxTheBrushList->FindOrCreateBrush(wxColour(000,255,000), wxSOLID); //Green
-    psecureNewBrush =    wxTheBrushList->FindOrCreateBrush(wxColour(255,000,000), wxSOLID); //Red
+    SetColorScheme((ColorScheme)0);
 
     for(int ista = 0 ; ista < NSIGBARS ; ista++)
         m_quality[ista] = 0;
 
     m_bserverstat = true;
-
 }
 
 WiFiStatWin::~WiFiStatWin(void)
@@ -521,24 +473,13 @@ void WiFiStatWin::OnSize(wxSizeEvent& event)
 
 void WiFiStatWin::SetColorScheme(ColorScheme cs)
 {
-    wxColour back_color;
-    switch(cs)
-    {
-        case GLOBAL_COLOR_SCHEME_DAY:
-            back_color = wxColour(150,150,150);
-            break;
-        case GLOBAL_COLOR_SCHEME_DUSK:
-            back_color = wxColour(128,128,128);
-            break;
-        case GLOBAL_COLOR_SCHEME_NIGHT:
-            back_color = wxColour(64,64,64);
-            break;
-        default:
-            back_color = wxColour(150,150,150);
-            break;
-    }
+    pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
 
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(back_color, wxSOLID);
+    pqual_hiBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("CHYLW")), wxSOLID);    //Yellow
+    psecureBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UINFO")), wxSOLID);    //Orange
+
+    pqual_hiNewBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UGREN")), wxSOLID); //Bright Green
+    psecureNewBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("URED")), wxSOLID);  //Bright Red
 
 }
 
@@ -555,7 +496,7 @@ void WiFiStatWin::OnPaint(wxPaintEvent& event)
 
 //    Create the Signal Strength Indicators
     dc.SetBrush(*pbackBrush);
-    wxPen ppPen(wxColour(0,0,0), 1, wxSOLID);
+    wxPen ppPen(GetGlobalColor(_T("UBLCK")), 1, wxSOLID);
     dc.SetPen(ppPen);
 
     if(m_bserverstat)
@@ -589,7 +530,7 @@ void WiFiStatWin::OnPaint(wxPaintEvent& event)
     }
     else
     {
-        wxPen yellowPen(wxColour(192,192,0), 3, wxSOLID);
+        wxPen yellowPen(GetGlobalColor(_T("CHYLW")), 1, wxSOLID);
         dc.SetPen(yellowPen);
 
         dc.DrawLine(1, 1, width-1, 1);

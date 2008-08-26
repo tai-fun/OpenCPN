@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.7 2008/03/30 23:24:32 bdbcat Exp $
+ * $Id: statwin.h,v 1.8 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Status Window
@@ -25,20 +25,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< statwin.h
  * $Log: statwin.h,v $
+ * Revision 1.8  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.7  2008/03/30 23:24:32  bdbcat
  * *** empty log message ***
  *
-=======
  * $Log: statwin.h,v $
+ * Revision 1.8  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.7  2008/03/30 23:24:32  bdbcat
  * *** empty log message ***
  *
  * Revision 1.6  2008/01/12 06:19:45  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.6
  * Revision 1.5  2007/06/10 02:37:18  bdbcat
  * Cleanup
  *
@@ -110,15 +113,15 @@ public:
       wxRegion    KeyRegion[KEY_REGIONS_MAX];
 
 private:
-      int         nRegions;
-      int         index_last;
+      int         m_nRegions;
+      int         m_index_last;
 
-      wxBrush     *pbackBrush;
-      wxBrush     *ptBrush;
-      wxBrush     *pvBrush;
-      wxBrush     *psvBrush;
-      wxBrush     *puvBrush;
-      wxBrush     *pslBrush;
+      wxBrush     *m_pbackBrush;
+      wxBrush     *m_ptBrush;
+      wxBrush     *m_pvBrush;
+      wxBrush     *m_psvBrush;
+      wxBrush     *m_puvBrush;
+      wxBrush     *m_pslBrush;
 
       MyFrame     *gparent;
 
@@ -185,9 +188,6 @@ public:
 
       int         Size_X, Size_Y, Pos_X, Pos_Y;
 
-      int         m_rows;
-      wxBrush     *pbackBrush;
-
       PianoWin    *pPiano;
       TStatWin    *pTStat1;
       TStatWin    *pTStat2;
@@ -196,6 +196,8 @@ public:
 #endif
 
 private:
+      wxBrush     *m_pbackBrush;
+      int         m_rows;
 
 
 DECLARE_EVENT_TABLE()

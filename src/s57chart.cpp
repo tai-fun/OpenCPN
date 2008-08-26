@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.16 2008/08/09 23:58:40 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.17 2008/08/26 13:49:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.17  2008/08/26 13:49:15  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.16  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -37,6 +40,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.17  2008/08/26 13:49:15  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.16  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -112,7 +118,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.16 2008/08/09 23:58:40 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.17 2008/08/26 13:49:15 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -892,6 +898,10 @@ s57chart::s57chart()
 
     m_bExtentSet = false;
 
+    m_pDIBThumbDay = NULL;
+    m_pDIBThumbDim = NULL;
+    m_pDIBThumbOrphan = NULL;
+
 
 }
 
@@ -912,6 +922,8 @@ s57chart::~s57chart()
     delete m_pENCDS;
 
     free( m_pvaldco_array );
+
+    delete m_pDIBThumbOrphan;
 }
 
 
@@ -949,16 +961,16 @@ void s57chart::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
             switch(cs)
             {
                   case GLOBAL_COLOR_SCHEME_DAY:
-                        ps52plib->SetPLIBColorScheme("DAY");
+                        ps52plib->SetPLIBColorScheme(_T("DAY"));
                         break;
                    case GLOBAL_COLOR_SCHEME_DUSK:
-                        ps52plib->SetPLIBColorScheme("DUSK");
+                        ps52plib->SetPLIBColorScheme(_T("DUSK"));
                         break;
                    case GLOBAL_COLOR_SCHEME_NIGHT:
-                        ps52plib->SetPLIBColorScheme("NIGHT");
+                        ps52plib->SetPLIBColorScheme(_T("NIGHT"));
                         break;
                    default:
-                        ps52plib->SetPLIBColorScheme("DAY");
+                        ps52plib->SetPLIBColorScheme(_T("DAY"));
                         break;
             }
 
@@ -966,6 +978,39 @@ void s57chart::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
 
     if(bApplyImmediate)
         InvalidateCache();
+
+    //      Setup the proper thumbnail bitmap pointer
+
+    if(NULL != m_pDIBThumbDay)
+    {
+      switch(cs)
+      {
+          default:
+          case GLOBAL_COLOR_SCHEME_DAY:
+                pThumbData->pDIBThumb = m_pDIBThumbDay;
+                m_pDIBThumbOrphan = m_pDIBThumbDim;
+                break;
+          case GLOBAL_COLOR_SCHEME_DUSK:
+          case GLOBAL_COLOR_SCHEME_NIGHT:
+          {
+                if(NULL == m_pDIBThumbDim)
+                {
+                      wxImage img = m_pDIBThumbDay->ConvertToImage();
+                      wxImage gimg = img.ConvertToGreyscale(0.1, 0.1, 0.1);         // factors are completely subjective
+#ifdef ocpnUSE_ocpnBitmap
+                      ocpnBitmap *pBMP =  new ocpnBitmap(gimg, m_pDIBThumbDay->GetDepth());
+#else
+                      wxBitmap *pBMP =  new wxBitmap(gimg);
+#endif
+                      m_pDIBThumbDim = pBMP;
+                      m_pDIBThumbOrphan = m_pDIBThumbDay;
+                }
+
+                pThumbData->pDIBThumb = m_pDIBThumbDim;
+                break;
+          }
+      }
+    }
 }
 
 bool s57chart::GetChartExtent(Extent *pext)
@@ -1138,8 +1183,6 @@ void s57chart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum sc
 {
     ps52plib->PrepareForRender();
 
-//    ps52plib->SetPLIBColorScheme(m_S52_color_index);
-
     DoRenderViewOnDC(dc, VPoint, DC_RENDER_ONLY);
 }
 
@@ -1263,10 +1306,12 @@ void s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, RenderTypeEnum
 
             //      Allow some slop in the viewport
             //    Todo Investigate why this fails if greater than 5 percent
-            temp_vp.vpBBox.EnLarge(temp_vp.vpBBox.GetWidth() * .05);
+            double margin = wxMin(temp_vp.vpBBox.GetWidth(), temp_vp.vpBBox.GetHeight()) * 0.05;
+            temp_vp.vpBBox.EnLarge(margin);
 
 //      And Render it new piece on the target dc
-//     printf("Reuse, rendering %d %d %d %d \n", rect.x, rect.y, rect.width, rect.height);
+ //    printf("New Render, rendering %d %d %d %d \n", rect.x, rect.y, rect.width, rect.height);
+
             DCRenderRect(dc, temp_vp, &rect);
 
             upd ++ ;
@@ -1398,6 +1443,7 @@ int s57chart::DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
 
 //      Render the rest of the objects/primitives
 
+        //  Create a new vp based on rect.
         DCRenderLPB(dcinput, vp, rect);
 
         return 1;
@@ -1534,8 +1580,12 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                 pBMP =  new wxBitmap;
 #endif
                 pBMP->LoadFile(ThumbFileNameLook.GetFullPath(), wxBITMAP_TYPE_BMP );
-                pThumbData->pDIBThumb = pBMP;
+                m_pDIBThumbDay = pBMP;
+//                pThumbData->pDIBThumb = pBMP;
         }
+
+        SetColorScheme(cs, false);
+
         return INIT_OK;
     }
 
@@ -1756,7 +1806,8 @@ InitReturn s57chart::PostInit( ChartInitFlag flags, ColorScheme cs )
                   {
                     delete pThumbData;
                     pThumbData = new ThumbData;
-                    pThumbData->pDIBThumb = pBMP_NEW;
+                    m_pDIBThumbDay = pBMP_NEW;
+//                    pThumbData->pDIBThumb = pBMP_NEW;
                   }
         }
 
@@ -1926,7 +1977,7 @@ bool s57chart::BuildThumbnail(const wxString &bmpname)
 
 //      set the color scheme
        ps52plib->SaveColorScheme();
-       ps52plib->SetPLIBColorScheme("DAY");
+       ps52plib->SetPLIBColorScheme(_T("DAY"));
 //      Do the render
        DoRenderViewOnDC(memdc, vp, DC_RENDER_ONLY);
 

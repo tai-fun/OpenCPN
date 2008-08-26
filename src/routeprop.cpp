@@ -181,12 +181,12 @@ void RouteProp::CreateControls()
     wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
     itemBoxSizer2->Add(itemBoxSizer16, 0, wxALIGN_RIGHT|wxALL, 5);
 
-    wxButton* itemButton17 = new wxButton( itemDialog1, ID_ROUTEPROP_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemBoxSizer16->Add(itemButton17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    m_CancelButton = new wxButton( itemDialog1, ID_ROUTEPROP_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemBoxSizer16->Add(m_CancelButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
-    wxButton* itemButton18 = new wxButton( itemDialog1, ID_ROUTEPROP_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemBoxSizer16->Add(itemButton18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-    itemButton18->SetDefault();
+    m_OKButton = new wxButton( itemDialog1, ID_ROUTEPROP_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemBoxSizer16->Add(m_OKButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    m_OKButton->SetDefault();
 
     //  Fill in list control
     //    m_wpList->SetImageList(m_imageListBars, wxIMAGE_LIST_SMALL);
@@ -229,6 +229,7 @@ void RouteProp::CreateControls()
 //  Fetch any config file values
     m_planspeed = g_PlanSpeed;
 
+    SetColorScheme((ColorScheme)0);
 
 //  Set the dynamic fields
 //    UpdateProperties();
@@ -236,6 +237,41 @@ void RouteProp::CreateControls()
 ////@end RouteProp content construction
 }
 
+
+void RouteProp::SetColorScheme(ColorScheme cs)
+{
+      SetBackgroundColour(GetGlobalColor(_T("DILG1")));
+
+      wxColour back_color =GetGlobalColor(_T("DILG2"));
+      wxColour text_color = GetGlobalColor(_T("DILG3"));
+
+      m_RouteNameCtl->SetBackgroundColour(back_color);
+      m_RouteNameCtl->SetForegroundColour(text_color);
+
+      m_RouteStartCtl->SetBackgroundColour(back_color);
+      m_RouteStartCtl->SetForegroundColour(text_color);
+
+      m_RouteDestCtl->SetBackgroundColour(back_color);
+      m_RouteDestCtl->SetForegroundColour(text_color);
+
+      m_TotalDistCtl->SetBackgroundColour(back_color);
+      m_TotalDistCtl->SetForegroundColour(text_color);
+
+      m_PlanSpeedCtl->SetBackgroundColour(back_color);
+      m_PlanSpeedCtl->SetForegroundColour(text_color);
+
+      m_TimeEnrouteCtl->SetBackgroundColour(back_color);
+      m_TimeEnrouteCtl->SetForegroundColour(text_color);
+
+      m_wpList->SetBackgroundColour(back_color);
+      m_wpList->SetForegroundColour(text_color);
+
+      m_CancelButton->SetBackgroundColour(back_color);
+      m_CancelButton->SetForegroundColour(text_color);
+
+      m_OKButton->SetBackgroundColour(back_color);
+      m_OKButton->SetForegroundColour(text_color);
+}
 /*!
  * Should we show tooltips?
  */
@@ -566,12 +602,12 @@ void MarkProp::CreateControls()
     wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
     itemBoxSizer2->Add(itemBoxSizer16, 0, wxALIGN_RIGHT|wxALL, 5);
 
-    wxButton* itemButton17 = new wxButton( itemDialog1, ID_MARKPROP_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemBoxSizer16->Add(itemButton17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    m_CancelButton = new wxButton( itemDialog1, ID_MARKPROP_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemBoxSizer16->Add(m_CancelButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
-    wxButton* itemButton18 = new wxButton( itemDialog1, ID_MARKPROP_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemBoxSizer16->Add(itemButton18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-    itemButton18->SetDefault();
+    m_OKButton = new wxButton( itemDialog1, ID_MARKPROP_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemBoxSizer16->Add(m_OKButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    m_OKButton->SetDefault();
 
     //  Fill in list control
 
@@ -580,7 +616,7 @@ void MarkProp::CreateControls()
     int client_x, client_y;
     m_IconList->GetClientSize(&client_x, &client_y);
 
-    m_IconList->SetImageList(pWayPointMan->pmarkicon_image_list, wxIMAGE_LIST_SMALL);
+    m_IconList->SetImageList(pWayPointMan->Getpmarkicon_image_list(), wxIMAGE_LIST_SMALL);
 
     wxListItem itemCol0;
     itemCol0.SetImage(-1);
@@ -610,6 +646,36 @@ void MarkProp::CreateControls()
       }
 
       m_IconList->Show();
+
+      SetColorScheme((ColorScheme)0);
+}
+
+
+void MarkProp::SetColorScheme(ColorScheme cs)
+{
+      SetBackgroundColour(GetGlobalColor(_T("DILG1")));
+
+      wxColour back_color =GetGlobalColor(_T("DILG2"));
+      wxColour text_color = GetGlobalColor(_T("DILG3"));
+
+      m_MarkNameCtl->SetBackgroundColour(back_color);
+      m_MarkNameCtl->SetForegroundColour(text_color);
+
+      m_IconList->SetBackgroundColour(back_color);
+      m_IconList->SetForegroundColour(text_color);
+
+      m_MarkLatCtl->SetBackgroundColour(back_color);
+      m_MarkLatCtl->SetForegroundColour(text_color);
+
+      m_MarkLonCtl->SetBackgroundColour(back_color);
+      m_MarkLonCtl->SetForegroundColour(text_color);
+
+      m_CancelButton->SetBackgroundColour(back_color);
+      m_CancelButton->SetForegroundColour(text_color);
+
+      m_OKButton->SetBackgroundColour(back_color);
+      m_OKButton->SetForegroundColour(text_color);
+
 }
 
 bool MarkProp::ShowToolTips()
@@ -735,7 +801,7 @@ void MarkProp::OnIconListSelected( wxListEvent& event )
            m_current_icon_Index = new_index;
 
            m_pRoutePoint->m_IconName = *(pWayPointMan->GetIconKey(m_current_icon_Index));
-           m_pRoutePoint->m_pbmIcon = pWayPointMan->GetIconBitmap(m_current_icon_Index);
+           m_pRoutePoint->ReLoadIcon();
 
            // dynamically update the icon on the canvas
            cc1->RefreshRect(m_pRoutePoint->CurrentRect_in_DC, false);

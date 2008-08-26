@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.15 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: chart1.h,v 1.16 2008/08/26 13:49:53 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.16  2008/08/26 13:49:53  bdbcat
+ * Better color scheme support
+ *
  * Revision 1.15  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -90,10 +93,12 @@ enum NMEA_EVENT_STATE
       NMEA_STATE_DONE
 } ;
 
+//    Global Static utility functions
 extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
                              const char * pszErrorMsg );
 
 wxArrayString *EnumerateSerialPorts(void);
+wxColour GetGlobalColor(wxString colorName);
 
 
 //----------------------------------------------------------------------------
