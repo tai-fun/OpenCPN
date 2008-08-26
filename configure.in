@@ -142,6 +142,8 @@ wxversion=0
 AC_DEFUN([WXTEST],
 [
       AC_REQUIRE([AC_PROG_AWK])
+      AC_MSG_CHECKING([wxWidgets wx-config])
+      AC_MSG_RESULT([$WXCONFIG])
       AC_MSG_CHECKING([wxWidgets version])
       if wxversion=`$WXCONFIG --version`; then
             AC_MSG_RESULT([$wxversion])

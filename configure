@@ -4986,6 +4986,10 @@ wxversion=0
 # Call WXTEST func
 
 
+      { echo "$as_me:$LINENO: checking wxWidgets wx-config" >&5
+echo $ECHO_N "checking wxWidgets wx-config... $ECHO_C" >&6; }
+      { echo "$as_me:$LINENO: result: $WXCONFIG" >&5
+echo "${ECHO_T}$WXCONFIG" >&6; }
       { echo "$as_me:$LINENO: checking wxWidgets version" >&5
 echo $ECHO_N "checking wxWidgets version... $ECHO_C" >&6; }
       if wxversion=`$WXCONFIG --version`; then
