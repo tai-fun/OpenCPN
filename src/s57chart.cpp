@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.17 2008/08/26 13:49:15 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.18 2008/08/27 22:52:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.18  2008/08/27 22:52:50  bdbcat
+ * Add wxMessageBox dialog for bad ENC update processing
+ *
  * Revision 1.17  2008/08/26 13:49:15  bdbcat
  * Better color scheme support
  *
@@ -40,6 +43,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.18  2008/08/27 22:52:50  bdbcat
+ * Add wxMessageBox dialog for bad ENC update processing
+ *
  * Revision 1.17  2008/08/26 13:49:15  bdbcat
  * Better color scheme support
  *
@@ -118,7 +124,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.17 2008/08/26 13:49:15 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.18 2008/08/27 22:52:50 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -2761,6 +2767,7 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
     wxString date000;
     int native_scale = 1;
     wxString nice_name;
+    int bbad_update = false;
 
     wxString msg0(_T("Building SENC file for "));
     msg0.Append(FullPath000);
@@ -2908,8 +2915,9 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
     //      Open the OGRS57DataSource
     //      This will ingest the .000 file from the working dir, and apply updates
 
-    poS57DS->Open(m_tmpup_array->Item(0).mb_str(), TRUE);
-
+    int open_return = poS57DS->Open(m_tmpup_array->Item(0).mb_str(), TRUE);
+    if(open_return == BAD_UPDATE)
+          bbad_update = true;
 
     //      Get a pointer to the reader
     S57Reader   *poReader = poS57DS->GetModule(0);
@@ -3098,6 +3106,10 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
       wxLogMessage(_T("sw_create_senc_record: %ld"), sw_create_senc_record.Time());
       wxLogMessage(_T("sw_get_next_feature: %ld"), sw_get_next_feature.Time());
 */
+
+       if(bbad_update)
+             wxMessageBox(_T("Errors encountered processing ENC update file(s).\nENC features may be incomplete or inaccurate."),
+                          _T("OpenCPN Create SENC"), wxOK | wxICON_EXCLAMATION);
 
       return ret_code;
 }
