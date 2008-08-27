@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.7 2008/08/26 13:46:25 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.8 2008/08/27 22:52:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.8  2008/08/27 22:52:16  bdbcat
+ * Fix wxImageList bug for  variable icon size
+ *
  * Revision 1.7  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -33,6 +36,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.8  2008/08/27 22:52:16  bdbcat
+ * Fix wxImageList bug for  variable icon size
+ *
  * Revision 1.7  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -185,7 +191,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.7 2008/08/26 13:46:25 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.8 2008/08/27 22:52:16 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -765,11 +771,21 @@ WayPointman::WayPointman()
       m_pcurrent_icon_array = &DayIconArray;
 
       //    Create a default wxImageList
-      int w = (((MarkIcon *)m_pcurrent_icon_array->Item(0))->picon_bitmap)->GetWidth();
-      int h = (((MarkIcon *)m_pcurrent_icon_array->Item(0))->picon_bitmap)->GetHeight();
+      // First find the largest bitmap size
+      int w=0;
+      int h=0;
 
+      for( unsigned int i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
+      {
+            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
+            w = wxMax(w, pmi->picon_bitmap->GetWidth());
+            h = wxMax(h, pmi->picon_bitmap->GetHeight());
+      }
+
+      //Build an image list large enough
       pmarkicon_image_list = new wxImageList(w, h);
 
+      //  Addd the icons
       for( unsigned int i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
       {
             pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
