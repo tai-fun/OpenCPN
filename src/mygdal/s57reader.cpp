@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57reader.cpp,v 1.4 2008/08/10 00:03:05 bdbcat Exp $
+ * $Id: s57reader.cpp,v 1.5 2008/08/27 22:51:38 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Reader class.
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: s57reader.cpp,v $
+ * Revision 1.5  2008/08/27 22:51:38  bdbcat
+ * Add error returns to ENC update logic
+ *
  * Revision 1.4  2008/08/10 00:03:05  bdbcat
  * Cleanup
  *
@@ -182,8 +185,9 @@
 #include "ogr_api.h"
 #include "cpl_conv.h"
 #include "cpl_string.h"
+#include "ogr_s57.h"
 
-CPL_CVSID("$Id: s57reader.cpp,v 1.4 2008/08/10 00:03:05 bdbcat Exp $");
+CPL_CVSID("$Id: s57reader.cpp,v 1.5 2008/08/27 22:51:38 bdbcat Exp $");
 
 /************************************************************************/
 /*                             S57Reader()                              */
@@ -457,14 +461,14 @@ void S57Reader::Rewind()
 /*      indexes.                                                        */
 /************************************************************************/
 
-void S57Reader::Ingest()
+int S57Reader::Ingest()
 {
     DDFRecord   *poRecord;
 
-    CPLSetConfigOption( "CPL_DEBUG", "ON" );
+    CPLSetConfigOption( "CPL_DEBUG", "S57" );
 
     if( poModule == NULL || bFileIngested )
-        return;
+        return 0;
 
 /* -------------------------------------------------------------------- */
 /*      Read all the records in the module, and place them in           */
@@ -547,8 +551,11 @@ void S57Reader::Ingest()
 /* -------------------------------------------------------------------- */
 /*      If update support is enabled, read and apply them.              */
 /* -------------------------------------------------------------------- */
+    int update_return = 0;
     if( nOptionFlags & S57M_UPDATES )
-        FindAndApplyUpdates();
+        update_return = FindAndApplyUpdates();
+
+    return update_return;
 }
 
 /************************************************************************/
@@ -1712,7 +1719,7 @@ void S57Reader::AssembleAreaGeometry( DDFRecord * poFRecord,
             if( poSRecord == NULL )
             {
                 CPLError( CE_Warning, CPLE_AppDefined,
-                          "Couldn't find spatial record %d.\n", nRCID );
+                          "Couldn't find spatial record %d.", nRCID );
                 continue;
             }
 
@@ -1972,6 +1979,35 @@ int S57Reader::ApplyRecordUpdate( DDFRecord *poTarget, DDFRecord *poUpdate )
         CPLAssert( FALSE );
         return FALSE;
     }
+
+    //    More checks for validity
+    if( poUpdate->FindField( "FRID" ) != NULL )
+    {
+/*
+          int up_FIDN = poUpdate->GetIntSubfield( "FOID", 0, "FIDN", 0 );
+          int up_FIDS = poUpdate->GetIntSubfield( "FOID", 0, "FIDS", 0 );
+          int tar_FIDN = poTarget->GetIntSubfield( "FOID", 0, "FIDN", 0 );
+          int tar_FIDS = poTarget->GetIntSubfield( "FOID", 0, "FIDS", 0 );
+          if((up_FIDN != tar_FIDN) || (up_FIDS != tar_FIDS))
+          {
+          CPLError( CE_Warning, CPLE_AppDefined,
+          "On RecordUpdate, mismatched FIDN/FIDS.... target FIDN=%d, target FIDS=%d   update FIDN=%d, update FIDS=%d.",
+          tar_FIDN, tar_FIDS, up_FIDN, up_FIDS);
+
+          return FALSE;
+    }
+*/
+          int up_PRIM = poUpdate->GetIntSubfield( "FRID", 0, "PRIM", 0 );
+          int tar_PRIM = poTarget->GetIntSubfield( "FRID", 0, "PRIM", 0 );
+          if(up_PRIM != tar_PRIM)
+          {
+                CPLError( CE_Warning, CPLE_AppDefined,
+                          "On RecordUpdate, mismatched PRIM.... target PRIM=%d, update PRIM=%d",
+                          tar_PRIM, up_PRIM);
+                return FALSE;
+          }
+    }
+
 
 /* -------------------------------------------------------------------- */
 /*      Update the target version.                                      */
@@ -2275,6 +2311,8 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
 {
     DDFRecord   *poRecord;
 
+    int ret_code = 0;
+
 /* -------------------------------------------------------------------- */
 /*      Ensure base file is loaded.                                     */
 /* -------------------------------------------------------------------- */
@@ -2342,8 +2380,9 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
                     if( poTarget == NULL )
                     {
                         CPLError( CE_Warning, CPLE_AppDefined,
-                                  "Can't find RCNM=%d,RCID=%d for delete.\n",
+                                  "Can't find RCNM=%d,RCID=%d for delete.",
                                   nRCNM, nRCID );
+                        ret_code = BAD_UPDATE;
                     }
                     else if( poTarget->GetIntSubfield( pszKey, 0, "RVER", 0 )
                              != nRVER - 1 )
@@ -2352,8 +2391,10 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
                                   "On RecordRemove, mismatched RVER value for RCNM=%d,RCID=%d...update RVER is %d, target RVER is %d.",
                                   nRCNM, nRCID, nRVER, poTarget->GetIntSubfield( pszKey, 0, "RVER", 0 ) );
                         CPLError( CE_Warning, CPLE_AppDefined,
-                                  "Removal of RCNM=%d,RCID=%d failed.\n",
+                                  "Removal of RCNM=%d,RCID=%d failed.",
                                   nRCNM, nRCID );
+                        ret_code = BAD_UPDATE;
+
                     }
                     else
                     {
@@ -2370,16 +2411,19 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
                     if( poTarget == NULL )
                     {
                         CPLError( CE_Warning, CPLE_AppDefined,
-                                  "Can't find RCNM=%d,RCID=%d for update.\n",
+                                  "Can't find RCNM=%d,RCID=%d for update.",
                                   nRCNM, nRCID );
+                        ret_code = BAD_UPDATE;
+
                     }
                     else
                     {
                         if( !ApplyRecordUpdate( poTarget, poRecord ) )
                         {
                             CPLError( CE_Warning, CPLE_AppDefined,
-                                      "An update to RCNM=%d,RCID=%d failed.\n",
+                                      "An update to RCNM=%d,RCID=%d failed.",
                                       nRCNM, nRCID );
+                            ret_code = BAD_UPDATE;
                         }
                     }
                 }
@@ -2396,10 +2440,12 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
             CPLDebug( "S57",
                       "Skipping %s record in S57Reader::ApplyUpdates().",
                       pszKey );
+            ret_code = BAD_UPDATE;
+
         }
     }
 
-    return TRUE;
+    return ret_code;
 }
 
 /************************************************************************/
@@ -2414,6 +2460,7 @@ int S57Reader::FindAndApplyUpdates( const char * pszPath )
 {
     int         iUpdate;
     int         bSuccess = TRUE;
+    int         ret_code = 0;
 
     if( pszPath == NULL )
         pszPath = pszModuleName;
@@ -2422,8 +2469,8 @@ int S57Reader::FindAndApplyUpdates( const char * pszPath )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Can't apply updates to a base file with a different\n"
-                  "extension than .000.\n" );
-        return FALSE;
+                  "extension than .000." );
+        return BAD_UPDATE;
     }
 
     for( iUpdate = 1; bSuccess; iUpdate++ )
@@ -2445,12 +2492,13 @@ int S57Reader::FindAndApplyUpdates( const char * pszPath )
 
         if( bSuccess )
         {
-            if( !ApplyUpdates( &oUpdateModule ) )
-                return FALSE;
+              int update_ret = ApplyUpdates( &oUpdateModule );
+              if(update_ret)
+                    ret_code = update_ret;
         }
     }
 
-    return TRUE;
+    return ret_code;
 }
 
 /************************************************************************/

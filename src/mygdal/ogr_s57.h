@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_s57.h,v 1.2 2008/03/30 23:05:02 bdbcat Exp $
+ * $Id: ogr_s57.h,v 1.3 2008/08/27 22:51:38 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Declarations for classes binding S57 support onto OGRLayer,
@@ -29,6 +29,9 @@
  ******************************************************************************
  *
  * $Log: ogr_s57.h,v $
+ * Revision 1.3  2008/08/27 22:51:38  bdbcat
+ * Add error returns to ENC update logic
+ *
  * Revision 1.2  2008/03/30 23:05:02  bdbcat
  * Cleanup
  *
@@ -70,6 +73,13 @@
 #include "ogrsf_frmts.h"
 #include "s57.h"
 
+
+//    Misc error return codes
+#define BAD_FILE        10
+#define BAD_HEADER      11
+#define BAD_OPEN        12
+#define BAD_UPDATE      30
+
 class OGRS57DataSource;
 
 /************************************************************************/
@@ -105,7 +115,7 @@ class OGRS57Layer : public OGRLayer
     OGRFeature *        GetNextFeature();
     OGRFeature *        GetNextUnfilteredFeature();
     virtual OGRFeature *GetFeature( long nFeatureId );
-    
+
     virtual int         GetFeatureCount( int bForce = TRUE );
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
 
@@ -121,7 +131,7 @@ class OGRS57Layer : public OGRLayer
 /*                          OGRS57DataSource                            */
 /************************************************************************/
 
-class OGRS57DataSource 
+class OGRS57DataSource
 {
     char                *pszName;
 
@@ -131,7 +141,7 @@ class OGRS57DataSource
     OGRSpatialReference *poSpatialRef;
 
     char                **papszOptions;
-    
+
     int                 nModules;
     S57Reader           **papoModules;
 
@@ -144,14 +154,14 @@ class OGRS57DataSource
 
     int                 bExtentsSet;
     OGREnvelope         oExtents;
-    
+
   public:
                         OGRS57DataSource();
                         ~OGRS57DataSource();
 
     void                SetOptionList( char ** );
     const char         *GetOption( const char * );
-    
+
     int                 Open( const char * pszName, int bTestOpen = FALSE );
     int                 OpenMin( const char * pszName, int bTestOpen = FALSE );
     int                 Create( const char *pszName, char **papszOptions );
@@ -182,7 +192,7 @@ class OGRS57Driver : public OGRSFDriver
 {
   public:
                 ~OGRS57Driver();
-                
+
     const char *GetName();
     OGRDataSource *Open( const char *, int );
     virtual OGRDataSource *CreateDataSource( const char *pszName,

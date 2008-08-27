@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrs57datasource.cpp,v 1.3 2008/04/10 01:10:54 bdbcat Exp $
+ * $Id: ogrs57datasource.cpp,v 1.4 2008/08/27 22:51:38 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements OGRS57DataSource class
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: ogrs57datasource.cpp,v $
+ * Revision 1.4  2008/08/27 22:51:38  bdbcat
+ * Add error returns to ENC update logic
+ *
  * Revision 1.3  2008/04/10 01:10:54  bdbcat
  * Disallow option setup from environment
  *
@@ -121,7 +124,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrs57datasource.cpp,v 1.3 2008/04/10 01:10:54 bdbcat Exp $");
+CPL_CVSID("$Id: ogrs57datasource.cpp,v 1.4 2008/08/27 22:51:38 bdbcat Exp $");
 
 S57ClassRegistrar *OGRS57DataSource::poRegistrar = NULL;
 
@@ -238,6 +241,7 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
 
 {
     int         iModule;
+    int         error_return = 0;
 
     pszName = CPLStrdup( pszFilename );
 
@@ -252,7 +256,7 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
 
         fp = VSIFOpen( pszFilename, "rb" );
         if( fp == NULL )
-            return FALSE;
+            return BAD_FILE;
 
         if( VSIFRead( pachLeader, 1, 10, fp ) != 10
             || (pachLeader[5] != '1' && pachLeader[5] != '2'
@@ -261,7 +265,7 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
             || (pachLeader[8] != '1' && pachLeader[8] != ' ') )
         {
             VSIFClose( fp );
-            return FALSE;
+            return BAD_HEADER;
         }
 
         VSIFClose( fp );
@@ -320,7 +324,7 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
     {
         delete poModule;
 
-        return FALSE;
+        return BAD_OPEN;
     }
 
     nModules = 1;
@@ -403,6 +407,14 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
             papoModules[iModule]->SetClassBased( poRegistrar );
         }
 
+
+        for( iModule = 0; iModule < nModules; iModule++ )
+        {
+              int ingest_error = papoModules[iModule]->Ingest();
+              if(ingest_error)
+                    error_return = ingest_error;
+        }
+
         panClassCount = (int *) CPLCalloc(sizeof(int),MAX_CLASSES);
 
         for( iModule = 0; iModule < nModules; iModule++ )
@@ -453,7 +465,7 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
         }
     }
 
-    return TRUE;
+    return error_return;
 }
 
 /************************************************************************/

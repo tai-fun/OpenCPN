@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57.h,v 1.2 2008/03/30 23:09:35 bdbcat Exp $
+ * $Id: s57.h,v 1.3 2008/08/27 22:51:38 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Declarations for S-57 translator not including the
@@ -30,6 +30,9 @@
  ******************************************************************************
  *
  * $Log: s57.h,v $
+ * Revision 1.3  2008/08/27 22:51:38  bdbcat
+ * Add error returns to ENC update logic
+ *
  * Revision 1.2  2008/03/30 23:09:35  bdbcat
  * Cleanup/optimize
  *
@@ -381,7 +384,7 @@ class S57Reader
     const char          *GetDSNM() { return pszDSNM; }
     int                 GetCSCL() { return nCSCL; }
 
-    void                Ingest();
+    int                 Ingest();
     int                 ApplyUpdates( DDFModule * );
     int                 FindAndApplyUpdates( const char *pszPath=NULL );
 
