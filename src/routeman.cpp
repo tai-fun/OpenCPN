@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.8 2008/08/27 22:52:16 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.9 2008/08/28 02:28:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.9  2008/08/28 02:28:04  bdbcat
+ * Fix Compile bug
+ *
  * Revision 1.8  2008/08/27 22:52:16  bdbcat
  * Fix wxImageList bug for  variable icon size
  *
@@ -36,6 +39,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.9  2008/08/28 02:28:04  bdbcat
+ * Fix Compile bug
+ *
  * Revision 1.8  2008/08/27 22:52:16  bdbcat
  * Fix wxImageList bug for  variable icon size
  *
@@ -191,7 +197,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.8 2008/08/27 22:52:16 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.9 2008/08/28 02:28:04 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -785,10 +791,10 @@ WayPointman::WayPointman()
       //Build an image list large enough
       pmarkicon_image_list = new wxImageList(w, h);
 
-      //  Addd the icons
-      for( unsigned int i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
+      //  Add the icons
+      for( unsigned int ii = 0 ; ii< m_pcurrent_icon_array->GetCount() ; ii++)
       {
-            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
+            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(ii);
             pmarkicon_image_list->Add(*pmi->picon_bitmap);
       }
 
