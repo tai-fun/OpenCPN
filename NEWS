@@ -1,5 +1,16 @@
 NEWS
 
+Opencpn Version 1.2.6 Released
+Opencpn Version 1.2.6 was released on 28 August, 2008.  This is a maintenance
+and feature release containing several bug-fixes and optimizations as follows:
+
+   Improved S57 ENC symbology.
+   Increased compliance with IHO S52 specification for ENC charts.
+   Redesigned user data storage strategy, for easier maintenance.
+   Miscellaneous bug fixes and user optimizations.
+
+
+
 Opencpn Version 1.2.4 Released
 Opencpn Version 1.2.4 was released on 15 April, 2008.  This is a maintenance
 and feature release containing several bug-fixes and optimizations as follows:
