@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.18 2008/08/27 22:52:50 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.19 2008/08/29 02:26:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.19  2008/08/29 02:26:41  bdbcat
+ * Thumbnail bitmap code cleanup
+ *
  * Revision 1.18  2008/08/27 22:52:50  bdbcat
  * Add wxMessageBox dialog for bad ENC update processing
  *
@@ -43,6 +46,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.19  2008/08/29 02:26:41  bdbcat
+ * Thumbnail bitmap code cleanup
+ *
  * Revision 1.18  2008/08/27 22:52:50  bdbcat
  * Add wxMessageBox dialog for bad ENC update processing
  *
@@ -124,7 +130,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.18 2008/08/27 22:52:50 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.19 2008/08/29 02:26:41 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -1002,12 +1008,18 @@ void s57chart::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
                 if(NULL == m_pDIBThumbDim)
                 {
                       wxImage img = m_pDIBThumbDay->ConvertToImage();
+
+#if wxCHECK_VERSION(2, 8, 0)
                       wxImage gimg = img.ConvertToGreyscale(0.1, 0.1, 0.1);         // factors are completely subjective
-#ifdef ocpnUSE_ocpnBitmap
-                      ocpnBitmap *pBMP =  new ocpnBitmap(gimg, m_pDIBThumbDay->GetDepth());
 #else
-                      wxBitmap *pBMP =  new wxBitmap(gimg);
+                      wxImage gimg = img;
 #endif
+
+//#ifdef ocpnUSE_ocpnBitmap
+//                      ocpnBitmap *pBMP =  new ocpnBitmap(gimg, m_pDIBThumbDay->GetDepth());
+//#else
+                      wxBitmap *pBMP =  new wxBitmap(gimg);
+//#endif
                       m_pDIBThumbDim = pBMP;
                       m_pDIBThumbOrphan = m_pDIBThumbDay;
                 }
@@ -1580,14 +1592,13 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
         wxBitmap *pBMP;
         if(ThumbFileNameLook.FileExists())
         {
-#ifdef ocpnUSE_ocpnBitmap
-                pBMP =  new ocpnBitmap;
-#else
+//#ifdef ocpnUSE_ocpnBitmap
+//                pBMP =  new ocpnBitmap;
+//#else
                 pBMP =  new wxBitmap;
-#endif
+//#endif
                 pBMP->LoadFile(ThumbFileNameLook.GetFullPath(), wxBITMAP_TYPE_BMP );
                 m_pDIBThumbDay = pBMP;
-//                pThumbData->pDIBThumb = pBMP;
         }
 
         SetColorScheme(cs, false);
@@ -2009,13 +2020,13 @@ bool s57chart::BuildThumbnail(const wxString &bmpname)
 //      Clone pDIB into pThumbData;
        wxBitmap *pBMP;
 
-#ifdef ocpnUSE_ocpnBitmap
-                pBMP = new ocpnBitmap((unsigned char *)NULL,
-                                       vp.pix_width, vp.pix_height, BPP);
-#else
+//#ifdef ocpnUSE_ocpnBitmap
+//                pBMP = new ocpnBitmap((unsigned char *)NULL,
+//                                       vp.pix_width, vp.pix_height, BPP);
+//#else
                 pBMP = new wxBitmap(/*NULL,*/
                         vp.pix_width, vp.pix_height, BPP);
-#endif
+//#endif
        wxMemoryDC dc_clone;
        dc_clone.SelectObject(*pBMP);
 
@@ -2029,9 +2040,6 @@ bool s57chart::BuildThumbnail(const wxString &bmpname)
        //   Save the file
        ret_code = pBMP->SaveFile(ThumbFileName.GetFullPath(), wxBITMAP_TYPE_BMP);
 
-//    Debug
-//       char s[200];
-//       strcpy(s,ThumbFileName.GetFullPath().mb_str());
        return ret_code;
 }
 
