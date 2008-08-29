@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.10 2008/08/26 19:01:06 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.11 2008/08/29 04:58:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.11  2008/08/29 04:58:05  bdbcat
+ * Correct sector light math
+ *
  * Revision 1.10  2008/08/26 19:01:06  bdbcat
  * Correct Colour for Red/Green Sector light
  *
@@ -42,6 +45,9 @@
  * Add missing symbology OBSTRN, etc.
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.11  2008/08/29 04:58:05  bdbcat
+ * Correct sector light math
+ *
  * Revision 1.10  2008/08/26 19:01:06  bdbcat
  * Correct Colour for Red/Green Sector light
  *
@@ -112,7 +118,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.10 2008/08/26 19:01:06 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.11 2008/08/29 04:58:05 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -1469,7 +1475,7 @@ static void *LIGHTS05 (void *param)
                   sectr2 += 180;
 
             char arc_data[80];
-            sprintf(arc_data, ",%5.0f, %5.0f, %5.0f, %5.0f", sectr1, sectr2, arc_radius, sector_radius);
+            sprintf(arc_data, ",%5.1f, %5.1f, %5.1f, %5.1f", sectr1, sectr2, arc_radius, sector_radius);
 
             strcat(sym, arc_data);
 

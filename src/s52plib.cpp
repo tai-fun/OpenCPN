@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.19 2008/08/26 13:49:15 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.20 2008/08/29 04:58:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.20  2008/08/29 04:58:05  bdbcat
+ * Correct sector light math
+ *
  * Revision 1.19  2008/08/26 13:49:15  bdbcat
  * Better color scheme support
  *
@@ -45,6 +48,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.20  2008/08/29 04:58:05  bdbcat
+ * Correct sector light math
+ *
  * Revision 1.19  2008/08/26 13:49:15  bdbcat
  * Better color scheme support
  *
@@ -129,7 +135,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.19 2008/08/26 13:49:15 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.20 2008/08/29 04:58:05 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -3718,13 +3724,13 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
         //    sectr1
         slong = tkz.GetNextToken();
-        long sectr1;
-        slong.ToLong ( &sectr1 );
+        double sectr1;
+        slong.ToDouble ( &sectr1 );
 
         //    sectr2
         slong = tkz.GetNextToken();
-        long sectr2;
-        slong.ToLong ( &sectr2 );
+        double sectr2;
+        slong.ToDouble ( &sectr2 );
 
         //    arc radius
         slong = tkz.GetNextToken();
