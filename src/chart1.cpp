@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.27 2008/08/26 13:46:25 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.28 2008/08/29 02:25:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.28  2008/08/29 02:25:58  bdbcat
+ * Add compiler #ifdef to support ConvertToGreyscale
+ *
  * Revision 1.27  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -48,6 +51,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.28  2008/08/29 02:25:58  bdbcat
+ * Add compiler #ifdef to support ConvertToGreyscale
+ *
  * Revision 1.27  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -169,7 +175,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.27 2008/08/26 13:46:25 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.28 2008/08/29 02:25:58 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -1640,7 +1646,11 @@ void MyFrame::BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString 
 
         if(back_color < 200)
         {
+#if wxCHECK_VERSION(2, 8, 0)
               wxImage img_dupG = img_dup.ConvertToGreyscale();
+#else // replacement code for old version
+              wxImage img_dupG = img_dup;
+#endif
               img_dup = img_dupG;
         }
 
