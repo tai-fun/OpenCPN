@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.26 2008/08/26 13:47:36 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.27 2008/08/29 02:27:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.27  2008/08/29 02:27:21  bdbcat
+ * Improve update region support in OnPaint()
+ *
  * Revision 1.26  2008/08/26 13:47:36  bdbcat
  * Improved ownship symbology
  *
@@ -42,6 +45,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.27  2008/08/29 02:27:21  bdbcat
+ * Improve update region support in OnPaint()
+ *
  * Revision 1.26  2008/08/26 13:47:36  bdbcat
  * Improved ownship symbology
  *
@@ -167,7 +173,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.26 2008/08/26 13:47:36 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.27 2008/08/29 02:27:21 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -2829,10 +2835,8 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
 
         if ( console->IsShown() )
         {
-                rgn_chart.Subtract ( rgn_console );
-#ifdef __WXMSW__                                // Todo dunno if this ifdef necessary, try on X11 and GTK.....
-                ru.Subtract ( rgn_console );
-#endif
+                rgn_chart.Subtract ( rgn_console );               // For dc Drawing clipping
+                ru.Subtract ( rgn_console );                      // for Blit updating
         }
 
 //    Same for Thumbnail window
@@ -2846,11 +2850,8 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
                 if ( pthumbwin->IsShown() )
                 {
                         rgn_chart.Subtract ( rgn_thumbwin );
-#ifdef __WXMSW__
                         ru.Subtract ( rgn_thumbwin );
-#endif
                 }
-
         }
 
 
@@ -2932,7 +2933,7 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
 
 
         //    Blit the invalidated areas of the chart onto a scratch dc
-        rgn_blit = GetUpdateRegion();
+        rgn_blit = ru; //GetUpdateRegion();
         wxRegionIterator upd ( rgn_blit ); // get the update rect list
         while ( upd )
         {
