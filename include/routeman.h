@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.h,v 1.3 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: routeman.h,v 1.4 2008/08/29 02:24:18 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.h,v $
+ * Revision 1.4  2008/08/29 02:24:18  bdbcat
+ * Redefine IconImageList
+ *
  * Revision 1.3  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -173,11 +176,13 @@ public:
       wxString *GetIconDescription(int index);
       wxString *GetIconKey(int index);
 
-      wxImageList *Getpmarkicon_image_list(void){return pmarkicon_image_list;}
+      wxImageList *Getpmarkicon_image_list(void);
 
       RoutePointList    *m_pWayPointList;
 
 private:
+      void ProcessIcon(wxImage *pimage, wxString key, wxString description);
+
       wxBitmap *CreateDimBitmap(wxBitmap *pBitmap, double factor);
 
       int m_nIcons;

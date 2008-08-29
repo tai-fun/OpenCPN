@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.9 2008/08/28 02:28:04 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.10 2008/08/29 02:24:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.10  2008/08/29 02:24:40  bdbcat
+ * Redefine IconImageList
+ *
  * Revision 1.9  2008/08/28 02:28:04  bdbcat
  * Fix Compile bug
  *
@@ -39,6 +42,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.10  2008/08/29 02:24:40  bdbcat
+ * Redefine IconImageList
+ *
  * Revision 1.9  2008/08/28 02:28:04  bdbcat
  * Fix Compile bug
  *
@@ -197,7 +203,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.9 2008/08/28 02:28:04 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.10 2008/08/29 02:24:40 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -655,78 +661,51 @@ void Routeman::SetColorScheme(ColorScheme cs)
 //      WayPointman   Implementation
 //--------------------------------------------------------------------------------
 
-
-
-
-
-#define MAKEICONARRAYS(key, xpm_ptr, description)      pmarkiconImage = new wxImage((char **)xpm_ptr);\
-                                                   pmarkiconBitmap = new wxBitmap(*pmarkiconImage);\
-                                                   delete pmarkiconImage;\
-                                                   pmi = new MarkIcon;\
-                                                   pmi->picon_bitmap = pmarkiconBitmap;\
-                                                   pmi->icon_name = _T(key);\
-                                                   pmi->icon_description = _T(description);\
-                                                   DayIconArray.Add((void *)pmi);\
-                                                            pmarkiconImage = new wxImage((char **)xpm_ptr);\
-                                                            pmarkiconBitmap = new wxBitmap(*pmarkiconImage);\
-                                                            delete pmarkiconImage;\
-                                                            pmarkiconBitmapDim = CreateDimBitmap(pmarkiconBitmap, .50);\
-                                                            delete pmarkiconBitmap;\
-                                                            pmi = new MarkIcon;\
-                                                            pmi->picon_bitmap = pmarkiconBitmapDim;\
-                                                            pmi->icon_name = _T(key);\
-                                                            pmi->icon_description = _T(description);\
-                                                            DuskIconArray.Add((void *)pmi);\
-                                                                   pmarkiconImage = new wxImage((char **)xpm_ptr);\
-                                                                   pmarkiconBitmap = new wxBitmap(*pmarkiconImage);\
-                                                                   delete pmarkiconImage;\
-                                                                   pmarkiconBitmapDim = CreateDimBitmap(pmarkiconBitmap, .25);\
-                                                                   delete pmarkiconBitmap;\
-                                                                   pmi = new MarkIcon;\
-                                                                   pmi->picon_bitmap = pmarkiconBitmapDim;\
-                                                                   pmi->icon_name = _T(key);\
-                                                                   pmi->icon_description = _T(description);\
-                                                                   NightIconArray.Add((void *)pmi);\
+/*
+#define MAKEICONARRAYS(key, xpm_ptr, description)\
+       pmarkiconImage = new wxImage((char **)xpm_ptr);\
+       pmarkiconBitmap = new wxBitmap(*pmarkiconImage, (wxDC)dwxdc);\
+       delete pmarkiconImage;\
+       pmi = new MarkIcon;\
+       pmi->picon_bitmap = pmarkiconBitmap;\
+       pmi->icon_name = _T(key);\
+       pmi->icon_description = _T(description);\
+       DayIconArray.Add((void *)pmi);\
+       pmarkiconImage = new wxImage((char **)xpm_ptr);\
+       pmarkiconBitmap = new wxBitmap(*pmarkiconImage, dwxdc);\
+       delete pmarkiconImage;\
+       pmarkiconBitmapDim = CreateDimBitmap(pmarkiconBitmap, .50, dwxdc);\
+       delete pmarkiconBitmap;\
+       pmi = new MarkIcon;\
+       pmi->picon_bitmap = pmarkiconBitmapDim;\
+       pmi->icon_name = _T(key);\
+       pmi->icon_description = _T(description);\
+       DuskIconArray.Add((void *)pmi);\
+       pmarkiconImage = new wxImage((char **)xpm_ptr);\
+       pmarkiconBitmap = new wxBitmap(*pmarkiconImage, dwxdc);\
+       delete pmarkiconImage;\
+       pmarkiconBitmapDim = CreateDimBitmap(pmarkiconBitmap, .25, dwxdc);\
+       delete pmarkiconBitmap;\
+       pmi = new MarkIcon;\
+       pmi->picon_bitmap = pmarkiconBitmapDim;\
+       pmi->icon_name = _T(key);\
+       pmi->icon_description = _T(description);\
+       NightIconArray.Add((void *)pmi);\
+*/
+#define MAKEICONARRAYS(key, xpm_ptr, description)\
+ pmarkiconImage = new wxImage((char **)xpm_ptr);\
+ ProcessIcon(pmarkiconImage, _T(key), _T(description));\
+ delete pmarkiconImage;
 
 
 WayPointman::WayPointman()
 {
-      MarkIcon *pmi;
 
       m_pWayPointList = new RoutePointList;
 
       wxImage *pmarkiconImage;
-      wxBitmap *pmarkiconBitmap;
-      wxBitmap *pmarkiconBitmapDim;
 
-/*
-      pmarkiconImage = new wxImage((char **)airplane);
-      if(pmarkiconImage->HasMask())
-            int ddl = 4;
-      pmarkiconBitmap = new wxBitmap(*pmarkiconImage);
-      if(!pmarkiconBitmap->Ok())
-            int ggl = 4;
-      if(pmarkiconBitmap->GetDepth() == 1)
-            int ggk = 5;
-//      pmarkiconMask = new wxMask(*pmarkiconBitmap);
-//      pmarkiconBitmap->SetMask(pmarkiconMask);
-
- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      pmarkicon_image_list = NULL;
 
       MAKEICONARRAYS("empty", empty, "Empty")
       MAKEICONARRAYS("airplane", airplane, "Airplane")
@@ -775,29 +754,6 @@ WayPointman::WayPointman()
 
       m_nIcons = DayIconArray.GetCount();
       m_pcurrent_icon_array = &DayIconArray;
-
-      //    Create a default wxImageList
-      // First find the largest bitmap size
-      int w=0;
-      int h=0;
-
-      for( unsigned int i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
-      {
-            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
-            w = wxMax(w, pmi->picon_bitmap->GetWidth());
-            h = wxMax(h, pmi->picon_bitmap->GetHeight());
-      }
-
-      //Build an image list large enough
-      pmarkicon_image_list = new wxImageList(w, h);
-
-      //  Add the icons
-      for( unsigned int ii = 0 ; ii< m_pcurrent_icon_array->GetCount() ; ii++)
-      {
-            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(ii);
-            pmarkicon_image_list->Add(*pmi->picon_bitmap);
-      }
-
 }
 
 WayPointman::~WayPointman()
@@ -846,8 +802,92 @@ WayPointman::~WayPointman()
       DuskIconArray.Empty();
       DayIconArray.Empty();
 
-      pmarkicon_image_list->RemoveAll();
+      if(pmarkicon_image_list)
+            pmarkicon_image_list->RemoveAll();
       delete pmarkicon_image_list;
+}
+
+void WayPointman::ProcessIcon(wxImage *pimage, wxString key, wxString description)
+{
+
+      wxBitmap *pmarkiconBitmap;
+      wxBitmap *pmarkiconBitmapDim;
+      MarkIcon *pmi;
+
+//    Day Icon
+#ifdef __WXMSW__
+//      wxMSW Bug???
+//      On Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
+//      unless a "compatible" dc is provided.  Why??
+//      As a workaround, just make a simple wxDC for temporary use
+      wxBitmap tbmp ( 1, 1,-1 );
+      wxMemoryDC dwxdc;
+      dwxdc.SelectObject ( tbmp );
+
+      pmarkiconBitmap = new wxBitmap(*pimage, dwxdc);
+#else
+      pmarkiconBitmap = new wxBitmap(*pimage);
+#endif
+
+      pmi = new MarkIcon;
+      pmi->picon_bitmap = pmarkiconBitmap;
+      pmi->icon_name = key;
+      pmi->icon_description = description;
+      DayIconArray.Add((void *)pmi);
+
+//    Dusk
+      pmarkiconBitmapDim = CreateDimBitmap(pmarkiconBitmap, .50);
+      pmi = new MarkIcon;
+      pmi->picon_bitmap = pmarkiconBitmapDim;
+      pmi->icon_name = key;
+      pmi->icon_description = description;
+      DuskIconArray.Add((void *)pmi);
+
+//    Night
+      pmarkiconBitmapDim = CreateDimBitmap(pmarkiconBitmap, .50);
+      pmi = new MarkIcon;
+      pmi->picon_bitmap = pmarkiconBitmapDim;
+      pmi->icon_name = key;
+      pmi->icon_description = description;
+      NightIconArray.Add((void *)pmi);
+}
+
+
+
+wxImageList *WayPointman::Getpmarkicon_image_list(void)
+{
+      // First find the largest bitmap size
+      int w=0;
+      int h=0;
+
+      MarkIcon *pmi;
+
+      for( unsigned int i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
+      {
+            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
+            w = wxMax(w, pmi->picon_bitmap->GetWidth());
+            h = wxMax(h, pmi->picon_bitmap->GetHeight());
+      }
+
+      //Build an image list large enough
+
+      if(NULL != pmarkicon_image_list)
+      {
+            pmarkicon_image_list->RemoveAll();
+            delete pmarkicon_image_list;
+      }
+      pmarkicon_image_list = new wxImageList(w, h);
+
+      //  Add the icons
+      for( unsigned int ii = 0 ; ii< m_pcurrent_icon_array->GetCount() ; ii++)
+      {
+            pmi = (MarkIcon *)m_pcurrent_icon_array->Item(ii);
+            wxImage icon_image = pmi->picon_bitmap->ConvertToImage();
+            wxImage icon_larger = icon_image.Resize(wxSize(h,w), wxPoint(0,0));
+            pmarkicon_image_list->Add(icon_larger);
+       }
+
+      return pmarkicon_image_list;
 }
 
 wxBitmap *WayPointman::CreateDimBitmap(wxBitmap *pBitmap, double factor)
@@ -904,16 +944,6 @@ void WayPointman::SetColorScheme(ColorScheme cs)
             pr->ReLoadIcon();
             node = node->GetNext();
       }
-
-
-      //    Remake the wxImageList
-      pmarkicon_image_list->RemoveAll();
-      for( unsigned int i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
-      {
-            MarkIcon *pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
-            pmarkicon_image_list->Add(*pmi->picon_bitmap);
-      }
-
 }
 
 

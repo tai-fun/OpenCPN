@@ -676,6 +676,8 @@ void MarkProp::SetColorScheme(ColorScheme cs)
       m_OKButton->SetBackgroundColour(back_color);
       m_OKButton->SetForegroundColour(text_color);
 
+      m_IconList->SetImageList(pWayPointMan->Getpmarkicon_image_list(), wxIMAGE_LIST_SMALL);
+
 }
 
 bool MarkProp::ShowToolTips()
