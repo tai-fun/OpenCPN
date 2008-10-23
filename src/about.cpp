@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.12 2008/08/29 02:26:13 bdbcat Exp $
+ * $Id: about.cpp,v 1.13 2008/10/23 23:40:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.13  2008/10/23 23:40:03  bdbcat
+ * Add dherring as coauthor
+ *
  * Revision 1.12  2008/08/29 02:26:13  bdbcat
  * Version update
  *
@@ -40,6 +43,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: about.cpp,v $
+ * Revision 1.13  2008/10/23 23:40:03  bdbcat
+ * Add dherring as coauthor
+ *
  * Revision 1.12  2008/08/29 02:26:13  bdbcat
  * Version update
  *
@@ -85,12 +91,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.12 2008/08/29 02:26:13 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.13 2008/10/23 23:40:03 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.2.6"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.2.8"};
 
 
 char AboutText[] =
@@ -106,6 +112,9 @@ char AuthorText[] =
       OpenCPN Lead Developer\n\n\
    Richard Smith\n\
       smithstrawler@hotmail.com\n\
+      OpenCPN CoDeveloper, MacOSX\n\n\
+   David Herring\n\
+      dherring@visi.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
    Julian Smart, Robert Roebling et al\n\
       wxwidgets.org\n\
