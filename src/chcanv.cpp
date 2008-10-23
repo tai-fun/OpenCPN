@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.27 2008/08/29 02:27:21 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.28 2008/10/23 23:32:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.28  2008/10/23 23:32:35  bdbcat
+ * Improve skewed chart scale calculation, add CEP
+ *
  * Revision 1.27  2008/08/29 02:27:21  bdbcat
  * Improve update region support in OnPaint()
  *
@@ -45,6 +48,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.28  2008/10/23 23:32:35  bdbcat
+ * Improve skewed chart scale calculation, add CEP
+ *
  * Revision 1.27  2008/08/29 02:27:21  bdbcat
  * Improve update region support in OnPaint()
  *
@@ -173,7 +179,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.27 2008/08/29 02:27:21 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.28 2008/10/23 23:32:35 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -403,7 +409,7 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         VPoint.clon = 0;
         VPoint.view_scale_ppm = 1;
 
-        canvas_scale_factor = 1000.;
+       m_canvas_scale_factor = 1.;
 
         m_ownship_predictor_minutes = 5.;     // Minutes shown on ownship position predictor graphic
         m_ais_predictor_minutes     = 5.;     // Minutes shown on AIS target position predictor graphic
@@ -983,18 +989,18 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
                 Current_Ch->SetVPParms ( &VPoint );
 
 
-        //    Calculate the conventional scale
-        //    by a simple traverse vertically from the center point
+        //    Calculate the on-screen displayed actual scale
+        //    by a simple 0.1 NM traverse northward from the center point
         double tlat, tlon;
         wxPoint r, r1;
-        ll_gc_ll ( VPoint.clat, VPoint.clon, 0, 1.0, &tlat, &tlon );
+        ll_gc_ll ( VPoint.clat, VPoint.clon, 0, .1, &tlat, &tlon );
         GetPointPix ( tlat, tlon, &r1 );
         GetPointPix ( VPoint.clat, VPoint.clon, &r );
 
-        m_true_scale_ppm = abs(r.y - r1.y) / 1852.;
+        m_true_scale_ppm = sqrt(pow((r.y - r1.y), 2) + pow((r.x - r1.x), 2)) / 185.2;
 
         if(m_true_scale_ppm)
-              VPoint.chart_scale = canvas_scale_factor / ( m_true_scale_ppm * 1852 * 60 );
+              VPoint.chart_scale = m_canvas_scale_factor / ( m_true_scale_ppm );
         else
               VPoint.chart_scale = 1.0;
 
@@ -1180,6 +1186,13 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       dc.DrawEllipse ( lShipPoint.x -  6, lShipPoint.y -  6, 12, 12 );
 
                 }
+
+//    Test code to draw CEP circle based on chart scale
+
+                double radius = 25;
+                double radius_meters = Current_Ch->GetNativeScale() * .0015;         // 1.5 mm at original scale
+                radius = radius_meters * VPoint.view_scale_ppm;
+                dc.DrawCircle(lShipPoint.x, lShipPoint.y, (int)radius);
 
         }
 }
@@ -1496,13 +1509,11 @@ void ChartCanvas::OnSize ( wxSizeEvent& event )
 //          for new canvas size
         SetVPScale ( GetVPScale() );
 
-        float x_mm = wxGetDisplaySizeMM().GetWidth();         // gives client width in mm
-        float mm_per_deg = ( 60 * 1.15 * 5280 *25.4 * 12 );
-
-        canvas_scale_factor = mm_per_deg / ( x_mm / canvas_width );
+        double display_size_meters =  wxGetDisplaySizeMM().GetWidth() / 1000.;         // gives client width in meters
+        m_canvas_scale_factor = canvas_width / display_size_meters;
 
 #ifdef USE_S57
-        float pix_per_mm = canvas_width / x_mm;
+        float pix_per_mm = canvas_width / (display_size_meters * 1000.);
         if ( ps52plib )
                 ps52plib->SetPPMM ( pix_per_mm );
 #endif
@@ -2895,7 +2906,8 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
         wxRegion WVSRegion ( rgn_chart );
 
 //    Remove the valid chart area
-        WVSRegion.Subtract ( CValidRegion );
+        if(CValidRegion.IsOk())
+            WVSRegion.Subtract ( CValidRegion );
 
 //    Associate with temp_dc
         temp_dc.DestroyClippingRegion();
