@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.19 2008/08/29 02:26:41 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.20 2008/10/23 23:31:14 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.20  2008/10/23 23:31:14  bdbcat
+ * Improve ENC update logic with date validation
+ *
  * Revision 1.19  2008/08/29 02:26:41  bdbcat
  * Thumbnail bitmap code cleanup
  *
@@ -46,6 +49,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.20  2008/10/23 23:31:14  bdbcat
+ * Improve ENC update logic with date validation
+ *
  * Revision 1.19  2008/08/29 02:26:41  bdbcat
  * Thumbnail bitmap code cleanup
  *
@@ -130,7 +136,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.19 2008/08/29 02:26:41 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.20 2008/10/23 23:31:14 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -1630,6 +1636,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 
     if(fn.GetExt() == _T("000"))
     {
+          GetBaseFileAttr(fn);
           if(FindOrCreateSenc(name) != INIT_OK)
                 return ret_value;
 
@@ -1675,6 +1682,7 @@ InitReturn s57chart::FindOrCreateSenc( const wxString& name )
         int build_ret_val = 1;
 
         bool bbuild_new_senc = false;
+        m_bneed_new_thumbnail = false;
 
         wxFileName FileName000( name );
 
@@ -1702,6 +1710,9 @@ InitReturn s57chart::FindOrCreateSenc( const wxString& name )
                                 int force_make_senc = 0;
                                 char buf[256];
                                 char *pbuf = buf;
+                                wxDateTime ModTime000;
+                                int size000;
+                                wxString senc_base_edtn;
 
                                 while( !dun )
                                 {
@@ -1718,14 +1729,56 @@ InitReturn s57chart::FindOrCreateSenc( const wxString& name )
                                                         dun = 1;
                                                         break;
                                                 }
-                                                else if(!strncmp(pbuf, "UPDT", 4))
+
+                                                wxString str_buf(pbuf, wxConvUTF8);
+                                                wxStringTokenizer tkz(str_buf, _T("="));
+                                                wxString token = tkz.GetNextToken();
+
+                                                if(token.IsSameAs(_T("UPDT"), TRUE))
                                                 {
-                                                        sscanf(pbuf, "UPDT=%i", &last_update);
+                                                      int i;
+                                                      i = tkz.GetPosition();
+                                                      last_update = atoi(&pbuf[i]);
                                                 }
-                                                else if(!strncmp(pbuf, "SENC", 4))
+
+                                                else if(token.IsSameAs(_T("SENC Version"), TRUE))
                                                 {
-                                                    sscanf(pbuf, "SENC Version=%i", &senc_file_version);
+                                                      int i;
+                                                      i = tkz.GetPosition();
+                                                      senc_file_version = atoi(&pbuf[i]);
                                                 }
+
+
+
+                                                else if(token.IsSameAs(_T("FILEMOD000"), TRUE))
+                                                {
+                                                      int i;
+                                                      i = tkz.GetPosition();
+                                                      wxString str(&pbuf[i],  wxConvUTF8);
+                                                      str.Trim();                               // gets rid of newline, etc...
+                                                      if(!ModTime000.ParseFormat(str, (const wxChar *)"%Y%m%d"))
+                                                            ModTime000.SetToCurrent();
+                                                      ModTime000.ResetTime();                   // to midnight
+                                                }
+
+                                                else if(token.IsSameAs(_T("FILESIZE000"), TRUE))
+                                                {
+                                                      int i;
+                                                      i = tkz.GetPosition();
+                                                      size000 = atoi(&pbuf[i]);
+                                                }
+
+                                                else if(token.IsSameAs(_T("EDTN000"), TRUE))
+                                                {
+                                                      int i;
+                                                      i = tkz.GetPosition();
+                                                      wxString str(&pbuf[i],  wxConvUTF8);
+                                                      str.Trim();                               // gets rid of newline, etc...
+                                                      senc_base_edtn = str;
+                                                }
+
+
+
                                         }
                                 }
 
@@ -1733,18 +1786,38 @@ InitReturn s57chart::FindOrCreateSenc( const wxString& name )
                                 delete pfpx_u;
                                 f.Close();
 //              Anything to do?
-
 // force_make_senc = 1;
-                                wxString DirName(FileName000.GetPath((int)wxPATH_GET_SEPARATOR));
-                                int most_recent_update_file = GetUpdateFileArray(DirName, NULL);
+                                //  SENC file version has to be correct for other tests to make sense
+                                if(senc_file_version != CURRENT_SENC_FORMAT_VERSION)
+                                      bbuild_new_senc = true;
 
-                                if(last_update != most_recent_update_file)
-                                    bbuild_new_senc = true;
+                                //  Senc EDTN must be the same as base EDTN.  This test catches the usual case of ENC web update
+                                else if(!senc_base_edtn.IsSameAs(m_edtn000))
+                                      bbuild_new_senc = true;
 
-                                else if(senc_file_version != CURRENT_SENC_FORMAT_VERSION)
-                                    bbuild_new_senc = true;
+                                else
+                                {
 
-                                else if(force_make_senc)
+                                    int most_recent_update_file = GetUpdateFileArray(FileName000, NULL);
+
+                                    if(last_update != most_recent_update_file)
+                                          bbuild_new_senc = true;
+
+//          Make two simple tests to see if the .000 file is "newer" than the SENC file representation
+//          These tests may be redundant, since the DSID:EDTN test above should catch new base files
+                                    wxDateTime OModTime000;
+                                    FileName000.GetTimes(NULL, &OModTime000, NULL);
+                                    OModTime000.ResetTime();                      // to midnight
+                                    if(ModTime000.IsValid())
+                                          if(OModTime000.IsLaterThan(ModTime000))
+                                                bbuild_new_senc = true;
+
+                                    int Osize000l = FileName000.GetSize().GetLo();
+                                    if(size000 != Osize000l)
+                                          bbuild_new_senc = true;
+                                }
+
+                                if(force_make_senc)
                                     bbuild_new_senc = true;
 
                                 if(bbuild_new_senc)
@@ -1759,6 +1832,9 @@ InitReturn s57chart::FindOrCreateSenc( const wxString& name )
               build_ret_val = BuildSENCFile( name, m_SENCFileName.GetFullPath() );
               bbuild_new_senc = true;
         }
+
+        if(bbuild_new_senc)
+              m_bneed_new_thumbnail = true;                       // force a new thumbnail to be built in PostInit()
 
         if(bbuild_new_senc)
         {
@@ -1806,7 +1882,7 @@ InitReturn s57chart::PostInit( ChartInitFlag flags, ColorScheme cs )
 
         wxFileName ThumbFileName(SENCdir, m_SENCFileName.GetName(), _T("BMP"));
 
-        if(!ThumbFileName.FileExists() /*|| bbuild_new_senc*/)
+        if(!ThumbFileName.FileExists() || m_bneed_new_thumbnail)
               BuildThumbnail(ThumbFileName.GetFullPath());
 
 
@@ -2408,6 +2484,9 @@ bool s57chart::CreateHeaderDataFromSENC(void)
       else
            *pPubYear = wxString(date_000, wxConvUTF8).Mid(0,4);
 
+      wxDateTime dt;
+      dt.ParseDate(date_000);
+
       if(!ret_val)
             return false;
 
@@ -2603,8 +2682,9 @@ static int ExtensionCompare(const wxString& first, const wxString& second)
 }
 
 
-int s57chart::GetUpdateFileArray(const wxString& DirName000, wxArrayString *UpFiles)
+int s57chart::GetUpdateFileArray(const wxFileName file000, wxArrayString *UpFiles)
 {
+        wxString DirName000 = file000.GetPath((int)wxPATH_GET_SEPARATOR);
         wxDir dir(DirName000);
         wxString ext;
         wxArrayString *dummy_array;
@@ -2621,18 +2701,76 @@ int s57chart::GetUpdateFileArray(const wxString& DirName000, wxArrayString *UpFi
         {
                 wxFileName file(filename);
                 ext = file.GetExt();
-                if(ext.IsNumber()/* && ext.CmpNoCase(_T("000"))*/)
+                if(ext.IsNumber())
                 {
                         wxString FileToAdd(DirName000);
                         FileToAdd.Append(file.GetFullName());
-                        dummy_array->Add(FileToAdd);
+
+//          We must check the update file for validity
+//          1.  Is update field DSID:EDTN  equal to base .000 file DSID:EDTN?
+//          2.  Is update file DSID.ISDT greter than or equal to base .000 file DSID:ISDT
+
+                        wxDateTime umdate;
+                        wxString sumdate;
+                        wxString umedtn;
+                        DDFModule *poModule = new DDFModule();
+                        if(!poModule->Open( FileToAdd.mb_str() ))
+                        {
+                              wxString msg(_T("   s57chart::BuildS57File  Unable to open update file "));
+                              msg.Append(FileToAdd);
+                              wxLogMessage(msg);
+                        }
+                        else
+                        {
+                              poModule->Rewind();
+
+//    Read and parse DDFRecord 0 to get some interesting data
+//    n.b. assumes that the required fields will be in Record 0....  Is this always true?
+
+                              DDFRecord *pr = poModule->ReadRecord();                               // Record 0
+//    pr->Dump(stdout);
+
+//  Fetch ISDT(Issue Date)
+                              char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0));
+                              if(u)
+                                    sumdate = wxString(u, wxConvUTF8);
+                              else
+                              {
+                                    wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:ISDT in update file "));
+                                    msg.Append(FileToAdd);
+                                    wxLogMessage(msg);
+
+                                    sumdate = _T("20000101");                // backstop, very early, so wont be used
+                              }
+
+                              umdate.ParseFormat(sumdate, _T("%Y%m%d"));
+                              umdate.ResetTime();
+
+//    Fetch the EDTN(Edition) field
+                              u = (char *)(pr->GetStringSubfield("DSID", 0, "EDTN", 0));
+                              if(u)
+                                    umedtn = wxString(u, wxConvUTF8);
+                              else
+                              {
+                                    wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:EDTN in update file "));
+                                    msg.Append(FileToAdd);
+                                   wxLogMessage(msg);
+
+                                   umedtn = _T("1");                // backstop
+                              }
+
+                              delete poModule;
+                        }
+
+
+                        if((!umdate.IsEarlierThan(m_date000)) && (umedtn.IsSameAs(m_edtn000)))        // Note polarity on Date compare....
+                              dummy_array->Add(FileToAdd);                                            // Looking for umdate >= m_date000
                 }
 
                 cont = dir.GetNext(&filename);
         }
 
 //      Sort the candidates
-
         dummy_array->Sort(ExtensionCompare);
 
 //      Get the update number of the last in the list
@@ -2651,11 +2789,12 @@ int s57chart::GetUpdateFileArray(const wxString& DirName000, wxArrayString *UpFi
 }
 
 
-int s57chart::ValidateAndCountUpdates( const wxString DirName000, const wxString SENCDir, wxString &LastUpdateDate)
+int s57chart::ValidateAndCountUpdates( const wxFileName file000, const wxString SENCDir, wxString &LastUpdateDate)
 {
 
         int retval = 0;
 
+        wxString DirName000 = file000.GetPath((int)wxPATH_GET_SEPARATOR);
         wxDir dir(DirName000);
         wxArrayString *UpFiles = new wxArrayString;
         retval = GetUpdateFileArray(DirName000, UpFiles);
@@ -2671,7 +2810,7 @@ int s57chart::ValidateAndCountUpdates( const wxString DirName000, const wxString
             //      Workaround.
             //      Create temporary dummy update files to fill out the set before invoking
             //      ogr file open/ingest.  Delete after SENC file create finishes.
-            //      Set starts with .000
+            //      Set starts with .000, which has the effect of copying the base file to the working dir
 
 
             m_tmpup_array = new wxArrayString;                // save a list of created files for later erase
@@ -2703,9 +2842,9 @@ int s57chart::ValidateAndCountUpdates( const wxString DirName000, const wxString
                     }
                 }
 
-                if(ufile.FileExists() && (flen > 25))           // a valid update file
+                if(ufile.FileExists() && (flen > 25))           // a valid update file or base file
                 {
-                      //      Copy the valid update file to the SENC directory
+                      //      Copy the valid file to the SENC directory
                       bool cpok = wxCopyFile(ufile.GetFullPath(), cp_ufile);
                       if(!cpok)
                       {
@@ -2767,13 +2906,97 @@ int s57chart::ValidateAndCountUpdates( const wxString DirName000, const wxString
 }
 
 
+bool s57chart::GetBaseFileAttr(wxFileName fn)
+{
+
+      wxString FullPath000 = fn.GetFullPath();
+      DDFModule *poModule = new DDFModule();
+      if(!poModule->Open( FullPath000.mb_str() ))
+      {
+            wxString msg(_T("   s57chart::BuildS57File  Unable to open "));
+            msg.Append(FullPath000);
+            wxLogMessage(msg);
+            return false;
+      }
+
+      poModule->Rewind();
+
+//    Read and parse DDFRecord 0 to get some interesting data
+//    n.b. assumes that the required fields will be in Record 0....  Is this always true?
+
+      DDFRecord *pr = poModule->ReadRecord();                               // Record 0
+//    pr->Dump(stdout);
+
+
+//    Fetch the Geo Feature Count, or something like it....
+      m_nGeoRecords = pr->GetIntSubfield("DSSI", 0, "NOGR", 0 );
+      if(!m_nGeoRecords)
+      {
+            wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSSI:NOGR "));
+            wxLogMessage(msg);
+
+            m_nGeoRecords = 1;                // backstop
+      }
+
+
+//  Use ISDT(Issue Date) here, which is the same as UADT(Updates Applied) for .000 files
+      wxString date000;
+      char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0));
+      if(u)
+            date000 = wxString(u, wxConvUTF8);
+      else
+      {
+            wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:ISDT "));
+            wxLogMessage(msg);
+
+            date000 = _T("20000101");                // backstop, very early, so any new files will update?
+      }
+      m_date000.ParseFormat(date000, _T("%Y%m%d"));
+      m_date000.ResetTime();
+
+//    Fetch the EDTN(Edition) field
+      u = (char *)(pr->GetStringSubfield("DSID", 0, "EDTN", 0));
+      if(u)
+            m_edtn000 = wxString(u, wxConvUTF8);
+      else
+      {
+            wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:EDTN "));
+            wxLogMessage(msg);
+
+            m_edtn000 = _T("1");                // backstop
+      }
+
+//      Fetch the Native Scale by reading more records until DSPM is found
+      m_native_scale = 0;
+      for( ; pr != NULL; pr = poModule->ReadRecord() )
+      {
+            if( pr->FindField( "DSPM" ) != NULL )
+            {
+                  m_native_scale = pr->GetIntSubfield("DSPM",0,"CSCL",0);
+                  break;
+            }
+      }
+      if(!m_native_scale)
+      {
+            wxString msg(_T("   s57chart::BuildS57File  ENC not contain DSPM:CSCL "));
+            wxLogMessage(msg);
+
+            m_native_scale = 1000;                // backstop
+      }
+
+
+      delete poModule;
+
+
+      return true;
+}
+
 
 int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFileName)
 {
     OGRFeature *objectDef;
     int nProg = 0;
-    wxString date000;
-    int native_scale = 1;
+//    wxString date000, edtn000;
     wxString nice_name;
     int bbad_update = false;
 
@@ -2799,6 +3022,7 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
 
     GetChartNameFromTXT(FullPath000, nice_name);
 
+/*
     //      Fetch the Geo Feature Count, or something like it....
 
     DDFModule *poModule = new DDFModule();
@@ -2812,16 +3036,51 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
 
 
     poModule->Rewind();
+
+//    Read and parse DDFRecord 0 to get some interesting data
+//    n.b. assumes that the required fields will be in Record 0....  Is this always true?
+
     DDFRecord *pr = poModule->ReadRecord();                               // Record 0
+//    pr->Dump(stdout);
 
     nGeoRecords = pr->GetIntSubfield("DSSI", 0, "NOGR", 0 );
+    if(!nGeoRecords)
+    {
+          wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSSI:NOGR "));
+          wxLogMessage(msg);
 
-//  Use ISDT here, which is the same as UADT for .000 files
+          nGeoRecords = 1;                // backstop
+    }
+
+
+//  Use ISDT(Issue Date) here, which is the same as UADT(Updates Applied) for .000 files
     char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0));
     if(u)
         date000 = wxString(u, wxConvUTF8);
+    else
+    {
+          wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:ISDT "));
+          wxLogMessage(msg);
 
-//      Fetch the Native Scale
+          date000 = _T("20000101");                // backstop, very early, so any new files will update?
+    }
+    m_date000.ParseFormat(date000.mb_str(), "%Y%m%d");
+    m_date000.ResetTime();
+
+//    Fetch the EDTN(Edition) field
+    u = (char *)(pr->GetStringSubfield("DSID", 0, "EDTN", 0));
+    if(u)
+          m_edtn000 = wxString(u, wxConvUTF8);
+    else
+    {
+          wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:EDTN "));
+          wxLogMessage(msg);
+
+          m_edtn000 = _T("1");                // backstop
+    }
+
+//      Fetch the Native Scale by reading more records until DSPM is found
+    native_scale = 0;
     for( ; pr != NULL; pr = poModule->ReadRecord() )
     {
         if( pr->FindField( "DSPM" ) != NULL )
@@ -2830,8 +3089,18 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
                         break;
         }
     }
+    if(!native_scale)
+    {
+          wxString msg(_T("   s57chart::BuildS57File  ENC not contain DSPM:CSCL "));
+          wxLogMessage(msg);
+
+          native_scale = 1000;                // backstop
+    }
+
 
     delete poModule;
+*/
+
 
     wxFileName tfn;
     wxString tmp_file = tfn.CreateTempFileName(_T(""));
@@ -2855,11 +3124,29 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
     strncpy(temp, nice_name.mb_str(), 200);
     fprintf(fps57, "NAME=%s\n", temp);
 
+    wxString date000 = m_date000.Format(_T("%Y%m%d"));
     strncpy(temp, date000.mb_str(), 200);
     fprintf(fps57, "DATE000=%s\n", temp);
 
-    fprintf(fps57, "NOGR=%d\n", nGeoRecords);
-    fprintf(fps57, "SCALE=%d\n", native_scale);
+    strncpy(temp, m_edtn000.mb_str(), 200);
+    fprintf(fps57, "EDTN000=%s\n", temp);
+
+    //      Record .000 file date and size for primitive detection of updates to .000 file
+    wxDateTime ModTime000;
+    wxString mt = _T("20000101");
+    if(file000.GetTimes(NULL, &ModTime000, NULL))
+          mt = ModTime000.Format(_T("%Y%m%d"));
+    strncpy(temp, mt.mb_str(), 200);
+    fprintf(fps57, "FILEMOD000=%s\n", temp);
+
+    int size000 = file000.GetSize().GetHi();
+    int size000l = file000.GetSize().GetLo();
+    fprintf(fps57, "FILESIZE000=%d%d\n", size000, size000l);
+
+
+
+    fprintf(fps57, "NOGR=%d\n", m_nGeoRecords);
+    fprintf(fps57, "SCALE=%d\n", m_native_scale);
 
     wxString Message = SENCfile.GetFullPath();
     Message.Append(_T("...Ingesting"));
@@ -2868,7 +3155,7 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
     Title.append(SENCfile.GetFullPath());
 
     wxProgressDialog    *SENC_prog;
-    SENC_prog = new wxProgressDialog(  Title, Message, nGeoRecords, NULL,
+    SENC_prog = new wxProgressDialog(  Title, Message, m_nGeoRecords, NULL,
                                        wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME |
                                        wxPD_REMAINING_TIME  | wxPD_SMOOTH );
 
@@ -2969,12 +3256,12 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
 //  Update the progress dialog
                             sobj = wxString(objectDef->GetDefnRef()->GetName(),  wxConvUTF8);
                             wxString idx;
-                            idx.Printf(_T("  %d/%d       "), iObj, nGeoRecords);
+                            idx.Printf(_T("  %d/%d       "), iObj, m_nGeoRecords);
                             sobj += idx;
 
                             nProg = iObj;
-                            if(nProg > nGeoRecords - 1)
-                                  nProg = nGeoRecords - 1;
+                            if(nProg > m_nGeoRecords - 1)
+                                  nProg = m_nGeoRecords - 1;
 
                             if(0 == (nProg % 1000))
                                   bcont = SENC_prog->Update(nProg, sobj);
