@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.17  2008/10/23 23:28:47  bdbcat
+ * Add OwnShipLatLon to config file for debugging
+ *
  * Revision 1.16  2008/08/26 13:48:15  bdbcat
  * Better color scheme support
  *
@@ -46,6 +49,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.17  2008/10/23 23:28:47  bdbcat
+ * Add OwnShipLatLon to config file for debugging
+ *
  * Revision 1.16  2008/08/26 13:48:15  bdbcat
  * Better color scheme support
  *
@@ -118,7 +124,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.16 2008/08/26 13:48:15 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.17 2008/10/23 23:28:47 bdbcat Exp $");
 
 //    Statics
 
@@ -1461,6 +1467,10 @@ int MyConfig::LoadMyConfig(int iteration)
             st_view_scale = fmin(st_view_scale, 4);
             initial_scale_ppm = st_view_scale;
       }
+
+      wxString sll;
+      if(Read(_T("OwnShipLatLon"), &sll))
+            sscanf(sll.mb_str(wxConvUTF8), "%f,%f", &gLat, &gLon);
 
 
 
