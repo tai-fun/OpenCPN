@@ -78,6 +78,16 @@ AC_ARG_ENABLE(s57enc,
 AM_CONDITIONAL(BUILD_WITH_S57, test x$s57enc = xtrue)
 AC_SUBST(BUILD_WITH_S57)
 
+AC_CANONICAL_HOST
+AC_SUBST(HOST_OS, $host_os)
+
+
+case $host_os in
+ darwin*) build_for_darwin=true ;;
+esac
+
+AM_CONDITIONAL(BUILD_FOR_DARWIN, test x$build_for_darwin = xtrue)
+AC_SUBST(BUILD_FOR_DARWIN)
 
 dnl
 dnl Use OpenGL tesselator or Internal tesselator

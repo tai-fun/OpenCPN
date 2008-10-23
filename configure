@@ -666,6 +666,18 @@ CXXCPP
 BUILD_WITH_S57_TRUE
 BUILD_WITH_S57_FALSE
 BUILD_WITH_S57
+build
+build_cpu
+build_vendor
+build_os
+host
+host_cpu
+host_vendor
+host_os
+HOST_OS
+BUILD_FOR_DARWIN_TRUE
+BUILD_FOR_DARWIN_FALSE
+BUILD_FOR_DARWIN
 GL_LIBS
 GL_CFLAGS
 BUILD_WITH_INTERNAL_TESS_TRUE
@@ -1265,6 +1277,10 @@ Program names:
   --program-prefix=PREFIX            prepend PREFIX to installed program names
   --program-suffix=SUFFIX            append SUFFIX to installed program names
   --program-transform-name=PROGRAM   run sed PROGRAM on installed program names
+
+System types:
+  --build=BUILD     configure for building on BUILD [guessed]
+  --host=HOST       cross-compile to build programs to run on HOST [BUILD]
 _ACEOF
 fi
 
@@ -4837,6 +4853,106 @@ fi
 
 
 
+# Make sure we can run config.sub.
+$SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
+  { { echo "$as_me:$LINENO: error: cannot run $SHELL $ac_aux_dir/config.sub" >&5
+echo "$as_me: error: cannot run $SHELL $ac_aux_dir/config.sub" >&2;}
+   { (exit 1); exit 1; }; }
+
+{ echo "$as_me:$LINENO: checking build system type" >&5
+echo $ECHO_N "checking build system type... $ECHO_C" >&6; }
+if test "${ac_cv_build+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_build_alias=$build_alias
+test "x$ac_build_alias" = x &&
+  ac_build_alias=`$SHELL "$ac_aux_dir/config.guess"`
+test "x$ac_build_alias" = x &&
+  { { echo "$as_me:$LINENO: error: cannot guess build type; you must specify one" >&5
+echo "$as_me: error: cannot guess build type; you must specify one" >&2;}
+   { (exit 1); exit 1; }; }
+ac_cv_build=`$SHELL "$ac_aux_dir/config.sub" $ac_build_alias` ||
+  { { echo "$as_me:$LINENO: error: $SHELL $ac_aux_dir/config.sub $ac_build_alias failed" >&5
+echo "$as_me: error: $SHELL $ac_aux_dir/config.sub $ac_build_alias failed" >&2;}
+   { (exit 1); exit 1; }; }
+
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_build" >&5
+echo "${ECHO_T}$ac_cv_build" >&6; }
+case $ac_cv_build in
+*-*-*) ;;
+*) { { echo "$as_me:$LINENO: error: invalid value of canonical build" >&5
+echo "$as_me: error: invalid value of canonical build" >&2;}
+   { (exit 1); exit 1; }; };;
+esac
+build=$ac_cv_build
+ac_save_IFS=$IFS; IFS='-'
+set x $ac_cv_build
+shift
+build_cpu=$1
+build_vendor=$2
+shift; shift
+# Remember, the first character of IFS is used to create $*,
+# except with old shells:
+build_os=$*
+IFS=$ac_save_IFS
+case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
+
+
+{ echo "$as_me:$LINENO: checking host system type" >&5
+echo $ECHO_N "checking host system type... $ECHO_C" >&6; }
+if test "${ac_cv_host+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test "x$host_alias" = x; then
+  ac_cv_host=$ac_cv_build
+else
+  ac_cv_host=`$SHELL "$ac_aux_dir/config.sub" $host_alias` ||
+    { { echo "$as_me:$LINENO: error: $SHELL $ac_aux_dir/config.sub $host_alias failed" >&5
+echo "$as_me: error: $SHELL $ac_aux_dir/config.sub $host_alias failed" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_host" >&5
+echo "${ECHO_T}$ac_cv_host" >&6; }
+case $ac_cv_host in
+*-*-*) ;;
+*) { { echo "$as_me:$LINENO: error: invalid value of canonical host" >&5
+echo "$as_me: error: invalid value of canonical host" >&2;}
+   { (exit 1); exit 1; }; };;
+esac
+host=$ac_cv_host
+ac_save_IFS=$IFS; IFS='-'
+set x $ac_cv_host
+shift
+host_cpu=$1
+host_vendor=$2
+shift; shift
+# Remember, the first character of IFS is used to create $*,
+# except with old shells:
+host_os=$*
+IFS=$ac_save_IFS
+case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
+
+
+HOST_OS=$host_os
+
+
+
+case $host_os in
+ darwin*) build_for_darwin=true ;;
+esac
+
+ if test x$build_for_darwin = xtrue; then
+  BUILD_FOR_DARWIN_TRUE=
+  BUILD_FOR_DARWIN_FALSE='#'
+else
+  BUILD_FOR_DARWIN_TRUE='#'
+  BUILD_FOR_DARWIN_FALSE=
+fi
+
+
 
 tess_internal=false
 tess_glu=true
@@ -6548,6 +6664,13 @@ echo "$as_me: error: conditional \"BUILD_WITH_S57\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${BUILD_FOR_DARWIN_TRUE}" && test -z "${BUILD_FOR_DARWIN_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"BUILD_FOR_DARWIN\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"BUILD_FOR_DARWIN\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${BUILD_WITH_INTERNAL_TESS_TRUE}" && test -z "${BUILD_WITH_INTERNAL_TESS_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"BUILD_WITH_INTERNAL_TESS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -7179,15 +7302,15 @@ CXXCPP!$CXXCPP$ac_delim
 BUILD_WITH_S57_TRUE!$BUILD_WITH_S57_TRUE$ac_delim
 BUILD_WITH_S57_FALSE!$BUILD_WITH_S57_FALSE$ac_delim
 BUILD_WITH_S57!$BUILD_WITH_S57$ac_delim
-GL_LIBS!$GL_LIBS$ac_delim
-GL_CFLAGS!$GL_CFLAGS$ac_delim
-BUILD_WITH_INTERNAL_TESS_TRUE!$BUILD_WITH_INTERNAL_TESS_TRUE$ac_delim
-BUILD_WITH_INTERNAL_TESS_FALSE!$BUILD_WITH_INTERNAL_TESS_FALSE$ac_delim
-BUILD_WITH_INTERNAL_TESS!$BUILD_WITH_INTERNAL_TESS$ac_delim
-BUILD_WITH_GLU_TESS_TRUE!$BUILD_WITH_GLU_TESS_TRUE$ac_delim
-BUILD_WITH_GLU_TESS_FALSE!$BUILD_WITH_GLU_TESS_FALSE$ac_delim
-BUILD_WITH_GLU_TESS!$BUILD_WITH_GLU_TESS$ac_delim
-BUILD_WITH_WIFI_CLIENT_TRUE!$BUILD_WITH_WIFI_CLIENT_TRUE$ac_delim
+build!$build$ac_delim
+build_cpu!$build_cpu$ac_delim
+build_vendor!$build_vendor$ac_delim
+build_os!$build_os$ac_delim
+host!$host$ac_delim
+host_cpu!$host_cpu$ac_delim
+host_vendor!$host_vendor$ac_delim
+host_os!$host_os$ac_delim
+HOST_OS!$HOST_OS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -7229,6 +7352,18 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+BUILD_FOR_DARWIN_TRUE!$BUILD_FOR_DARWIN_TRUE$ac_delim
+BUILD_FOR_DARWIN_FALSE!$BUILD_FOR_DARWIN_FALSE$ac_delim
+BUILD_FOR_DARWIN!$BUILD_FOR_DARWIN$ac_delim
+GL_LIBS!$GL_LIBS$ac_delim
+GL_CFLAGS!$GL_CFLAGS$ac_delim
+BUILD_WITH_INTERNAL_TESS_TRUE!$BUILD_WITH_INTERNAL_TESS_TRUE$ac_delim
+BUILD_WITH_INTERNAL_TESS_FALSE!$BUILD_WITH_INTERNAL_TESS_FALSE$ac_delim
+BUILD_WITH_INTERNAL_TESS!$BUILD_WITH_INTERNAL_TESS$ac_delim
+BUILD_WITH_GLU_TESS_TRUE!$BUILD_WITH_GLU_TESS_TRUE$ac_delim
+BUILD_WITH_GLU_TESS_FALSE!$BUILD_WITH_GLU_TESS_FALSE$ac_delim
+BUILD_WITH_GLU_TESS!$BUILD_WITH_GLU_TESS$ac_delim
+BUILD_WITH_WIFI_CLIENT_TRUE!$BUILD_WITH_WIFI_CLIENT_TRUE$ac_delim
 BUILD_WITH_WIFI_CLIENT_FALSE!$BUILD_WITH_WIFI_CLIENT_FALSE$ac_delim
 BUILD_WITH_WIFI_CLIENT!$BUILD_WITH_WIFI_CLIENT$ac_delim
 WX_LIBS!$WX_LIBS$ac_delim
@@ -7244,7 +7379,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 13; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 25; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

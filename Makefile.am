@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-VERSION=1.2.6
+VERSION=1.2.8
 
 INCLUDES = \
 	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
@@ -43,6 +43,7 @@ AM_CFLAGS += $(GL_CFLAGS)
 AM_CXXFLAGS += $(GL_CFLAGS)
 opencpn_LDADD += $(GL_LIBS)
 endif
+
 
 bin_PROGRAMS = opencpn ocpnhelper
 
@@ -138,6 +139,7 @@ AM_CXXFLAGS += -DUSE_WIFI_CLIENT
 opencpn_SOURCES += src/wificlient.cpp 
 endif
 
+
 ocpnhelper_SOURCES = src/ocpnhelper.c
 
 noinst_HEADERS = \
@@ -204,6 +206,7 @@ noinst_HEADERS = \
  	src/mygdal/gdal_frmts.h 
 
 
+
 EXTRA_DIST = \
 	data/wvsdata/readmewvs.txt \
 	data/wvsdata/wvs1.dat \
@@ -235,6 +238,22 @@ EXTRA_DIST = \
 	src/bitmaps/help.xpm \
 	src/bitmaps/colscheme.xpm \
 	makefile.wat
+
+
+#          The variable BUILD_FOR_DARWIN comes from configure.in
+#          Note that we redefine the target all to include invocation of Rez, the resource tool for OSx
+if BUILD_FOR_DARWIN
+opencpn_SOURCES += src/macsercomm.cpp
+opencpn_SOURCES += src/macutils.c
+noinst_HEADERS += include/macsercomm.h
+noinst_HEADERS += include/macutils.h
+all: opencpn REZ
+endif
+
+REZ:
+	/Developer/Tools/Rez -o opencpn Carbon.r
+
+
 
 
 ## Installation

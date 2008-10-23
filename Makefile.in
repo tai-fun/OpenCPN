@@ -31,6 +31,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
 
 #	The variable BUILD_WITH_GTK_OPTIMIZATION comes from configure script AM_CONDITIONAL()
 @BUILD_WITH_GTK_OPTIMIZATION_TRUE@am__append_1 = -DocpnUSE_GTK_OPTIMIZE
@@ -90,11 +92,18 @@ bin_PROGRAMS = opencpn$(EXEEXT) ocpnhelper$(EXEEXT)
 @BUILD_WITH_S57_TRUE@	src/mygdal/gdal_misc.cpp
 @BUILD_WITH_WIFI_CLIENT_TRUE@am__append_9 = -DUSE_WIFI_CLIENT
 @BUILD_WITH_WIFI_CLIENT_TRUE@am__append_10 = src/wificlient.cpp 
+
+#          The variable BUILD_FOR_DARWIN comes from configure.in
+#          Note that we redefine the target all to include invocation of Rez, the resource tool for OSx
+@BUILD_FOR_DARWIN_TRUE@am__append_11 = src/macsercomm.cpp \
+@BUILD_FOR_DARWIN_TRUE@	src/macutils.c
+@BUILD_FOR_DARWIN_TRUE@am__append_12 = include/macsercomm.h \
+@BUILD_FOR_DARWIN_TRUE@	include/macutils.h
 subdir = .
-DIST_COMMON = README $(am__configure_deps) $(noinst_HEADERS) \
+DIST_COMMON = README $(am__configure_deps) $(am__noinst_HEADERS_DIST) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	depcomp install-sh missing
+	config.guess config.sub depcomp install-sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/gtk-2.0.m4 $(top_srcdir)/gtk.m4 \
 	$(top_srcdir)/configure.in
@@ -144,7 +153,8 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 	src/mygdal/ogrs57layer.cpp src/mygdal/ogrutils.cpp \
 	src/mygdal/s57classregistrar.cpp \
 	src/mygdal/s57featuredefns.cpp src/mygdal/s57reader.cpp \
-	src/mygdal/gdal_misc.cpp src/wificlient.cpp
+	src/mygdal/gdal_misc.cpp src/wificlient.cpp src/macsercomm.cpp \
+	src/macutils.c
 @BUILD_WITH_S57_TRUE@am__objects_1 = s52cnsy.$(OBJEXT) \
 @BUILD_WITH_S57_TRUE@	s52plib.$(OBJEXT) s52utils.$(OBJEXT) \
 @BUILD_WITH_S57_TRUE@	s57chart.$(OBJEXT) mygeom.$(OBJEXT) \
@@ -180,6 +190,8 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 @BUILD_WITH_S57_TRUE@	s57featuredefns.$(OBJEXT) \
 @BUILD_WITH_S57_TRUE@	s57reader.$(OBJEXT) gdal_misc.$(OBJEXT)
 @BUILD_WITH_WIFI_CLIENT_TRUE@am__objects_2 = wificlient.$(OBJEXT)
+@BUILD_FOR_DARWIN_TRUE@am__objects_3 = macsercomm.$(OBJEXT) \
+@BUILD_FOR_DARWIN_TRUE@	macutils.$(OBJEXT)
 am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
 	chart1.$(OBJEXT) chartdb.$(OBJEXT) chartimg.$(OBJEXT) \
 	chcanv.$(OBJEXT) concanv.$(OBJEXT) cutil.$(OBJEXT) \
@@ -191,7 +203,7 @@ am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
 	nmea0183.$(OBJEXT) response.$(OBJEXT) rmb.$(OBJEXT) \
 	sentence.$(OBJEXT) talkerid.$(OBJEXT) rmc.$(OBJEXT) \
 	hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_2)
+	$(am__objects_1) $(am__objects_2) $(am__objects_3)
 opencpn_OBJECTS = $(am_opencpn_OBJECTS)
 am__DEPENDENCIES_1 =
 @BUILD_WITH_GLU_TESS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
@@ -212,6 +224,32 @@ CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 SOURCES = $(ocpnhelper_SOURCES) $(opencpn_SOURCES)
 DIST_SOURCES = $(ocpnhelper_SOURCES) $(am__opencpn_SOURCES_DIST)
+am__noinst_HEADERS_DIST = include/about.h include/ais.h include/bbox.h \
+	include/chart1.h include/chartbase.h include/chartdb.h \
+	include/chartimg.h include/chcanv.h include/concanv.h \
+	include/cutil.h include/dychart.h include/georef.h \
+	include/mygeom.h include/navutil.h include/nmea.h \
+	include/ocpn_pixel.h include/options.h include/routeman.h \
+	include/s52plib.h include/s52s57.h include/s52utils.h \
+	include/s57chart.h include/s57mgr.h include/sercomm.h \
+	include/statwin.h include/tcmgr.h include/thumbwin.h \
+	include/triangulate.h include/wificlient.h include/wvschart.h \
+	src/mygdal/cpl_config.h src/mygdal/cpl_conv.h \
+	src/mygdal/cpl_csv.h src/mygdal/cpl_error.h \
+	src/mygdal/cpl_list.h src/mygdal/cpl_minixml.h \
+	src/mygdal/cpl_multiproc.h src/mygdal/cpl_odbc.h \
+	src/mygdal/cpl_port.h src/mygdal/cpl_string.h \
+	src/mygdal/cpl_vsi.h src/nmea0183/nmea0183.h \
+	src/nmea0183/LatLong.hpp src/nmea0183/nmea0183.hpp \
+	src/nmea0183/Response.hpp src/nmea0183/RMB.hpp \
+	src/nmea0183/RMC.HPP src/nmea0183/Sentence.hpp \
+	src/mygdal/iso8211.h src/mygdal/ogr_s57.h src/mygdal/s57.h \
+	src/mygdal/ogr_feature.h src/mygdal/ogr_geometry.h \
+	src/mygdal/ogr_p.h src/mygdal/ogr_attrind.h \
+	src/mygdal/ogrsf_frmts.h src/mygdal/ogr_spatialref.h \
+	src/mygdal/gdal.h src/mygdal/ogr_api.h src/mygdal/gdal_priv.h \
+	src/mygdal/gdal_frmts.h include/macsercomm.h \
+	include/macutils.h
 HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -232,6 +270,7 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BUILD_FOR_DARWIN = @BUILD_FOR_DARWIN@
 BUILD_WITH_GLU_TESS = @BUILD_WITH_GLU_TESS@
 BUILD_WITH_GTK_OPTIMIZATION = @BUILD_WITH_GTK_OPTIMIZATION@
 BUILD_WITH_INTERNAL_TESS = @BUILD_WITH_INTERNAL_TESS@
@@ -260,6 +299,7 @@ GREP = @GREP@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_CONFIG = @GTK_CONFIG@
 GTK_LIBS = @GTK_LIBS@
+HOST_OS = @HOST_OS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -284,7 +324,7 @@ PKG_CONFIG = @PKG_CONFIG@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-VERSION = 1.2.6
+VERSION = 1.2.8
 WX_LIBS = @WX_LIBS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -298,14 +338,22 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -350,71 +398,33 @@ opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/nmea0183/sentence.cpp src/nmea0183/talkerid.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
 	src/nmea0183/lat.cpp src/nmea0183/expid.cpp $(am__append_8) \
-	$(am__append_10)
+	$(am__append_10) $(am__append_11)
 ocpnhelper_SOURCES = src/ocpnhelper.c
-noinst_HEADERS = \
- 	include/about.h \
- 	include/ais.h \
- 	include/bbox.h \
- 	include/chart1.h \
- 	include/chartbase.h \
- 	include/chartdb.h \
- 	include/chartimg.h \
- 	include/chcanv.h \
- 	include/concanv.h \
- 	include/cutil.h \
- 	include/dychart.h \
- 	include/georef.h \
-  	include/mygeom.h \
- 	include/navutil.h \
- 	include/nmea.h \
- 	include/ocpn_pixel.h \
- 	include/options.h \
- 	include/routeman.h \
- 	include/s52plib.h \
- 	include/s52s57.h \
- 	include/s52utils.h \
- 	include/s57chart.h \
- 	include/s57mgr.h \
- 	include/sercomm.h \
- 	include/statwin.h \
- 	include/tcmgr.h \
- 	include/thumbwin.h \
- 	include/triangulate.h \
- 	include/wificlient.h \
- 	include/wvschart.h \
- 	src/mygdal/cpl_config.h \
- 	src/mygdal/cpl_conv.h \
- 	src/mygdal/cpl_csv.h \
- 	src/mygdal/cpl_error.h \
- 	src/mygdal/cpl_list.h \
- 	src/mygdal/cpl_minixml.h \
- 	src/mygdal/cpl_multiproc.h \
- 	src/mygdal/cpl_odbc.h \
- 	src/mygdal/cpl_port.h \
- 	src/mygdal/cpl_string.h \
- 	src/mygdal/cpl_vsi.h \
- 	src/nmea0183/nmea0183.h \
- 	src/nmea0183/LatLong.hpp \
- 	src/nmea0183/nmea0183.hpp \
- 	src/nmea0183/Response.hpp \
- 	src/nmea0183/RMB.hpp \
- 	src/nmea0183/RMC.HPP \
- 	src/nmea0183/Sentence.hpp \
- 	src/mygdal/iso8211.h \
- 	src/mygdal/ogr_s57.h \
- 	src/mygdal/s57.h \
- 	src/mygdal/ogr_feature.h \
- 	src/mygdal/ogr_geometry.h \
- 	src/mygdal/ogr_p.h \
- 	src/mygdal/ogr_attrind.h \
- 	src/mygdal/ogrsf_frmts.h \
- 	src/mygdal/ogr_spatialref.h \
- 	src/mygdal/gdal.h \
- 	src/mygdal/ogr_api.h \
- 	src/mygdal/gdal_priv.h \
- 	src/mygdal/gdal_frmts.h 
-
+noinst_HEADERS = include/about.h include/ais.h include/bbox.h \
+	include/chart1.h include/chartbase.h include/chartdb.h \
+	include/chartimg.h include/chcanv.h include/concanv.h \
+	include/cutil.h include/dychart.h include/georef.h \
+	include/mygeom.h include/navutil.h include/nmea.h \
+	include/ocpn_pixel.h include/options.h include/routeman.h \
+	include/s52plib.h include/s52s57.h include/s52utils.h \
+	include/s57chart.h include/s57mgr.h include/sercomm.h \
+	include/statwin.h include/tcmgr.h include/thumbwin.h \
+	include/triangulate.h include/wificlient.h include/wvschart.h \
+	src/mygdal/cpl_config.h src/mygdal/cpl_conv.h \
+	src/mygdal/cpl_csv.h src/mygdal/cpl_error.h \
+	src/mygdal/cpl_list.h src/mygdal/cpl_minixml.h \
+	src/mygdal/cpl_multiproc.h src/mygdal/cpl_odbc.h \
+	src/mygdal/cpl_port.h src/mygdal/cpl_string.h \
+	src/mygdal/cpl_vsi.h src/nmea0183/nmea0183.h \
+	src/nmea0183/LatLong.hpp src/nmea0183/nmea0183.hpp \
+	src/nmea0183/Response.hpp src/nmea0183/RMB.hpp \
+	src/nmea0183/RMC.HPP src/nmea0183/Sentence.hpp \
+	src/mygdal/iso8211.h src/mygdal/ogr_s57.h src/mygdal/s57.h \
+	src/mygdal/ogr_feature.h src/mygdal/ogr_geometry.h \
+	src/mygdal/ogr_p.h src/mygdal/ogr_attrind.h \
+	src/mygdal/ogrsf_frmts.h src/mygdal/ogr_spatialref.h \
+	src/mygdal/gdal.h src/mygdal/ogr_api.h src/mygdal/gdal_priv.h \
+	src/mygdal/gdal_frmts.h $(am__append_12)
 EXTRA_DIST = \
 	data/wvsdata/readmewvs.txt \
 	data/wvsdata/wvs1.dat \
@@ -553,6 +563,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/latlong.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/long.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/macsercomm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/macutils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mygeom.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/navutil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmea.Po@am__quote@
@@ -670,6 +682,20 @@ tri.obj: src/tri.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/tri.c' object='tri.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tri.obj `if test -f 'src/tri.c'; then $(CYGPATH_W) 'src/tri.c'; else $(CYGPATH_W) '$(srcdir)/src/tri.c'; fi`
+
+macutils.o: src/macutils.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT macutils.o -MD -MP -MF $(DEPDIR)/macutils.Tpo -c -o macutils.o `test -f 'src/macutils.c' || echo '$(srcdir)/'`src/macutils.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/macutils.Tpo $(DEPDIR)/macutils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/macutils.c' object='macutils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o macutils.o `test -f 'src/macutils.c' || echo '$(srcdir)/'`src/macutils.c
+
+macutils.obj: src/macutils.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT macutils.obj -MD -MP -MF $(DEPDIR)/macutils.Tpo -c -o macutils.obj `if test -f 'src/macutils.c'; then $(CYGPATH_W) 'src/macutils.c'; else $(CYGPATH_W) '$(srcdir)/src/macutils.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/macutils.Tpo $(DEPDIR)/macutils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/macutils.c' object='macutils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o macutils.obj `if test -f 'src/macutils.c'; then $(CYGPATH_W) 'src/macutils.c'; else $(CYGPATH_W) '$(srcdir)/src/macutils.c'; fi`
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1749,6 +1775,20 @@ wificlient.obj: src/wificlient.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o wificlient.obj `if test -f 'src/wificlient.cpp'; then $(CYGPATH_W) 'src/wificlient.cpp'; else $(CYGPATH_W) '$(srcdir)/src/wificlient.cpp'; fi`
 
+macsercomm.o: src/macsercomm.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT macsercomm.o -MD -MP -MF $(DEPDIR)/macsercomm.Tpo -c -o macsercomm.o `test -f 'src/macsercomm.cpp' || echo '$(srcdir)/'`src/macsercomm.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/macsercomm.Tpo $(DEPDIR)/macsercomm.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/macsercomm.cpp' object='macsercomm.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o macsercomm.o `test -f 'src/macsercomm.cpp' || echo '$(srcdir)/'`src/macsercomm.cpp
+
+macsercomm.obj: src/macsercomm.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT macsercomm.obj -MD -MP -MF $(DEPDIR)/macsercomm.Tpo -c -o macsercomm.obj `if test -f 'src/macsercomm.cpp'; then $(CYGPATH_W) 'src/macsercomm.cpp'; else $(CYGPATH_W) '$(srcdir)/src/macsercomm.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/macsercomm.Tpo $(DEPDIR)/macsercomm.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/macsercomm.cpp' object='macsercomm.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o macsercomm.obj `if test -f 'src/macsercomm.cpp'; then $(CYGPATH_W) 'src/macsercomm.cpp'; else $(CYGPATH_W) '$(srcdir)/src/macsercomm.cpp'; fi`
+
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
@@ -2033,6 +2073,10 @@ uninstall-am: uninstall-binPROGRAMS uninstall-local
 	ps ps-am tags uninstall uninstall-am uninstall-binPROGRAMS \
 	uninstall-local
 
+@BUILD_FOR_DARWIN_TRUE@all: opencpn REZ
+
+REZ:
+	/Developer/Tools/Rez -o opencpn Carbon.r
 
 install-data-local:
 	mkdir -p $(DESTDIR)$(pkgdatadir)
