@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.10 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: s52s57.h,v 1.11 2008/10/23 23:33:41 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.11  2008/10/23 23:33:41  bdbcat
+ * SENC Format 118
+ *
  * Revision 1.10  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -36,6 +39,9 @@
  * *** empty log message ***
  *
  * $Log: s52s57.h,v $
+ * Revision 1.11  2008/10/23 23:33:41  bdbcat
+ * SENC Format 118
+ *
  * Revision 1.10  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -87,7 +93,7 @@
 
 #include "bbox.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  117
+#define CURRENT_SENC_FORMAT_VERSION  118
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
