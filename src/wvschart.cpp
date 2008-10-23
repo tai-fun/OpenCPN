@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.7 2008/08/26 13:46:25 bdbcat Exp $
+ * $Id: wvschart.cpp,v 1.8 2008/10/23 23:25:19 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.8  2008/10/23 23:25:19  bdbcat
+ * Correct file name buffer overflow
+ *
  * Revision 1.7  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -33,6 +36,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.8  2008/10/23 23:25:19  bdbcat
+ * Correct file name buffer overflow
+ *
  * Revision 1.7  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -99,7 +105,7 @@
 #include "cutil.h"
 #include "georef.h"
 
-CPL_CVSID("$Id: wvschart.cpp,v 1.7 2008/08/26 13:46:25 bdbcat Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.8 2008/10/23 23:25:19 bdbcat Exp $");
 
 //      Local Prototypes
 extern "C" int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray, int **segray);
@@ -331,6 +337,7 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
 #include <errno.h>
 #include <math.h>
 #define         PHYSIZ      3072
+#define         FILE_BUFFER_LEN 2048
 #define         SIGN_OF(x)  ((x)<0.0 ? -1 : 1)
 //RWL make paths either WIN or Unix
 #ifdef WIN32
@@ -695,7 +702,8 @@ int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **l
 int **segray)
 {
     static FILE             *fp = NULL;
-    static char             prev_file[60];
+    static char             prev_file[FILE_BUFFER_LEN] = "";
+
 //    static char             files[6][12] =
 //                            {"wvsfull.dat", "wvs250k.dat", "wvs1.dat",
 //                            "wvs3.dat", "wvs12.dat", "wvs43.dat"};
@@ -711,8 +719,9 @@ int **segray)
 //    char                    dirfil[512], dir[512], tmpfil[512];
     float                   dlat, dlon;
 
-    char file[100];
-    strncpy(file, sfile.mb_str(), 100);
+    char file[FILE_BUFFER_LEN];
+    strncpy(file, sfile.mb_str(), FILE_BUFFER_LEN);
+    file[FILE_BUFFER_LEN - 1] = 0;
     /*
 #ifdef DEBUG
     fprintf (stderr, "%s %d\n", __FILE__, __LINE__);
@@ -741,7 +750,7 @@ int **segray)
         *segray = (int *) NULL;
         if (fp) fclose (fp);
         fp = (FILE *) NULL;
-        strcpy (prev_file, file);
+        strncpy (prev_file, file, FILE_BUFFER_LEN);
         return (0);
     }
     /*  Initialize variables, open file and read first record.  */
@@ -757,12 +766,17 @@ int **segray)
 //      Skip all this extra file logic.
 //      We pass in the full path name of the file requested, return 0 if not found
     /*  Have we changed files?  */
-    if (strcmp (file, prev_file))
+    if (strncmp (file, prev_file, FILE_BUFFER_LEN))
     {
         strcpy (prev_file, file);
             fp = fopen (file, "rb");
                 if(NULL == fp)
                         return 0;
+        strncpy (prev_file, file, FILE_BUFFER_LEN);
+        fp = fopen (file, "rb");
+        if(NULL == fp)
+          return 0;
+
 #if 0           // Todo: dsr
         /*  Was there a file already opened?  */
         if (fp != NULL) fclose (fp);
