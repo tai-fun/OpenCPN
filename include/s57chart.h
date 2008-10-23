@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.15 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: s57chart.h,v 1.16 2008/10/23 23:33:10 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.16  2008/10/23 23:33:10  bdbcat
+ * Cleanup
+ *
  * Revision 1.15  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -213,6 +216,8 @@ private:
       bool BuildThumbnail(const wxString &bmpname);
       bool CreateHeaderDataFromENC(void);
       bool CreateHeaderDataFromSENC(void);
+      bool GetBaseFileAttr(wxFileName fn);
+
 
            //    Access to raw ENC DataSet
       bool InitENCMinimal( const wxString& FullPath );
@@ -222,8 +227,8 @@ private:
 
       void FreeObjectsAndRules();
       const char *getName(OGRFeature *feature);
-      int GetUpdateFileArray(const wxString& DirName, wxArrayString *UpFiles);
-      int ValidateAndCountUpdates( const wxString DirName000, const wxString SENCDir, wxString &LastUpdateDate);
+      int GetUpdateFileArray(const wxFileName file000, wxArrayString *UpFiles);
+      int ValidateAndCountUpdates( const wxFileName file000, const wxString SENCDir, wxString &LastUpdateDate);
 
       int _insertRules(S57Obj *obj, LUPrec *LUP);
 
@@ -231,7 +236,6 @@ private:
 
  // Private Data
       wxString    *m_pcsv_locn;
-      int         nGeoRecords;
 
       ViewPort    last_vp;
 
@@ -252,7 +256,12 @@ private:
       wxBitmap    *m_pDIBThumbDay;
       wxBitmap    *m_pDIBThumbDim;
       wxBitmap    *m_pDIBThumbOrphan;
+      bool        m_bneed_new_thumbnail;
 
+      wxDateTime  m_date000;                    // extracted from DSID:ISDT
+      wxString    m_edtn000;                    // extracted from DSID:EDTN
+      int         m_nGeoRecords;                // extracted from DSSI:NOGR
+      int         m_native_scale;               // extracted from DSPM:CSCL
 
 //  SM Projection parms
       double    easting_vp_center, northing_vp_center;

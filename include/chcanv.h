@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.15 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: chcanv.h,v 1.16 2008/10/23 23:34:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.16  2008/10/23 23:34:11  bdbcat
+ * Cleanup
+ *
  * Revision 1.15  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -224,9 +227,6 @@ public:
       bool        m_bFollow;
 //      bool        m_bForceReDraw;
       wxCursor    *pCursorPencil;
-      float       canvas_scale_factor;    // converter....
-                                    // useage....
-                                    // conventional_chart_scale   = scale_factor /pix_per_deg_lon
       TCWin       *pCwin;
       ViewPort    VPoint;
       wxBitmap    *pscratch_bm;
@@ -283,6 +283,9 @@ private:
       bool        bShowingCurrent;
       bool        bShowingTide;
 
+      double       m_canvas_scale_factor;    // converter....
+                                    // useage....
+                                    // true_chart_scale_on_display   = m_canvas_scale_factor / pixels_per_meter of displayed chart
 
       //    Methods
       void OnActivate(wxActivateEvent& event);
