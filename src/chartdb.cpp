@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.10 2008/08/09 23:58:40 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.11 2008/10/24 00:09:19 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.11  2008/10/24 00:09:19  bdbcat
+ * Validate GetEditionDate() return
+ *
  * Revision 1.10  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -85,7 +88,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.10 2008/08/09 23:58:40 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.11 2008/10/24 00:09:19 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -745,7 +748,10 @@ bool ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
 
       pEntry->Scale = pch->GetNativeScale();
 
-      pEntry->edition_date = pch->GetEditionDate().GetTicks();
+      if(pch->GetEditionDate().IsValid())
+            pEntry->edition_date = pch->GetEditionDate().GetTicks();
+      else
+            pEntry->edition_date = 0;
 
       Extent ext;
       pch->GetChartExtent(&ext);
