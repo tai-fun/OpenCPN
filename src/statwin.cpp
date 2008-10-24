@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.14  2008/10/24 00:11:13  bdbcat
+ * Bounds check on Piano window region array index
+ *
  * Revision 1.13  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -36,6 +39,9 @@
  * Cleanup
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.14  2008/10/24 00:11:13  bdbcat
+ * Bounds check on Piano window region array index
+ *
  * Revision 1.13  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -96,7 +102,7 @@
 extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.13 2008/08/26 13:46:25 bdbcat Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.14 2008/10/24 00:11:13 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -348,7 +354,8 @@ void PianoWin::OnPaint(wxPaintEvent& event)
             else
                   dc.SetBrush(*m_pslBrush);
 
-            dc.DrawRectangle(KeyRegion[pCurrentStack->CurrentStackEntry].GetBox());
+            if((pCurrentStack->CurrentStackEntry >= 0 ) && (pCurrentStack->CurrentStackEntry < nKeys))
+                  dc.DrawRectangle(KeyRegion[pCurrentStack->CurrentStackEntry].GetBox());
 
       }
 }
