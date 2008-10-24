@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52utils.cpp,v 1.5 2008/08/09 23:58:40 bdbcat Exp $
+ * $Id: s52utils.cpp,v 1.6 2008/10/24 16:18:43 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Utility Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52utils.cpp,v $
+ * Revision 1.6  2008/10/24 16:18:43  bdbcat
+ * Remove/inline  isblank()
+ *
  * Revision 1.5  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -67,7 +70,7 @@
  */
 
 #include "dychart.h"
-CPL_CVSID("$Id: s52utils.cpp,v 1.5 2008/08/09 23:58:40 bdbcat Exp $");
+CPL_CVSID("$Id: s52utils.cpp,v 1.6 2008/10/24 16:18:43 bdbcat Exp $");
 
 #include "s52utils.h"
 #include <stdio.h>        // FILE
@@ -203,17 +206,6 @@ static double _MARparamVal[] = {
     16.0      // NUM
 };
 
-#ifndef __XCODE_BUILD__		// begin rms
-int isblank(char c){
-
-  if (c == ' ' || c == 0x09)
-    return 1;
-  return 0;
-
-
-}
-#endif						// end rms
-
 //////////////////////////////////////////////////////////////////
 
 int S52_getConfig(const char *label, valueBuf *vbuf)
@@ -241,7 +233,7 @@ int S52_getConfig(const char *label, valueBuf *vbuf)
            if (0 == strncmp(lbuf, label, strlen(label))) {
                //sscanf(tmp, "%255s", *vbuf);
                char *c = tmp;
-               while (isblank(*c)) c++;
+               while (*c == ' ' || *c == 0x09) c++;
                sscanf(c, "%255[^\n]", *vbuf);
 //               PRINTF("label:%s value:%s \n", lbuf, *vbuf);
                fclose(fp);
@@ -282,7 +274,7 @@ double S52_getMarinerParam(S52_MAR_param_t param)
     }
 
     return (float)0.0;
-*/    
+*/
 }
 
 int    S52_setMarinerParam(S52_MAR_param_t param, double val)
