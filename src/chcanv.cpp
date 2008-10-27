@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.28 2008/10/23 23:32:35 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.29 2008/10/27 03:05:37 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.29  2008/10/27 03:05:37  bdbcat
+ * Correct chart scale logic at high zoom-out.
+ *
  * Revision 1.28  2008/10/23 23:32:35  bdbcat
  * Improve skewed chart scale calculation, add CEP
  *
@@ -48,6 +51,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.29  2008/10/27 03:05:37  bdbcat
+ * Correct chart scale logic at high zoom-out.
+ *
  * Revision 1.28  2008/10/23 23:32:35  bdbcat
  * Improve skewed chart scale calculation, add CEP
  *
@@ -179,7 +185,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.28 2008/10/23 23:32:35 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.29 2008/10/27 03:05:37 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -998,6 +1004,11 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
         GetPointPix ( VPoint.clat, VPoint.clon, &r );
 
         m_true_scale_ppm = sqrt(pow((r.y - r1.y), 2) + pow((r.x - r1.x), 2)) / 185.2;
+
+        //        A fall back in case of very high zoom-out, giving delta_y == 0
+        //        which can probably only happen with vector charts
+        if(0.0 == m_true_scale_ppm)
+              m_true_scale_ppm = scale_ppm;
 
         if(m_true_scale_ppm)
               VPoint.chart_scale = m_canvas_scale_factor / ( m_true_scale_ppm );
