@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.9 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: chartdb.h,v 1.10 2008/10/27 03:06:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.10  2008/10/27 03:06:13  bdbcat
+ * Fix Chartstack ctor
+ *
  * Revision 1.9  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -33,6 +36,9 @@
  * *** empty log message ***
  *
  * $Log: chartdb.h,v $
+ * Revision 1.10  2008/10/27 03:06:13  bdbcat
+ * Fix Chartstack ctor
+ *
  * Revision 1.9  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -124,7 +130,7 @@ public:
 class ChartStack
 {
 public:
-      ChartStack() { nEntry = 0; }
+      ChartStack() { nEntry = 0; CurrentStackEntry = 0;}
 
       int         nEntry;
       int         CurrentStackEntry;
