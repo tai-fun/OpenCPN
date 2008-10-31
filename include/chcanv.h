@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.16 2008/10/23 23:34:11 bdbcat Exp $
+ * $Id: chcanv.h,v 1.17 2008/10/31 01:06:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.17  2008/10/31 01:06:22  bdbcat
+ * Fix ViewPort ctor
+ *
  * Revision 1.16  2008/10/23 23:34:11  bdbcat
  * Cleanup
  *
@@ -127,7 +130,7 @@ class ViewPort
 {
   public:
 //  ctor
-    ViewPort()  { bValid = false;}
+    ViewPort()  { bValid = false; skew = 0; view_scale_ppm = 1;}
 
 //  Accessors
     bool IsValid() { return bValid; }
