@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.20 2008/08/29 04:58:05 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.21 2008/10/31 22:46:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.21  2008/10/31 22:46:47  bdbcat
+ * Fix undefined colour tables
+ *
  * Revision 1.20  2008/08/29 04:58:05  bdbcat
  * Correct sector light math
  *
@@ -48,6 +51,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.21  2008/10/31 22:46:47  bdbcat
+ * Fix undefined colour tables
+ *
  * Revision 1.20  2008/08/29 04:58:05  bdbcat
  * Correct sector light math
  *
@@ -135,7 +141,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.20 2008/08/29 04:58:05 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.21 2008/10/31 22:46:47 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -172,6 +178,9 @@ s52plib::s52plib ( const wxString& PLib )
         pBuf = buffer;
 
         pOBJLArray = new wxArrayPtrVoid;
+
+        ColorTableArray = NULL;
+        ColourHashTableArray = NULL;
 
         m_bOK = S52_load_Plib ( PLib );
 
@@ -1835,8 +1844,10 @@ bool s52plib::S52_flush_Plib()
 {
 
 //      Color Tables
-        for ( unsigned int ic = 0 ; ic < ColorTableArray->GetCount() ; ic++ )
+        if(ColorTableArray)
         {
+            for ( unsigned int ic = 0 ; ic < ColorTableArray->GetCount() ; ic++ )
+            {
                 colTable *ct = ( colTable * ) ColorTableArray->Item ( ic );
 
                 delete ct->tableName;
@@ -1847,16 +1858,19 @@ bool s52plib::S52_flush_Plib()
 
                 delete ct->color;
                 delete ct;
+            }
         }
 
         delete ColorTableArray;
 
 //      Color Hash Tables
-        for ( unsigned int ich = 0 ; ich < ColourHashTableArray->GetCount() ; ich++ )
-        {
+        if(ColourHashTableArray){
+            for ( unsigned int ich = 0 ; ich < ColourHashTableArray->GetCount() ; ich++ )
+            {
                 ColourHash *ch = ( ColourHash * ) ColourHashTableArray->Item ( ich );
 
                 delete ch;
+            }
         }
 
         delete ColourHashTableArray;
@@ -2006,16 +2020,18 @@ void s52plib::SetPLIBColorScheme ( wxString scheme )
 
 
         //Search the color table array
-        for ( unsigned int i=0 ; i< ColorTableArray->GetCount() ; i++ )
+        if(ColorTableArray)
         {
+            for ( unsigned int i=0 ; i< ColorTableArray->GetCount() ; i++ )
+            {
                 colTable *ct = ( colTable * ) ColorTableArray->Item ( i );
                 if ( str_find.IsSameAs ( *ct->tableName ) )
                 {
                         m_colortable_index = i;
                         break;
                 }
+            }
         }
-
 }
 
 
@@ -2046,6 +2062,8 @@ color *s52plib::S52_getColor ( char *colorName )
 wxColour s52plib::S52_getwxColour ( const wxString &colorName )
 {
 //       wxString key(colorName, wxConvUTF8);
+        if(NULL == ColourHashTableArray)
+              return wxNullColour;
 
         ColourHash *pcurrentcolorhash = ( ColourHash * ) ColourHashTableArray->Item ( m_colortable_index );
 
