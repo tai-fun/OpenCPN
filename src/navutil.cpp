@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.18  2008/10/31 01:07:43  bdbcat
+ * Fix initial Lat/Lon/scale value logic
+ *
  * Revision 1.17  2008/10/23 23:28:47  bdbcat
  * Add OwnShipLatLon to config file for debugging
  *
@@ -49,6 +52,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.18  2008/10/31 01:07:43  bdbcat
+ * Fix initial Lat/Lon/scale value logic
+ *
  * Revision 1.17  2008/10/23 23:28:47  bdbcat
  * Add OwnShipLatLon to config file for debugging
  *
@@ -124,7 +130,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.17 2008/10/23 23:28:47 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.18 2008/10/31 01:07:43 bdbcat Exp $");
 
 //    Statics
 
@@ -1436,37 +1442,31 @@ int MyConfig::LoadMyConfig(int iteration)
       kLat = START_LAT;                   // and the transfer ll
       kLon = START_LON;
 
+      initial_scale_ppm = .00003;        // decent initial value
+
       SetPath(_T("/Settings/GlobalState"));
-      int nr = 0;
-      wxString *st = new wxString;
+      wxString st;
 
-      if(Read(_T("VPLatLon"), st))
+      if(Read(_T("VPLatLon"), &st))
       {
-            nr++;
-            sscanf(st->mb_str(wxConvUTF8), "%f,%f", &st_lat, &st_lon);
-      }
-
-      if(Read(wxString(_T("VPScale")), st))
-      {
-            nr++;
-            sscanf(st->mb_str(wxConvUTF8), "%f", &st_view_scale);
-      }
-
-      delete st;
-
-      if(nr == 2)
-      {
-//    Sanity check the lat/lon/scale
+            sscanf(st.mb_str(wxConvUTF8), "%f,%f", &st_lat, &st_lon);
+            //    Sanity check the lat/lon
             if((st_lat > 0.0) && (st_lat < 90.0))
                   vLat = st_lat;
 
             if((st_lon > -179.9) && (st_lon < 179.9))
                   vLon = st_lon;
+      }
 
+      if(Read(wxString(_T("VPScale")), &st))
+      {
+            sscanf(st.mb_str(wxConvUTF8), "%f", &st_view_scale);
+//    Sanity check the scale
             st_view_scale = fmax(st_view_scale, .001/32);
             st_view_scale = fmin(st_view_scale, 4);
             initial_scale_ppm = st_view_scale;
       }
+
 
       wxString sll;
       if(Read(_T("OwnShipLatLon"), &sll))
