@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.29 2008/10/27 03:05:37 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.30 2008/10/31 01:07:00 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.30  2008/10/31 01:07:00  bdbcat
+ * Cleanup
+ *
  * Revision 1.29  2008/10/27 03:05:37  bdbcat
  * Correct chart scale logic at high zoom-out.
  *
@@ -51,6 +54,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.30  2008/10/31 01:07:00  bdbcat
+ * Cleanup
+ *
  * Revision 1.29  2008/10/27 03:05:37  bdbcat
  * Correct chart scale logic at high zoom-out.
  *
@@ -185,7 +191,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.29 2008/10/27 03:05:37 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.30 2008/10/31 01:07:00 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -285,7 +291,6 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         m_bRouteEditing = false;
         m_bMarkEditing = false;
         m_bFollow = false;
-//      m_bForceReDraw = false;
         m_bTCupdate = false;
         m_bAppendingRoute = false;          // was true in MSW, why??
         pThumbDIBShow = NULL;
@@ -415,7 +420,7 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         VPoint.clon = 0;
         VPoint.view_scale_ppm = 1;
 
-       m_canvas_scale_factor = 1.;
+        m_canvas_scale_factor = 1.;
 
         m_ownship_predictor_minutes = 5.;     // Minutes shown on ownship position predictor graphic
         m_ais_predictor_minutes     = 5.;     // Minutes shown on AIS target position predictor graphic
