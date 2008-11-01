@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.28 2008/08/29 02:25:58 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.29 2008/11/01 16:03:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.29  2008/11/01 16:03:08  bdbcat
+ * Improve data file location logic
+ *
  * Revision 1.28  2008/08/29 02:25:58  bdbcat
  * Add compiler #ifdef to support ConvertToGreyscale
  *
@@ -51,6 +54,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.29  2008/11/01 16:03:08  bdbcat
+ * Improve data file location logic
+ *
  * Revision 1.28  2008/08/29 02:25:58  bdbcat
  * Add compiler #ifdef to support ConvertToGreyscale
  *
@@ -175,7 +181,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.28 2008/08/29 02:25:58 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.29 2008/11/01 16:03:08 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -694,21 +700,19 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 
 //      Establish a "shared data" location
+/*  From the wxWidgets documentation...
+
+        wxStandardPaths::GetDataDir
+        wxString GetDataDir() const
+        Return the location of the applications global, i.e. not user-specific, data files.
+            * Unix: prefix/share/appname
+            * Windows: the directory where the executable file is located
+            * Mac: appname.app/Contents/SharedSupport bundle subdirectory
+*/
+
         pSData_Locn= new wxString;
-#ifdef __WXMSW__
         pSData_Locn->Append(std_path.GetDataDir());         // where the application is located
         appendOSDirSlash(pSData_Locn) ;
-
-#elif defined __WXMAC__
-        pSData_Locn->Append(std_path.GetUserDataDir());    // should be ~/Library/Application Support/appname
-        appendOSDirSlash(pSData_Locn) ;
-
-#else
-        wxString prefix(wxString(INSTALL_PREFIX,  wxConvUTF8));
-        pSData_Locn->Append(prefix);
-        appendOSDirSlash(pSData_Locn) ;
-        pSData_Locn->Append( _T("share/opencpn/"));
-#endif
 
 
 //      Establish the location of the config file
@@ -806,33 +810,77 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         ps52plib = new s52plib(plib_data);
 
         //  If the library load failed, try looking for the s57 data elsewhere
+
+        //  First, look in UserDataDir
+/*    From wxWidgets documentation
+
+        wxStandardPaths::GetUserDataDir
+                    wxString GetUserDataDir() const
+        Return the directory for the user-dependent application data files:
+                    * Unix: ~/.appname
+                    * Windows: C:\Documents and Settings\username\Application Data\appname
+                    * Mac: ~/Library/Application Support/appname
+*/
+
         if(!ps52plib->m_bOK)
         {
             delete ps52plib;
 
-            g_pcsv_locn->Clear();
-            g_pcsv_locn->Append(*pSData_Locn);
-            g_pcsv_locn->Append(_T("s57data"));
+            wxString look_data_dir;
+            look_data_dir.Append(std_path.GetUserDataDir());
+            appendOSDirSlash(&look_data_dir) ;
+            wxString tentative_SData_Locn = look_data_dir;
+            look_data_dir.Append(_T("s57data"));
 
-            plib_data = *g_pcsv_locn;
-            appendOSDirSlash(&plib_data);
+            plib_data = look_data_dir;
+            appendOSDirSlash(&plib_data) ;
             plib_data.Append(_T("S52RAZDS.RLE"));
 
-            wxLogMessage(_T("Looking for s57data in ") + *g_pcsv_locn);
+            wxLogMessage(_T("Looking for s57data in ") + look_data_dir);
             ps52plib = new s52plib(plib_data);
 
-            if(!ps52plib->m_bOK)
+            if(ps52plib->m_bOK)
             {
-                wxLogMessage(_T("   S52PLIB Initialization failed, disabling S57 charts."));
+                  *g_pcsv_locn = look_data_dir;
+                  *pSData_Locn = tentative_SData_Locn;
             }
         }
+
+        //  And if that doesn't work, look again in the original SData Location
+        //  This will cover the case in which the .ini file entry is corrupted or moved
+
+        if(!ps52plib->m_bOK)
+        {
+              delete ps52plib;
+
+              wxString look_data_dir;
+              look_data_dir = *pSData_Locn;
+              look_data_dir.Append(_T("s57data"));
+
+              plib_data = look_data_dir;
+              appendOSDirSlash(&plib_data) ;
+              plib_data.Append(_T("S52RAZDS.RLE"));
+
+              wxLogMessage(_T("Looking for s57data in ") + look_data_dir);
+              ps52plib = new s52plib(plib_data);
+
+              if(ps52plib->m_bOK)
+              {
+                    *g_pcsv_locn = look_data_dir;
+              }
+        }
+
 
 
         if(ps52plib->m_bOK)
             wxLogMessage(_T("Using s57data in ") + *g_pcsv_locn);
+        else
+            wxLogMessage(_T("   S52PLIB Initialization failed, disabling S57 charts."));
+
 
 // Todo Maybe initialize only when an s57 chart is actually opened???
-        s57_initialize(*g_pcsv_locn, flog);
+        if(ps52plib->m_bOK)
+              s57_initialize(*g_pcsv_locn, flog);
 
 
 #endif  // S57
@@ -853,8 +901,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         appendOSDirSlash(pChartListFileName) ;
         pChartListFileName->Append(_T("chartlist.dat"));
 #endif
-
-
 
 
 //      Establish location of Tide and Current data
