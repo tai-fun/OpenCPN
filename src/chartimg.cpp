@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.16 2008/08/26 13:47:11 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.17 2008/11/02 23:22:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.17  2008/11/02 23:22:05  bdbcat
+ * Fix wxDateTime.Set() arguments
+ *
  * Revision 1.16  2008/08/26 13:47:11  bdbcat
  * Cleanup
  *
@@ -39,6 +42,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.17  2008/11/02 23:22:05  bdbcat
+ * Fix wxDateTime.Set() arguments
+ *
  * Revision 1.16  2008/08/26 13:47:11  bdbcat
  * Cleanup
  *
@@ -109,7 +115,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.16 2008/08/26 13:47:11 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.17 2008/11/02 23:22:05 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -182,6 +188,7 @@ ChartBase::ChartBase()
 
       m_nCOVREntries = 0;
 
+      m_EdDate.Set(1, wxDateTime::Jan, 2000);
 }
 
 ChartBase::~ChartBase()
@@ -1128,7 +1135,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                               else
                               {
                                  sscanf(date_string, "%s", date_buf);
-                                 m_EdDate.Set(1, 1, 2000);                    //Todo this could be smarter
+                                 m_EdDate.Set(1, wxDateTime::Jan, 2000);                    //Todo this could be smarter
                               }
 
                               pPubYear->Append(wxString(date_buf,  wxConvUTF8));
@@ -3912,7 +3919,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.16 2008/08/26 13:47:11 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.17 2008/11/02 23:22:05 bdbcat Exp $
 *
 */
 
