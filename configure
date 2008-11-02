@@ -690,6 +690,8 @@ BUILD_WITH_WIFI_CLIENT_TRUE
 BUILD_WITH_WIFI_CLIENT_FALSE
 BUILD_WITH_WIFI_CLIENT
 WX_LIBS
+WX_HOME
+WX_RELEASE
 MY_PKG_CONFIG
 BUILD_WITH_GTK_OPTIMIZATION_TRUE
 BUILD_WITH_GTK_OPTIMIZATION_FALSE
@@ -5125,6 +5127,16 @@ if test -n "$vers" && test "$vers" -ge 2006002; then
       WX_CPPFLAGS="`$WXCONFIG --cppflags`"
       WX_CXXFLAGS="`$WXCONFIG --cxxflags | sed -e 's/-fno-exceptions//'`"
       WX_LIBS="`$WXCONFIG --libs`"
+      WX_HOME="`$WXCONFIG --prefix`"
+      { echo "$as_me:$LINENO: checking for wxWidgets location" >&5
+echo $ECHO_N "checking for wxWidgets location... $ECHO_C" >&6; }
+      { echo "$as_me:$LINENO: result: $WX_HOME" >&5
+echo "${ECHO_T}$WX_HOME" >&6; }
+      WX_RELEASE="`$WXCONFIG --release`"
+      { echo "$as_me:$LINENO: checking for wxWidgets release (major, minor) number" >&5
+echo $ECHO_N "checking for wxWidgets release (major, minor) number... $ECHO_C" >&6; }
+      { echo "$as_me:$LINENO: result: $WX_RELEASE" >&5
+echo "${ECHO_T}$WX_RELEASE" >&6; }
 else
       { { echo "$as_me:$LINENO: error: wxWidgets 2.6.2 or newer is required" >&5
 echo "$as_me: error: wxWidgets 2.6.2 or newer is required" >&2;}
@@ -7367,6 +7379,8 @@ BUILD_WITH_WIFI_CLIENT_TRUE!$BUILD_WITH_WIFI_CLIENT_TRUE$ac_delim
 BUILD_WITH_WIFI_CLIENT_FALSE!$BUILD_WITH_WIFI_CLIENT_FALSE$ac_delim
 BUILD_WITH_WIFI_CLIENT!$BUILD_WITH_WIFI_CLIENT$ac_delim
 WX_LIBS!$WX_LIBS$ac_delim
+WX_HOME!$WX_HOME$ac_delim
+WX_RELEASE!$WX_RELEASE$ac_delim
 MY_PKG_CONFIG!$MY_PKG_CONFIG$ac_delim
 BUILD_WITH_GTK_OPTIMIZATION_TRUE!$BUILD_WITH_GTK_OPTIMIZATION_TRUE$ac_delim
 BUILD_WITH_GTK_OPTIMIZATION_FALSE!$BUILD_WITH_GTK_OPTIMIZATION_FALSE$ac_delim
@@ -7379,7 +7393,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 25; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 27; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

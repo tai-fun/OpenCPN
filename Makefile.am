@@ -1,6 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
 VERSION=1.2.8
+COPYRIGHT_YEAR=2008
+WX_LIB_DIR=$(WX_HOME)/lib
 
 INCLUDES = \
 	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
@@ -22,7 +24,7 @@ opencpn_LDFLAGS =
 opencpn_LDADD =  \
 	$(WX_LIBS)
 
-
+wxhome= $(WX_HOME)
 
 #	The variable BUILD_WITH_GTK_OPTIMIZATION comes from configure script AM_CONDITIONAL()
 if BUILD_WITH_GTK_OPTIMIZATION
@@ -247,13 +249,46 @@ opencpn_SOURCES += src/macsercomm.cpp
 opencpn_SOURCES += src/macutils.c
 noinst_HEADERS += include/macsercomm.h
 noinst_HEADERS += include/macutils.h
-all: opencpn REZ
+APP = OpenCPN
+bundle_dir = $(APP).app
+contents_dir = $(APP).app/Contents
+binary_dir = $(contents_dir)/MacOS
+resource_dir = $(contents_dir)/Resources
+support_dir = $(contents_dir)/SharedSupport
+staging_dir = buildosx/app-bundle
+dmg_staging_dir = $(APP)-$(VERSION)
+WX_DYLIBS_PATTERN=*wx*$(WX_RELEASE).0.dylib
+GL_PATTERN=libGL*.dylib
+GL_LIB_LOC=/usr/X11R6/lib
+GL_DEP_LIBS = `ls $(GL_LIB_LOC)/$(GL_PATTERN)`
+
+all: opencpn $(binary_dir)/opencpn
+
+$(binary_dir)/opencpn:	opencpn
+	mkdir -p $(binary_dir) $(resource_dir) $(support_dir)
+	sed "s/__VERSION__/$(VERSION)/;s/__COPYRIGHT_YEAR__/$(COPYRIGHT_YEAR)/" $(staging_dir)/Info.plist > $(contents_dir)/Info.plist
+	cp $(staging_dir)/opencpn.icns $(resource_dir)
+	cp opencpn $(binary_dir)
+	cp -r data/license.txt data/*data $(support_dir)
+	cp $(WX_LIB_DIR)/*.dylib $(binary_dir)
+	cd $(binary_dir); \
+	for i in `ls $(WX_DYLIBS_PATTERN)` ; \
+		do echo patching load path for dynamic library $${i}; \
+		for j in `ls $(WX_DYLIBS_PATTERN)`; \
+			do install_name_tool -change $(WX_LIB_DIR)/$${i} @executable_path/$${i} $${j} ; \
+		done ;\
+		install_name_tool  -id  @executable_path/$${i} $${i} ;\
+		install_name_tool  -change $(WX_LIB_DIR)/$${i} @executable_path/$${i} opencpn ; \
+	done
+
+dmg: $(binary_dir)/opencpn
+	if [ -d $(dmg_staging_dir) ] ; then rm -rf $(dmg_staging_dir); fi
+	mkdir -p $(dmg_staging_dir)
+	cp -r $(bundle_dir) $(dmg_staging_dir)
+	cp buildosx/README.rtf $(dmg_staging_dir)
+	if [ -f OpenCPN.dmg ] ; then rm OpenCPN.dmg; fi
+	hdiutil create -megabytes 95 -srcfolder $(dmg_staging_dir) OpenCPN.dmg
 endif
-
-REZ:
-	/Developer/Tools/Rez -o opencpn Carbon.r
-
-
 
 
 ## Installation

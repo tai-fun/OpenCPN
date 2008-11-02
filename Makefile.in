@@ -325,7 +325,9 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = 1.2.8
+WX_HOME = @WX_HOME@
 WX_LIBS = @WX_LIBS@
+WX_RELEASE = @WX_RELEASE@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -376,6 +378,8 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+COPYRIGHT_YEAR = 2008
+WX_LIB_DIR = $(WX_HOME)/lib
 INCLUDES = \
 	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
 	 -I/usr/X11R6/include\
@@ -386,6 +390,7 @@ AM_CXXFLAGS = -Wall -g $(am__append_2) $(am__append_4) $(am__append_6) \
 	$(am__append_9)
 opencpn_LDFLAGS = 
 opencpn_LDADD = $(WX_LIBS) $(am__append_7)
+wxhome = $(WX_HOME)
 opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
 	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
@@ -457,6 +462,18 @@ EXTRA_DIST = \
 	src/bitmaps/colscheme.xpm \
 	makefile.wat
 
+@BUILD_FOR_DARWIN_TRUE@APP = OpenCPN
+@BUILD_FOR_DARWIN_TRUE@bundle_dir = $(APP).app
+@BUILD_FOR_DARWIN_TRUE@contents_dir = $(APP).app/Contents
+@BUILD_FOR_DARWIN_TRUE@binary_dir = $(contents_dir)/MacOS
+@BUILD_FOR_DARWIN_TRUE@resource_dir = $(contents_dir)/Resources
+@BUILD_FOR_DARWIN_TRUE@support_dir = $(contents_dir)/SharedSupport
+@BUILD_FOR_DARWIN_TRUE@staging_dir = buildosx/app-bundle
+@BUILD_FOR_DARWIN_TRUE@dmg_staging_dir = $(APP)-$(VERSION)
+@BUILD_FOR_DARWIN_TRUE@WX_DYLIBS_PATTERN = *wx*$(WX_RELEASE).0.dylib
+@BUILD_FOR_DARWIN_TRUE@GL_PATTERN = libGL*.dylib
+@BUILD_FOR_DARWIN_TRUE@GL_LIB_LOC = /usr/X11R6/lib
+@BUILD_FOR_DARWIN_TRUE@GL_DEP_LIBS = `ls $(GL_LIB_LOC)/$(GL_PATTERN)`
 all: all-am
 
 .SUFFIXES:
@@ -2073,10 +2090,33 @@ uninstall-am: uninstall-binPROGRAMS uninstall-local
 	ps ps-am tags uninstall uninstall-am uninstall-binPROGRAMS \
 	uninstall-local
 
-@BUILD_FOR_DARWIN_TRUE@all: opencpn REZ
 
-REZ:
-	/Developer/Tools/Rez -o opencpn Carbon.r
+@BUILD_FOR_DARWIN_TRUE@all: opencpn $(binary_dir)/opencpn
+
+@BUILD_FOR_DARWIN_TRUE@$(binary_dir)/opencpn:	opencpn
+@BUILD_FOR_DARWIN_TRUE@	mkdir -p $(binary_dir) $(resource_dir) $(support_dir)
+@BUILD_FOR_DARWIN_TRUE@	sed "s/__VERSION__/$(VERSION)/;s/__COPYRIGHT_YEAR__/$(COPYRIGHT_YEAR)/" $(staging_dir)/Info.plist > $(contents_dir)/Info.plist
+@BUILD_FOR_DARWIN_TRUE@	cp $(staging_dir)/opencpn.icns $(resource_dir)
+@BUILD_FOR_DARWIN_TRUE@	cp opencpn $(binary_dir)
+@BUILD_FOR_DARWIN_TRUE@	cp -r data/license.txt data/*data $(support_dir)
+@BUILD_FOR_DARWIN_TRUE@	cp $(WX_LIB_DIR)/*.dylib $(binary_dir)
+@BUILD_FOR_DARWIN_TRUE@	cd $(binary_dir); \
+@BUILD_FOR_DARWIN_TRUE@	for i in `ls $(WX_DYLIBS_PATTERN)` ; \
+@BUILD_FOR_DARWIN_TRUE@		do echo patching load path for dynamic library $${i}; \
+@BUILD_FOR_DARWIN_TRUE@		for j in `ls $(WX_DYLIBS_PATTERN)`; \
+@BUILD_FOR_DARWIN_TRUE@			do install_name_tool -change $(WX_LIB_DIR)/$${i} @executable_path/$${i} $${j} ; \
+@BUILD_FOR_DARWIN_TRUE@		done ;\
+@BUILD_FOR_DARWIN_TRUE@		install_name_tool  -id  @executable_path/$${i} $${i} ;\
+@BUILD_FOR_DARWIN_TRUE@		install_name_tool  -change $(WX_LIB_DIR)/$${i} @executable_path/$${i} opencpn ; \
+@BUILD_FOR_DARWIN_TRUE@	done
+
+@BUILD_FOR_DARWIN_TRUE@dmg: $(binary_dir)/opencpn
+@BUILD_FOR_DARWIN_TRUE@	if [ -d $(dmg_staging_dir) ] ; then rm -rf $(dmg_staging_dir); fi
+@BUILD_FOR_DARWIN_TRUE@	mkdir -p $(dmg_staging_dir)
+@BUILD_FOR_DARWIN_TRUE@	cp -r $(bundle_dir) $(dmg_staging_dir)
+@BUILD_FOR_DARWIN_TRUE@	cp buildosx/README.rtf $(dmg_staging_dir)
+@BUILD_FOR_DARWIN_TRUE@	if [ -f OpenCPN.dmg ] ; then rm OpenCPN.dmg; fi
+@BUILD_FOR_DARWIN_TRUE@	hdiutil create -megabytes 95 -srcfolder $(dmg_staging_dir) OpenCPN.dmg
 
 install-data-local:
 	mkdir -p $(DESTDIR)$(pkgdatadir)

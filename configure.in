@@ -171,6 +171,12 @@ if test -n "$vers" && test "$vers" -ge 2006002; then
       WX_CPPFLAGS="`$WXCONFIG --cppflags`"
       WX_CXXFLAGS="`$WXCONFIG --cxxflags | sed -e 's/-fno-exceptions//'`"
       WX_LIBS="`$WXCONFIG --libs`"
+      WX_HOME="`$WXCONFIG --prefix`"
+      AC_MSG_CHECKING([for wxWidgets location])
+      AC_MSG_RESULT([$WX_HOME])
+      WX_RELEASE="`$WXCONFIG --release`"
+      AC_MSG_CHECKING([for wxWidgets release (major, minor) number])
+      AC_MSG_RESULT([$WX_RELEASE])
 else
       AC_MSG_ERROR([wxWidgets 2.6.2 or newer is required])
 fi
@@ -178,8 +184,8 @@ fi
 CPPFLAGS="$CPPFLAGS $WX_CPPFLAGS"
 #CXXFLAGS="$CXXFLAGS $WX_CXXFLAGS"
 AC_SUBST(WX_LIBS)
-
-
+AC_SUBST(WX_HOME)
+AC_SUBST(WX_RELEASE)
 
 dnl __WXX11__ 2.6.X...2.8.3 is broken in wxHashTable::Next().
 dnl Error occurs in wxSocketClient, and manifests as forever lost events,
