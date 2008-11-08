@@ -4941,9 +4941,13 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 HOST_OS=$host_os
 
 
-
+DARWIN_CPP_EXTRA=-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include
+DARWIN_LD_EXTRA=-L/System/Library/Frameworks/OpenGL.framework/Libraries
 case $host_os in
- darwin*) build_for_darwin=true ;;
+ darwin*) build_for_darwin=true;
+          CPPFLAGS="$CPPFLAGS $DARWIN_CPP_EXTRA";
+          LDFLAGS="$LDFLAGS $DARWIN_LD_EXTRA";
+        ;;
 esac
 
  if test x$build_for_darwin = xtrue; then

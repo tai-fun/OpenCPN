@@ -81,9 +81,14 @@ AC_SUBST(BUILD_WITH_S57)
 AC_CANONICAL_HOST
 AC_SUBST(HOST_OS, $host_os)
 
-
+dnl pull in OpenGL headers and link with OpenGL libraries on the mac
+DARWIN_CPP_EXTRA=-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include
+DARWIN_LD_EXTRA=-L/System/Library/Frameworks/OpenGL.framework/Libraries
 case $host_os in
- darwin*) build_for_darwin=true ;;
+ darwin*) build_for_darwin=true;
+          CPPFLAGS="$CPPFLAGS $DARWIN_CPP_EXTRA";
+          LDFLAGS="$LDFLAGS $DARWIN_LD_EXTRA";
+        ;;
 esac
 
 AM_CONDITIONAL(BUILD_FOR_DARWIN, test x$build_for_darwin = xtrue)
