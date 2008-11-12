@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.16 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: chart1.h,v 1.17 2008/11/12 04:15:43 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.17  2008/11/12 04:15:43  bdbcat
+ * Support Garmin Devices / Cleanup
+ *
  * Revision 1.16  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -85,13 +88,8 @@
 
 #include "cpl_error.h"
 
+#include "nmea0183.h"
 
-enum NMEA_EVENT_STATE
-{
-      NMEA_STATE_NONE = 0 ,
-      NMEA_STATE_RDY,
-      NMEA_STATE_DONE
-} ;
 
 //    Global Static utility functions
 extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
@@ -215,6 +213,7 @@ class MyFrame: public wxFrame
     void OnFrameTimer1(wxTimerEvent& event);
     bool DoChartUpdate(int bSelectType);
     void OnEvtNMEA(wxCommandEvent& event);
+    void OnEvtTHREADMSG(wxCommandEvent& event);
     void OnChar(wxKeyEvent &event);
 
     void OnToolLeftClick(wxCommandEvent& event);
@@ -274,6 +273,15 @@ class MyFrame: public wxFrame
 
     int                 m_StatusBarFieldCount;
 
+
+    NMEA0183        m_NMEA0183;                 // Used to parse messages from NMEA threads
+
+    wxDateTime       m_MMEAeventTime;
+    unsigned long    m_ulLastNEMATicktime;
+
+    wxMutex          m_mutexNMEAEvent;         // Mutex to handle static data from NMEA threads
+
+
     DECLARE_EVENT_TABLE()
 };
 
@@ -313,7 +321,8 @@ enum {
     WIFI_SOCKET_ID,
     TIMER_WIFI1,
     FRAME_TIMER_DOG,
-    FRAME_TC_TIMER
+    FRAME_TC_TIMER,
+    ID_NMEA_THREADMSG
 
 };
 

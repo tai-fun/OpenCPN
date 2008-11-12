@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.22 2008/08/09 23:57:15 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.23 2008/11/12 04:12:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -25,42 +25,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
- * Cleanup
- * Revision 1.19  2008/04/10 01:03:59  bdbcat
- * Cleanup
- *
- * Revision 1.18  2008/03/30 22:08:25  bdbcat
- * Cleanup
- *
- *
- * Cleanup
- * Revision 1.21  2008/04/20 21:02:11  bdbcat
- * $Log: nmea.cpp,v $
- * Revision 1.22  2008/08/09 23:57:15  bdbcat
- * Correct East Lon and South Lat math
- *
- * $Log: nmea.cpp,v $
- * Revision 1.22  2008/08/09 23:57:15  bdbcat
- * Correct East Lon and South Lat math
- *
- * Revision 1.21  2008/04/20 21:02:11  bdbcat
- * Cleanup
- *
- * Revision 1.20  2008/04/15 15:55:23  bdbcat
- * Cleanup
- * Revision 1.19  2008/04/10 01:03:59  bdbcat
- * Cleanup
- *
- * Revision 1.18  2008/03/30 22:08:25  bdbcat
- * Cleanup
- *
- * Revision 1.17  2008/01/12 06:24:20  bdbcat
- * Update for Mac OSX/Unicode
- *
- * Revision 1.16  2008/01/11 01:39:46  bdbcat
- * Update for Mac OSX
- *
-
  */
 #include "wx/wxprec.h"
 
@@ -78,17 +42,12 @@
 #include "dychart.h"
 
 #include "nmea.h"
-#include "chart1.h"
-#include "georef.h"
-#include "nmea0183/nmea0183.h"
+//#include "chart1.h"
 
 #ifdef __WXOSX__              // begin rms
 #include "macsercomm.h"
 #endif                        // end rms
 
-
-extern wxMutex    s_pmutexNMEAEventState;
-extern int        g_iNMEAEventState ;
 
 #ifdef __WXMSW__
     #ifdef ocpnUSE_MSW_SERCOMM
@@ -96,26 +55,22 @@ extern int        g_iNMEAEventState ;
     #endif
 #endif
 
-CPL_CVSID("$Id: nmea.cpp,v 1.22 2008/08/09 23:57:15 bdbcat Exp $");
-
-//    Forward Declarations
-
-extern NMEAWindow       *nmea;
-extern float            kLat, kLon, kSog, kCog;
-extern bool             bAutoPilotOut;
+#ifndef PI
+#define PI        3.1415926535897931160E0      /* pi */
+#endif
 
 
+CPL_CVSID("$Id: nmea.cpp,v 1.23 2008/11/12 04:12:20 bdbcat Exp $");
 
-extern int    user_user_id;
-extern int    file_user_id;
-
-extern wxString          *phost_name;
-
-extern OCP_NMEA_Thread   *pNMEA_Thread;
 extern bool              s_bSetSystemTime;
-extern NMEA0183          *pNMEA0183;
 
 int                      s_dns_test_flag;
+
+
+//    A static structure storing generic position data
+//    Used to communicate from NMEA threads to main application thread
+static      GenericPosDat     ThreadPositionData;
+
 
 
 //------------------------------------------------------------------------------
@@ -132,36 +87,39 @@ BEGIN_EVENT_TABLE(NMEAWindow, wxWindow)
   END_EVENT_TABLE()
 
 // constructor
-NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSource):
+NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSource, wxMutex *pMutex):
       wxWindow(frame, window_id,     wxPoint(20,20), wxDefaultSize, wxSIMPLE_BORDER)
 
 {
 
-      parent_frame = (MyFrame *)frame;
+      parent_frame = frame;
       m_pParentEventHandler = parent_frame->GetEventHandler();
 
-      pNMEA_Thread = NULL;
+      m_pShareMutex = pMutex;
+
+      m_pSecondary_Thread = NULL;
       m_sock = NULL;
+      SetSecThreadInActive();
 
       TimerNMEA.SetOwner(this, TIMER_NMEA1);
       TimerNMEA.Stop();
 
-      m_pdata_source_string = new wxString(NMEADataSource);
+      m_data_source_string = NMEADataSource;
 
 
 //      Create and manage NMEA data stream source
 
 //    Decide upon NMEA source
       wxString msg(_T("NMEA Data Source is...."));
-      msg.Append(*m_pdata_source_string);
+      msg.Append(m_data_source_string);
       wxLogMessage(msg);
 
 
 //    NMEA Data Source is specified serial port
-      if(m_pdata_source_string->Contains(_T("Serial")))
+      if(m_data_source_string.Contains(_T("Serial")))
       {
           wxString comx;
-          comx =  m_pdata_source_string->Mid(7);        // either "COM1" style or "/dev/ttyS0" style
+          comx =  m_data_source_string.Mid(7);        // either "COM1" style or "/dev/ttyS0" style
 
 #ifdef __WXMSW__
 
@@ -189,24 +147,33 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
                   CloseHandle(m_hSerialComm);
 
 //    Kick off the NMEA RX thread
-            pNMEA_Thread = new OCP_NMEA_Thread(frame, comx);
-            pNMEA_Thread->Run();
+            m_pSecondary_Thread = new OCP_NMEA_Thread(this, frame, pMutex, comx);
+            m_pSecondary_Thread->Run();
+
 #endif
 
 #ifdef __POSIX__
 //    Kick off the NMEA RX thread
-            pNMEA_Thread = new OCP_NMEA_Thread(frame, comx);
-            pNMEA_Thread->Run();
+            m_pSecondary_Thread = new OCP_NMEA_Thread(this, frame, pMutex, comx);
+            m_pSecondary_Thread->Run();
 #endif
 
       }
 
+#ifdef __WXMSW__
+      else if(m_data_source_string.Contains(_T("GARMIN")))
+        {
+              m_pSecondary_Thread = new OCP_GARMIN_Thread(this, frame, pMutex, _T("GARMIN"));
+              m_pSecondary_Thread->Run();
+        }
+#endif
+
 #ifndef OCPN_DISABLE_SOCKETS
 //      NMEA Data Source is private TCP/IP Server
-        else if(m_pdata_source_string->Contains(_T("GPSD")))
+        else if(m_data_source_string.Contains(_T("GPSD")))
         {
             wxString NMEA_data_ip;
-            NMEA_data_ip = m_pdata_source_string->Mid(5);         // extract the IP
+            NMEA_data_ip = m_data_source_string.Mid(5);         // extract the IP
 
         // Create the socket
             m_sock = new wxSocketClient();
@@ -280,12 +247,10 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
 
 NMEAWindow::~NMEAWindow()
 {
-      delete m_pdata_source_string;
 }
 
 void NMEAWindow::OnCloseWindow(wxCloseEvent& event)
 {
-
 //    Kill off the NMEA Socket if alive
       if(m_sock)
       {
@@ -294,16 +259,15 @@ void NMEAWindow::OnCloseWindow(wxCloseEvent& event)
             TimerNMEA.Stop();
       }
 
-
-//    Kill off the NMEA RX Thread if alive
-      if(pNMEA_Thread)
+//    Kill off the Secondary RX Thread if alive
+      if(m_pSecondary_Thread)
       {
-          pNMEA_Thread->Delete();
-#ifdef __WXMSW__
-//          wxSleep(2);
-#else
-          sleep(1);
-#endif
+          if(m_bsec_thread_active)              // Try to be sure thread object is still alive
+                m_pSecondary_Thread->Delete();    //  wx Docs say don't use Kill().
+                                                // But how else to get rid of a hung thread?
+                                                // Delete() is safer, but blocks on stalled thread....
+
+          wxSleep(1);
       }
 
 }
@@ -311,7 +275,7 @@ void NMEAWindow::OnCloseWindow(wxCloseEvent& event)
 
 void NMEAWindow::GetSource(wxString& source)
 {
-      source = *m_pdata_source_string;
+      source = m_data_source_string;
 }
 
 
@@ -397,21 +361,17 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dtime))
-                    {
-                        fix_time.Set((time_t) floor(dtime));
-                        wxString fix_time_format = fix_time.Format(_T("%Y-%m-%dT%H:%M:%S"));  // this should show as LOCAL
-                    }
-
+                         ThreadPositionData.FixTime = (time_t)floor(dtime);
 
                     token = tkz.GetNextToken();         // skip to lat
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dglat))
-                        kLat = dglat;
+                          ThreadPositionData.kLat = dglat;
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dglon))
-                        kLon = dglon;
+                          ThreadPositionData.kLon = dglon;
 
                     token = tkz.GetNextToken();         // skip to tmg
                     token = tkz.GetNextToken();
@@ -419,90 +379,19 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dgcog))
-                        kCog = dgcog;
+                          ThreadPositionData.kCog = dgcog;
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dgsog))
-                        kSog = dgsog;
+                          ThreadPositionData.kSog = dgsog;
 
-#ifdef ocpnUPDATE_SYSTEM_TIME
-//      Use the fix time to update the local clock
-                    if(fix_time.IsValid() && s_bSetSystemTime)
-                    {
-
-//          Compare the server (fix) time to the current system time
-                        wxDateTime sdt;
-                        sdt.SetToCurrent();
-                        wxDateTime cwxft = fix_time;                  // take a copy
-                        wxTimeSpan ts;
-                        ts = cwxft.Subtract(sdt);
-
-                        int b = (ts.GetSeconds()).ToLong();
-//          Correct system time if necessary
-//      Only set the time once per session, and only if wrong by more than 1 minute.
-
-                        if((abs(b) > 60) && (parent_frame->m_bTimeIsSet == false))
-                        {
-
-#ifdef __WXMSW__
-//      Fix up the fix_time to convert to GMT
-                              fix_time = fix_time.ToGMT();
-
-//    Code snippet following borrowed from wxDateCtrl, MSW
-
-                              const wxDateTime::Tm tm(fix_time.GetTm());
-
-
-                              SYSTEMTIME stm;
-                              stm.wYear = (WXWORD)tm.year;
-                              stm.wMonth = (WXWORD)(tm.mon - wxDateTime::Jan + 1);
-                              stm.wDay = tm.mday;
-
-                              stm.wDayOfWeek = 0;
-                              stm.wHour = fix_time.GetHour();
-                              stm.wMinute = tm.min;
-                              stm.wSecond = tm.sec;
-                              stm.wMilliseconds = 0;
-
-                              ::SetSystemTime(&stm);            // in GMT
-
-
-#else
-
-
-//      This contortion sets the system date/time on POSIX host
-//      Requires the following line in /etc/sudoers
-//          nav ALL=NOPASSWD:/bin/date -s *
-
-                            wxString msg;
-                            msg.Printf(_T("Setting system time, delta t is %d"), b);
-                            wxLogMessage(msg);
-
-                            wxString sdate(fix_time.Format(_T("%D")));
-                            sdate.Prepend(_T("sudo /bin/date -s \""));
-
-                            wxString stime(fix_time.Format(_T("%T")));
-                            stime.Prepend(_T(" "));
-                            sdate.Append(stime);
-                            sdate.Append(_T("\""));
-
-                            wxExecute(sdate, wxEXEC_ASYNC);
-
-#endif      //__WXMSW__
-                            if(parent_frame)
-                            parent_frame->m_bTimeIsSet = true;
-
-                        }           // if needs correction
-                    }               // if valid time
-
-#endif
 
 //    Signal the main program thread
 
-                    g_iNMEAEventState = NMEA_STATE_RDY ;
-                    wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+                    wxCommandEvent event( EVT_NMEA,  GetId() );
                     event.SetEventObject( (wxObject *)this );
                     event.SetExtraLong(EVT_NMEA_DIRECT);
+                    event.SetClientData(&ThreadPositionData);
                     m_pParentEventHandler->AddPendingEvent(event);
                 }
             }
@@ -540,44 +429,30 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 //--------------TEST
 #if(0)
       {
-            kCog = 63.;
-            kSog = 6.5;
+            if(m_pShareMutex)
+                  wxMutexLocker stateLocker(*m_pShareMutex) ;
+            float kCog = 63.;
+            float kSog = 6.5;
 
-            float pred_lat = kLat +  (cos(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
-            float pred_lon = kLon +  (sin(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
+            float pred_lat = ThreadPositionData.kLat +  (cos(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
+            float pred_lon = ThreadPositionData.kLon +  (sin(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
 
-            kLat = pred_lat;
-            kLon = pred_lon;
+            ThreadPositionData.kCog = kCog;
+            ThreadPositionData.kSog = kSog;
+            ThreadPositionData.kLat = pred_lat;
+            ThreadPositionData.kLon = pred_lon;
+            ThreadPositionData.FixTime = 0;
 
     //    Signal the main program thread
-            // avoid signal to the main window if the last one has not been used.
-            wxMutexLocker* pstateLocker = new wxMutexLocker(s_pmutexNMEAEventState) ;
-            if ( NMEA_STATE_RDY != g_iNMEAEventState )
-            {
-                  g_iNMEAEventState = NMEA_STATE_RDY ;
-                  //    Signal the main program thread
-                  wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
-                  event.SetEventObject( (wxObject *)this );
-                  event.SetExtraLong(EVT_NMEA_DIRECT);
-                  parent_frame->GetEventHandler()->AddPendingEvent(event);
 
-            }
-            delete (pstateLocker) ;
+            wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+            event.SetEventObject( (wxObject *)this );
+            event.SetExtraLong(EVT_NMEA_DIRECT);
+            event.SetClientData(&ThreadPositionData);
+            parent_frame->GetEventHandler()->AddPendingEvent(event);
 
       }
 #endif
-
-      char buf[80];
-      strcpy(buf, "                        ");        // ugly
-      toDMM(kLat, buf, 20);
-      int i = strlen(buf);
-      buf[i++] = ' ';
-      buf[i++] = ' ';
-
-      toDMM(kLon, &buf[i], 20);
-
-      if(parent_frame->m_pStatusBar)
-          parent_frame->SetStatusText(wxString(buf, wxConvUTF8), 3);
 
 
       TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
@@ -626,6 +501,7 @@ void *DNSTestThread::Entry()
 
 //          Inter-thread communication event implementation
 DEFINE_EVENT_TYPE(EVT_NMEA)
+DEFINE_EVENT_TYPE(EVT_THREADMSG)
 
 
 
@@ -644,12 +520,11 @@ extern wxMutex                      *ps_mutexProtectingTheRXBuffer;
 
 //    ctor
 
-OCP_NMEA_Thread::OCP_NMEA_Thread(wxWindow *MainWindow, const wxString& PortName)
+OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, wxMutex *pMutex, const wxString& PortName)
 {
+      m_launcher = Launcher;                        // This thread's immediate "parent"
 
-      m_parent_frame = (MyFrame *)MainWindow;
-
-      m_pMainEventHandler = MainWindow->GetEventHandler();
+      m_pMainEventHandler = MessageTarget->GetEventHandler();
 
       rx_share_buffer_state = RX_BUFFER_EMPTY;
 
@@ -659,7 +534,7 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(wxWindow *MainWindow, const wxString& PortName)
       put_ptr = rx_buffer;
       tak_ptr = rx_buffer;
 
-      ps_mutexProtectingTheRXBuffer = new wxMutex;
+      m_pShareMutex = pMutex;
 
       Create();
 }
@@ -668,13 +543,12 @@ OCP_NMEA_Thread::~OCP_NMEA_Thread(void)
 {
       delete rx_buffer;
       delete m_pPortName;
-      delete ps_mutexProtectingTheRXBuffer;
 }
 
 void OCP_NMEA_Thread::OnExit(void)
 {
     //  Mark the global status as dead, gone
-    pNMEA_Thread = NULL;
+//    m_launcher->m_pNMEA_Thread = NULL;
 }
 
 //      Sadly, the thread itself must implement the underlying OS serial port
@@ -684,7 +558,11 @@ void OCP_NMEA_Thread::OnExit(void)
 //    Entry Point
 void *OCP_NMEA_Thread::Entry()
 {
+      m_launcher->SetSecThreadActive();               // I am alive
 
+      bool not_done = true;
+      bool nl_found;
+      wxString msg;
 
     // Allocate the termios data structures
     pttyset = (termios *)malloc(sizeof (termios));
@@ -696,13 +574,13 @@ void *OCP_NMEA_Thread::Entry()
     {
         wxString msg(_T("NMEA input device open failed: "));
         msg.Append(*m_pPortName);
-        wxLogMessage(msg);
-        return 0;
+        ThreadMessage(msg);
+        goto thread_exit;
     }
 
-    wxString msg(_T("NMEA input device opened: "));
+    msg = _T("NMEA input device opened: ");
     msg.Append(*m_pPortName);
-    wxLogMessage(msg);
+    ThreadMessage(msg);
 
     //something like this may be needed???
 //    fcntl(m_gps_fd, F_SETFL, fcntl(m_gps_fd, F_GETFL) & !O_NONBLOCK);
@@ -716,14 +594,13 @@ void *OCP_NMEA_Thread::Entry()
 
     if (isatty(m_gps_fd)!=0)
     {
-
       /* Save original terminal parameters */
       if (tcgetattr(m_gps_fd,pttyset_old) != 0)
       {
           wxString msg(_T("NMEA input device getattr failed: "));
           msg.Append(*m_pPortName);
-          wxLogMessage(msg);
-          return 0;
+          ThreadMessage(msg);
+          goto thread_exit;
       }
       (void)memcpy(pttyset, pttyset_old, sizeof(termios));
 
@@ -762,28 +639,23 @@ void *OCP_NMEA_Thread::Entry()
       {
           wxString msg(_T("NMEA input device setattr failed: "));
           msg.Append(*m_pPortName);
-          wxLogMessage(msg);
-          return 0;
+          ThreadMessage(msg);
+          goto thread_exit;
       }
-
 
       (void)tcflush(m_gps_fd, TCIOFLUSH);
     }
 
 
 
-    bool not_done = true;
-    bool nl_found;
 
 //    The main loop
-//    printf("starting\n");
 
     while(not_done)
     {
         if(TestDestroy())
         {
             not_done = false;                               // smooth exit
-//            printf("smooth exit\n");
         }
 //    Blocking, timeout protected read of one character at a time
 //    Timeout value is set by c_cc[VTIME]
@@ -795,8 +667,6 @@ void *OCP_NMEA_Thread::Entry()
         ssize_t newdata;
         newdata = read(m_gps_fd, &next_byte, 1);            // read of one char
                                                             // return (-1) if no data available, timeout
-//        if (newdata < 0 )
-//            wxThread::Sleep(100) ;
 
         // begin rms
 #ifdef __WXOSX__
@@ -824,119 +694,41 @@ void *OCP_NMEA_Thread::Entry()
                 char *ptmpbuf;
                 char temp_buf[RX_BUFFER_SIZE];
 
-//    If the shared buffer is available....
-                if(1/*ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR */ )
+
+//    Copy the message into a temporary _buffer
+
+                tptr = tak_ptr;
+                ptmpbuf = temp_buf;
+
+                while((*tptr != 0x0a) && (tptr != put_ptr))
                 {
-                    if(1/*RX_BUFFER_EMPTY == rx_share_buffer_state*/)
-                    {
+                   *ptmpbuf++ = *tptr++;
 
-//    Copy the message into the rx_shared_buffer
-
-                        tptr = tak_ptr;
-                        ptmpbuf = temp_buf;
-
-                        while((*tptr != 0x0a) && (tptr != put_ptr))
-                        {
-                            *ptmpbuf++ = *tptr++;
-
-                            if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                tptr = rx_buffer;
-                        }
-
-                        if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
-                        {
-                            *ptmpbuf++ = *tptr++;
-                            if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                tptr = rx_buffer;
-
-                            *ptmpbuf = 0;
-
-                            tak_ptr = tptr;
-
-    // parse the message
-
-                            wxString str_temp_buf(temp_buf, wxConvUTF8);
-                            *pNMEA0183 << str_temp_buf;
-                                          // begin rms
-                                          // we must check the return from parse, as some usb to serial adaptors on the MAC spew
-                                          // junk if there is not a serial data cable connected.
-                            if (true == pNMEA0183->Parse())
-                            {
-                                if(pNMEA0183->LastSentenceIDReceived == wxString(_T("RMC")))
-                            {
-                                if(pNMEA0183->Rmc.IsDataValid == NTrue)
-                                {
-                                    float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
-                                    int lat_deg_int = (int)(llt / 100);
-                                    float lat_deg = lat_deg_int;
-                                    float lat_min = llt - (lat_deg * 100);
-                                    kLat = lat_deg + (lat_min/60.);
-                                    if(pNMEA0183->Rmc.Position.Latitude.Northing == South)
-                                          kLat = -kLat;
-
-                                    float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
-                                    int lon_deg_int = (int)(lln / 100);
-                                    float lon_deg = lon_deg_int;
-                                    float lon_min = lln - (lon_deg * 100);
-                                    kLon = lon_deg + (lon_min/60.);
-                                    if(pNMEA0183->Rmc.Position.Longitude.Easting == West)
-                                           kLon = -kLon;
-
-                                    kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
-                                    kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
-                                                      // begin rms
-                                                      // avoid signal to the main window if the last one has not been used.
-                                                      wxMutexLocker* pstateLocker = new wxMutexLocker(s_pmutexNMEAEventState) ;
-                                                      if ( NMEA_STATE_RDY != g_iNMEAEventState )
-                                                      {
-                                                            g_iNMEAEventState = NMEA_STATE_RDY ;
-                                                            //    Signal the main program thread
-                                                            wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
-                                                            event.SetEventObject( (wxObject *)this );
-                                                            event.SetExtraLong(EVT_NMEA_DIRECT);
-                                                            m_pMainEventHandler->AddPendingEvent(event);
-                                                      }
-                                                      delete (pstateLocker) ;
-                                }
-                            }
-
-                        }
-                                          } // end rms
-                        /////////////////////////////
-                        /*
-                        if(*tptr == 0x0a)                                     // well formed sentence
-                        {
-                            *ptmpbuf++ = *tptr++;
-                            if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                tptr = rx_buffer;
-
-                            *ptmpbuf = 0;
-
-                            tak_ptr = tptr;
-                            strcpy(rx_share_buffer, temp_buf);
-
-                            rx_share_buffer_state = RX_BUFFER_FULL;
-                            rx_share_buffer_length = strlen(rx_share_buffer);
-
-//    Signal the main program thread
-
-                            wxCommandEvent event( EVT_NMEA, ID_NMEA_WINDOW );
-                            event.SetEventObject( (wxObject *)this );
-                            event.SetExtraLong(EVT_NMEA_PARSE_RX);
-                            m_pMainEventHandler->AddPendingEvent(event);
-                        }
-                        */
-                    }
-//    Release the MUTEX
-//                ps_mutexProtectingTheRXBuffer->Unlock();
-
+                   if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                      tptr = rx_buffer;
                 }
+
+                if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
+                {
+                    *ptmpbuf++ = *tptr++;
+                    if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                    tptr = rx_buffer;
+
+                    *ptmpbuf = 0;
+
+                    tak_ptr = tptr;
+
+//    Message is ready to parse and send out
+                    wxString str_temp_buf(temp_buf, wxConvUTF8);
+                    Parse_And_Send_Posn(str_temp_buf);
+                 }
+
             }                   //if nl
         }                       // if newdata > 0
     }                          // the big while...
 
 
-    //          Close the port cleanly
+//          Close the port cleanly
 
 
         /* this is the clean way to do it */
@@ -948,6 +740,8 @@ void *OCP_NMEA_Thread::Entry()
     free (pttyset_old);
 
 
+thread_exit:
+      m_launcher->SetSecThreadInActive();             // I am dead
     return 0;
 
 }
@@ -956,271 +750,15 @@ void *OCP_NMEA_Thread::Entry()
 #endif          //__POSIX__
 
 
-#ifdef __WXMSW_SINGLE__
-//  This is a non-overlapped serial I/O driver.  Not used....
-
-//    Entry Point
-void *OCP_NMEA_Thread::Entry()
-{
-
-      bool not_done;
-
-//    Set up the serial port
-
-      m_hSerialComm = CreateFile(m_pPortName->mb_str(),      // Port Name
-                                             GENERIC_READ,              // Desired Access
-                                             0,                               // Shared Mode
-                                             NULL,                            // Security
-                                             OPEN_EXISTING,             // Creation Disposition
-                                             0,
-                                             NULL);                           // Non Overlapped
-
-      if(m_hSerialComm == INVALID_HANDLE_VALUE)
-      {
-            error = ::GetLastError();
-            goto fail_point;
-      }
-
-
-      if(!SetupComm(m_hSerialComm, 1024, 1024))
-            goto fail_point;
-
-      DCB dcbConfig;
-
-      if(GetCommState(m_hSerialComm, &dcbConfig))           // Configuring Serial Port Settings
-      {
-            dcbConfig.BaudRate = 4800;
-            dcbConfig.ByteSize = 8;
-            dcbConfig.Parity = NOPARITY;
-            dcbConfig.StopBits = ONESTOPBIT;
-            dcbConfig.fBinary = TRUE;
-            dcbConfig.fParity = TRUE;
-      }
-
-      else
-            goto fail_point;
-
-      if(!SetCommState(m_hSerialComm, &dcbConfig))
-            goto fail_point;
-
-      COMMTIMEOUTS commTimeout;
-
-      if(GetCommTimeouts(m_hSerialComm, &commTimeout)) // Configuring Read & Write Time Outs
-      {
-            commTimeout.ReadIntervalTimeout = 1000*TimeOutInSec;
-            commTimeout.ReadTotalTimeoutConstant = 1000*TimeOutInSec;
-            commTimeout.ReadTotalTimeoutMultiplier = 0;
-            commTimeout.WriteTotalTimeoutConstant = 1000*TimeOutInSec;
-            commTimeout.WriteTotalTimeoutMultiplier = 0;
-      }
-
-      else
-            goto fail_point;
-
-      if(!SetCommTimeouts(m_hSerialComm, &commTimeout))
-            goto fail_point;
-
-
-//    Set up event specification
-      DWORD dwEventMask;
-
-      if(!SetCommMask(m_hSerialComm, EV_RXCHAR)) // Setting Event Type
-            goto fail_point;
-
-
-      not_done = true;
-      bool nl_found;
-
-//    The main loop
-
-      while(not_done)
-      {
-            if(TestDestroy())
-                  not_done = false;                               // smooth exit
-
-//    Blocking read of one character at a time
-//    Storing incoming characters in circular buffer
-//    And watching for new line character
-            if(WaitCommEvent(m_hSerialComm, &dwEventMask, NULL)) // Waiting For Event to Occur
-            {
-                  char szBuf;
-                  DWORD dwIncommingReadSize;
-
-                  do
-                  {
-                        nl_found = false;
-                        dwIncommingReadSize = 0;
-
-
-                        COMSTAT    ComStat ;
-                        DWORD      dwErrorFlags;
-
-
-                        ClearCommError( m_hSerialComm, &dwErrorFlags, &ComStat ) ;
-
-                        if(ComStat.cbInQue )
-                        {
-
-                              if(ReadFile(m_hSerialComm, &szBuf, 1, &dwIncommingReadSize, NULL) != 0)
-                              {
-                                    if(dwIncommingReadSize > 0)
-                                    {
-                                          int nchar = dwIncommingReadSize;
-                                          while(nchar)
-                                          {
-                                                *put_ptr++ = szBuf;
-                                                if((put_ptr - rx_buffer) > RX_BUFFER_SIZE)
-                                                      put_ptr = rx_buffer;
-
-                                                if(0x0a == szBuf)
-                                                      nl_found = true;
-
-                                                nchar--;
-                                          }
-                                    }
-                              }
-
-                              else
-                              {
-                                    error = ::GetLastError();
-                                    break;
-                              }
-                        }
-
-//    Found a NL char, thus end of message?
-                        if(nl_found)
-                        {
-                              char *tptr;
-                              char *ptmpbuf;
-                              char temp_buf[RX_BUFFER_SIZE];
-
-                              bool partial = false;
-                              while (!partial)
-                              {
-
-//    If the shared buffer is available....
-                                  if(1/*ps_mutexProtectingTheRXBuffer->Lock() == wxMUTEX_NO_ERROR */)
-                                    {
-                                        if(1/*RX_BUFFER_EMPTY == rx_share_buffer_state*/)
-                                          {
-
-//    Copy the message into the rx_shared_buffer
-
-                                                tptr = tak_ptr;
-                                                ptmpbuf = temp_buf;
-
-                                                while((*tptr != 0x0a) && (tptr != put_ptr))
-                                                {
-                                                      *ptmpbuf++ = *tptr++;
-
-                                                      if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                                            tptr = rx_buffer;
-                                                }
-
-                                                if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
-                                                {
-                                                    *ptmpbuf++ = *tptr++;
-                                                    if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                                        tptr = rx_buffer;
-
-                                                    *ptmpbuf = 0;
-
-                                                    tak_ptr = tptr;
-
-    // parse the message
-
-                                                    *pNMEA0183 << temp_buf;
-                                                    pNMEA0183->Parse();
-
-                                                    if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
-                                                    {
-                                                        if(pNMEA0183->Rmc.IsDataValid == NTrue)
-                                                        {
-                                                            float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
-                                                            int lat_deg_int = (int)(llt / 100);
-                                                            float lat_deg = lat_deg_int;
-                                                            float lat_min = llt - (lat_deg * 100);
-                                                            kLat = lat_deg + (lat_min/60.);
-                                                            if(pNMEA0183->Rmc.Position.Latitude.Northing == South)
-                                                                kLat = -kLat;
-
-                                                            float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
-                                                            int lon_deg_int = (int)(lln / 100);
-                                                            float lon_deg = lon_deg_int;
-                                                            float lon_min = lln - (lon_deg * 100);
-                                                            kLon = lon_deg + (lon_min/60.);
-                                                            if(pNMEA0183->Rmc.Position.Longitude.Easting == West)
-                                                                kLon = -kLon;
-
-                                                            kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
-                                                            kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
-
-    //    Signal the main program thread
-                                                            wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
-                                                            event.SetEventObject( (wxObject *)this );
-                                                            event.SetExtraLong(EVT_NMEA_DIRECT);
-                                                            m_pMainEventHandler->AddPendingEvent(event);
-                                                        }
-                                                    }
-
-                                                }
-
-
-
-                                                /*
-
-                                                if(*tptr == 0x0a)                                     // well formed sentence
-                                                {
-                                                      *ptmpbuf++ = *tptr++;
-                                                      if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                                            tptr = rx_buffer;
-
-                                                      *ptmpbuf = 0;
-
-                                                      tak_ptr = tptr;
-                                                      strcpy(rx_share_buffer, temp_buf);
-
-                                                      rx_share_buffer_state = RX_BUFFER_FULL;
-                                                      rx_share_buffer_length = strlen(rx_share_buffer);
-
-//    Signal the main program thread
-
-                                                      wxCommandEvent event( EVT_NMEA, ID_NMEA_WINDOW);
-                                                      event.SetEventObject( (wxObject *)this );
-                                                      event.SetExtraLong(EVT_NMEA_PARSE_RX);
-                                                      m_pMainEventHandler->AddPendingEvent(event);
-                                                }
-                                                else
-                                                {
-                                                      partial = true;
-//                                                    wxLogMessage(_T("partial"));
-                                                }
-                                                */
-                                          }
-                                    }
-
-//    Release the MUTEX
-//                                    ps_mutexProtectingTheRXBuffer->Unlock();
-
-                              }                 // while
-                        }
-                  } while(dwIncommingReadSize > 0);
-            }
-      }           // the big while...
-
-
-fail_point:
-
-      return 0;
-
-}
-
-#endif
 
 #ifdef __WXMSW__
 //    Entry Point
 void *OCP_NMEA_Thread::Entry()
 {
+      wxString msg;
+      wxMutexLocker *pStateLocker;
+
+      m_launcher->SetSecThreadActive();       // I am alive
 
       bool not_done;
       BOOL fWaitingOnRead = FALSE;
@@ -1241,6 +779,9 @@ void *OCP_NMEA_Thread::Entry()
             goto fail_point;
       }
 
+      msg = _T("NMEA input device opened: ");
+      msg.Append(*m_pPortName);
+      ThreadMessage(msg);
 
       if(!SetupComm(m_hSerialComm, 1024, 1024))
             goto fail_point;
@@ -1397,7 +938,6 @@ HandleASuccessfulRead:
                   while (!partial)
                   {
 
-
             //    Copy the message into a temp buffer
 
                     tptr = tak_ptr;
@@ -1421,59 +961,18 @@ HandleASuccessfulRead:
 
                           tak_ptr = tptr;
 
-    // parse the message
+    // parse and send the message
 
-                        wxString str_temp_buf(temp_buf, wxConvUTF8);
-                        *pNMEA0183 << str_temp_buf;
-                        pNMEA0183->Parse();
+                         wxString str_temp_buf(temp_buf, wxConvUTF8);
+                         Parse_And_Send_Posn(str_temp_buf);
 
-                        if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
-                        {
-                            if(pNMEA0183->Rmc.IsDataValid == NTrue)
-                            {
-                                float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
-                                int lat_deg_int = (int)(llt / 100);
-                                float lat_deg = lat_deg_int;
-                                float lat_min = llt - (lat_deg * 100);
-                                kLat = lat_deg + (lat_min/60.);
-                                if(pNMEA0183->Rmc.Position.Latitude.Northing == South)
-                                      kLat = -kLat;
-
-                                float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
-                                int lon_deg_int = (int)(lln / 100);
-                                float lon_deg = lon_deg_int;
-                                float lon_min = lln - (lon_deg * 100);
-                                kLon = lon_deg + (lon_min/60.);
-                                if(pNMEA0183->Rmc.Position.Longitude.Easting == West)
-                                    kLon = -kLon;
-
-                                kSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
-                                kCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
-
-     // avoid signal to the main window if the last one has not been used.
-                                wxMutexLocker* pstateLocker = new wxMutexLocker(s_pmutexNMEAEventState) ;
-                                if ( NMEA_STATE_RDY != g_iNMEAEventState )
-                                {
-                                    g_iNMEAEventState = NMEA_STATE_RDY ;
-    //    Signal the main program thread
-                                    wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
-                                    event.SetEventObject( (wxObject *)this );
-                                    event.SetExtraLong(EVT_NMEA_DIRECT);
-                                    m_pMainEventHandler->AddPendingEvent(event);
-                                }
-                                delete (pstateLocker) ;
-                            }
-                        }
-
-                }
-                else
-                {
+                   }
+                   else
+                   {
                       partial = true;
-//                    wxLogMessage("partial");
-                }
-
-              }                 // while !partial
-
+//                    ThreadMessage("partial");
+                   }
+                }                 // while !partial
             }           // nl found
 
        fWaitingOnRead = FALSE;
@@ -1482,12 +981,534 @@ HandleASuccessfulRead:
 
 
 fail_point:
+      m_launcher->SetSecThreadInActive();             // I am dead
 
       return 0;
 }
 
-#endif
+#endif            // __WXMSW__
 
+
+void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
+{
+
+   // Send the NMEA string to the decoder
+      m_NMEA0183 << str_temp_buf;
+
+   // we must check the return from parse, as some usb to serial adaptors on the MAC spew
+   // junk if there is not a serial data cable connected.
+      if (true == m_NMEA0183.Parse())
+      {
+            if(m_NMEA0183.LastSentenceIDReceived == wxString(_T("RMC")))
+            {
+              if(m_NMEA0183.Rmc.IsDataValid == NTrue)
+              {
+
+                  if(m_pShareMutex)
+                        m_pShareMutex->Lock();
+
+                  float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
+                  int lat_deg_int = (int)(llt / 100);
+                  float lat_deg = lat_deg_int;
+                  float lat_min = llt - (lat_deg * 100);
+                  ThreadPositionData.kLat = lat_deg + (lat_min/60.);
+                  if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
+                        ThreadPositionData.kLat = -ThreadPositionData.kLat;
+
+                  float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
+                  int lon_deg_int = (int)(lln / 100);
+                  float lon_deg = lon_deg_int;
+                  float lon_min = lln - (lon_deg * 100);
+                  ThreadPositionData.kLon = lon_deg + (lon_min/60.);
+                  if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
+                        ThreadPositionData.kLon = -ThreadPositionData.kLon;
+
+                  ThreadPositionData.kSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                  ThreadPositionData.kCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
+                  ThreadPositionData.FixTime = 0;
+
+                  if(m_pShareMutex)
+                        m_pShareMutex->Unlock();
+
+ //    Signal the main program thread
+                  wxCommandEvent event( EVT_NMEA,  GetId());
+                  event.SetEventObject( (wxObject *)this );
+                  event.SetExtraLong(EVT_NMEA_DIRECT);
+                  event.SetClientData(&ThreadPositionData);
+                  m_pMainEventHandler->AddPendingEvent(event);
+              }
+            }
+      }
+}
+
+
+void OCP_NMEA_Thread::ThreadMessage(const wxString &msg)
+{
+
+    //    Signal the main program thread
+      wxCommandEvent event( EVT_THREADMSG,  GetId());
+      event.SetEventObject( (wxObject *)this );
+      event.SetString(msg);
+      m_pMainEventHandler->AddPendingEvent(event);
+
+}
+
+
+
+//-------------------------------------------------------------------------------------------------------------
+//
+//    Garmin USB Interface Thread
+//
+//    This thread manages reading the positioning data stream from the declared Garmin USB device
+//
+//-------------------------------------------------------------------------------------------------------------
+
+#ifdef __WXMSW__
+
+
+// {2C9C45C2-8E7D-4C08-A12D-816BBAE722C0}
+DEFINE_GUID(GARMIN_GUID, 0x2c9c45c2L, 0x8e7d, 0x4c08, 0xa1, 0x2d, 0x81, 0x6b, 0xba, 0xe7, 0x22, 0xc0);
+
+
+//-------------------------------------------------------------------------------------------------------------
+//    OCP_GARMIN_Thread Implementation
+//-------------------------------------------------------------------------------------------------------------
+
+//    ctor
+
+OCP_GARMIN_Thread::OCP_GARMIN_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, wxMutex *pMutex, const wxString& PortName)
+{
+      m_launcher = Launcher;                        // This thread's immediate "parent"
+
+      m_pMainEventHandler = MessageTarget->GetEventHandler();
+
+      rx_share_buffer_state = RX_BUFFER_EMPTY;
+
+      m_PortName = PortName;
+
+      m_pShareMutex = pMutex;
+
+#ifdef __WXMSW__
+      m_usb_handle = INVALID_HANDLE_VALUE;
+#endif
+      Create();
+}
+
+OCP_GARMIN_Thread::~OCP_GARMIN_Thread(void)
+{
+}
+
+void OCP_GARMIN_Thread::OnExit(void)
+{
+}
+
+//    Entry Point
+void *OCP_GARMIN_Thread::Entry()
+{
+      wxMutexLocker *pStateLocker;
+
+      m_launcher->SetSecThreadActive();               // I am alive
+
+      bool not_done = true;
+      char  pvt_on[14] =
+            {20, 0, 0, 0, 10, 0, 0, 0, 2, 0, 0, 0, 49, 0};
+
+      char  pvt_off[14] =
+            {20, 0, 0, 0, 10, 0, 0, 0, 2, 0, 0, 0, 50, 0};
+
+      garmin_usb_packet iresp;
+
+      HDEVINFO hdevinfo;
+      SP_DEVICE_INTERFACE_DATA devinterface;
+
+
+      //    Search for the Garmin Device Imterface Class
+
+    ThreadMsg(_T("Searching for Garmin DeviceInterface..."));
+
+      hdevinfo = SetupDiGetClassDevs( (GUID *) &GARMIN_GUID, NULL, NULL,
+                  DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
+
+      if (hdevinfo == INVALID_HANDLE_VALUE)
+      {
+            ThreadMsg(_T("   SetupDiGetClassDevs failed for Garmin DeviceInterface..."));
+            ThreadMsg(_T("   Is the Garmin USB driver installed?"));
+
+            goto thread_exit;
+      }
+
+      devinterface.cbSize = sizeof(devinterface);
+
+      if (!SetupDiEnumDeviceInterfaces(hdevinfo, NULL,
+                        (GUID *) &GARMIN_GUID,
+                        0,                                  // unit number
+                        &devinterface))
+      {
+            ThreadMsg(_T("   SetupDiEnumDeviceInterfaces failed for Garmin DeviceInterface..."));
+            ThreadMsg(_T("   Is the Garmin USB unit powered up and connected?"));
+
+            goto thread_exit;
+      }
+
+      /* Now start the specific unit. */
+      m_usb_handle = garmin_usb_start(hdevinfo, &devinterface);
+
+      if(!m_usb_handle)
+            goto thread_exit;
+
+      //    Send out a request for Garmin PVT data
+
+    m_receive_state = rs_fromintr;
+
+      gusb_cmd_send((const garmin_usb_packet *) pvt_on, sizeof(pvt_on));
+
+
+      //    Here comes the big while loop
+    while(not_done)
+    {
+            if(TestDestroy())
+                  not_done = false;                               // smooth exit
+
+      //    Get one pvt packet
+            gusb_cmd_get(&iresp, sizeof(iresp));
+
+            if(iresp.gusb_pkt.pkt_id[0] == GUSB_RESPONSE_SDR)     //Satellite Data Record
+            {
+                  unsigned char *t = (unsigned char *)&(iresp.gusb_pkt.databuf);
+                  for(int i=0 ; i < 12 ; i++)
+                  {
+                        m_sat_data[i].svid =  *t++;
+                        m_sat_data[i].snr =   ((*t)<<8) + *(t+1); t += 2;
+                        m_sat_data[i].elev =  *t++;
+                        m_sat_data[i].azmth = ((*t)<<8) + *(t+1); t += 2;
+                        m_sat_data[i].status = *t++;
+                  }
+            }
+
+            if(iresp.gusb_pkt.pkt_id[0] == GUSB_RESPONSE_PVT)     //PVT Data Record
+            {
+
+
+                  D800_Pvt_Data_Type *ppvt = (D800_Pvt_Data_Type *)&(iresp.gusb_pkt.databuf);
+
+                  if(m_pShareMutex)
+                        pStateLocker = new wxMutexLocker(*m_pShareMutex) ;
+
+                  /*  Lat/Lon   */
+                  ThreadPositionData.kLat = ppvt->lat * 180./PI;
+                  ThreadPositionData.kLon = ppvt->lon * 180. / PI;
+
+                  /* speed over ground */
+                  ThreadPositionData.kSog = sqrt(ppvt->east*ppvt->east + ppvt->north*ppvt->north) * 3.6 / 1.852;
+
+                  /* course over ground */
+                  double course = atan2(ppvt->east, ppvt->north);
+                  if (course < 0)
+                        course += 2*PI;
+                  ThreadPositionData.kCog = course * 180 / PI;
+
+                  ThreadPositionData.FixTime = 0;
+
+                  if(m_pShareMutex)
+                        delete pStateLocker ;
+
+
+                  if((ppvt->fix) >= 2 && (ppvt->fix <= 5))
+                  {
+    //    Signal the main program thread
+                        wxCommandEvent event( EVT_NMEA,  GetId() );
+                        event.SetEventObject( (wxObject *)this );
+                        event.SetExtraLong(EVT_NMEA_DIRECT);
+                        event.SetClientData(&ThreadPositionData);
+                        m_pMainEventHandler->AddPendingEvent(event);
+                  }
+            }
+
+      }
+
+      //    Send command to turn off PVT data
+    gusb_cmd_send((const garmin_usb_packet *) pvt_off, sizeof(pvt_off));
+
+      if (m_usb_handle != INVALID_HANDLE_VALUE)
+      {
+            CloseHandle(m_usb_handle);
+            m_usb_handle = INVALID_HANDLE_VALUE;
+      }
+
+
+thread_exit:
+      m_launcher->SetSecThreadInActive();             // I am dead
+      return 0;
+}
+
+
+HANDLE OCP_GARMIN_Thread::garmin_usb_start(HDEVINFO hdevinfo, SP_DEVICE_INTERFACE_DATA *infodata)
+{
+      DWORD size = 0;
+      PSP_INTERFACE_DEVICE_DETAIL_DATA pdd = NULL;
+      SP_DEVINFO_DATA devinfo;
+
+      SetupDiGetDeviceInterfaceDetail(hdevinfo, infodata,
+                  NULL, 0, &size, NULL);
+
+      pdd = (PSP_INTERFACE_DEVICE_DETAIL_DATA)malloc(size);
+      pdd->cbSize = sizeof(SP_INTERFACE_DEVICE_DETAIL_DATA);
+
+      devinfo.cbSize = sizeof(SP_DEVINFO_DATA);
+      if (!SetupDiGetDeviceInterfaceDetail(hdevinfo, infodata,
+            pdd, size, NULL, &devinfo))
+      {
+            ThreadMsg(_T("   SetupDiGetDeviceInterfaceDetail failed for Garmin Device..."));
+                  return NULL;
+      }
+
+      /* Whew.  All that just to get something we can open... */
+      wxString msg;
+      msg.Printf(_T("Windows GUID for interface is %s"),pdd->DevicePath);
+      ThreadMsg(msg);
+
+
+      if (m_usb_handle != INVALID_HANDLE_VALUE)
+      {
+            ThreadMsg(_T("   garmin_usb_start called while device already started."));
+            return NULL;
+      }
+
+      m_usb_handle = CreateFile(pdd->DevicePath, GENERIC_READ|GENERIC_WRITE,
+                  0, NULL, OPEN_EXISTING, 0, NULL );
+      if (m_usb_handle == INVALID_HANDLE_VALUE)
+      {
+            wxString msg;
+            msg.Printf(_T("(usb) CreateFile on '%s' failed"), pdd->DevicePath);
+            ThreadMsg(msg);
+            return NULL;
+      }
+
+      if(!DeviceIoControl(m_usb_handle, IOCTL_GARMIN_USB_BULK_OUT_PACKET_SIZE,
+          NULL, 0, &m_max_tx_size, GARMIN_USB_INTERRUPT_DATA_SIZE,
+          &size, NULL))
+      {
+      ThreadMsg(_T("   Couldn't get USB packet size."));
+            return NULL;
+    }
+
+      if(!gusb_syncup())
+      {
+            CloseHandle(m_usb_handle);
+            return NULL;
+      }
+
+      return m_usb_handle;
+}
+
+bool OCP_GARMIN_Thread::gusb_syncup(void)
+{
+      static int unit_number;
+      static const char  oinit[12] =
+            {0, 0, 0, 0, GUSB_SESSION_START, 0, 0, 0, 0, 0, 0, 0};
+      garmin_usb_packet iresp;
+      int i;
+
+      /*
+       * This is our first communication with the unit.
+       */
+      m_receive_state = rs_fromintr;
+
+      for(i = 0; i < 25; i++) {
+            le_write16(&iresp.gusb_pkt.pkt_id, 0);
+            le_write32(&iresp.gusb_pkt.datasz, 0);
+            le_write32(&iresp.gusb_pkt.databuf, 0);
+
+            if(!gusb_cmd_send((const garmin_usb_packet *) oinit, sizeof(oinit)))
+            {
+                  ThreadMsg(_T("   Unable to establish USB syncup due to TX error."));
+                  return false;;
+            }
+
+            gusb_cmd_get(&iresp, sizeof(iresp));
+
+            if ((le_read16(iresp.gusb_pkt.pkt_id) == GUSB_SESSION_ACK) &&
+                  (le_read32(iresp.gusb_pkt.datasz) == 4))
+            {
+//                unsigned serial_number = le_read32(iresp.gusb_pkt.databuf);
+//                garmin_unit_info[unit_number].serial_number = serial_number;
+//                gusb_id_unit(&garmin_unit_info[unit_number]);
+
+                  unit_number++;
+
+                  ThreadMsg(_T("Successful Garmin USB syncup."));
+                  return true;;
+            }
+      }
+      ThreadMsg(_T("   Unable to establish USB syncup."));
+      return false;
+}
+
+
+int OCP_GARMIN_Thread::gusb_cmd_send(const garmin_usb_packet *opkt, size_t sz)
+{
+      unsigned int rv;
+
+      unsigned char *obuf = (unsigned char *) &opkt->dbuf;
+
+      rv = gusb_win_send(opkt, sz);
+
+      /*
+       * Recursion, when used in a disciplined way, can be our friend.
+       *
+       * The Garmin protocol requires that packets that are exactly
+       * a multiple of the max tx size be followed by a zero length
+       * packet.  Do that here so we can see it in debugging traces.
+       */
+
+      if (sz && !(sz % m_max_tx_size)) {
+            gusb_win_send(opkt, 0);
+      }
+
+      return (rv);
+}
+
+int OCP_GARMIN_Thread::gusb_cmd_get(garmin_usb_packet *ibuf, size_t sz)
+{
+      int rv;
+      unsigned char *buf = (unsigned char *) &ibuf->dbuf;
+      int orig_receive_state;
+top:
+      orig_receive_state = m_receive_state;
+      switch (m_receive_state) {
+      case rs_fromintr:
+            rv = gusb_win_get(ibuf, sz);
+            break;
+      case rs_frombulk:
+            rv = gusb_win_get_bulk(ibuf, sz);
+            break;
+//  default:
+//          fatal("Unknown receiver state %d\n", receive_state);
+      }
+
+      /* Adjust internal state and retry the read */
+      if ((rv > 0) && (ibuf->gusb_pkt.pkt_id[0] == GUSB_REQUEST_BULK)) {
+            m_receive_state = rs_frombulk;
+            goto top;
+      }
+      /*
+       * If we were reading from the bulk pipe and we just got
+       * a zero request, adjust our internal state.
+       * It's tempting to retry the read here to hide this "stray"
+       * packet from our callers, but that only works when you know
+       * there's another packet coming.   That works in every case
+       * except the A000 discovery sequence.
+      */
+      if ((m_receive_state == rs_frombulk) && (rv <= 0)) {
+            m_receive_state = rs_fromintr;
+      }
+
+      return rv;
+}
+
+int OCP_GARMIN_Thread::gusb_win_get(garmin_usb_packet *ibuf, size_t sz)
+{
+      DWORD rxed = GARMIN_USB_INTERRUPT_DATA_SIZE;
+      unsigned char *buf = (unsigned char *) &ibuf->dbuf;
+      int tsz=0;
+
+      while (sz)
+      {
+            /* The driver wrongly (IMO) rejects reads smaller than
+             * GARMIN_USB_INTERRUPT_DATA_SIZE
+             */
+            if(!DeviceIoControl(m_usb_handle, IOCTL_GARMIN_USB_INTERRUPT_IN, NULL, 0,
+                  buf, GARMIN_USB_INTERRUPT_DATA_SIZE, &rxed, NULL))
+            {
+//                GPS_Serial_Error("Ioctl");
+//                fatal("ioctl\n");
+            }
+
+            buf += rxed;
+            sz  -= rxed;
+            tsz += rxed;
+            if (rxed < GARMIN_USB_INTERRUPT_DATA_SIZE)
+                  break;
+      }
+      return tsz;
+}
+
+int OCP_GARMIN_Thread::gusb_win_get_bulk(garmin_usb_packet *ibuf, size_t sz)
+{
+      int n;
+      DWORD rsz;
+      unsigned char *buf = (unsigned char *) &ibuf->dbuf;
+
+      n = ReadFile(m_usb_handle, buf, sz, &rsz, NULL);
+
+      return rsz;
+}
+
+int OCP_GARMIN_Thread::gusb_win_send(const garmin_usb_packet *opkt, size_t sz)
+{
+      DWORD rsz;
+      unsigned char *obuf = (unsigned char *) &opkt->dbuf;
+
+      /* The spec warns us about making writes an exact multiple
+       * of the packet size, but isn't clear whether we can issue
+       * data in a single call to WriteFile if it spans buffers.
+       */
+      WriteFile(m_usb_handle, obuf, sz, &rsz, NULL);
+
+//    if (rsz != sz)
+//          fatal ("Error sending %d bytes.   Successfully sent %ld\n", sz, rsz);
+
+
+      return rsz;
+}
+
+void
+le_write16(void *addr, const unsigned value)
+{
+      unsigned char *p = (unsigned char *)addr;
+      p[0] = value;
+      p[1] = value >> 8;
+
+}
+
+void
+le_write32(void *addr, const unsigned value)
+{
+      unsigned char *p = (unsigned char *)addr;
+      p[0] = value;
+      p[1] = value >> 8;
+      p[2] = value >> 16;
+      p[3] = value >> 24;
+}
+
+signed int
+le_read16(const void *addr)
+{
+      const unsigned char *p = (const unsigned char *)addr;
+      return p[0] | (p[1] << 8);
+}
+
+signed int
+le_read32(const void *addr)
+{
+      const unsigned char *p = (const unsigned char *)addr;
+      return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+}
+
+
+
+void OCP_GARMIN_Thread::ThreadMsg(const wxString &msg)
+{
+
+    //    Signal the main program thread
+     wxCommandEvent event( EVT_THREADMSG,  GetId() );
+     event.SetEventObject( (wxObject *)this );
+     event.SetExtraLong(EVT_NMEA_DIRECT);
+     event.SetString(msg);
+     m_pMainEventHandler->AddPendingEvent(event);
+
+}
+#endif            // __WXMSW__
 
 //-------------------------------------------------------------------------------------------------------------
 //
@@ -1505,7 +1526,7 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 {
 
       m_pdata_ap_port_string = new wxString(AP_Port);
-      bOK = false;
+      m_bOK = false;
 
 #ifdef __WXMSW__
 #ifdef ocpnUSE_MSW_SERCOMM
@@ -1515,30 +1536,26 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 
 //    Create and init the Serial Port for Autopilot control
 
-          wxString msg(_T("NMEA AutoPilot Port is...."));
-          msg.Append(*m_pdata_ap_port_string);
-          wxLogMessage(msg);
+      wxString msg(_T("NMEA AutoPilot Port is...."));
+      msg.Append(*m_pdata_ap_port_string);
+      wxLogMessage(msg);
 
-          if((!m_pdata_ap_port_string->IsEmpty()) && (!m_pdata_ap_port_string->IsSameAs(_T("None"), false)))
+      if((!m_pdata_ap_port_string->IsEmpty()) && (!m_pdata_ap_port_string->IsSameAs(_T("None"), false)))
       {
-
             wxString port(m_pdata_ap_port_string->AfterFirst(':'));    // Strip "Serial"
-
 
 #ifdef __WXMSW__
 #ifdef ocpnUSE_MSW_SERCOMM
             pWinComm = new CSyncSerialComm(port.mb_str());
             pWinComm->Open();
             pWinComm->ConfigPort(4800, 5);
-            bAutoPilotOut = true;
+            m_bOK = true;
 #endif
 #endif
 
 #ifdef __POSIX__
 
-            bOK = OpenPort(port);
-            if(bOK)
-                 bAutoPilotOut = true;
+            m_bOK = OpenPort(port);
 #endif
     }
     Hide();
@@ -1563,12 +1580,12 @@ void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 #endif
 
 #ifdef __POSIX__
-    bAutoPilotOut = false;
-    if(bOK)
+    if(m_bOK)
     {
         (void)close(m_ap_fd);
         free (pttyset);
         free (pttyset_old);
+        m_bOK = false;
     }
 #endif
 }

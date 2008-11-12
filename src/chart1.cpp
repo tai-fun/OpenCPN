@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.29 2008/11/01 16:03:08 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.30 2008/11/12 04:13:24 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.30  2008/11/12 04:13:24  bdbcat
+ * Support Garmin Devices / Cleanup
+ *
  * Revision 1.29  2008/11/01 16:03:08  bdbcat
  * Improve data file location logic
  *
@@ -54,6 +57,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.30  2008/11/12 04:13:24  bdbcat
+ * Support Garmin Devices / Cleanup
+ *
  * Revision 1.29  2008/11/01 16:03:08  bdbcat
  * Improve data file location logic
  *
@@ -181,7 +187,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.29 2008/11/01 16:03:08 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.30 2008/11/12 04:13:24 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -200,7 +206,7 @@ MyFrame         *gFrame;
 
 ChartCanvas     *cc1;
 ConsoleCanvas   *console;
-NMEAWindow      *nmea;
+NMEAWindow      *g_pnmea;
 StatWin         *stats;
 
 wxToolBar       *toolBar;
@@ -225,10 +231,7 @@ MarkProp        *pMarkPropDialog;
 RouteProp       *pRoutePropDialog;
 
 
-NMEA0183        *pNMEA0183;
-
 float           gLat, gLon, gCog, gSog, gHdg;
-float           kLat, kLon, kCog, kSog, kHdg;
 float           vLat, vLon;
 double          initial_scale_ppm;
 
@@ -238,7 +241,6 @@ bool            bDBUpdateInProgress;
 ThumbWin        *pthumbwin;
 TCMgr           *ptcmgr;
 
-bool            bAutoPilotOut;
 bool            bDrawCurrentValues;
 
 wxString        *pSData_Locn;
@@ -264,7 +266,8 @@ wxString        *phost_name;
 
 static unsigned int malloc_max;
 
-OCP_NMEA_Thread *pNMEA_Thread;
+OCP_NMEA_Thread   *pNMEA_Thread;
+OCP_GARMIN_Thread *pGARMIN_Thread;
 wxString        *pNMEADataSource;
 wxString        *pNMEA_AP_Port;
 
@@ -286,6 +289,7 @@ wxPageSetupData* g_pageSetupData = (wxPageSetupData*) NULL;
 bool            g_bShowPrintIcon;
 bool            g_bShowOutlines;
 bool            g_bShowDepthUnits;
+bool			g_bGarminPersistance;
 
 FontMgr         *pFontMgr;
 
@@ -356,7 +360,7 @@ double           g_PlanSpeed;
 
 wxArrayString    *pMessageOnceArray;
 
-FILE *s_fpdebug;
+FILE             *s_fpdebug;
 bool             bAutoOpen;
 bool             bFirstAuto;
 
@@ -366,7 +370,6 @@ bool             bFirstAuto;
 char                            rx_share_buffer[MAX_RX_MESSSAGE_SIZE];
 unsigned int                    rx_share_buffer_length;
 ENUM_BUFFER_STATE               rx_share_buffer_state;
-wxMutex                         *ps_mutexProtectingTheRXBuffer;
 
 
 #ifndef __WXMSW__
@@ -375,21 +378,6 @@ struct sigaction sa_usr1_old;
 #endif
 
 
-// Mutex to handle state setup for sending GPS events to the main thread
-// this allows us to make sure that a message is completely processed before sending another one.
-wxMutex           s_pmutexNMEAEventState;
-int               g_iNMEAEventState = NMEA_STATE_NONE ;
-
-#ifndef uint64_t
-#define uint64_t long
-#endif
-
-// begin rms
-#ifdef __POSIX__
-wxDateTime*       g_pMMEAeventTime = NULL ;
-uint64_t          g_ulLastNEMATicktime = 0 ;
-#endif
-// end rms
 
 
 #ifdef __WXMSW__
@@ -422,6 +410,13 @@ DWORD       color_inactiveborder;
 
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
+
+// {2C9C45C2-8E7D-4C08-A12D-816BBAE722C0}
+#ifdef  __WXMSW__
+DEFINE_GUID(GARMIN_DETECT_GUID, 0x2c9c45c2L, 0x8e7d, 0x4c08, 0xa1, 0x2d, 0x81, 0x6b, 0xba, 0xe7, 0x22, 0xc0);
+#endif
+
+
 
 #ifdef __MSVC__
 #define _CRTDBG_MAP_ALLOC
@@ -764,9 +759,34 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 #ifdef USE_S57
 //      Init the s57 chart object, specifying the location of the required csv files
 
-//      If the config file contains an entry for s57 .csv files, use it.
+//      If the config file contains an entry for s57 .csv files,
+//      confirm that the required files are available, and use them.
 //      Otherwise, default to [shared data dir]/s57_data
-        if(g_pcsv_locn->IsEmpty())
+        if(!g_pcsv_locn->IsEmpty())
+        {
+              wxString fd(*g_pcsv_locn);
+              appendOSDirSlash(&fd);
+
+              bool tflag = true;          // assume true
+              wxFileName f1;
+              f1 = wxFileName(fd); fd.Append(_T("s57attributes.csv"));
+              tflag &= f1.FileExists();
+              f1 = wxFileName(fd); fd.Append(_T("attdecode.csv"));
+              tflag &= f1.FileExists();
+              f1 = wxFileName(fd); fd.Append(_T("s57expectedinput.csv"));
+              tflag &= f1.FileExists();
+              f1 = wxFileName(fd); fd.Append(_T("s57objectclasses.csv"));
+              tflag &= f1.FileExists();
+
+              if(!tflag)
+              {
+                    g_pcsv_locn->Clear();
+                    g_pcsv_locn->Append(*pSData_Locn);
+                    g_pcsv_locn->Append(_T("s57data"));
+              }
+
+        }
+        else
         {
             g_pcsv_locn->Append(*pSData_Locn);
             g_pcsv_locn->Append(_T("s57data"));
@@ -781,13 +801,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
               g_pSENCPrefix->Append(_T("SENC"));
         }
 
-// Todo Maybe verify that the required support files are really present in g_pcsv_locn
-// If not, then look in fixed location *pSData_Locn/s57data
-
-        // s57attributes.csv
-        // attdecode.csv
-        // s57expectedinput.csv
-        // s57objectclasses.csv
         // S52RAZDS.RLE
 
         wxString plib_data;
@@ -977,18 +990,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         stats = new StatWin(gFrame);
 
-#ifdef __WXOSX__
-        if (false == ValidateSerialPortName(pNMEADataSource->mb_str(),MAX_SERIAL_PORTS))
-              *pNMEADataSource = _T("NONE") ;
-        if (false == ValidateSerialPortName(pAIS_Port->mb_str(),MAX_SERIAL_PORTS))
-              *pAIS_Port = _T("NONE") ;
-        if (false == ValidateSerialPortName(pNMEA_AP_Port->mb_str(), MAX_SERIAL_PORTS))
-              *pNMEA_AP_Port = _T("NONE") ;
-#endif
-
-        pNMEA0183 = new NMEA0183();
-        nmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource);
-
 //        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, wxString("TCP/IP:66.235.48.168"));  // a test
         pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port);
 
@@ -1097,7 +1098,6 @@ int MyApp::OnExit()
         delete pRouteMan;
         delete pWayPointMan;
 
-        delete pNMEA0183;
         delete pChartDirArray;
 
 #ifdef USE_S57
@@ -1247,7 +1247,8 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_TIMER(FRAME_TIMER_1, MyFrame::OnFrameTimer1)
   EVT_TIMER(FRAME_TC_TIMER, MyFrame::OnFrameTCTimer)
   EVT_ACTIVATE(MyFrame::OnActivate)
-  EVT_COMMAND(ID_NMEA_WINDOW, EVT_NMEA, MyFrame::OnEvtNMEA)
+  EVT_COMMAND(wxID_ANY, EVT_NMEA, MyFrame::OnEvtNMEA)
+  EVT_COMMAND(wxID_ANY, EVT_THREADMSG, MyFrame::OnEvtTHREADMSG)
   EVT_ERASE_BACKGROUND(MyFrame::OnEraseBackground)
 END_EVENT_TABLE()
 
@@ -1257,6 +1258,7 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
   wxFrame(frame, -1, title, pos, size, style)  //wxSIMPLE_BORDER | wxCLIP_CHILDREN | wxRESIZE_BORDER)
       //wxCAPTION | wxSYSTEM_MENU | wxRESIZE_BORDER
 {
+        m_ulLastNEMATicktime = 0;
         m_pStatusBar = NULL;
 
         PrepareToolbarBitmaps();
@@ -1273,6 +1275,21 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 
         m_ptool_ct_dummy = NULL;
         m_phash = NULL;
+
+//    Establish my children
+#ifdef __WXOSX__
+        if (false == ValidateSerialPortName(pNMEADataSource->mb_str(),MAX_SERIAL_PORTS))
+              *pNMEADataSource = _T("NONE") ;
+        if (false == ValidateSerialPortName(pAIS_Port->mb_str(),MAX_SERIAL_PORTS))
+              *pAIS_Port = _T("NONE") ;
+        if (false == ValidateSerialPortName(pNMEA_AP_Port->mb_str(), MAX_SERIAL_PORTS))
+              *pNMEA_AP_Port = _T("NONE") ;
+#endif
+
+        g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, this, *pNMEADataSource, &m_mutexNMEAEvent);
+
+
+
 
 //  Initialize the Printer data structures
 
@@ -1876,10 +1893,10 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
 //      or that call GUI methods
 
     cc1->Destroy();
-    if(nmea)
+    if(g_pnmea)
     {
-        nmea->Close();
-        nmea = NULL;                        // This will be a signal to TCP/IP socket event handler
+          g_pnmea->Close();
+          g_pnmea = NULL;                        // This will be a signal to TCP/IP socket event handler
                                             // that any remaining events in queue are to be ignored
     }
 
@@ -2310,8 +2327,8 @@ int MyFrame::DoOptionsDialog()
 
       if(pAIS)
           pAIS->Pause();
-      if(nmea)
-          nmea->Pause();
+      if(g_pnmea)
+            g_pnmea->Pause();
 
 // And here goes the (modal) dialog
       int rr = pSetDlg->ShowModal();
@@ -2341,10 +2358,10 @@ int MyFrame::DoOptionsDialog()
 
             if(*pNMEADataSource != previous_NMEA_source)
             {
-                  if(nmea)
-                      nmea->Close();
-                  delete nmea;
-                  nmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource );
+                  if(g_pnmea)
+                        g_pnmea->Close();
+                  delete g_pnmea;
+                  g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource, &m_mutexNMEAEvent );
             }
 
 
@@ -2398,8 +2415,8 @@ int MyFrame::DoOptionsDialog()
 
       if(pAIS)
           pAIS->UnPause();
-      if(nmea)
-          nmea->UnPause();
+      if(g_pnmea)
+            g_pnmea->UnPause();
 
       delete pWorkDirArray;
 
@@ -3500,20 +3517,27 @@ void *x_malloc(size_t t)
 
 }
 
+void MyFrame::OnEvtTHREADMSG(wxCommandEvent & event)
+{
+ 	wxLogMessage(event.GetString());
+}
+
+
+
 void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 {
 #define LOCAL_BUFFER_LENGTH 4096
 
     char buf[LOCAL_BUFFER_LENGTH];
     bool bshow_tick = false;
-
+    time_t fixtime;
 
     switch(event.GetExtraLong())
     {
         case EVT_NMEA_PARSE_RX:
         {
-            if(ps_mutexProtectingTheRXBuffer->TryLock() == wxMUTEX_NO_ERROR )
-            {
+              if(m_mutexNMEAEvent.TryLock() == wxMUTEX_NO_ERROR )
+              {
                 if(RX_BUFFER_FULL == rx_share_buffer_state)
                 {
                     int nchar = strlen(rx_share_buffer);
@@ -3526,11 +3550,11 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                 else
                     wxLogMessage(_T("Got NMEA Event with RX_BUFFER_EMPTY"));
 
-                ps_mutexProtectingTheRXBuffer->Unlock();
+                m_mutexNMEAEvent.Unlock();
             }
             else
             {
-                AddPendingEvent(event);
+                AddPendingEvent(event);               // If we cannot get the Mutex, resubmit the event
                 break;
             }
 
@@ -3546,28 +3570,30 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 */
 
             wxString str_buf(buf, wxConvUTF8);
-            *pNMEA0183 << str_buf;
-            pNMEA0183->Parse();
+            m_NMEA0183 << str_buf;
+            m_NMEA0183.Parse();
 
-            if(pNMEA0183->LastSentenceIDReceived == _T("RMC"))
+            if(m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
             {
-                if(pNMEA0183->Rmc.IsDataValid == NTrue)
+                if(m_NMEA0183.Rmc.IsDataValid == NTrue)
                 {
-                    float llt = pNMEA0183->Rmc.Position.Latitude.Latitude;
+                    float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
                     int lat_deg_int = (int)(llt / 100);
                     float lat_deg = lat_deg_int;
                     float lat_min = llt - (lat_deg * 100);
                     gLat = lat_deg + (lat_min/60.);
 
-                    float lln = pNMEA0183->Rmc.Position.Longitude.Longitude;
+                    float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
                     int lon_deg_int = (int)(lln / 100);
                     float lon_deg = lon_deg_int;
                     float lon_min = lln - (lon_deg * 100);
                     float tgLon = lon_deg + (lon_min/60.);
                     gLon = -tgLon;
 
-                    gSog = pNMEA0183->Rmc.SpeedOverGroundKnots;
-                    gCog = pNMEA0183->Rmc.TrackMadeGoodDegreesTrue;
+                    gSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                    gCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
+
+                    fixtime = 0;
 
                     bool last_bGPSValid = bGPSValid;
                     bGPSValid = true;
@@ -3584,14 +3610,15 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 
         case EVT_NMEA_DIRECT:
         {
-            wxMutexLocker* pstateLocker = new wxMutexLocker(s_pmutexNMEAEventState) ;
+                wxMutexLocker stateLocker(m_mutexNMEAEvent);          // scope is this case
 
-            if ( NMEA_STATE_RDY == g_iNMEAEventState)
-            {
-                gLat = kLat;
-                gLon = kLon;
-                gCog = kCog;
-                gSog = kSog;
+                GenericPosDat *pGPSData = (GenericPosDat *)event.GetClientData();
+                gLat = pGPSData->kLat;
+                gLon = pGPSData-> kLon;
+                gCog = pGPSData->kCog;
+                gSog = pGPSData->kSog;
+
+                fixtime = pGPSData->FixTime;
 
                 bool last_bGPSValid = bGPSValid;
                 bGPSValid = true;
@@ -3604,50 +3631,126 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                 gGPS_Watchdog = gsp_watchdog_timeout_ticks;
 
                 bshow_tick = true;
-                    g_iNMEAEventState = NMEA_STATE_DONE ;
-            }
-            delete (pstateLocker) ;
             break;
         }
 
     }           // switch
-// begin rms
-#ifdef __WXOSX__
-      //      Show a little heartbeat tick in StatusWindow0 on NMEA events
-      if (NULL == g_pMMEAeventTime )
-      {
-            g_pMMEAeventTime = new wxDateTime() ;
-      }
-      uint64_t uiCurrentTickCount ;
-      g_pMMEAeventTime->SetToCurrent() ;
-      uiCurrentTickCount = g_pMMEAeventTime->GetMillisecond() ;
-    if(uiCurrentTickCount > g_ulLastNEMATicktime + 100)
-    {
-            g_ulLastNEMATicktime = uiCurrentTickCount ;
-        char tick_buf[2];
-        tick_buf[0] = nmea_tick_chars[tick_idx];
-        tick_buf[1] = 0;
-        if(NULL != GetStatusBar())
-            SetStatusText(tick_buf, 0);
-    }
-#else
+
     if(bshow_tick)
     {
-    //      Show a little heartbeat tick in StatusWindow0 on NMEA events
-        if(tick_idx++ > 6)
-            tick_idx = 0;
+      //      Show a little heartbeat tick in StatusWindow0 on NMEA events
+      unsigned long uiCurrentTickCount ;
+      m_MMEAeventTime.SetToCurrent() ;
+      uiCurrentTickCount = m_MMEAeventTime.GetMillisecond() ;
+      uiCurrentTickCount += m_MMEAeventTime.GetSecond() * 1000 ;
+      if(uiCurrentTickCount > m_ulLastNEMATicktime + 100)
+      {
+            m_ulLastNEMATicktime = uiCurrentTickCount ;
 
-        char tick_buf[2];
-        tick_buf[0] = nmea_tick_chars[tick_idx];
-        tick_buf[1] = 0;
-        if(NULL != GetStatusBar())
-            SetStatusText(wxString(tick_buf, wxConvUTF8), 0);
+            if(tick_idx++ > 6)
+                  tick_idx = 0;
+            char tick_buf[2];
+            tick_buf[0] = nmea_tick_chars[tick_idx];
+            tick_buf[1] = 0;
+            if(NULL != GetStatusBar())
+                  SetStatusText(wxString(tick_buf, wxConvUTF8), 0);
+      }
     }
-#endif
-      // end rms
+
 //    If gSog is greater than some threshold, we determine that we are "cruising"
       if(gSog > 3.0)
             g_bCruising = true;
+
+//    Show gLat/gLon in StatusWindow3
+      char dbuf[80];
+      strcpy(dbuf, "                        ");        // ugly
+      toDMM(gLat, dbuf, 20);
+      int i = strlen(dbuf);
+      dbuf[i++] = ' ';
+      dbuf[i++] = ' ';
+
+      toDMM(gLon, &dbuf[i], 20);
+
+      if(NULL != GetStatusBar())
+         SetStatusText(wxString(dbuf, wxConvUTF8), 3);
+
+
+#ifdef ocpnUPDATE_SYSTEM_TIME
+//      Use the fix time to update the local clock
+      if((0 != fixtime) && s_bSetSystemTime)
+      {
+            wxDateTime Fix_Time;
+            Fix_Time.Set(fixtime);
+            wxString fix_time_format = Fix_Time.Format(_T("%Y-%m-%dT%H:%M:%S"));  // this should show as LOCAL
+
+
+//          Compare the server (fix) time to the current system time
+            wxDateTime sdt;
+            sdt.SetToCurrent();
+            wxDateTime cwxft = Fix_Time;                  // take a copy
+            wxTimeSpan ts;
+            ts = cwxft.Subtract(sdt);
+
+            int b = (ts.GetSeconds()).ToLong();
+//          Correct system time if necessary
+//      Only set the time once per session, and only if wrong by more than 1 minute.
+
+            if((abs(b) > 60) && (m_bTimeIsSet == false))
+            {
+
+#ifdef __WXMSW__
+//      Fix up the fix_time to convert to GMT
+                  Fix_Time = Fix_Time.ToGMT();
+
+//    Code snippet following borrowed from wxDateCtrl, MSW
+
+                  const wxDateTime::Tm tm(Fix_Time.GetTm());
+
+
+                  SYSTEMTIME stm;
+                  stm.wYear = (WXWORD)tm.year;
+                  stm.wMonth = (WXWORD)(tm.mon - wxDateTime::Jan + 1);
+                  stm.wDay = tm.mday;
+
+                  stm.wDayOfWeek = 0;
+                  stm.wHour = Fix_Time.GetHour();
+                  stm.wMinute = tm.min;
+                  stm.wSecond = tm.sec;
+                  stm.wMilliseconds = 0;
+
+                  ::SetSystemTime(&stm);            // in GMT
+
+
+#else
+
+
+//      This contortion sets the system date/time on POSIX host
+//      Requires the following line in /etc/sudoers
+//          nav ALL=NOPASSWD:/bin/date -s *
+
+                        wxString msg;
+                        msg.Printf(_T("Setting system time, delta t is %d"), b);
+                        wxLogMessage(msg);
+
+                        wxString sdate(Fix_Time.Format(_T("%D")));
+                        sdate.Prepend(_T("sudo /bin/date -s \""));
+
+                        wxString stime(Fix_Time.Format(_T("%T")));
+                        stime.Prepend(_T(" "));
+                        sdate.Append(stime);
+                        sdate.Append(_T("\""));
+
+                        wxExecute(sdate, wxEXEC_ASYNC);
+
+#endif      //__WXMSW__
+                        m_bTimeIsSet = true;
+
+            }           // if needs correction
+      }               // if valid time
+
+#endif            //ocpnUPDATE_SYSTEM_TIME
+
+
 
 }
 void MyFrame::StopSockets(void)
@@ -3657,8 +3760,8 @@ void MyFrame::StopSockets(void)
        pWIFI->Pause();
 #endif
 
-    if(nmea)
-        nmea->Pause();
+    if(g_pnmea)
+          g_pnmea->Pause();
 }
 
 void MyFrame::ResumeSockets(void)
@@ -3668,8 +3771,8 @@ void MyFrame::ResumeSockets(void)
        pWIFI->UnPause();
 #endif
 
-    if(nmea)
-        nmea->UnPause();
+    if(g_pnmea)
+          g_pnmea->UnPause();
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -3779,6 +3882,11 @@ void MyPrintout::DrawPageOne(wxDC *dc)
 
 }
 
+//---------------------------------------------------------------------------------------
+//
+//		GPS Positioning Device Detection
+//
+//---------------------------------------------------------------------------------------
 
 /*
 *     Enumerate all the serial ports on the system
@@ -4051,6 +4159,36 @@ FILE *f;
 }
 #endif
 
+//		Search for (any?) Garmin device on Windows platforms
+
+	HDEVINFO hdeviceinfo = INVALID_HANDLE_VALUE;
+    SP_DEVICE_INTERFACE_DATA deviceinterface;
+
+	wxLogMessage(_T("In EnumerateSerialPorts(), searching for Garmin DeviceInterface..."));
+
+	hdeviceinfo = SetupDiGetClassDevs( (GUID *) &GARMIN_DETECT_GUID,
+									NULL, NULL,
+									DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
+
+	if (hdeviceinfo != INVALID_HANDLE_VALUE)
+		wxLogMessage(_T("Found Garmin USB Driver."));
+
+
+    deviceinterface.cbSize = sizeof(deviceinterface);
+
+    if (SetupDiEnumDeviceInterfaces(hdeviceinfo,
+									NULL,
+									(GUID *) &GARMIN_DETECT_GUID,
+									0,
+									&deviceinterface))
+	{
+		wxLogMessage(_T("Found Garmin Device."));
+
+//		m_usb_handle = garmin_usb_start(hdevinfo, &devinterface);
+	    preturn->Add(_T("GARMIN"));			// Add generic Garmin selectable device
+		g_bGarminPersistance = true;		// And record the existance
+
+	}
 
 #endif      //__WXMSW__
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.h,v 1.4 2008/08/29 02:24:18 bdbcat Exp $
+ * $Id: routeman.h,v 1.5 2008/11/12 04:15:44 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.h,v $
+ * Revision 1.5  2008/11/12 04:15:44  bdbcat
+ * Support Garmin Devices / Cleanup
+ *
  * Revision 1.4  2008/08/29 02:24:18  bdbcat
  * Redefine IconImageList
  *
@@ -58,8 +61,11 @@
 #define __ROUTEMAN_H__
 
 
-#include "chart1.h"                 // for hash table definition
+#include "chart1.h"                 // for ColorScheme definition
 #include <wx/imaglist.h>
+
+#include "nmea0183.h"
+
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
@@ -152,6 +158,7 @@ private:
       wxPen       *m_pActiveRoutePointPen;
       wxPen       *m_pRoutePointPen;
 
+      NMEA0183    m_NMEA0183;                         // For autopilot output
 
 };
 
