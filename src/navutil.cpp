@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.19  2008/11/12 04:13:11  bdbcat
+ * Support Garmin Devices / Mac Fonts / Cleanup
+ *
  * Revision 1.18  2008/10/31 01:07:43  bdbcat
  * Fix initial Lat/Lon/scale value logic
  *
@@ -52,6 +55,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.19  2008/11/12 04:13:11  bdbcat
+ * Support Garmin Devices / Mac Fonts / Cleanup
+ *
  * Revision 1.18  2008/10/31 01:07:43  bdbcat
  * Fix initial Lat/Lon/scale value logic
  *
@@ -130,14 +136,14 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.18 2008/10/31 01:07:43 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.19 2008/11/12 04:13:11 bdbcat Exp $");
 
 //    Statics
 
 extern ChartBase        *Current_Ch;
 extern ChartCanvas      *cc1;
 extern MyFrame          *gFrame;
-extern NMEAWindow       *nmea;
+extern NMEAWindow       *g_pnmea;
 extern FontMgr          *pFontMgr;
 
 extern RouteList        *pRouteList;
@@ -170,6 +176,7 @@ extern bool             s_bSetSystemTime;
 extern bool             g_bShowDepthUnits;
 extern bool             g_bAutoAnchorMark;
 extern bool             g_bShowOutlines;
+extern bool				g_bGarminPersistance;
 
 extern int              g_nframewin_x;
 extern int              g_nframewin_y;
@@ -1307,7 +1314,10 @@ int MyConfig::LoadMyConfig(int iteration)
       g_bShowOutlines = false;
       Read(_T("ShowChartOutlines"),  &g_bShowOutlines);
 
-       wxString stps;
+	  g_bGarminPersistance = false;
+      Read(_T("GarminPersistance"),  &g_bGarminPersistance);
+
+      wxString stps;
       Read(_T("PlanSpeed"),  &stps);
       stps.ToDouble(&g_PlanSpeed);
 
@@ -1439,9 +1449,6 @@ int MyConfig::LoadMyConfig(int iteration)
       gLat = START_LAT;                   // GPS position, as default
       gLon = START_LON;
 
-      kLat = START_LAT;                   // and the transfer ll
-      kLon = START_LON;
-
       initial_scale_ppm = .00003;        // decent initial value
 
       SetPath(_T("/Settings/GlobalState"));
@@ -1546,14 +1553,6 @@ int MyConfig::LoadMyConfig(int iteration)
                 if(!dirname.IsEmpty())
                 {
 
-// begin rms
-/*  Fixed in options.cpp
-#ifdef __WXOSX__
-                        while ((dirname.Last() == 0x0a) || (dirname.Last() == 0x0d ))
-                              dirname.RemoveLast() ;
-#endif
- */
- // end rms
  /*     Special case for first time run after Windows install with sample chart data...
         We desire that the sample configuration file opencpn.ini should not contain any
         installation dependencies, so...
@@ -1605,6 +1604,10 @@ int MyConfig::LoadMyConfig(int iteration)
 
 #ifdef __WXMSW__
       SetPath(_T("/Settings/MSWFonts"));
+#endif
+
+#ifdef __WXMAC__
+      SetPath(_T("/Settings/MacFonts"));
 #endif
 
       if(0 == iteration)
@@ -2148,6 +2151,7 @@ void MyConfig::UpdateSettings()
     Write(_T("ShowDepthUnits"), g_bShowDepthUnits);
     Write(_T("AutoAnchorDrop"),  g_bAutoAnchorMark);
     Write(_T("ShowChartOutlines"),  g_bShowOutlines);
+    Write(_T("GarminPersistance"),  g_bGarminPersistance);
 
     wxString st0;
     st0.Printf(_T("%g"), g_PlanSpeed);
@@ -2222,11 +2226,11 @@ void MyConfig::UpdateSettings()
       SetPath(_T("/Directories"));
       Write(_T("InitChartDir"), *pInit_Chart_Dir);
 
-      if(nmea)
+      if(g_pnmea)
       {
           SetPath(_T("/Settings/NMEADataSource"));
           wxString source;
-          nmea->GetSource(source);
+          g_pnmea->GetSource(source);
           Write(_T("Source"), source);
       }
 
@@ -2262,6 +2266,10 @@ void MyConfig::UpdateSettings()
 
 #ifdef __WXMSW__
       SetPath(_T("/Settings/MSWFonts"));
+#endif
+
+#ifdef __WXMAC__
+      SetPath(_T("/Settings/MacFonts"));
 #endif
 
       int nFonts = pFontMgr->GetNumFonts();
@@ -2458,6 +2466,18 @@ wxFont *FontMgr::GetFont(const wxString &TextElement)
       //    Now create a benign, always present native string
       wxString nativefont;
 
+//    For those platforms which have no native font description string format
+      nativefont.Printf(_T("%d;%d;%d;%d;%d;%d;%s;%d"),
+               0,                                 // version
+               12,
+               wxFONTFAMILY_DEFAULT,
+               (int)wxFONTSTYLE_NORMAL,
+               (int)wxFONTWEIGHT_NORMAL,
+               false,
+               "",
+               (int)wxFONTENCODING_DEFAULT);
+
+//    If we know of a detailed description string format, use it.
 #ifdef __WXGTK__
       nativefont = _T("Fixed 12");
 #endif
