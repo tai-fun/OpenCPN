@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.20 2008/10/23 23:31:14 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.21 2008/11/12 04:15:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.21  2008/11/12 04:15:09  bdbcat
+ * Cleanup messages
+ *
  * Revision 1.20  2008/10/23 23:31:14  bdbcat
  * Improve ENC update logic with date validation
  *
@@ -49,6 +52,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.21  2008/11/12 04:15:09  bdbcat
+ * Cleanup messages
+ *
  * Revision 1.20  2008/10/23 23:31:14  bdbcat
  * Improve ENC update logic with date validation
  *
@@ -136,7 +142,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.20 2008/10/23 23:31:14 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.21 2008/11/12 04:15:09 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -4895,7 +4901,10 @@ bool s57chart::InitFromSENCMinimal(const wxString &FullPath)
 bool s57chart::InitENCMinimal(const wxString &FullPath)
 {
       if(NULL == g_poRegistrar)
+      {
+            wxLogMessage(_T("   Error: No ClassRegistrar in InitENCMinimal."));
             return false;
+      }
 
       m_pENCDS = new OGRS57DataSource;
 
@@ -5094,6 +5103,10 @@ int s57_initialize(const wxString& csv_dir, FILE *flog)
 
         if( !g_poRegistrar->LoadInfo( csv_dir.mb_str(), FALSE ) )
         {
+            wxString msg(_T("   Error: Could not load S57 ClassInfo from "));
+            msg.Append(csv_dir);
+            wxLogMessage(msg);
+
             delete g_poRegistrar;
             g_poRegistrar = NULL;
         }
