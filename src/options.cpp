@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.10 2008/08/26 13:46:25 bdbcat Exp $
+ * $Id: options.cpp,v 1.11 2008/11/12 04:12:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.11  2008/11/12 04:12:08  bdbcat
+ * Support Garmin Devices
+ *
  * Revision 1.10  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -42,6 +45,9 @@
  * Cleanup
  *
  * $Log: options.cpp,v $
+ * Revision 1.11  2008/11/12 04:12:08  bdbcat
+ * Support Garmin Devices
+ *
  * Revision 1.10  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -109,6 +115,7 @@ extern wxString         *pAIS_Port;
 extern wxString         *pInit_Chart_Dir;
 extern bool             g_bAutoAnchorMark;
 extern ColorScheme      global_color_scheme;
+extern bool				g_bGarminPersistance;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -310,6 +317,28 @@ void options::CreateControls()
     for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
           m_itemNMEAListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
+
+//	Search the string array looking for "GARMIN"
+	bool bfound_garmin_string = false;
+    for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+	{
+		if(	m_pSerialArray->Item(iPortIndex).Contains(_T("GARMIN")))
+		{
+			bfound_garmin_string = true;
+			break;
+		}
+	}
+
+	  //	Garmin persistence logic:
+	  //	Make sure "GARMIN" is in the list if the persistence flag is set.
+	  //	This covers the situation where Garmin is desired, but the
+	  //	device is not connected yet.
+	  //	n.b. Hot-plugging is not supported.  Opencpn must be
+	  //	restarted with device inserted to enable this option.
+	if(g_bGarminPersistance && !bfound_garmin_string)
+      m_itemNMEAListBox->Append( _T("GARMIN"));
+
+
 #ifndef OCPN_DISABLE_SOCKETS
       m_itemNMEAListBox->Append( _T("Network GPSD"));
 #endif
@@ -326,7 +355,10 @@ void options::CreateControls()
           sidx = m_itemNMEAListBox->FindString(sourcex);
       }
       else if(source.Upper().Contains(_T("NONE")))
-            sidx = 0;
+          sidx = 0;
+	  else if(source.Upper().Contains(_("GARMIN")))
+          sidx = m_itemNMEAListBox->FindString(_T("GARMIN"));
+
 #ifndef OCPN_DISABLE_SOCKETS
       else if(source.Upper().Contains(_T("GPSD")))
       {
@@ -336,6 +368,7 @@ void options::CreateControls()
 #endif
       else
           sidx = 0;                                 // malformed selection
+
 
       if(sidx ==  wxNOT_FOUND)                  // user specified in ComboBox
       {
@@ -906,6 +939,13 @@ void options::OnXidOkClick( wxCommandEvent& event )
             sel.Append(m_itemNMEA_TCPIP_Source->GetLineText(0));
       }
     *pNMEADataSource = sel;
+
+	//	If the selection is anything other than "GARMIN",
+	//	then disable semipermanently the option to select GARMIN in future.
+	//	Note if GARMIN device is found in the future, the option will be
+	//	re-enabled.
+	if(!sel.Contains(_T("GARMIN")))
+		g_bGarminPersistance = false;
 
 // AP Output
     wxString selp(m_itemNMEAAutoListBox->GetStringSelection());
