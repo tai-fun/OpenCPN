@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.10 2008/08/29 02:24:40 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.11 2008/11/12 04:14:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.11  2008/11/12 04:14:20  bdbcat
+ * Add member NMEA0183 object
+ *
  * Revision 1.10  2008/08/29 02:24:40  bdbcat
  * Redefine IconImageList
  *
@@ -42,6 +45,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.11  2008/11/12 04:14:20  bdbcat
+ * Add member NMEA0183 object
+ *
  * Revision 1.10  2008/08/29 02:24:40  bdbcat
  * Redefine IconImageList
  *
@@ -116,12 +122,9 @@
 #endif
 
 #include "routeman.h"
-#include "chcanv.h"
 #include "concanv.h"
-#include "nmea.h"
-#include "nmea0183/nmea0183.h"
+#include "nmea.h"                   // for Autopilot
 #include "navutil.h"
-#include "chartbase.h"
 #include "georef.h"
 
 
@@ -174,8 +177,6 @@
 extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
 
-extern ChartBase        *Current_Ch;
-extern ChartCanvas      *cc1;
 extern ConsoleCanvas    *console;
 
 extern RouteList        *pRouteList;
@@ -187,8 +188,6 @@ extern WayPointman      *pWayPointMan;
 extern wxRect           g_blink_rect;
 
 extern float            gLat, gLon, gSog, gCog;
-extern bool             bAutoPilotOut;
-
 
 //    List definitions for Waypoint Manager Icons
 WX_DECLARE_LIST(wxBitmap, markicon_bitmap_list_type);
@@ -203,7 +202,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.10 2008/08/29 02:24:40 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.11 2008/11/12 04:14:20 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -510,43 +509,43 @@ bool Routeman::UpdateAutopilot()
 {
         wxString str_buf;
 
-        if(bAutoPilotOut)
+        if(pAPilot->IsOK())
         {
                 SENTENCE snt;
-                pNMEA0183->Rmb.IsDataValid = NTrue;
-                pNMEA0183->Rmb.CrossTrackError = CurrentXTEToActivePoint;
+                m_NMEA0183.Rmb.IsDataValid = NTrue;
+                m_NMEA0183.Rmb.CrossTrackError = CurrentXTEToActivePoint;
 
                 if(XTEDir < 0)
-                        pNMEA0183->Rmb.DirectionToSteer = Left;
+                      m_NMEA0183.Rmb.DirectionToSteer = Left;
                 else
-                        pNMEA0183->Rmb.DirectionToSteer = Right;
+                      m_NMEA0183.Rmb.DirectionToSteer = Right;
 
 
                 str_buf.Printf(_T("%03d"), pActiveRoute->GetIndexOf(pActiveRouteSegmentBeginPoint));
                 wxString from = str_buf;
-                pNMEA0183->Rmb.From = from;
+                m_NMEA0183.Rmb.From = from;
 
                 str_buf.Printf(_T("%03d"), pActiveRoute->GetIndexOf(pActivePoint));
                 wxString to = str_buf;
-                pNMEA0183->Rmb.To = to;
+                m_NMEA0183.Rmb.To = to;
 
-                pNMEA0183->Rmb.DestinationPosition.Latitude.Latitude = pActivePoint->m_lat;
-                pNMEA0183->Rmb.DestinationPosition.Latitude.Northing = North;
+                m_NMEA0183.Rmb.DestinationPosition.Latitude.Latitude = pActivePoint->m_lat;
+                m_NMEA0183.Rmb.DestinationPosition.Latitude.Northing = North;
 
-                pNMEA0183->Rmb.DestinationPosition.Longitude.Longitude = fabs(pActivePoint->m_lon);
-                pNMEA0183->Rmb.DestinationPosition.Longitude.Easting = West;
+                m_NMEA0183.Rmb.DestinationPosition.Longitude.Longitude = fabs(pActivePoint->m_lon);
+                m_NMEA0183.Rmb.DestinationPosition.Longitude.Easting = West;
 
 
-                pNMEA0183->Rmb.RangeToDestinationNauticalMiles = CurrentRngToActivePoint;
-                pNMEA0183->Rmb.BearingToDestinationDegreesTrue = CurrentBrgToActivePoint;
-                pNMEA0183->Rmb.DestinationClosingVelocityKnots = gSog;
+                m_NMEA0183.Rmb.RangeToDestinationNauticalMiles = CurrentRngToActivePoint;
+                m_NMEA0183.Rmb.BearingToDestinationDegreesTrue = CurrentBrgToActivePoint;
+                m_NMEA0183.Rmb.DestinationClosingVelocityKnots = gSog;
 
                 if(m_bArrival)
-                        pNMEA0183->Rmb.IsArrivalCircleEntered = NTrue;
+                      m_NMEA0183.Rmb.IsArrivalCircleEntered = NTrue;
                 else
-                        pNMEA0183->Rmb.IsArrivalCircleEntered = NFalse;
+                      m_NMEA0183.Rmb.IsArrivalCircleEntered = NFalse;
 
-                pNMEA0183->Rmb.Write(snt);
+                m_NMEA0183.Rmb.Write(snt);
 
         //      stats->pTStat2->TextDraw(( const char *)snt.Sentence);
 
