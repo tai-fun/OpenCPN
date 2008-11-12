@@ -12,6 +12,9 @@ APPDIR = "c:\Program Files\opencpn"
 # Release or Debug? [release,debug]
 BUILD = release
 
+# Where are the sources?
+SRC_DIR = .
+
 # Use S57 ENC Charts? [0,1]
 USE_S57 = 1
 
@@ -86,6 +89,10 @@ CPP = $(CC) -p
 
 
 ### Conditionally set variables: ###
+
+!ifeq BUILD release
+CPPFLAGS = -dNDEBUG
+!endif
 
 PORTNAME =
 !ifeq USE_GUI 0
@@ -301,7 +308,6 @@ __DLLFLAG_p = -dWXUSINGDLL
 
 ### Variables: ###
 
-WX_RELEASE_NODOT = 28
 OBJS = &
 	wat_$(PORTNAME)$(WXUNIVNAME)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WXDLLFLAG)$(CFG)
 LIBDIRNAME = $(WX_BASE)\lib\wat_$(LIBTYPE_SUFFIX)$(CFG)
@@ -312,9 +318,9 @@ PROJ_CXXFLAGS = $(__DEBUGINFO_0) $(__OPTIMIZEFLAG_2) $(__THREADSFLAG_5) &
 	$(__RUNTIME_LIBS_6) -d__WXMSW__ $(__WXUNIV_DEFINE_p) $(__DEBUG_DEFINE_p) &
 	$(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) &
 	$(__UNICODE_DEFINE_p) $(__GFXCTX_DEFINE_p) -i=$(SETUPHDIR) &
-	-i=.\include -wx -wcd=549 -wcd=656 -wcd=657 -wcd=667 -i=. $(__DLLFLAG_p) &
+	-i=$(SRC_DIR)\include -wx -wcd=549 -wcd=656 -wcd=657 -wcd=667 -i=. $(__DLLFLAG_p) &
 	-wcd=726 -wcd=389 -wcd=716 -wcd=391 &
-	-i=$(GDAL_INCLUDE) $(__DS57) $(__DGLUTESS) $(__DGLUDLL) &
+	-i=$(GDAL_INCLUDE) -i=$(SRC_DIR)\src\nmea0183 $(__DS57) $(__DGLUTESS) $(__DGLUDLL) &
 	-i=$(WX_BASE)\include -dNOPCH $(__RTTIFLAG_7) $(__EXCEPTIONSFLAG_8) $(CPPFLAGS) &
 	$(CXXFLAGS) -hc -fr=$*.err 
 
@@ -370,7 +376,7 @@ WX_INCLUDE_GENERIC = "$(WX_BASE)\include"
 WX_INCLUDE_MSW = $(WX_LIB)
 
 #  GDAL
-GDAL_INCLUDE = .\src\mygdal
+GDAL_INCLUDE = $(SRC_DIR)\src\mygdal
 GDAL_LIB =
 
 
@@ -509,8 +515,8 @@ $(OUTDIR) :
      -if not exist $(OUTDIR) mkdir $(OUTDIR)
 
 APP_ICON = opencpn.ico
-$(INTDIR)\opencpn.res : .\src\bitmaps\$(APP_ICON) .\src\opencpn.rc
-	wrc -q -ad -bt=nt -r -fo=$^@   -d__WXMSW__ $(__WXUNIV_DEFINE_p) $(__DEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) $(__UNICODE_DEFINE_p)  $(__GFXCTX_DEFINE_p) -i=$(SETUPHDIR) -i=.\src\bitmaps -i=. $(__DLLFLAG_p)  .\src\opencpn.rc
+$(INTDIR)\opencpn.res : $(SRC_DIR)\src\bitmaps\$(APP_ICON) $(SRC_DIR)\src\opencpn.rc
+	wrc -q -ad -bt=nt -r -fo=$^@   -d__WXMSW__ $(__WXUNIV_DEFINE_p) $(__DEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) $(__UNICODE_DEFINE_p)  $(__GFXCTX_DEFINE_p) -i=$(SETUPHDIR) -i=$(SRC_DIR)\src\bitmaps -i=. $(__DLLFLAG_p)  $(SRC_DIR)\src\opencpn.rc
 
 
 
@@ -525,7 +531,7 @@ $(OUTDIR)\opencpn.exe : $(OUTDIR) $(LINK32_OBJS) $(ISO8211_OBJS) $(GDAL_OBJS) $(
 	@for %i in ($(S57_OBJS)) do @%append $(OUTDIR)\ocpn.lbc file %i
 	@for %i in ($(GDAL_OBJS)) do @%append $(OUTDIR)\ocpn.lbc file %i
 	@for %i in ($(ISO8211_OBJS)) do @%append $(OUTDIR)\ocpn.lbc file %i
-	@for %i in ( $(__WXLIB_CORE_p)  $(__WXLIB_BASE_p)  $(__WXLIB_MONO_p) $(__LIB_TIFF_p) $(__LIB_JPEG_p) $(__LIB_PNG_p)  wxzlib$(WXDEBUGFLAG).lib  wxregex$(WXUNICODEFLAG)$(WXDEBUGFLAG).lib wxexpat$(WXDEBUGFLAG).lib $(EXTRALIBS_FOR_BASE)  $(__GDIPLUS_LIB_p) kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib) do @%append $(OUTDIR)\ocpn.lbc library %i
+	@for %i in ( $(__WXLIB_CORE_p)  $(__WXLIB_BASE_p)  $(__WXLIB_MONO_p) $(__LIB_TIFF_p) $(__LIB_JPEG_p) $(__LIB_PNG_p)  wxzlib$(WXDEBUGFLAG).lib  wxregex$(WXUNICODEFLAG)$(WXDEBUGFLAG).lib wxexpat$(WXDEBUGFLAG).lib $(EXTRALIBS_FOR_BASE)  $(__GDIPLUS_LIB_p) kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib odbc32.lib setupapi.lib) do @%append $(OUTDIR)\ocpn.lbc library %i
 	@%append $(OUTDIR)\ocpn.lbc option resource=$(OUTDIR)\opencpn.res
 	@for %i in () do @%append $(OUTDIR)\ocpn.lbc option stack=%i
 	wlink @$(OUTDIR)\ocpn.lbc
@@ -569,352 +575,352 @@ CLEAN : .SYMBOLIC
 ################################################################################
 # Begin Source File
 
-#SOURCE=.\src\wvschart.cpp
+#SOURCE=$(SRC_DIR)\src\wvschart.cpp
 DEP_CPP_WVSCH=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\wvschart.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\wvschart.h
 
 
-$(OUTDIR)/wvschart.obj : .\src\wvschart.cpp $(DEP_CPP_WVSCH)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\wvschart.cpp
+$(OUTDIR)/wvschart.obj : $(SRC_DIR)\src\wvschart.cpp $(DEP_CPP_WVSCH)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\wvschart.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\ais.cpp
+SOURCE=$(SRC_DIR)\src\ais.cpp
 DEP_CPP_WVSCH=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\ais.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\ais.h
 
 
-$(OUTDIR)/ais.obj : .\src\ais.cpp $(DEP_CPP_WVSCH)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\ais.cpp
+$(OUTDIR)/ais.obj : $(SRC_DIR)\src\ais.cpp $(DEP_CPP_WVSCH)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\ais.cpp
    
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\bbox.cpp
+SOURCE=$(SRC_DIR)\src\bbox.cpp
 DEP_CPP_BBOX=&
-	.\include\bbox.h
+	$(SRC_DIR)\include\bbox.h
 
 
-$(OUTDIR)/bbox.obj : .\src\bbox.cpp  $(DEP_CPP_BBOX)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\bbox.cpp
+$(OUTDIR)/bbox.obj : $(SRC_DIR)\src\bbox.cpp  $(DEP_CPP_BBOX)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\bbox.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\ocpn_pixel.cpp
+SOURCE=$(SRC_DIR)\src\ocpn_pixel.cpp
 DEP_CPP_BITMA=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\ocpn_pixel.h
+	$(SRC_DIR)\include\ocpn_pixel.h
 
 
-$(OUTDIR)/ocpn_pixel.obj : .\src\ocpn_pixel.cpp $(DEP_CPP_BITMA)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\ocpn_pixel.cpp
+$(OUTDIR)/ocpn_pixel.obj : $(SRC_DIR)\src\ocpn_pixel.cpp $(DEP_CPP_BITMA)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\ocpn_pixel.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\chart1.cpp
+SOURCE=$(SRC_DIR)\src\chart1.cpp
 DEP_CPP_CHART=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\src\nmea0183\nmea0183.h&
-	.\include\options.h&
-	.\src\bitmaps\settings.xpm&
-	.\src\bitmaps\zoomin.xpm&
-	.\src\bitmaps\zoomout.xpm&
-	.\src\bitmaps\scin.xpm&
-	.\src\bitmaps\scout.xpm&
-	.\src\bitmaps\tide.xpm&
-	.\src\bitmaps\text.xpm&
-	.\src\bitmaps\route.xpm&
-	.\src\bitmaps\exitt.xpm&
-	.\src\bitmaps\follow.xpm&
-	.\src\bitmaps\current.xpm&
-	.\src\bitmaps\print.xpm&
-	.\src\bitmaps\help.xpm&
-	.\src\bitmaps\colscheme.xpm&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.hpp&
-	.\include\dychart.h&
-	.\include\chart1.h&
-	.\include\chcanv.h&
-	.\include\chartdb.h&
-	.\include\navutil.h&
-	.\include\routeman.h&
-	.\include\statwin.h&
-	.\include\concanv.h&
-	.\include\nmea.h&
-	.\include\about.h&
-	.\include\wificlient.h&
-	.\include\s52plib.h&
-	.\include\thumbwin.h&
-	.\include\s57chart.h
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\include\options.h&
+	$(SRC_DIR)\src\bitmaps\settings.xpm&
+	$(SRC_DIR)\src\bitmaps\zoomin.xpm&
+	$(SRC_DIR)\src\bitmaps\zoomout.xpm&
+	$(SRC_DIR)\src\bitmaps\scin.xpm&
+	$(SRC_DIR)\src\bitmaps\scout.xpm&
+	$(SRC_DIR)\src\bitmaps\tide.xpm&
+	$(SRC_DIR)\src\bitmaps\text.xpm&
+	$(SRC_DIR)\src\bitmaps\route.xpm&
+	$(SRC_DIR)\src\bitmaps\exitt.xpm&
+	$(SRC_DIR)\src\bitmaps\follow.xpm&
+	$(SRC_DIR)\src\bitmaps\current.xpm&
+	$(SRC_DIR)\src\bitmaps\print.xpm&
+	$(SRC_DIR)\src\bitmaps\help.xpm&
+	$(SRC_DIR)\src\bitmaps\colscheme.xpm&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.hpp&
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\chcanv.h&
+	$(SRC_DIR)\include\chartdb.h&
+	$(SRC_DIR)\include\navutil.h&
+	$(SRC_DIR)\include\routeman.h&
+	$(SRC_DIR)\include\statwin.h&
+	$(SRC_DIR)\include\concanv.h&
+	$(SRC_DIR)\include\nmea.h&
+	$(SRC_DIR)\include\about.h&
+	$(SRC_DIR)\include\wificlient.h&
+	$(SRC_DIR)\include\s52plib.h&
+	$(SRC_DIR)\include\thumbwin.h&
+	$(SRC_DIR)\include\s57chart.h
 
 
-$(OUTDIR)/chart1.obj : .\src\chart1.cpp $(DEP_CPP_CHART)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\chart1.cpp
+$(OUTDIR)/chart1.obj : $(SRC_DIR)\src\chart1.cpp $(DEP_CPP_CHART)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\chart1.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\chartdb.cpp
+SOURCE=$(SRC_DIR)\src\chartdb.cpp
 DEP_CPP_CHARTD=&
-	.\include\chartdb.h&
-	.\include\chartimg.h&
-	.\include\s57chart.h&
-	.\include\chart1.h
+	$(SRC_DIR)\include\chartdb.h&
+	$(SRC_DIR)\include\chartimg.h&
+	$(SRC_DIR)\include\s57chart.h&
+	$(SRC_DIR)\include\chart1.h
 
 
-$(OUTDIR)/chartdb.obj : .\src\chartdb.cpp $(DEP_CPP_CHARTD)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\chartdb.cpp
+$(OUTDIR)/chartdb.obj : $(SRC_DIR)\src\chartdb.cpp $(DEP_CPP_CHARTD)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\chartdb.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\chartimg.cpp
+SOURCE=$(SRC_DIR)\src\chartimg.cpp
 DEP_CPP_CHARTI=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\chartimg.h
+	$(SRC_DIR)\include\chartimg.h
 
 
-$(OUTDIR)/chartimg.obj : .\src\chartimg.cpp $(DEP_CPP_CHARTI)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\chartimg.cpp
+$(OUTDIR)/chartimg.obj : $(SRC_DIR)\src\chartimg.cpp $(DEP_CPP_CHARTI)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\chartimg.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\chcanv.cpp
+SOURCE=$(SRC_DIR)\src\chcanv.cpp
 DEP_CPP_CHCAN=&
-	.\include\dychart.h&
-	.\include\chcanv.h&
-	.\include\routeman.h&
-	.\include\navutil.h&
-	.\include\concanv.h&
-	.\include\thumbwin.h&
-	.\include\chartdb.h&
-	.\include\wvschart.h&
-	.\include\georef.h&
-	.\include\chartimg.h&
-	.\include\chart1.h&
-	.\include\s57chart.h&
-	.\include\s52plib.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\chcanv.h&
+	$(SRC_DIR)\include\routeman.h&
+	$(SRC_DIR)\include\navutil.h&
+	$(SRC_DIR)\include\concanv.h&
+	$(SRC_DIR)\include\thumbwin.h&
+	$(SRC_DIR)\include\chartdb.h&
+	$(SRC_DIR)\include\wvschart.h&
+	$(SRC_DIR)\include\georef.h&
+	$(SRC_DIR)\include\chartimg.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\s57chart.h&
+	$(SRC_DIR)\include\s52plib.h
 
 
-$(OUTDIR)/chcanv.obj : .\src\chcanv.cpp $(DEP_CPP_CHCAN)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\chcanv.cpp
+$(OUTDIR)/chcanv.obj : $(SRC_DIR)\src\chcanv.cpp $(DEP_CPP_CHCAN)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\chcanv.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\concanv.cpp
+SOURCE=$(SRC_DIR)\src\concanv.cpp
 DEP_CPP_CONCA=&
-	.\include\dychart.h&
-	.\include\chart1.h&
-	.\include\concanv.h&
-	.\include\routeman.h&
-	.\include\navutil.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\concanv.h&
+	$(SRC_DIR)\include\routeman.h&
+	$(SRC_DIR)\include\navutil.h
 
 
-$(OUTDIR)/concanv.obj : .\src\concanv.cpp $(DEP_CPP_CONCA)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\concanv.cpp
+$(OUTDIR)/concanv.obj : $(SRC_DIR)\src\concanv.cpp $(DEP_CPP_CONCA)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\concanv.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\cutil.c
+SOURCE=$(SRC_DIR)\src\cutil.c
 DEP_CPP_CUTIL=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\cutil.h
+	$(SRC_DIR)\include\cutil.h
 
-$(OUTDIR)/cutil.obj : .\src\cutil.c $(DEP_CPP_CUTIL)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\cutil.c
+$(OUTDIR)/cutil.obj : $(SRC_DIR)\src\cutil.c $(DEP_CPP_CUTIL)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\cutil.c
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\georef.c
+SOURCE=$(SRC_DIR)\src\georef.c
 DEP_CPP_GEORE=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\georef.h
+	$(SRC_DIR)\include\georef.h
 
 
-$(OUTDIR)/georef.obj : .\src\georef.c $(DEP_CPP_GEORE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\georef.c 
+$(OUTDIR)/georef.obj : $(SRC_DIR)\src\georef.c $(DEP_CPP_GEORE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\georef.c 
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygeom.cpp
+SOURCE=$(SRC_DIR)\src\mygeom.cpp
 DEP_CPP_MYGEO=&
-	.\include\mygeom.h&
-	.\include\dychart.h&
-	.\include\triangulate.h
+	$(SRC_DIR)\include\mygeom.h&
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\triangulate.h
 
 
-$(OUTDIR)/mygeom.obj : .\src\mygeom.cpp $(DEP_CPP_MYGEO)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygeom.cpp
+$(OUTDIR)/mygeom.obj : $(SRC_DIR)\src\mygeom.cpp $(DEP_CPP_MYGEO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygeom.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\navutil.cpp
+SOURCE=$(SRC_DIR)\src\navutil.cpp
 DEP_CPP_NAVUT=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\chart1.h&
-	.\include\navutil.h&
-	.\include\chcanv.h&
-	.\include\nmea.h&
-	.\include\s52plib.h&
-	.\include\georef.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\navutil.h&
+	$(SRC_DIR)\include\chcanv.h&
+	$(SRC_DIR)\include\nmea.h&
+	$(SRC_DIR)\include\s52plib.h&
+	$(SRC_DIR)\include\georef.h
 
 
-$(OUTDIR)/navutil.obj : .\src\navutil.cpp $(DEP_CPP_NAVUT)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\navutil.cpp
+$(OUTDIR)/navutil.obj : $(SRC_DIR)\src\navutil.cpp $(DEP_CPP_NAVUT)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\navutil.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea.cpp
+SOURCE=$(SRC_DIR)\src\nmea.cpp
 DEP_CPP_NMEA_=&
 	$(GDAL_INCLUDE)\cpl_port.h&
 
 NODEP_CPP_NMEA_=&
-	.\include\dychart.h&
-	.\include\nmea.h&
-	.\include\chart1.h&
-	.\include\sercomm.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\nmea.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\sercomm.h
 
 
-$(OUTDIR)/nmea.obj : .\src\nmea.cpp $(DEP_CPP_NMEA_)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea.cpp
+$(OUTDIR)/nmea.obj : $(SRC_DIR)\src\nmea.cpp $(DEP_CPP_NMEA_)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\routeman.cpp
+SOURCE=$(SRC_DIR)\src\routeman.cpp
 DEP_CPP_ROUTE=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.hpp&
-	.\include\sercomm.h&
-	.\include\routeman.h&
-	.\include\chcanv.h&
-	.\include\concanv.h&
-	.\include\nmea.h&
-	.\include\navutil.h&
-	.\include\chartbase.h
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.hpp&
+	$(SRC_DIR)\include\sercomm.h&
+	$(SRC_DIR)\include\routeman.h&
+	$(SRC_DIR)\include\chcanv.h&
+	$(SRC_DIR)\include\concanv.h&
+	$(SRC_DIR)\include\nmea.h&
+	$(SRC_DIR)\include\navutil.h&
+	$(SRC_DIR)\include\chartbase.h
 
 
-$(OUTDIR)/routeman.obj : .\src\routeman.cpp $(DEP_CPP_ROUTE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\routeman.cpp
+$(OUTDIR)/routeman.obj : $(SRC_DIR)\src\routeman.cpp $(DEP_CPP_ROUTE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\routeman.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\s52cnsy.cpp
+SOURCE=$(SRC_DIR)\src\s52cnsy.cpp
 DEP_CPP_S52CN=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\s57chart.h&
-	.\include\s52plib.h&
-	.\include\s52utils.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\s57chart.h&
+	$(SRC_DIR)\include\s52plib.h&
+	$(SRC_DIR)\include\s52utils.h
 
 
-$(OUTDIR)/s52cnsy.obj : .\src\s52cnsy.cpp $(DEP_CPP_S52CN)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\s52cnsy.cpp
+$(OUTDIR)/s52cnsy.obj : $(SRC_DIR)\src\s52cnsy.cpp $(DEP_CPP_S52CN)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\s52cnsy.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\s52plib.cpp
+SOURCE=$(SRC_DIR)\src\s52plib.cpp
 DEP_CPP_S52PL=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\georef.h&
-	.\include\s52plib.h&
-	.\include\s57chart.h&
-	.\include\mygeom.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\georef.h&
+	$(SRC_DIR)\include\s52plib.h&
+	$(SRC_DIR)\include\s57chart.h&
+	$(SRC_DIR)\include\mygeom.h
 
 
-$(OUTDIR)/s52plib.obj : .\src\s52plib.cpp $(DEP_CPP_S52PL)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\s52plib.cpp
+$(OUTDIR)/s52plib.obj : $(SRC_DIR)\src\s52plib.cpp $(DEP_CPP_S52PL)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\s52plib.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\s52utils.cpp
+SOURCE=$(SRC_DIR)\src\s52utils.cpp
 DEP_CPP_S52UT=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\s52utils.h
+	$(SRC_DIR)\include\s52utils.h
 
 
-$(OUTDIR)/s52utils.obj : .\src\s52utils.cpp $(DEP_CPP_S52UT)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\s52utils.cpp
+$(OUTDIR)/s52utils.obj : $(SRC_DIR)\src\s52utils.cpp $(DEP_CPP_S52UT)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\s52utils.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\s57chart.cpp
+SOURCE=$(SRC_DIR)\src\s57chart.cpp
 DEP_CPP_S57CH=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\s52s57.h&
-	.\include\s52plib.h&
-	.\include\s57chart.h&
-	.\include\nmea.h&
-	.\include\mygeom.h&
-	.\include\cutil.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\s52s57.h&
+	$(SRC_DIR)\include\s52plib.h&
+	$(SRC_DIR)\include\s57chart.h&
+	$(SRC_DIR)\include\nmea.h&
+	$(SRC_DIR)\include\mygeom.h&
+	$(SRC_DIR)\include\cutil.h
 
 
-$(OUTDIR)/s57chart.obj : .\src\s57chart.cpp $(DEP_CPP_S57CH)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\s57chart.cpp
+$(OUTDIR)/s57chart.obj : $(SRC_DIR)\src\s57chart.cpp $(DEP_CPP_S57CH)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\s57chart.cpp
 
 
 # End Source File
@@ -922,1827 +928,1827 @@ $(OUTDIR)/s57chart.obj : .\src\s57chart.cpp $(DEP_CPP_S57CH)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\sercomm.cpp
+SOURCE=$(SRC_DIR)\src\sercomm.cpp
 DEP_CPP_SERCO=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\sercomm.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\sercomm.h
 
 
-#$(OUTDIR)\sercomm.obj : .\src\ $(DEP_CPP_SERCO) $(OUTDIR)
-#.\debug_\sercomm.obj : .\src\sercomm.cpp
+#$(OUTDIR)\sercomm.obj : $(SRC_DIR)\src\ $(DEP_CPP_SERCO) $(OUTDIR)
+#.\debug_\sercomm.obj : $(SRC_DIR)\src\sercomm.cpp
 #   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $**
-#   $(CPP) $(CPP_PROJ) .\src\
-#$(OUTDIR)\sercomm.obj : .\src\sercomm.cpp $(DEP_CPP_SERCO)
-$(OUTDIR)\sercomm.obj : .\src\sercomm.cpp $(DEP_CPP_SERCO)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\sercomm.cpp
+#   $(CPP) $(CPP_PROJ) $(SRC_DIR)\src\
+#$(OUTDIR)\sercomm.obj : $(SRC_DIR)\src\sercomm.cpp $(DEP_CPP_SERCO)
+$(OUTDIR)\sercomm.obj : $(SRC_DIR)\src\sercomm.cpp $(DEP_CPP_SERCO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\sercomm.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\statwin.cpp
+SOURCE=$(SRC_DIR)\src\statwin.cpp
 DEP_CPP_STATW=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\statwin.h&
-	.\include\chartdb.h&
-	.\include\chart1.h&
-	.\include\chartbase.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\statwin.h&
+	$(SRC_DIR)\include\chartdb.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\chartbase.h
 
 
-$(OUTDIR)/statwin.obj : .\src\statwin.cpp $(DEP_CPP_STATW)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\statwin.cpp
+$(OUTDIR)/statwin.obj : $(SRC_DIR)\src\statwin.cpp $(DEP_CPP_STATW)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\statwin.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\tcmgr.cpp
+SOURCE=$(SRC_DIR)\src\tcmgr.cpp
 DEP_CPP_TCMGR=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\tcmgr.h
+	$(SRC_DIR)\include\tcmgr.h
 
 
-$(OUTDIR)/tcmgr.obj : .\src\tcmgr.cpp $(DEP_CPP_TCMGR)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\tcmgr.cpp
+$(OUTDIR)/tcmgr.obj : $(SRC_DIR)\src\tcmgr.cpp $(DEP_CPP_TCMGR)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\tcmgr.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\thumbwin.cpp
+SOURCE=$(SRC_DIR)\src\thumbwin.cpp
 DEP_CPP_THUMB=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\thumbwin.h&
-	.\include\chart1.h&
-	.\include\chartdb.h&
-	.\include\chcanv.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\thumbwin.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\chartdb.h&
+	$(SRC_DIR)\include\chcanv.h
 
 
-$(OUTDIR)/thumbwin.obj : .\src\thumbwin.cpp $(DEP_CPP_THUMB)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\thumbwin.cpp
+$(OUTDIR)/thumbwin.obj : $(SRC_DIR)\src\thumbwin.cpp $(DEP_CPP_THUMB)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\thumbwin.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\tri.c
+SOURCE=$(SRC_DIR)\src\tri.c
 DEP_CPP_TRI_C=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\triangulate.h
+	$(SRC_DIR)\include\triangulate.h
 
 
-$(OUTDIR)/tri.obj : .\src\tri.c $(DEP_CPP_TRI_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\tri.c
+$(OUTDIR)/tri.obj : $(SRC_DIR)\src\tri.c $(DEP_CPP_TRI_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\tri.c
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\wificlient.cpp
+SOURCE=$(SRC_DIR)\src\wificlient.cpp
 DEP_CPP_WIFIC=&
 	$(GDAL_INCLUDE)\cpl_port.h&
-	.\include\dychart.h&
-	.\include\wificlient.h&
-	.\include\chart1.h&
-	.\include\statwin.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\wificlient.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\statwin.h
 
 
-$(OUTDIR)/wificlient.obj : .\src\wificlient.cpp $(DEP_CPP_WIFIC)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\wificlient.cpp
+$(OUTDIR)/wificlient.obj : $(SRC_DIR)\src\wificlient.cpp $(DEP_CPP_WIFIC)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\wificlient.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\about.cpp
+SOURCE=$(SRC_DIR)\src\about.cpp
 NODEP_CPP_ABOUT=&
-	.\include\about.h&
-	.\include\chart1.h
+	$(SRC_DIR)\include\about.h&
+	$(SRC_DIR)\include\chart1.h
 
 
-$(OUTDIR)/about.obj : .\src\about.cpp
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\about.cpp
+$(OUTDIR)/about.obj : $(SRC_DIR)\src\about.cpp
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\about.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\routeprop.cpp
+SOURCE=$(SRC_DIR)\src\routeprop.cpp
 DEP_CPP_RTPRO=&
-	.\include\dychart.h&
-	.\include\chcanv.h&
-	.\include\routeman.h&
-	.\include\navutil.h&
-	.\include\georef.h&
-	.\include\chart1.h&
-	.\include\routeprop.h
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\chcanv.h&
+	$(SRC_DIR)\include\routeman.h&
+	$(SRC_DIR)\include\navutil.h&
+	$(SRC_DIR)\include\georef.h&
+	$(SRC_DIR)\include\chart1.h&
+	$(SRC_DIR)\include\routeprop.h
 
 
-$(OUTDIR)/routeprop.obj : .\src\routeprop.cpp $(DEP_CPP_RTPRO)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\routeprop.cpp
+$(OUTDIR)/routeprop.obj : $(SRC_DIR)\src\routeprop.cpp $(DEP_CPP_RTPRO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\routeprop.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\myiso8211\ddfutils.cpp
+SOURCE=$(SRC_DIR)\src\myiso8211\ddfutils.cpp
 DEP_CPP_DDFUT=&
-	.\src\mygdal\iso8211.h&
+	$(SRC_DIR)\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
-$(OUTDIR)/ddfutils.obj : .\src\myiso8211\ddfutils.cpp $(DEP_CPP_DDFUT)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\myiso8211\ddfutils.cpp
+$(OUTDIR)/ddfutils.obj : $(SRC_DIR)\src\myiso8211\ddfutils.cpp $(DEP_CPP_DDFUT)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\myiso8211\ddfutils.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\myiso8211\ddffielddefn.cpp
+SOURCE=$(SRC_DIR)\src\myiso8211\ddffielddefn.cpp
 DEP_CPP_DDFFI=&
-	.\src\mygdal\iso8211.h&
+	$(SRC_DIR)\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
-$(OUTDIR)/ddffielddefn.obj : .\src\myiso8211\ddffielddefn.cpp $(DEP_CPP_DDFFI)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\myiso8211\ddffielddefn.cpp
+$(OUTDIR)/ddffielddefn.obj : $(SRC_DIR)\src\myiso8211\ddffielddefn.cpp $(DEP_CPP_DDFFI)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\myiso8211\ddffielddefn.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\myiso8211\ddfmodule.cpp
+SOURCE=$(SRC_DIR)\src\myiso8211\ddfmodule.cpp
 DEP_CPP_DDFMO=&
-	.\src\mygdal\iso8211.h
+	$(SRC_DIR)\src\mygdal\iso8211.h
 
 
-$(OUTDIR)/ddfmodule.obj : .\src\myiso8211\ddfmodule.cpp $(DEP_CPP_DDFMO)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\myiso8211\ddfmodule.cpp
+$(OUTDIR)/ddfmodule.obj : $(SRC_DIR)\src\myiso8211\ddfmodule.cpp $(DEP_CPP_DDFMO)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\myiso8211\ddfmodule.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\myiso8211\ddfrecord.cpp
+SOURCE=$(SRC_DIR)\src\myiso8211\ddfrecord.cpp
 DEP_CPP_DDFRE=&
-	.\src\mygdal\iso8211.h&
+	$(SRC_DIR)\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
-$(OUTDIR)/ddfrecord.obj : .\src\myiso8211\ddfrecord.cpp $(DEP_CPP_DDFRE)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\myiso8211\ddfrecord.cpp
+$(OUTDIR)/ddfrecord.obj : $(SRC_DIR)\src\myiso8211\ddfrecord.cpp $(DEP_CPP_DDFRE)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\myiso8211\ddfrecord.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\myiso8211\ddfsubfielddefn.cpp
+SOURCE=$(SRC_DIR)\src\myiso8211\ddfsubfielddefn.cpp
 DEP_CPP_DDFSU=&
-	.\src\mygdal\iso8211.h&
+	$(SRC_DIR)\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
-$(OUTDIR)/ddfsubfielddefn.obj : .\src\myiso8211\ddfsubfielddefn.cpp $(DEP_CPP_DDFSU)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\myiso8211\ddfsubfielddefn.cpp
+$(OUTDIR)/ddfsubfielddefn.obj : $(SRC_DIR)\src\myiso8211\ddfsubfielddefn.cpp $(DEP_CPP_DDFSU)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\myiso8211\ddfsubfielddefn.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\myiso8211\ddffield.cpp
+SOURCE=$(SRC_DIR)\src\myiso8211\ddffield.cpp
 DEP_CPP_DDFFIE=&
-	.\src\mygdal\iso8211.h&
+	$(SRC_DIR)\src\mygdal\iso8211.h&
 	$(GDAL_INCLUDE)\cpl_port.h
 
 
-$(OUTDIR)/ddffield.obj : .\src\myiso8211\ddffield.cpp $(DEP_CPP_DDFFIE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\myiso8211\ddffield.cpp
+$(OUTDIR)/ddffield.obj : $(SRC_DIR)\src\myiso8211\ddffield.cpp $(DEP_CPP_DDFFIE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\myiso8211\ddffield.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Ztg.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Ztg.cpp
 DEP_CPP_ZTG_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Ztg.obj : .\src\nmea0183\Ztg.cpp $(DEP_CPP_ZTG_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Ztg.cpp
+$(OUTDIR)/Ztg.obj : $(SRC_DIR)\src\nmea0183\Ztg.cpp $(DEP_CPP_ZTG_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Ztg.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Alm.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Alm.cpp
 DEP_CPP_ALM_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Alm.obj : .\src\nmea0183\Alm.cpp $(DEP_CPP_ALM_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Alm.cpp
+$(OUTDIR)/Alm.obj : $(SRC_DIR)\src\nmea0183\Alm.cpp $(DEP_CPP_ALM_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Alm.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Apb.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Apb.cpp
 DEP_CPP_APB_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Apb.obj : .\src\nmea0183\Apb.cpp $(DEP_CPP_APB_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Apb.cpp
+$(OUTDIR)/Apb.obj : $(SRC_DIR)\src\nmea0183\Apb.cpp $(DEP_CPP_APB_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Apb.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Asd.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Asd.cpp
 DEP_CPP_ASD_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Asd.obj : .\src\nmea0183\Asd.cpp $(DEP_CPP_ASD_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Asd.cpp
+$(OUTDIR)/Asd.obj : $(SRC_DIR)\src\nmea0183\Asd.cpp $(DEP_CPP_ASD_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Asd.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Bec.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Bec.cpp
 DEP_CPP_BEC_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Bec.obj : .\src\nmea0183\Bec.cpp $(DEP_CPP_BEC_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Bec.cpp
+$(OUTDIR)/Bec.obj : $(SRC_DIR)\src\nmea0183\Bec.cpp $(DEP_CPP_BEC_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Bec.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Bod.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Bod.cpp
 DEP_CPP_BOD_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Bod.obj : .\src\nmea0183\Bod.cpp $(DEP_CPP_BOD_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Bod.cpp
+$(OUTDIR)/Bod.obj : $(SRC_DIR)\src\nmea0183\Bod.cpp $(DEP_CPP_BOD_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Bod.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Bwc.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Bwc.cpp
 DEP_CPP_BWC_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Bwc.obj : .\src\nmea0183\Bwc.cpp $(DEP_CPP_BWC_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Bwc.cpp
+$(OUTDIR)/Bwc.obj : $(SRC_DIR)\src\nmea0183\Bwc.cpp $(DEP_CPP_BWC_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Bwc.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Bwr.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Bwr.cpp
 DEP_CPP_BWR_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Bwr.obj : .\src\nmea0183\Bwr.cpp $(DEP_CPP_BWR_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Bwr.cpp
+$(OUTDIR)/Bwr.obj : $(SRC_DIR)\src\nmea0183\Bwr.cpp $(DEP_CPP_BWR_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Bwr.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Bww.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Bww.cpp
 DEP_CPP_BWW_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Bww.obj : .\src\nmea0183\Bww.cpp $(DEP_CPP_BWW_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Bww.cpp
+$(OUTDIR)/Bww.obj : $(SRC_DIR)\src\nmea0183\Bww.cpp $(DEP_CPP_BWW_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Bww.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Checksum.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Checksum.cpp
 DEP_CPP_CHECK=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Checksum.obj : .\src\nmea0183\Checksum.cpp $(DEP_CPP_CHECK)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Checksum.cpp
+$(OUTDIR)/Checksum.obj : $(SRC_DIR)\src\nmea0183\Checksum.cpp $(DEP_CPP_CHECK)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Checksum.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Dbt.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Dbt.cpp
 DEP_CPP_DBT_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Dbt.obj : .\src\nmea0183\Dbt.cpp $(DEP_CPP_DBT_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Dbt.cpp
+$(OUTDIR)/Dbt.obj : $(SRC_DIR)\src\nmea0183\Dbt.cpp $(DEP_CPP_DBT_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Dbt.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Dcn.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Dcn.cpp
 DEP_CPP_DCN_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Dcn.obj : .\src\nmea0183\Dcn.cpp $(DEP_CPP_DCN_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Dcn.cpp
+$(OUTDIR)/Dcn.obj : $(SRC_DIR)\src\nmea0183\Dcn.cpp $(DEP_CPP_DCN_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Dcn.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Deccalop.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Deccalop.cpp
 DEP_CPP_DECCA=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Deccalop.obj : .\src\nmea0183\Deccalop.cpp $(DEP_CPP_DECCA)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Deccalop.cpp
+$(OUTDIR)/Deccalop.obj : $(SRC_DIR)\src\nmea0183\Deccalop.cpp $(DEP_CPP_DECCA)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Deccalop.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Dpt.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Dpt.cpp
 DEP_CPP_DPT_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Dpt.obj : .\src\nmea0183\Dpt.cpp $(DEP_CPP_DPT_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Dpt.cpp
+$(OUTDIR)/Dpt.obj : $(SRC_DIR)\src\nmea0183\Dpt.cpp $(DEP_CPP_DPT_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Dpt.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\expid.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\expid.cpp
 DEP_CPP_EXPID=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/expid.obj : .\src\nmea0183\expid.cpp $(DEP_CPP_EXPID)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\expid.cpp
+$(OUTDIR)/expid.obj : $(SRC_DIR)\src\nmea0183\expid.cpp $(DEP_CPP_EXPID)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\expid.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Field.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Field.cpp
 DEP_CPP_FIELD=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Field.obj : .\src\nmea0183\Field.cpp $(DEP_CPP_FIELD)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Field.cpp
+$(OUTDIR)/Field.obj : $(SRC_DIR)\src\nmea0183\Field.cpp $(DEP_CPP_FIELD)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Field.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Freqmode.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Freqmode.cpp
 DEP_CPP_FREQM=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Freqmode.obj : .\src\nmea0183\Freqmode.cpp $(DEP_CPP_FREQM)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Freqmode.cpp
+$(OUTDIR)/Freqmode.obj : $(SRC_DIR)\src\nmea0183\Freqmode.cpp $(DEP_CPP_FREQM)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Freqmode.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Fsi.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Fsi.cpp
 DEP_CPP_FSI_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Fsi.obj : .\src\nmea0183\Fsi.cpp $(DEP_CPP_FSI_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Fsi.cpp
+$(OUTDIR)/Fsi.obj : $(SRC_DIR)\src\nmea0183\Fsi.cpp $(DEP_CPP_FSI_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Fsi.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Gga.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Gga.cpp
 DEP_CPP_GGA_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Gga.obj : .\src\nmea0183\Gga.cpp $(DEP_CPP_GGA_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Gga.cpp
+$(OUTDIR)/Gga.obj : $(SRC_DIR)\src\nmea0183\Gga.cpp $(DEP_CPP_GGA_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Gga.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Glc.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Glc.cpp
 DEP_CPP_GLC_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Glc.obj : .\src\nmea0183\Glc.cpp $(DEP_CPP_GLC_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Glc.cpp
+$(OUTDIR)/Glc.obj : $(SRC_DIR)\src\nmea0183\Glc.cpp $(DEP_CPP_GLC_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Glc.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Gll.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Gll.cpp
 DEP_CPP_GLL_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Gll.obj : .\src\nmea0183\Gll.cpp $(DEP_CPP_GLL_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Gll.cpp
+$(OUTDIR)/Gll.obj : $(SRC_DIR)\src\nmea0183\Gll.cpp $(DEP_CPP_GLL_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Gll.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Gxa.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Gxa.cpp
 DEP_CPP_GXA_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Gxa.obj : .\src\nmea0183\Gxa.cpp $(DEP_CPP_GXA_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Gxa.cpp
+$(OUTDIR)/Gxa.obj : $(SRC_DIR)\src\nmea0183\Gxa.cpp $(DEP_CPP_GXA_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Gxa.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Hdg.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Hdg.cpp
 DEP_CPP_HDG_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Hdg.obj : .\src\nmea0183\Hdg.cpp $(DEP_CPP_HDG_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Hdg.cpp
+$(OUTDIR)/Hdg.obj : $(SRC_DIR)\src\nmea0183\Hdg.cpp $(DEP_CPP_HDG_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Hdg.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Hdt.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Hdt.cpp
 DEP_CPP_HDT_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Hdt.obj : .\src\nmea0183\Hdt.cpp $(DEP_CPP_HDT_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Hdt.cpp
+$(OUTDIR)/Hdt.obj : $(SRC_DIR)\src\nmea0183\Hdt.cpp $(DEP_CPP_HDT_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Hdt.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Hex.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Hex.cpp
 DEP_CPP_HEX_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Hex.obj : .\src\nmea0183\Hex.cpp $(DEP_CPP_HEX_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Hex.cpp
+$(OUTDIR)/Hex.obj : $(SRC_DIR)\src\nmea0183\Hex.cpp $(DEP_CPP_HEX_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Hex.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\hexvalue.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\hexvalue.cpp
 DEP_CPP_HEXVA=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/hexvalue.obj : .\src\nmea0183\hexvalue.cpp $(DEP_CPP_HEXVA)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\hexvalue.cpp
+$(OUTDIR)/hexvalue.obj : $(SRC_DIR)\src\nmea0183\hexvalue.cpp $(DEP_CPP_HEXVA)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\hexvalue.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Hsc.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Hsc.cpp
 DEP_CPP_HSC_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Hsc.obj : .\src\nmea0183\Hsc.cpp $(DEP_CPP_HSC_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Hsc.cpp
+$(OUTDIR)/Hsc.obj : $(SRC_DIR)\src\nmea0183\Hsc.cpp $(DEP_CPP_HSC_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Hsc.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\lat.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\lat.cpp
 DEP_CPP_LAT_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/lat.obj : .\src\nmea0183\lat.cpp $(DEP_CPP_LAT_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\lat.cpp
+$(OUTDIR)/lat.obj : $(SRC_DIR)\src\nmea0183\lat.cpp $(DEP_CPP_LAT_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\lat.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\latlong.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\latlong.cpp
 DEP_CPP_LATLO=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/latlong.obj : .\src\nmea0183\latlong.cpp $(DEP_CPP_LATLO)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\latlong.cpp
+$(OUTDIR)/latlong.obj : $(SRC_DIR)\src\nmea0183\latlong.cpp $(DEP_CPP_LATLO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\latlong.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Lcd.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Lcd.cpp
 DEP_CPP_LCD_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Lcd.obj : .\src\nmea0183\Lcd.cpp $(DEP_CPP_LCD_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Lcd.cpp
+$(OUTDIR)/Lcd.obj : $(SRC_DIR)\src\nmea0183\Lcd.cpp $(DEP_CPP_LCD_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Lcd.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\long.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\long.cpp
 DEP_CPP_LONG_=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/long.obj : .\src\nmea0183\long.cpp $(DEP_CPP_LONG_)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\long.cpp
+$(OUTDIR)/long.obj : $(SRC_DIR)\src\nmea0183\long.cpp $(DEP_CPP_LONG_)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\long.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Lorantd.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Lorantd.cpp
 DEP_CPP_LORAN=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Lorantd.obj : .\src\nmea0183\Lorantd.cpp $(DEP_CPP_LORAN)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Lorantd.cpp
+$(OUTDIR)/Lorantd.obj : $(SRC_DIR)\src\nmea0183\Lorantd.cpp $(DEP_CPP_LORAN)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Lorantd.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Manufact.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Manufact.cpp
 DEP_CPP_MANUF=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Manufact.obj : .\src\nmea0183\Manufact.cpp $(DEP_CPP_MANUF)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Manufact.cpp
+$(OUTDIR)/Manufact.obj : $(SRC_DIR)\src\nmea0183\Manufact.cpp $(DEP_CPP_MANUF)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Manufact.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Mlist.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Mlist.cpp
 DEP_CPP_MLIST=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Mlist.obj : .\src\nmea0183\Mlist.cpp $(DEP_CPP_MLIST)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Mlist.cpp
+$(OUTDIR)/Mlist.obj : $(SRC_DIR)\src\nmea0183\Mlist.cpp $(DEP_CPP_MLIST)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Mlist.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Mtw.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Mtw.cpp
 DEP_CPP_MTW_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Mtw.obj : .\src\nmea0183\Mtw.cpp $(DEP_CPP_MTW_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Mtw.cpp
+$(OUTDIR)/Mtw.obj : $(SRC_DIR)\src\nmea0183\Mtw.cpp $(DEP_CPP_MTW_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Mtw.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Mwv.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Mwv.cpp
 DEP_CPP_MWV_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Mwv.obj : .\src\nmea0183\Mwv.cpp $(DEP_CPP_MWV_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Mwv.cpp
+$(OUTDIR)/Mwv.obj : $(SRC_DIR)\src\nmea0183\Mwv.cpp $(DEP_CPP_MWV_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Mwv.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\nmea0183.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\nmea0183.cpp
 DEP_CPP_NMEA0=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/nmea0183.obj : .\src\nmea0183\nmea0183.cpp $(DEP_CPP_NMEA0)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\nmea0183.cpp
+$(OUTDIR)/nmea0183.obj : $(SRC_DIR)\src\nmea0183\nmea0183.cpp $(DEP_CPP_NMEA0)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\nmea0183.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Oln.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Oln.cpp
 DEP_CPP_OLN_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Oln.obj : .\src\nmea0183\Oln.cpp $(DEP_CPP_OLN_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Oln.cpp
+$(OUTDIR)/Oln.obj : $(SRC_DIR)\src\nmea0183\Oln.cpp $(DEP_CPP_OLN_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Oln.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Omegapar.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Omegapar.cpp
 DEP_CPP_OMEGA=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Omegapar.obj : .\src\nmea0183\Omegapar.cpp $(DEP_CPP_OMEGA)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Omegapar.cpp
+$(OUTDIR)/Omegapar.obj : $(SRC_DIR)\src\nmea0183\Omegapar.cpp $(DEP_CPP_OMEGA)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Omegapar.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Osd.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Osd.cpp
 DEP_CPP_OSD_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Osd.obj : .\src\nmea0183\Osd.cpp $(DEP_CPP_OSD_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Osd.cpp
+$(OUTDIR)/Osd.obj : $(SRC_DIR)\src\nmea0183\Osd.cpp $(DEP_CPP_OSD_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Osd.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\P.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\P.cpp
 DEP_CPP_P_CPP=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/P.obj : .\src\nmea0183\P.cpp $(DEP_CPP_P_CPP)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\P.cpp
+$(OUTDIR)/P.obj : $(SRC_DIR)\src\nmea0183\P.cpp $(DEP_CPP_P_CPP)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\P.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Radardat.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Radardat.cpp
 DEP_CPP_RADAR=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Radardat.obj : .\src\nmea0183\Radardat.cpp $(DEP_CPP_RADAR)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Radardat.cpp
+$(OUTDIR)/Radardat.obj : $(SRC_DIR)\src\nmea0183\Radardat.cpp $(DEP_CPP_RADAR)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Radardat.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Ratiopls.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Ratiopls.cpp
 DEP_CPP_RATIO=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Ratiopls.obj : .\src\nmea0183\Ratiopls.cpp $(DEP_CPP_RATIO)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Ratiopls.cpp
+$(OUTDIR)/Ratiopls.obj : $(SRC_DIR)\src\nmea0183\Ratiopls.cpp $(DEP_CPP_RATIO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Ratiopls.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\response.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\response.cpp
 DEP_CPP_RESPO=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/response.obj : .\src\nmea0183\response.cpp $(DEP_CPP_RESPO)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\response.cpp
+$(OUTDIR)/response.obj : $(SRC_DIR)\src\nmea0183\response.cpp $(DEP_CPP_RESPO)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\response.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Rma.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Rma.cpp
 DEP_CPP_RMA_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Rma.obj : .\src\nmea0183\Rma.cpp $(DEP_CPP_RMA_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Rma.cpp
+$(OUTDIR)/Rma.obj : $(SRC_DIR)\src\nmea0183\Rma.cpp $(DEP_CPP_RMA_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Rma.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\rmb.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\rmb.cpp
 DEP_CPP_RMB_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/rmb.obj : .\src\nmea0183\rmb.cpp $(DEP_CPP_RMB_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\rmb.cpp
+$(OUTDIR)/rmb.obj : $(SRC_DIR)\src\nmea0183\rmb.cpp $(DEP_CPP_RMB_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\rmb.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\rmc.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\rmc.cpp
 DEP_CPP_RMC_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/rmc.obj : .\src\nmea0183\rmc.cpp $(DEP_CPP_RMC_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\rmc.cpp
+$(OUTDIR)/rmc.obj : $(SRC_DIR)\src\nmea0183\rmc.cpp $(DEP_CPP_RMC_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\rmc.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Rot.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Rot.cpp
 DEP_CPP_ROT_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Rot.obj : .\src\nmea0183\Rot.cpp $(DEP_CPP_ROT_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Rot.cpp
+$(OUTDIR)/Rot.obj : $(SRC_DIR)\src\nmea0183\Rot.cpp $(DEP_CPP_ROT_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Rot.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Rpm.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Rpm.cpp
 DEP_CPP_RPM_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Rpm.obj : .\src\nmea0183\Rpm.cpp $(DEP_CPP_RPM_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Rpm.cpp
+$(OUTDIR)/Rpm.obj : $(SRC_DIR)\src\nmea0183\Rpm.cpp $(DEP_CPP_RPM_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Rpm.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Rsa.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Rsa.cpp
 DEP_CPP_RSA_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Rsa.obj : .\src\nmea0183\Rsa.cpp $(DEP_CPP_RSA_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Rsa.cpp
+$(OUTDIR)/Rsa.obj : $(SRC_DIR)\src\nmea0183\Rsa.cpp $(DEP_CPP_RSA_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Rsa.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Rsd.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Rsd.cpp
 DEP_CPP_RSD_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Rsd.obj : .\src\nmea0183\Rsd.cpp $(DEP_CPP_RSD_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Rsd.cpp
+$(OUTDIR)/Rsd.obj : $(SRC_DIR)\src\nmea0183\Rsd.cpp $(DEP_CPP_RSD_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Rsd.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Rte.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Rte.cpp
 DEP_CPP_RTE_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Rte.obj : .\src\nmea0183\Rte.cpp $(DEP_CPP_RTE_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Rte.cpp
+$(OUTDIR)/Rte.obj : $(SRC_DIR)\src\nmea0183\Rte.cpp $(DEP_CPP_RTE_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Rte.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\sentence.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\sentence.cpp
 DEP_CPP_SENTE=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/sentence.obj : .\src\nmea0183\sentence.cpp $(DEP_CPP_SENTE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\sentence.cpp
+$(OUTDIR)/sentence.obj : $(SRC_DIR)\src\nmea0183\sentence.cpp $(DEP_CPP_SENTE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\sentence.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Sfi.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Sfi.cpp
 DEP_CPP_SFI_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Sfi.obj : .\src\nmea0183\Sfi.cpp $(DEP_CPP_SFI_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Sfi.cpp
+$(OUTDIR)/Sfi.obj : $(SRC_DIR)\src\nmea0183\Sfi.cpp $(DEP_CPP_SFI_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Sfi.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Stn.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Stn.cpp
 DEP_CPP_STN_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Stn.obj : .\src\nmea0183\Stn.cpp $(DEP_CPP_STN_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Stn.cpp
+$(OUTDIR)/Stn.obj : $(SRC_DIR)\src\nmea0183\Stn.cpp $(DEP_CPP_STN_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Stn.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\talkerid.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\talkerid.cpp
 DEP_CPP_TALKE=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/talkerid.obj : .\src\nmea0183\talkerid.cpp $(DEP_CPP_TALKE)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\talkerid.cpp
+$(OUTDIR)/talkerid.obj : $(SRC_DIR)\src\nmea0183\talkerid.cpp $(DEP_CPP_TALKE)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\talkerid.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Test.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Test.cpp
 DEP_CPP_TEST_=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Test.obj : .\src\nmea0183\Test.cpp $(DEP_CPP_TEST_)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Test.cpp
+$(OUTDIR)/Test.obj : $(SRC_DIR)\src\nmea0183\Test.cpp $(DEP_CPP_TEST_)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Test.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Trf.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Trf.cpp
 DEP_CPP_TRF_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Trf.obj : .\src\nmea0183\Trf.cpp $(DEP_CPP_TRF_C)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Trf.cpp
+$(OUTDIR)/Trf.obj : $(SRC_DIR)\src\nmea0183\Trf.cpp $(DEP_CPP_TRF_C)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Trf.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Ttm.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Ttm.cpp
 DEP_CPP_TTM_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Ttm.obj : .\src\nmea0183\Ttm.cpp $(DEP_CPP_TTM_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Ttm.cpp
+$(OUTDIR)/Ttm.obj : $(SRC_DIR)\src\nmea0183\Ttm.cpp $(DEP_CPP_TTM_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Ttm.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Vbw.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Vbw.cpp
 DEP_CPP_VBW_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Vbw.obj : .\src\nmea0183\Vbw.cpp $(DEP_CPP_VBW_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Vbw.cpp
+$(OUTDIR)/Vbw.obj : $(SRC_DIR)\src\nmea0183\Vbw.cpp $(DEP_CPP_VBW_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Vbw.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Vdr.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Vdr.cpp
 DEP_CPP_VDR_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Vdr.obj : .\src\nmea0183\Vdr.cpp $(DEP_CPP_VDR_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Vdr.cpp
+$(OUTDIR)/Vdr.obj : $(SRC_DIR)\src\nmea0183\Vdr.cpp $(DEP_CPP_VDR_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Vdr.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Vhw.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Vhw.cpp
 DEP_CPP_VHW_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Vhw.obj : .\src\nmea0183\Vhw.cpp $(DEP_CPP_VHW_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Vhw.cpp
+$(OUTDIR)/Vhw.obj : $(SRC_DIR)\src\nmea0183\Vhw.cpp $(DEP_CPP_VHW_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Vhw.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Vlw.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Vlw.cpp
 DEP_CPP_VLW_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Vlw.obj : .\src\nmea0183\Vlw.cpp $(DEP_CPP_VLW_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Vlw.cpp
+$(OUTDIR)/Vlw.obj : $(SRC_DIR)\src\nmea0183\Vlw.cpp $(DEP_CPP_VLW_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Vlw.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Vpw.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Vpw.cpp
 DEP_CPP_VPW_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Vpw.obj : .\src\nmea0183\Vpw.cpp $(DEP_CPP_VPW_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Vpw.cpp
+$(OUTDIR)/Vpw.obj : $(SRC_DIR)\src\nmea0183\Vpw.cpp $(DEP_CPP_VPW_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Vpw.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Vtg.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Vtg.cpp
 DEP_CPP_VTG_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Vtg.obj : .\src\nmea0183\Vtg.cpp $(DEP_CPP_VTG_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Vtg.cpp
+$(OUTDIR)/Vtg.obj : $(SRC_DIR)\src\nmea0183\Vtg.cpp $(DEP_CPP_VTG_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Vtg.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Wcv.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Wcv.cpp
 DEP_CPP_WCV_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Wcv.obj : .\src\nmea0183\Wcv.cpp $(DEP_CPP_WCV_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Wcv.cpp
+$(OUTDIR)/Wcv.obj : $(SRC_DIR)\src\nmea0183\Wcv.cpp $(DEP_CPP_WCV_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Wcv.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Wnc.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Wnc.cpp
 DEP_CPP_WNC_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Wnc.obj : .\src\nmea0183\Wnc.cpp $(DEP_CPP_WNC_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Wnc.cpp
+$(OUTDIR)/Wnc.obj : $(SRC_DIR)\src\nmea0183\Wnc.cpp $(DEP_CPP_WNC_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Wnc.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Wpl.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Wpl.cpp
 DEP_CPP_WPL_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Wpl.obj : .\src\nmea0183\Wpl.cpp $(DEP_CPP_WPL_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Wpl.cpp
+$(OUTDIR)/Wpl.obj : $(SRC_DIR)\src\nmea0183\Wpl.cpp $(DEP_CPP_WPL_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Wpl.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Xdr.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Xdr.cpp
 DEP_CPP_XDR_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Xdr.obj : .\src\nmea0183\Xdr.cpp $(DEP_CPP_XDR_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Xdr.cpp
+$(OUTDIR)/Xdr.obj : $(SRC_DIR)\src\nmea0183\Xdr.cpp $(DEP_CPP_XDR_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Xdr.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Xte.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Xte.cpp
 DEP_CPP_XTE_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Xte.obj : .\src\nmea0183\Xte.cpp $(DEP_CPP_XTE_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Xte.cpp
+$(OUTDIR)/Xte.obj : $(SRC_DIR)\src\nmea0183\Xte.cpp $(DEP_CPP_XTE_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Xte.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Xtr.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Xtr.cpp
 DEP_CPP_XTR_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Xtr.obj : .\src\nmea0183\Xtr.cpp $(DEP_CPP_XTR_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Xtr.cpp
+$(OUTDIR)/Xtr.obj : $(SRC_DIR)\src\nmea0183\Xtr.cpp $(DEP_CPP_XTR_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Xtr.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Zda.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Zda.cpp
 DEP_CPP_ZDA_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
-$(OUTDIR)/Zda.obj : .\src\nmea0183\Zda.cpp $(DEP_CPP_ZDA_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Zda.cpp
+$(OUTDIR)/Zda.obj : $(SRC_DIR)\src\nmea0183\Zda.cpp $(DEP_CPP_ZDA_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Zda.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Zfo.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Zfo.cpp
 DEP_CPP_ZFO_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Zfo.obj : .\src\nmea0183\Zfo.cpp $(DEP_CPP_ZFO_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Zfo.cpp
+$(OUTDIR)/Zfo.obj : $(SRC_DIR)\src\nmea0183\Zfo.cpp $(DEP_CPP_ZFO_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Zfo.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\nmea0183\Aam.cpp
+SOURCE=$(SRC_DIR)\src\nmea0183\Aam.cpp
 DEP_CPP_AAM_C=&
-	.\src\nmea0183\nmea0183.h&
-	.\src\nmea0183\nmea0183.hpp&
-	.\src\nmea0183\Sentence.hpp&
-	.\src\nmea0183\Response.hpp&
-	.\src\nmea0183\LatLong.hpp&
-	.\src\nmea0183\RMB.hpp&
-	.\src\nmea0183\RMC.HPP
+	$(SRC_DIR)\src\nmea0183\nmea0183.h&
+	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
+	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
+	$(SRC_DIR)\src\nmea0183\Response.hpp&
+	$(SRC_DIR)\src\nmea0183\LatLong.hpp&
+	$(SRC_DIR)\src\nmea0183\RMB.hpp&
+	$(SRC_DIR)\src\nmea0183\RMC.HPP
 
 
-$(OUTDIR)/Aam.obj : .\src\nmea0183\Aam.cpp $(DEP_CPP_AAM_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\nmea0183\Aam.cpp
+$(OUTDIR)/Aam.obj : $(SRC_DIR)\src\nmea0183\Aam.cpp $(DEP_CPP_AAM_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\nmea0183\Aam.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\options.cpp
+SOURCE=$(SRC_DIR)\src\options.cpp
 DEP_CPP_OPTIO=&
-	.\include\options.h&
-	.\include\dychart.h&
-	.\include\navutil.h&
-	.\include\s52plib.h
+	$(SRC_DIR)\include\options.h&
+	$(SRC_DIR)\include\dychart.h&
+	$(SRC_DIR)\include\navutil.h&
+	$(SRC_DIR)\include\s52plib.h
 
-$(OUTDIR)/options.obj : .\src\options.cpp $(DEP_CPP_OPTIO)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\options.cpp
+$(OUTDIR)/options.obj : $(SRC_DIR)\src\options.cpp $(DEP_CPP_OPTIO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\options.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_csv.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_csv.cpp
 
 DEP_CPP_CPL_C=&
-	.\src\mygdal\cpl_csv.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_csv.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
-$(OUTDIR)/cpl_csv.obj : .\src\mygdal\cpl_csv.cpp $(DEP_CPP_CPL_C)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_csv.cpp
+$(OUTDIR)/cpl_csv.obj : $(SRC_DIR)\src\mygdal\cpl_csv.cpp $(DEP_CPP_CPL_C)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_csv.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\gdal_misc.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\gdal_misc.cpp
 
 DEP_CPP_CPL_D=&
-	.\src\mygdal\gdal.h
+	$(SRC_DIR)\src\mygdal\gdal.h
 
-$(OUTDIR)/gdal_misc.obj : .\src\mygdal\gdal_misc.cpp $(DEP_CPP_CPL_D)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\gdal_misc.cpp
+$(OUTDIR)/gdal_misc.obj : $(SRC_DIR)\src\mygdal\gdal_misc.cpp $(DEP_CPP_CPL_D)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\gdal_misc.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_dir.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_dir.cpp
 
 
 DEP_CPP_CPL_D=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
 
-$(OUTDIR)/cpl_dir.obj : .\src\mygdal\cpl_dir.cpp $(DEP_CPP_CPL_D)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_dir.cpp
+$(OUTDIR)/cpl_dir.obj : $(SRC_DIR)\src\mygdal\cpl_dir.cpp $(DEP_CPP_CPL_D)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_dir.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_error.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_error.cpp
 
 
 DEP_CPP_CPL_E=&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
 
 
 
-$(OUTDIR)/cpl_error.obj : .\src\mygdal\cpl_error.cpp $(DEP_CPP_CPL_E)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_error.cpp
+$(OUTDIR)/cpl_error.obj : $(SRC_DIR)\src\mygdal\cpl_error.cpp $(DEP_CPP_CPL_E)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_error.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_findfile.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_findfile.cpp
 
 
 DEP_CPP_CPL_F=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
 
 
 
 
-$(OUTDIR)/cpl_findfile.obj : .\src\mygdal\cpl_findfile.cpp $(DEP_CPP_CPL_F)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_findfile.cpp
+$(OUTDIR)/cpl_findfile.obj : $(SRC_DIR)\src\mygdal\cpl_findfile.cpp $(DEP_CPP_CPL_F)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_findfile.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_minixml.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_minixml.cpp
 
 
 DEP_CPP_CPL_M=&
-	.\src\mygdal\cpl_minixml.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_vsi.h
+	$(SRC_DIR)\src\mygdal\cpl_minixml.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h
 
 
 
 
-$(OUTDIR)/cpl_minixml.obj : .\src\mygdal\cpl_minixml.cpp $(DEP_CPP_CPL_M)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_minixml.cpp
+$(OUTDIR)/cpl_minixml.obj : $(SRC_DIR)\src\mygdal\cpl_minixml.cpp $(DEP_CPP_CPL_M)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_minixml.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_path.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_path.cpp
 
 
 DEP_CPP_CPL_P=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
 
 
 
 
-$(OUTDIR)/cpl_path.obj : .\src\mygdal\cpl_path.cpp $(DEP_CPP_CPL_P)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_path.cpp
+$(OUTDIR)/cpl_path.obj : $(SRC_DIR)\src\mygdal\cpl_path.cpp $(DEP_CPP_CPL_P)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_path.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_string.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_string.cpp
 
 DEP_CPP_CPL_S=&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
 
 
 
 
-$(OUTDIR)/cpl_string.obj : .\src\mygdal\cpl_string.cpp $(DEP_CPP_CPL_S)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_string.cpp
+$(OUTDIR)/cpl_string.obj : $(SRC_DIR)\src\mygdal\cpl_string.cpp $(DEP_CPP_CPL_S)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_string.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_vsisimple.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_vsisimple.cpp
 
 
 DEP_CPP_CPL_V=&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
 
 
 
-$(OUTDIR)/cpl_vsisimple.obj : .\src\mygdal\cpl_vsisimple.cpp $(DEP_CPP_CPL_V)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_vsisimple.cpp
+$(OUTDIR)/cpl_vsisimple.obj : $(SRC_DIR)\src\mygdal\cpl_vsisimple.cpp $(DEP_CPP_CPL_V)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_vsisimple.cpp
 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cplgetsymbol.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cplgetsymbol.cpp
 
 DEP_CPP_CPLGE=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
 
 
 
 
-$(OUTDIR)/cplgetsymbol.obj : .\src\mygdal\cplgetsymbol.cpp $(DEP_CPP_CPLGE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cplgetsymbol.cpp
+$(OUTDIR)/cplgetsymbol.obj : $(SRC_DIR)\src\mygdal\cplgetsymbol.cpp $(DEP_CPP_CPLGE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cplgetsymbol.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ograssemblepolygon.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ograssemblepolygon.cpp
 
 
 DEP_CPP_OGRAS=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ograssemblepolygon.obj : .\src\mygdal\ograssemblepolygon.cpp $(DEP_CPP_OGRAS)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ograssemblepolygon.cpp
+$(OUTDIR)/ograssemblepolygon.obj : $(SRC_DIR)\src\mygdal\ograssemblepolygon.cpp $(DEP_CPP_OGRAS)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ograssemblepolygon.cpp
 
 
 
@@ -2751,26 +2757,26 @@ $(OUTDIR)/ograssemblepolygon.obj : .\src\mygdal\ograssemblepolygon.cpp $(DEP_CPP
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrcurve.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrcurve.cpp
 
 
 DEP_CPP_OGRCU=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrcurve.obj : .\src\mygdal\ogrcurve.cpp $(DEP_CPP_OGRCU)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrcurve.cpp
+$(OUTDIR)/ogrcurve.obj : $(SRC_DIR)\src\mygdal\ogrcurve.cpp $(DEP_CPP_OGRCU)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrcurve.cpp
 
 
 
@@ -2779,27 +2785,27 @@ $(OUTDIR)/ogrcurve.obj : .\src\mygdal\ogrcurve.cpp $(DEP_CPP_OGRCU)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrfeature.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrfeature.cpp
 
 DEP_CPP_OGRFE=&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_feature.h&
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrfeature.obj : .\src\mygdal\ogrfeature.cpp $(DEP_CPP_OGRFE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrfeature.cpp
+$(OUTDIR)/ogrfeature.obj : $(SRC_DIR)\src\mygdal\ogrfeature.cpp $(DEP_CPP_OGRFE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrfeature.cpp
 
 
 
@@ -2807,28 +2813,28 @@ $(OUTDIR)/ogrfeature.obj : .\src\mygdal\ogrfeature.cpp $(DEP_CPP_OGRFE)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrfeaturedefn.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrfeaturedefn.cpp
 
 
 DEP_CPP_OGRFEA=&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_feature.h&
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrfeaturedefn.obj : .\src\mygdal\ogrfeaturedefn.cpp $(DEP_CPP_OGRFEA)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrfeaturedefn.cpp
+$(OUTDIR)/ogrfeaturedefn.obj : $(SRC_DIR)\src\mygdal\ogrfeaturedefn.cpp $(DEP_CPP_OGRFEA)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrfeaturedefn.cpp
 
 
 
@@ -2836,28 +2842,28 @@ $(OUTDIR)/ogrfeaturedefn.obj : .\src\mygdal\ogrfeaturedefn.cpp $(DEP_CPP_OGRFEA)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrfielddefn.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrfielddefn.cpp
 
 
 DEP_CPP_OGRFI=&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_feature.h&
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrfielddefn.obj : .\src\mygdal\ogrfielddefn.cpp $(DEP_CPP_OGRFI)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrfielddefn.cpp
+$(OUTDIR)/ogrfielddefn.obj : $(SRC_DIR)\src\mygdal\ogrfielddefn.cpp $(DEP_CPP_OGRFI)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrfielddefn.cpp
 
 
 
@@ -2866,26 +2872,26 @@ $(OUTDIR)/ogrfielddefn.obj : .\src\mygdal\ogrfielddefn.cpp $(DEP_CPP_OGRFI)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrgeometry.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrgeometry.cpp
 
 DEP_CPP_OGRGE=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrgeometry.obj : .\src\mygdal\ogrgeometry.cpp $(DEP_CPP_OGRGE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrgeometry.cpp
+$(OUTDIR)/ogrgeometry.obj : $(SRC_DIR)\src\mygdal\ogrgeometry.cpp $(DEP_CPP_OGRGE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrgeometry.cpp
 
 
 
@@ -2893,25 +2899,25 @@ $(OUTDIR)/ogrgeometry.obj : .\src\mygdal\ogrgeometry.cpp $(DEP_CPP_OGRGE)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrgeometrycollection.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrgeometrycollection.cpp
 
 DEP_CPP_OGRGEO=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrgeometrycollection.obj : .\src\mygdal\ogrgeometrycollection.cpp $(DEP_CPP_OGRGEO)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrgeometrycollection.cpp
+$(OUTDIR)/ogrgeometrycollection.obj : $(SRC_DIR)\src\mygdal\ogrgeometrycollection.cpp $(DEP_CPP_OGRGEO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrgeometrycollection.cpp
 
 
 
@@ -2919,27 +2925,27 @@ $(OUTDIR)/ogrgeometrycollection.obj : .\src\mygdal\ogrgeometrycollection.cpp $(D
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrgeometryfactory.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrgeometryfactory.cpp
 
 
 DEP_CPP_OGRGEOM=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrgeometryfactory.obj : .\src\mygdal\ogrgeometryfactory.cpp $(DEP_CPP_OGRGEOM)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrgeometryfactory.cpp
+$(OUTDIR)/ogrgeometryfactory.obj : $(SRC_DIR)\src\mygdal\ogrgeometryfactory.cpp $(DEP_CPP_OGRGEOM)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrgeometryfactory.cpp
 
 
 
@@ -2947,30 +2953,30 @@ $(OUTDIR)/ogrgeometryfactory.obj : .\src\mygdal\ogrgeometryfactory.cpp $(DEP_CPP
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrlayer.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrlayer.cpp
 
 
 DEP_CPP_OGRLA=&
-	.\src\mygdal\ogrsf_frmts.h&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_attrind.h&
-	.\src\mygdal\ogr_feature.h&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogrsf_frmts.h&
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_attrind.h&
+	$(SRC_DIR)\src\mygdal\ogr_feature.h&
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrlayer.obj : .\src\mygdal\ogrlayer.cpp $(DEP_CPP_OGRLA)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrlayer.cpp
+$(OUTDIR)/ogrlayer.obj : $(SRC_DIR)\src\mygdal\ogrlayer.cpp $(DEP_CPP_OGRLA)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrlayer.cpp
 
 
 
@@ -2979,26 +2985,26 @@ $(OUTDIR)/ogrlayer.obj : .\src\mygdal\ogrlayer.cpp $(DEP_CPP_OGRLA)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrlinearring.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrlinearring.cpp
 
 
 DEP_CPP_OGRLI=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrlinearring.obj : .\src\mygdal\ogrlinearring.cpp $(DEP_CPP_OGRLI)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrlinearring.cpp
+$(OUTDIR)/ogrlinearring.obj : $(SRC_DIR)\src\mygdal\ogrlinearring.cpp $(DEP_CPP_OGRLI)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrlinearring.cpp
 
 
 
@@ -3007,25 +3013,25 @@ $(OUTDIR)/ogrlinearring.obj : .\src\mygdal\ogrlinearring.cpp $(DEP_CPP_OGRLI)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrlinestring.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrlinestring.cpp
 
 DEP_CPP_OGRLIN=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrlinestring.obj : .\src\mygdal\ogrlinestring.cpp $(DEP_CPP_OGRLIN)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrlinestring.cpp
+$(OUTDIR)/ogrlinestring.obj : $(SRC_DIR)\src\mygdal\ogrlinestring.cpp $(DEP_CPP_OGRLIN)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrlinestring.cpp
 
 
 
@@ -3034,25 +3040,25 @@ $(OUTDIR)/ogrlinestring.obj : .\src\mygdal\ogrlinestring.cpp $(DEP_CPP_OGRLIN)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrmultilinestring.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrmultilinestring.cpp
 
 DEP_CPP_OGRMU=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrmultilinestring.obj : .\src\mygdal\ogrmultilinestring.cpp $(DEP_CPP_OGRMU)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrmultilinestring.cpp
+$(OUTDIR)/ogrmultilinestring.obj : $(SRC_DIR)\src\mygdal\ogrmultilinestring.cpp $(DEP_CPP_OGRMU)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrmultilinestring.cpp
 
 
 
@@ -3061,26 +3067,26 @@ $(OUTDIR)/ogrmultilinestring.obj : .\src\mygdal\ogrmultilinestring.cpp $(DEP_CPP
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrmultipoint.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrmultipoint.cpp
 
 
 DEP_CPP_OGRMUL=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrmultipoint.obj : .\src\mygdal\ogrmultipoint.cpp $(DEP_CPP_OGRMUL)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrmultipoint.cpp
+$(OUTDIR)/ogrmultipoint.obj : $(SRC_DIR)\src\mygdal\ogrmultipoint.cpp $(DEP_CPP_OGRMUL)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrmultipoint.cpp
 
 
 
@@ -3088,26 +3094,26 @@ $(OUTDIR)/ogrmultipoint.obj : .\src\mygdal\ogrmultipoint.cpp $(DEP_CPP_OGRMUL)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrmultipolygon.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrmultipolygon.cpp
 
 
 DEP_CPP_OGRMULT=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrmultipolygon.obj : .\src\mygdal\ogrmultipolygon.cpp $(DEP_CPP_OGRMULT)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrmultipolygon.cpp
+$(OUTDIR)/ogrmultipolygon.obj : $(SRC_DIR)\src\mygdal\ogrmultipolygon.cpp $(DEP_CPP_OGRMULT)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrmultipolygon.cpp
 
 
 
@@ -3116,26 +3122,26 @@ $(OUTDIR)/ogrmultipolygon.obj : .\src\mygdal\ogrmultipolygon.cpp $(DEP_CPP_OGRMU
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrpoint.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrpoint.cpp
 
 
 DEP_CPP_OGRPO=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrpoint.obj : .\src\mygdal\ogrpoint.cpp $(DEP_CPP_OGRPO)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrpoint.cpp
+$(OUTDIR)/ogrpoint.obj : $(SRC_DIR)\src\mygdal\ogrpoint.cpp $(DEP_CPP_OGRPO)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrpoint.cpp
 
 
 
@@ -3144,26 +3150,26 @@ $(OUTDIR)/ogrpoint.obj : .\src\mygdal\ogrpoint.cpp $(DEP_CPP_OGRPO)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrpolygon.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrpolygon.cpp
 
 
 DEP_CPP_OGRPOL=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrpolygon.obj : .\src\mygdal\ogrpolygon.cpp $(DEP_CPP_OGRPOL)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrpolygon.cpp
+$(OUTDIR)/ogrpolygon.obj : $(SRC_DIR)\src\mygdal\ogrpolygon.cpp $(DEP_CPP_OGRPOL)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrpolygon.cpp
 
 
 
@@ -3171,21 +3177,21 @@ $(OUTDIR)/ogrpolygon.obj : .\src\mygdal\ogrpolygon.cpp $(DEP_CPP_OGRPOL)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrs57datasource.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrs57datasource.cpp
 
 
 DEP_CPP_OGRS5=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_s57.h
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\ogr_s57.h
 
 
-$(OUTDIR)/ogrs57datasource.obj : .\src\mygdal\ogrs57datasource.cpp $(DEP_CPP_OGRS5)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrs57datasource.cpp
+$(OUTDIR)/ogrs57datasource.obj : $(SRC_DIR)\src\mygdal\ogrs57datasource.cpp $(DEP_CPP_OGRS5)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrs57datasource.cpp
 
 
 
@@ -3194,21 +3200,21 @@ $(OUTDIR)/ogrs57datasource.obj : .\src\mygdal\ogrs57datasource.cpp $(DEP_CPP_OGR
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrs57layer.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrs57layer.cpp
 
 
 DEP_CPP_OGRS57L=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\ogr_s57.h
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\ogr_s57.h
 
 
-$(OUTDIR)/ogrs57layer.obj : .\src\mygdal\ogrs57layer.cpp $(DEP_CPP_OGRS57L)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrs57layer.cpp
+$(OUTDIR)/ogrs57layer.obj : $(SRC_DIR)\src\mygdal\ogrs57layer.cpp $(DEP_CPP_OGRS57L)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrs57layer.cpp
 
 
 
@@ -3216,26 +3222,26 @@ $(OUTDIR)/ogrs57layer.obj : .\src\mygdal\ogrs57layer.cpp $(DEP_CPP_OGRS57L)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ogrutils.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ogrutils.cpp
 
 
 DEP_CPP_OGRUT=&
-	.\src\mygdal\ogr_geometry.h&
-	.\src\mygdal\ogr_p.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\ogr_spatialref.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h
+	$(SRC_DIR)\src\mygdal\ogr_geometry.h&
+	$(SRC_DIR)\src\mygdal\ogr_p.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\ogr_spatialref.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h
 
 
 
 
-$(OUTDIR)/ogrutils.obj : .\src\mygdal\ogrutils.cpp $(DEP_CPP_OGRUT)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ogrutils.cpp
+$(OUTDIR)/ogrutils.obj : $(SRC_DIR)\src\mygdal\ogrutils.cpp $(DEP_CPP_OGRUT)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ogrutils.cpp
 
 
 
@@ -3243,20 +3249,20 @@ $(OUTDIR)/ogrutils.obj : .\src\mygdal\ogrutils.cpp $(DEP_CPP_OGRUT)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\s57classregistrar.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\s57classregistrar.cpp
 
 DEP_CPP_S57CL=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\s57.h
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\s57.h
 
 
-$(OUTDIR)/s57classregistrar.obj : .\src\mygdal\s57classregistrar.cpp $(DEP_CPP_S57CL)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\s57classregistrar.cpp
+$(OUTDIR)/s57classregistrar.obj : $(SRC_DIR)\src\mygdal\s57classregistrar.cpp $(DEP_CPP_S57CL)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\s57classregistrar.cpp
 
 
 
@@ -3264,23 +3270,23 @@ $(OUTDIR)/s57classregistrar.obj : .\src\mygdal\s57classregistrar.cpp $(DEP_CPP_S
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\s57featuredefns.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\s57featuredefns.cpp
 
 
 DEP_CPP_S57FE=&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\s57.h
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\s57.h
 
 
-$(OUTDIR)/s57featuredefns.obj : .\src\mygdal\s57featuredefns.cpp $(DEP_CPP_S57FE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\s57featuredefns.cpp
+$(OUTDIR)/s57featuredefns.obj : $(SRC_DIR)\src\mygdal\s57featuredefns.cpp $(DEP_CPP_S57FE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\s57featuredefns.cpp
 
 
 
@@ -3289,23 +3295,23 @@ $(OUTDIR)/s57featuredefns.obj : .\src\mygdal\s57featuredefns.cpp $(DEP_CPP_S57FE
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\s57reader.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\s57reader.cpp
 
 
 DEP_CPP_S57RE=&
-	.\src\mygdal\ogr_api.h&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\ogr_core.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_config.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\s57.h
+	$(SRC_DIR)\src\mygdal\ogr_api.h&
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\ogr_core.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\s57.h
 
 
-$(OUTDIR)/s57reader.obj : .\src\mygdal\s57reader.cpp $(DEP_CPP_S57RE)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\s57reader.cpp
+$(OUTDIR)/s57reader.obj : $(SRC_DIR)\src\mygdal\s57reader.cpp $(DEP_CPP_S57RE)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\s57reader.cpp
 
 
 
@@ -3314,33 +3320,33 @@ $(OUTDIR)/s57reader.obj : .\src\mygdal\s57reader.cpp $(DEP_CPP_S57RE)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\cpl_conv.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\cpl_conv.cpp
 
 DEP_CPP_CPL_CO=&
-	.\src\mygdal\cpl_conv.h&
-	.\src\mygdal\cpl_string.h&
-	.\src\mygdal\cpl_port.h&
-	.\src\mygdal\cpl_vsi.h&
-	.\src\mygdal\cpl_error.h&
-	.\src\mygdal\cpl_config.h
+	$(SRC_DIR)\src\mygdal\cpl_conv.h&
+	$(SRC_DIR)\src\mygdal\cpl_string.h&
+	$(SRC_DIR)\src\mygdal\cpl_port.h&
+	$(SRC_DIR)\src\mygdal\cpl_vsi.h&
+	$(SRC_DIR)\src\mygdal\cpl_error.h&
+	$(SRC_DIR)\src\mygdal\cpl_config.h
 
 
 
 
 
-$(OUTDIR)/cpl_conv.obj : .\src\mygdal\cpl_conv.cpp $(DEP_CPP_CPL_CO)
-   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\cpl_conv.cpp
+$(OUTDIR)/cpl_conv.obj : $(SRC_DIR)\src\mygdal\cpl_conv.cpp $(DEP_CPP_CPL_CO)
+   $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\cpl_conv.cpp
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\src\mygdal\ddfrecordindex.cpp
+SOURCE=$(SRC_DIR)\src\mygdal\ddfrecordindex.cpp
 DEP_CPP_DDFR2=&
 
 
-$(OUTDIR)/ddfrecordindex.obj : .\src\mygdal\ddfrecordindex.cpp $(DEP_CPP_DDFR2)
-  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) .\src\mygdal\ddfrecordindex.cpp
+$(OUTDIR)/ddfrecordindex.obj : $(SRC_DIR)\src\mygdal\ddfrecordindex.cpp $(DEP_CPP_DDFR2)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\mygdal\ddfrecordindex.cpp
 
 
 # End Source File
