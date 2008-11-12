@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.13 2008/10/23 23:40:03 bdbcat Exp $
+ * $Id: about.cpp,v 1.14 2008/11/12 04:11:28 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.14  2008/11/12 04:11:28  bdbcat
+ * Cleanup
+ *
  * Revision 1.13  2008/10/23 23:40:03  bdbcat
  * Add dherring as coauthor
  *
@@ -43,6 +46,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: about.cpp,v $
+ * Revision 1.14  2008/11/12 04:11:28  bdbcat
+ * Cleanup
+ *
  * Revision 1.13  2008/10/23 23:40:03  bdbcat
  * Add dherring as coauthor
  *
@@ -91,7 +97,7 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.13 2008/10/23 23:40:03 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.14 2008/11/12 04:11:28 bdbcat Exp $");
 
 
 //    Some constants
@@ -114,7 +120,7 @@ char AuthorText[] =
       smithstrawler@hotmail.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
    David Herring\n\
-      dherring@visi.com\n\
+      dherring@dherring.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
    Julian Smart, Robert Roebling et al\n\
       wxwidgets.org\n\
@@ -157,7 +163,10 @@ char AuthorText[] =
       Great Circle Formulary\n\n\
    Philippe Bekaert\n\
                    \n\
-      CIE->RGB Color Conversion Matrix\n"
+      CIE->RGB Color Conversion Matrix\n\n\
+   Robert Lipe\n\
+      robertlipe@usa.net\n\
+      Garmin USB GPS Interface\n"
 
 };
 
