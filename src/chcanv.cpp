@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.30 2008/10/31 01:07:00 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.31 2008/11/15 03:12:07 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.31  2008/11/15 03:12:07  bdbcat
+ * Correct AIS COG display
+ *
  * Revision 1.30  2008/10/31 01:07:00  bdbcat
  * Cleanup
  *
@@ -54,6 +57,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.31  2008/11/15 03:12:07  bdbcat
+ * Correct AIS COG display
+ *
  * Revision 1.30  2008/10/31 01:07:00  bdbcat
  * Cleanup
  *
@@ -191,7 +197,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.30 2008/10/31 01:07:00 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.31 2008/11/15 03:12:07 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1315,8 +1321,17 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                 GetPointPix ( pred_lat, pred_lon, &PredPoint );
 
                                 //  Calculate the relative angle for this chart orientation
-
-                                double theta = atan2 ( ( PredPoint.y - TargetPoint.y ), ( PredPoint.x - TargetPoint.x ) );
+                                //  Exception:  if speed is very low, force the target symbol to be rendered at COG 000 (North)
+                                double theta;
+                                if( abs( PredPoint.x - TargetPoint.x ) > 0 )
+                                     theta = atan2 ( ( PredPoint.y - TargetPoint.y ), ( PredPoint.x - TargetPoint.x ) );
+                                else
+                                {
+                                      if( PredPoint.y >= TargetPoint.y)
+                                          theta = PI / 2.;            // Draw symbol at course 000 if speed is to low to show
+                                      else
+                                            theta = -PI / 2.;
+                                }
 
                                 //  Draw the icon rotated to the COG
                                 wxPoint ais_tri_icon[3];
