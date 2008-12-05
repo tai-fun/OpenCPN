@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.23 2008/11/12 04:12:20 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.24 2008/12/05 22:59:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -60,9 +60,7 @@
 #endif
 
 
-CPL_CVSID("$Id: nmea.cpp,v 1.23 2008/11/12 04:12:20 bdbcat Exp $");
-
-extern bool              s_bSetSystemTime;
+CPL_CVSID("$Id: nmea.cpp,v 1.24 2008/12/05 22:59:32 bdbcat Exp $");
 
 int                      s_dns_test_flag;
 
@@ -537,6 +535,7 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, 
       m_pShareMutex = pMutex;
 
       Create();
+
 }
 
 OCP_NMEA_Thread::~OCP_NMEA_Thread(void)
@@ -756,7 +755,7 @@ thread_exit:
 void *OCP_NMEA_Thread::Entry()
 {
       wxString msg;
-      wxMutexLocker *pStateLocker;
+//      wxMutexLocker *pStateLocker;
 
       m_launcher->SetSecThreadActive();       // I am alive
 
@@ -1174,7 +1173,7 @@ void *OCP_GARMIN_Thread::Entry()
 
             if(iresp.gusb_pkt.pkt_id[0] == GUSB_RESPONSE_SDR)     //Satellite Data Record
             {
-                  unsigned char *t = (unsigned char *)&(iresp.gusb_pkt.databuf);
+                  unsigned char *t = (unsigned char *)&(iresp.gusb_pkt.databuf[0]);
                   for(int i=0 ; i < 12 ; i++)
                   {
                         m_sat_data[i].svid =  *t++;
@@ -1189,7 +1188,7 @@ void *OCP_GARMIN_Thread::Entry()
             {
 
 
-                  D800_Pvt_Data_Type *ppvt = (D800_Pvt_Data_Type *)&(iresp.gusb_pkt.databuf);
+                  D800_Pvt_Data_Type *ppvt = (D800_Pvt_Data_Type *)&(iresp.gusb_pkt.databuf[0]);
 
                   if(m_pShareMutex)
                         pStateLocker = new wxMutexLocker(*m_pShareMutex) ;
@@ -1315,9 +1314,9 @@ bool OCP_GARMIN_Thread::gusb_syncup(void)
       m_receive_state = rs_fromintr;
 
       for(i = 0; i < 25; i++) {
-            le_write16(&iresp.gusb_pkt.pkt_id, 0);
-            le_write32(&iresp.gusb_pkt.datasz, 0);
-            le_write32(&iresp.gusb_pkt.databuf, 0);
+            le_write16(&iresp.gusb_pkt.pkt_id[0], 0);
+            le_write32(&iresp.gusb_pkt.datasz[0], 0);
+            le_write32(&iresp.gusb_pkt.databuf[0], 0);
 
             if(!gusb_cmd_send((const garmin_usb_packet *) oinit, sizeof(oinit)))
             {
@@ -1349,7 +1348,7 @@ int OCP_GARMIN_Thread::gusb_cmd_send(const garmin_usb_packet *opkt, size_t sz)
 {
       unsigned int rv;
 
-      unsigned char *obuf = (unsigned char *) &opkt->dbuf;
+      unsigned char *obuf = (unsigned char *) &opkt->dbuf[0];
 
       rv = gusb_win_send(opkt, sz);
 
@@ -1371,7 +1370,7 @@ int OCP_GARMIN_Thread::gusb_cmd_send(const garmin_usb_packet *opkt, size_t sz)
 int OCP_GARMIN_Thread::gusb_cmd_get(garmin_usb_packet *ibuf, size_t sz)
 {
       int rv;
-      unsigned char *buf = (unsigned char *) &ibuf->dbuf;
+      unsigned char *buf = (unsigned char *) &ibuf->dbuf[0];
       int orig_receive_state;
 top:
       orig_receive_state = m_receive_state;
@@ -1409,7 +1408,7 @@ top:
 int OCP_GARMIN_Thread::gusb_win_get(garmin_usb_packet *ibuf, size_t sz)
 {
       DWORD rxed = GARMIN_USB_INTERRUPT_DATA_SIZE;
-      unsigned char *buf = (unsigned char *) &ibuf->dbuf;
+      unsigned char *buf = (unsigned char *) &ibuf->dbuf[0];
       int tsz=0;
 
       while (sz)
@@ -1437,7 +1436,7 @@ int OCP_GARMIN_Thread::gusb_win_get_bulk(garmin_usb_packet *ibuf, size_t sz)
 {
       int n;
       DWORD rsz;
-      unsigned char *buf = (unsigned char *) &ibuf->dbuf;
+      unsigned char *buf = (unsigned char *) &ibuf->dbuf[0];
 
       n = ReadFile(m_usb_handle, buf, sz, &rsz, NULL);
 
@@ -1447,7 +1446,7 @@ int OCP_GARMIN_Thread::gusb_win_get_bulk(garmin_usb_packet *ibuf, size_t sz)
 int OCP_GARMIN_Thread::gusb_win_send(const garmin_usb_packet *opkt, size_t sz)
 {
       DWORD rsz;
-      unsigned char *obuf = (unsigned char *) &opkt->dbuf;
+      unsigned char *obuf = (unsigned char *) &opkt->dbuf[0];
 
       /* The spec warns us about making writes an exact multiple
        * of the packet size, but isn't clear whether we can issue
