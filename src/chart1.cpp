@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.30 2008/11/12 04:13:24 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.31 2008/12/05 23:05:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.31  2008/12/05 23:05:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.30  2008/11/12 04:13:24  bdbcat
  * Support Garmin Devices / Cleanup
  *
@@ -57,6 +60,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.31  2008/12/05 23:05:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.30  2008/11/12 04:13:24  bdbcat
  * Support Garmin Devices / Cleanup
  *
@@ -187,7 +193,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.30 2008/11/12 04:13:24 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.31 2008/12/05 23:05:49 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -2668,7 +2674,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       dc.SelectObject(tool_bm_dummy);
 
 // First, clear background
-// Using a color depending on the state of bGPSValid and Chart_Error_Factor
+// Using a color depending on the state  Chart_Error_Factor
       wxBrush *p_brush;
       p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN3")), wxSOLID);   // quiet green
 
@@ -3639,11 +3645,12 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
     if(bshow_tick)
     {
       //      Show a little heartbeat tick in StatusWindow0 on NMEA events
+      //      But no faster than 10 hz.
       unsigned long uiCurrentTickCount ;
       m_MMEAeventTime.SetToCurrent() ;
-      uiCurrentTickCount = m_MMEAeventTime.GetMillisecond() ;
-      uiCurrentTickCount += m_MMEAeventTime.GetSecond() * 1000 ;
-      if(uiCurrentTickCount > m_ulLastNEMATicktime + 100)
+      uiCurrentTickCount = m_MMEAeventTime.GetMillisecond() / 100 ;           // tenths of a second
+      uiCurrentTickCount += m_MMEAeventTime.GetTicks() * 10 ;
+      if(uiCurrentTickCount > m_ulLastNEMATicktime + 1)
       {
             m_ulLastNEMATicktime = uiCurrentTickCount ;
 
@@ -3676,8 +3683,8 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 
 
 #ifdef ocpnUPDATE_SYSTEM_TIME
-//      Use the fix time to update the local clock
-      if((0 != fixtime) && s_bSetSystemTime)
+//      Use the fix time to update the local system clock, only once per session
+      if((0 != fixtime) && s_bSetSystemTime && (m_bTimeIsSet == false))
       {
             wxDateTime Fix_Time;
             Fix_Time.Set(fixtime);
@@ -3692,10 +3699,12 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
             ts = cwxft.Subtract(sdt);
 
             int b = (ts.GetSeconds()).ToLong();
-//          Correct system time if necessary
-//      Only set the time once per session, and only if wrong by more than 1 minute.
 
-            if((abs(b) > 60) && (m_bTimeIsSet == false))
+//          Correct system time if necessary
+//      Only set the time if wrong by more than 1 minute, and less than 2 hours
+//      This should eliminate bogus times which may come from faulty GPS units
+
+            if((abs(b) > 60) && (abs(b) < (2 * 60 * 60)))
             {
 
 #ifdef __WXMSW__
@@ -3729,7 +3738,7 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 //          nav ALL=NOPASSWD:/bin/date -s *
 
                         wxString msg;
-                        msg.Printf(_T("Setting system time, delta t is %d"), b);
+                        msg.Printf(_T("Setting system time, delta t is %d seconds"), b);
                         wxLogMessage(msg);
 
                         wxString sdate(Fix_Time.Format(_T("%D")));
@@ -3740,6 +3749,9 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                         sdate.Append(stime);
                         sdate.Append(_T("\""));
 
+                        msg.Printf(_T("Linux command is:"));
+                        msg += sdate;
+                        wxLogMessage(msg);
                         wxExecute(sdate, wxEXEC_ASYNC);
 
 #endif      //__WXMSW__
