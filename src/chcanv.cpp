@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.31 2008/11/15 03:12:07 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.32 2008/12/05 22:57:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.32  2008/12/05 22:57:03  bdbcat
+ * Correct AIS Graphics
+ *
  * Revision 1.31  2008/11/15 03:12:07  bdbcat
  * Correct AIS COG display
  *
@@ -57,6 +60,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.32  2008/12/05 22:57:03  bdbcat
+ * Correct AIS Graphics
+ *
  * Revision 1.31  2008/11/15 03:12:07  bdbcat
  * Correct AIS COG display
  *
@@ -197,7 +203,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.31 2008/11/15 03:12:07 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.32 2008/12/05 22:57:03 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1316,7 +1322,7 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                         GetPointPix ( td->Lat, td->Lon, &TargetPoint );
                         GetPointPix ( pred_lat, pred_lon, &PredPoint );
 
-                        if ( 1/*td->SOG > 0.5*/ )
+//                        if ( 1/*td->SOG > 0.5*/ )
                         {
                                 GetPointPix ( pred_lat, pred_lon, &PredPoint );
 
@@ -1327,10 +1333,10 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                      theta = atan2 ( ( PredPoint.y - TargetPoint.y ), ( PredPoint.x - TargetPoint.x ) );
                                 else
                                 {
-                                      if( PredPoint.y >= TargetPoint.y)
-                                          theta = PI / 2.;            // Draw symbol at course 000 if speed is to low to show
+                                      if( PredPoint.y > TargetPoint.y)
+                                            theta = PI / 2.;              // valid COG 180
                                       else
-                                            theta = -PI / 2.;
+                                            theta = -PI / 2.;            //  valid COG 000 or speed is too low to resolve course
                                 }
 
                                 //  Draw the icon rotated to the COG
@@ -1346,8 +1352,8 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                 {
                                         double px = ( ( double ) ais_tri_icon[i].x ) * sin ( theta ) + ( ( double ) ais_tri_icon[i].y ) * cos ( theta );
                                         double py = ( double ) ais_tri_icon[i].y * sin ( theta ) - ( double ) ais_tri_icon[i].x * cos ( theta );
-                                        ais_tri_icon[i].x = ( int ) floor ( px );
-                                        ais_tri_icon[i].y = ( int ) floor ( py );
+                                        ais_tri_icon[i].x = (int) round( px );
+                                        ais_tri_icon[i].y = (int) round( py );
                                 }
 
                                 // Default color is green
@@ -1389,6 +1395,7 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                 }
 
                         }
+  /*
                         else                                      // SOG is near zero, use diamond icon
                         {
                                 wxPoint ais_dia_icon[4];
@@ -1411,10 +1418,9 @@ void ChartCanvas::AISDraw ( wxDC& dc )
 
                                 dc.DrawPolygon ( 4, &ais_dia_icon[0], TargetPoint.x, TargetPoint.y );
                         }
+*/
                 }
         }
-
-///    printf("On AIS Draw, ntargets:%d\n", ntargets);
 }
 
 void ChartCanvas::UpdateShips()
@@ -2494,7 +2500,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
 
                 case ID_RT_MENU_DELETE:
-                        if ( pRouteMan->GetpActiveRoute() )
+                      if ( pRouteMan->GetpActiveRoute() == m_pSelectedRoute )
                                 pRouteMan->DeactivateRoute();
 
                         pConfig->DeleteConfigRoute ( m_pSelectedRoute );
