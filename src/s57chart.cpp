@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.21 2008/11/12 04:15:09 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.22 2008/12/08 04:28:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.22  2008/12/08 04:28:46  bdbcat
+ * CRLF Correction
+ *
  * Revision 1.21  2008/11/12 04:15:09  bdbcat
  * Cleanup messages
  *
@@ -52,6 +55,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.22  2008/12/08 04:28:46  bdbcat
+ * CRLF Correction
+ *
  * Revision 1.21  2008/11/12 04:15:09  bdbcat
  * Cleanup messages
  *
@@ -142,7 +148,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.21 2008/11/12 04:15:09 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.22 2008/12/08 04:28:46 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
