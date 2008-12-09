@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.17 2008/11/02 23:22:05 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.18 2008/12/09 03:49:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.18  2008/12/09 03:49:36  bdbcat
+ * Cleanup Comments
+ *
  * Revision 1.17  2008/11/02 23:22:05  bdbcat
  * Fix wxDateTime.Set() arguments
  *
@@ -42,6 +45,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.18  2008/12/09 03:49:36  bdbcat
+ * Cleanup Comments
+ *
  * Revision 1.17  2008/11/02 23:22:05  bdbcat
  * Fix wxDateTime.Set() arguments
  *
@@ -115,7 +121,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.17 2008/11/02 23:22:05 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.18 2008/12/09 03:49:36 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -3919,7 +3925,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.17 2008/11/02 23:22:05 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.18 2008/12/09 03:49:36 bdbcat Exp $
 *
 */
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.11 2008/08/29 04:58:05 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.12 2008/12/09 03:53:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,22 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
- * Revision 1.11  2008/08/29 04:58:05  bdbcat
- * Correct sector light math
+ * Revision 1.12  2008/12/09 03:53:47  bdbcat
+ * Cleanup Comments
  *
- * Revision 1.10  2008/08/26 19:01:06  bdbcat
- * Correct Colour for Red/Green Sector light
- *
- * Revision 1.9  2008/08/26 13:49:15  bdbcat
- * Better color scheme support
- *
- * Revision 1.8  2008/08/09 23:58:40  bdbcat
- * Numerous revampings....
- *
- * Revision 1.7  2008/03/30 22:15:45  bdbcat
- * Add missing symbology OBSTRN, etc.
- *
- * $Log: s52cnsy.cpp,v $
  * Revision 1.11  2008/08/29 04:58:05  bdbcat
  * Correct sector light math
  *
@@ -118,7 +105,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.11 2008/08/29 04:58:05 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.12 2008/12/09 03:53:47 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
