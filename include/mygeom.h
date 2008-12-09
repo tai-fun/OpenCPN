@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.7 2008/03/30 23:28:29 bdbcat Exp $
+ * $Id: mygeom.h,v 1.8 2008/12/09 03:32:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselation of Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
+ * Revision 1.8  2008/12/09 03:32:16  bdbcat
+ * Add stream method
+ *
  * Revision 1.7  2008/03/30 23:28:29  bdbcat
  * Cleanup/optimize
  *
@@ -69,6 +72,10 @@
 
 #ifndef __MYGEOM_H
 #define __MYGEOM_H
+
+// For compilers that support precompilation, includes "wx/wx.h".
+#include "wx/wxprec.h"
+#include <wx/wfstream.h>
 
 
 #include <ogr_geometry.h>
@@ -157,6 +164,7 @@ class PolyTessGeo
             double ref_lat, double ref_lon,  bool bUseInternalTess);  // Build this from OGRPolygon
 
         int Write_PolyTriGroup( FILE *ofs);
+        int Write_PolyTriGroup( wxFileOutputStream &ostream);
 
         double Get_xmin(){ return xmin;}
         double Get_xmax(){ return xmax;}

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.9 2008/03/30 22:01:50 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.10 2008/12/09 03:31:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -27,11 +27,17 @@
  *
 <<<<<<< mygeom.cpp
  * $Log: mygeom.cpp,v $
+ * Revision 1.10  2008/12/09 03:31:13  bdbcat
+ * Add stream method
+ *
  * Revision 1.9  2008/03/30 22:01:50  bdbcat
  * Optimize SENC format
  *
 =======
  * $Log: mygeom.cpp,v $
+ * Revision 1.10  2008/12/09 03:31:13  bdbcat
+ * Add stream method
+ *
  * Revision 1.9  2008/03/30 22:01:50  bdbcat
  * Optimize SENC format
  *
@@ -76,7 +82,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.9 2008/03/30 22:01:50 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.10 2008/12/09 03:31:13 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -891,6 +897,109 @@ int PolyTessGeo::Write_PolyTriGroup( FILE *ofs)
 
     return 0;
 }
+
+int PolyTessGeo::Write_PolyTriGroup( wxFileOutputStream &out_stream)
+{
+      wxString    sout;
+      wxString    sout1;
+      wxString    stemp;
+
+      PolyTriGroup *pPTG = m_ppg_head;
+
+
+//  Begin creating the output record
+//      Use a wxMemoryStream for temporary record output.
+//      When all finished, we'll touch up a few items before
+//      committing to disk.
+
+
+      ostream1 = new wxMemoryOutputStream(NULL, 0);                      // auto buffer creation
+      ostream2 = new wxMemoryOutputStream(NULL, 0);                      // auto buffer creation
+
+//  Create initial known part of the output record
+
+
+      stemp.sprintf( _T("  POLYTESSGEOPROP %f %f %f %f\n"),
+                     xmin, ymin, xmax, ymax);            // PolyTessGeo Properties
+      sout += stemp;
+
+//  Transcribe the true number of  contours, and the raw geometry wkb size
+      stemp.sprintf( _T("Contours/nWKB %d %d\n"),  ncnt, nwkb);
+      sout += stemp;
+
+
+//  Transcribe the contour counts
+      stemp.sprintf(_T("Contour nV"));
+      sout += stemp;
+      for(int i=0 ; i<ncnt ; i++)
+      {
+            stemp.sprintf( _T(" %d"), pPTG->pn_vertex[i]);
+            sout += stemp;
+      }
+      stemp.sprintf( _T("\n"));
+      sout += stemp;
+      ostream1->Write(sout.mb_str(), sout.Len());
+
+//  Transcribe the raw geometry buffer
+      ostream1->Write(pPTG->pgroup_geom,nwkb);
+      stemp.sprintf( _T("\n"));
+      ostream1->Write(stemp.mb_str(), stemp.Len());
+
+
+//  Transcribe the TriPrim chain
+
+      TriPrim *pTP = pPTG->tri_prim_head;         // head of linked list of TriPrims
+
+
+      while(pTP)
+      {
+            ostream2->Write(&pTP->type, sizeof(int));
+            ostream2->Write(&pTP->nVert, sizeof(int));
+
+            ostream2->Write( pTP->p_vertex, pTP->nVert * 2 * sizeof(double));
+
+        //  Write out the object bounding box as lat/lon
+            double minx = pTP->p_bbox->GetMinX();
+            double maxx = pTP->p_bbox->GetMaxX();
+            double miny = pTP->p_bbox->GetMinY();
+            double maxy = pTP->p_bbox->GetMaxY();
+            ostream2->Write(&minx, sizeof(double));
+            ostream2->Write(&maxx, sizeof(double));
+            ostream2->Write(&miny, sizeof(double));
+            ostream2->Write(&maxy, sizeof(double));
+
+
+            pTP = pTP->p_next;
+      }
+
+
+      stemp.sprintf( _T("POLYEND\n"));
+      ostream2->Write(stemp.mb_str(), stemp.Len());
+
+      int nrecl = ostream1->GetSize() + ostream2->GetSize();
+      stemp.sprintf( _T("  POLYTESSGEO  %08d\n"), nrecl);
+
+      out_stream.Write(stemp.mb_str(), stemp.Len());                 // Header, + record length
+
+      char *tb = (char *)malloc(ostream1->GetSize());
+      ostream1->CopyTo(tb, ostream1->GetSize());
+
+      out_stream.Write(tb, ostream1->GetSize());
+      free(tb);
+
+      tb = (char *)malloc(ostream2->GetSize());
+      ostream2->CopyTo(tb, ostream2->GetSize());
+      out_stream.Write(tb, ostream2->GetSize());
+
+      free(tb);
+
+
+      delete ostream1;
+      delete ostream2;
+
+      return 0;
+}
+
 
 
 
