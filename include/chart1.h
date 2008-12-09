@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.17 2008/11/12 04:15:43 bdbcat Exp $
+ * $Id: chart1.h,v 1.18 2008/12/09 04:06:23 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.18  2008/12/09 04:06:23  bdbcat
+ * Cleanup Comments
+ *
  * Revision 1.17  2008/11/12 04:15:43  bdbcat
  * Support Garmin Devices / Cleanup
  *
@@ -79,7 +82,7 @@
 
 #include "wx/print.h"
 //#include "wx/printdlg.h"
-
+#include "wx/datetime.h"
 
 #ifdef __WXMSW__
 //#include "../resource.h"

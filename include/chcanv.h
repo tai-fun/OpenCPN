@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.17 2008/10/31 01:06:22 bdbcat Exp $
+ * $Id: chcanv.h,v 1.18 2008/12/09 04:05:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.18  2008/12/09 04:05:53  bdbcat
+ * Cleanup Comments
+ *
  * Revision 1.17  2008/10/31 01:06:22  bdbcat
  * Fix ViewPort ctor
  *
