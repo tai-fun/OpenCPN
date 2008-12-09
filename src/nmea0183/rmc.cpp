@@ -40,6 +40,8 @@ bool RMC::Parse( const SENTENCE& sentence )
 
    /*
    ** RMC - Recommended Minimum Navigation Information
+   **
+   **  Version 2.0 Format
    **                                                            12
    **        1         2 3       4 5        6 7   8   9    10  11|
    **        |         | |       | |        | |   |   |    |   | |
@@ -57,7 +59,13 @@ bool RMC::Parse( const SENTENCE& sentence )
    **  9) Date, ddmmyy
    ** 10) Magnetic Variation, degrees
    ** 11) E or W
+
+   ** Version 2.0
    ** 12) Checksum
+
+   ** Version 2.3
+   ** 12) Mode (D or A), optional, may be NULL
+   ** 13) Checksum
    */
 
    /*
@@ -68,8 +76,24 @@ bool RMC::Parse( const SENTENCE& sentence )
 
    if ( check == NTrue )
    {
-       SetErrorMessage( _T("Invalid Checksum") );
-      return( FALSE );
+   /*
+   ** This may be an NMEA Version 2.3 sentence, with "Mode" field
+   */
+       wxString checksum_in_sentence = sentence.Field( 12 );
+       if(checksum_in_sentence.StartsWith(_T("*")))       // Field is a valid erroneous checksum
+       {
+         SetErrorMessage( _T("Invalid Checksum") );
+         return( FALSE );
+       }
+       else
+       {
+         check = sentence.IsChecksumBad( 13 );
+         if( check == NTrue)
+         {
+            SetErrorMessage( _T("Invalid Checksum") );
+            return( FALSE );
+         }
+       }
    }
 
    if ( check == Unknown0183 )
