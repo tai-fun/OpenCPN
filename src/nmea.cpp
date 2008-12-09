@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.24 2008/12/05 22:59:32 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.25 2008/12/09 03:25:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -60,14 +60,15 @@
 #endif
 
 
-CPL_CVSID("$Id: nmea.cpp,v 1.24 2008/12/05 22:59:32 bdbcat Exp $");
+
+CPL_CVSID("$Id: nmea.cpp,v 1.25 2008/12/09 03:25:47 bdbcat Exp $");
 
 int                      s_dns_test_flag;
-
 
 //    A static structure storing generic position data
 //    Used to communicate from NMEA threads to main application thread
 static      GenericPosDat     ThreadPositionData;
+
 
 
 

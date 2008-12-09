@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.11 2008/11/12 04:12:08 bdbcat Exp $
+ * $Id: options.cpp,v 1.12 2008/12/09 03:29:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.12  2008/12/09 03:29:03  bdbcat
+ * Cleanup
+ *
  * Revision 1.11  2008/11/12 04:12:08  bdbcat
  * Support Garmin Devices
  *
@@ -44,9 +47,6 @@
  * Revision 1.6  2008/03/30 22:09:48  bdbcat
  * Cleanup
  *
- * $Log: options.cpp,v $
- * Revision 1.11  2008/11/12 04:12:08  bdbcat
- * Support Garmin Devices
  *
  * Revision 1.10  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
