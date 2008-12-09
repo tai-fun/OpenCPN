@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.13 2008/11/12 04:15:44 bdbcat Exp $
+ * $Id: nmea.h,v 1.14 2008/12/09 03:44:33 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,16 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
- * Revision 1.13  2008/11/12 04:15:44  bdbcat
- * Support Garmin Devices / Cleanup
+ * Revision 1.14  2008/12/09 03:44:33  bdbcat
+ * Cleanup Comments
  *
- * Revision 1.12  2008/04/10 01:01:32  bdbcat
- * Cleanup
- *
- * Revision 1.11  2008/03/30 23:22:37  bdbcat
- * *** empty log message ***
- *
- * $Log: nmea.h,v $
  * Revision 1.13  2008/11/12 04:15:44  bdbcat
  * Support Garmin Devices / Cleanup
  *
