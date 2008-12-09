@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.12 2008/12/09 03:29:03 bdbcat Exp $
+ * $Id: options.cpp,v 1.13 2008/12/09 03:30:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,27 +26,14 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.13  2008/12/09 03:30:25  bdbcat
+ * Cleanup Comments
+ *
  * Revision 1.12  2008/12/09 03:29:03  bdbcat
  * Cleanup
  *
  * Revision 1.11  2008/11/12 04:12:08  bdbcat
  * Support Garmin Devices
- *
- * Revision 1.10  2008/08/26 13:46:25  bdbcat
- * Better color scheme support
- *
- * Revision 1.9  2008/08/09 23:58:40  bdbcat
- * Numerous revampings....
- *
- * Revision 1.8  2008/04/11 03:25:08  bdbcat
- * Implement Auto Anchor Mark
- *
- * Revision 1.7  2008/04/10 01:07:52  bdbcat
- * Cleanup and fix EOL problem on wxTextCtrl
- *
- * Revision 1.6  2008/03/30 22:09:48  bdbcat
- * Cleanup
- *
  *
  * Revision 1.10  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
