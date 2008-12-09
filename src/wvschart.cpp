@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.8 2008/10/23 23:25:19 bdbcat Exp $
+ * $Id: wvschart.cpp,v 1.9 2008/12/09 03:14:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.9  2008/12/09 03:14:52  bdbcat
+ * Cleanup
+ *
  * Revision 1.8  2008/10/23 23:25:19  bdbcat
  * Correct file name buffer overflow
  *
@@ -36,6 +39,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.9  2008/12/09 03:14:52  bdbcat
+ * Cleanup
+ *
  * Revision 1.8  2008/10/23 23:25:19  bdbcat
  * Correct file name buffer overflow
  *
@@ -105,7 +111,7 @@
 #include "cutil.h"
 #include "georef.h"
 
-CPL_CVSID("$Id: wvschart.cpp,v 1.8 2008/10/23 23:25:19 bdbcat Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.9 2008/12/09 03:14:52 bdbcat Exp $");
 
 //      Local Prototypes
 extern "C" int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray, int **segray);
