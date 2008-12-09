@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.8 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: statwin.h,v 1.9 2008/12/09 03:33:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Status Window
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.h,v $
+ * Revision 1.9  2008/12/09 03:33:06  bdbcat
+ * Add cm93 support
+ *
  * Revision 1.8  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -33,6 +36,9 @@
  * *** empty log message ***
  *
  * $Log: statwin.h,v $
+ * Revision 1.9  2008/12/09 03:33:06  bdbcat
+ * Add cm93 support
+ *
  * Revision 1.8  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -122,6 +128,9 @@ private:
       wxBrush     *m_psvBrush;
       wxBrush     *m_puvBrush;
       wxBrush     *m_pslBrush;
+
+      wxBrush     *m_pcBrush;
+      wxBrush     *m_pscBrush;
 
       MyFrame     *gparent;
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.10 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: chartbase.h,v 1.11 2008/12/09 03:33:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.11  2008/12/09 03:33:25  bdbcat
+ * Add cm93 support
+ *
  * Revision 1.10  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -90,6 +93,7 @@ typedef enum ChartTypeEnum
       CHART_TYPE_KAP = 0,
       CHART_TYPE_GEO,
       CHART_TYPE_S57,
+      CHART_TYPE_CM93,
       CHART_TYPE_DUMMY
 }_ChartTypeEnum;
 
