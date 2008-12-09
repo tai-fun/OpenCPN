@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.11 2008/10/23 23:33:41 bdbcat Exp $
+ * $Id: s52s57.h,v 1.12 2008/12/09 03:39:35 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,19 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
- * Revision 1.11  2008/10/23 23:33:41  bdbcat
- * SENC Format 118
+ * Revision 1.12  2008/12/09 03:39:35  bdbcat
+ * Add cm93 support
  *
- * Revision 1.10  2008/08/26 13:49:53  bdbcat
- * Better color scheme support
- *
- * Revision 1.9  2008/08/09 23:36:46  bdbcat
- * *** empty log message ***
- *
- * Revision 1.8  2008/03/30 23:23:29  bdbcat
- * *** empty log message ***
- *
- * $Log: s52s57.h,v $
  * Revision 1.11  2008/10/23 23:33:41  bdbcat
  * SENC Format 118
  *
@@ -333,7 +323,7 @@ public:
       //  Public Methods
       S57Obj();
       ~S57Obj();
-      S57Obj(char *first_line, wxBufferedInputStream *fpx);
+      S57Obj(char *first_line, wxBufferedInputStream *fpx, double ref_lat, double ref_lon);
 
       // Private Methods
 private:

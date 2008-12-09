@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.16 2008/10/23 23:33:10 bdbcat Exp $
+ * $Id: s57chart.h,v 1.17 2008/12/09 03:40:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.17  2008/12/09 03:40:42  bdbcat
+ * Add cm93 support
+ *
  * Revision 1.16  2008/10/23 23:33:10  bdbcat
  * Cleanup
  *
@@ -143,7 +146,7 @@ public:
       s57chart();
       ~s57chart();
 
-      InitReturn Init( const wxString& name, ChartInitFlag flags, ColorScheme cs );
+      virtual InitReturn Init( const wxString& name, ChartInitFlag flags, ColorScheme cs );
 
 //    Accessors
 
@@ -181,6 +184,10 @@ public:
       wxString *CreateObjDescription(const S57Obj *obj);
       wxString *GetAttributeDecode(wxString& att, int ival);
 
+      wxFileName GetSENCFileName(){ return m_SENCFileName; }
+      void SetSENCFileName(wxFileName fn){ m_SENCFileName = fn;}
+
+      int BuildRAZFromSENCFile(const wxString& SENCPath);
 
       //    Initialize from an existing SENC file
       bool InitFromSENCMinimal( const wxString& FullPath );
@@ -198,6 +205,10 @@ public:
       wxArrayPtrVoid *pRigidATONArray;
 
       double        ref_lat, ref_lon;             // Common reference point, derived from FullExtent
+      Extent        m_FullExtent;
+      bool         m_bExtentSet;
+
+      double      m_s_ref_lat, m_s_ref_lon;
 
 private:
       void DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, RenderTypeEnum option);
@@ -208,7 +219,6 @@ private:
       InitReturn PostInit( ChartInitFlag flags, ColorScheme cs );
       InitReturn FindOrCreateSenc( const wxString& name );
       int BuildSENCFile(const wxString& FullPath000, const wxString& SENCFileName);
-      int BuildRAZFromSENCFile(const wxString& SENCPath);
 
       void CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode );
 
@@ -245,13 +255,11 @@ private:
       wxFileName  m_SENCFileName;
       ObjRazRules *razRules[PRIO_NUM][LUPNAME_NUM];
 
-      Extent     m_FullExtent;
 
       wxArrayString *m_tmpup_array;
       PixelCache   *pDIB;
 
       bool         bGLUWarningSent;
-      bool         m_bExtentSet;
 
       wxBitmap    *m_pDIBThumbDay;
       wxBitmap    *m_pDIBThumbDim;
