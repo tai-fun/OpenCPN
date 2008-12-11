@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.22 2008/12/08 04:28:46 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.23 2008/12/11 23:30:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,8 +27,8 @@
  *
 
  * $Log: s57chart.cpp,v $
- * Revision 1.22  2008/12/08 04:28:46  bdbcat
- * CRLF Correction
+ * Revision 1.23  2008/12/11 23:30:36  bdbcat
+ * Memberized ref_lat, ref_lon
  *
  * Revision 1.21  2008/11/12 04:15:09  bdbcat
  * Cleanup messages
@@ -55,8 +55,8 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
- * Revision 1.22  2008/12/08 04:28:46  bdbcat
- * CRLF Correction
+ * Revision 1.23  2008/12/11 23:30:36  bdbcat
+ * Memberized ref_lat, ref_lon
  *
  * Revision 1.21  2008/11/12 04:15:09  bdbcat
  * Cleanup messages
@@ -148,7 +148,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.22 2008/12/08 04:28:46 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.23 2008/12/11 23:30:36 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -185,7 +185,7 @@ WX_DEFINE_LIST(ListOfS57Obj);
 //  SM methods only.
 //  At that point, S57OBJ works only in SM
 
-static double s_ref_lat, s_ref_lon;
+//static double s_ref_lat, s_ref_lon;
 
 
 #define S57_THUMB_SIZE  200
@@ -254,7 +254,7 @@ S57Obj::~S57Obj()
 //      S57Obj CTOR from SENC file
 //----------------------------------------------------------------------------------
 
-S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx)
+S57Obj::S57Obj(char *first_line, wxBufferedInputStream *pfpx, double s_ref_lat, double s_ref_lon)
 {
     attList = NULL;
     attVal = NULL;
@@ -1587,8 +1587,8 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
     ref_lon = (m_FullExtent.WLON + m_FullExtent.ELON) /2.;
 
     //  Todo Eventually s_ref_lat/lon goes away.
-    s_ref_lat = ref_lat;
-    s_ref_lon = ref_lon;
+    m_s_ref_lat = ref_lat;
+    m_s_ref_lon = ref_lon;
 
 
     if(flags == THUMB_ONLY)
@@ -2696,7 +2696,7 @@ static int ExtensionCompare(const wxString& first, const wxString& second)
 
 int s57chart::GetUpdateFileArray(const wxFileName file000, wxArrayString *UpFiles)
 {
-        wxString DirName000 = file000.GetPath((int)wxPATH_GET_SEPARATOR);
+        wxString DirName000 = file000.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME));
         wxDir dir(DirName000);
         wxString ext;
         wxArrayString *dummy_array;
@@ -2806,7 +2806,7 @@ int s57chart::ValidateAndCountUpdates( const wxFileName file000, const wxString 
 
         int retval = 0;
 
-        wxString DirName000 = file000.GetPath((int)wxPATH_GET_SEPARATOR);
+        wxString DirName000 = file000.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME));
         wxDir dir(DirName000);
         wxArrayString *UpFiles = new wxArrayString;
         retval = GetUpdateFileArray(DirName000, UpFiles);
@@ -3185,7 +3185,7 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
 
     int last_applied_update = 0;
     wxString LastUpdateDate = date000;
-    last_applied_update = ValidateAndCountUpdates( file000.GetPath((int)wxPATH_GET_SEPARATOR),
+    last_applied_update = ValidateAndCountUpdates( file000.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME)),
                                                    SENCfile.GetPath(), LastUpdateDate);
 
     fprintf(fps57, "UPDT=%d\n", last_applied_update);
@@ -3487,7 +3487,7 @@ int s57chart::BuildRAZFromSENCFile( const wxString& FullPath )
 //                      if(!strncmp(buf, "OGRFeature(SOUNDG)", 16))
 //                            int yyo = 6;
 
-                    S57Obj *obj = new S57Obj(buf, &fpx);
+                    S57Obj *obj = new S57Obj(buf, &fpx, m_s_ref_lat, m_s_ref_lon);
                     if(obj)
                     {
 
