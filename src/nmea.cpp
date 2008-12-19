@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.25 2008/12/09 03:25:47 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.26 2008/12/19 04:12:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -61,7 +61,7 @@
 
 
 
-CPL_CVSID("$Id: nmea.cpp,v 1.25 2008/12/09 03:25:47 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.26 2008/12/19 04:12:03 bdbcat Exp $");
 
 int                      s_dns_test_flag;
 
@@ -90,7 +90,6 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
       wxWindow(frame, window_id,     wxPoint(20,20), wxDefaultSize, wxSIMPLE_BORDER)
 
 {
-
       parent_frame = frame;
       m_pParentEventHandler = parent_frame->GetEventHandler();
 
@@ -521,6 +520,8 @@ extern wxMutex                      *ps_mutexProtectingTheRXBuffer;
 
 OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, wxMutex *pMutex, const wxString& PortName)
 {
+      m_total_error_messages = 0;
+
       m_launcher = Launcher;                        // This thread's immediate "parent"
 
       m_pMainEventHandler = MessageTarget->GetEventHandler();
@@ -1037,8 +1038,30 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
                   event.SetClientData(&ThreadPositionData);
                   m_pMainEventHandler->AddPendingEvent(event);
               }
+              else
+              {
+                    if(m_total_error_messages < 100)
+                    {
+                          m_total_error_messages++;
+                          wxString msg(_T("   NMEA RMC Sentence is invalid..."));
+                          msg.Append(str_temp_buf);
+                          ThreadMessage(msg);
+                    }
+              }
+
             }
       }
+      else
+      {
+            if(m_total_error_messages < 100)
+            {
+                  m_total_error_messages++;
+                  wxString msg(_T("   Bad NMEA Parse..."));
+                  msg.Append(str_temp_buf);
+                  ThreadMessage(msg);
+            }
+      }
+
 }
 
 
