@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.12 2008/12/09 03:39:35 bdbcat Exp $
+ * $Id: s52s57.h,v 1.13 2008/12/19 04:18:23 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.13  2008/12/19 04:18:23  bdbcat
+ * SENC version/format increment.
+ *
  * Revision 1.12  2008/12/09 03:39:35  bdbcat
  * Add cm93 support
  *
@@ -83,7 +86,7 @@
 
 #include "bbox.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  118
+#define CURRENT_SENC_FORMAT_VERSION  119
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
