@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.12 2008/12/09 03:53:47 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.13 2008/12/19 01:37:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.13  2008/12/19 01:37:06  bdbcat
+ * Add selectable depth unit conversion
+ *
  * Revision 1.12  2008/12/09 03:53:47  bdbcat
  * Cleanup Comments
  *
@@ -105,7 +108,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.12 2008/12/09 03:53:47 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.13 2008/12/19 01:37:06 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -2495,7 +2498,7 @@ static void *SOUNDG03(void *param)
 
 
 
-wxString *SNDFRM02(S57Obj *obj, double depth_value)
+wxString *SNDFRM02(S57Obj *obj, double depth_value_in)
 // Remarks: Soundings differ from plain text because they have to be readable under all
 // circumstances and their digits are placed according to special rules. This
 // conditional symbology procedure accesses a set of carefully designed
@@ -2521,6 +2524,21 @@ wxString *SNDFRM02(S57Obj *obj, double depth_value)
     char     status[LISTSIZE] = {'\0'};
 
     double   leading_digit    = 0.0;
+
+    //      Do the math to convert soundings to ft/metres/fathoms on request
+    double depth_value = depth_value_in;
+    switch(ps52plib->m_nDepthUnitDisplay)
+    {
+          case 0:
+                depth_value = depth_value * 3 * 39.37 / 36;              // feet
+                break;
+          case 2:
+                depth_value = depth_value * 3 * 39.37 / (36 * 6);        // fathoms
+                break;
+          default:
+                break;
+    }
+
 
     // FIXME: test to fix the rounding error (!?)
     depth_value  += (depth_value > 0.0)? 0.01: -0.01;

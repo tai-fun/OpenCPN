@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.21 2008/10/31 22:46:47 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.22 2008/12/19 01:37:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.22  2008/12/19 01:37:06  bdbcat
+ * Add selectable depth unit conversion
+ *
  * Revision 1.21  2008/10/31 22:46:47  bdbcat
  * Fix undefined colour tables
  *
@@ -51,6 +54,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.22  2008/12/19 01:37:06  bdbcat
+ * Add selectable depth unit conversion
+ *
  * Revision 1.21  2008/10/31 22:46:47  bdbcat
  * Fix undefined colour tables
  *
@@ -141,7 +147,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.21 2008/10/31 22:46:47 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.22 2008/12/19 01:37:06 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -194,6 +200,7 @@ s52plib::s52plib ( const wxString& PLib )
         m_nSymbolStyle = PAPER_CHART;
         m_nBoundaryStyle = PLAIN_BOUNDARIES;
         m_nDisplayCategory = OTHER;
+        m_nDepthUnitDisplay = 1;                // metres
 
         UpdateMarinerParams();
 
@@ -4795,15 +4802,17 @@ int s52plib::RenderToBufferAC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
 int s52plib::RenderArea ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp,
                           render_canvas_parms *pb_spec )
 {
-        if ( !ObjectRenderCheck ( rzRules, vp ) )
+        //Debug Hooks
+//      if(!strncmp(rzRules->LUP->OBCL, "M_COVR", 6))
+//            int yyrjt = 4;
+
+      if ( !ObjectRenderCheck ( rzRules, vp ) )
                 return 0;
 
         pdc = pdcin;                    // use this DC
         Rules *rules = rzRules->LUP->ruleList;
 
         //Debug Hooks
-//    if(!strncmp(rzRules->LUP->OBCL, "UNSARE", 6))
-//        int yyrt = 4;
 
 //  if(rzRules->obj->Index == 65)
 //      int rrt = 5;
