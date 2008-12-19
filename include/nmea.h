@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.14 2008/12/09 03:44:33 bdbcat Exp $
+ * $Id: nmea.h,v 1.15 2008/12/19 04:18:36 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.15  2008/12/19 04:18:36  bdbcat
+ * Better diagnostics
+ *
  * Revision 1.14  2008/12/09 03:44:33  bdbcat
  * Cleanup Comments
  *
@@ -241,6 +244,7 @@ private:
       char                    *rx_buffer;
 
       unsigned long           error;
+      int                     m_total_error_messages;
 
       NMEA0183                m_NMEA0183;
 
