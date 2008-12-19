@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.32 2008/12/05 22:57:03 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.33 2008/12/19 04:11:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.33  2008/12/19 04:11:31  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.32  2008/12/05 22:57:03  bdbcat
  * Correct AIS Graphics
  *
@@ -60,6 +63,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.33  2008/12/19 04:11:31  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.32  2008/12/05 22:57:03  bdbcat
  * Correct AIS Graphics
  *
@@ -203,7 +209,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.32 2008/12/05 22:57:03 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.33 2008/12/19 04:11:31 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -810,7 +816,7 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
 
         if ( Current_Ch )
         {
-                if ( Current_Ch->m_ChartType == CHART_TYPE_S57 )
+              if (( Current_Ch->m_ChartType == CHART_TYPE_S57 ) || ( Current_Ch->m_ChartType == CHART_TYPE_CM93 ))
                 {
 #ifdef USE_S57
 
@@ -2321,7 +2327,7 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                         pdef_menu->Append ( ID_DEF_MENU_SCALE_OUT,  _T ( "Scale Out" ) );
                         pdef_menu->Append ( ID_DEF_MENU_DROP_WP,    _T ( "Drop Mark Here" ) );
 
-                        if ( Current_Ch->m_ChartType == CHART_TYPE_S57 )
+                        if (( Current_Ch->m_ChartType == CHART_TYPE_S57 ) || ( Current_Ch->m_ChartType == CHART_TYPE_CM93 ))
                                 pdef_menu->Append ( ID_DEF_MENU_QUERY,  _T ( "Object Query" ) );
 
                         PopupMenu ( pdef_menu, x, y );
@@ -2431,7 +2437,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 #ifdef USE_S57
                 case ID_DEF_MENU_QUERY:
                 {
-                        if ( Current_Ch->m_ChartType == CHART_TYPE_S57 )
+                      if (( Current_Ch->m_ChartType == CHART_TYPE_S57 )|| ( Current_Ch->m_ChartType == CHART_TYPE_CM93 ))
                         {
 //    Go get the array of all objects at the cursor lat/lon
                                 Chs57 = dynamic_cast<s57chart*> ( Current_Ch );
@@ -2722,15 +2728,16 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
 
 
 
-        wxPen gPen ( GetGlobalColor ( _T ( "UINFG" ) ), 1, wxSOLID );
-        wxPen rPen ( GetGlobalColor ( _T ( "UINFR" ) ), 1, wxSOLID );
-
         int nPly = ChartData->GetDBPlyPoint ( dbIndex, 0, &plylat, &plylon );
 
         if ( ChartData->GetDBChartType ( dbIndex ) == CHART_TYPE_S57 )
-                pdc->SetPen ( gPen );
+              pdc->SetPen ( wxPen( GetGlobalColor ( _T ( "UINFG" ) ), 1, wxSOLID ) );
+
+        else if ( ChartData->GetDBChartType ( dbIndex ) == CHART_TYPE_CM93 )
+              pdc->SetPen (  wxPen(GetGlobalColor ( _T ( "YELO1" ) ), 1, wxSOLID  ) );
+
         else
-                pdc->SetPen ( rPen );
+              pdc->SetPen ( wxPen( GetGlobalColor ( _T ( "UINFR" ) ), 1, wxSOLID ) );
 
         if ( bdraw_mono_for_mask )
         {
@@ -2778,9 +2785,9 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
                 pdc->DrawLine ( pixx, pixy, pixx1, pixy1 );
 
         //       Draw Aux Ply Points
-        /*
-                if(ChartData->GetDBChartType(dbIndex) == CHART_TYPE_S57)
-                {
+
+        if(ChartData->GetDBChartType(dbIndex) == CHART_TYPE_CM93)
+        {
                       wxPen mPen(GetGlobalColor(_T("UINFM")), 2, wxSOLID);
                       pdc->SetPen(mPen);
 
@@ -2825,8 +2832,8 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
                           if(res != Invisible)
                             pdc->DrawLine(pixx, pixy, pixx1, pixy1);
                       }
-                }
-        */
+        }
+
 }
 
 void ChartCanvas::WarpPointerDeferred ( int x, int y )
@@ -3000,7 +3007,12 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
         //      If Depth Unit Display is selected, emboss it
         if ( g_bShowDepthUnits )
         {
-                EmbossDepthScale ( &temp_dc, &scratch_dc, Current_Ch->GetDepthUnitType() );
+              int depth_display_ident = Current_Ch->GetDepthUnitType();
+
+              if((Current_Ch->m_ChartType == CHART_TYPE_S57) || (Current_Ch->m_ChartType == CHART_TYPE_CM93))
+                    depth_display_ident =  ps52plib->m_nDepthUnitDisplay +1;
+
+              EmbossDepthScale ( &temp_dc, &scratch_dc, depth_display_ident );
         }
 
 
@@ -3137,15 +3149,18 @@ void ChartCanvas::EmbossDepthScale ( wxMemoryDC *psource_dc, wxMemoryDC *pdest_d
         int *pmap = NULL;
         switch ( emboss_ident )
         {
-                case DEPTH_UNIT_FEET:
-                        pmap = m_pEM_Feet;
-                        break;
-                case DEPTH_UNIT_METERS:
-                        pmap = m_pEM_Meters;
-                        break;
-                case DEPTH_UNIT_FATHOMS:
-                        pmap = m_pEM_Fathoms;
-                        break;
+              case DEPTH_UNIT_FEET:
+                    pmap = m_pEM_Feet;
+                    break;
+              case DEPTH_UNIT_METERS:
+                    pmap = m_pEM_Meters;
+                    break;
+              case DEPTH_UNIT_FATHOMS:
+                    pmap = m_pEM_Fathoms;
+                    break;
+              default:
+                    pmap = NULL;
+                    break;
         }
 
         //  Apply emboss map to the snip image
