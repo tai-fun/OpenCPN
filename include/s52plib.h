@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.9 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: s52plib.h,v 1.10 2008/12/19 01:46:39 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.10  2008/12/19 01:46:39  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.9  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -36,6 +39,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.10  2008/12/19 01:46:39  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.9  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -148,6 +154,8 @@ public:
       bool        m_bShowMeta;
       bool        m_bShowS57Text;
       bool        m_bUseSCAMIN;
+
+      int         m_nDepthUnitDisplay;
 
 //  Todo Make this type safe, it is always an array of (OBJLElement *)
       wxArrayPtrVoid    *pOBJLArray;    // Used for Display Filtering

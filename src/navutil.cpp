@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.20  2008/12/19 01:46:02  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.19  2008/11/12 04:13:11  bdbcat
  * Support Garmin Devices / Mac Fonts / Cleanup
  *
@@ -55,6 +58,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.20  2008/12/19 01:46:02  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.19  2008/11/12 04:13:11  bdbcat
  * Support Garmin Devices / Mac Fonts / Cleanup
  *
@@ -136,7 +142,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.19 2008/11/12 04:13:11 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.20 2008/12/19 01:46:02 bdbcat Exp $");
 
 //    Statics
 
@@ -1288,13 +1294,10 @@ MyConfig::MyConfig(const wxString &appName, const wxString &vendorName, const wx
 int MyConfig::LoadMyConfig(int iteration)
 {
 
+      int read_int;
+
 //    Global options and settings
       SetPath(_T("/Settings"));
-// begin rms
-#ifdef __WXOSX__
-//        st_bFollow = false ;
-#endif
-// end rms
 
       s_bSetSystemTime = false;
       Read(_T("SetSystemTime"), &s_bSetSystemTime);
@@ -1332,33 +1335,33 @@ int MyConfig::LoadMyConfig(int iteration)
 #ifdef USE_S57
     if(NULL != ps52plib)
     {
-        SetPath(_T("/Settings/GlobalState"));
-        Read(_T("bShowS57Text"), &st_bShowS57Text, 0);
-      ps52plib->SetShowS57Text(st_bShowS57Text);
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("bShowS57Text"), &read_int, 0);
+      ps52plib->SetShowS57Text(read_int);
 
       SetPath(_T("/Settings/GlobalState"));
-      Read(_T("nDisplayCategory"), &m_nDisplayCategory, (enum _DisCat)OTHER);
-      ps52plib->m_nDisplayCategory = (enum _DisCat)m_nDisplayCategory;
+      Read(_T("nDisplayCategory"), &read_int, (enum _DisCat)OTHER);
+      ps52plib->m_nDisplayCategory = (enum _DisCat)read_int;
 
       SetPath(_T("/Settings/GlobalState"));
-      Read(_T("nSymbolStyle"), &m_nSymbolStyle, (enum _LUPname)PAPER_CHART);
-      ps52plib->m_nSymbolStyle = (LUPname)m_nSymbolStyle;
+      Read(_T("nSymbolStyle"), &read_int, (enum _LUPname)PAPER_CHART);
+      ps52plib->m_nSymbolStyle = (LUPname)read_int;
 
       SetPath(_T("/Settings/GlobalState"));
-      Read(_T("nBoundaryStyle"), &m_nBoundaryStyle, 0);
-      ps52plib->m_nBoundaryStyle = (LUPname)m_nBoundaryStyle;
+      Read(_T("nBoundaryStyle"), &read_int, 0);
+      ps52plib->m_nBoundaryStyle = (LUPname)read_int;
 
       SetPath(_T("/Settings/GlobalState"));
-      Read(_T("bShowSoundg"), &m_bShowSoundg, 0);
-      ps52plib->m_bShowSoundg = m_bShowSoundg;
+      Read(_T("bShowSoundg"), &read_int, 0);
+      ps52plib->m_bShowSoundg = read_int;
 
       SetPath(_T("/Settings/GlobalState"));
-      Read(_T("bShowMeta"), &m_bShowMeta, 0);
-      ps52plib->m_bShowMeta = m_bShowMeta;
+      Read(_T("bShowMeta"), &read_int, 0);
+      ps52plib->m_bShowMeta = read_int;
 
       SetPath(_T("/Settings/GlobalState"));
-      Read(_T("bUseSCAMIN"), &m_bUseSCAMIN, 0);
-      ps52plib->m_bUseSCAMIN = m_bUseSCAMIN;
+      Read(_T("bUseSCAMIN"), &read_int, 0);
+      ps52plib->m_bUseSCAMIN = read_int;
 
       double dval;
       if(Read(_T("S52_MAR_SAFETY_CONTOUR"), &dval, 5.0))
@@ -1373,8 +1376,11 @@ int MyConfig::LoadMyConfig(int iteration)
       if(Read(_T("S52_MAR_TWO_SHADES"), &dval, 0.0))
             S52_setMarinerParam(S52_MAR_TWO_SHADES, dval);
 
-
       ps52plib->UpdateMarinerParams();
+
+      SetPath(_T("/Settings/GlobalState"));
+      Read(_T("S52_DEPTH_UNIT_SHOW"), &read_int, 1);         // default is metres
+      ps52plib->m_nDepthUnitDisplay = read_int;
     }
 
     wxString strpres(_T("PresentationLibraryData"));
@@ -1427,8 +1433,8 @@ int MyConfig::LoadMyConfig(int iteration)
 
 
       SetPath(_T("/Settings/GlobalState"));
-      Read(_T("nColorScheme"), &m_nColorScheme, 0);
-      global_color_scheme = (ColorScheme)m_nColorScheme;
+      Read(_T("nColorScheme"), &read_int, 0);
+      global_color_scheme = (ColorScheme)read_int;
 
       SetPath(_T("/Settings/NMEADataSource"));
       Read(_T("Source"), pNMEADataSource, _T("NONE"));
@@ -2215,11 +2221,13 @@ void MyConfig::UpdateSettings()
       Write(_T("S52_MAR_SHALLOW_CONTOUR"), S52_getMarinerParam(S52_MAR_SHALLOW_CONTOUR));
       Write(_T("S52_MAR_DEEP_CONTOUR"), S52_getMarinerParam(S52_MAR_DEEP_CONTOUR));
       Write(_T("S52_MAR_TWO_SHADES"), S52_getMarinerParam(S52_MAR_TWO_SHADES));
+      Write(_T("S52_DEPTH_UNIT_SHOW"), ps52plib->m_nDepthUnitDisplay);
 
       SetPath(_T("/Directories"));
       Write(_T("S57DataLocation"), *g_pcsv_locn);
       Write(_T("SENCFileLocation"), *g_pSENCPrefix);
       Write(_T("PresentationLibraryData"), *g_pPresLibData);
+
 
 #endif
 

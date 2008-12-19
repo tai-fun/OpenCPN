@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.6 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: options.h,v 1.7 2008/12/19 01:46:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.7  2008/12/19 01:46:39  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.6  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -188,7 +191,7 @@ public:
     wxTextCtrl              *m_ShallowCtl;
     wxTextCtrl              *m_SafetyCtl;
     wxTextCtrl              *m_DeepCtl;
-
+    wxRadioBox              *pDepthUnitSelect;
 
 //    For "Charts" page
     wxPanel* itemPanel9;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.7 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: navutil.h,v 1.8 2008/12/19 01:46:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.8  2008/12/19 01:46:39  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.7  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -246,19 +249,10 @@ public:
 
       float st_lat, st_lon, st_view_scale;            // startup values
       bool  st_bFollow;
-      bool  st_bShowS57Text;
 
 //    These members are set/reset in Options dialog
       bool  m_bShowDebugWindows;
 
-      int   m_nDisplayCategory;
-      int   m_nSymbolStyle;
-      int   m_nBoundaryStyle;
-      int   m_nColorScheme;
-
-      bool  m_bShowSoundg;
-      bool  m_bShowMeta;
-      bool  m_bUseSCAMIN;
 };
 
 
