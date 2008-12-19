@@ -26,19 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
- * Revision 1.14  2008/10/24 00:11:13  bdbcat
- * Bounds check on Piano window region array index
+ * Revision 1.15  2008/12/19 01:50:32  bdbcat
+ * Add cm93 support
  *
- * Revision 1.13  2008/08/26 13:46:25  bdbcat
- * Better color scheme support
- *
- * Revision 1.12  2008/08/09 23:58:40  bdbcat
- * Numerous revampings....
- *
- * Revision 1.11  2008/03/30 22:23:04  bdbcat
- * Cleanup
- *
- * $Log: statwin.cpp,v $
  * Revision 1.14  2008/10/24 00:11:13  bdbcat
  * Bounds check on Piano window region array index
  *
@@ -102,7 +92,7 @@
 extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.14 2008/10/24 00:11:13 bdbcat Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.15 2008/12/19 01:50:32 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -300,6 +290,9 @@ void PianoWin::SetColorScheme(ColorScheme cs)
     m_pvBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN2")), wxSOLID);    // Vector Chart unselected
     m_psvBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN1")), wxSOLID);    // and selected
 
+    m_pcBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("YELO2")), wxSOLID);     // CM93 Chart unselected
+    m_pscBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("YELO1")), wxSOLID);    // and selected
+
     m_puvBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UINFD")), wxSOLID);    // and unavailable
 
 }
@@ -339,6 +332,9 @@ void PianoWin::OnPaint(wxPaintEvent& event)
 #else
                         dc.SetBrush(*m_pvBrush);
 #endif
+                  else if(ChartData->GetCSChartType(pCurrentStack, i) == CHART_TYPE_CM93)
+                        dc.SetBrush(*m_pcBrush);
+
                   else
                         dc.SetBrush(*m_ptBrush);
 
@@ -351,7 +347,10 @@ void PianoWin::OnPaint(wxPaintEvent& event)
 #else
                   dc.SetBrush(*m_psvBrush);
 #endif
-            else
+            else if(ChartData->GetCSChartType(pCurrentStack, pCurrentStack->CurrentStackEntry) == CHART_TYPE_CM93)
+                        dc.SetBrush(*m_pscBrush);
+
+             else
                   dc.SetBrush(*m_pslBrush);
 
             if((pCurrentStack->CurrentStackEntry >= 0 ) && (pCurrentStack->CurrentStackEntry < nKeys))
