@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.11 2008/10/24 00:09:19 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.12 2008/12/19 04:16:57 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.12  2008/12/19 04:16:57  bdbcat
+ * Improve database logic.
+ *
  * Revision 1.11  2008/10/24 00:09:19  bdbcat
  * Validate GetEditionDate() return
  *
@@ -82,13 +85,16 @@
 #include "s57.h"
 #endif
 
+#include "cm93.h"
+
+
 extern ChartBase    *Current_Ch;
 
 
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.11 2008/10/24 00:09:19 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.12 2008/12/19 04:16:57 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -271,7 +277,7 @@ bool ChartDB::SaveBinary(wxString *filename, wxArrayString *pChartDirArray)
 //    Verify that the target directory exists, make it if not
       wxFileName file(*filename);
 //    Note the explicit cast on GetPath argument, required by MSVC???
-      wxFileName dir(file.GetPath((int)wxPATH_GET_SEPARATOR, wxPATH_NATIVE));
+      wxFileName dir(file.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME), wxPATH_NATIVE));
 
       if( ! dir.DirExists() )
       {
@@ -516,6 +522,10 @@ int ChartDB::TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bu
 
 #endif
 
+#ifdef USE_CM93
+    nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.?")), bshow_prog, bupdate);          // for cm93
+#endif
+
     return nAdd;
 
 
@@ -566,11 +576,15 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
 
       //    Check to see if there are any charts in the DB which refer to this directory
       //    If none at all, there is no need to scan the DB for each potential addition
+      //    and bneed_full_search is false.
       bool bneed_full_search = SearchForChartDir(dir_name);
 
+      int isearch = 0;              // create a smarter search index
+                                          // indexing the DB starting from the last found item
 
       for(int ifile=0 ; ifile < nFile ; ifile++)
       {
+
             wxFileName file(FileList.Item(ifile));
             wxString full_name = file.GetFullPath(); //dir_name;
 
@@ -578,9 +592,10 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
             char test_str[512];
             strncpy(test_str, full_name.mb_str(), 511);
 
+            //    Create a string equal to what the chart name (ID) would be if it was created
             char test_str_ID[512];
             wxFileName base(full_name);
-            strncpy(test_str_ID, base.GetName().mb_str(), 511);
+            strncpy(test_str_ID, base.GetFullName().mb_str(), 511);
 
 
             bool bDuplicateName = false;
@@ -592,20 +607,26 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
                 {
                       for(int i=0 ; i<nEntry ; i++)
                       {
-                        if(0 == strcmp(test_str, pChartTable[i].pFullPath))
-                        {
+                            if(!strcmp(test_str, pChartTable[isearch].pFullPath))
+                            {
                               bDuplicatePath = true;
-                              pChartTable[i].bValid = true;
+                              pChartTable[isearch].bValid = true;
                               break;
-                        }
+                            }
 
                     //  Look at the chart name (ID) itself for a further check
-                        if(!strcmp(pChartTable[i].ChartID, test_str_ID))
-                        {
-                           bDuplicateName = true;
-                           iDuplicate = i;
-                           break;
-                        }
+                    //  This catches the case in which the "same" chart is in different locations,
+                    //  and one may be newer than the other, which we will later check for.
+                            if(!strcmp(pChartTable[isearch].ChartID, test_str_ID))
+                            {
+                               bDuplicateName = true;
+                               iDuplicate = isearch;
+                               break;
+                            }
+
+                            isearch++;
+                            if(nEntry == isearch)
+                                  isearch = 0;
                      }
                 }
             }
@@ -733,6 +754,14 @@ bool ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
       }
 
 
+#ifdef USE_CM93
+      else if(charttype.Len() == 1)                   // speculative, assuming the file will be found to be a cm93 cell...
+      {
+            pch = new cm93chart;
+            pEntry->ChartType = CHART_TYPE_CM93;
+      }
+#endif
+
       if(pch->Init(full_name, HEADER_ONLY, GLOBAL_COLOR_SCHEME_DAY) != INIT_OK)
       {
             delete pch;
@@ -743,7 +772,7 @@ bool ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
       strcpy(pt, full_name.mb_str( wxConvUTF8));
       pEntry->pFullPath = pt;
 
-      strncpy(pEntry->ChartID, fn.GetName().mb_str( wxConvUTF8), sizeof(pEntry->ChartID));
+      strncpy(pEntry->ChartID, fn.GetFullName().mb_str( wxConvUTF8), sizeof(pEntry->ChartID));
       pEntry->ChartID[sizeof(pEntry->ChartID)-1] = 0;
 
       pEntry->Scale = pch->GetNativeScale();
@@ -1325,6 +1354,27 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
             }
 #endif
 
+#ifdef USE_CM93
+            else if(GetCSChartType(pStack, StackEntry) == CHART_TYPE_CM93)
+            {
+                  Ch = new cm93chart();
+                  int dbIndex = pStack->DBIndex[StackEntry];
+
+                  cm93chart *Chcm93 = dynamic_cast<cm93chart*>(Ch);
+
+                  Chcm93->SetNativeScale(pChartTable[dbIndex].Scale);
+
+                  //    Explicitely set the chart extents from the database to
+                  //    support the case wherein the SENC file has not yet been built
+                  Extent ext;
+                  ext.NLAT = pChartTable[dbIndex].LatMax;
+                  ext.SLAT = pChartTable[dbIndex].LatMin;
+                  ext.WLON = pChartTable[dbIndex].LonMin;
+                  ext.ELON = pChartTable[dbIndex].LonMax;
+                  Chcm93->SetFullExtent(ext);
+            }
+#endif
+
             else
                   Ch = NULL;
 
@@ -1448,8 +1498,8 @@ ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, bool bLargest, boo
 
             while(index >= 0)
             {
-                  if((GetCSChartType(ps, index) != CHART_TYPE_S57 && !bVector) ||
-                      (GetCSChartType(ps, index) == CHART_TYPE_S57 && bVector))
+                  bool bis_vector = (GetCSChartType(ps, index) == CHART_TYPE_S57) | (GetCSChartType(ps, index) == CHART_TYPE_CM93);
+                  if((!bis_vector && !bVector) || (bis_vector && bVector))
                   {
                         ptc = OpenChartFromStack(ps, index);
 
@@ -1466,8 +1516,8 @@ ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, bool bLargest, boo
 
             while(index < ps->nEntry)
             {
-                  if((GetCSChartType(ps, index) != CHART_TYPE_S57 && !bVector) ||
-                      (GetCSChartType(ps, index) == CHART_TYPE_S57 && bVector))
+                  bool bis_vector = (GetCSChartType(ps, index) == CHART_TYPE_S57) | (GetCSChartType(ps, index) == CHART_TYPE_CM93);
+                  if((!bis_vector && !bVector) || (bis_vector && bVector))
                   {
                         ptc = OpenChartFromStack(ps, index);
 
