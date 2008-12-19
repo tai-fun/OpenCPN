@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.31 2008/12/05 23:05:49 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.32 2008/12/19 04:15:43 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.32  2008/12/19 04:15:43  bdbcat
+ * Constrain log file length
+ *
  * Revision 1.31  2008/12/05 23:05:49  bdbcat
  * *** empty log message ***
  *
@@ -60,6 +63,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.32  2008/12/19 04:15:43  bdbcat
+ * Constrain log file length
+ *
  * Revision 1.31  2008/12/05 23:05:49  bdbcat
  * *** empty log message ***
  *
@@ -166,6 +172,7 @@
 #include "ais.h"
 #include "chartimg.h"               // for ChartBaseBSB
 #include "routeprop.h"
+#include "cm93.h"
 
 #include <wx/image.h>
 #include "wx/apptrait.h"
@@ -193,7 +200,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.31 2008/12/05 23:05:49 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.32 2008/12/19 04:15:43 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -411,6 +418,7 @@ DWORD       color_inactiveborder;
 
 #endif
 
+cm93_dictionary   *s_pcm93Dict;
 
 
 
@@ -628,6 +636,11 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         }
 
         log.Append(_T("opencpn.log"));
+
+        //  Constrain the size of the log file
+        if(wxFileName::GetSize(log) > 100000)
+              ::wxRemoveFile(log);
+
         char *mode = "a";
         flog = fopen(log.mb_str(), mode);
         logger=new wxLogStderr(flog);
@@ -2400,7 +2413,7 @@ int MyFrame::DoOptionsDialog()
                 {
                     CacheEntry *pce = (CacheEntry *)(ChartData->pChartCache->Item(i));
                     ChartBase *Ch = (ChartBase *)pce->pChart;
-                    if(Ch->m_ChartType == CHART_TYPE_S57)
+                    if((Ch->m_ChartType == CHART_TYPE_S57) || (Ch->m_ChartType == CHART_TYPE_CM93))
                     {
                         s57chart *S57_Ch = dynamic_cast<s57chart *>(Ch);
                         S57_Ch->UpdateLUPs();
@@ -2891,7 +2904,7 @@ void MyFrame::SelectChartFromStack(int index)
                 new_sample_mode = FORCE_SUBSAMPLE;
 
 
-            if(Current_Ch->m_ChartType == CHART_TYPE_S57)
+            if((Current_Ch->m_ChartType == CHART_TYPE_S57) || (Current_Ch->m_ChartType == CHART_TYPE_CM93))
                 cc1->SetViewPoint(zLat, zLon, cc1->GetVPScale(),
                                   Current_Ch->GetChartSkew() * PI / 180., 0, new_sample_mode);
 
@@ -3525,7 +3538,7 @@ void *x_malloc(size_t t)
 
 void MyFrame::OnEvtTHREADMSG(wxCommandEvent & event)
 {
- 	wxLogMessage(event.GetString());
+      wxLogMessage(event.GetString());
 }
 
 
@@ -4171,36 +4184,35 @@ FILE *f;
 }
 #endif
 
-//		Search for (any?) Garmin device on Windows platforms
+//    Search for (any?) Garmin device on Windows platforms
 
-	HDEVINFO hdeviceinfo = INVALID_HANDLE_VALUE;
-    SP_DEVICE_INTERFACE_DATA deviceinterface;
+      HDEVINFO hdeviceinfo = INVALID_HANDLE_VALUE;
+      SP_DEVICE_INTERFACE_DATA deviceinterface;
 
-	wxLogMessage(_T("In EnumerateSerialPorts(), searching for Garmin DeviceInterface..."));
+      wxLogMessage(_T("In EnumerateSerialPorts(), searching for Garmin DeviceInterface..."));
 
-	hdeviceinfo = SetupDiGetClassDevs( (GUID *) &GARMIN_DETECT_GUID,
-									NULL, NULL,
-									DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
+      hdeviceinfo = SetupDiGetClassDevs( (GUID *) &GARMIN_DETECT_GUID,
+                                                      NULL, NULL,
+                                                      DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
 
-	if (hdeviceinfo != INVALID_HANDLE_VALUE)
-		wxLogMessage(_T("Found Garmin USB Driver."));
+      if (hdeviceinfo != INVALID_HANDLE_VALUE)
+            wxLogMessage(_T("Found Garmin USB Driver."));
 
 
     deviceinterface.cbSize = sizeof(deviceinterface);
 
     if (SetupDiEnumDeviceInterfaces(hdeviceinfo,
-									NULL,
-									(GUID *) &GARMIN_DETECT_GUID,
-									0,
-									&deviceinterface))
-	{
-		wxLogMessage(_T("Found Garmin Device."));
+                                                      NULL,
+                                                      (GUID *) &GARMIN_DETECT_GUID,
+                                                      0,
+                                                      &deviceinterface))
+      {
+            wxLogMessage(_T("Found Garmin Device."));
 
-//		m_usb_handle = garmin_usb_start(hdevinfo, &devinterface);
-	    preturn->Add(_T("GARMIN"));			// Add generic Garmin selectable device
-		g_bGarminPersistance = true;		// And record the existance
+            preturn->Add(_T("GARMIN"));         // Add generic Garmin selectable device
+            g_bGarminPersistance = true;        // And record the existance
 
-	}
+      }
 
 #endif      //__WXMSW__
 
@@ -4266,11 +4278,12 @@ static char *usercolors[] = {
 "UWHIT; 255;255;255;",
 "URED;  255;  0;  0;",
 "UGREN;   0;255;  0;",
-"UYELLOW; 243;229; 47;",
-"DILG0; 238;239;242;",                  // Dialog Background white
-"DILG1; 212;208;200;",			// Dialog Background
-"DILG2; 255;255;255;",			// Control Background
-"DILG3;   0;  0;  0;",			// Text
+"YELO1; 243;229; 47;",
+"YELO2; 128; 80;  0;",
+"DILG0; 238;239;242;",              // Dialog Background white
+"DILG1; 212;208;200;",              // Dialog Background
+"DILG2; 255;255;255;",              // Control Background
+"DILG3;   0;  0;  0;",              // Text
 
 "Table:DUSK",
 "GREEN1; 60;128; 60;",
@@ -4287,11 +4300,12 @@ static char *usercolors[] = {
 "UWHIT; 255;255;255;",
 "URED;  120; 54; 11;",
 "UGREN;  35;110; 20;",
-"UYELLOW; 243;229; 47;",
-"DILG0; 110;110;110;",                  // Dialog Background
-"DILG1; 110;110;110;",			// Dialog Background
-"DILG2; 100;100;100;",			// Control Background
-"DILG3; 130;130;130;",			// Text
+"YELO1; 120;115; 24;",
+"YELO2;  64; 40;  0;",
+"DILG0; 110;110;110;",              // Dialog Background
+"DILG1; 110;110;110;",              // Dialog Background
+"DILG2; 100;100;100;",              // Control Background
+"DILG3; 130;130;130;",              // Text
 
 "Table:NIGHT",
 "GREEN1; 30; 80; 30;",
@@ -4308,11 +4322,12 @@ static char *usercolors[] = {
 "UBLCK;   0;  0;  0;",
 "URED;   60; 27;  5;",
 "UGREN;  17; 55; 10;",
-"UYELLOW; 243;229; 47;",
-"DILG0;  80; 80; 80;",                  // Dialog Background
-"DILG1;  80; 80; 80;",			// Dialog Background
-"DILG2;  52; 52; 52;",			// Control Background
-"DILG3;  65; 65; 65;",			// Text
+"YELO1;  60; 65; 12;",
+"YELO2;  32; 20;  0;",
+"DILG0;  80; 80; 80;",              // Dialog Background
+"DILG1;  80; 80; 80;",              // Dialog Background
+"DILG2;  52; 52; 52;",              // Control Background
+"DILG3;  65; 65; 65;",              // Text
 
 "*****"
 };
