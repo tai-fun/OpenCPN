@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.23 2008/12/11 23:30:36 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.24 2008/12/19 04:14:34 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.24  2008/12/19 04:14:34  bdbcat
+ * Report Lat/Lon on point object query
+ *
  * Revision 1.23  2008/12/11 23:30:36  bdbcat
  * Memberized ref_lat, ref_lon
  *
@@ -55,6 +58,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.24  2008/12/19 04:14:34  bdbcat
+ * Report Lat/Lon on point object query
+ *
  * Revision 1.23  2008/12/11 23:30:36  bdbcat
  * Memberized ref_lat, ref_lon
  *
@@ -148,7 +154,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.23 2008/12/11 23:30:36 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.24 2008/12/19 04:14:34 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -3537,7 +3543,7 @@ int s57chart::BuildRAZFromSENCFile( const wxString& FullPath )
                          }
 
  // Debug hooks
-//        if(!strncmp(obj->FeatureName, "_texto", 6))
+//        if(!strncmp(obj->FeatureName, "_m_sor", 6))
 //            int ffl = 4;
 //    if(obj->Index == 70)
 //        int rrt = 5;
@@ -4035,6 +4041,9 @@ void s57chart::CreateSENCRecord( OGRFeature *pFeature, FILE * fpOut, int mode )
                     lon = *psd++;                                      // fetch the point
                     lat = *psd;
 
+//                    if(314 == pFeature->GetFID())
+//                          int yyp = 4;
+
                     //  Calculate SM from chart common reference point
                     double easting, northing;
                     toSM(lat, lon, ref_lat, ref_lon, &easting, &northing);
@@ -4363,6 +4372,23 @@ wxString *s57chart::CreateObjDescription(const S57Obj *obj)
                   wxString index;
                   index.Printf(_T("    Feature Index: %d\n"), obj->Index);
                   *ret_str << index;
+
+                  if(GEO_POINT == obj->Primitive_type)
+                  {
+                        double xll, yll;
+                        fromSM(obj->x, obj->y, m_s_ref_lat, m_s_ref_lon, &yll, &xll);
+                        wxString pos_st;
+                        pos_st.Printf(_T("    Position: "));
+                        char buf[50];
+                        todmm(1, yll, buf, 49);
+                        pos_st += wxString(buf, wxConvUTF8);
+                        pos_st <<_T("   ");
+                        todmm(2, xll, buf, 49);
+                        pos_st += wxString(buf, wxConvUTF8);
+                        pos_st << _T('\n');
+                        *ret_str << pos_st;
+                  }
+
 
 
                   //    Get the Attributes and values
@@ -5128,7 +5154,6 @@ int s57_initialize(const wxString& csv_dir, FILE *flog)
 //          Meant to be called "bare", usually with no class instance.
 //
 //------------------------------------------------------------------------
-
 
 //----------------------------------------------------------------------------------
 // Get Chart Extents
