@@ -55,7 +55,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #define snprintf mysnprintf
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.8 2008/04/10 01:04:50 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.9 2008/12/19 01:45:18 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -358,8 +358,15 @@ double fromDMM(char *dms)
 
 /* --------------------------------------------------------------------------------- */
 
-static const float k0 = 0.9996;
 static double M(double phi, double a, double es);
+
+// DSR Shortcut, constants for WGS-84
+static const double a = 6378137.0;
+static const double s_z = 6378137.0 * PI / 2.;
+static const double f = 1.0 / 298.257223563; // flattening
+static const double es = 6.69437999014e-3;  // eccentricity^2
+static const double e = 0.081819190842613;  // eccentricity
+static const double k0 = 0.9996;
 
 /****************************************************************************/
 /* Convert Lat/Lon <-> Simple Mercator                                      */
@@ -367,7 +374,7 @@ static double M(double phi, double a, double es);
 void
 toSM(float lat, float lon, float lat0, float lon0, double *x, double *y)
 {
-    double z = 6378137.0 * PI / 2.;
+      double z = s_z * k0; // 6378137.0 * PI / 2.;
 
     //  x = lambda - lambda0
 
@@ -377,18 +384,28 @@ toSM(float lat, float lon, float lat0, float lon0, double *x, double *y)
     double s = sin(lat * DEGREE);
     double y3 = (.5 * log((1 + s) / (1 - s))) * z;
 
+
     double s0 = sin(lat0 * DEGREE);
     double y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
     double y4 = y3 - y30;
 
     *x = x1;
     *y = y4;
+
+    //testing eccentricity math
+/*
+    double falsen =  a * k0 *log(tan(PI/4 + lat0 * DEGREE / 2)*pow((1. - e * s0)/(1. + e * s0), e/2.));
+    double test =       a * k0 *log(tan(PI/4 + lat  * DEGREE / 2)*pow((1. - e * s )/(1. + e * s ), e/2.));
+    *y = test - falsen;
+*/
+
 }
 
 void
 fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon)
 {
-      double z = 6378137.0 * PI / 2.;
+      double z, s0, y0, lat3, lon1;
+      z = s_z * k0; // 6378137.0 * PI / 2.;
 
 // lat = arcsin((e^2(y+y0) - 1)/(e^2(y+y0) + 1))
 /*
@@ -400,16 +417,31 @@ fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon)
       double lat2 =(atan2(e11, sqrt(1 - e11 * e11))) / DEGREE;
 */
 //    which is the same as....
-      double s0 = sin(lat0 * DEGREE);
-      double y0 = (.5 * log((1 + s0) / (1 - s0))) * z;
+      s0 = sin(lat0 * DEGREE);
+      y0 = (.5 * log((1 + s0) / (1 - s0))) * z;
 
-      double lat3 = (2.0 * atan(exp((y0+y)/z)) - PI/2.) / DEGREE;
+      lat3 = (2.0 * atan(exp((y0+y)/z)) - PI/2.) / DEGREE;
 
       // lon = x + lon0
-      double lon1 = lon0 + (x / (DEGREE * z));
+      lon1 = lon0 + (x / (DEGREE * z));
 
       *lat = lat3;
       *lon = lon1;
+
+//testing eccentricity math
+/*
+      double falsen, t, xi;
+      falsen = a * k0 *log(tan(PI/4 + lat0 * DEGREE / 2)*pow((1. - e * s0)/(1. + e * s0), e/2.));
+      t = exp((falsen - y) / (z));
+      xi = (PI / 2.) - 2.0 * atan(t);
+      double phi = xi + (es/2. + (5*es*es/24.) + (es*es*es/12.) + (13.0 *es*es*es*es/360.)) * sin( 2 * xi);
+      phi += ((7.*es*es/48.) + (29.*es*es*es/240.) + (811.*es*es*es*es/11520.)) * sin (4. * xi);
+      phi += ((7.*es*es*es/120.) + (81*es*es*es*es/1120.) + (4279.*es*es*es*es/161280.)) * sin(8. * xi);
+
+      phi /= DEGREE;
+
+     *lat = phi;
+*/
 }
 
 
