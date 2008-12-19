@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.13 2008/12/09 03:30:25 bdbcat Exp $
+ * $Id: options.cpp,v 1.14 2008/12/19 01:40:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.14  2008/12/19 01:40:52  bdbcat
+ * Add selectable depth unit conversion for S57 charts
+ *
  * Revision 1.13  2008/12/09 03:30:25  bdbcat
  * Cleanup Comments
  *
@@ -102,7 +105,7 @@ extern wxString         *pAIS_Port;
 extern wxString         *pInit_Chart_Dir;
 extern bool             g_bAutoAnchorMark;
 extern ColorScheme      global_color_scheme;
-extern bool				g_bGarminPersistance;
+extern bool             g_bGarminPersistance;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -578,9 +581,13 @@ void options::CreateControls()
                                2, pColorNumStrings, 1, wxRA_SPECIFY_COLS );
     itemStaticBoxSizer83->Add(p24Color, 0, wxTOP|wxALL| 5);
 
-    wxStaticBox* itemStaticBoxSizer27Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Contour Settings"));
+    wxStaticBox*  pdepth_static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Settings"));
+    wxStaticBoxSizer *pdepth_sizer = new wxStaticBoxSizer(pdepth_static, wxHORIZONTAL);
+    itemBoxSizer25->Add(pdepth_sizer, 0, wxTOP|wxALL|wxGROW, 5);
+
+    wxStaticBox* itemStaticBoxSizer27Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Contours"));
     wxStaticBoxSizer* itemStaticBoxSizer27 = new wxStaticBoxSizer(itemStaticBoxSizer27Static, wxVERTICAL);
-    itemBoxSizer25->Add(itemStaticBoxSizer27, 0, wxTOP|wxALL|wxGROW, 5);
+    pdepth_sizer/*itemBoxSizer25*/->Add(itemStaticBoxSizer27, 0, wxTOP|wxALL|wxGROW, 5);
 
     wxStaticText* itemStaticText4 = new wxStaticText( ps57Ctl, wxID_STATIC, _("Shallow Depth"), wxDefaultPosition, wxDefaultSize, 0 );
     itemStaticBoxSizer27->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
@@ -599,6 +606,22 @@ void options::CreateControls()
 
     m_DeepCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
     itemStaticBoxSizer27->Add(m_DeepCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+
+
+
+//    wxStaticBox* pdepthunit_static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Units"));
+//    wxStaticBoxSizer* pdepthunit_sizer = new wxStaticBoxSizer(pdepthunit_static, wxVERTICAL);
+//    pdepth_sizer/*itemBoxSizer25*/->Add(pdepthunit_sizer, 0, wxTOP|wxALL|wxGROW, 5);
+
+    wxString pDepthUnitStrings[] = {
+             _T("&Feet"),
+             _T("&Metres"),
+             _T("&Fathoms"),
+    };
+
+    pDepthUnitSelect = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Depth Units"), wxDefaultPosition, wxDefaultSize,
+                               3, pDepthUnitStrings, 1, wxRA_SPECIFY_COLS );
+    pdepth_sizer->Add(pDepthUnitSelect, 0, wxALIGN_TOP | wxTOP|wxALL, 5);
 
 
     itemNotebook4->AddPage(ps57Ctl, _T("S52 Options"));
@@ -775,6 +798,7 @@ void options::SetInitialSettings()
       s.Printf(_T("%6.2f"),S52_getMarinerParam(S52_MAR_DEEP_CONTOUR));
       m_DeepCtl->SetValue(s);
 
+      pDepthUnitSelect->SetSelection(ps52plib->m_nDepthUnitDisplay);
     }
 #endif
 }
@@ -1027,6 +1051,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
 
             ps52plib->UpdateMarinerParams();
+
+            ps52plib->m_nDepthUnitDisplay = pDepthUnitSelect->GetSelection();
 
       }
 #endif
