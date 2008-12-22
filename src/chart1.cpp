@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.32 2008/12/19 04:15:43 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.33 2008/12/22 18:40:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.33  2008/12/22 18:40:04  bdbcat
+ * Add NMEA Debug flag
+ *
  * Revision 1.32  2008/12/19 04:15:43  bdbcat
  * Constrain log file length
  *
@@ -63,6 +66,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.33  2008/12/22 18:40:04  bdbcat
+ * Add NMEA Debug flag
+ *
  * Revision 1.32  2008/12/19 04:15:43  bdbcat
  * Constrain log file length
  *
@@ -200,7 +206,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.32 2008/12/19 04:15:43 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.33 2008/12/22 18:40:04 bdbcat Exp $");
 
 //      These static variables are required by something in MYGDAL.LIB...sigh...
 
@@ -299,10 +305,11 @@ wxPrintData *g_printData = (wxPrintData*) NULL ;
 // Global page setup data
 wxPageSetupData* g_pageSetupData = (wxPageSetupData*) NULL;
 
-bool            g_bShowPrintIcon;
-bool            g_bShowOutlines;
-bool            g_bShowDepthUnits;
-bool			g_bGarminPersistance;
+bool              g_bShowPrintIcon;
+bool              g_bShowOutlines;
+bool              g_bShowDepthUnits;
+bool              g_bGarminPersistance;
+bool              g_bNMEADebug;
 
 FontMgr         *pFontMgr;
 

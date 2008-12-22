@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.21  2008/12/22 18:38:56  bdbcat
+ * Add NMEA Debug flag
+ *
  * Revision 1.20  2008/12/19 01:46:02  bdbcat
  * Add selectable depth unit conversion for S57 charts
  *
@@ -58,6 +61,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.21  2008/12/22 18:38:56  bdbcat
+ * Add NMEA Debug flag
+ *
  * Revision 1.20  2008/12/19 01:46:02  bdbcat
  * Add selectable depth unit conversion for S57 charts
  *
@@ -142,7 +148,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.20 2008/12/19 01:46:02 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.21 2008/12/22 18:38:56 bdbcat Exp $");
 
 //    Statics
 
@@ -182,7 +188,8 @@ extern bool             s_bSetSystemTime;
 extern bool             g_bShowDepthUnits;
 extern bool             g_bAutoAnchorMark;
 extern bool             g_bShowOutlines;
-extern bool				g_bGarminPersistance;
+extern bool             g_bGarminPersistance;
+extern bool             g_bNMEADebug;
 
 extern int              g_nframewin_x;
 extern int              g_nframewin_y;
@@ -1317,12 +1324,15 @@ int MyConfig::LoadMyConfig(int iteration)
       g_bShowOutlines = false;
       Read(_T("ShowChartOutlines"),  &g_bShowOutlines);
 
-	  g_bGarminPersistance = false;
+      g_bGarminPersistance = false;
       Read(_T("GarminPersistance"),  &g_bGarminPersistance);
 
       wxString stps;
       Read(_T("PlanSpeed"),  &stps);
       stps.ToDouble(&g_PlanSpeed);
+
+      g_bNMEADebug = false;
+      Read(_T("DebugNMEA"),  &g_bNMEADebug);
 
       SetPath(_T("/Settings/GlobalState"));
       Read(_T("bFollow"), &st_bFollow);
