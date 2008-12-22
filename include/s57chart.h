@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.17 2008/12/09 03:40:42 bdbcat Exp $
+ * $Id: s57chart.h,v 1.18 2008/12/22 18:41:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.18  2008/12/22 18:41:18  bdbcat
+ * Update cm93 support
+ *
  * Revision 1.17  2008/12/09 03:40:42  bdbcat
  * Add cm93 support
  *
@@ -171,7 +174,7 @@ public:
       void GetPointPix(ObjRazRules *rzRules, float rlat, float rlon, wxPoint *r);
       void GetPixPoint(int pixx, int pixy, double *plat, double *plon, ViewPort *vpt);
 
-      void SetVPParms(ViewPort *pvpt);
+      virtual void SetVPParms(ViewPort *pvpt);
       void SetFullExtent(Extent& ext);
       bool GetChartExtent(Extent *pext);
 
@@ -209,6 +212,13 @@ public:
       bool         m_bExtentSet;
 
       double      m_s_ref_lat, m_s_ref_lon;
+
+      //  SM Projection parms
+      double    easting_vp_center, northing_vp_center;
+      double    x_vp_center, y_vp_center;
+      double    view_scale_ppm;
+      double    prev_easting_ul, prev_northing_ul;
+      double    prev_easting_lr, prev_northing_lr;
 
 private:
       void DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, RenderTypeEnum option);
@@ -271,12 +281,6 @@ private:
       int         m_nGeoRecords;                // extracted from DSSI:NOGR
       int         m_native_scale;               // extracted from DSPM:CSCL
 
-//  SM Projection parms
-      double    easting_vp_center, northing_vp_center;
-      double    x_vp_center, y_vp_center;
-      double    view_scale_ppm;
-      double    prev_easting_ul, prev_northing_ul;
-      double    prev_easting_lr, prev_northing_lr;
 
 //  Raw ENC DataSet members
       OGRS57DataSource  *m_pENCDS;
