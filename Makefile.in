@@ -234,7 +234,7 @@ am__noinst_HEADERS_DIST = include/about.h include/ais.h include/bbox.h \
 	include/s57chart.h include/s57mgr.h include/sercomm.h \
 	include/statwin.h include/tcmgr.h include/thumbwin.h \
 	include/triangulate.h include/wificlient.h include/wvschart.h \
-	src/mygdal/cpl_config.h src/mygdal/cpl_conv.h \
+	include/cm93.h src/mygdal/cpl_config.h src/mygdal/cpl_conv.h \
 	src/mygdal/cpl_csv.h src/mygdal/cpl_error.h \
 	src/mygdal/cpl_list.h src/mygdal/cpl_minixml.h \
 	src/mygdal/cpl_multiproc.h src/mygdal/cpl_odbc.h \
@@ -415,7 +415,7 @@ noinst_HEADERS = include/about.h include/ais.h include/bbox.h \
 	include/s57chart.h include/s57mgr.h include/sercomm.h \
 	include/statwin.h include/tcmgr.h include/thumbwin.h \
 	include/triangulate.h include/wificlient.h include/wvschart.h \
-	src/mygdal/cpl_config.h src/mygdal/cpl_conv.h \
+	include/cm93.h src/mygdal/cpl_config.h src/mygdal/cpl_conv.h \
 	src/mygdal/cpl_csv.h src/mygdal/cpl_error.h \
 	src/mygdal/cpl_list.h src/mygdal/cpl_minixml.h \
 	src/mygdal/cpl_multiproc.h src/mygdal/cpl_odbc.h \

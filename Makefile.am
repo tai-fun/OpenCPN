@@ -175,7 +175,8 @@ noinst_HEADERS = \
  	include/triangulate.h \
  	include/wificlient.h \
  	include/wvschart.h \
- 	src/mygdal/cpl_config.h \
+ 	include/cm93.h \
+	src/mygdal/cpl_config.h \
  	src/mygdal/cpl_conv.h \
  	src/mygdal/cpl_csv.h \
  	src/mygdal/cpl_error.h \
