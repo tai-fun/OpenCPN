@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.26 2008/12/19 04:12:03 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.27 2008/12/23 00:47:34 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -59,9 +59,11 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
+#define NMAX_MESSAGE 100
 
+CPL_CVSID("$Id: nmea.cpp,v 1.27 2008/12/23 00:47:34 bdbcat Exp $");
 
-CPL_CVSID("$Id: nmea.cpp,v 1.26 2008/12/19 04:12:03 bdbcat Exp $");
+extern bool             g_bNMEADebug;
 
 int                      s_dns_test_flag;
 
@@ -765,6 +767,9 @@ void *OCP_NMEA_Thread::Entry()
       BOOL fWaitingOnRead = FALSE;
       OVERLAPPED osReader = {0};
 
+//      COMSTAT comstat;
+//      int nBytesToRead;
+
 //    Set up the serial port
       m_hSerialComm = CreateFile(m_pPortName->mb_str(),      // Port Name
                                              GENERIC_READ,              // Desired Access
@@ -876,40 +881,63 @@ void *OCP_NMEA_Thread::Entry()
 
             // Read command has been issued, and did not return immediately
 
-#define READ_TIMEOUT      500      // milliseconds
+#define READ_TIMEOUT      200      // milliseconds
 
             DWORD dwRes;
 
             if (fWaitingOnRead)
             {
-                dwRes = WaitForSingleObject(osReader.hEvent, READ_TIMEOUT);
-                switch(dwRes)
-                {
-      // Read completed.
-                    case WAIT_OBJECT_0:
-                        if (!GetOverlappedResult(m_hSerialComm, &osReader, &dwRead, FALSE))
+                  //    Loop forever, checking for thread exit request
+                  while(1)
+                  {
+                        if(TestDestroy())
+                              goto fail_point;                               // smooth exit
+
+
+                        dwRes = WaitForSingleObject(osReader.hEvent, READ_TIMEOUT);
+                        switch(dwRes)
                         {
+                              case WAIT_OBJECT_0:
+                                  if (!GetOverlappedResult(m_hSerialComm, &osReader, &dwRead, FALSE))
+                                    {
              // Error in communications; report it.
-                        }
-                        else
+                                    }
+                                  else
              // Read completed successfully.
-                            goto HandleASuccessfulRead;
+                                    goto HandleASuccessfulRead;
 
-                        break;
+                                  break;
 
-                    case WAIT_TIMEOUT:
-                        break;
+                              case WAIT_TIMEOUT:
+                                    if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                                    {
+                                          m_total_error_messages++;
+                                          wxString msg;
+                                          msg.Printf(_T("NMEA timeout"));
+                                          ThreadMessage(msg);
+                                    }
+                                    break;
 
-                    default:
-                        break;
-                }
-            }
+                              default:
+                                  break;
+                        }     // switch
+                  }           // while
+            }                 // if
 
 
 
 HandleASuccessfulRead:
+
             if(dwRead > 0)
             {
+                  if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                  {
+                        m_total_error_messages++;
+                        wxString msg;
+                        msg.Printf(_T("NMEA activity...%d bytes"), dwRead);
+                        ThreadMessage(msg);
+                  }
+
                   int nchar = dwRead;
                   char *pb = szBuf;
 
@@ -924,9 +952,15 @@ HandleASuccessfulRead:
 
                         nchar--;
                   }
+                  if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                  {
+                        m_total_error_messages++;
+                        wxString msg1;
+                        msg1.Printf(_T("Buffer is %s"), szBuf);
+                        ThreadMessage(msg1);
+                  }
+
             }
-
-
 
 //    Found a NL char, thus end of message?
             if(nl_found)
@@ -992,6 +1026,13 @@ fail_point:
 
 void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
 {
+      if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+      {
+            m_total_error_messages++;
+            wxString msg(_T("NMEA Sentence received..."));
+            msg.Append(str_temp_buf);
+            ThreadMessage(msg);
+      }
 
    // Send the NMEA string to the decoder
       m_NMEA0183 << str_temp_buf;
@@ -1002,6 +1043,13 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
       {
             if(m_NMEA0183.LastSentenceIDReceived == wxString(_T("RMC")))
             {
+                  if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                  {
+                        m_total_error_messages++;
+                        wxString msg(_T("NMEA RMC received..."));
+                        ThreadMessage(msg);
+                  }
+
               if(m_NMEA0183.Rmc.IsDataValid == NTrue)
               {
 
@@ -1031,6 +1079,13 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
                   if(m_pShareMutex)
                         m_pShareMutex->Unlock();
 
+                  if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                  {
+                        m_total_error_messages++;
+                        wxString msg1(_T("EVT_NMEA_DIRECT sent"));
+                        ThreadMessage(msg1);
+                  }
+
  //    Signal the main program thread
                   wxCommandEvent event( EVT_NMEA,  GetId());
                   event.SetEventObject( (wxObject *)this );
@@ -1040,7 +1095,7 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
               }
               else
               {
-                    if(m_total_error_messages < 100)
+                    if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
                     {
                           m_total_error_messages++;
                           wxString msg(_T("   NMEA RMC Sentence is invalid..."));
@@ -1053,10 +1108,10 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
       }
       else
       {
-            if(m_total_error_messages < 100)
+            if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
             {
                   m_total_error_messages++;
-                  wxString msg(_T("   Bad NMEA Parse..."));
+                  wxString msg(_T("   Unrecognized NMEA Sentence..."));
                   msg.Append(str_temp_buf);
                   ThreadMessage(msg);
             }
