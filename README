@@ -258,6 +258,24 @@ Select 'Build' from the build menu
 
 OpenCPN is now ready to run.
 
+------------------------
+STEP4 (alternative)
+      Build OpenCPN using ./configure && make [&& make dmg]
+------------------------
+OpenCPN will build for Mac OS X from a shell script by using the
+familiar Autotools configure and make:
+
+% cd opencpn; ./configure --with-wx-config=path/to/your/wx-config && make
+
+If make sucessfully completes you should have a directory called OpenCPN.app
+which you can open with finder or from the command like with 'open'. As always
+if you have questions or problems please let the OpenCPN development team know
+by posting to the OpenCPN project forum at sourceforge.net.
+
+If you'd like to build a disk image (dmg file) then use the dmg target like so:
+
+% make dmg
+
 -------------------------
 Notes For Advanced Users:
 
@@ -410,8 +428,3 @@ a short initial burst of binary garbage).  If you don't see this, you
 may have OS-level problems with your serial support, but more likely
 have the wrong device or permissions.  Look again.
 
-b.  Windows
-        Stay Tuned.....
-
-c.  Mac
-        Stay tuned.....
