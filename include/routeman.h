@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.h,v 1.5 2008/11/12 04:15:44 bdbcat Exp $
+ * $Id: routeman.h,v 1.6 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.h,v $
+ * Revision 1.6  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.5  2008/11/12 04:15:44  bdbcat
  * Support Garmin Devices / Cleanup
  *
@@ -73,6 +76,22 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
+
+
+//    Constants for SendToGps... Dialog
+#define ID_STGDIALOG 10005
+#define SYMBOL_STG_STYLE wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX
+#define SYMBOL_STG_TITLE _("Send Route To GPS")
+#define SYMBOL_STG_IDNAME ID_STGDIALOG
+#define SYMBOL_STG_SIZE wxSize(500, 500)
+#define SYMBOL_STG_POSITION wxDefaultPosition
+
+enum {
+      ID_STG_CANCEL =            10000,
+      ID_STG_OK,
+      ID_STG_CHOICE_COMM
+};
+
 //----------------------------------------------------------------------------
 //    forward class declarations
 //----------------------------------------------------------------------------
@@ -109,6 +128,8 @@ public:
       void AssembleAllRoutes(void);
       void DeleteRoute(Route *pRoute);
       Route *FindRouteContainingWaypoint(RoutePoint *pWP);
+      Route *FindRouteContainingTwoWaypoints(RoutePoint *pWP1, RoutePoint *pWP2);
+      wxArrayPtrVoid *GetRouteArrayContaining(RoutePoint *pWP);
 
       bool ActivateRoute(Route *pActivate);
       bool ActivateRoutePoint(Route *pA, RoutePoint *pRP);
@@ -121,25 +142,30 @@ public:
 
       Route *GetpActiveRoute(){ return pActiveRoute;}
       RoutePoint *GetpActivePoint(){ return pActivePoint;}
-      float GetCurrentRngToActivePoint(){ return CurrentRngToActivePoint;}
+      float GetCurrentRngToActivePoint(){ return CurrentRngToActivePoint;}          //TODO all these need to be doubles
       float GetCurrentBrgToActivePoint(){ return CurrentBrgToActivePoint;}
       float GetCurrentRngToActiveNormalArrival(){ return CurrentRangeToActiveNormalCrossing;}
       float GetCurrentXTEToActivePoint(){ return CurrentXTEToActivePoint;}
       float GetCurrentSegmentCourse(){ return CurrentSegmentCourse;}
       int   GetXTEDir(){ return XTEDir;}
 
-      wxPen * GetRoutePen(void){return m_pRoutePen;}
-      wxPen * GetSelectedRoutePen(void){return m_pSelectedRoutePen;}
-      wxPen * GetActiveRoutePen(void){return m_pActiveRoutePen;}
-      wxPen * GetActiveRoutePointPen(void){return m_pActiveRoutePointPen;}
-      wxPen * GetRoutePointPen(void){return m_pRoutePointPen;}
+      wxPen   * GetRoutePen(void){return m_pRoutePen;}
+      wxPen   * GetSelectedRoutePen(void){return m_pSelectedRoutePen;}
+      wxPen   * GetActiveRoutePen(void){return m_pActiveRoutePen;}
+      wxPen   * GetActiveRoutePointPen(void){return m_pActiveRoutePointPen;}
+      wxPen   * GetRoutePointPen(void){return m_pRoutePointPen;}
+      wxBrush * GetRouteBrush(void){return m_pRouteBrush;}
+      wxBrush * GetSelectedRouteBrush(void){return m_pSelectedRouteBrush;}
+      wxBrush * GetActiveRouteBrush(void){return m_pActiveRouteBrush;}
+      wxBrush * GetActiveRoutePointBrush(void){return m_pActiveRoutePointBrush;}
+      wxBrush * GetRoutePointBrush(void){return m_pRoutePointBrush;}
 
       bool        m_bDataValid;
 
 private:
       Route       *pActiveRoute;
       RoutePoint  *pActivePoint;
-      float       RouteBrgToActivePoint;
+      float       RouteBrgToActivePoint;        //TODO all these need to be doubles
       float       CurrentSegmentBeginLat;
       float       CurrentSegmentBeginLon;
       float       CurrentRngToActivePoint;
@@ -157,10 +183,50 @@ private:
       wxPen       *m_pActiveRoutePen;
       wxPen       *m_pActiveRoutePointPen;
       wxPen       *m_pRoutePointPen;
+      wxBrush     *m_pRouteBrush;
+      wxBrush     *m_pSelectedRouteBrush;
+      wxBrush     *m_pActiveRouteBrush;
+      wxBrush     *m_pActiveRoutePointBrush;
+      wxBrush     *m_pRoutePointBrush;
+
 
       NMEA0183    m_NMEA0183;                         // For autopilot output
 
 };
+
+//----------------------------------------------------------------------------
+//   Route "Send to GPS..." Dialog Definition
+//----------------------------------------------------------------------------
+
+class SendToGpsDlg : public wxDialog
+{
+      DECLARE_DYNAMIC_CLASS( SendToGpsDlg )
+      DECLARE_EVENT_TABLE()
+
+ public:
+       SendToGpsDlg();
+       SendToGpsDlg(  wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos, const wxSize& size, long style );
+       ~SendToGpsDlg( );
+
+       bool Create( wxWindow* parent, wxWindowID id = SYMBOL_STG_IDNAME, const wxString& caption = SYMBOL_STG_TITLE,
+                    const wxPoint& pos = SYMBOL_STG_POSITION, const wxSize& size = SYMBOL_STG_SIZE,
+                    long style = SYMBOL_STG_STYLE);
+       void SetRoute(Route *pRoute){m_pRoute = pRoute;}
+
+private:
+      void CreateControls();
+
+      void OnCancelClick( wxCommandEvent& event );
+      void OnSendClick( wxCommandEvent& event );
+
+      Route       *m_pRoute;
+      wxComboBox  *m_itemCommListBox;
+      wxGauge     *m_pgauge;
+      wxButton    *m_CancelButton;
+      wxButton    *m_SendButton;
+
+};
+
 
 
 //----------------------------------------------------------------------------
@@ -176,7 +242,7 @@ public:
       int GetIconIndex(const wxBitmap *pbm);
       int GetNumIcons(void){ return m_nIcons; }
       wxString CreateGUID(RoutePoint *pRP);
-
+      RoutePoint *GetNearbyWaypoint(double lat, double lon, double radius_meters);
       void SetColorScheme(ColorScheme cs);
 
       wxBitmap *GetIconBitmap(int index);

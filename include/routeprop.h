@@ -17,6 +17,9 @@
  */
 #include "wx/listctrl.h"
 #include "chart1.h"                 // for ColorScheme
+#include "wx/hyperlink.h"           // toh, 2009.02.08
+
+WX_DECLARE_LIST(wxHyperlinkCtrl, HyperlinkCtrlList);// establish class as list member
 
 /*!
  * Forward declarations
@@ -59,6 +62,17 @@ class   RoutePoint;
 #define ID_LATCTRL 8004
 #define ID_LONCTRL 8005
 #define ID_SHOWNAMECHECKBOX1 8006
+
+// toh, 2009.02.08
+#define ID_MARKINFO 8007
+#define SYMBOL_MARKINFO_STYLE wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX
+#define SYMBOL_MARKINFO_TITLE _("Mark Information")
+#define SYMBOL_MARKINFO_IDNAME ID_MARKINFO
+#define SYMBOL_MARKINFO_SIZE wxSize(200, 300)
+#define SYMBOL_MARKINFO_POSITION wxDefaultPosition
+#define ID_MARKINFO_CANCEL 8008
+#define ID_MARKINFO_OK 8009
+
 
 ////@end control identifiers
 
@@ -223,6 +237,67 @@ public:
       wxEvtHandler *m_pParentEventHandler;
 
 };
+
+// toh, 2009.02.08
+/*!
+ * MarkInfo class declaration
+ */
+
+class MarkInfo: public wxDialog
+{
+      DECLARE_DYNAMIC_CLASS( MarkInfo )
+                  DECLARE_EVENT_TABLE()
+
+      public:
+    /// Constructors
+            MarkInfo( );
+            MarkInfo( wxWindow* parent, wxWindowID id = SYMBOL_MARKINFO_IDNAME,
+                      const wxString& caption = SYMBOL_MARKINFO_TITLE,
+                      const wxPoint& pos = SYMBOL_MARKINFO_POSITION,
+                      const wxSize& size = SYMBOL_MARKINFO_SIZE,
+                      long style = SYMBOL_MARKINFO_STYLE );
+
+            ~MarkInfo();
+
+    /// Creation
+            bool Create( wxWindow* parent, wxWindowID id = SYMBOL_MARKINFO_IDNAME,
+                         const wxString& caption = SYMBOL_MARKINFO_TITLE,
+                         const wxPoint& pos = SYMBOL_MARKINFO_POSITION,
+                         const wxSize& size = SYMBOL_MARKINFO_SIZE, long style = SYMBOL_MARKINFO_STYLE );
+
+            void SetRoutePoint(RoutePoint *pRP);
+            RoutePoint *GetRoutePoint(void){return m_pRoutePoint;}
+
+            void SetColorScheme(ColorScheme cs);
+
+            void CreateControls();
+
+            void OnMarkinfoCancelClick( wxCommandEvent& event );
+            void OnMarkinfoOkClick( wxCommandEvent& event );
+
+    /// Should we show tooltips?
+            static bool ShowToolTips();
+
+            bool UpdateProperties(void);
+            bool SaveChanges(void);
+
+            wxStaticText*   m_MarkNameCtl;
+            wxStaticText*   m_MarkLatCtl;
+            wxStaticText*   m_MarkLonCtl;
+            wxButton*     m_CancelButton;
+            wxButton*     m_OKButton;
+
+            wxHyperlinkCtrl *m_HyperlinkCtrl;
+            wxHyperlinkCtrl *m_HyperlinkCtrl2;
+
+            double        m_lat_save;
+            double        m_lon_save;
+
+            RoutePoint  *m_pRoutePoint;
+
+            HyperlinkCtrlList *m_HyperlinkCtrlList;   // toh, 2009.02.11
+};
+
 
 #endif
     // _ROUTEPROP_H_

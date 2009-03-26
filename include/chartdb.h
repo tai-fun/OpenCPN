@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.10 2008/10/27 03:06:13 bdbcat Exp $
+ * $Id: chartdb.h,v 1.11 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.11  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.10  2008/10/27 03:06:13  bdbcat
  * Fix Chartstack ctor
  *
@@ -36,6 +39,9 @@
  * *** empty log message ***
  *
  * $Log: chartdb.h,v $
+ * Revision 1.11  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.10  2008/10/27 03:06:13  bdbcat
  * Fix Chartstack ctor
  *
@@ -204,7 +210,7 @@ public:
 
 private:
 
-      bool CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry);
+      InitReturn CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry);
       int TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate);
       int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, bool bshow_prog, bool bupdate);
 

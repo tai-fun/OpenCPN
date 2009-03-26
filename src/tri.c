@@ -103,8 +103,9 @@ Bibliography:
 static int initialise(int);
 static int alloc_mem(int, int[]);
 
+static int nrecurse;
 
-CPL_CVSID("$Id: tri.c,v 1.5 2007/05/03 13:23:56 dsr Exp $");
+CPL_CVSID("$Id: tri.c,v 1.6 2009/03/26 22:31:55 bdbcat Exp $");
 
 
 
@@ -124,6 +125,8 @@ int main(argc, argv)
     }
 
   initialise(n);
+
+
   construct_trapezoids(n);
   nmonpoly = monotonate_trapezoids(n);
   ntriangles = triangulate_monotone_polygons(n, nmonpoly, op);
@@ -321,6 +324,9 @@ polyout *trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2])
   n = i-1;
 
   initialise(n);
+
+//  if(n > 4000) n = 4000;
+
   construct_trapezoids(n);
   nmonpoly = monotonate_trapezoids(n);
 
@@ -679,7 +685,6 @@ int generate_random_ordering(int n)
   int m;
   int *p;
   int *st;
-//  int st[SEGSIZE];
 
   st = (int *)calloc((n + 2) * sizeof(int), 1);
 
@@ -703,8 +708,8 @@ int generate_random_ordering(int n)
 
     //Todo Why does this matter?  Get faults on US5VA19M if random.
   //    Fixed, not random
-  for (i = 1; i <= n; i++)
-      permute[i] = i;
+//  for (i = 1; i <= n; i++)
+//      permute[i] = i;
 
 
   free(st);
@@ -890,7 +895,7 @@ static double get_angle(point_t *vp0, point_t *vpnext, point_t *vp1)
 /* (v0, v1) is the new diagonal to be added to the polygon. Find which */
 /* chain to use and return the positions of v0 and v1 in p and q */
 static int get_vertex_positions(int v0, int v1, int *ip, int *iq)
-{ 
+{
   vertexchain_t *vp0, *vp1;
   register int i;
   double angle, temp;
@@ -1099,7 +1104,7 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
   int do_switch = FALSE;
 
 /*
- n_recurse++;  
+ n_recurse++;
  debug_file = fopen( "C:/debug", "a");
  fprintf(debug_file,"+tp %d\n", n_recurse);
  fclose(debug_file);
@@ -1108,7 +1113,7 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
   if ((trnum <= 0) || visited[trnum])
     {
 /*
-    n_recurse--;  
+    n_recurse--;
     debug_file = fopen( "C:/debug", "a");
     fprintf(debug_file,"Ret0 %d\n", n_recurse);
     fclose(debug_file);
@@ -1379,7 +1384,7 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
         }
     }
 /*
- n_recurse--;  
+ n_recurse--;
  debug_file = fopen( "C:/debug", "a");
  fprintf(debug_file,"-tp %d\n", n_recurse);
  fclose(debug_file);
@@ -1868,25 +1873,52 @@ static int inserted(int segnum, int whichpt)
 
 int locate_endpoint(point_t *v, point_t *vo, int r)
 {
-  node_t *rptr = &qs[r];
+      int ret;
+      int debug = 0;
+      node_t *rptr;
+
+      nrecurse++;
+//      int ir;
+//      for(ir=0 ; ir < nrecurse ; ir++)
+//            printf(" ");
+//      printf("locate from root %d", r);
+
+
+
+  rptr = &qs[r];
 
   switch (rptr->nodetype)
     {
     case T_SINK:
-      return rptr->trnum;
+      if(debug)printf("A %d\n", rptr->trnum);
+      ret = rptr->trnum;
+      break;
 
     case T_Y:
       if (_greater_than(v, &rptr->yval)) /* above */
-        return locate_endpoint(v, vo, rptr->right);
+      {
+            if(debug)printf("B\n");
+            ret =  locate_endpoint(v, vo, rptr->right);
+      }
       else if (_equal_to(v, &rptr->yval)) /* the point is already */
         {                                 /* inserted. */
           if (_greater_than(vo, &rptr->yval)) /* above */
-            return locate_endpoint(v, vo, rptr->right);
+          {
+                if(debug)printf("C\n");
+                ret =  locate_endpoint(v, vo, rptr->right);
+          }
           else
-            return locate_endpoint(v, vo, rptr->left); /* below */
+          {
+                if(debug)printf("D\n");
+                ret =  locate_endpoint(v, vo, rptr->left); /* below */
+          }
         }
       else
-        return locate_endpoint(v, vo, rptr->left); /* below */
+      {
+            if(debug)printf("E\n");
+            ret =  locate_endpoint(v, vo, rptr->left); /* below */
+      }
+      break;
 
     case T_X:
       if (_equal_to(v, &seg[rptr->segnum].v0) ||
@@ -1895,26 +1927,49 @@ int locate_endpoint(point_t *v, point_t *vo, int r)
           if (FP_EQUAL(v->y, vo->y)) /* horizontal segment */
             {
               if (vo->x < v->x)
-                return locate_endpoint(v, vo, rptr->left); /* left */
+              {
+                    if(debug)printf("F\n");
+                    ret =  locate_endpoint(v, vo, rptr->left); /* left */
+              }
               else
-                return locate_endpoint(v, vo, rptr->right); /* right */
+              {
+                    if(debug)printf("G\n");
+                    ret =  locate_endpoint(v, vo, rptr->right); /* right */
+              }
             }
 
           else if (is_left_of(rptr->segnum, vo))
-            return locate_endpoint(v, vo, rptr->left); /* left */
+          {
+                if(debug)printf("H\n");
+                ret =  locate_endpoint(v, vo, rptr->left); /* left */
+          }
           else
-            return locate_endpoint(v, vo, rptr->right); /* right */
+          {
+                if(debug)printf("I\n");
+                ret =  locate_endpoint(v, vo, rptr->right); /* right */
+          }
         }
       else if (is_left_of(rptr->segnum, v))
-        return locate_endpoint(v, vo, rptr->left); /* left */
+      {
+            if(debug)printf("J\n");
+            ret =  locate_endpoint(v, vo, rptr->left); /* left */
+      }
       else
-        return locate_endpoint(v, vo, rptr->right); /* right */
+      {
+            if(debug)printf("K\n");
+            ret =  locate_endpoint(v, vo, rptr->right); /* right */
+      }
+
+      break;
 
     default:
       fprintf(stderr, "Haggu !!!!!\n");
+      ret = 0;
       break;
     }
-    return 0;
+
+    nrecurse--;
+    return ret;
 }
 
 
@@ -1996,6 +2051,8 @@ static int merge_trapezoids(int segnum, int tfirst, int tlast, int side)
 
 static int add_segment(int segnum)
 {
+//      printf("add_segment %d\n", segnum);
+
   segment_t s;
 //  segment_t *so = &seg[segnum];
   int tu, tl, sk, tfirst, tlast;
@@ -2129,18 +2186,22 @@ static int add_segment(int segnum)
       tr[tu].sink = i1;
       tr[tl].sink = i2;
       tlast = tu;
+//      printf("FPlastA\n");
     }
   else                          /* v1 already present */
     {       /* Get the lowermost intersecting trapezoid */
       tlast = locate_endpoint(&s.v1, &s.v0, s.root1);
       tribot = 1;
+//      printf("FPlastB\n");
     }
 
   /* Thread the segment into the query tree creating a new X-node */
   /* First, split all the trapezoids which are intersected by s into */
   /* two */
 
-  t = tfirst;                   /* topmost trapezoid */
+//    printf("FPTfirst: %d\n", tfirst);
+//    printf("FPTlast: %d\n", tlast);
+    t = tfirst;                   /* topmost trapezoid */
   tfirstr = 0;
   tlastr = 0;
 
@@ -2153,6 +2214,7 @@ static int add_segment(int segnum)
       i1 = newnode();           /* left trapezoid sink */
       i2 = newnode();           /* right trapezoid sink */
 
+//      printf("FP Add X node at %d\n", sk);
       qs[sk].nodetype = T_X;
       qs[sk].segnum = segnum;
       qs[sk].left = i1;
@@ -2182,7 +2244,7 @@ static int add_segment(int segnum)
 
       if ((tr[t].d0 <= 0) && (tr[t].d1 <= 0)) /* case cannot arise */
         {
-          fprintf(stderr, "add_segment: error\n");
+          printf("add_segment: error\n");
           break;
         }
 
@@ -2578,6 +2640,7 @@ static int add_segment(int segnum)
  */
 static int find_new_roots(int segnum)
 {
+//      printf("find_new_roots\n");
   segment_t *s = &seg[segnum];
 
   if (s->is_inserted)
@@ -2598,6 +2661,7 @@ int construct_trapezoids(int nseg)
   register int i;
   int root, h;
 
+  h=0;
   /* Add the first segment and get the query structure and trapezoid */
   /* list initialised */
 
@@ -2633,7 +2697,1687 @@ int construct_trapezoids(int nseg)
             h=4;
     }
 
+  return (h == 4);
+}
+
+
+//----------------------------------------------------------------------------------------
+//
+//    Integer Trapezoidal Decomposition
+//
+//----------------------------------------------------------------------------------------
+#ifdef STATIC
+inode_t iqs[QSIZE];               /* Query structure */
+itrap_t itr[TRSIZE];              /* Trapezoid structure */
+isegment_t iseg[SEGSIZE];         /* Segment table */
+#else
+static inode_t *iqs;
+static itrap_t *itr;
+static isegment_t *iseg;
+#endif
+
+static int int_alloc_mem(int ncontours, int contours[])
+{
+#ifndef STATIC
+      int nsegp = 0;
+      int i;
+
+      for(i=0 ; i<ncontours ; i++)
+      {
+            nsegp += contours[i]+4;
+      }
+      iseg = (isegment_t *)calloc(nsegp * sizeof(isegment_t), 1);
+      itr  = (itrap_t *)calloc(nsegp * 5 * sizeof(itrap_t), 1);
+      iqs  = (inode_t *)calloc(nsegp * 10 * sizeof(inode_t), 1);
+
+
+//      mchain = (monchain_t *)calloc(nsegp * 5 * sizeof(monchain_t), 1);
+//      vert = (vertexchain_t *)calloc(nsegp * sizeof(vertexchain_t), 1);
+//      mon = (int *)calloc(nsegp * sizeof(int), 1);
+//      visited = (int *)calloc(nsegp * 5 * sizeof(int), 1);
+      permute = (int *)calloc(nsegp * sizeof(int), 1);
+
+//      triangles = (int *)calloc(nsegp * 10 * sizeof(int), 1);
+//      rc = (int *)calloc(nsegp * 10 * sizeof(int), 1);
+
+//    printf("alloc nsegp = %d\n", nsegp);
+
+#endif
+
+      return 0;
+}
+
+
+
+static int int_initialise( int n)
+{
+      register int i;
+
+      for (i = 1; i <= n; i++)
+            iseg[i].is_inserted = FALSE;
+
+      generate_random_ordering(n);
+
+      return 0;
+}
+
+
+/* Return a free trapezoid */
+static int int_newtrap()
+{
+            itr[tr_idx].lseg = -1;
+            itr[tr_idx].rseg = -1;
+            itr[tr_idx].state = ST_VALID;
+            itr[tr_idx].inside = 0;
+            itr[tr_idx].ase = 0;
+            return tr_idx++;
+}
+
+/* Returns true if the corresponding endpoint of the given segment is */
+/* already inserted into the segment tree. Use the simple test of */
+/* whether the segment which shares this endpoint is already inserted */
+
+static int int_inserted(int segnum, int whichpt)
+{
+      if (whichpt == FIRSTPT)
+            return iseg[iseg[segnum].prev].is_inserted;
+      else
+            return iseg[iseg[segnum].next].is_inserted;
+}
+
+
+
+
+
+inline int int_greater_than(ipoint_t *v0, ipoint_t *v1)
+{
+      if (v0->y > v1->y)
+            return TRUE;
+      else if (v0->y < v1->y)
+            return FALSE;
+      else
+            return (v0->x > v1->x);
+}
+
+
+inline int int_equal_to(ipoint_t *v0, ipoint_t *v1)
+{
+      return ((v0->y == v1->y) && (v0->x == v1->x));
+}
+
+inline int int_greater_than_equal_to(ipoint_t *v0, ipoint_t *v1)
+{
+      if (v0->y > v1->y)
+            return TRUE;
+      else if (v0->y < v1->y)
+            return FALSE;
+      else
+            return (v0->x >= v1->x);
+}
+
+inline int int_less_than(ipoint_t *v0, ipoint_t *v1)
+{
+      if (v0->y < v1->y)
+            return TRUE;
+      else if (v0->y > v1->y)
+            return FALSE;
+      else
+            return (v0->x < v1->x);
+}
+
+/* Return the maximum of the two points into the yval structure */
+inline static int int_max(ipoint_t *yval, ipoint_t *v0, ipoint_t *v1)
+{
+      if (v0->y > v1->y)
+            *yval = *v0;
+      else if (v0->y ==  v1->y)
+      {
+            if (v0->x > v1->x)
+                  *yval = *v0;
+            else
+                  *yval = *v1;
+      }
+      else
+            *yval = *v1;
+
+      return 0;
+}
+
+
+/* Return the minimum of the two points into the yval structure */
+inline static int int_min(ipoint_t *yval, ipoint_t *v0, ipoint_t *v1)
+{
+      if (v0->y < v1->y)
+            *yval = *v0;
+      else if (v0->y ==  v1->y)
+      {
+            if (v0->x < v1->x)
+                  *yval = *v0;
+            else
+                  *yval = *v1;
+      }
+      else
+            *yval = *v1;
+
+      return 0;
+}
+
+#define CROSS(v0, v1, v2) (((v1).x - (v0).x)*((v2).y - (v0).y) - \
+                     ((v1).y - (v0).y)*((v2).x - (v0).x))
+
+
+double iCROSS(int v0x, int v0y, int v1x, int v1y, int v2x, int v2y)
+{
+      double a = ((double)v1x-(double)v0x) * ((double)v2y-(double)v0y);
+      double b = ((double)v1y-(double)v0y) * ((double)v2x-(double)v0x);
+      return a-b;
+}
+
+/* Retun TRUE if the vertex v is to the left of line segment no.
+ * segnum. Takes care of the degenerate cases when both the vertices
+ * have the same y--cood, etc.
+ */
+
+inline static int int_is_left_of(int segnum, ipoint_t *v)
+{
+      isegment_t *s = &iseg[segnum];
+      double area;
+
+
+      if (int_greater_than(&s->v1, &s->v0)) /* seg. going upwards */
+      {
+            if ((s->v1.y == v->y))
+            {
+                  if (v->x < s->v1.x)
+                        area = 1.0;
+                  else
+                        area = -1.0;
+            }
+            else if ((s->v0.y == v->y))
+            {
+                  if (v->x < s->v0.x)
+                        area = 1.0;
+                  else
+                        area = -1.0;
+            }
+            else
+//                  area = CROSS(s->v0, s->v1, (*v));
+                  area = iCROSS(s->v0.x, s->v0.y, s->v1.x, s->v1.y, (*v).x, (*v).y);
+      }
+      else                          /* v0 > v1 */
+      {
+            if ((s->v1.y == v->y))
+            {
+                  if (v->x < s->v1.x)
+                        area = 1.0;
+                  else
+                        area = -1.0;
+            }
+            else if ((s->v0.y == v->y))
+            {
+                  if (v->x < s->v0.x)
+                        area = 1.0;
+                  else
+                        area = -1.0;
+            }
+            else
+//                  area = CROSS(s->v1, s->v0, (*v));
+                  area = iCROSS(s->v1.x, s->v1.y, s->v0.x, s->v0.y, (*v).x, (*v).y);
+      }
+
+
+//      printf("IILO %d %d %d %d %d %d %g\n", s->v0.x, s->v0.y, s->v1.x, s->v1.y, v->x, v->y, area);
+
+      if (area > 0.0)
+            return TRUE;
+      else
+            return FALSE;
+}
+
+/* Function returns TRUE if the trapezoid lies inside the polygon */
+static int int_inside_polygon(int i)
+{
+      int test;
+      itrap_t *t = &itr[i];
+
+      int rseg = t->rseg;
+
+      if (t->state != ST_VALID)
+            return 0;
+
+      if ((t->lseg < 0) || (t->rseg < 0))
+            return 0;
+
+      if (((t->u0 <= 0) && (t->u1 <= 0)) || ((t->d0 <= 0) && (t->d1 <= 0))) /* triangle */
+            return (int_greater_than(&iseg[rseg].v1, &iseg[rseg].v0));
+
+      if (int_equal_to(&t->lo, &iseg[t->lseg].v1))
+            return 1;
+
+      if (int_equal_to(&t->lo, &iseg[t->rseg].v0))
+            return 1;
+
+      if (int_equal_to(&t->hi, &iseg[t->rseg].v1))
+            return 1;
+
+      if (int_equal_to(&t->hi, &iseg[t->lseg].v0))
+            return 1;
+
+      if ((t->u0 > 0) && (t->u1 > 0))
+      {
+            if ((t->d0 > 0) && (t->d1 > 0)) // downward + upward cusps
+            {
+                  //    If any one of the neighbors is outside, then this trap must also be outide
+                  test = 0;
+                  test += int_inside_polygon(t->u0);
+                  test += int_inside_polygon(t->u1);
+                  test += int_inside_polygon(t->d0);
+                  test += int_inside_polygon(t->d1);
+
+                  if(test < 4)
+                        return 0;
+                  else
+                        return 1;
+            }
+      }
+
+#if 0
+      if ((t->u0 > 0) && (t->u1 > 0))
+      {
+            if ((t->d0 > 0) && (t->d1 > 0)) // downward + upward cusps
+            {
+may need to traverse here
+                return 1;
+            }
+            else                      // only downward cusp
+            {
+
+                  if (int_equal_to(&t->lo, &iseg[t->lseg].v1))
+                  {
+                        return 1;
+                  }
+                  if (int_equal_to(&t->hi, &iseg[t->rseg].v1))
+                  {
+//                        return 1;
+                  }
+                  if (int_equal_to(&t->hi, &iseg[t->lseg].v0))
+                  {
+ //                       return 1;
+                  }
+                  if (int_equal_to(&t->lo, &iseg[t->rseg].v0))
+                  {
+                        return 1;
+                  }
+                  else
+                  {
+ //                       return 0;
+                  }
+            }
+
+      }
+
+      if ((t->u0 > 0) || (t->u1 > 0)) /* no downward cusp */
+      {
+            if ((t->d0 > 0) && (t->d1 > 0)) /* only upward cusp */
+            {
+
+                  if (int_equal_to(&t->hi, &iseg[t->lseg].v0))
+                  {
+                        return 1;
+                  }
+                  if (int_equal_to(&t->lo, &iseg[t->rseg].v0))
+                  {
+ //                       return 1;
+                  }
+                  if (int_equal_to(&t->lo, &iseg[t->lseg].v1))
+                  {
+ //                       return 1;
+                  }
+                  if (int_equal_to(&t->hi, &iseg[t->rseg].v1))
+                  {
+                        return 1;
+                  }
+                  else
+                  {
+//                        return 0;
+                  }
+
+            }
+            else                      /* no cusp */
+            {
+                  if      (int_equal_to(&t->hi, &iseg[t->lseg].v0) && int_equal_to(&t->lo, &iseg[t->rseg].v0))
+                  {
+                        return 1;
+                  }
+                  else if (int_equal_to(&t->hi, &iseg[t->rseg].v1) /*&& int_equal_to(&t->lo, &iseg[t->lseg].v1)*/)
+                  {
+                       return 1;
+                  }
+                  else if (int_equal_to(&t->lo, &iseg[t->rseg].v0) /* && int_equal_to(&t->lo, &iseg[t->lseg].v1)*/)
+                  {
+ //                       return 1;
+                  }
+                  else if (int_equal_to(&t->lo, &iseg[t->lseg].v1) /*&& int_equal_to(&t->lo, &iseg[t->lseg].v1)*/)
+                  {
+                       return 1;
+                  }
+            }
+      }
+#endif
+      return 0;
+}
+
+
+inline int int_locate_endpoint_a(ipoint_t *v, ipoint_t *vo, int r)
+{
+      register int root;
+
+      register inode_t *rptr;
+
+
+      root = r;
+      while(1)
+      {
+            rptr = &iqs[root];
+
+            switch (rptr->nodetype)
+            {
+                  case T_SINK:
+                        return rptr->trnum;
+                        break;
+
+                  case T_Y:
+/*                        inline int int_greater_than(ipoint_t *v0, ipoint_t *v1)
+                        {
+                              if (v0->y > v1->y)
+                                    return TRUE;
+                              else if (v0->y < v1->y)
+                                    return FALSE;
+                              else
+                                    return (v0->x > v1->x);
+                        }
+*/
+ /*                       if (int_greater_than(v, &rptr->yval))
+                        {
+//                              if(debug)printf("B\n");
+                              root = rptr->right;
+                              break;
+//                        ret =  int_locate_endpoint(v, vo, rptr->right);
+                        }
+                        else if (int_equal_to(v, &rptr->yval))
+                        {
+                              if (int_greater_than(vo, &rptr->yval))
+                              {
+//                                    if(debug)printf("C\n");
+                                    root = rptr->right;
+                                    break;
+//                              ret =  int_locate_endpoint(v, vo, rptr->right);
+                              }
+                              else
+                              {
+//                                    if(debug)printf("D\n");
+                                    root = rptr->left;
+                                    break;
+//                              ret =  int_locate_endpoint(v, vo, rptr->left);
+                              }
+                        }
+                        else
+                        {
+//                              if(debug)printf("E\n");
+                              root = rptr->left;
+                              break;
+//                        ret =  int_locate_endpoint(v, vo, rptr->left);
+                        }
+                        break;
+*/
+
+                        if(v->y > (&rptr->yval)->y)
+                        {
+                              root = rptr->right;
+                              break;
+                        }
+
+                        if(v->y < (&rptr->yval)->y)
+                              root = rptr->left;
+
+                        else if(v->x > (&rptr->yval)->x)
+                              root=rptr->right;
+                        else
+                        {
+                              if (v->x == (&rptr->yval)->x)
+                              {
+                                    if (int_greater_than(vo, &rptr->yval))
+                                          root = rptr->right;
+                                    else
+                                          root = rptr->left;
+                              }
+                              else
+                                   root = rptr->left;
+                        }
+                        break;
+
+                  case T_X:
+                        if (int_equal_to(v, &iseg[rptr->segnum].v0) ||
+                            int_equal_to(v, &iseg[rptr->segnum].v1))
+                        {
+                              if ((v->y == vo->y)) /* horizontal segment */
+                              {
+                                    if (vo->x < v->x)
+                                    {
+                                          root = rptr->left;
+                                          break;
+//                                    ret =  int_locate_endpoint(v, vo, rptr->left); /* left */
+                                    }
+                                    else
+                                    {
+                                          root = rptr->right;
+                                          break;
+//                                    ret =  int_locate_endpoint(v, vo, rptr->right); /* right */
+                                    }
+                              }
+
+                              else if (int_is_left_of(rptr->segnum, vo))
+                              {
+                                    root = rptr->left;
+                                    break;
+//                                    ret =  int_locate_endpoint(v, vo, rptr->left); /* left */
+                              }
+                              else
+                              {
+                                    root = rptr->right;
+                                    break;
+                                    //                              ret =  int_locate_endpoint(v, vo, rptr->right); /* right */
+                              }
+                        }
+                        else if (int_is_left_of(rptr->segnum, v))
+                        {
+                              root = rptr->left;
+                              break;
+//                        ret =  int_locate_endpoint(v, vo, rptr->left); /* left */
+                        }
+                        else
+                        {
+                             root = rptr->right;
+                              break;
+//                        ret =  int_locate_endpoint(v, vo, rptr->right); /* right */
+                        }
+                        break;
+
+                  default:
+                        printf("Haggu !!!!!\n");
+                        return 0;
+                        break;
+            }     // switch
+      }           // while
+}
+
+
+/* This is query routine which determines which trapezoid does the
+ * point v lie in. The return value is the trapezoid number.
+ */
+
+inline int int_locate_endpoint(ipoint_t *v, ipoint_t *vo, int r)
+{
+      int ret;
+      int debug = 0;
+      inode_t *rptr;
+
+//new code
+      return int_locate_endpoint_a(v, vo, r);
+
+      nrecurse++;
+//      int ir;
+//      for(ir=0 ; ir < nrecurse ; ir++)
+//            printf(" ");
+//      printf(" int locate from root %d", r);
+
+
+      rptr = &iqs[r];
+
+      switch (rptr->nodetype)
+      {
+            case T_SINK:
+                  if(debug)printf("A %d\n", rptr->trnum);
+                  ret = rptr->trnum;
+                  break;
+
+            case T_Y:
+                  if (int_greater_than(v, &rptr->yval)) /* above */
+                  {
+                        if(debug)printf("B\n");
+                        ret =  int_locate_endpoint(v, vo, rptr->right);
+                  }
+                  else if (int_equal_to(v, &rptr->yval)) /* the point is already */
+                  {                                 /* inserted. */
+                        if (int_greater_than(vo, &rptr->yval)) /* above */
+                        {
+                              if(debug)printf("C\n");
+                              ret =  int_locate_endpoint(v, vo, rptr->right);
+                        }
+                        else
+                        {
+                              if(debug)printf("D\n");
+                              ret =  int_locate_endpoint(v, vo, rptr->left); /* below */
+                        }
+                  }
+                  else
+                  {
+                        if(debug)printf("E\n");
+                        ret =  int_locate_endpoint(v, vo, rptr->left); /* below */
+                  }
+                  break;
+
+            case T_X:
+                  if (int_equal_to(v, &iseg[rptr->segnum].v0) ||
+                      int_equal_to(v, &iseg[rptr->segnum].v1))
+                  {
+                        if ((v->y == vo->y)) /* horizontal segment */
+                        {
+                              if (vo->x < v->x)
+                              {
+                                    if(debug)printf("F\n");
+                                    ret =  int_locate_endpoint(v, vo, rptr->left); /* left */
+                              }
+                              else
+                              {
+                                    if(debug)printf("G\n");
+                                    ret =  int_locate_endpoint(v, vo, rptr->right); /* right */
+                              }
+                        }
+
+                        else if (int_is_left_of(rptr->segnum, vo))
+                        {
+                              if(debug)printf("H\n");
+                              ret =  int_locate_endpoint(v, vo, rptr->left); /* left */
+                        }
+                        else
+                        {
+                              if(debug)printf("I\n");
+                              ret =  int_locate_endpoint(v, vo, rptr->right); /* right */
+                        }
+                  }
+                  else if (int_is_left_of(rptr->segnum, v))
+                  {
+                        if(debug)printf("J\n");
+                        ret =  int_locate_endpoint(v, vo, rptr->left); /* left */
+                  }
+                  else
+                  {
+                        if(debug)printf("K\n");
+                        ret =  int_locate_endpoint(v, vo, rptr->right); /* right */
+                  }
+                  break;
+
+            default:
+                  if(debug)printf("Haggu !!!!!\n");
+                  ret = 0;
+                  break;
+      }
+
+      nrecurse--;
+      return ret;
+}
+
+
+
+/* Update the roots stored for each of the endpoints of the segment.
+ * This is done to speed up the location-query for the endpoint when
+ * the segment is inserted into the trapezoidation subsequently
+ */
+static int int_find_new_roots(int segnum)
+{
+//      printf("int_find_new_roots\n");
+
+      isegment_t *s = &iseg[segnum];
+
+      if (s->is_inserted)
+            return 0;
+
+      s->root0 = int_locate_endpoint(&s->v0, &s->v1, s->root0);
+      s->root0 = itr[s->root0].sink;
+
+      s->root1 = int_locate_endpoint(&s->v1, &s->v0, s->root1);
+      s->root1 = itr[s->root1].sink;
+      return 0;
+}
+
+
+
+/* Thread in the segment into the existing trapezoidation. The
+ * limiting trapezoids are given by tfirst and tlast (which are the
+ * trapezoids containing the two endpoints of the segment. Merges all
+ * possible trapezoids which flank this segment and have been recently
+ * divided because of its insertion
+ */
+
+static int int_merge_trapezoids(int segnum, int tfirst, int tlast, int side)
+{
+      int t, tnext, cond;
+      int ptnext;
+
+      /* First merge polys on the LHS */
+      t = tfirst;
+      while ((t > 0) && int_greater_than_equal_to(&itr[t].lo, &itr[tlast].lo))
+      {
+            if (side == S_LEFT)
+                  cond = ((((tnext = itr[t].d0) > 0) && (itr[tnext].rseg == segnum)) ||
+                              (((tnext = itr[t].d1) > 0) && (itr[tnext].rseg == segnum)));
+            else
+                  cond = ((((tnext = itr[t].d0) > 0) && (itr[tnext].lseg == segnum)) ||
+                              (((tnext = itr[t].d1) > 0) && (itr[tnext].lseg == segnum)));
+
+            if (cond)
+            {
+                  if ((itr[t].lseg == itr[tnext].lseg) &&
+                       (itr[t].rseg == itr[tnext].rseg)) /* good neighbours */
+                  {                                 /* merge them */
+                        /* Use the upper node as the new node i.e. t */
+
+                        ptnext = iqs[itr[tnext].sink].parent;
+
+                        if (iqs[ptnext].left == itr[tnext].sink)
+                              iqs[ptnext].left = itr[t].sink;
+                        else
+                              iqs[ptnext].right = itr[t].sink;  /* redirect parent */
+
+
+                        /* Change the upper neighbours of the lower trapezoids */
+
+                        if ((itr[t].d0 = itr[tnext].d0) > 0)
+                        {
+                              if (itr[itr[t].d0].u0 == tnext)
+                                    itr[itr[t].d0].u0 = t;
+                              else if (itr[itr[t].d0].u1 == tnext)
+                                    itr[itr[t].d0].u1 = t;
+                        }
+                        if ((itr[t].d1 = itr[tnext].d1) > 0)
+                        {
+                              if (itr[itr[t].d1].u0 == tnext)
+                                    itr[itr[t].d1].u0 = t;
+                              else if (itr[itr[t].d1].u1 == tnext)
+                                    itr[itr[t].d1].u1 = t;
+                        }
+                        itr[t].lo = itr[tnext].lo;
+                        itr[tnext].state = ST_INVALID; /* invalidate the lower */
+                        /* trapezium */
+                  }
+                  else              /* not good neighbours */
+                        t = tnext;
+            }
+            else                  /* do not satisfy the outer if */
+                  t = tnext;
+
+      } /* end-while */
+
+      return 0;
+}
+
+
+
+
+
+
+
+
+/* Add in the new segment into the trapezoidation and update Q and T
+ * structures. First locate the two endpoints of the segment in the
+ * Q-structure. Then start from the topmost trapezoid and go down to
+ * the  lower trapezoid dividing all the trapezoids in between .
+ */
+
+static int int_add_segment(int segnum)
+{
+//      printf("int_add_segment %d\n", segnum);
+
+//todo debug out
+      int rrt;
+      int td0, td1;
+
+      isegment_t s;
+//  segment_t *so = &seg[segnum];
+      int tu, tl, sk, tfirst, tlast;
+//  int tnext;
+      int tfirstr, tlastr, tfirstl, tlastl;
+      int i1, i2, t, tn;
+//  int t1, t2;
+      ipoint_t tpt;
+      int tritop = 0, tribot = 0, is_swapped = 0;
+      int tmptriseg;
+
+      s = iseg[segnum];
+      if (int_greater_than(&s.v1, &s.v0)) /* Get higher vertex in v0 */
+      {
+            int tmp;
+            tpt = s.v0;
+            s.v0 = s.v1;
+            s.v1 = tpt;
+            tmp = s.root0;
+            s.root0 = s.root1;
+            s.root1 = tmp;
+            is_swapped = TRUE;
+      }
+
+  if ((is_swapped) ? !int_inserted(segnum, LASTPT) :
+       !int_inserted(segnum, FIRSTPT))     /* insert v0 in the tree */
+  {
+        int tmp_d;
+
+        tu = int_locate_endpoint(&s.v0, &s.v1, s.root0);
+        tl = int_newtrap();           /* tl is the new lower trapezoid */
+        if(segnum == 193)
+              itr[tl].ase = 1;
+        itr[tl].state = ST_VALID;
+        itr[tl] = itr[tu];
+        itr[tu].lo.y = itr[tl].hi.y = s.v0.y;
+        itr[tu].lo.x = itr[tl].hi.x = s.v0.x;
+        itr[tu].d0 = tl;
+        itr[tu].d1 = 0;
+        itr[tl].u0 = tu;
+        itr[tl].u1 = 0;
+
+        if (((tmp_d = itr[tl].d0) > 0) && (itr[tmp_d].u0 == tu))
+              itr[tmp_d].u0 = tl;
+        if (((tmp_d = itr[tl].d0) > 0) && (itr[tmp_d].u1 == tu))
+              itr[tmp_d].u1 = tl;
+
+        if (((tmp_d = itr[tl].d1) > 0) && (itr[tmp_d].u0 == tu))
+              itr[tmp_d].u0 = tl;
+        if (((tmp_d = itr[tl].d1) > 0) && (itr[tmp_d].u1 == tu))
+              itr[tmp_d].u1 = tl;
+
+        /* Now update the query structure and obtain the sinks for the */
+        /* two trapezoids */
+
+        i1 = newnode();           /* Upper trapezoid sink */
+        i2 = newnode();           /* Lower trapezoid sink */
+        sk = itr[tu].sink;
+
+        iqs[sk].nodetype = T_Y;
+        iqs[sk].yval = s.v0;
+        iqs[sk].segnum = segnum;   /* not really reqd ... maybe later */
+        iqs[sk].left = i2;
+        iqs[sk].right = i1;
+
+        iqs[i1].nodetype = T_SINK;
+        iqs[i1].trnum = tu;
+        iqs[i1].parent = sk;
+
+        iqs[i2].nodetype = T_SINK;
+        iqs[i2].trnum = tl;
+        iqs[i2].parent = sk;
+
+        itr[tu].sink = i1;
+        itr[tl].sink = i2;
+        tfirst = tl;
+  }
+  else                          /* v0 already present */
+  {       /* Get the topmost intersecting trapezoid */
+        tfirst = int_locate_endpoint(&s.v0, &s.v1, s.root0);
+        tritop = 1;
+  }
+
+
+  if ((is_swapped) ? !int_inserted(segnum, FIRSTPT) :
+       !int_inserted(segnum, LASTPT))     /* insert v1 in the tree */
+  {
+        int tmp_d;
+
+        tu = int_locate_endpoint(&s.v1, &s.v0, s.root1);
+
+        tl = int_newtrap();           /* tl is the new lower trapezoid */
+        if(segnum == 193)
+              itr[tl].ase = 1;
+        itr[tl].state = ST_VALID;
+        itr[tl] = itr[tu];
+        itr[tu].lo.y = itr[tl].hi.y = s.v1.y;
+        itr[tu].lo.x = itr[tl].hi.x = s.v1.x;
+        itr[tu].d0 = tl;
+        itr[tu].d1 = 0;
+        itr[tl].u0 = tu;
+        itr[tl].u1 = 0;
+
+        if (((tmp_d = itr[tl].d0) > 0) && (itr[tmp_d].u0 == tu))
+              itr[tmp_d].u0 = tl;
+        if (((tmp_d = itr[tl].d0) > 0) && (itr[tmp_d].u1 == tu))
+              itr[tmp_d].u1 = tl;
+
+        if (((tmp_d = itr[tl].d1) > 0) && (itr[tmp_d].u0 == tu))
+              itr[tmp_d].u0 = tl;
+        if (((tmp_d = itr[tl].d1) > 0) && (itr[tmp_d].u1 == tu))
+              itr[tmp_d].u1 = tl;
+
+        /* Now update the query structure and obtain the sinks for the */
+        /* two trapezoids */
+
+        i1 = newnode();           /* Upper trapezoid sink */
+        i2 = newnode();           /* Lower trapezoid sink */
+        sk = itr[tu].sink;
+
+        iqs[sk].nodetype = T_Y;
+        iqs[sk].yval = s.v1;
+        iqs[sk].segnum = segnum;   /* not really reqd ... maybe later */
+        iqs[sk].left = i2;
+        iqs[sk].right = i1;
+
+        iqs[i1].nodetype = T_SINK;
+        iqs[i1].trnum = tu;
+        iqs[i1].parent = sk;
+
+        iqs[i2].nodetype = T_SINK;
+        iqs[i2].trnum = tl;
+        iqs[i2].parent = sk;
+
+        itr[tu].sink = i1;
+        itr[tl].sink = i2;
+        tlast = tu;
+//        printf("lastA\n");
+
+  }
+  else                          /* v1 already present */
+  {       /* Get the lowermost intersecting trapezoid */
+        tlast = int_locate_endpoint(&s.v1, &s.v0, s.root1);
+        tribot = 1;
+//        printf("lastB\n");
+
+  }
+
+  /* Thread the segment into the query tree creating a new X-node */
+  /* First, split all the trapezoids which are intersected by s into */
+  /* two */
+
+//  printf("Tfirst: %d\n", tfirst);
+//  printf("Tlast: %d\n", tlast);
+
+  t = tfirst;                   /* topmost trapezoid */
+  tfirstr = 0;
+  tlastr = 0;
+
+  while ((t > 0) &&
+          int_greater_than_equal_to(&itr[t].lo, &itr[tlast].lo))
+        /* traverse from top to bot */
+  {
+        int t_sav, tn_sav;
+        sk = itr[t].sink;
+        i1 = newnode();           /* left trapezoid sink */
+        i2 = newnode();           /* right trapezoid sink */
+
+ //       printf("Add X node at %d\n", sk);
+        iqs[sk].nodetype = T_X;
+        iqs[sk].segnum = segnum;
+        iqs[sk].left = i1;
+        iqs[sk].right = i2;
+
+        iqs[i1].nodetype = T_SINK; /* left trapezoid (use existing one) */
+        iqs[i1].trnum = t;
+        iqs[i1].parent = sk;
+
+        iqs[i2].nodetype = T_SINK; /* right trapezoid (allocate new) */
+        iqs[i2].trnum = tn = int_newtrap();
+        itr[tn].state = ST_VALID;
+        iqs[i2].parent = sk;
+
+        if (t == tfirst)
+              tfirstr = tn;
+        if (int_equal_to(&itr[t].lo, &itr[tlast].lo))
+              tlastr = tn;
+
+        itr[tn] = itr[t];
+        itr[t].sink = i1;
+        itr[tn].sink = i2;
+        t_sav = t;
+        tn_sav = tn;
+
+        /* error */
+
+        if ((itr[t].d0 <= 0) && (itr[t].d1 <= 0)) /* case cannot arise */
+        {
+              printf("add_segment: error\n");
+              itr[t].ase = 1;
+              itr[t].inside = 1;
+//              return 1;
+              break;
+        }
+
+        /* only one trapezoid below. partition t into two and make the */
+        /* two resulting trapezoids t and tn as the upper neighbours of */
+        /* the sole lower trapezoid */
+
+        else if ((itr[t].d0 > 0) && (itr[t].d1 <= 0))
+        {                       /* Only one trapezoid below */
+              if ((itr[t].u0 > 0) && (itr[t].u1 > 0))
+              {                   /* continuation of a chain from abv. */
+                    if (itr[t].usave > 0) /* three upper neighbours */
+                    {
+                          if (itr[t].uside == S_LEFT)
+                          {
+                                itr[tn].u0 = itr[t].u1;
+                                itr[t].u1 = -1;
+                                itr[tn].u1 = itr[t].usave;
+
+                                itr[itr[t].u0].d0 = t;
+                                itr[itr[tn].u0].d0 = tn;
+                                itr[itr[tn].u1].d0 = tn;
+                          }
+                          else          /* intersects in the right */
+                          {
+                                itr[tn].u1 = -1;
+                                itr[tn].u0 = itr[t].u1;
+                                itr[t].u1 = itr[t].u0;
+                                itr[t].u0 = itr[t].usave;
+
+                                itr[itr[t].u0].d0 = t;
+                                itr[itr[t].u1].d0 = t;
+                                itr[itr[tn].u0].d0 = tn;
+                          }
+
+                          itr[t].usave = itr[tn].usave = 0;
+                    }
+                    else              /* No usave.... simple case */
+                    {
+                          itr[tn].u0 = itr[t].u1;
+                          itr[t].u1 = itr[tn].u1 = -1;
+                          itr[itr[tn].u0].d0 = tn;
+                    }
+              }
+              else
+              {                   /* fresh seg. or upward cusp */
+                    int tmp_u = itr[t].u0;
+                    if(tmp_u < 0)
+                    {
+                          printf("add_segment: error tmp_u<0\n");
+                          break;
+                    }
+
+                    if (((td0 = itr[tmp_u].d0) > 0) &&
+                          ((td1 = itr[tmp_u].d1) > 0))
+                    {               /* upward cusp */
+                          if ((itr[td0].rseg > 0) &&
+                               !int_is_left_of(itr[td0].rseg, &s.v1))
+                          {
+                                itr[t].u0 = itr[t].u1 = itr[tn].u1 = -1;
+                                itr[itr[tn].u0].d1 = tn;
+                          }
+                          else          /* cusp going leftwards */
+                          {
+                                itr[tn].u0 = itr[tn].u1 = itr[t].u1 = -1;
+                                itr[itr[t].u0].d0 = t;
+                          }
+                    }
+                    else              /* fresh segment */
+                    {
+                          itr[itr[t].u0].d0 = t;
+                          itr[itr[t].u0].d1 = tn;
+                    }
+              }
+
+              if ((itr[t].lo.y == itr[tlast].lo.y) &&           // was FP_EQUAL
+                  (itr[t].lo.x == itr[tlast].lo.x) && tribot)
+              {           /* bottom forms a triangle */
+
+                    if (is_swapped)
+                          tmptriseg = iseg[segnum].prev;
+                    else
+                          tmptriseg = iseg[segnum].next;
+
+                    if ((tmptriseg > 0) && int_is_left_of(tmptriseg, &s.v0))
+                    {
+                          /* L-R downward cusp */
+                          itr[itr[t].d0].u0 = t;
+                          itr[tn].d0 = itr[tn].d1 = -1;
+                    }
+                    else
+                    {
+                          /* R-L downward cusp */
+                          itr[itr[tn].d0].u1 = tn;
+                          itr[t].d0 = itr[t].d1 = -1;
+                    }
+              }
+              else
+              {
+                    if ((itr[itr[t].d0].u0 > 0) && (itr[itr[t].d0].u1 > 0))
+                    {
+                          if (itr[itr[t].d0].u0 == t) /* passes thru LHS */
+                          {
+                                itr[itr[t].d0].usave = itr[itr[t].d0].u1;
+                                itr[itr[t].d0].uside = S_LEFT;
+                          }
+                          else
+                          {
+                                itr[itr[t].d0].usave = itr[itr[t].d0].u0;
+                                itr[itr[t].d0].uside = S_RIGHT;
+                          }
+                    }
+                    itr[itr[t].d0].u0 = t;
+                    itr[itr[t].d0].u1 = tn;
+              }
+
+              t = itr[t].d0;
+        }
+
+
+        else if ((itr[t].d0 <= 0) && (itr[t].d1 > 0))
+        {                       /* Only one trapezoid below */
+              if ((itr[t].u0 > 0) && (itr[t].u1 > 0))
+              {                   /* continuation of a chain from abv. */
+                    if (itr[t].usave > 0) /* three upper neighbours */
+                    {
+                          if (itr[t].uside == S_LEFT)
+                          {
+                                itr[tn].u0 = itr[t].u1;
+                                itr[t].u1 = -1;
+                                itr[tn].u1 = itr[t].usave;
+
+                                itr[itr[t].u0].d0 = t;
+                                itr[itr[tn].u0].d0 = tn;
+                                itr[itr[tn].u1].d0 = tn;
+                          }
+                          else          /* intersects in the right */
+                          {
+                                itr[tn].u1 = -1;
+                                itr[tn].u0 = itr[t].u1;
+                                itr[t].u1 = itr[t].u0;
+                                itr[t].u0 = itr[t].usave;
+
+                                itr[itr[t].u0].d0 = t;
+                                itr[itr[t].u1].d0 = t;
+                                itr[itr[tn].u0].d0 = tn;
+                          }
+
+                          itr[t].usave = itr[tn].usave = 0;
+                    }
+                    else              /* No usave.... simple case */
+                    {
+                          itr[tn].u0 = itr[t].u1;
+                          itr[t].u1 = itr[tn].u1 = -1;
+                          itr[itr[tn].u0].d0 = tn;
+                    }
+              }
+              else
+              {                   /* fresh seg. or upward cusp */
+                    int tmp_u = itr[t].u0;
+                    int td0, td1;
+                    if (((td0 = itr[tmp_u].d0) > 0) &&
+                          ((td1 = itr[tmp_u].d1) > 0))
+                    {               /* upward cusp */
+                          if ((itr[td0].rseg > 0) &&
+                               !int_is_left_of(itr[td0].rseg, &s.v1))
+                          {
+                                itr[t].u0 = itr[t].u1 = itr[tn].u1 = -1;
+                                itr[itr[tn].u0].d1 = tn;
+                          }
+                          else
+                          {
+                                itr[tn].u0 = itr[tn].u1 = itr[t].u1 = -1;
+                                itr[itr[t].u0].d0 = t;
+                          }
+                    }
+                    else              /* fresh segment */
+                    {
+                          itr[itr[t].u0].d0 = t;
+                          itr[itr[t].u0].d1 = tn;
+                    }
+              }
+
+              if ((itr[t].lo.y == itr[tlast].lo.y) &&                         // was FP_EQUAL
+                  (itr[t].lo.x == itr[tlast].lo.x) && tribot)
+              {           /* bottom forms a triangle */
+                    //              int tmpseg;                                     /* dsr ???? is tmpseg */
+                    /* anyway, this branch never seems to get hit */
+                    int tmpseg = itr[itr[t].d0].rseg;
+
+                    if (is_swapped)
+                          tmptriseg = iseg[segnum].prev;
+                    else
+                          tmptriseg = iseg[segnum].next;
+
+                    if ((tmpseg > 0) && int_is_left_of(tmpseg, &s.v0))
+                    {
+                          /* L-R downward cusp */
+                          itr[itr[t].d1].u0 = t;
+                          itr[tn].d0 = itr[tn].d1 = -1;
+                    }
+                    else
+                    {
+                          /* R-L downward cusp */
+                          itr[itr[tn].d1].u1 = tn;
+                          itr[t].d0 = itr[t].d1 = -1;
+                    }
+              }
+              else
+              {
+                    if ((itr[itr[t].d1].u0 > 0) && (itr[itr[t].d1].u1 > 0))
+                    {
+                          if (itr[itr[t].d1].u0 == t) /* passes thru LHS */
+                          {
+                                itr[itr[t].d1].usave = itr[itr[t].d1].u1;
+                                itr[itr[t].d1].uside = S_LEFT;
+                          }
+                          else
+                          {
+                                itr[itr[t].d1].usave = itr[itr[t].d1].u0;
+                                itr[itr[t].d1].uside = S_RIGHT;
+                          }
+                    }
+                    itr[itr[t].d1].u0 = t;
+                    itr[itr[t].d1].u1 = tn;
+              }
+
+              t = itr[t].d1;
+        }
+
+        /* two trapezoids below. Find out which one is intersected by */
+        /* this segment and proceed down that one */
+
+        else
+        {
+//          int tmpseg = itr[itr[t].d0].rseg;
+              double y0, yt;
+              point_t tmppt;
+              int tnext, i_d0, i_d1;
+              point_t tpt;
+
+              tpt.x = (double)itr[t].lo.x;
+              tpt.y = (double)itr[t].lo.y;
+
+              i_d0 = i_d1 = FALSE;
+              if ((itr[t].lo.y == s.v0.y))
+              {
+                    if (itr[t].lo.x > s.v0.x)
+                          i_d0 = TRUE;
+                    else
+                          i_d1 = TRUE;
+              }
+              else
+              {
+                    tmppt.y = y0 = itr[t].lo.y;
+                    yt = (double)(y0 - s.v0.y)/(double)(s.v1.y - s.v0.y);
+                    tmppt.x = s.v0.x + yt * (double)(s.v1.x - s.v0.x);
+
+                    if (_less_than(&tmppt, &tpt))           //&itr[t].lo))
+                          i_d0 = TRUE;
+                    else
+                          i_d1 = TRUE;
+              }
+
+              /* check continuity from the top so that the lower-neighbour */
+              /* values are properly filled for the upper trapezoid */
+
+              if ((itr[t].u0 > 0) && (itr[t].u1 > 0))
+              {                   /* continuation of a chain from abv. */
+                    if (itr[t].usave > 0) /* three upper neighbours */
+                    {
+                          if (itr[t].uside == S_LEFT)
+                          {
+                                itr[tn].u0 = itr[t].u1;
+                                itr[t].u1 = -1;
+                                itr[tn].u1 = itr[t].usave;
+
+                                itr[itr[t].u0].d0 = t;
+                                itr[itr[tn].u0].d0 = tn;
+                                itr[itr[tn].u1].d0 = tn;
+                          }
+                          else          /* intersects in the right */
+                          {
+                                itr[tn].u1 = -1;
+                                itr[tn].u0 = itr[t].u1;
+                                itr[t].u1 = itr[t].u0;
+                                itr[t].u0 = itr[t].usave;
+
+                                itr[itr[t].u0].d0 = t;
+                                itr[itr[t].u1].d0 = t;
+                                itr[itr[tn].u0].d0 = tn;
+                          }
+
+                          itr[t].usave = itr[tn].usave = 0;
+                    }
+                    else              /* No usave.... simple case */
+                    {
+                          itr[tn].u0 = itr[t].u1;
+                          itr[tn].u1 = -1;
+                          itr[t].u1 = -1;
+                          itr[itr[tn].u0].d0 = tn;
+                    }
+              }
+              else
+              {                   /* fresh seg. or upward cusp */
+                    int tmp_u = itr[t].u0;
+                    int td0, td1;
+                    if (((td0 = itr[tmp_u].d0) > 0) &&
+                          ((td1 = itr[tmp_u].d1) > 0))
+                    {               /* upward cusp */
+                          if ((itr[td0].rseg > 0) &&
+                               !int_is_left_of(itr[td0].rseg, &s.v1))
+                          {
+                                itr[t].u0 = itr[t].u1 = itr[tn].u1 = -1;
+                                itr[itr[tn].u0].d1 = tn;
+                          }
+                          else
+                          {
+                                itr[tn].u0 = itr[tn].u1 = itr[t].u1 = -1;
+                                itr[itr[t].u0].d0 = t;
+                          }
+                    }
+                    else              /* fresh segment */
+                    {
+                          itr[itr[t].u0].d0 = t;
+                          itr[itr[t].u0].d1 = tn;
+                    }
+              }
+
+//              if (FP_EQUAL(itr[t].lo.y, itr[tlast].lo.y) &&
+//                  FP_EQUAL(itr[t].lo.x, itr[tlast].lo.x) && tribot)
+              if ((itr[t].lo.y == itr[tlast].lo.y) &&
+                  (itr[t].lo.x == itr[tlast].lo.x) && tribot)
+              {
+              /* this case arises only at the lowest trapezoid.. i.e.
+                    tlast, if the lower endpoint of the segment is
+                    already inserted in the structure */
+
+                    itr[itr[t].d0].u0 = t;
+                    itr[itr[t].d0].u1 = -1;
+                    itr[itr[t].d1].u0 = tn;
+                    itr[itr[t].d1].u1 = -1;
+
+                    itr[tn].d0 = itr[t].d1;
+                    itr[t].d1 = itr[tn].d1 = -1;
+
+                    tnext = itr[t].d1;
+              }
+              else if (i_d0)
+                    /* intersecting d0 */
+              {
+                    itr[itr[t].d0].u0 = t;
+                    itr[itr[t].d0].u1 = tn;
+                    itr[itr[t].d1].u0 = tn;
+                    itr[itr[t].d1].u1 = -1;
+
+                    /* new code to determine the bottom neighbours of the */
+                    /* newly partitioned trapezoid */
+
+                    itr[t].d1 = -1;
+
+                    tnext = itr[t].d0;
+              }
+              else                  /* intersecting d1 */
+              {
+                    itr[itr[t].d0].u0 = t;
+                    itr[itr[t].d0].u1 = -1;
+                    itr[itr[t].d1].u0 = t;
+                    itr[itr[t].d1].u1 = tn;
+
+                    /* new code to determine the bottom neighbours of the */
+                    /* newly partitioned trapezoid */
+
+                    itr[tn].d0 = itr[t].d1;
+                    itr[tn].d1 = -1;
+
+                    tnext = itr[t].d1;
+              }
+
+              t = tnext;
+        }
+
+        itr[t_sav].rseg = itr[tn_sav].lseg  = segnum;
+  } /* end-while */
+
+  /* Now combine those trapezoids which share common segments. We can */
+  /* use the pointers to the parent to connect these together. This */
+  /* works only because all these new trapezoids have been formed */
+  /* due to splitting by the segment, and hence have only one parent */
+
+  tfirstl = tfirst;
+  tlastl = tlast;
+  int_merge_trapezoids(segnum, tfirstl, tlastl, S_LEFT);
+  int_merge_trapezoids(segnum, tfirstr, tlastr, S_RIGHT);
+
+  iseg[segnum].is_inserted = TRUE;
   return 0;
 }
+
+
+
+/* Initilialise the query structure (Q) and the trapezoid table (T)
+ * when the first segment is added to start the trapezoidation. The
+ * query-tree starts out with 4 trapezoids, one S-node and 2 Y-nodes
+ *
+ *                4
+ *   -----------------------------------
+ *                \
+ *      1          \        2
+ *                  \
+ *   -----------------------------------
+ *                3
+ */
+
+static int int_init_query_structure(int segnum)
+{
+      int i1, i2, i3, i4, i5, i6, i7, root;
+      int t1, t2, t3, t4;
+      isegment_t *s = &iseg[segnum];
+
+      q_idx = tr_idx = 1;
+
+#ifdef STATIC
+      memset((void *)itr, 0, sizeof(tr));
+      memset((void *)iqs, 0, sizeof(qs));
+#endif
+
+      i1 = newnode();
+      iqs[i1].nodetype = T_Y;
+      int_max(&iqs[i1].yval, &s->v0, &s->v1); /* root */
+      root = i1;
+
+      iqs[i1].right = i2 = newnode();
+      iqs[i2].nodetype = T_SINK;
+      iqs[i2].parent = i1;
+
+      iqs[i1].left = i3 = newnode();
+      iqs[i3].nodetype = T_Y;
+      int_min(&iqs[i3].yval, &s->v0, &s->v1); /* root */
+      iqs[i3].parent = i1;
+
+      iqs[i3].left = i4 = newnode();
+      iqs[i4].nodetype = T_SINK;
+      iqs[i4].parent = i3;
+
+      iqs[i3].right = i5 = newnode();
+      iqs[i5].nodetype = T_X;
+      iqs[i5].segnum = segnum;
+      iqs[i5].parent = i3;
+
+      iqs[i5].left = i6 = newnode();
+      iqs[i6].nodetype = T_SINK;
+      iqs[i6].parent = i5;
+
+      iqs[i5].right = i7 = newnode();
+      iqs[i7].nodetype = T_SINK;
+      iqs[i7].parent = i5;
+
+      t1 = int_newtrap();               /* middle left */
+      t2 = int_newtrap();               /* middle right */
+      t3 = int_newtrap();               /* bottom-most */
+      t4 = int_newtrap();               /* topmost */
+
+      itr[t1].hi = itr[t2].hi = itr[t4].lo = iqs[i1].yval;
+      itr[t1].lo = itr[t2].lo = itr[t3].hi = iqs[i3].yval;
+      itr[t4].hi.y = 0x7fffffff; //(double) (TRI_INFINITY);
+      itr[t4].hi.x = 0x7fffffff; //(double) (TRI_INFINITY);
+      itr[t3].lo.y = 0x80000000; //(double) -1* (TRI_INFINITY);
+      itr[t3].lo.x = 0x80000000; //(double) -1* (TRI_INFINITY);
+      itr[t1].rseg = itr[t2].lseg = segnum;
+      itr[t1].u0 = itr[t2].u0 = t4;
+      itr[t1].d0 = itr[t2].d0 = t3;
+      itr[t4].d0 = itr[t3].u0 = t1;
+      itr[t4].d1 = itr[t3].u1 = t2;
+
+      itr[t1].sink = i6;
+      itr[t2].sink = i7;
+      itr[t3].sink = i4;
+      itr[t4].sink = i2;
+
+      itr[t1].state = itr[t2].state = ST_VALID;
+      itr[t3].state = itr[t4].state = ST_VALID;
+
+      iqs[i2].trnum = t4;
+      iqs[i4].trnum = t3;
+      iqs[i6].trnum = t1;
+      iqs[i7].trnum = t2;
+
+      s->is_inserted = TRUE;
+      return root;
+}
+
+
+
+
+
+/* Main routine to perform trapezoidation */
+int int_construct_trapezoids(int nseg)
+{
+      register int i;
+      int root, h;
+      int nvtrap;
+
+      nvtrap = 0;
+
+      h=0;
+      /* Add the first segment and get the query structure and trapezoid */
+      /* list initialised */
+
+      root = int_init_query_structure(choose_segment());
+
+      for (i = 1; i <= nseg; i++)
+            iseg[i].root0 = iseg[i].root1 = root;
+
+      for (h = 1; h <= math_logstar_n(nseg); h++)
+      {
+            for (i = math_N(nseg, h -1) + 1; i <= math_N(nseg, h); i++)
+                  if(int_add_segment(choose_segment()))
+                        goto bail_point;
+
+            /* Find a new root for each of the segment endpoints */
+            for (i = 1; i <= nseg; i++)
+                  int_find_new_roots(i);
+      }
+
+      for (i = math_N(nseg, math_logstar_n(nseg)) + 1; i <= nseg; i++)
+            if(int_add_segment(choose_segment()))
+                  goto bail_point;
+
+/*  Debug code
+      for(i=1 ; i<nseg ; i++)
+      {
+            if(iseg[i].is_inserted ==FALSE)
+                  h=4;
+      }
+*/
+//bail_point:
+/*
+      for(i=1 ; i< tr_idx ; i++)
+      {
+            if(int_inside_polygon(i))
+            {
+                  if(itr[i].hi.y != itr[i].lo.y)
+                  {
+                        itr[i].inside = 1;
+                        nvtrap++;
+                  }
+            }
+      }
+*/
+
+/* Dead, test above is ok
+       nvtrap = 0;
+      for(i=1 ; i< tr_idx ; i++)
+      {
+            if((itr[i].state == ST_VALID) && (itr[i].hi.y != itr[i].lo.y) && (itr[i].lseg != -1) && (itr[i].rseg != -1))
+                  nvtrap++;
+      }
+*/
+
+      return 0;
+
+bail_point:
+      return 1;
+}
+
+
+
+
+/* Input specified as contours.
+ * Outer contour must be anti-clockwise.
+ * All inner contours must be clockwise.
+ *
+ * Every contour is specified by giving all its points in order. No
+ * point should be repeated. i.e. if the outer contour is a square,
+ * only the four distinct endpoints should be specified in order.
+ *
+ * ncontours: #contours
+ * cntr: An array describing the number of points in each
+ *       contour. Thus, cntr[i] = #points in the i'th contour.
+ * vertices: Input array of vertices. Vertices for each contour
+ *           immediately follow those for previous one. Array location
+ *           vertices[0] must NOT be used (i.e. i/p starts from
+ *           vertices[1] instead. The output triangles are
+ *           specified  w.r.t. the indices of these vertices.
+ *
+ * Enough space must be allocated for all the arrays before calling
+ * this routine
+ */
+
+int int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itrap_t **trap_return, isegment_t **iseg_return, int *n_traps)
+{
+      int i, iv;
+      int ccount, npoints, genus;
+      int n;
+      int ret_val;
+
+      int closed = 1;
+
+      int_alloc_mem(ncontours, cntr);
+
+#ifdef STATIC
+      memset((void *)iseg, 0, sizeof(iseg));
+#endif
+
+      ccount = 0;
+      i = 1;
+      iv = 1;
+
+      while (ccount < ncontours)
+      {
+            int j;
+            int first, last;
+
+            npoints = cntr[ccount];
+
+            if(closed)
+                  npoints--;
+
+            first = i;
+            last = first + npoints - 1;
+            for (j = 0; j < npoints; j++, i++, iv++)
+            {
+                  iseg[i].v0.x = vertices[iv][0];
+                  iseg[i].v0.y = vertices[iv][1];
+
+                  if (i == last)
+                  {
+                        iseg[i].next = first;
+                        iseg[i].prev = i-1;
+                        iseg[i-1].v1 = iseg[i].v0;
+                  }
+                  else if (i == first)
+                  {
+                        iseg[i].next = i+1;
+                        iseg[i].prev = last;
+                        iseg[last].v1 = iseg[i].v0;
+                  }
+                  else
+                  {
+                        iseg[i].prev = i-1;
+                        iseg[i].next = i+1;
+                        iseg[i-1].v1 = iseg[i].v0;
+                  }
+
+                  iseg[i].is_inserted = FALSE;
+            }
+
+            if(closed)
+                  iv++;                    // skip closing point in input vertices
+
+            ccount++;
+      }
+
+      genus = ncontours - 1;
+      n = i-1;
+
+      int_initialise(n);
+
+ //     if(n > 14000) n = 14000;
+
+      ret_val = 0;
+      ret_val = int_construct_trapezoids(n);
+
+      for(i=1 ; i< tr_idx ; i++)
+      {
+            if(int_inside_polygon(i))
+            {
+                  if(itr[i].hi.y != itr[i].lo.y)
+                        itr[i].inside = 1;
+            }
+      }
+
+
+
+/*
+      nmonpoly = monotonate_trapezoids(n);
+
+//  Create output data structure
+
+      pplast = NULL;
+      top = NULL;
+
+      for (i = 0; i < nmonpoly; i++)
+      {
+            pp = (polyout *)calloc(sizeof(polyout), 1);
+            pp->is_valid = 1;
+            pp->id_poly = i;
+
+//  Walk the chain once to get the length
+            nvc = 1;
+            vfirst = mchain[mon[i]].vnum;
+            p = mchain[mon[i]].next;
+            while (mchain[p].vnum != vfirst)
+            {
+                  p = mchain[p].next;
+                  nvc++;
+            }
+
+            pp->nvert = nvc;
+            pp->vertex_index_list = (int *)malloc(nvc * sizeof(int));
+
+            vlr = pp->vertex_index_list;
+
+            vfirst = mchain[mon[i]].vnum;
+            *vlr++ = vfirst;
+
+            p = mchain[mon[i]].next;
+            while (mchain[p].vnum != vfirst)
+            {
+                  *vlr++ = mchain[p].vnum;
+                  p = mchain[p].next;
+            }
+
+            if(NULL != pplast)
+                  pplast->poly_next = pp;
+
+            if(NULL == top)
+                  top = pp;
+
+//  prepare next link
+            pplast= pp;
+      }
+
+*/
+
+      free(permute);
+      free(iqs);
+
+      *trap_return = itr;
+
+      *iseg_return = iseg;
+
+//      if(0 == ret_val)
+//            return 0;
+//      else
+
+      *n_traps = tr_idx;
+
+      return ret_val;
+//            return tr_idx;
+}
+
+
 
 

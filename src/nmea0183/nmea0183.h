@@ -18,13 +18,7 @@
 //#endif //precompiled headers
 #include "wx/string.h"
 #include "wx/list.h"
-
-/*
-** Include all the needed MFC stuff
-*/
-
-//#include <afx.h>
-//#include <afxcoll.h>
+#include "wx/arrstr.h"
 
 /*
 ** Turn off the warning about precompiled headers, it is rather annoying
@@ -105,6 +99,13 @@ typedef enum _transducertype
    TachometerTransducer          = 'T',
    VolumeTransducer              = 'V'
 } TRANSDUCER_TYPE;
+
+typedef enum
+{
+      RouteUnknown = 0,
+      CompleteRoute,
+      WorkingRoute
+} ROUTE_TYPE;
 
 /*
 ** Misc Function Prototypes

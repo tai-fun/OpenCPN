@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.16  2009/03/26 22:31:55  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.15  2008/12/19 01:50:32  bdbcat
  * Add cm93 support
  *
@@ -92,7 +95,7 @@
 extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.15 2008/12/19 01:50:32 bdbcat Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.16 2009/03/26 22:31:55 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -335,6 +338,9 @@ void PianoWin::OnPaint(wxPaintEvent& event)
                   else if(ChartData->GetCSChartType(pCurrentStack, i) == CHART_TYPE_CM93)
                         dc.SetBrush(*m_pcBrush);
 
+                  else if(ChartData->GetCSChartType(pCurrentStack, i) == CHART_TYPE_CM93COMP)
+                        dc.SetBrush(*m_pcBrush);
+
                   else
                         dc.SetBrush(*m_ptBrush);
 
@@ -350,7 +356,10 @@ void PianoWin::OnPaint(wxPaintEvent& event)
             else if(ChartData->GetCSChartType(pCurrentStack, pCurrentStack->CurrentStackEntry) == CHART_TYPE_CM93)
                         dc.SetBrush(*m_pscBrush);
 
-             else
+            else if(ChartData->GetCSChartType(pCurrentStack, pCurrentStack->CurrentStackEntry) == CHART_TYPE_CM93COMP)
+                  dc.SetBrush(*m_pscBrush);
+
+            else
                   dc.SetBrush(*m_pslBrush);
 
             if((pCurrentStack->CurrentStackEntry >= 0 ) && (pCurrentStack->CurrentStackEntry < nKeys))

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.7 2008/12/19 01:46:39 bdbcat Exp $
+ * $Id: options.h,v 1.8 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.8  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.7  2008/12/19 01:46:39  bdbcat
  * Add selectable depth unit conversion for S57 charts
  *
@@ -63,6 +66,7 @@
 
 #include "wx/notebook.h"
 #include "wx/dirctrl.h"
+#include "wx/spinctrl.h"
 
 //      Forward Declarations
 class wxGenericDirCtrl;
@@ -102,7 +106,12 @@ enum {
         ID_TEXTCHECKBOX,
         ID_SCAMINCHECKBOX,
         ID_SHOWDEPTHUNITSBOX1,
-        ID_AUTOANCHORMARKBOX1
+        ID_AUTOANCHORMARKBOX1,
+        ID_PANELAIS,
+        ID_PANELADVANCED,   // toh, 2009.02.14
+        ID_GPXCHECKBOX,       // toh, 2009.02.14
+        ID_DRAGGINGCHECKBOX   // toh, 2009.02.14
+
 };
 
 //    Define an int bit field for dialog return value
@@ -216,12 +225,42 @@ public:
     wxTextCtrl              *m_itemWIFI_TCPIP_Source;
 #endif
 
+//    For "AIS" Page
+    wxPanel                   *itemPanelAIS;
+
+    wxCheckBox                *m_pCheck_CPA_Max;
+    wxTextCtrl                *m_pText_CPA_Max;
+    wxCheckBox                *m_pCheck_CPA_Warn;
+    wxTextCtrl                *m_pText_CPA_Warn;
+    wxCheckBox                *m_pCheck_CPA_WarnT;
+    wxTextCtrl                *m_pText_CPA_WarnT;
+    wxCheckBox                *m_pCheck_Mark_Lost;
+    wxTextCtrl                *m_pText_Mark_Lost;
+    wxCheckBox                *m_pCheck_Remove_Lost;
+    wxTextCtrl                *m_pText_Remove_Lost;
+    wxCheckBox                *m_pCheck_Show_COG;
+    wxTextCtrl                *m_pText_COG_Predictor;
+    wxCheckBox                *m_pCheck_Show_Tracks;
+    wxTextCtrl                *m_pText_Track_Length;
+    wxCheckBox                *m_pCheck_Show_Moored;
+    wxTextCtrl                *m_pText_Moored_Speed;
+
 //    For Fonts page
     wxPanel*                itemPanelFont;
     wxComboBox              *m_itemFontElementListBox;
 
 //    For "AIS Options"
     wxComboBox              *m_itemAISListBox;
+
+//    For "Etc." Page , toh, 2009.02.14
+    wxPanel*                itemPanelAdvanced;
+    wxCheckBox              *pGPXShowIcons;
+    wxCheckBox              *pNavAidShowRadarRings;
+    wxTextCtrl              *pNavAidRadarRingsNumberVisible;
+    wxTextCtrl              *pNavAidRadarRingsStep;
+    wxRadioBox              *m_itemNavAidRadarRingsStepUnitsRadioBox;
+    wxCheckBox              *pWayPointPreventDragging;
+
 
     wxCheckBox*             pSettingsCB1;
 

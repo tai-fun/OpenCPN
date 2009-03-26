@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.18 2008/12/09 04:05:53 bdbcat Exp $
+ * $Id: chcanv.h,v 1.19 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.19  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.18  2008/12/09 04:05:53  bdbcat
  * Cleanup Comments
  *
@@ -71,8 +74,10 @@
 #include "bbox.h"
 
 #include <wx/datetime.h>
+#include <wx/treectrl.h>
 
 #include "chart1.h"                 // for enum types
+
 //----------------------------------------------------------------------------
 //    Forward Declarations
 //----------------------------------------------------------------------------
@@ -88,6 +93,8 @@
       class ChartBase;
       class AIS_Target_Data;
       class IDX_entry;
+      class S57ObjectTree;
+      class S57ObjectDesc;
 
 //----------------------------------------------------------------------------
 //   constants
@@ -98,9 +105,10 @@
 
 typedef enum ScaleTypeEnum
 {
-  SCALE_SUBSAMP = 0,
-  SCALE_BILINEAR,
+      SCALE_SUBSAMP = 0,
+      SCALE_BILINEAR,
 }_ScaleTypeEnum;
+
 
 enum                                //  specify the render behaviour of SetViewPoint()
 {
@@ -125,6 +133,9 @@ typedef enum ownship_state_t
       SHIP_INVALID
 }_ownship_state_t;
 
+enum {
+      ID_S57QUERYTREECTRL =            10000
+};
 
 //----------------------------------------------------------------------------
 // ViewPort
@@ -143,8 +154,6 @@ class ViewPort
     double   clon;
     double   view_scale_ppm;
     double   skew;
-    double   c_east, c_north;       // SM co-ordinates of ViewPort center
-                                    // relative to (near) chart centroid
 
 
     wxBoundingBox vpBBox;           // An un-skewed rectangular lat/lon bounding box
@@ -166,13 +175,6 @@ class ViewPort
     double   pref_c_lon;
     double   pref_d_lat;
     double   pref_d_lon;
-
-    //  These for s57 charts only, will have to go.....
-    //  s57chart.cpp needs to acknowledge reference points
-    double   lat_top;
-    double   lat_bot;
-    double   lon_left;
-    double   lon_right;
 
 };
 
@@ -197,7 +199,7 @@ public:
       void SetMyCursor(wxCursor *c);
 
 
-      void SetViewPoint(double lat, double lon, double scale_ppm, double skew, int mod_mode, int sample_mode);
+      void SetViewPoint(double lat, double lon, double scale_ppm, double skew, int sample_mode);
       void SetVPScale(double sc);
 
       void GetPointPix(double rlat, double rlon, wxPoint *r);
@@ -214,9 +216,10 @@ public:
       int GetCanvas_height(){ return canvas_height;}
       float GetVPScale(){return VPoint.view_scale_ppm;}
       float GetVPChartScale(){return VPoint.chart_scale;}
+      double GetCanvasScaleFactor(){return m_canvas_scale_factor;}
 
-      void  SetbNewVP(bool f){ m_bNewVP = f;}
-      bool  GetbNewVP(){ return m_bNewVP;}
+//      void  SetbNewVP(bool f){ m_bNewVP = f;}
+//      bool  GetbNewVP(){ return m_bNewVP;}
 
       void  SetbTCUpdate(bool f){ m_bTCupdate = f;}
       bool  GetbTCUpdate(){ return m_bTCupdate;}
@@ -231,7 +234,6 @@ public:
 
       //Todo build more accessors
       bool        m_bFollow;
-//      bool        m_bForceReDraw;
       wxCursor    *pCursorPencil;
       TCWin       *pCwin;
       ViewPort    VPoint;
@@ -240,7 +242,6 @@ public:
 private:
       bool        m_bShowCurrent;
       bool        m_bShowTide;
-      bool        m_bNewVP;
       int         cursor_region;
       bool        m_bTCupdate;
 
@@ -254,13 +255,16 @@ private:
       bool        m_bMarkEditing;
       RoutePoint  *m_pRoutePointEditTarget;
       SelectItem  *m_pFoundPoint;
+      bool        m_bChartDragging;
+
 
       Route       *m_pMouseRoute;
       double      m_prev_rlat;
       double      m_prev_rlon;
       RoutePoint  *m_prev_pMousePoint;
       Route       *m_pSelectedRoute;
-      Route       *m_pEditRoute;
+//      Route       *m_pEditRoute;
+      wxArrayPtrVoid *m_pEditRouteArray;
       RoutePoint  *m_pFoundRoutePoint;
       RoutePoint  *m_pFoundRoutePointSecond;
 
@@ -376,8 +380,6 @@ private:
       wxMemoryDC  m_dc_route;         // seen in mouse->edit->route
 
       double   m_ownship_predictor_minutes;      // Minutes shown on ownship position predictor graphic
-                                                // defaults to 5
-      double   m_ais_predictor_minutes;          // Minutes shown on AIS target position predictor graphic
                                                 // defaults to 5
 
       int         m_emboss_width, m_emboss_height;
@@ -511,8 +513,28 @@ public:
       void CreateControls();
 
       void SetText(wxString &text_string);
+      void SetObjectTree(void **pOD, int n_items);
 
-      wxString    *pQueryResult;
+      void SetSelectedItem(wxTreeItemId item_id);                  // a "notification" from Tree control
+
+      wxString format_attributes(wxString &attr, int lcol, int rcol);
+
+      //    Overrides
+      void OnPaint ( wxPaintEvent& event );
+
+
+      //    Data
+      wxString          QueryResult;
+      wxTextCtrl        *m_pQueryTextCtl;
+      S57ObjectTree     *m_pTree;
+      wxTreeItemId      m_root_id;
+
+      int               m_n_items;
+      void              **m_ppOD;
+
+      wxTreeItemId      *m_id_array;                              // an array of wxTreeItemIDs
+      int               m_char_width;
+
 };
 
 
@@ -552,9 +574,46 @@ public:
 
       void SetText(wxString &text_string);
 
+      //    Data
       wxString    *pQueryResult;
 };
 
 
+//----------------------------------------------------------------------------------------------------------
+//    S57 Object Query Tree Control Specification
+//----------------------------------------------------------------------------------------------------------
+class S57ObjectTree: public wxTreeCtrl
+{
+      DECLARE_CLASS( S57ObjectTree )
+      DECLARE_EVENT_TABLE()
+public:
+      /// Constructors
+      S57ObjectTree( );
+      S57ObjectTree( S57QueryDialog* parent, wxWindowID id = wxID_ANY,
+                                        const wxPoint& pos = wxDefaultPosition,
+                                        const wxSize& size = wxDefaultSize,
+                                        long style = wxTR_HAS_BUTTONS );
+
+      ~S57ObjectTree( );
+
+      /// Initialise our variables
+      void Init();
+
+      //  Override events
+      void OnItemExpanding( wxTreeEvent& event);
+      void OnItemSelectChange( wxTreeEvent& event);
+
+      //    Data
+      S57QueryDialog    *m_parent;
+
+};
+
+class MyTreeItemData : public wxTreeItemData
+{
+public:
+      MyTreeItemData(S57ObjectDesc *pOD){ m_pOD = pOD; }
+
+      S57ObjectDesc     *m_pOD;
+};
 
 #endif

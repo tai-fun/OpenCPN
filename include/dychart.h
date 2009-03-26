@@ -5,15 +5,16 @@
 #ifndef _DYCHART_H_
 #define _DYCHART_H_
 
+#define USE_CM93
+
+//    Profiling support
+
+//#include "/usr/include/valgrind/callgrind.h"
 
 //  Chart cacheing policy
 //  n.b. use only one of the following policy options....
 #define CACHE_N_LIMIT 2                                     // Cache no more than n charts
 //#define CACHE_MEM_LIMIT 60000                             // Free mem threshold for freeing a chart from cache
-
-
-//          MSWindows Autopilot Control output through Serial Comm Port
-#define     ocpnUSE_MSW_SERCOMM           1
 
 
 // Optional

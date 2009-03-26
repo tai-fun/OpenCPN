@@ -70,6 +70,7 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/wvschart.cpp \
 			src/about.cpp \
 			src/ais.cpp \
+			src/cm93.cpp \
 			src/nmea0183/latlong.cpp \
 			src/nmea0183/long.cpp \
 			src/nmea0183/nmea0183.cpp \
@@ -81,7 +82,9 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/nmea0183/rmc.cpp \
 			src/nmea0183/hexvalue.cpp \
 			src/nmea0183/lat.cpp \
-			src/nmea0183/expid.cpp
+			src/nmea0183/expid.cpp \
+			src/nmea0183/wpl.cpp \
+			src/nmea0183/rte.cpp
 
 if BUILD_WITH_S57
 opencpn_SOURCES +=	src/s52cnsy.cpp \

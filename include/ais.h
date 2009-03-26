@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.10 2008/04/10 00:57:08 bdbcat Exp $
+ * $Id: ais.h,v 1.11 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -25,20 +25,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< ais.h
-<<<<<<< ais.h
  * $Log: ais.h,v $
- * Revision 1.10  2008/04/10 00:57:08  bdbcat
- * Cleanup
+ * Revision 1.11  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
  *
- * Revision 1.9  2008/03/30 23:20:36  bdbcat
- * *** empty log message ***
- *
-=======
-=======
-<<<<<<< ais.h
->>>>>>> 1.8
- * $Log: ais.h,v $
  * Revision 1.10  2008/04/10 00:57:08  bdbcat
  * Cleanup
  *
@@ -48,8 +38,10 @@
  * Revision 1.8  2008/03/30 23:13:42  bdbcat
  * *** empty log message ***
  *
-=======
  * $Log: ais.h,v $
+ * Revision 1.11  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.10  2008/04/10 00:57:08  bdbcat
  * Cleanup
  *
@@ -100,6 +92,14 @@
 #ifdef __POSIX__
 #include <sys/termios.h>
 #endif
+
+
+//    Constants
+#ifndef PI
+#define PI        3.1415926535897931160E0      /* pi */
+#endif
+
+
 
 #define TIMER_AIS_MSEC      998
 
@@ -157,6 +157,12 @@ public:
     char        ShipName[21];
     unsigned char ShipType;
     time_t      ReportTicks;
+    int         RecentPeriod;
+    bool        b_active;
+
+    //      Per target collision parameters
+    double      TCPA;                     // Minutes
+    double      CPA;                      // Nautical Miles
 
 
 };
@@ -233,6 +239,12 @@ private:
     bool NMEACheckSumOK(const wxString& str);
     AIS_Target_Data *Parse_VDMBitstring(AIS_Bitstring *bstr);
     AIS_Target_Data *Merge(AIS_Target_Data *tlast, AIS_Target_Data *tthis);
+    int AddUpdateTarget(AIS_Target_Data *pNewTargetData);
+    void UpdateAllCPA(void);
+    void UpdateOneCPA(AIS_Target_Data *ptarget);
+
+
+
 
     AIS_Target_Hash *AISTargetList;
 
@@ -252,6 +264,8 @@ private:
     wxString          sentence_accumulator;
     bool              m_OK;
     int               m_death_age_seconds;
+
+    int              m_nsim;
 
 DECLARE_EVENT_TABLE()
 

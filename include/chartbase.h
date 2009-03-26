@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.11 2008/12/09 03:33:25 bdbcat Exp $
+ * $Id: chartbase.h,v 1.12 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.12  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.11  2008/12/09 03:33:25  bdbcat
  * Add cm93 support
  *
@@ -94,8 +97,18 @@ typedef enum ChartTypeEnum
       CHART_TYPE_GEO,
       CHART_TYPE_S57,
       CHART_TYPE_CM93,
+      CHART_TYPE_CM93COMP,
       CHART_TYPE_DUMMY
 }_ChartTypeEnum;
+
+//    ChartFamily constants
+typedef enum ChartFamilyEnum
+{
+      CHART_FAMILY_UNKNOWN = 0,
+      CHART_FAMILY_RASTER,
+      CHART_FAMILY_VECTOR
+}_ChartFamilyEnum;
+
 
 typedef enum RenderTypeEnum
 {
@@ -108,9 +121,9 @@ typedef enum InitReturn
 {
       INIT_OK = 0,
       INIT_FAIL_RETRY,        // Init failed, retry suggested
-      INIT_FAIL_REMOVE        // Init Failed, suggest remove from further use
+      INIT_FAIL_REMOVE,       // Init failed, suggest remove from further use
+      INIT_FAIL_NOERROR       // Init failed, request no explicit error message
 }_InitReturn;
-
 
 
 class ThumbData
@@ -164,23 +177,29 @@ public:
       virtual bool UpdateThumbData(float lat, float lon) = 0;
 
       virtual int GetNativeScale() = 0;
-      virtual float GetChartSkew() = 0;
+      virtual double GetNormalScaleMin(double canvas_scale_factor) = 0;
+      virtual double GetNormalScaleMax(double canvas_scale_factor) = 0;
+
+      virtual double GetChartSkew() = 0;
       virtual bool GetChartExtent(Extent *pext) = 0;
 
-      virtual void GetPubDate(wxString &data){ data = *pPubYear;}
+      virtual wxString GetPubDate(){ return *pPubYear;}
       virtual wxDateTime GetEditionDate(void){ return m_EdDate;}
 
-      virtual void GetFullPath(wxString &data){ data = *m_pFullPath;}
-      virtual void GetName(wxString &data){ data = *m_pName;}
+      virtual wxString GetFullPath(){ return *m_pFullPath;}
+      virtual wxString GetName(){ return *m_pName;}
       virtual ChartDepthUnitType GetDepthUnitType(void) { return m_depth_unit_id;}
 
       virtual bool IsReadyToRender(){ return bReadyToRender;}
 
       virtual void InvalidateCache(void) = 0;
 
-      virtual void RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type) = 0;
+      virtual bool RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type) = 0;
 
       virtual void SetVPParms(ViewPort *vpt) = 0;
+
+      virtual bool AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed) = 0;
+      virtual bool IsRenderDelta(ViewPort &vp_last, ViewPort &vp_proposed) = 0;
 
       virtual void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion) = 0;
 
@@ -192,6 +211,8 @@ public:
       virtual float *GetCOVRTableHead(int iTable){ return m_pCOVRTable[iTable]; }
 
       ChartTypeEnum     m_ChartType;
+      ChartFamilyEnum   m_ChartFamily;
+
       wxString          *m_pFullPath;
       wxString          *m_pName;
 
@@ -249,15 +270,22 @@ public:
       virtual bool UpdateThumbData(float lat, float lon);
 
       virtual int GetNativeScale();
-      virtual void GetPubDate(wxString &data);
-      virtual float GetChartSkew(){ return 0.0;}
+      double GetNormalScaleMin(double canvas_scale_factor){return 1.0;}
+      double GetNormalScaleMax(double canvas_scale_factor){ return 1.0e7;}
+
+      virtual wxString GetPubDate();
+      virtual double GetChartSkew(){ return 0.0;}
       virtual bool GetChartExtent(Extent *pext);
 
       virtual void InvalidateCache(void);
 
-      virtual void RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
+      virtual bool RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
 
       virtual void SetVPParms(ViewPort *vpt);
+
+      virtual bool AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed);
+
+      virtual bool IsRenderDelta(ViewPort &vp_last, ViewPort &vp_proposed);
 
       virtual void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion);
 

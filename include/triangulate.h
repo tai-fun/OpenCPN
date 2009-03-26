@@ -101,10 +101,57 @@ typedef struct {
       void *poly_next;
 } polyout;
 
+
+
+//    Integer types
+
+typedef struct {
+      int x, y;
+} ipoint_t, ivector_t;
+
+/* Trapezoid attributes */
+typedef struct {
+      int lseg, rseg;       /* two adjoining segments */
+      ipoint_t hi, lo;       /* max/min y-values */
+      int u0, u1;
+      int d0, d1;
+      int sink;             /* pointer to corresponding in Q */
+      int usave, uside;           /* I forgot what this means */
+      int state;
+      int inside;
+      int ase;                // TODO remove debug
+} itrap_t;
+
+/* Segment attributes */
+typedef struct {
+      ipoint_t v0, v1;       /* two endpoints */
+      int is_inserted;            /* inserted in trapezoidation yet ? */
+      int root0, root1;           /* root nodes in Q */
+      int next;             /* Next logical segment */
+      int prev;             /* Previous segment */
+} isegment_t;
+
+
+
+
+typedef struct {
+      int nodetype;               /* Y-node or S-node */
+      int segnum;
+      ipoint_t yval;
+      int trnum;
+      int parent;                 /* doubly linked DAG */
+      int left, right;            /* children */
+} inode_t;
+
+
+
+
 #ifdef __cplusplus
 extern "C" polyout *triangulate_polygon(int, int[], double (*)[2]);
+extern "C" int int_trapezate_polygon(int, int[], double (*)[2], itrap_t **, isegment_t **, int *);
 #else /* __cplusplus */
 extern polyout *triangulate_polygon(int, int[], double (*)[2]);
+extern int int_trapezate_polygon(int, int[], double (*)[2], itrap_t **, isegment_t **, int *);
 #endif
 
 //extern int triangulate_polygon(int, int *, double (*)[2], int (*)[3]);

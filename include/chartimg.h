@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.12 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: chartimg.h,v 1.13 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.13  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.12  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -168,7 +171,11 @@ class  ChartBaseBSB     :public ChartBase
       virtual bool UpdateThumbData(float lat, float lon);
 
       int GetNativeScale(){return m_Chart_Scale;}
-      float GetChartSkew(){return Chart_Skew;}
+      double GetNormalScaleMin(double canvas_scale_factor);
+      double GetNormalScaleMax(double canvas_scale_factor);
+      double GetClosestValidNaturalScalePPM(double target_scale);
+
+      double GetChartSkew(){return Chart_Skew;}
       int GetSize_X(){ return Size_X;}
       int GetSize_Y(){ return Size_Y;}
       double GetPPM(){ return m_ppm_avg;}
@@ -186,9 +193,13 @@ class  ChartBaseBSB     :public ChartBase
       virtual int pix_to_latlong(int pixx, int pixy, double *lat, double *lon);
       virtual int vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *lat, double *lon);
 
-      void RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
+      bool RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
 
       virtual void SetVPParms(ViewPort *vpt);
+
+      virtual bool AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed);
+
+      virtual bool IsRenderDelta(ViewPort &vp_last, ViewPort &vp_proposed);
 
       void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion  *pValidRegion);
 
@@ -220,10 +231,6 @@ protected:
       virtual bool GetAndScaleData(unsigned char **ppn,
                                    wxRect& source, int s_width, int d_width, ScaleTypeEnum scale_type);
 
-      virtual bool ScaleData(unsigned char *pPix, unsigned char **ppn,
-                             wxRect& source, int s_width, int d_width,
-                             ScaleTypeEnum scale_type);
-
 
       bool GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnum scale_type );
       bool GetView( wxRect& source, wxRect& dest, ScaleTypeEnum scale_type );
@@ -232,7 +239,8 @@ protected:
       virtual int BSBScanScanline(wxInputStream *pinStream);
       virtual int ReadBSBHdrLine( wxFileInputStream*, char *, int );
       virtual int AnalyzeRefpoints(void);
-      void UpdateViewPortParms(ViewPort &vp);
+
+      void ComputeSourceRectangle(ViewPort &vp, wxRect *pSourceRect);
 
       InitReturn PreInit( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
       InitReturn PostInit(void);
@@ -300,7 +308,7 @@ protected:
 
 
       bool        bUseLineCache;
-      float       Chart_Skew;
+      double      Chart_Skew;
 
       float       LonMax;
       float       LonMin;
@@ -315,7 +323,7 @@ protected:
       double      m_ppm_avg;              // Calculated true scale factor of the 1X chart,
                                         // pixels per meter
 
-      double      m_current_binary_scale_factor;            //Set in UpdateViewPortParms()
+//      double      m_current_binary_scale_factor;            //Set in UpdateViewPortParms()
 
       //    Storage for background render machine
 

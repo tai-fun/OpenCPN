@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.8 2008/12/09 03:32:16 bdbcat Exp $
+ * $Id: mygeom.h,v 1.9 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselation of Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
+ * Revision 1.9  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.8  2008/12/09 03:32:16  bdbcat
  * Add stream method
  *
@@ -80,6 +83,7 @@
 
 #include <ogr_geometry.h>
 #include "s52s57.h"
+#include "cm93.h"                               // for Extended_Geometry
 
 #define TESS_VERT   0                           // constants describing preferred tess orientation
 #define TESS_HORZ   1
@@ -144,12 +148,37 @@ public:
 };
 
 
+typedef struct {
+      int         ilseg;
+      int         irseg;
+      double      loy;
+      double      hiy;
+
+} trapz_t;
+
+
+
+class PolyTrapGroup
+{
+      public:
+            PolyTrapGroup();
+            ~PolyTrapGroup();
+
+            int             nContours;
+            int             *pn_vertex;             // pointer to array of poly vertex counts
+            wxPoint2DDouble *ptrapgroup_geom;       // pointer to Raw geometry, used for contour line drawing
+
+            int             ntrap_count;
+            trapz_t         *trap_array;
+            int             m_trap_error;
+};
+
 
 
 
 //--------------------------------------------------------------------------------------------------
 //
-//      Tesselator Class
+//      Triangle Tesselator Class
 //
 //--------------------------------------------------------------------------------------------------
 class PolyTessGeo
@@ -164,7 +193,7 @@ class PolyTessGeo
             double ref_lat, double ref_lon,  bool bUseInternalTess);  // Build this from OGRPolygon
 
         int Write_PolyTriGroup( FILE *ofs);
-        int Write_PolyTriGroup( wxFileOutputStream &ostream);
+        int Write_PolyTriGroup( wxOutputStream &ostream);
 
         double Get_xmin(){ return xmin;}
         double Get_xmax(){ return xmax;}
@@ -197,8 +226,55 @@ class PolyTessGeo
         char           *m_buf_ptr;                   // used to read passed SENC record
         int            m_nrecl;
 
-
+        double         m_ref_lat, m_ref_lon;
 
 };
+
+
+//--------------------------------------------------------------------------------------------------
+//
+//      Trapezoid Tesselator Class
+//
+//--------------------------------------------------------------------------------------------------
+class PolyTessGeoTrap
+{
+      public:
+            PolyTessGeoTrap();
+            ~PolyTessGeoTrap();
+
+
+            PolyTessGeoTrap(Extended_Geometry *pxGeom, double ref_lat, double ref_lon);  // Build this from Extended Geometry
+
+            double Get_xmin(){ return xmin;}
+            double Get_xmax(){ return xmax;}
+            double Get_ymin(){ return ymin;}
+            double Get_ymax(){ return ymax;}
+            PolyTrapGroup *Get_PolyTrapGroup_head(){ return m_ptg_head;}
+            int GetnVertexMax(){ return m_nvertex_max; }
+            bool IsOk(){ return m_bOK;}
+            int     ErrorCode;
+
+
+      private:
+
+
+
+    //  Data
+            bool            m_bOK;
+
+            double          xmin, xmax, ymin, ymax;
+            PolyTrapGroup   *m_ptg_head;                  // PolyTrapGroup
+            int             m_nvertex_max;                // computed max vertex count
+                                                          // used by drawing primitives as
+                                                          // optimization for malloc
+            int             m_ncnt;
+            int             m_nwkb;
+
+            double         m_ref_lat, m_ref_lon;
+
+};
+
+
+
 
 #endif

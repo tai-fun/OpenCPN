@@ -413,6 +413,8 @@ LINK32_OBJS= &
 	$(INTDIR)/concanv.obj &
 	$(INTDIR)/routeman.obj &
 	$(INTDIR)/options.obj &
+	$(INTDIR)/wpl.obj &
+	$(INTDIR)/rte.obj &
 	$(INTDIR)/expid.obj &
 	$(INTDIR)/chart1.obj &
 	$(INTDIR)/talkerid.obj &
@@ -439,6 +441,7 @@ LINK32_OBJS= &
 	$(INTDIR)/chartimg.obj &
 	$(INTDIR)/rmb.obj &
  	$(INTDIR)/cutil.obj &
+	$(INTDIR)/cm93.obj &
 	$(INTDIR)/routeprop.obj
 
 ISO8211_OBJS = &
@@ -636,19 +639,19 @@ DEP_CPP_CHART=&
 	$(GDAL_INCLUDE)\cpl_port.h&
 	$(SRC_DIR)\src\nmea0183\nmea0183.h&
 	$(SRC_DIR)\include\options.h&
-	$(SRC_DIR)\src\bitmaps\settings.xpm&
+#	$(SRC_DIR)\src\bitmaps\settings.xpm&
 	$(SRC_DIR)\src\bitmaps\zoomin.xpm&
 	$(SRC_DIR)\src\bitmaps\zoomout.xpm&
 	$(SRC_DIR)\src\bitmaps\scin.xpm&
 	$(SRC_DIR)\src\bitmaps\scout.xpm&
-	$(SRC_DIR)\src\bitmaps\tide.xpm&
+#	$(SRC_DIR)\src\bitmaps\tide.xpm&
 	$(SRC_DIR)\src\bitmaps\text.xpm&
 	$(SRC_DIR)\src\bitmaps\route.xpm&
 	$(SRC_DIR)\src\bitmaps\exitt.xpm&
 	$(SRC_DIR)\src\bitmaps\follow.xpm&
 	$(SRC_DIR)\src\bitmaps\current.xpm&
 	$(SRC_DIR)\src\bitmaps\print.xpm&
-	$(SRC_DIR)\src\bitmaps\help.xpm&
+#	$(SRC_DIR)\src\bitmaps\help.xpm&
 	$(SRC_DIR)\src\bitmaps\colscheme.xpm&
 	$(SRC_DIR)\src\nmea0183\nmea0183.hpp&
 	$(SRC_DIR)\src\nmea0183\Sentence.hpp&
@@ -782,7 +785,8 @@ SOURCE=$(SRC_DIR)\src\mygeom.cpp
 DEP_CPP_MYGEO=&
 	$(SRC_DIR)\include\mygeom.h&
 	$(SRC_DIR)\include\dychart.h&
-	$(SRC_DIR)\include\triangulate.h
+	$(SRC_DIR)\include\triangulate.h&
+	$(SRC_DIR)\include\cm93.h
 
 
 $(OUTDIR)/mygeom.obj : $(SRC_DIR)\src\mygeom.cpp $(DEP_CPP_MYGEO)
@@ -3350,6 +3354,19 @@ $(OUTDIR)/ddfrecordindex.obj : $(SRC_DIR)\src\mygdal\ddfrecordindex.cpp $(DEP_CP
 
 
 # End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=$(SRC_DIR)\src\cm93.cpp
+DEP_CPP_DDFR2=&
+
+
+$(OUTDIR)/cm93.obj : $(SRC_DIR)\src\cm93.cpp $(DEP_CPP_DDFR2)
+  $(CXX) -bt=nt -zq -fo=$^@ $(CPP_PROJ) $(SRC_DIR)\src\cm93.cpp
+
+
+# End Source File
+
 # End Target
 # End Project
 ################################################################################

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.13 2008/12/19 01:37:06 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.14 2009/03/26 22:30:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.14  2009/03/26 22:30:38  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.13  2008/12/19 01:37:06  bdbcat
  * Add selectable depth unit conversion
  *
@@ -108,7 +111,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.13 2008/12/19 01:37:06 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.14 2009/03/26 22:30:38 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -451,6 +454,9 @@ static int      _atPtPos(S57Obj *objNew, wxArrayPtrVoid *curntList, int bSectorC
 {
     unsigned int i;
 
+    if(NULL == curntList)
+          return false;
+
     for (i=0; i<curntList->GetCount(); i++) {
         S57Obj *objOld = (S57Obj *)curntList->Item(i);
 
@@ -506,7 +512,7 @@ static int      _atPtPos(S57Obj *objNew, wxArrayPtrVoid *curntList, int bSectorC
     return FALSE;
 }
 
-wxString _selSYcol(char *buf, bool bsectr)
+wxString _selSYcol(char *buf, bool bsectr, double valnmr)
 {
     wxString sym;
 
@@ -541,26 +547,47 @@ wxString _selSYcol(char *buf, bool bsectr)
                         // This treatment is seen on SeeMyDenc by SevenCs
                         // This may not be S-52 compliant....
     {
+          //      Another non-standard extension....
+          //      All round light circle diameter is scaled if the light has a reasonable VALNMR attribute
+          int radius = 3;
+          if(valnmr > 0)
+          {
+                if(valnmr < 7.0)
+                      radius = 3;
+                else if(valnmr < 15.0)
+                      radius = 10;
+                else if(valnmr < 30.0)
+                      radius = 15;
+                else
+                      radius = 20;
+          }
+
        // max 1 color
       if ('\0' == buf[1])
       {
           if (strpbrk(buf, "\003"))
-                sym = _T(",LITRD, 2,0,360,4,0");
+//                sym = _T(",LITRD, 2,0,360,4,0");
+                sym.Printf(_T(",LITRD, 2,0,360,%d,0"), radius + 1);
           else if (strpbrk(buf, "\004"))
-                sym = _T(",LITGN, 2,0,360,3,0");
+                sym.Printf(_T(",LITGN, 2,0,360,%d,0"), radius);
+//                sym = _T(",LITGN, 2,0,360,3,0");
           else if (strpbrk(buf, "\001\006\011"))
-                sym = _T(",LITYW, 2,0,360,5,0");
+                sym.Printf(_T(",LITYW, 2,0,360,%d,0"), radius + 2);
+//                sym = _T(",LITGN, 2,0,360,3,0");
       }
       else  if ('\0' == buf[2])       // or 2 color
       {
                 if (strpbrk(buf, "\001") && strpbrk(buf, "\003"))
-                      sym = _T(",LITRD, 2,0,360,4,0");
+                      sym.Printf(_T(",LITRD, 2,0,360,%d,0"), radius + 1);
+//                      sym = _T(",LITRD, 2,0,360,4,0");
                 else if (strpbrk(buf, "\001") && strpbrk(buf, "\004"))
-                      sym = _T(",LITGN, 2,0,360,3,0");
+                      sym.Printf(_T(",LITGN, 2,0,360,%d,0"), radius);
+//                  sym = _T(",LITGN, 2,0,360,3,0");
 
       }
       else
-            sym = _T(",CHMGD, 2,0,360,8,0");
+            sym.Printf(_T(",CHMGD, 2,0,360,%d,0"), radius + 5);
+//            sym = _T(",CHMGD, 2,0,360,8,0");
 
     sym.Prepend(_T(";CA(OUTLW, 4"));
     }
@@ -1286,7 +1313,7 @@ static void *LIGHTS05 (void *param)
         // This is not a sector light
 
           //      What follows is one interpretation of the modern (3_3 +)
-          //      Presentation Library CS flow chart, which I(dsr) have never seen.
+          //      Presentation Library CS flow chart, which I(dsr) have never seen verbatim.
           //      We will use flare light symbols for floating aids, and
           //      all round sector lights for fixed aids.
 
@@ -1296,7 +1323,7 @@ static void *LIGHTS05 (void *param)
         {
             flare_at_45 = false;
 
-            //Todo  create LightArray in s57chart.
+            //TODO create LightArray in s57chart.
             //  Then, if another LIGHT object is colocated here, set flare_at_45
 /*            if(_atPtPos(obj, rzRules->chart->pLIGHTSArray, false))          // Is this LIGHTS feature colocated with another LIGHTS?
 
@@ -1305,10 +1332,10 @@ static void *LIGHTS05 (void *param)
                   if(strpbrk(colist, "\001\005\011"))
                     flare_at_45 = true;
 */
-            ssym = _selSYcol(colist, 0);              // flare
+            ssym = _selSYcol(colist, 0, valnmr);              // flare
         }
         else
-            ssym = _selSYcol(colist, 1);              // all round light
+            ssym = _selSYcol(colist, 1, valnmr);              // all round light
 
         //  Is the light a directional or moire?
         if (strpbrk(catlit, "\001\016"))
@@ -1365,7 +1392,7 @@ static void *LIGHTS05 (void *param)
     if (sweep<1.0 || sweep==360.0)
     {
         // handle all round light
-      wxString ssym = _selSYcol(colist, 1);           // all round light
+      wxString ssym = _selSYcol(colist, 1, valnmr);           // all round light
       lights05.Append(ssym);
 
 
@@ -1414,6 +1441,18 @@ static void *LIGHTS05 (void *param)
 
           double arc_radius = 20.;                // mm
           double sector_radius = 25.;
+
+          //      Another non-standard extension....
+          //      Sector light arc radius is scaled if the light has a reasonable VALNMR attribute
+          if(valnmr > 0)
+          {
+                if(valnmr < 15.0)
+                      arc_radius = 10.;
+                else if(valnmr < 30.0)
+                      arc_radius = 15.;
+                else
+                      arc_radius = 20.;
+          }
 
           char sym[80];
           strcpy(sym,";CA(OUTLW, 4");

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.15 2008/12/19 04:18:36 bdbcat Exp $
+ * $Id: nmea.h,v 1.16 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.16  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.15  2008/12/19 04:18:36  bdbcat
  * Better diagnostics
  *
@@ -79,13 +82,6 @@
 
 #include "nmea0183.h"
 
-#ifdef __WXMSW__
-    #ifdef ocpnUSE_MSW_SERCOMM
-            #include "sercomm.h"
-            class CSyncSerialComm;
-    #endif
-#endif
-
 #ifdef __POSIX__
 #include <sys/termios.h>
 #endif
@@ -132,11 +128,13 @@ typedef struct  {
   unsigned int high;
 } MyFileTime;
 
+
+//          Fwd Declarations
 class     CSyncSerialComm;
 class     MyFrame;
 class     OCP_NMEA_Thread;
 class     OCP_GARMIN_Thread;
-
+class     ComPortManager;
 
 
 //----------------------------------------------------------------------------
@@ -224,7 +222,7 @@ class OCP_NMEA_Thread: public wxThread
 
 public:
 
-      OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, wxMutex *pMutex, const wxString& PortName);
+      OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, wxMutex *pMutex, const wxString& PortName, ComPortManager *pComMan);
       ~OCP_NMEA_Thread(void);
       void *Entry();
 
@@ -237,7 +235,6 @@ private:
       NMEAWindow              *m_launcher;
       wxString                *m_pPortName;
       wxMutex                 *m_pShareMutex;
-      int                     TimeOutInSec;
       char                    *put_ptr;
       char                    *tak_ptr;
 
@@ -248,17 +245,9 @@ private:
 
       NMEA0183                m_NMEA0183;
 
-
-#ifdef  __POSIX__
-      termios                 *pttyset;
-      termios                 *pttyset_old;
+      ComPortManager          *m_pCommMan;
 
       int                     m_gps_fd;
-#endif
-
-#ifdef __WXMSW__
-      HANDLE                  m_hSerialComm;
-#endif
 
 };
 
@@ -464,30 +453,60 @@ public:
 
     void OnCloseWindow(wxCloseEvent& event);
     void GetAP_Port(wxString& source);
-    void AutopilotOut(const wxString& Sentence);
+    int AutopilotOut(const wxString& Sentence);
     bool IsOK(){ return m_bOK;}
 
 
 private:
     bool            OpenPort(wxString &port);
 
-
     wxString        *m_pdata_ap_port_string;
-#ifdef __POSIX__
-    termios         *pttyset;
-    termios         *pttyset_old;
-
+    wxString        m_port;
     int             m_ap_fd;
-#endif
-
-#ifdef __WXMSW__
-    CSyncSerialComm   *pWinComm;
-#endif
-
     bool            m_bOK;
 
 DECLARE_EVENT_TABLE()
 };
+
+//-------------------------------------------------------------------------------------------------------------
+//
+//    Communications Port Manager
+//
+//-------------------------------------------------------------------------------------------------------------
+
+class OpenCommPortElement
+{
+public:
+      wxString    com_name;
+      int         port_descriptor;
+};
+
+//    Declare a list of open comm ports
+WX_DECLARE_LIST(OpenCommPortElement, ListOfOpenCommPorts);
+
+
+class ComPortManager:  public wxEvtHandler
+{
+public:
+      ComPortManager();
+      ~ComPortManager();
+
+      int OpenComPort(wxString &com_name, int baud_rate);
+      int GetComPort(wxString &com_name);                   // get the descriptor for an already open port, or -1 if not open
+      int CloseComPort(int fd);
+
+      int WriteComPort(wxString& com_name, const wxString& string);
+private:
+      int OpenComPortPhysical(wxString &com_name, int baud_rate);
+      int CloseComPortPhysical(int fd);
+      int WriteComPortPhysical(int port_descriptor, const wxString& string);
+
+      ListOfOpenCommPorts     m_port_list;
+
+
+};
+
+
 
 
 #endif

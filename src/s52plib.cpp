@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.22 2008/12/19 01:37:06 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.23 2009/03/26 22:30:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.23  2009/03/26 22:30:46  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.22  2008/12/19 01:37:06  bdbcat
  * Add selectable depth unit conversion
  *
@@ -54,6 +57,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.23  2009/03/26 22:30:46  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.22  2008/12/19 01:37:06  bdbcat
  * Add selectable depth unit conversion
  *
@@ -147,7 +153,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.22 2008/12/19 01:37:06 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.23 2009/03/26 22:30:46 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -188,6 +194,13 @@ s52plib::s52plib ( const wxString& PLib )
         ColorTableArray = NULL;
         ColourHashTableArray = NULL;
 
+        lineLUPArray = NULL;            // lines
+        areaPlaineLUPArray = NULL;      // areas: PLAIN_BOUNDARIES
+        areaSymbolLUPArray = NULL;      // areas: SYMBOLIZED_BOUNDARIE
+        pointSimplLUPArray = NULL;      // points: SIMPLIFIED
+        pointPaperLUPArray = NULL;      // points: PAPER_CHART
+        condSymbolLUPArray = NULL;      // Dynamic Conditional Symbology
+
         m_bOK = S52_load_Plib ( PLib );
 
         m_bShowS57Text = false;
@@ -219,6 +232,9 @@ s52plib::s52plib ( const wxString& PLib )
 
         m_display_pix_per_mm = ( ( double ) sx ) / ( ( double ) mmx );
 
+        //        Set up some default flags
+        m_bCheckTextOverlap = true;
+        m_bShowAtonText = true;
 }
 
 
@@ -674,7 +690,9 @@ LUPrec *s52plib::FindBestLUP ( wxArrayPtrVoid *nameMatch, char *objAtt,
         // setup default to the first LUP
         LUP = ( LUPrec* ) nameMatch->Item ( 0 );
 
-        for ( i=0; i< ( int ) nameMatch->GetCount(); ++i )
+        int nLUPCandidates = nameMatch->GetCount();
+
+        for ( i=0; i< nLUPCandidates; ++i )
         {
                 LUPrec *LUPCandidate = NULL;
                 wxString *ATTC  = NULL;
@@ -722,7 +740,7 @@ LUPrec *s52plib::FindBestLUP ( wxArrayPtrVoid *nameMatch, char *objAtt,
                                                 attValMatch = TRUE;
 
                                         // special case (ii)
-                                        //Todo  Find an ENC with "UNKNOWN" DRVAL1 or DRVAL2 and debug this code
+                                        //TODO  Find an ENC with "UNKNOWN" DRVAL1 or DRVAL2 and debug this code
                                         /*
                                                                                 if ( !strncmp ( LUPCandidate->OBCL, "DEPARE", 6 ) )
                                                                                 {
@@ -857,11 +875,13 @@ LUPrec *s52plib::FindBestLUP ( wxArrayPtrVoid *nameMatch, char *objAtt,
                       }
                 */
 
-                //       According to S52 specs, match must be perfect
+                //       According to S52 specs, match must be perfect,
+                //         and the first 100% match is selected
                 if ( candidate_score == 1.0 )
                 {
                         LUP = LUPCandidate;
                         bmatch_found = true;
+                        break;                        // selects the first 100% match
                 }
 
 
@@ -1064,7 +1084,7 @@ return top;
 
 
 
-       int s52plib::_LUP2rules ( LUPrec *LUP, S57Obj *pObj )
+int s52plib::_LUP2rules ( LUPrec *LUP, S57Obj *pObj )
 {
         if ( NULL == LUP )
                 return -1;
@@ -1196,6 +1216,8 @@ int s52plib::ParseLUPT ( FILE *fp )
 
         LUPrec  *LUP = ( LUPrec* ) calloc ( 1, sizeof ( LUPrec ) );
         pAlloc->Add ( LUP );
+
+        LUP->nSequence = m_LUPSequenceNumber++;                              // add a sequence number
 
         LUP->DISC = ( enum _DisCat ) OTHER;                                  // as a default
 
@@ -1575,7 +1597,7 @@ int CompareLUPObjects ( LUPrec *item1, LUPrec *item2 )
         // sort the items by their name...
         int ir = Stricmp ( item1->OBCL, item2->OBCL );
         if ( ir == 0 )
-                return item1->RCID - item2->RCID;
+                return item1->nSequence - item2->nSequence;
         else
                 return ir;
 }
@@ -1621,6 +1643,7 @@ int s52plib::S52_load_Plib ( const wxString& PLib )
         condSymbolLUPArray    = new wxArrayOfLUPrec ( CompareLUPObjects );   // dynamic Cond Sym LUPs
 
 
+        m_LUPSequenceNumber = 0;
 
         while ( 1 == ( nRead = ReadS52Line ( pBuf,NEWLN,0,fp ) ) )
         {
@@ -1930,17 +1953,23 @@ LUPrec *s52plib::S52_LUPLookup ( LUPname LUP_Name, const char * objectName, S57O
         LUPrec *LUP = NULL;
         LUPrec *LUPCandidate;
 
-        wxArrayPtrVoid *nameMatch;
+        wxArrayOfLUPrec *la = SelectLUPARRAY ( LUP_Name );
 
-        nameMatch = new wxArrayPtrVoid;
+        if(NULL == la)                    // S52PLIB probably did not load
+              return NULL;
 
-        wxArrayOfLUPrec *la = SelectLUPARRAY ( LUP_Name );  //LUPname
+        wxArrayPtrVoid *nameMatch = new wxArrayPtrVoid;
+
 
         int ocnt = 0;
 
         int first_match = 0;
         int index = 0;
         int index_max = la->GetCount();
+
+        //        This technique of extracting proper LUPs depends on the fact that
+        //        the LUPs have been sorted in their array, by OBCL.
+        //        Thus, all the LUPS with the same OBCL will be grouped together
 
         while ( !first_match && ( index < index_max ) )
         {
@@ -2290,7 +2319,6 @@ char      *_getParamVal ( ObjRazRules *rzRules, char *str, char *buf, int bsz )
                 }
 
                 // special case when ENC returns an index for particular attribute types
-                // Think about cacheing this??
                 if ( !strncmp ( buf, "NATSUR", 6 ) )
                 {
 
@@ -2307,11 +2335,12 @@ char      *_getParamVal ( ObjRazRules *rzRules, char *str, char *buf, int bsz )
 
                                 wxString token = tkz.GetNextToken();
                                 int i = atoi ( token.mb_str() );
-                                wxString *pnat = rzRules->chart->GetAttributeDecode ( natsur_att, i );
-                                if ( NULL != pnat )
-                                        result += *pnat;            // value from ENC
+                                wxString nat = rzRules->chart->GetAttributeDecode ( natsur_att, i );
+                                if ( !nat.IsEmpty() )
+                                        result += nat;            // value from ENC
                                 else
                                         result += _T ( "unk" );
+
                                 icomma++;
                         }
 
@@ -2321,9 +2350,6 @@ char      *_getParamVal ( ObjRazRules *rzRules, char *str, char *buf, int bsz )
                         strncpy ( buf, result.mb_str(), count );
                         buf[count] = 0;
 
-
-//            if ( 0 < i && i <= MAX_NATSUR)
-//                strcpy(buf, natsur[i]);
 
 
                 }
@@ -2389,7 +2415,7 @@ S52_Text   *S52_PL_parseTX ( ObjRazRules *rzRules, Rules *rules, char *cmd )
         if ( NULL == str )
                 return 0;   // abort this command word if mandatory param absent
 
-
+        val[MAXL - 1] = '\0';                               // make sure the string terminates
         sprintf ( b, "%s", val );
 
         text = _parseTEXT ( rzRules, str );
@@ -2559,6 +2585,9 @@ int s52plib::RenderTX ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
         if ( !m_bShowS57Text )
                 return 0;
 
+        if((rzRules->obj->bIsAton) && (!m_bShowAtonText))
+              return 0;
+
         S52_Text *text = NULL;
 
 //  Render text at declared x/y of object
@@ -2586,7 +2615,7 @@ int s52plib::RenderTX ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                                 wxFONTSTYLE_NORMAL,
                                 fontweight );
 
-                RenderText ( pdc, pFont, str, r.x + text->xoffs, r.y + text->yoffs, text->col, dx, dy, true );
+                RenderText ( pdc, pFont, str, r.x + text->xoffs, r.y + text->yoffs, text->col, dx, dy, m_bCheckTextOverlap );
 
                 rzRules->obj->BBText = wxBoundingBox ( r.x + text->xoffs, - ( r.y + text->yoffs + dy ),
                                                        r.x + text->xoffs + dx, - ( r.y + text->yoffs ) );
@@ -2622,6 +2651,9 @@ int s52plib::RenderTE ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
         if ( !m_bShowS57Text )
                 return 0;
 
+        if((rzRules->obj->bIsAton) && (!m_bShowAtonText))
+              return 0;
+
         S52_Text *text = NULL;
 
         //  Render text at declared x/y of object
@@ -2649,7 +2681,7 @@ int s52plib::RenderTE ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                                 wxFONTSTYLE_NORMAL,
                                 fontweight );
 
-                RenderText ( pdc, pFont, str, r.x + text->xoffs, r.y + text->yoffs, text->col, dx, dy, true );
+                RenderText ( pdc, pFont, str, r.x + text->xoffs, r.y + text->yoffs, text->col, dx, dy, m_bCheckTextOverlap );
 
                 rzRules->obj->BBText = wxBoundingBox ( r.x + text->xoffs, - ( r.y + text->yoffs + dy ),
                                                        r.x + text->xoffs + dx, - ( r.y + text->yoffs ) );
@@ -3014,7 +3046,7 @@ return true;
 
 
 
-       bool s52plib::RenderHPGL ( ObjRazRules *rzRules,  Rule *prule, wxDC *pdc, wxPoint &r, ViewPort *vp, float rot_angle )
+bool s52plib::RenderHPGL ( ObjRazRules *rzRules,  Rule *prule, wxDC *pdc, wxPoint &r, ViewPort *vp, float rot_angle )
 {
 
         float fsf = 100 / canvas_pix_per_mm;
@@ -3235,6 +3267,7 @@ wxImage s52plib::RuleXBMToImage ( Rule *prule )
 //
 bool s52plib::RenderRasterSymbol ( ObjRazRules *rzRules, Rule *prule, wxDC *pdc, wxPoint &r, ViewPort *vp, float rot_angle )
 {
+
 //        int width  = prule->pos.line.bnbox_w.SYHL;
 //        int height = prule->pos.line.bnbox_h.SYVL;
 
@@ -3246,16 +3279,30 @@ bool s52plib::RenderRasterSymbol ( ObjRazRules *rzRules, Rule *prule, wxDC *pdc,
         {
                 wxImage Image = RuleXBMToImage ( prule );
 
-                //      Make the bitmap
+               //      Make the bitmap
+
+                //TODO Study this problem, use conditional build?
+#ifdef __WXMSWF__
+//      On some versions of wxMSW, on Windows XP, conversion from wxImage to wxBitmap fails at the ::CreateDIBitmap() call
+//      unless a "compatible" dc is provided.  Why??
+//      As a workaround, just make a simple wxDC for temporary use
+
+                wxMemoryDC dwxdc;
+                wxBitmap *pbm = new wxBitmap ( Image, dwxdc );
+#else
                 wxBitmap *pbm = new wxBitmap ( Image );
 
+#endif
+//                if(pbm->IsOk())
+                {
                 //      Make the mask
-                wxMask *pmask = new wxMask ( *pbm,
+                  wxMask *pmask = new wxMask ( *pbm,
                                              wxColour ( unused_color.R, unused_color.G, unused_color.B ) );
 
                 //      Associate the mask with the bitmap
-                pbm->SetMask ( pmask );
+                  pbm->SetMask ( pmask );
 
+                }
                 // delete any old private data
                 wxBitmap *pbmo = ( wxBitmap * ) ( prule->pixelPtr );
                 delete pbmo;
@@ -3265,6 +3312,9 @@ bool s52plib::RenderRasterSymbol ( ObjRazRules *rzRules, Rule *prule, wxDC *pdc,
                 prule->parm1 = m_colortable_index;
 
         }               // instantiation
+
+//        if(!( ( wxBitmap * ) ( prule->pixelPtr ) )->IsOk())
+//              return false;
 
         //        Get the bounding box for the to-be-drawn symbol
         int b_width  = ( ( wxBitmap * ) ( prule->pixelPtr ) )->GetWidth();
@@ -3346,8 +3396,9 @@ int s52plib::RenderSY ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                         angle = orient;
 
                 //  Render symbol at object's x/y
-                wxPoint r;
+                wxPoint r, r1;
                 rzRules->chart->GetPointPix ( rzRules, rzRules->obj->y, rzRules->obj->x, &r );
+
 
                 //  Render a raster or vector symbol, as specified by LUP rules
                 if ( rules->razRule->definition.SYDF == 'V' )
@@ -3365,6 +3416,10 @@ int s52plib::RenderSY ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 // Line Simple Style
 int s52plib::RenderLS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 {
+      //    Debug
+//      if(rzRules->obj->Index != 1318/*555*/)
+//            return 1;
+
         wxPoint         *ptp;
         int     npt;
         color   *c;
@@ -3374,9 +3429,10 @@ int s52plib::RenderLS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
         c = S52_getColor ( str+7 );             // Colour
         wxColour color ( c->R, c->G, c->B );
+//        wxColour color ( 255, 0, 255 );
 
         w = atoi ( str+5 );                     // Width
-
+//w = 2;
         int style = wxSOLID;                    // Style default
 
         if ( !strncmp ( str, "DASH", 4 ) )
@@ -3394,7 +3450,133 @@ int s52plib::RenderLS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
         wxPen *pthispen = wxThePenList->FindOrCreatePen ( color, w, style );
         pdc->SetPen ( *pthispen );
 
-        if ( rzRules->obj->pPolyTessGeo )
+        //  Get the current display priority from the LUP
+        int priority_current = rzRules->LUP->DPRI - '0';          //TODO fix this hack by putting priority into object during _insertRules
+
+        if ( rzRules->obj->m_n_lsindex )
+        {
+
+              VE_Element **pve_array = rzRules->chart->Get_pve_array();
+              VC_Element **pvc_array = rzRules->chart->Get_pvc_array();
+
+              //  Calculate max malloc size required
+              int *index_run_x = rzRules->obj->m_lsindex_array;
+              int nls_max = -1;
+              for(int imseg=0 ; imseg < rzRules->obj->m_n_lsindex ; imseg++)
+              {
+                    index_run_x++;      //Skip cNode
+                    //  Get the edge
+                    int enode = *index_run_x;
+                    VE_Element *pedge = pve_array[enode];
+                    if(pedge->nCount > nls_max)
+                          nls_max = pedge->nCount;
+                    index_run_x += 2;
+              }
+
+                   //  Allocate some storage for converted points
+              wxPoint *ptp = ( wxPoint * ) malloc ( ( nls_max + 2 ) * sizeof ( wxPoint ) );   // + 2 allows for end nodes
+
+
+              int xmin_ = 0;
+              int xmax_ = vp->pix_width;
+              int ymin_ = 0;
+              int ymax_ = vp->pix_height;
+              int x0, y0, x1, y1;
+
+              int *index_run;
+              double *ppt;
+              double easting, northing;
+              wxPoint pra;
+              VC_Element *pnode;
+
+              for(int iseg=0 ; iseg < rzRules->obj->m_n_lsindex ; iseg++)
+              {
+                    int seg_index = iseg * 3;
+                    index_run = &rzRules->obj->m_lsindex_array[seg_index];
+
+                    //  Get first connected node
+                    int inode = *index_run++;
+                    if(inode >= 0)
+                    {
+                        pnode = pvc_array[inode];
+
+                        ppt = pnode->pPoint;
+                        easting = *ppt++;
+                        northing = *ppt;
+                        rzRules->chart->GetPointPix ( rzRules, (float)northing, (float)easting, &pra );
+                        ptp[0] = pra;                     // insert beginning node
+                    }
+
+                    //  Get the edge
+                    int enode = *index_run++;
+                    VE_Element *pedge = pve_array[enode];
+
+                    //  Here we decide to draw or not based on the highest priority seen for this segment
+                    //  That is, if this segment is going to be drawn at a higher priority later, then don't draw it here.
+                    if(pedge->max_priority != priority_current)
+                          continue;
+
+                    int nls = pedge->nCount;
+
+                    ppt = pedge->pPoints;
+                    for(int ip = 0 ; ip < nls  ; ip++)
+                    {
+                          easting = *ppt++;
+                          northing = *ppt++;
+                          rzRules->chart->GetPointPix ( rzRules, (float)northing, (float)easting, &ptp[ip + 1] );
+                    }
+
+                    //  Get last connected node
+                    int jnode = *index_run++;
+                    if(jnode >= 0)
+                    {
+                        pnode = pvc_array[jnode];
+                        ppt = pnode->pPoint;
+                        easting = *ppt++;
+                        northing = *ppt;
+                        rzRules->chart->GetPointPix ( rzRules, (float)northing, (float)easting, &pra );
+                        ptp[nls + 1] = pra;                     // insert ending node
+                    }
+
+                    int istart, ndraw;
+
+                    if((inode >= 0) && (jnode >= 0))
+                    {
+                          istart = 0;
+                          ndraw = nls+1;
+                    }
+                    else
+                    {
+                          istart = 1;
+                          ndraw = nls;
+                    }
+
+
+                    //        Draw the edge as point-to-point
+                    for ( int ipc=istart ; ipc < ndraw ; ipc++ )
+                    {
+                          x0 = ptp[ipc].x;
+                          y0 = ptp[ipc].y;
+                          x1 = ptp[ipc+1].x;
+                          y1 = ptp[ipc+1].y;
+
+                                // Do not draw null segments
+                          if ( ( x0 == x1 ) && ( y0 == y1 ) )
+                                continue;
+
+                          ClipResult res = cohen_sutherland_line_clip_i ( &x0, &y0, &x1, &y1,
+                                      xmin_, xmax_, ymin_, ymax_ );
+
+                          if ( res != Invisible )
+                                pdc->DrawLine ( x0,y0,x1,y1 );
+
+                    }
+              }
+              free ( ptp );
+        }
+
+
+        else if ( rzRules->obj->pPolyTessGeo )
         {
                 int xmin_ = 0;
                 int xmax_ = vp->pix_width;
@@ -3453,6 +3635,70 @@ int s52plib::RenderLS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                 }
         }
 
+        else if ( rzRules->obj->pPolyTrapGeo )
+        {
+              int xmin_ = 0;
+              int xmax_ = vp->pix_width;
+              int ymin_ = 0;
+              int ymax_ = vp->pix_height;
+              int x0, y0, x1, y1;
+
+              PolyTrapGroup *pptg = rzRules->obj->pPolyTrapGeo->Get_PolyTrapGroup_head();
+
+              wxPoint2DDouble *ppolygeo = pptg->ptrapgroup_geom;
+
+              int ctr_offset = 0;
+              for ( int ic = 0; ic < pptg->nContours ; ic++ )
+              {
+
+                    npt = pptg->pn_vertex[ic];
+                    wxPoint *ptp = ( wxPoint * ) malloc ( ( npt + 1 ) * sizeof ( wxPoint ) );
+                    wxPoint *pr = ptp;
+/*
+                    double *pf = &ppolygeo[ctr_offset];
+                    for ( int ip=0 ; ip < npt ; ip++ )
+                    {
+                          double plon = *pf++;
+                          double plat = *pf++;
+
+                          rzRules->chart->GetPointPix ( rzRules, plat, plon, pr );
+                          pr++;
+                    }
+                    double plon = ppolygeo[ ctr_offset];             // close the polyline
+                    double plat = ppolygeo[ ctr_offset + 1];
+                    rzRules->chart->GetPointPix ( rzRules, plat, plon, pr );
+*/
+                    for ( int ip=0 ; ip < npt ; ip++, pr++ )
+                          rzRules->chart->GetPointPix ( rzRules,  ppolygeo[ctr_offset + ip].m_y, ppolygeo[ctr_offset + ip].m_x, pr );
+
+                    //  Close polyline
+                    rzRules->chart->GetPointPix ( rzRules,  ppolygeo[ctr_offset].m_y, ppolygeo[ctr_offset].m_x, pr );
+
+
+                    for ( int ipc=0 ; ipc < npt ; ipc++ )
+                    {
+                          x0 = ptp[ipc].x;
+                          y0 = ptp[ipc].y;
+                          x1 = ptp[ipc+1].x;
+                          y1 = ptp[ipc+1].y;
+
+                                // Do not draw null segments
+                          if ( ( x0 == x1 ) && ( y0 == y1 ) )
+                                continue;
+
+                          ClipResult res = cohen_sutherland_line_clip_i ( &x0, &y0, &x1, &y1,
+                                      xmin_, xmax_, ymin_, ymax_ );
+
+                          if (( res != Invisible ))
+                                pdc->DrawLine ( x0,y0,x1,y1 );
+
+                    }
+
+                    free ( ptp );
+                    ctr_offset += (npt + 1)*2;
+              }
+        }
+
         else if ( rzRules->obj->geoPt )
         {
                 pt *ppt = rzRules->obj->geoPt;
@@ -3491,6 +3737,10 @@ int s52plib::RenderLC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
         int       w;
         wxPoint   r;
 
+ //    Debug
+//        if(rzRules->obj->Index == 649)
+ //             int oop = 4;
+
         int isym_len = rules->razRule->pos.line.bnbox_w.SYHL;
         float sym_len = isym_len * canvas_pix_per_mm / 100;
         float sym_factor = 1.0 ; ///1.50;                        // gives nicer effect
@@ -3507,7 +3757,100 @@ int s52plib::RenderLC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
         wxPen *pthispen = wxThePenList->FindOrCreatePen ( color, 1, wxSOLID );
         pdc->SetPen ( *pthispen );
 
-        if ( rzRules->obj->pPolyTessGeo )
+       //  Get the current display priority from the LUP
+        int priority_current = rzRules->LUP->DPRI - '0';          //TODO fix this hack by putting priority into object during _insertRules
+
+        if ( rzRules->obj->m_n_lsindex )
+        {
+              VE_Element **pve_array = rzRules->chart->Get_pve_array();
+              VC_Element **pvc_array = rzRules->chart->Get_pvc_array();
+
+              //  Calculate max malloc size required
+              int *index_run_x = rzRules->obj->m_lsindex_array;
+              int nls_max = -1;
+              for(int imseg=0 ; imseg < rzRules->obj->m_n_lsindex ; imseg++)
+              {
+                    index_run_x++;      //Skip cNode
+                    //  Get the edge
+                    int enode = *index_run_x;
+                    VE_Element *pedge = pve_array[enode];
+                    if(pedge->nCount > nls_max)
+                          nls_max = pedge->nCount;
+                    index_run_x += 2;
+              }
+
+                   //  Allocate some storage for converted points
+              wxPoint *ptp = ( wxPoint * ) malloc ( ( nls_max + 2 ) * sizeof ( wxPoint ) );   // + 2 allows for end nodes
+
+              int *index_run;
+              double *ppt;
+              double easting, northing;
+              wxPoint pra;
+              VC_Element *pnode;
+
+              for(int iseg=0 ; iseg < rzRules->obj->m_n_lsindex ; iseg++)
+              {
+                    int seg_index = iseg * 3;
+                    index_run = &rzRules->obj->m_lsindex_array[seg_index];
+
+                    //  Get first connected node
+                    int inode = *index_run++;
+                    if(inode >= 0)
+                    {
+                        pnode = pvc_array[inode];
+                        ppt = pnode->pPoint;
+                        easting = *ppt++;
+                        northing = *ppt;
+                        rzRules->chart->GetPointPix ( rzRules, (float)northing, (float)easting, &pra );
+                        ptp[0] = pra;                     // insert beginning node
+                    }
+
+                    //  Get the edge
+                    int enode = *index_run++;
+                    VE_Element *pedge = pve_array[enode];
+
+                    //  Here we decide to draw or not based on the highest priority seen for this segment
+                    //  That is, if this segment is going to be drawn at a higher priority later, then don't draw it here.
+                    if(pedge->max_priority != priority_current)
+                          continue;
+
+                    int nls = pedge->nCount;
+
+
+
+                    ppt = pedge->pPoints;
+                    for(int ip = 0 ; ip < nls  ; ip++)
+                    {
+                          easting = *ppt++;
+                          northing = *ppt++;
+                          rzRules->chart->GetPointPix ( rzRules, (float)northing, (float)easting, &ptp[ip + 1] );
+                    }
+
+                    //  Get last connected node
+                    int jnode = *index_run++;
+                    if(jnode >= 0)
+                    {
+                          pnode = pvc_array[jnode];
+                          ppt = pnode->pPoint;
+                          easting = *ppt++;
+                          northing = *ppt;
+                          rzRules->chart->GetPointPix ( rzRules, (float)northing, (float)easting, &pra );
+                          ptp[nls + 1] = pra;                     // insert ending node
+                    }
+
+
+                    if((inode >= 0) && (jnode >= 0))
+                          draw_lc_poly ( pdc, ptp, nls + 2, sym_len, sym_factor, rules->razRule, vp );
+                    else
+                          draw_lc_poly ( pdc, &ptp[1], nls, sym_len, sym_factor, rules->razRule, vp );
+
+
+              }
+              free ( ptp );
+        }
+
+
+        else if ( rzRules->obj->pPolyTessGeo )
         {
                 PolyTriGroup *pptg = rzRules->obj->pPolyTessGeo->Get_PolyTriGroup_head();
                 float *ppolygeo = pptg->pgroup_geom;
@@ -3538,6 +3881,48 @@ int s52plib::RenderLC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
                         ctr_offset += npt*2;
                 }
+        }
+
+        else if ( rzRules->obj->pPolyTrapGeo )
+        {
+              PolyTrapGroup *pptg = rzRules->obj->pPolyTrapGeo->Get_PolyTrapGroup_head();
+
+              wxPoint2DDouble *ppolygeo = pptg->ptrapgroup_geom;
+
+              int ctr_offset = 0;
+              for ( int ic = 0; ic < pptg->nContours ; ic++ )
+              {
+
+                    npt = pptg->pn_vertex[ic];
+                    wxPoint *ptp = ( wxPoint * ) malloc ( ( npt + 1 ) * sizeof ( wxPoint ) );
+                    wxPoint *pr = ptp;
+/*
+                    double *pf = &ppolygeo[ctr_offset];
+                    for ( int ip=0 ; ip < npt ; ip++ )
+                    {
+                          double plon = *pf++;
+                          double plat = *pf++;
+
+                          rzRules->chart->GetPointPix ( rzRules, plat, plon, pr );
+                          pr++;
+                    }
+                    double plon = ppolygeo[ ctr_offset];             // close the polyline
+                    double plat = ppolygeo[ ctr_offset + 1];
+                    rzRules->chart->GetPointPix ( rzRules, plat, plon, pr );
+*/
+                    for ( int ip=0 ; ip < npt ; ip++, pr++ )
+                          rzRules->chart->GetPointPix ( rzRules,  ppolygeo[ctr_offset + ip].m_y, ppolygeo[ctr_offset + ip].m_x, pr );
+
+                    //  Close polyline
+                    rzRules->chart->GetPointPix ( rzRules,  ppolygeo[ctr_offset].m_y, ppolygeo[ctr_offset].m_x, pr );
+
+
+
+                    draw_lc_poly ( pdc, ptp, npt + 1, sym_len, sym_factor, rules->razRule, vp );
+
+                    free ( ptp );
+                    ctr_offset += (npt + 1)*2;
+              }
         }
 
         else if ( rzRules->obj->geoPt )                         // if the object is not described by a poly structure
@@ -3599,7 +3984,6 @@ void s52plib::draw_lc_poly ( wxDC *pdc, wxPoint *ptp, int npt,
                 if ( res == Invisible )
                         continue;
 
-
                 float dx = ptp[iseg + 1].x - ptp[iseg].x;
                 float dy = ptp[iseg + 1].y - ptp[iseg].y;
                 float seg_len = sqrt ( dx*dx + dy*dy );
@@ -3649,6 +4033,7 @@ void s52plib::draw_lc_poly ( wxDC *pdc, wxPoint *ptp, int npt,
                                         ys += sym_len * sth * sym_factor;
                                         s += sym_len * sym_factor;
                                 }
+
                                 pdc->DrawLine ( ( int ) xs, ( int ) ys, ptp[iseg+1].x, ptp[iseg+1].y );
                         }
                 }
@@ -3669,7 +4054,7 @@ int s52plib::RenderMPS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
         wxPoint p;
         double *pd = rzRules->obj->geoPtz;            // the SM points
         double *pdl = rzRules->obj->geoPtMulti;       // and corresponding lat/lon
-
+#if 0
         for ( int ip=0 ; ip<npt ; ip++ )
         {
                 double east = *pd++;
@@ -3714,6 +4099,66 @@ int s52plib::RenderMPS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                 delete point_rzRules;
                 delete NewLUP;
         }
+#endif
+        if(NULL == rzRules->child)
+        {
+              ObjRazRules *previous_rzRules = NULL;
+
+              for ( int ip=0 ; ip<npt ; ip++ )
+              {
+                  double east = *pd++;
+                  double nort = *pd++;;
+                  double depth = *pd++;
+
+                  ObjRazRules *point_rzRules = new ObjRazRules;
+                  *point_rzRules = *rzRules;              // take a copy of attributes, etc
+
+                //  Need a new LUP
+                  LUPrec *NewLUP = new LUPrec;
+                  *NewLUP = * ( rzRules->LUP );
+                  point_rzRules->LUP = NewLUP;
+
+                //  Need a new S57Obj
+                  S57Obj *point_obj = new S57Obj;
+                  *point_obj = * ( rzRules->obj );
+                  point_rzRules->obj = point_obj;
+
+                //  Touchup the new items
+                  point_rzRules->obj->bCS_Added = false;
+                  point_rzRules->obj->bIsClone = true;
+
+                  point_rzRules->next = previous_rzRules;
+                  Rules *ru = StringToRules ( _T ( "CS(SOUNDG03;" ) );
+                  point_rzRules->LUP->ruleList = ru;
+
+                  point_obj->x = east;
+                  point_obj->y = nort;
+                  point_obj->z = depth;
+
+                  double lon = *pdl++;
+                  double lat = *pdl++;
+                  point_obj->BBObj.SetMin ( lon, lat );
+                  point_obj->BBObj.SetMax ( lon, lat );
+
+                  previous_rzRules = point_rzRules;
+              }
+
+              //   Top of the chain is previous_rzRules
+              rzRules->child = previous_rzRules;
+        }
+
+
+       //   Walk the chain, drawing..
+       ObjRazRules *current = rzRules->child;
+       while(current)
+       {
+             _draw ( pdc, current, vp );
+
+             current = current->next;
+       }
+
+
+
 
         return 1;
 }
@@ -3781,7 +4226,7 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
                 width = ( rad * 2 ) + 28;
                 height = ( rad * 2 ) + 28;
-                wxBitmap *pbm = new wxBitmap ( width, height );
+                wxBitmap *pbm = new wxBitmap ( width, height, -1 );
                 wxMemoryDC mdc;
                 mdc.SelectObject ( *pbm );
                 mdc.SetBackground ( wxBrush ( wxColour ( unused_color.R, unused_color.G, unused_color.B ) ) );
@@ -3827,6 +4272,7 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                 int bm_orgx;
                 int bm_orgy;
 
+                int border_fluff = 4;                      // by how much should the blit bitmap be "fluffed"
                 if(fabs(sectr2 - sectr1) != 360)   // not necessary for all-round lights
                 {
                       mdc.ResetBoundingBox();
@@ -3848,7 +4294,7 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
                       int x0 = (width / 2) + (int)(rad * cos(start_angle * PI / 180.));
                       int y0 = (height / 2) - (int)(rad * sin(start_angle * PI / 180.));
-                      for(double a = start_angle + .1 ; a < end_angle ; a+= 2.0)
+                      for(double a = start_angle + .1 ; a <= end_angle ; a+= 2.0)
                       {
                            int x = (width / 2) + (int)(rad * cos(a * PI / 180.));
                            int y = (height / 2) - (int)(rad * sin(a * PI / 180.));
@@ -3857,20 +4303,20 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                             y0=y;
                       }
 
-                      bm_width  = ( mdc.MaxX() - mdc.MinX() ) + 20;
-                      bm_height = ( mdc.MaxY() - mdc.MinY() ) + 20;
-                      bm_orgx = wxMax ( 0, mdc.MinX()-10 );
-                      bm_orgy = wxMax ( 0, mdc.MinY()-10 );
+                      bm_width  = ( mdc.MaxX() - mdc.MinX() ) + (border_fluff * 2);
+                      bm_height = ( mdc.MaxY() - mdc.MinY() ) + (border_fluff * 2);
+                      bm_orgx = wxMax ( 0, mdc.MinX()-border_fluff );
+                      bm_orgy = wxMax ( 0, mdc.MinY()-border_fluff );
 
                       mdc.Clear();
                 }
 
                 else
                 {
-                      bm_width  = rad * 2 + 20;
-                      bm_height = rad * 2 + 20;
-                      bm_orgx = wxMax ( 0, (width / 2 - rad) - 10 );
-                      bm_orgy = wxMax ( 0, (width / 2 - rad) - 10 );
+                      bm_width  = rad * 2 + (border_fluff * 2);
+                      bm_height = rad * 2 + (border_fluff * 2);
+                      bm_orgx = wxMax ( 0, (width / 2 - rad) - border_fluff );
+                      bm_orgy = wxMax ( 0, (width / 2 - rad) - border_fluff );
 
                 }
 
@@ -3897,6 +4343,7 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
 
                 mdc.SelectObject ( wxNullBitmap );
+
 
                 //          Get smallest containing bitmap
                 wxBitmap *sbm = new wxBitmap ( pbm->GetSubBitmap ( wxRect ( bm_orgx, bm_orgy, bm_width, bm_height ) ) );
@@ -3947,36 +4394,32 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
         mdc.SelectObject ( wxNullBitmap );
 
         //    Draw the sector legs directly on the target DC
-
-
+        //    so that anti-aliasing works against the drawn image (cannot be cached...)
         if ( sector_radius > 0 )
         {
                 int leg_len = ( int ) ( sector_radius * m_display_pix_per_mm );
-
-
 
                 wxDash dash1[2];
                 dash1[0] = ( int ) ( 3.6 * m_display_pix_per_mm );  //8// Long dash  <---------+
                 dash1[1] = ( int ) ( 1.8 * m_display_pix_per_mm );  //2// Short gap            |
 
+/*
                 wxPen *pthispen = new wxPen(*wxBLACK_PEN);
                 pthispen->SetStyle(wxUSER_DASH);
                 pthispen->SetDashes( 2, dash1 );
               //      Undocumented "feature":  Pen must be fully specified <<<BEFORE>>> setting into DC
                 pdc->SetPen ( *pthispen );
-
-//                printf("litseg %d\n",rzRules->obj->Index);
+*/
+                wxColour c = GetGlobalColor ( _T ( "CHBLK" ) );
                 double a = ( sectr1-90 ) * PI / 180;
-                int x = r.x + ( int ) /*rint*/ ( leg_len * cos ( a ) );
-                int y = r.y + ( int ) /*rint*/ ( leg_len * sin ( a ) );
-//                pdc->DrawLine ( r.x, r.y, x, y );
-              DrawWuLine ( pdc, r.x, r.y, x, y, GetGlobalColor ( _T ( "CHBLK" ) ), dash1[0], dash1[1] );
+                int x = r.x + ( int ) ( leg_len * cos ( a ) );
+                int y = r.y + ( int ) ( leg_len * sin ( a ) );
+                DrawWuLine ( pdc, r.x, r.y, x, y, c, dash1[0], dash1[1] );
 
                 a = ( sectr2-90 ) * PI / 180;
-                x = r.x + ( int ) /*rint*/ ( leg_len * cos ( a ) );
-                y = r.y + ( int ) /*rint*/ ( leg_len * sin ( a ) );
-//                pdc->DrawLine ( r.x, r.y, x, y );
-                DrawWuLine ( pdc, r.x, r.y, x, y, GetGlobalColor ( _T ( "CHBLK" ) ), dash1[0], dash1[1] );
+                x = r.x + ( int ) ( leg_len * cos ( a ) );
+                y = r.y + ( int ) ( leg_len * sin ( a ) );
+                DrawWuLine ( pdc, r.x, r.y, x, y, c, dash1[0], dash1[1] );
         }
 
 
@@ -4043,26 +4486,9 @@ char *s52plib::RenderCS ( ObjRazRules *rzRules, Rules *rules )
 int s52plib::_draw ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 {
         //  Debug Hook
-//   if(!strncmp(rzRules->LUP->OBCL, "DMPGRD", 6))
+//   if(!strncmp(rzRules->LUP->OBCL, "COALNE", 6))
 //        int yyrt = 4;
 
-/*
-    if(rzRules->obj->Index == 405)
-    {
-          printf("405 bbox %g %g %g %g\n", rzRules->obj->BBObj.GetMinX(),
-                                           rzRules->obj->BBObj.GetMaxX(),
-                                           rzRules->obj->BBObj.GetMinY(),
-                                           rzRules->obj->BBObj.GetMaxY());
-          printf("vp bbox %g %g %g %g\n",  vp->vpBBox.GetMinX(),
-                 vp->vpBBox.GetMaxX(),
-                                    vp->vpBBox.GetMinY(),
-                                                vp->vpBBox.GetMaxY());
-
-          if ( ObjectRenderCheck ( rzRules, vp ) )
-                printf("\ndrawing 405\n");
-
-    }
-*/
         if ( !ObjectRenderCheck ( rzRules, vp ) )
                 return 0;
 
@@ -4070,9 +4496,15 @@ int s52plib::_draw ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
         Rules *rules = rzRules->LUP->ruleList;
 
 
-//    if(rzRules->obj->Index == 65)
-//          int rrt = 5;
+//  Debug Hooks
+//   if(rzRules->obj->Index == 869)
+//         int rrt = 5;
 
+//    if(!strncmp(rzRules->LUP->OBCL, "$AREAS", 6))
+//            int yyrkt = 4;
+
+//    if(strncmp(rzRules->LUP->OBCL, "SOUNDG", 6))
+//            return 0;
 
         while ( rules != NULL )
         {
@@ -4131,6 +4563,108 @@ int s52plib::_draw ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
         }
 
         return 1;
+}
+
+
+int s52plib::SetLineFeaturePriority ( ObjRazRules *rzRules, int npriority )
+{
+        //  Debug Hook
+//   if(!strncmp(rzRules->LUP->OBCL, "FAIRWY", 6))
+//        int yyrt = 4;
+
+      Rules *rules = rzRules->LUP->ruleList;
+
+
+//      if(rzRules->obj->Index == 108)
+//            int oop = 4;
+
+//      if(npriority == 0)
+//            int yyp = 4;
+
+      while ( rules != NULL )
+      {
+            switch ( rules->ruleType )
+            {
+
+                  case RUL_SIM_LN:       PrioritizeLineFeature ( rzRules, npriority );break;          // LS
+                  case RUL_COM_LN:       PrioritizeLineFeature ( rzRules, npriority );break;          // LC
+
+                  case RUL_CND_SY:
+                  {
+                        if ( !rzRules->obj->bCS_Added )
+                        {
+                              rzRules->obj->CSrules = NULL;
+                              GetAndAddCSRules ( rzRules, rules );
+                              rzRules->obj->bCS_Added = 1;                // mark the object
+                        }
+                        Rules *rules_last = rules;
+                        rules = rzRules->obj->CSrules;
+
+                        while ( NULL != rules )
+                        {
+                              switch ( rules->ruleType )
+                              {
+                                    case RUL_SIM_LN:       PrioritizeLineFeature ( rzRules, npriority );break;
+                                    case RUL_COM_LN:       PrioritizeLineFeature ( rzRules, npriority );break;
+                                    case RUL_NONE:
+                                    default:
+                                          break; // no rule type (init)
+                              }
+                              rules_last = rules;
+                              rules = rules->next;
+                        }
+
+                        rules = rules_last;
+                        break;
+                  }
+
+                  case RUL_NONE:
+                  default:
+                        break; // no rule type (init)
+            }                                     // switch
+
+            rules = rules->next;
+      }
+
+      return 1;
+}
+
+int s52plib::PrioritizeLineFeature ( ObjRazRules *rzRules, int npriority)
+{
+//    Debug
+//      if(rzRules->obj->Index != 549)
+//            return 1;
+
+      if ( rzRules->obj->m_n_lsindex )
+      {
+            VE_Element  **edge_array = rzRules->chart->Get_pve_array();
+            int *index_run = rzRules->obj->m_lsindex_array;
+
+            for(int iseg=0 ; iseg < rzRules->obj->m_n_lsindex ; iseg++)
+            {
+                    //  Get first connected node
+                  int inode = *index_run++;
+
+                    //  Get the edge
+                  int enode = *index_run++;
+
+                  if(enode < rzRules->chart->Get_nve_elements())
+                  {
+                        VE_Element *pedge = edge_array[enode]; //rzRules->chart->m_pve_array[enode];
+
+                  //    Set priority
+                        pedge->max_priority = npriority;
+                  }
+//                  else
+//                        int rrty = 9;                       // index is out of bounds
+
+                    //  Get last connected node
+                  inode = *index_run++;
+
+            }
+      }
+
+      return 1;
 }
 
 
@@ -4534,6 +5068,412 @@ __asm__ __volatile__ ( \
         return true;
 }
 
+//----------------------------------------------------------------------------------
+//
+//              Render Trapezoid
+//
+//----------------------------------------------------------------------------------
+inline int s52plib::dda_trap( wxPoint *segs, int lseg, int rseg, int ytop, int ybot, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec )
+{
+      unsigned char r, g, b;
+
+      if ( NULL != c )
+      {
+#ifdef ocpnUSE_ocpnBitmap
+            r = c->R;
+            g = c->G;
+            b = c->B;
+#else
+            b = c->R;
+            g = c->G;
+            r = c->B;
+#endif
+      }
+
+        //      Color Debug
+        /*    int fc = rand();
+      b = fc & 0xff;
+      g = fc & 0xff;
+      r = fc & 0xff;
+        */
+
+//      int debug = 0;
+      int ret_val = 0;
+
+      int color_int;
+      if ( NULL != c )
+            color_int = ( ( r ) << 16 ) + ( ( g ) << 8 ) + ( b );
+
+        //      Create edge arrays using fast integer DDA
+
+      int lclip = pb_spec->lclip;
+      int rclip = pb_spec->rclip;
+
+      int m, x, dy, count;
+
+      //    Left edge
+      int xmax = segs[lseg].x;
+      int xmin = segs[lseg+1].x;
+      int ymax = segs[lseg].y;
+      int ymin = segs[lseg+1].y;
+
+      if(ymax < ymin)
+      {
+            int a = ymax;
+            ymax = ymin;
+            ymin = a;
+
+            a = xmax;
+            xmax = xmin;
+            xmin = a;
+      }
+
+      int y_dda_limit = wxMin(ybot, ymax);
+      y_dda_limit = wxMin(y_dda_limit, 1499);               // don't overrun edage array
+
+      //    Some peephole optimization:
+      //    if xmax and xmin are both < 0, arrange to simply fill the ledge array with 0
+      if((xmax < 0) && (xmin < 0))
+      {
+            xmax = 0;
+            xmin = 0;
+      }
+
+      dy = ( ymax - ymin );
+      if ( dy )
+      {
+            m = ( xmax - xmin ) << 16;
+            m /= dy;
+
+            x = xmin << 16;
+
+            //TODO implement this logic in dda_tri also
+            count = ymin;
+            while(count < 0)
+            {
+                  x += m;
+                  count++;
+            }
+
+            while(count < y_dda_limit)
+            {
+                  ledge[count] = x >> 16;
+                  x += m;
+                  count++;
+            }
+      }
+
+
+      if((ytop < ymin) || (ybot > ymax))
+      {
+            printf("### ledge out of range\n");
+            ret_val = 1;
+            r=255;
+            g=0;
+            b=0;
+      }
+
+      //    Right edge
+      xmax = segs[rseg].x;
+      xmin = segs[rseg+1].x;
+      ymax = segs[rseg].y;
+      ymin = segs[rseg+1].y;
+
+
+//Note this never gets hit???
+      if(ymax < ymin)
+      {
+            int a = ymax;
+            ymax = ymin;
+            ymin = a;
+
+            a = xmax;
+            xmax = xmin;
+            xmin = a;
+      }
+
+
+
+
+      //    Some peephole optimization:
+      //    if xmax and xmin are both > rclip, arrange to simply fill the redge array with rclip
+      if((xmax > rclip) && (xmin > rclip))
+      {
+            xmax = rclip;
+            xmin = rclip;
+      }
+
+      y_dda_limit = wxMin(ybot, ymax);
+      y_dda_limit = wxMin(y_dda_limit, 1499);               // don't overrun edage array
+
+      dy = ( ymax - ymin );
+      if ( dy )
+      {
+            m = ( xmax - xmin ) << 16;
+            m /= dy;
+
+            x = xmin << 16;
+
+            count = ymin;
+            while(count < 0)
+            {
+                  x += m;
+                  count++;
+            }
+
+            while(count < y_dda_limit)
+            {
+                  redge[count] = x >> 16;
+                  x += m;
+                  count++;
+            }
+      }
+
+      if((ytop < ymin) || (ybot > ymax))
+      {
+            printf("### redge out of range\n");
+            ret_val = 1;
+            r=255;
+            g=0;
+            b=0;
+      }
+
+
+
+
+
+
+
+
+      //    Clip trapezoid to height spec
+      int y1 = ybot;
+      int y2 = ytop;
+
+
+      int ybt = pb_spec->y;
+      int yt = pb_spec->y + pb_spec->height;
+
+
+      if ( y1 > yt )
+            y1 = yt;
+      if ( y1 < ybt )
+            y1 = ybt;
+
+      if ( y2 > yt )
+            y2 = yt;
+      if ( y2 < ybt )
+            y2 = ybt;
+
+
+
+
+        //   Clip the trapezoid to width
+      for ( int iy = y2 ; iy <= y1 ; iy++ )
+      {
+                  if ( ledge[iy] < lclip )
+                  {
+                        if ( redge[iy] < lclip )
+                              ledge[iy] = -1;
+                        else
+                              ledge[iy] = lclip;
+                  }
+
+                  if ( redge[iy] > rclip )
+                  {
+                        if ( ledge[iy] > rclip )
+                              ledge[iy] = -1;
+                        else
+                              redge[iy] = rclip;
+                  }
+      }
+
+
+      //    Fill the trapezoid
+
+      int ya = y2;
+      int yb = y1;
+
+      unsigned char *pix_buff = pb_spec->pix_buff;
+
+      int patt_size_x, patt_size_y, patt_pitch;
+      unsigned char *patt_s0;
+      if ( pPatt_spec )
+      {
+            patt_size_y = pPatt_spec->height;
+            patt_size_x = pPatt_spec->width;
+            patt_pitch =  pPatt_spec->pb_pitch;
+            patt_s0 =     pPatt_spec->pix_buff;
+      }
+
+
+
+      if ( pb_spec->depth == 24 )
+      {
+            for ( int iyp = ya ; iyp < yb ; iyp++ )
+            {
+                  if ( ( iyp >= ybt ) && ( iyp < yt ) )
+                  {
+                        int yoff = ( iyp - pb_spec->y ) * pb_spec->pb_pitch;
+
+                        unsigned char *py =  pix_buff + yoff;
+
+                        int ix, ixm;
+                        ix = ledge[iyp];
+                        ixm = redge[iyp];
+
+//                        if(debug) printf("iyp %d, ix %d, ixm %d\n", iyp, ix, ixm);
+//                           int ix = ledge[iyp];
+//                            if(ix != -1)                    // special clip case
+                        if ( ledge[iyp] != -1 )
+                        {
+                              int xoff = ( ix-pb_spec->x ) * 3;
+
+                              unsigned char *px =  py  + xoff;
+
+//                                   int ixm = redge[iyp];
+
+                              if ( pPatt_spec )       // Pattern
+                              {
+                                    while ( ix <= ixm )
+                                    {
+                                          int patt_x = ix  % patt_size_x;
+                                          int patt_y = iyp % patt_size_y;
+
+                                          unsigned char *pp = patt_s0 + ( patt_y * patt_pitch ) +
+                                                      patt_x * 3;
+
+                                                        //  Todo    This line assumes unused_color is always 0,0,0
+                                          if ( *pp && * ( pp+1 ) && * ( pp+2 ) )
+                                          {
+                                                *px++ = *pp++;
+                                                *px++ = *pp++;
+                                                *px++ = *pp++;
+                                          }
+                                          else
+                                          {
+                                                px+=3;
+                                                pp+=3;
+                                          }
+
+                                          ix++;
+                                    }
+                              }
+
+
+                              else                    // No Pattern
+                              {
+#ifdef __WXGTK__
+#define memset3d(dest, value, count) \
+                                    __asm__ __volatile__ ( \
+                                    "cmp $0,%2\n\t" \
+                                    "jg ld0\n\t" \
+                                    "je ld1\n\t" \
+                                    "jmp ld2\n\t" \
+                                    "ld0:\n\t" \
+                                    "movl  %0,(%1)\n\t" \
+                                    "add $3,%1\n\t" \
+                                    "dec %2\n\t" \
+                                    "jnz ld0\n\t" \
+                                    "ld1:\n\t" \
+                                    "movb %b0,(%1)\n\t" \
+                                    "inc %1\n\t" \
+                                    "movb %h0,(%1)\n\t" \
+                                    "inc %1\n\t" \
+                                    "shr $16,%0\n\t" \
+                                    "movb %b0,(%1)\n\t" \
+                                    "ld2:\n\t" \
+                                          : : "a"(value), "D"(dest), "r"(count) :  );
+                                    int count = ixm-ix;
+                                    memset3d ( px, color_int, count )
+#else
+
+                                    while ( ix <= ixm )
+                                    {
+                                          *px++ = b;
+                                          *px++ = g;
+                                          *px++ = r;
+
+                                          ix++;
+                                    }
+#endif
+                              }
+                        }
+                  }
+            }
+      }
+
+      if ( pb_spec->depth == 32 )
+      {
+
+            assert ( ya <= yb );
+
+            for ( int iyp = ya ; iyp < yb ; iyp++ )
+            {
+                  if ( ( iyp >= ybt ) && ( iyp < yt ) )
+                  {
+                        int yoff = ( iyp - pb_spec->y ) * pb_spec->pb_pitch;
+
+                        unsigned char *py = pix_buff + yoff;
+
+
+                        int ix, ixm;
+                        ix = ledge[iyp];
+                        ixm = redge[iyp];
+
+                        if ( ( ledge[iyp] != -1 ) /*&& cw && (ix <= ixm)*/ )
+                        {
+                              int xoff = ( ix-pb_spec->x ) * pb_spec->depth / 8;
+
+                              unsigned char *px = py + xoff;
+
+
+                              if ( pPatt_spec )       // Pattern
+                              {
+                                    while ( ix <= ixm )
+                                    {
+                                          int patt_x = ix  % patt_size_x;
+                                          int patt_y = iyp % patt_size_y;
+
+                                          unsigned char *pp = patt_s0 + ( patt_y * patt_pitch ) +
+                                                      patt_x * 4;
+
+                                                        //  TODO    This line assumes unused_color is always 0,0,0
+                                          if ( *pp && * ( pp+1 ) && * ( pp+2 ) )
+                                          {
+                                                *px++ = *pp++;
+                                                *px++ = *pp++;
+                                                *px++ = *pp++;
+                                                px++;
+                                                pp++;
+                                          }
+                                          else
+                                          {
+                                                px+=4;
+                                                pp+=4;
+                                          }
+
+                                          ix++;
+                                    }
+                              }
+
+                              else                    // No Pattern
+                              {
+                                    int *pxi = ( int * ) px ;
+                                    while ( ix <= ixm )
+                                    {
+                                          *pxi++ = color_int;
+                                          ix++;
+                                    }
+                              }
+
+                        }
+                  }
+            }
+      }
+
+      return ret_val;
+}
+
 
 
 void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, color *c, wxBoundingBox &BBView,
@@ -4616,6 +5556,7 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, c
                                         }
                                         case PTG_TRIANGLES:
                                         {
+
                                                 for ( int it = 0 ; it < p_tp->nVert ; it+=3 )
                                                 {
                                                         pp3[0].x = ptp[it].x;
@@ -4630,6 +5571,7 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, c
                                                         dda_tri ( pp3, &cp, pb_spec, pPatt_spec );
                                                 }
                                                 break;
+
                                         }
                                 }
                         }   // if bbox
@@ -4638,6 +5580,87 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, c
                 free ( ptp );
                 free ( pp3 );
         }       // if pPolyTessGeo
+
+        else if ( obj->pPolyTrapGeo )
+        {
+           if(obj->pPolyTrapGeo->IsOk())
+           {
+              PolyTrapGroup *ptg = obj->pPolyTrapGeo->Get_PolyTrapGroup_head();
+
+              //  Convert the segment array to screen coordinates
+              int nVertex = obj->pPolyTrapGeo->GetnVertexMax();
+              wxPoint *ptp = ( wxPoint * ) malloc ( ( nVertex + 1 ) * sizeof ( wxPoint ) );
+
+              rzRules->chart->GetPointPix(rzRules, obj->pPolyTrapGeo->Get_PolyTrapGroup_head()->ptrapgroup_geom, ptp, nVertex);
+
+              //  Render the trapezoids
+              int ntraps = ptg->ntrap_count;
+              trapz_t *ptraps = ptg->trap_array;
+
+              color cs;
+              cs.R = 255;
+              cs.G = 0;
+              cs.B = 0;
+
+              for(int i=0 ; i < ntraps ; i++)
+              {
+                  cs.R = 0;
+                  cs.G = 255;
+                  cs.B = 0;
+
+                  int lseg = ptraps->ilseg;
+                  int rseg = ptraps->irseg;
+
+                  //    Get the screen co-ordinates of top and bottom of trapezoid,
+                  //    undestanding that ptraps->hiy is the upper line
+                  wxPoint pr;
+                  rzRules->chart->GetPointPix ( rzRules, ptraps->hiy, 0., &pr );
+                  int trap_y_top = pr.y;
+
+                  rzRules->chart->GetPointPix ( rzRules, ptraps->loy, 0., &pr );
+                  int trap_y_bot = pr.y;
+
+                  color *cd = &cp;
+                  if(ptg->m_trap_error)
+                  {
+                        cd = &cs;
+                  }
+
+/*
+                  DEBUG CODE
+                  double *p = &(ptg->pgroup_geom[lseg * 2]);
+                  double v0x_from_lseg = *p;
+                  p++;
+                  double v0y_from_lseg = *p;
+                  wxPoint prttv0;
+                  rzRules->chart->GetPointPix ( rzRules, v0y_from_lseg, 0., &prttv0 );
+
+                  p++;
+                  double v1x_from_lseg = *p;
+                  p++;
+                  double v1y_from_lseg = *p;
+                  wxPoint prttv1;
+                  rzRules->chart->GetPointPix ( rzRules, v1y_from_lseg, 0., &prttv1 );
+*/
+
+                  int trap_height = trap_y_bot - trap_y_top;
+
+                  //    Clip the trapezoid array to the render_canvas_parms dimensions
+                  if((trap_y_top >= pb_spec->y - trap_height) && (trap_y_bot <= pb_spec->y + pb_spec->height + trap_height))
+                  {
+//                  printf("\nTrap %d  lseg: %d   rseg: %d   loy: %d   hiy: %d\n", i, lseg, rseg, loy, hiy);
+                        if(dda_trap(ptp, lseg, rseg, trap_y_top, trap_y_bot, cd, pb_spec, pPatt_spec ))
+                        {
+                             printf("Error on object %d\n", obj->Index);
+                        }
+                  }
+
+                  ptraps++;
+              }
+              free ( ptp );
+           }   // if OK
+        }       // if pPolyTrapGeo
+
 
 }
 
@@ -4773,13 +5796,10 @@ int s52plib::RenderToBufferAP ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
         //  Render the Area using the pattern spec stored in the rules
         render_canvas_parms *ppatt_spec = ( render_canvas_parms * ) rules->razRule->pixelPtr;
 
-//  Use the current viewport as a bounding box
-        wxBoundingBox BBView ( vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top );
-
 //    if(pb_spec->height == 1)
 //          int ggl = 4;
 
-        RenderToBufferFilledPolygon ( rzRules, rzRules->obj, NULL, BBView, pb_spec, ppatt_spec );
+        RenderToBufferFilledPolygon ( rzRules, rzRules->obj, NULL, vp->vpBBox, pb_spec, ppatt_spec );
 
         return 1;
 }
@@ -4790,11 +5810,10 @@ int s52plib::RenderToBufferAC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
 {
         color *c;
         char *str = ( char* ) rules->INSTstr;
-        wxBoundingBox BBView ( vp->lon_left, vp->lat_bot, vp->lon_right, vp->lat_top );
 
         c = ps52plib->S52_getColor ( str );
 
-        RenderToBufferFilledPolygon ( rzRules, rzRules->obj, c, BBView, pb_spec, NULL );
+        RenderToBufferFilledPolygon ( rzRules, rzRules->obj, c, vp->vpBBox, pb_spec, NULL );
         return 1;
 }
 
@@ -4802,8 +5821,8 @@ int s52plib::RenderToBufferAC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
 int s52plib::RenderArea ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp,
                           render_canvas_parms *pb_spec )
 {
-        //Debug Hooks
-//      if(!strncmp(rzRules->LUP->OBCL, "M_COVR", 6))
+//Debug Hooks
+//      if(!strncmp(rzRules->LUP->OBCL, "$AREAS", 6))
 //            int yyrjt = 4;
 
       if ( !ObjectRenderCheck ( rzRules, vp ) )
@@ -4812,10 +5831,12 @@ int s52plib::RenderArea ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp,
         pdc = pdcin;                    // use this DC
         Rules *rules = rzRules->LUP->ruleList;
 
-        //Debug Hooks
+ //Debug Hooks
+// if(!strncmp(rzRules->LUP->OBCL, "DEPARE", 6))
+//              int yyrjt = 4;
 
-//  if(rzRules->obj->Index == 65)
-//      int rrt = 5;
+//  if(rzRules->obj->Index != 699)
+//      return 1;
 
         while ( rules != NULL )
         {
@@ -4837,6 +5858,9 @@ int s52plib::RenderArea ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp,
 
                                 while ( NULL != rules )
                                 {
+//Hve seen drgare fault here, need to code area query to debug
+//possible that RENDERtoBUFFERAP/AC is blowing obj->CSRules
+//    When it faults here, look at new debug field obj->CSLUP
                                         switch ( rules->ruleType )
                                         {
                                                 case RUL_ARE_CO:       RenderToBufferAC ( rzRules,rules, vp, pb_spec );break;
@@ -4876,7 +5900,7 @@ void s52plib::GetAndAddCSRules ( ObjRazRules *rzRules, Rules *rules )
 
         char *rule_str1 = RenderCS ( rzRules, rules );
         wxString cs_string ( rule_str1, wxConvUTF8 );
-        delete rule_str1;
+        free ( rule_str1 );  //delete rule_str1;
 
 
 //  Try to find a match for this object/attribute set in dynamic CS LUP Table
@@ -4994,11 +6018,14 @@ void s52plib::GetAndAddCSRules ( ObjRazRules *rzRules, Rules *rules )
 
 
                 LUP = NewLUP;
+
         }       // if (LUP = NULL)
 
 
         Rules *top = LUP->ruleList;
+
         rzRules->obj->CSrules = top;                // patch in a new rule set
+
 }
 
 
@@ -5139,7 +6166,8 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
         pDC->SetPen ( wxPen ( clrLine ) );
         pDC->DrawPoint ( X0, Y0 );
 
-        int XDir, DeltaX = X1 - X0;
+        int XDir;
+        int DeltaX = X1 - X0;
         if ( DeltaX >= 0 )
         {
                 XDir = 1;
@@ -5221,15 +6249,38 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
                 return;
         }
 
+        /* Line is not horizontal, diagonal, or vertical */
+
+        //  Extract a bitmap from the dc
+        wxMemoryDC mdc;
+
+        int width = 1 + abs(X0 - X1);
+        int height = 1 + abs(Y0 - Y1);
+
+        wxBitmap bm(width, height);
+        mdc.SelectObject ( bm );
+
+        mdc.Blit(0, 0, width, height, pDC, wxMin(X0, X1), Y0);
+
+        // convert bitmap to image
+        wxImage img = bm.ConvertToImage();
+
+        mdc.SelectObject ( wxNullBitmap );
+
+        //  Adjust coordinates
+        int xp0, yp0;
+
+        xp0 = X0 - wxMin(X0, X1);
+        yp0 = Y0 - wxMin(Y0, Y1);
+
         wxColour clrBackGround;
 
         unsigned short ErrorAdj;
         unsigned short ErrorAccTemp, Weighting;
 
-        /* Line is not horizontal, diagonal, or vertical */
         unsigned short ErrorAcc = 0;  /* initialize the line error accumulator to 0 */
 
-        unsigned char rl = clrLine.Red(); //GetRValue( clrLine );
+        unsigned char rl = clrLine.Red();
         unsigned char gl = clrLine.Green();
         unsigned char bl = clrLine.Blue();
         double grayl = rl * 0.299 + gl * 0.587 + bl * 0.114;
@@ -5256,20 +6307,19 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
                         if ( ErrorAcc <= ErrorAccTemp )
                         {
                                 /* The error accumulator turned over, so advance the X coord */
-                                X0 += XDir;
+                                xp0 += XDir;
                         }
-                        Y0++; /* Y-major, so always advance Y */
+                        yp0++; /* Y-major, so always advance Y */
                         /* The IntensityBits most significant bits of ErrorAcc give us the
                         intensity weighting for this pixel, and the complement of the
                         weighting for the paired pixel */
                         Weighting = ErrorAcc >> 8;
-//                  ASSERT( Weighting < 256 );
-//                  ASSERT( ( Weighting ^ 255 ) < 256 );
 
-                        pDC->GetPixel ( X0, Y0, &clrBackGround );
-                        unsigned char rb =  clrBackGround.Red();
-                        unsigned char gb =  clrBackGround.Green();
-                        unsigned char bb =  clrBackGround.Blue();
+
+                        unsigned char rb =  img.GetRed(xp0, yp0);
+                        unsigned char gb =  img.GetGreen(xp0, yp0);
+                        unsigned char bb =  img.GetBlue(xp0, yp0);
+
                         double grayb = rb * 0.299 + gb * 0.587 + bb * 0.114;
 
                         unsigned char rr = ( rb > rl ? ( ( unsigned char ) ( ( ( double ) ( grayl<grayb?Weighting:
@@ -5286,16 +6336,13 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
                                                                                    / 255.0 * ( bl - bb ) + bb ) ) );
 
                         if ( bdraw )
-        {
-                                pDC->SetPen ( wxPen ( wxColour ( rr, gr, br ) ) );
-                                pDC->DrawPoint ( X0, Y0 );
-                        }
+                              img.SetRGB(xp0, yp0, rr, gr, br);
 
 
-                        pDC->GetPixel ( X0 + XDir, Y0, &clrBackGround );
-                        rb =  clrBackGround.Red();
-                        gb =  clrBackGround.Green();
-                        bb =  clrBackGround.Blue();
+                        rb =  img.GetRed(xp0 + XDir, yp0);
+                        gb =  img.GetGreen(xp0 + XDir, yp0);
+                        bb =  img.GetBlue(xp0 + XDir, yp0);
+
                         grayb = rb * 0.299 + gb * 0.587 + bb * 0.114;
 
                         rr = ( rb > rl ? ( ( unsigned char ) ( ( ( double ) ( grayl<grayb? ( Weighting ^ 255 ) :
@@ -5312,40 +6359,27 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
                                                                      / 255.0 * ( bl - bb ) + bb ) ) );
 
                         if ( bdraw )
-        {
-                                pDC->SetPen ( wxPen ( wxColour ( rr, gr, br ) ) );
-                                pDC->DrawPoint ( X0 + XDir, Y0 );
-                        }
+                             img.SetRGB(xp0 + XDir, yp0, rr, gr, br);
 
                         if ( dot_cnt-- == 0 )
                         {
                                 dot_cnt = bdraw?space:dash;
                                 bdraw = !bdraw;
                         }
-                        /*
-                                    dot_cnt--;
-                                          if(dot_cnt == 0)
-                                          {
-                                                if(bdraw)
-                                                {
-                                                      dot_cnt = space;
-                                                      bdraw = false;
-                                                }
-                                                else
-                                                {
-                                                      dot_cnt = dash;
-                                                      bdraw = true;
-                                                }
-                                          }
-                        */
-                }
+               }
 
-                /* Draw the final pixel, which is always exactly intersected by the line
-                    and so needs no weighting */
-                pDC->SetPen ( wxPen ( clrLine ) );
-                pDC->DrawPoint ( X1, Y1 );
+//                convert from image to bitmap, then blit it back into pDC
+                wxBitmap fbm(img, -1);
+                mdc.SelectObject ( fbm );
+
+                pDC->Blit(wxMin(X0, X1), Y0, width, height, &mdc, 0, 0);
+
+                mdc.SelectObject ( wxNullBitmap );
+
                 return;
         }
+
+
         /* It's an X-major line; calculate 16-bit fixed-point fractional part of a
           pixel that Y advances each time X advances 1 pixel, truncating the
           result to avoid overrunning the endpoint along the X axis */
@@ -5365,18 +6399,18 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
                 if ( ErrorAcc <= ErrorAccTemp )
                 {
                         /* The error accumulator turned over, so advance the Y coord */
-                        Y0++;
+                        yp0++;
                 }
-                X0 += XDir; /* X-major, so always advance X */
+                xp0 += XDir; /* X-major, so always advance X */
                 /* The IntensityBits most significant bits of ErrorAcc give us the
                 intensity weighting for this pixel, and the complement of the
                 weighting for the paired pixel */
                 Weighting = ErrorAcc >> 8;
 
-                pDC->GetPixel ( X0, Y0, &clrBackGround );
-                unsigned char rb =  clrBackGround.Red();
-                unsigned char gb =  clrBackGround.Green();
-                unsigned char bb =  clrBackGround.Blue();
+                unsigned char rb =  img.GetRed(xp0, yp0);
+                unsigned char gb =  img.GetGreen(xp0, yp0);
+                unsigned char bb =  img.GetBlue(xp0, yp0);
+
                 double grayb = rb * 0.299 + gb * 0.587 + bb * 0.114;
 
                 unsigned char rr = ( rb > rl ? ( ( unsigned char ) ( ( ( double ) ( grayl<grayb?Weighting:
@@ -5393,15 +6427,12 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
                                                                            / 255.0 * ( bl - bb ) + bb ) ) );
 
                 if ( bdraw )
-{
-                        pDC->SetPen ( wxPen ( wxColour ( rr, gr, br ) ) );
-                        pDC->DrawPoint ( X0, Y0 );
-                }
+                     img.SetRGB(xp0, yp0, rr, gr, br);
 
-                pDC->GetPixel ( X0, Y0+1, &clrBackGround );
-                rb =  clrBackGround.Red();
-                gb =  clrBackGround.Green();
-                bb =  clrBackGround.Blue();
+                rb =  img.GetRed(xp0, yp0 + 1);
+                gb =  img.GetGreen(xp0, yp0 + 1);
+                bb =  img.GetBlue(xp0, yp0 + 1);
+
                 grayb = rb * 0.299 + gb * 0.587 + bb * 0.114;
 
                 rr = ( rb > rl ? ( ( unsigned char ) ( ( ( double ) ( grayl<grayb? ( Weighting ^ 255 ) :
@@ -5418,27 +6449,8 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
                                                              / 255.0 * ( bl - bb ) + bb ) ) );
 
                 if ( bdraw )
-{
-                        pDC->SetPen ( wxPen ( wxColour ( rr,gr,br ) ) );
-                        pDC->DrawPoint ( X0, Y0 + 1 );
-                }
+                      img.SetRGB(xp0, yp0 + 1, rr, gr, br);
 
-                /*
-                        dot_cnt--;
-                        if(dot_cnt == 0)
-                        {
-                              if(bdraw)
-                              {
-                                    dot_cnt = space;
-                                    bdraw = false;
-                              }
-                              else
-                              {
-                                    dot_cnt = dash;
-                                    bdraw = true;
-                              }
-                        }
-                */
 
                 if ( dot_cnt-- == 0 )
                 {
@@ -5448,10 +6460,19 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
 
         }
 
+
+//                convert from image to bitmap, then blit it back into pDC
+                    wxBitmap fbm(img, -1);
+                    mdc.SelectObject ( fbm );
+
+                    pDC->Blit(wxMin(X0, X1), Y0, width, height, &mdc, 0, 0);
+
+                    mdc.SelectObject ( wxNullBitmap );
+
         /* Draw the final pixel, which is always exactly intersected by the line
           and so needs no weighting */
-        pDC->SetPen ( wxPen ( clrLine ) );
-        pDC->DrawPoint ( X1, Y1 );
+//        pDC->SetPen ( wxPen ( clrLine ) );
+//        pDC->DrawPoint ( X1, Y1 );
 }
 
 

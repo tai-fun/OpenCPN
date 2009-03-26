@@ -125,12 +125,13 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 	src/nmea.cpp src/routeman.cpp src/routeprop.cpp \
 	src/sercomm.cpp src/statwin.cpp src/tcmgr.cpp src/thumbwin.cpp \
 	src/options.cpp src/wvschart.cpp src/about.cpp src/ais.cpp \
-	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
+	src/cm93.cpp src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
 	src/nmea0183/sentence.cpp src/nmea0183/talkerid.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
-	src/nmea0183/lat.cpp src/nmea0183/expid.cpp src/s52cnsy.cpp \
+	src/nmea0183/lat.cpp src/nmea0183/expid.cpp \
+	src/nmea0183/wpl.cpp src/nmea0183/rte.cpp src/s52cnsy.cpp \
 	src/s52plib.cpp src/s52utils.cpp src/s57chart.cpp \
 	src/mygeom.cpp src/tri.c src/myiso8211/ddffielddefn.cpp \
 	src/myiso8211/ddfmodule.cpp src/myiso8211/ddfrecord.cpp \
@@ -199,11 +200,12 @@ am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
 	routeman.$(OBJEXT) routeprop.$(OBJEXT) sercomm.$(OBJEXT) \
 	statwin.$(OBJEXT) tcmgr.$(OBJEXT) thumbwin.$(OBJEXT) \
 	options.$(OBJEXT) wvschart.$(OBJEXT) about.$(OBJEXT) \
-	ais.$(OBJEXT) latlong.$(OBJEXT) long.$(OBJEXT) \
+	ais.$(OBJEXT) cm93.$(OBJEXT) latlong.$(OBJEXT) long.$(OBJEXT) \
 	nmea0183.$(OBJEXT) response.$(OBJEXT) rmb.$(OBJEXT) \
 	sentence.$(OBJEXT) talkerid.$(OBJEXT) rmc.$(OBJEXT) \
-	hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_2) $(am__objects_3)
+	hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) wpl.$(OBJEXT) \
+	rte.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
+	$(am__objects_3)
 opencpn_OBJECTS = $(am_opencpn_OBJECTS)
 am__DEPENDENCIES_1 =
 @BUILD_WITH_GLU_TESS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
@@ -397,12 +399,13 @@ opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/nmea.cpp src/routeman.cpp src/routeprop.cpp \
 	src/sercomm.cpp src/statwin.cpp src/tcmgr.cpp src/thumbwin.cpp \
 	src/options.cpp src/wvschart.cpp src/about.cpp src/ais.cpp \
-	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
+	src/cm93.cpp src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
 	src/nmea0183/sentence.cpp src/nmea0183/talkerid.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
-	src/nmea0183/lat.cpp src/nmea0183/expid.cpp $(am__append_8) \
+	src/nmea0183/lat.cpp src/nmea0183/expid.cpp \
+	src/nmea0183/wpl.cpp src/nmea0183/rte.cpp $(am__append_8) \
 	$(am__append_10) $(am__append_11)
 ocpnhelper_SOURCES = src/ocpnhelper.c
 noinst_HEADERS = include/about.h include/ais.h include/bbox.h \
@@ -554,6 +557,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartdb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartimg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chcanv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cm93.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/concanv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpl_conv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpl_csv.Po@am__quote@
@@ -613,6 +617,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rmc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/routeman.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/routeprop.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rte.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s52cnsy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s52plib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s52utils.Po@am__quote@
@@ -628,6 +633,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thumbwin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tri.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wificlient.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wvschart.Po@am__quote@
 
 .c.o:
@@ -994,6 +1000,20 @@ ais.obj: src/ais.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ais.obj `if test -f 'src/ais.cpp'; then $(CYGPATH_W) 'src/ais.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ais.cpp'; fi`
 
+cm93.o: src/cm93.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cm93.o -MD -MP -MF $(DEPDIR)/cm93.Tpo -c -o cm93.o `test -f 'src/cm93.cpp' || echo '$(srcdir)/'`src/cm93.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/cm93.Tpo $(DEPDIR)/cm93.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/cm93.cpp' object='cm93.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cm93.o `test -f 'src/cm93.cpp' || echo '$(srcdir)/'`src/cm93.cpp
+
+cm93.obj: src/cm93.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cm93.obj -MD -MP -MF $(DEPDIR)/cm93.Tpo -c -o cm93.obj `if test -f 'src/cm93.cpp'; then $(CYGPATH_W) 'src/cm93.cpp'; else $(CYGPATH_W) '$(srcdir)/src/cm93.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/cm93.Tpo $(DEPDIR)/cm93.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/cm93.cpp' object='cm93.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cm93.obj `if test -f 'src/cm93.cpp'; then $(CYGPATH_W) 'src/cm93.cpp'; else $(CYGPATH_W) '$(srcdir)/src/cm93.cpp'; fi`
+
 latlong.o: src/nmea0183/latlong.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT latlong.o -MD -MP -MF $(DEPDIR)/latlong.Tpo -c -o latlong.o `test -f 'src/nmea0183/latlong.cpp' || echo '$(srcdir)/'`src/nmea0183/latlong.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/latlong.Tpo $(DEPDIR)/latlong.Po
@@ -1147,6 +1167,34 @@ expid.obj: src/nmea0183/expid.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/expid.cpp' object='expid.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o expid.obj `if test -f 'src/nmea0183/expid.cpp'; then $(CYGPATH_W) 'src/nmea0183/expid.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/expid.cpp'; fi`
+
+wpl.o: src/nmea0183/wpl.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT wpl.o -MD -MP -MF $(DEPDIR)/wpl.Tpo -c -o wpl.o `test -f 'src/nmea0183/wpl.cpp' || echo '$(srcdir)/'`src/nmea0183/wpl.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/wpl.Tpo $(DEPDIR)/wpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/wpl.cpp' object='wpl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o wpl.o `test -f 'src/nmea0183/wpl.cpp' || echo '$(srcdir)/'`src/nmea0183/wpl.cpp
+
+wpl.obj: src/nmea0183/wpl.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT wpl.obj -MD -MP -MF $(DEPDIR)/wpl.Tpo -c -o wpl.obj `if test -f 'src/nmea0183/wpl.cpp'; then $(CYGPATH_W) 'src/nmea0183/wpl.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/wpl.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/wpl.Tpo $(DEPDIR)/wpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/wpl.cpp' object='wpl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o wpl.obj `if test -f 'src/nmea0183/wpl.cpp'; then $(CYGPATH_W) 'src/nmea0183/wpl.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/wpl.cpp'; fi`
+
+rte.o: src/nmea0183/rte.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rte.o -MD -MP -MF $(DEPDIR)/rte.Tpo -c -o rte.o `test -f 'src/nmea0183/rte.cpp' || echo '$(srcdir)/'`src/nmea0183/rte.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/rte.Tpo $(DEPDIR)/rte.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/rte.cpp' object='rte.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rte.o `test -f 'src/nmea0183/rte.cpp' || echo '$(srcdir)/'`src/nmea0183/rte.cpp
+
+rte.obj: src/nmea0183/rte.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rte.obj -MD -MP -MF $(DEPDIR)/rte.Tpo -c -o rte.obj `if test -f 'src/nmea0183/rte.cpp'; then $(CYGPATH_W) 'src/nmea0183/rte.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/rte.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/rte.Tpo $(DEPDIR)/rte.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/rte.cpp' object='rte.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rte.obj `if test -f 'src/nmea0183/rte.cpp'; then $(CYGPATH_W) 'src/nmea0183/rte.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/rte.cpp'; fi`
 
 s52cnsy.o: src/s52cnsy.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT s52cnsy.o -MD -MP -MF $(DEPDIR)/s52cnsy.Tpo -c -o s52cnsy.o `test -f 'src/s52cnsy.cpp' || echo '$(srcdir)/'`src/s52cnsy.cpp

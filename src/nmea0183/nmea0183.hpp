@@ -60,12 +60,13 @@
 */
 #include "RMB.hpp"
 #include "RMC.HPP"
+#include "wpl.hpp"
+#include "rte.hpp"
 /*
 #include "ROT.hpp"
 #include "RPM.hpp"
 #include "RSA.hpp"
 #include "RSD.hpp"
-#include "RTE.hpp"
 #include "SFI.hpp"
 #include "STN.hpp"
 #include "TRF.hpp"
@@ -78,7 +79,6 @@
 #include "VTG.hpp"
 #include "WCV.hpp"
 #include "WNC.hpp"
-#include "WPL.hpp"
 #include "XDR.hpp"
 #include "XTE.hpp"
 #include "XTR.hpp"
@@ -144,13 +144,14 @@ class NMEA0183
       RMA Rma;
 */
        RMB Rmb;
-        RMC Rmc;
-/*
+       RMC Rmc;
+       WPL Wpl;
+       RTE Rte;
+ /*
       ROT Rot;
       RPM Rpm;
       RSA Rsa;
       RSD Rsd;
-      RTE Rte;
       SFI Sfi;
       STN Stn;
       TRF Trf;
@@ -163,7 +164,6 @@ class NMEA0183
       VTG Vtg;
       WCV Wcv;
       WNC Wnc;
-      WPL Wpl;
       XDR Xdr;
       XTE Xte;
       XTR Xtr;

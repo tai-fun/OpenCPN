@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.13 2008/12/19 04:18:23 bdbcat Exp $
+ * $Id: s52s57.h,v 1.14 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.14  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.13  2008/12/19 04:18:23  bdbcat
  * SENC version/format increment.
  *
@@ -86,7 +89,7 @@
 
 #include "bbox.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  119
+#define CURRENT_SENC_FORMAT_VERSION  121
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
@@ -225,7 +228,9 @@ public:
    wxString       *INST;            // Instruction Field (rules)
    DisCat         DISC;             // Display Categorie: D/S/O, DisplayBase, Standard, Other
    int            LUCM;             // Look-Up Comment (PLib3.x put 'groupes' here,
-                                    // hense 'int', but its a string in the specs)
+                                    // hence 'int', but its a string in the specs)
+   int            nSequence;        // A sequence number, indicating order of encounter in
+                                    //  the PLIB file
    Rules          *ruleList;        // rasterization rule list
 };
 
@@ -317,6 +322,7 @@ class s57chart;
 class S57Obj;
 class OGRFeature;
 class PolyTessGeo;
+class PolyTessGeoTrap;
 
 
 class S57Obj
@@ -326,12 +332,12 @@ public:
       //  Public Methods
       S57Obj();
       ~S57Obj();
-      S57Obj(char *first_line, wxBufferedInputStream *fpx, double ref_lat, double ref_lon);
+      S57Obj(char *first_line, wxInputStream *fpx, double ref_lat, double ref_lon);
 
       // Private Methods
 private:
       bool IsUsefulAttribute(char *buf);
-      int my_fgets( char *buf, int buf_len_max, wxBufferedInputStream& ifs );
+      int my_fgets( char *buf, int buf_len_max, wxInputStream& ifs );
       int my_bufgetl( char *ib_read, char *ib_end, char *buf, int buf_len_max );
 
 public:
@@ -354,6 +360,7 @@ public:
       double                  *geoPtMulti;            // an array[2] for MultiPoint, lat/lon to make bbox
                                                       // of decomposed points
       PolyTessGeo             *pPolyTessGeo;
+      PolyTessGeoTrap         *pPolyTrapGeo;
 
       wxBoundingBox           BBObj;
 
@@ -367,6 +374,18 @@ public:
       int                     Scamin;                 // SCAMIN attribute decoded during load
       bool                    bIsClone;
       int                     nRef;                   // Reference counter, to signal OK for deletion
+      bool                    bIsAton;                // This object is an aid-to-navigation
+
+      int                     m_n_lsindex;
+      int                     *m_lsindex_array;
+
+                                                      // This transform converts from object geometry
+                                                      // to SM coordinates.
+      double                  x_rate;                 // These auxiliary transform coefficients are
+      double                  y_rate;                 // to be used in GetPointPix() and friends
+      double                  x_origin;               // on a per-object basis if necessary
+      double                  y_origin;
+
 };
 
 
@@ -378,6 +397,7 @@ typedef struct _ObjRazRules{
    LUPrec          *LUP;
    S57Obj          *obj;
    s57chart        *chart;                //dsr ... chart object owning this rule set
+   struct _ObjRazRules *child;            // child list, used only for MultiPoint Soundings
    struct _ObjRazRules *next;
 }ObjRazRules;
 
@@ -402,6 +422,27 @@ public:
       int                     height;
       int                     depth;
 };
+
+//----------------------------------------------------------------------------------
+//          Classes used to create arrays of geometry elements
+//----------------------------------------------------------------------------------
+
+class VE_Element
+{
+public:
+      int         index;
+      int         nCount;
+      double      *pPoints;
+      int         max_priority;
+};
+
+class VC_Element
+{
+public:
+      int         index;
+      double      *pPoint;
+};
+
 
 
 

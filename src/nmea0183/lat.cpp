@@ -83,7 +83,7 @@ void LATITUDE::Write( SENTENCE& sentence )
       float f = (m % 1000)/10. + 0.5;
       int g = (int)f;
 
-      temp_string.Printf(_T("%d%02d.%02d"), d, m / 1000, g);
+      temp_string.Printf(_T("%d%02d.%03d"), d, m / 1000, g);
 
 
 

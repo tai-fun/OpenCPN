@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.8 2008/12/19 01:46:39 bdbcat Exp $
+ * $Id: navutil.h,v 1.9 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.9  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.8  2008/12/19 01:46:39  bdbcat
  * Add selectable depth unit conversion for S57 charts
  *
@@ -90,8 +93,9 @@
 
 
 extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
-
 extern bool LogMessageOnce(wxString &msg);
+extern wxString toSDMM(int NEflag, double a);
+
 // ----------------------------------------------------------------------------
 // resources
 // ----------------------------------------------------------------------------
@@ -110,6 +114,15 @@ typedef struct tagVECTOR2D  {
   double     y;
 } VECTOR2D, *PVECTOR2D;
 
+class Hyperlink { // toh, 2009.02.14
+      public:
+            wxString DescrText;
+            wxString Link;
+            wxString Type;
+};
+
+WX_DECLARE_LIST(Hyperlink, HyperlinkList);// establish class as list member
+
 
 class RoutePoint
 {
@@ -123,6 +136,8 @@ public:
 
       void SetPosition(double lat, double lon);
       void CalculateDCRect(wxDC& dc, wxRect *prect);
+
+      bool IsSame(RoutePoint *pOtherRP);        // toh, 2009.02.11
 
       float             m_lat;
       float             m_lon;
@@ -138,16 +153,14 @@ public:
       wxString          m_GUID;
       wxString          m_IconName;
       wxBitmap          *m_pbmIcon;
-//      int               m_icon_x2;
-//      int               m_icon_y2;
       bool              m_bBlink;
       bool              m_bDynamicName;
       bool              m_bShowName;
       wxRect            CurrentRect_in_DC;
-//      wxRect            m_hilitebox;
       int               m_NameLocationOffsetX;
       int               m_NameLocationOffsetY;
 
+      HyperlinkList     *m_HyperlinkList; // toh, 2009.02.14
 
 };
 
@@ -166,23 +179,26 @@ public:
       void AddTentativePoint(const wxString& GUID);
       RoutePoint *GetPoint(int nPoint);
       int GetIndexOf(RoutePoint *prp);
-      RoutePoint *InsertPointBefore(RoutePoint *pRP, float rlat, float rlon);
+      RoutePoint *InsertPointBefore(RoutePoint *pRP, float rlat, float rlon, bool bRenamePoints = false);
       void DrawPointWhich(wxDC& dc, int iPoint, wxPoint *rpn);
-      void DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2);
-      void DrawRoute(wxDC& dc);
+      void DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, double scale_ppm, bool bdraw_arrow);
+      void DrawRoute(wxDC& dc, double scale_ppm);
       RoutePoint *GetLastPoint();
-      void DeletePoint(RoutePoint *rp);
+      void DeletePoint(RoutePoint *rp, bool bRenamePoints = false);
+      void RemovePoint(RoutePoint *rp, bool bRenamePoints = false);
       void DeSelectRoute();
       void CalculateBBox();
       void UpdateSegmentDistances();
-      void DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb);
-      void CalculateDCRect(wxDC& dc_route, wxRect *prect);
+      void CalculateDCRect(wxDC& dc_route, wxRect *prect, double scale_ppm);
       int GetnPoints(void){ return m_nPoints; }
-      void Reverse(bool bRenamePoints = true);
+      void Reverse(bool bRenamePoints = false);
       void RebuildGUIDList(void);
-      void AssembleRoute();
       void RenameRoutePoints();
       void ReloadRoutePointIcons();
+      wxString GetNewMarkSequenced(void);
+      void AssembleRoute();
+
+      bool SendToGPS(wxString& com_name, bool bsend_waypoints, wxGauge *pProgress);
 
       int         m_ConfigRouteNum;
       bool        m_bRtIsSelected;
@@ -202,7 +218,9 @@ public:
       wxRect      active_pt_rect;
 
 private:
+      void DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb, double scale_ppm, bool bdraw_arrow);
       int         m_nPoints;
+      int         m_nm_sequence;
 
 
 };
@@ -243,6 +261,24 @@ public:
       wxXmlDocument     *m_pXMLNavObj;
       wxXmlNode         *m_XMLrootnode;
 */
+      void ExportGPX(wxWindow* parent);   // toh, 2009.02.15
+      void ImportGPX(wxWindow* parent);   // toh, 2009.02.15
+
+//    toh, 2009.02.10
+      void CreateGPXNavObj(void);
+      void CreateGPXRoutePoints(void);
+      wxXmlNode *CreateGPXWptNode(RoutePoint *pr);
+      wxXmlNode *CreateGPXRptNode(RoutePoint *pr,int nbr);
+      void WriteXMLNavObj(const wxString& file);
+      bool WptIsInRouteList(RoutePoint *pr);
+
+      // toh, 2009.02.17
+      RoutePoint *GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool LoadRoute=false);
+      void GPXLoadRoute(wxXmlNode* rtenode);
+
+      wxXmlDocument     *m_pXMLNavObj;
+      wxXmlNode         *m_XMLrootnode;
+//    toh, end
 
       int m_NextRouteNum;
       int m_NextWPNum;

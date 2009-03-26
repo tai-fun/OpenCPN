@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.10 2008/12/19 01:46:39 bdbcat Exp $
+ * $Id: s52plib.h,v 1.11 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.11  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.10  2008/12/19 01:46:39  bdbcat
  * Add selectable depth unit conversion for S57 charts
  *
@@ -39,6 +42,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.11  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.10  2008/12/19 01:46:39  bdbcat
  * Add selectable depth unit conversion for S57 charts
  *
@@ -135,6 +141,7 @@ public:
       void PrepareForRender();
       int _draw(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp);
       int RenderArea(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp, render_canvas_parms *pb_spec);
+      int SetLineFeaturePriority( ObjRazRules *rzRules, int npriority );
 
  // Accessors
       bool GetShowS57Text(){return m_bShowS57Text;}
@@ -142,6 +149,9 @@ public:
 
       int GetMajorVersion(void){return m_VersionMajor;}
       int GetMinorVersion(void){return m_VersionMinor;}
+
+      void SetTextOverlapAvoid(bool f){m_bCheckTextOverlap = f;}
+      void SetShowAtonText(bool f){m_bShowAtonText = f;}
 
 
  //Todo accessors
@@ -191,8 +201,10 @@ public:
             int x, int y, color *pcol, int &dx, int &dy,bool bCheckOverlap);
       bool CheckTextBBList( const wxBoundingBox &test_box);
 
+      int PrioritizeLineFeature ( ObjRazRules *rzRules, int npriority);
 
       int dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec);
+      int dda_trap(wxPoint *segs, int lseg, int rseg, int ytop, int ybot, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec );
 
       wxArrayOfLUPrec *SelectLUPARRAY(LUPname TNAM);
 
@@ -250,6 +262,8 @@ public:
       wxArrayOfLUPrec *pointPaperLUPArray;      // points: PAPER_CHART
       wxArrayOfLUPrec *condSymbolLUPArray;      // Dynamic Conditional Symbology
 
+      int         m_LUPSequenceNumber;
+
       wxArrayPtrVoid *ColorTableArray;
       wxArrayPtrVoid *ColourHashTableArray;
 
@@ -272,6 +286,10 @@ public:
       int         m_VersionMinor;
 
       double      m_display_pix_per_mm;
+
+      bool        m_bCheckTextOverlap;
+      bool        m_bShowAtonText;
+
 };
 
 #endif //_S52PLIB_H_

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.18 2008/12/09 04:06:23 bdbcat Exp $
+ * $Id: chart1.h,v 1.19 2009/03/26 22:35:35 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.19  2009/03/26 22:35:35  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.18  2008/12/09 04:06:23  bdbcat
  * Cleanup Comments
  *
@@ -132,7 +135,9 @@ enum
       ID_TBEXIT,
       ID_TBSTAT,
       ID_PRINT,
-      ID_COLSCHEME
+      ID_COLSCHEME,
+      ID_GPXIMPORT,     // toh, 2009.02.14
+      ID_GPXEXPORT      // toh, 2009.02.14
 };
 
 
@@ -233,6 +238,9 @@ class MyFrame: public wxFrame
     void DoPrint(void);
     void StopSockets(void);
     void ResumeSockets(void);
+    void DoExportGPX(void);     // toh, 2009.02.15
+    void DoImportGPX(void);   // toh, 2009.02.15
+
 
     ColorScheme GetColorScheme();
     void SetAndApplyColorScheme(ColorScheme cs);
@@ -284,6 +292,8 @@ class MyFrame: public wxFrame
 
     wxMutex          m_mutexNMEAEvent;         // Mutex to handle static data from NMEA threads
 
+    wxString         m_last_reported_chart_name;
+    wxString         m_last_reported_chart_pubdate;
 
     DECLARE_EVENT_TABLE()
 };

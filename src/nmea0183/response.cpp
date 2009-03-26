@@ -24,16 +24,11 @@ RESPONSE::~RESPONSE()
 
 void RESPONSE::SetContainer( NMEA0183 *container )
 {
-//   ASSERT_VALID( this );
-   assert( container != NULL );
-
    container_p = container;
 }
 
 void RESPONSE::SetErrorMessage( const wxString& error_message )
 {
-//   ASSERT_VALID( this );
-
    ErrorMessage  = Mnemonic;
    ErrorMessage += _T(", ");
    ErrorMessage += error_message;
@@ -41,17 +36,18 @@ void RESPONSE::SetErrorMessage( const wxString& error_message )
 
 bool RESPONSE::Write( SENTENCE& sentence )
 {
-//   ASSERT_VALID( this );
-
    /*
    ** All NMEA0183 sentences begin with the mnemonic...
    */
 
-    sentence  = _T("$--");
-   sentence.Sentence.Append(Mnemonic);
+    sentence  = _T("$");
 
-//   sentence += Mnemonic;
-//   sentence += ",";
+    if(NULL == container_p)
+          sentence.Sentence.Append(_T("--"));
+    else
+          sentence.Sentence.Append(container_p->TalkerID);
+
+    sentence.Sentence.Append(Mnemonic);
 
    return( TRUE );
 }
