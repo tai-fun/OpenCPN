@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.10 2008/04/10 01:02:59 bdbcat Exp $
+ * $Id: ais.cpp,v 1.11 2009/03/26 22:26:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -25,16 +25,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< ais.cpp
  * $Log: ais.cpp,v $
- * Revision 1.10  2008/04/10 01:02:59  bdbcat
- * Cleanup
+ * Revision 1.11  2009/03/26 22:26:06  bdbcat
+ * *** empty log message ***
  *
- * Revision 1.9  2008/03/30 21:36:27  bdbcat
- * Correct Target Age calculation
- *
-=======
- * $Log: ais.cpp,v $
  * Revision 1.10  2008/04/10 01:02:59  bdbcat
  * Cleanup
  *
@@ -44,7 +38,6 @@
  * Revision 1.8  2008/01/12 06:23:11  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.8
  * Revision 1.7  2008/01/10 03:35:31  bdbcat
  * Update for Mac OSX
  *
@@ -79,13 +72,35 @@
 #include "chart1.h"
 #include "nmea.h"           // for DNSTestThread
 #include "navutil.h"        // for Select
+#include "georef.h"
 
 extern  OCP_AIS_Thread  *pAIS_Thread;
 extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
+extern  double          gLat, gLon, gSog, gCog;
 
-CPL_CVSID("$Id: ais.cpp,v 1.10 2008/04/10 01:02:59 bdbcat Exp $");
+//    AIS Global configuration
+extern bool             g_bCPAMax;
+extern double           g_CPAMax_NM;
+extern bool             g_bCPAWarn;
+extern double           g_CPAWarn_NM;
+extern bool             g_bTCPA_Max;
+extern double           g_TCPA_Max;
+extern bool             g_bMarkLost;
+extern double           g_MarkLost_Mins;
+extern bool             g_bRemoveLost;
+extern double           g_RemoveLost_Mins;
+extern bool             g_bShowCOG;
+extern double           g_ShowCOG_Mins;
+extern bool             g_bShowTracks;
+extern double           g_ShowTracks_Mins;
+extern bool             g_bShowMoored;
+extern double           g_ShowMoored_Kts;
+
+
+
+CPL_CVSID("$Id: ais.cpp,v 1.11 2009/03/26 22:26:06 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -139,6 +154,9 @@ AIS_Target_Data::AIS_Target_Data()
     NavStatus = 777;
     SyncState = 888;
     SlotTO = 999;
+
+    CPA = 100;                // Large values avoid false alarms
+    TCPA = 100;
 
 }
 
@@ -269,6 +287,8 @@ AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDat
       wxWindow(pParent, window_id, wxPoint(20,30), wxSize(5,5), wxSIMPLE_BORDER)
 
 {
+      m_nsim = 0;
+
       m_death_age_seconds = 300;
 
       AISTargetList = new AIS_Target_Hash;
@@ -305,6 +325,9 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
     {
         case EVT_AIS_PARSE_RX:
         {
+              wxDateTime now = wxDateTime::Now();
+
+//              printf("AIS Event at %ld\n", now.GetTicks());
 /*
                 if(pStatusBar)
                 {
@@ -319,6 +342,11 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
             int nr = 0;
             if(!message.IsEmpty())
                 nr = Decode(message);
+
+            if(nr > 1)
+            {
+//                  printf("AIS Decode() returned error: %d\n", nr);
+            }
 
             /*
             ///debug
@@ -456,12 +484,15 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
             {
                 (*AISTargetList)[pNewTargetData->MMSI] = pNewTargetData;            // so insert this entry
                 pUpdatedTarget = pNewTargetData;
+//   printf("Adding target MMSI %d\n",pNewTargetData->MMSI);
 
             }
             else
             {
                 pStaleTarget = (*AISTargetList)[pNewTargetData->MMSI];          // find current entry
                 pUpdatedTarget = Merge(pStaleTarget, pNewTargetData);           // merge in new data
+                pUpdatedTarget->b_active = true;
+//   printf("Updating target MMSI %d\n",pNewTargetData->MMSI);
 
                 (*AISTargetList)[pNewTargetData->MMSI] = pUpdatedTarget;  // replace the current entry
                 delete pNewTargetData;
@@ -479,44 +510,20 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
 
             delete pStaleTarget;                            // kill old entry entirely
 
+            //    Calculate CPA info for this target immediately
+            UpdateOneCPA(pUpdatedTarget);
+
             ret = AIS_NoError;
         }
         else
-            ret = AIS_NoError;              // unrecognized AIS Message ID is OK
+        {
+//              printf("Unrecognized AIS Message\n");
+              ret = AIS_NoError;              // unrecognized AIS Message ID is OK
+        }
 
     }
     else
         ret = AIS_Partial;
-
-    ///Debug
-    /// Scrub the selectable list
-    /*
-//    Iterate on the list
-    SelectItem *pFindSel;
-    AIS_Target_Data *test_target;
-    wxSelectableItemListNode *node = pSelectAIS->GetSelectList()->GetFirst();
-
-    while(node)
-    {
-        pFindSel = node->GetData();
-        if(pFindSel->m_seltype == SELTYPE_AISTARGET)
-        {
-            switch(SELTYPE_AISTARGET)
-            {
-                case SELTYPE_AISTARGET:
-                    test_target = (AIS_Target_Data *)pFindSel->m_pData1;
-                    printf("Target Name / MMSI: %s %d\n", test_target->ShipName, test_target->MMSI);
-                    break;
-
-            }
-        }
-
-
-        node = node->GetNext();
-    }
-    printf("\n");
-
-    */
 
     return ret;
 }
@@ -526,6 +533,8 @@ AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tth
 {
      AIS_Target_Data *result = new AIS_Target_Data;
 
+     //     Grab the most recent report time
+     int last_report_ticks = tlast->ReportTicks;
 
      //  Name update
      if(tthis->MID == 5)
@@ -547,10 +556,58 @@ AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tth
          *result = *tlast;                  // default
      }
 
+     result->ReportTicks = tthis->ReportTicks;
 
+     //     Save the most recent report period
+     result->RecentPeriod = result->ReportTicks - last_report_ticks;
 
      return result;
 }
+
+//    Add/Update an AIS target to the Hashmap
+int AIS_Decoder::AddUpdateTarget(AIS_Target_Data *pNewTargetData)
+{
+      AIS_Target_Data *pStaleTarget = NULL;
+      AIS_Target_Data *pUpdatedTarget = NULL;
+
+      if(pNewTargetData)
+      {
+
+        //  Search the current AISTargetList for an MMSI match
+            AIS_Target_Hash::iterator it = AISTargetList->find( pNewTargetData->MMSI );
+            if(it == AISTargetList->end())                  // not found
+            {
+                  (*AISTargetList)[pNewTargetData->MMSI] = pNewTargetData;            // so insert this entry
+                  pUpdatedTarget = pNewTargetData;
+
+            }
+            else
+            {
+                  pStaleTarget = (*AISTargetList)[pNewTargetData->MMSI];          // find current entry
+                  pUpdatedTarget = Merge(pStaleTarget, pNewTargetData);           // merge in new data
+                  pUpdatedTarget->b_active = true;
+
+                  (*AISTargetList)[pNewTargetData->MMSI] = pUpdatedTarget;     // replace the current entry
+                  delete pNewTargetData;                                      // and kill the old one
+
+            }
+
+        //  Update the AIS Target Selectable list
+
+            if(!pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget, SELTYPE_AISTARGET))
+                  if(pStaleTarget != NULL)
+                        printf("Delete AIS Selectable point failed\n");
+
+            pSelectAIS->AddSelectablePoint(pUpdatedTarget->Lat, pUpdatedTarget->Lon,
+                                     (void *)pUpdatedTarget, SELTYPE_AISTARGET);
+
+            delete pStaleTarget;                            // kill old entry entirely
+
+      }
+
+      return (AIS_NoError);
+}
+
 
 //----------------------------------------------------------------------------
 //      Parse a NMEA VDM Bitstring
@@ -673,6 +730,7 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
     {
         res_ptr = new AIS_Target_Data;
         *res_ptr = atd;                                    // shallow copy is OK
+        res_ptr->b_active = true;
     }
 
     return res_ptr;
@@ -712,6 +770,73 @@ bool AIS_Decoder::NMEACheckSumOK(const wxString& str)
    return false;
 }
 
+void AIS_Decoder::UpdateAllCPA(void)
+{
+      //    Iterate thru all the target
+      AIS_Target_Hash::iterator it;
+      AIS_Target_Hash *current_targets = GetTargetList();
+
+      for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
+      {
+            AIS_Target_Data *td = it->second;
+
+            if(NULL != td)
+                  UpdateOneCPA(td);
+      }
+}
+
+void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
+{
+
+      //    Calculate the TCPA first
+
+      //    Working on a Reduced Lat/Lon orthogonal plotting sheet....
+      //    Get easting/northing to target,  in meters
+
+      double east1 = (ptarget->Lon - gLon) * 60 * 1852;
+      double north1 = (ptarget->Lat - gLat) * 60 * 1852;
+
+      double east = east1 * (cos(gLat * PI / 180));;
+      double north = north1;
+
+      //    Convert COGs trigonometry to standard unit circle
+      double cosa = cos((90. - gCog) * PI / 180.);
+      double sina = sin((90. - gCog) * PI / 180.);
+      double cosb = cos((90. - ptarget->COG) * PI / 180.);
+      double sinb = sin((90. - ptarget->COG) * PI / 180.);
+
+      //    Express the SOGs as meters per hour
+      double v0 = gSog         * 1852.;
+      double v1 = ptarget->SOG * 1852.;
+
+      //    These will be useful
+      double fc = (v0 * cosa) - (v1 * cosb);
+      double fs = (v0 * sina) - (v1 * sinb);
+
+      //    Here is the equation for t, which will be in hours
+      double tcpa = ((fc * east) + (fs * north)) / ((fc * fc) + (fs * fs));
+
+      //    Convert to minutes
+      ptarget->TCPA = tcpa * 60.;
+
+
+      //    Calculate CPA
+      //    Using TCPA, predict ownship and target positions
+
+      double OwnshipLat, OwnshipLon, TargetLat, TargetLon;
+
+      ll_gc_ll(gLat,         gLon,         gCog,         gSog * tcpa,         &OwnshipLat, &OwnshipLon);
+      ll_gc_ll(ptarget->Lat, ptarget->Lon, ptarget->COG, ptarget->SOG * tcpa, &TargetLat,  &TargetLon);
+
+      //   And compute the distance
+      ptarget->CPA = DistGreatCircle(OwnshipLat, OwnshipLon, TargetLat, TargetLon);
+
+
+}
+
+
+
+
 //------------------------------------------------------------------------------------
 //
 //  AIS Target Query Support
@@ -722,11 +847,11 @@ bool AIS_Decoder::NMEACheckSumOK(const wxString& str)
 //  Resulting string to OWNED BY CALLER
 wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
 {
-    wxString *res = new wxString;
+    wxString *result = new wxString;
     wxString line;
 
     line.Printf(_T("MMSI:  %d\n"), td->MMSI);
-    res->Append(line);
+    result->Append(line);
 
     //  Clip any unused characters (@) from the name
     wxString ts;
@@ -738,19 +863,19 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     line.Printf(_T("ShipName:  "));
     line.Append( ts );
     line.Append(_T("\n\n"));
-    res->Append(line);
+    result->Append(line);
 
     line.Printf(_T("Course: %6.0f Deg.\n"), td->COG);
-    res->Append(line);
+    result->Append(line);
 
     line.Printf(_T("Speed: %5.2f Kts.\n"), td->SOG);
-    res->Append(line);
+    result->Append(line);
 
     wxDateTime now = wxDateTime::Now();
     now.MakeGMT();
     int target_age = now.GetTicks() - td->ReportTicks;
 
-///  Debug
+///  TODO Debug
 /*
     line.Printf("MID: %d\n", td->MID);
     res->Append(line);
@@ -779,9 +904,20 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     }
 
     line.Printf(_T("Report Age: %d Sec.\n"), target_age);
-    res->Append(line);
+    result->Append(line);
 
-    return res;
+    line.Printf(_T("Recent Report Period: %d Sec.\n"), td->RecentPeriod);
+    result->Append(line);
+
+    double mins = floor(td->TCPA);
+    int secs = (int)((td->TCPA - mins) * 60);
+    line.Printf(_T("TCPA:  %d:%02d Min:Sec\n"), (int)mins, secs);
+    result->Append(line);
+
+    line.Printf(_T("CPA: %6.1f NM"), td->CPA);
+    result->Append(line);
+
+    return result;
 }
 
 
@@ -1079,19 +1215,86 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
           int target_age = now.GetTicks() - td->ReportTicks;
 //          printf("Current Target: MMSI: %d    target_age:%d\n", td->MMSI, target_age);
 
-          if(target_age > m_death_age_seconds)
+          //      Mark lost targets if specified
+          if(g_bMarkLost)
           {
-//             printf("      erase MMSI %d\n", td->MMSI);
-              current_targets->erase(it);
-              pSelectAIS->DeleteSelectablePoint((void *)td, SELTYPE_AISTARGET);
-              delete td;
-              break;        // kill only one per tick, since iterator becomes invalid...
+                  if(target_age > g_MarkLost_Mins * 60)
+                        td->b_active = false;
           }
+
+          //      Remove lost targets if specified
+          double removelost_Mins = fmax(g_RemoveLost_Mins,g_MarkLost_Mins);
+          if(g_bRemoveLost)
+          {
+                if(target_age > removelost_Mins * 60)
+                {
+                      current_targets->erase(it);
+                      pSelectAIS->DeleteSelectablePoint((void *)td, SELTYPE_AISTARGET);
+                      delete td;
+                      break;        // kill only one per tick, since iterator becomes invalid...
+                }
+          }
+
+
+
+
+      }
+
+      //    Simulator
+#if 0
+#define START_LAT   33.358               //  Georgetown, SC
+#define START_LON  -79.282
+
+      AIS_Target_Data *psim_data;
+      double speed_ref = 10;
+
+      if(!m_nsim)             // not started yet
+      {
+            psim_data = new AIS_Target_Data;
+            psim_data->Lat = 33.35; //33.35;
+            psim_data->Lon = -79.28; //-79.28;
+            psim_data->MMSI = 350;
+            psim_data->COG = 045.; //45.0;
+            psim_data->SOG = speed_ref;
+            strcpy(psim_data->ShipName, "Test");
+
+            AddUpdateTarget(psim_data);
+
+            m_nsim = 1;
       }
 
 
+      it = AISTargetList->find( 350 );
+      if(it == AISTargetList->end())                  // not found
+            psim_data = NULL;
+      else
+            psim_data = (*AISTargetList)[350];          // find the target
+
+      if(NULL != psim_data)
+      {
+            double old_lat = psim_data->Lat;
+            double old_lon = psim_data->Lon;
+
+            AIS_Target_Data *pnew_sim_data = new AIS_Target_Data;
+            *pnew_sim_data = *psim_data;
+
+            pnew_sim_data->MMSI = 350;
+
+            double dist = speed_ref / 3600.;
+            ll_gc_ll(old_lat, old_lon, psim_data->COG, dist, &pnew_sim_data->Lat, &pnew_sim_data->Lon);
+
+            pnew_sim_data->ReportTicks = now.GetTicks();
+            pnew_sim_data->MID = 1;
+            pnew_sim_data->b_active = true;
+
+      //    Make target go away...
+            if(m_nsim++ < 10)
+                  AddUpdateTarget(pnew_sim_data);
+      }
+#endif
+
 //--------------TEST DATA strings
-#if(0)
+#if 0
       char str[82];
       if(1)
       {
@@ -1105,13 +1308,14 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
               Decode(str);
           }
       }
-
-
 #endif
 
+      UpdateAllCPA();
 
       TimerAIS.Start(TIMER_AIS_MSEC,wxTIMER_CONTINUOUS);
 }
+
+
 
 
 //-------------------------------------------------------------------------------------------------------------
