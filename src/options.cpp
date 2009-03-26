@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.14 2008/12/19 01:40:52 bdbcat Exp $
+ * $Id: options.cpp,v 1.15 2009/03/26 22:30:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.15  2009/03/26 22:30:21  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.14  2008/12/19 01:40:52  bdbcat
  * Add selectable depth unit conversion for S57 charts
  *
@@ -107,6 +110,31 @@ extern bool             g_bAutoAnchorMark;
 extern ColorScheme      global_color_scheme;
 extern bool             g_bGarminPersistance;
 
+//    AIS Global configuration
+extern bool             g_bCPAMax;
+extern double           g_CPAMax_NM;
+extern bool             g_bCPAWarn;
+extern double           g_CPAWarn_NM;
+extern bool             g_bTCPA_Max;
+extern double           g_TCPA_Max;
+extern bool             g_bMarkLost;
+extern double           g_MarkLost_Mins;
+extern bool             g_bRemoveLost;
+extern double           g_RemoveLost_Mins;
+extern bool             g_bShowCOG;
+extern double           g_ShowCOG_Mins;
+extern bool             g_bShowTracks;
+extern double           g_ShowTracks_Mins;
+extern bool             g_bShowMoored;
+extern double           g_ShowMoored_Kts;
+
+extern bool             g_bShowGPXIcons;                     // toh, 2009.02.14
+extern bool             g_bNavAidShowRadarRings;            // toh, 2009.02.24
+extern int              g_iNavAidRadarRingsNumberVisible;   // toh, 2009.02.24
+extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
+extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
+extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
+
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
 #endif
@@ -164,7 +192,7 @@ options::options( wxWindow* parent, wxWindowID id, const wxString& caption, cons
       //    This way, any window decorations set by external themes, etc
       //    will not detract from night-vision
 
-      long wstyle = wxDEFAULT_DIALOG_STYLE;
+      long wstyle = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxVSCROLL;
 //      if(global_color_scheme != GLOBAL_COLOR_SCHEME_DAY)
 //            wstyle |= (wxNO_BORDER);
 
@@ -198,9 +226,9 @@ bool options::Create( wxWindow* parent, wxWindowID id, const wxString& caption, 
 
     CreateControls();
 
-    GetSizer()->SetMinSize(size);
+//    GetSizer()->SetMinSize(size);
 
-    GetSizer()->Fit(this);
+//    GetSizer()->FitInside(this);
     GetSizer()->SetSizeHints(this);
     Centre();
 
@@ -220,7 +248,7 @@ void options::CreateControls()
 
     itemNotebook4 = new wxNotebook( itemDialog1, ID_NOTEBOOK, wxDefaultPosition,
             wxSize(-1, -1), wxNB_TOP );
-    itemBoxSizer2->Add(itemNotebook4, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL|wxGROW, 10);
+    itemBoxSizer2->Add(itemNotebook4, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 5);
 
    //      Add Invariant Notebook buttons
     wxBoxSizer* itemBoxSizer28 = new wxBoxSizer(wxHORIZONTAL);
@@ -248,57 +276,57 @@ void options::CreateControls()
     //  Debug checkbox
     wxStaticBox* itemStaticBoxSizerDebugStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Debug"));
     wxStaticBoxSizer* itemStaticBoxSizerDebug = new wxStaticBoxSizer(itemStaticBoxSizerDebugStatic, wxVERTICAL);
-    itemBoxSizer6->Add(itemStaticBoxSizerDebug, 0, wxGROW|wxALL, 5);
+    itemBoxSizer6->Add(itemStaticBoxSizerDebug, 0, wxEXPAND|wxALL, 5);
     pDebugShowStat = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Status and Debug Windows"), wxDefaultPosition,
                              wxSize(-1, -1), 0 );
     pDebugShowStat->SetValue(FALSE);
-    itemStaticBoxSizerDebug->Add(pDebugShowStat, 1, wxALIGN_LEFT|wxALL, 5);
+    itemStaticBoxSizerDebug->Add(pDebugShowStat, 1, wxALIGN_LEFT|wxALL, 2);
 
     //  Printing checkbox
     wxStaticBox* itemStaticBoxSizerPrintStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Printing"));
     wxStaticBoxSizer* itemStaticBoxSizerPrint = new wxStaticBoxSizer(itemStaticBoxSizerPrintStatic, wxVERTICAL);
-    itemBoxSizer6->Add(itemStaticBoxSizerPrint, 0, wxGROW|wxALL, 5);
+    itemBoxSizer6->Add(itemStaticBoxSizerPrint, 0, wxEXPAND|wxALL, 5);
     pPrintShowIcon = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Printing Icon"), wxDefaultPosition,
                              wxSize(-1, -1), 0 );
     pPrintShowIcon->SetValue(FALSE);
-    itemStaticBoxSizerPrint->Add(pPrintShowIcon, 1, wxALIGN_LEFT|wxALL, 5);
+    itemStaticBoxSizerPrint->Add(pPrintShowIcon, 1, wxALIGN_LEFT|wxALL, 2);
 
     // Chart Display Options Box
     wxStaticBox* itemStaticBoxSizerCDOStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Chart Display Options"));
     wxStaticBoxSizer* itemStaticBoxSizerCDO = new wxStaticBoxSizer(itemStaticBoxSizerCDOStatic, wxVERTICAL);
-    itemBoxSizer6->Add(itemStaticBoxSizerCDO, 0, wxGROW|wxALL, 5);
+    itemBoxSizer6->Add(itemStaticBoxSizerCDO, 0, wxEXPAND|wxALL, 5);
 
     //  Chart Outlines checkbox
     pCDOOutlines = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Chart Outlines"), wxDefaultPosition,
                              wxSize(-1, -1), 0 );
     pCDOOutlines->SetValue(FALSE);
-    itemStaticBoxSizerCDO->Add(pCDOOutlines, 1, wxALIGN_LEFT|wxALL, 5);
+    itemStaticBoxSizerCDO->Add(pCDOOutlines, 1, wxALIGN_LEFT|wxALL, 2);
 
 
     //  Depth Unit checkbox
     pSDepthUnits = new wxCheckBox( itemPanel5, ID_SHOWDEPTHUNITSBOX1, _("Show DepthUnits"), wxDefaultPosition,
                                    wxSize(-1, -1), 0 );
     pSDepthUnits->SetValue(FALSE);
-    itemStaticBoxSizerCDO->Add(pSDepthUnits, 1, wxALIGN_LEFT|wxALL, 5);
+    itemStaticBoxSizerCDO->Add(pSDepthUnits, 1, wxALIGN_LEFT|wxALL, 2);
 
 
     //  Auto Anchor Mark
     pAutoAnchorMark = new wxCheckBox( itemPanel5, ID_AUTOANCHORMARKBOX1, _("Automatic Anchor Mark"), wxDefaultPosition,
                                    wxSize(-1, -1), 0 );
     pAutoAnchorMark->SetValue(FALSE);
-    itemStaticBoxSizerCDO->Add(pAutoAnchorMark, 1, wxALIGN_LEFT|wxALL, 5);
+    itemStaticBoxSizerCDO->Add(pAutoAnchorMark, 1, wxALIGN_LEFT|wxALL, 2);
 
 
 //    Add NMEA Options Box
     wxStaticBox* itemNMEAStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("NMEA Options"));
     wxStaticBoxSizer* itemNMEAStaticBoxSizer = new wxStaticBoxSizer(itemNMEAStaticBox, wxVERTICAL);
-    itemBoxSizer6->Add(itemNMEAStaticBoxSizer, 0, wxGROW|wxALL, 5);
+    itemBoxSizer6->Add(itemNMEAStaticBoxSizer, 0, wxEXPAND|wxALL, 4);
 
 
 //    Add NMEA data source controls
     wxStaticBox* itemNMEASourceStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("NMEA Data Source"));
     wxStaticBoxSizer* itemNMEASourceStaticBoxSizer = new wxStaticBoxSizer(itemNMEASourceStaticBox, wxVERTICAL);
-    itemNMEAStaticBoxSizer->Add(itemNMEASourceStaticBoxSizer, 0, wxGROW|wxALL, 5);
+    itemNMEAStaticBoxSizer->Add(itemNMEASourceStaticBoxSizer, 0, wxEXPAND|wxALL, 4);
 
     m_itemNMEAListBox = new wxComboBox(itemPanel5, ID_CHOICE_NMEA);
     m_itemNMEAListBox->Append( _T("None"));
@@ -308,24 +336,24 @@ void options::CreateControls()
           m_itemNMEAListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
 
-//	Search the string array looking for "GARMIN"
-	bool bfound_garmin_string = false;
+//    Search the string array looking for "GARMIN"
+      bool bfound_garmin_string = false;
     for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
-	{
-		if(	m_pSerialArray->Item(iPortIndex).Contains(_T("GARMIN")))
-		{
-			bfound_garmin_string = true;
-			break;
-		}
-	}
+      {
+            if(   m_pSerialArray->Item(iPortIndex).Contains(_T("GARMIN")))
+            {
+                  bfound_garmin_string = true;
+                  break;
+            }
+      }
 
-	  //	Garmin persistence logic:
-	  //	Make sure "GARMIN" is in the list if the persistence flag is set.
-	  //	This covers the situation where Garmin is desired, but the
-	  //	device is not connected yet.
-	  //	n.b. Hot-plugging is not supported.  Opencpn must be
-	  //	restarted with device inserted to enable this option.
-	if(g_bGarminPersistance && !bfound_garmin_string)
+        //  Garmin persistence logic:
+        //  Make sure "GARMIN" is in the list if the persistence flag is set.
+        //  This covers the situation where Garmin is desired, but the
+        //  device is not connected yet.
+        //  n.b. Hot-plugging is not supported.  Opencpn must be
+        //  restarted with device inserted to enable this option.
+      if(g_bGarminPersistance && !bfound_garmin_string)
       m_itemNMEAListBox->Append( _T("GARMIN"));
 
 
@@ -346,7 +374,7 @@ void options::CreateControls()
       }
       else if(source.Upper().Contains(_T("NONE")))
           sidx = 0;
-	  else if(source.Upper().Contains(_("GARMIN")))
+        else if(source.Upper().Contains(_("GARMIN")))
           sidx = m_itemNMEAListBox->FindString(_T("GARMIN"));
 
 #ifndef OCPN_DISABLE_SOCKETS
@@ -369,17 +397,17 @@ void options::CreateControls()
 
 
       m_itemNMEAListBox->SetSelection(sidx);
-      itemNMEASourceStaticBoxSizer->Add(m_itemNMEAListBox, 0, wxGROW|wxALL, 5);
+      itemNMEASourceStaticBoxSizer->Add(m_itemNMEAListBox, 0, wxEXPAND|wxALL, 5);
 
 #ifndef OCPN_DISABLE_SOCKETS
 
 //    Add NMEA TCP/IP Server address
       m_itemNMEA_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("GPSD Data Server"));
       m_itemNMEA_TCPIP_StaticBoxSizer = new wxStaticBoxSizer(m_itemNMEA_TCPIP_StaticBox, wxVERTICAL);
-      itemNMEAStaticBoxSizer->Add(m_itemNMEA_TCPIP_StaticBoxSizer, 0, wxGROW|wxALL, 5);
+      itemNMEAStaticBoxSizer->Add(m_itemNMEA_TCPIP_StaticBoxSizer, 0, wxEXPAND|wxALL, 4);
 
       m_itemNMEA_TCPIP_Source = new wxTextCtrl(itemPanel5, wxID_ANY);
-      m_itemNMEA_TCPIP_StaticBoxSizer->Add(m_itemNMEA_TCPIP_Source, 0, wxGROW|wxALL, 5);
+      m_itemNMEA_TCPIP_StaticBoxSizer->Add(m_itemNMEA_TCPIP_Source, 0, wxEXPAND|wxALL, 5);
 
       m_itemNMEA_TCPIP_StaticBox->Enable(tcp_en);
       m_itemNMEA_TCPIP_Source->Enable(tcp_en);
@@ -397,7 +425,7 @@ void options::CreateControls()
 //    Add Autopilot serial output port controls
       wxStaticBox* itemNMEAAutoStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("Autopilot Output Port"));
       wxStaticBoxSizer* itemNMEAAutoStaticBoxSizer = new wxStaticBoxSizer(itemNMEAAutoStaticBox, wxVERTICAL);
-      itemNMEAStaticBoxSizer->Add(itemNMEAAutoStaticBoxSizer, 0, wxGROW|wxALL, 5);
+      itemNMEAStaticBoxSizer->Add(itemNMEAAutoStaticBoxSizer, 0, wxEXPAND|wxALL, 4);
 
       m_itemNMEAAutoListBox = new wxComboBox(itemPanel5, ID_CHOICE_AP);
       m_itemNMEAAutoListBox->Append( _T("None"));
@@ -415,12 +443,13 @@ void options::CreateControls()
       sidx = m_itemNMEAAutoListBox->FindString(ap_com);
       m_itemNMEAAutoListBox->SetSelection(sidx);
 
-      itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxGROW|wxALL, 5);
+      itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxEXPAND|wxALL, 5);
 
+#if 0
 //    Add AIS Data Input controls
       wxStaticBox* itemAISStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("AIS Data Port"));
       wxStaticBoxSizer* itemAISStaticBoxSizer = new wxStaticBoxSizer(itemAISStaticBox, wxVERTICAL);
-      itemNMEAStaticBoxSizer->Add(itemAISStaticBoxSizer, 0, wxGROW|wxALL, 5);
+      itemNMEAStaticBoxSizer->Add(itemAISStaticBoxSizer, 0, wxEXPAND|wxALL, 4);
 
       m_itemAISListBox = new wxComboBox(itemPanel5, ID_CHOICE_AIS);
       m_itemAISListBox->Append( _T("None"));
@@ -438,22 +467,22 @@ void options::CreateControls()
 
       m_itemAISListBox->SetStringSelection(ais_com);
 
-      itemAISStaticBoxSizer->Add(m_itemAISListBox, 0, wxGROW|wxALL, 5);
-
+      itemAISStaticBoxSizer->Add(m_itemAISListBox, 0, wxEXPAND|wxALL, 5);
+#endif
 
 #ifdef USE_WIFI_CLIENT
 //    Add WiFi Options Box
       wxStaticBox* itemWIFIStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("WiFi Options"));
       wxStaticBoxSizer* itemWIFIStaticBoxSizer = new wxStaticBoxSizer(itemWIFIStaticBox, wxVERTICAL);
-      itemBoxSizer6->Add(itemWIFIStaticBoxSizer, 0, wxGROW|wxALL, 5);
+      itemBoxSizer6->Add(itemWIFIStaticBoxSizer, 0, wxEXPAND|wxALL, 5);
 
 //    Add WiFi TCP/IP Server address
       m_itemWIFI_TCPIP_StaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("TCP/IP WiFi Data Server"));
       m_itemWIFI_TCPIP_StaticBoxSizer = new wxStaticBoxSizer(m_itemWIFI_TCPIP_StaticBox, wxVERTICAL);
-      itemWIFIStaticBoxSizer->Add(m_itemWIFI_TCPIP_StaticBoxSizer, 0, wxGROW|wxALL, 5);
+      itemWIFIStaticBoxSizer->Add(m_itemWIFI_TCPIP_StaticBoxSizer, 0, wxEXPAND|wxALL, 5);
 
       m_itemWIFI_TCPIP_Source = new wxTextCtrl(itemPanel5, wxID_ANY);
-      m_itemWIFI_TCPIP_StaticBoxSizer->Add(m_itemWIFI_TCPIP_Source, 0, wxGROW|wxALL, 5);
+      m_itemWIFI_TCPIP_StaticBoxSizer->Add(m_itemWIFI_TCPIP_Source, 0, wxEXPAND|wxALL, 5);
 
       m_itemWIFI_TCPIP_StaticBox->Enable(1);
       m_itemWIFI_TCPIP_Source->Enable(1);
@@ -490,36 +519,37 @@ void options::CreateControls()
     ps57Ctl->SetSizer(itemBoxSizer25);
 
 //    wxBoxSizer* itemBoxSizer25 = new wxBoxSizer(wxHORIZONTAL);
-//    itemBoxSizer22->Add(itemBoxSizer25, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
+//    itemBoxSizer22->Add(itemBoxSizer25, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
 
     wxStaticBox* itemStaticBoxSizer26Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Chart Display Filters"));
     wxStaticBoxSizer* itemStaticBoxSizer26 = new wxStaticBoxSizer(itemStaticBoxSizer26Static, wxHORIZONTAL);
-    itemBoxSizer25->Add(itemStaticBoxSizer26, 1, wxTOP|wxALL|wxGROW, 5);
-
+    itemBoxSizer25->Add(itemStaticBoxSizer26, 0, wxALL|wxEXPAND, 4);
 
     wxStaticBox* itemStaticBoxSizer57Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Mariner's Standard"));
     wxStaticBoxSizer* itemStaticBoxSizer57 = new wxStaticBoxSizer(itemStaticBoxSizer57Static, wxVERTICAL);
-    itemStaticBoxSizer26->Add(itemStaticBoxSizer57, 1, wxTOP|wxALL|wxGROW, 5);
+    itemStaticBoxSizer26->Add(itemStaticBoxSizer57, 1, wxALL|wxEXPAND, 2);
 
     wxString* ps57CtlListBoxStrings = NULL;
-    ps57CtlListBox = new wxCheckListBox( ps57Ctl, ID_CHECKLISTBOX, wxDefaultPosition, wxSize(-1, 200), 0,
+    ps57CtlListBox = new wxCheckListBox( ps57Ctl, ID_CHECKLISTBOX, wxDefaultPosition, wxSize(-1, 150), 0,
                                          ps57CtlListBoxStrings, wxLB_SINGLE );
     itemStaticBoxSizer57->Add(ps57CtlListBox, 0, wxALIGN_LEFT|wxALL, 5);
 
+    wxBoxSizer* itemBoxSizer57 = new wxBoxSizer(wxVERTICAL);
+    itemStaticBoxSizer57->Add(itemBoxSizer57, 1, wxALL|wxEXPAND, 2);
+
     itemButtonClearList = new wxButton( ps57Ctl, ID_CLEARLIST, _T("Clear All"),
             wxDefaultPosition, wxDefaultSize, 0 );
-    itemButtonClearList->SetDefault();
-    itemStaticBoxSizer57->Add(itemButtonClearList, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    itemBoxSizer57->Add(itemButtonClearList, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
 
     itemButtonSelectList = new wxButton( ps57Ctl, ID_SELECTLIST, _T("Select All"),
             wxDefaultPosition, wxDefaultSize, 0 );
     itemButtonSelectList->SetDefault();
-    itemStaticBoxSizer57->Add(itemButtonSelectList, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    itemBoxSizer57->Add(itemButtonSelectList, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2);
 
 
 
     wxBoxSizer* itemBoxSizer75 = new wxBoxSizer(wxVERTICAL);
-    itemStaticBoxSizer26->Add(itemBoxSizer75, 1, wxTOP|wxALL, 5);
+    itemStaticBoxSizer26->Add(itemBoxSizer75, 1, wxALL, 5);
 
     wxString pDispCatStrings[] = {
         _T("&Base"),
@@ -529,33 +559,33 @@ void options::CreateControls()
     };
     pDispCat = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Display Category"), wxDefaultPosition, wxDefaultSize,
                                4, pDispCatStrings, 1, wxRA_SPECIFY_COLS );
-    itemBoxSizer75->Add(pDispCat, 0, wxTOP|wxALL|wxGROW, 5);
+    itemBoxSizer75->Add(pDispCat, 0, wxALL|wxEXPAND, 2);
 
 
     pCheck_SOUNDG = new wxCheckBox( ps57Ctl, ID_SOUNDGCHECKBOX, _T("ShowSoundings"), wxDefaultPosition,
                                      wxSize(-1, -1), 0 );
     pCheck_SOUNDG->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_SOUNDG, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
+    itemBoxSizer75->Add(pCheck_SOUNDG, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
     pCheck_META = new wxCheckBox( ps57Ctl, ID_METACHECKBOX, _T("META Objects"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_META->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_META, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
+    itemBoxSizer75->Add(pCheck_META, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
     pCheck_SHOWTEXT = new wxCheckBox( ps57Ctl, ID_TEXTCHECKBOX, _T("ShowText"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_SHOWTEXT->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_SHOWTEXT, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
+    itemBoxSizer75->Add(pCheck_SHOWTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
     pCheck_SCAMIN = new wxCheckBox( ps57Ctl, ID_SCAMINCHECKBOX, _T("Use SCAMIN"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_SCAMIN->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_SCAMIN, 1, wxALIGN_LEFT|wxALL|wxGROW, 5);
+    itemBoxSizer75->Add(pCheck_SCAMIN, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
 
     wxStaticBox* itemStaticBoxSizer83Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Chart Display Style"));
-    wxStaticBoxSizer* itemStaticBoxSizer83 = new wxStaticBoxSizer(itemStaticBoxSizer83Static, wxHORIZONTAL);
-    itemBoxSizer25->Add(itemStaticBoxSizer83, 0, wxTOP|wxALL|wxGROW, 5);
+    wxStaticBoxSizer* itemStaticBoxSizer83 = new wxStaticBoxSizer(itemStaticBoxSizer83Static, wxVERTICAL);
+    itemStaticBoxSizer26->Add(itemStaticBoxSizer83, 1, wxALL|wxEXPAND, 2);
 
     wxString pPointStyleStrings[] = {
         _T("&Paper Chart"),
@@ -563,7 +593,7 @@ void options::CreateControls()
     };
     pPointStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Points"), wxDefaultPosition, wxDefaultSize,
                                   2, pPointStyleStrings, 1, wxRA_SPECIFY_COLS );
-    itemStaticBoxSizer83->Add(pPointStyle, 0, wxTOP|wxALL| 5);
+    itemStaticBoxSizer83->Add(pPointStyle, 0, wxALL|wxEXPAND, 5);
 
     wxString pBoundStyleStrings[] = {
         _T("&Plain"),
@@ -571,7 +601,7 @@ void options::CreateControls()
     };
     pBoundStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Boundaries"), wxDefaultPosition, wxDefaultSize,
                                               2, pBoundStyleStrings, 1, wxRA_SPECIFY_COLS );
-    itemStaticBoxSizer83->Add(pBoundStyle, 0, wxTOP|wxALL| 5);
+    itemStaticBoxSizer83->Add(pBoundStyle, 0, wxALL|wxEXPAND, 5);
 
     wxString pColorNumStrings[] = {
           _T("&2 Color"),
@@ -579,39 +609,40 @@ void options::CreateControls()
     };
     p24Color = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Colors"), wxDefaultPosition, wxDefaultSize,
                                2, pColorNumStrings, 1, wxRA_SPECIFY_COLS );
-    itemStaticBoxSizer83->Add(p24Color, 0, wxTOP|wxALL| 5);
+    itemStaticBoxSizer83->Add(p24Color, 0, wxALL|wxEXPAND, 5);
+
 
     wxStaticBox*  pdepth_static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Settings"));
     wxStaticBoxSizer *pdepth_sizer = new wxStaticBoxSizer(pdepth_static, wxHORIZONTAL);
-    itemBoxSizer25->Add(pdepth_sizer, 0, wxTOP|wxALL|wxGROW, 5);
+    itemBoxSizer25->Add(pdepth_sizer, 0, wxTOP|wxALL|wxEXPAND, 2);
 
     wxStaticBox* itemStaticBoxSizer27Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Contours"));
     wxStaticBoxSizer* itemStaticBoxSizer27 = new wxStaticBoxSizer(itemStaticBoxSizer27Static, wxVERTICAL);
-    pdepth_sizer/*itemBoxSizer25*/->Add(itemStaticBoxSizer27, 0, wxTOP|wxALL|wxGROW, 5);
+    pdepth_sizer/*itemBoxSizer25*/->Add(itemStaticBoxSizer27, 0, wxTOP|wxALL|wxEXPAND, 2);
 
-    wxStaticText* itemStaticText4 = new wxStaticText( ps57Ctl, wxID_STATIC, _("Shallow Depth"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText* itemStaticText4 = new wxStaticText( ps57Ctl, wxID_STATIC, _T("Shallow Depth"));
     itemStaticBoxSizer27->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_ShallowCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
-    itemStaticBoxSizer27->Add(m_ShallowCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+    itemStaticBoxSizer27->Add(m_ShallowCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 2);
 
-    wxStaticText* itemStaticText5 = new wxStaticText( ps57Ctl, wxID_STATIC, _("Safety Depth"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText* itemStaticText5 = new wxStaticText( ps57Ctl, wxID_STATIC, _T("Safety Depth"));
     itemStaticBoxSizer27->Add(itemStaticText5, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_SafetyCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
-    itemStaticBoxSizer27->Add(m_SafetyCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+    itemStaticBoxSizer27->Add(m_SafetyCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 2);
 
-    wxStaticText* itemStaticText6 = new wxStaticText( ps57Ctl, wxID_STATIC, _("Deep Depth"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText* itemStaticText6 = new wxStaticText( ps57Ctl, wxID_STATIC, _T("Deep Depth"));
     itemStaticBoxSizer27->Add(itemStaticText6, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_DeepCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
-    itemStaticBoxSizer27->Add(m_DeepCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+    itemStaticBoxSizer27->Add(m_DeepCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 2);
 
 
 
 //    wxStaticBox* pdepthunit_static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Units"));
 //    wxStaticBoxSizer* pdepthunit_sizer = new wxStaticBoxSizer(pdepthunit_static, wxVERTICAL);
-//    pdepth_sizer/*itemBoxSizer25*/->Add(pdepthunit_sizer, 0, wxTOP|wxALL|wxGROW, 5);
+//    pdepth_sizer/*itemBoxSizer25*/->Add(pdepthunit_sizer, 0, wxTOP|wxALL|wxEXPAND, 5);
 
     wxString pDepthUnitStrings[] = {
              _T("&Feet"),
@@ -621,10 +652,143 @@ void options::CreateControls()
 
     pDepthUnitSelect = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Depth Units"), wxDefaultPosition, wxDefaultSize,
                                3, pDepthUnitStrings, 1, wxRA_SPECIFY_COLS );
-    pdepth_sizer->Add(pDepthUnitSelect, 0, wxALIGN_TOP | wxTOP|wxALL, 5);
+    pdepth_sizer->Add(pDepthUnitSelect, 0, wxALIGN_TOP | wxALL, 5);
 
 
     itemNotebook4->AddPage(ps57Ctl, _T("S52 Options"));
+
+
+        //  Create "AIS" panel
+
+    itemPanelAIS = new wxPanel( itemNotebook4, ID_PANELAIS, wxDefaultPosition, wxDefaultSize,
+                              wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+    wxBoxSizer* itemBoxSizer6AIS = new wxBoxSizer(wxVERTICAL);
+    itemPanelAIS->SetSizer(itemBoxSizer6AIS);
+
+    itemNotebook4->AddPage(itemPanelAIS, _T("AIS"));
+
+   //      General
+    wxStaticBox* itemStaticBoxAISGeneral = new wxStaticBox(itemPanelAIS, wxID_ANY, _T("AIS General"));
+    wxStaticBoxSizer* itemStaticBoxSizerAISGeneral= new wxStaticBoxSizer(itemStaticBoxAISGeneral, wxVERTICAL);
+    itemBoxSizer6AIS->Add(itemStaticBoxSizerAISGeneral, 0, wxTOP|wxALL|wxEXPAND, 5);
+
+    //    Add AIS Data Input controls
+    wxStaticBox* itemAISStaticBox = new wxStaticBox(itemPanelAIS, wxID_ANY, _T("AIS Data Port"));
+    wxStaticBoxSizer* itemAISStaticBoxSizer = new wxStaticBoxSizer(itemAISStaticBox, wxVERTICAL);
+    itemStaticBoxSizerAISGeneral->Add(itemAISStaticBoxSizer, 0, wxEXPAND|wxALL, 4);
+
+    m_itemAISListBox = new wxComboBox(itemPanelAIS, ID_CHOICE_AIS);
+    m_itemAISListBox->Append( _T("None"));
+
+      //    Fill in the listbox with all detected serial ports
+    for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+          m_itemAISListBox->Append( m_pSerialArray->Item(iPortIndex) );
+
+
+    wxString ais_com;
+    if(pAIS_Port->Contains(_T("Serial")))
+          ais_com = pAIS_Port->Mid(7);
+    else
+          ais_com = _T("None");
+
+    m_itemAISListBox->SetStringSelection(ais_com);
+
+    itemAISStaticBoxSizer->Add(m_itemAISListBox, 0, wxEXPAND|wxALL, 5);
+
+    //      CPA Box
+    wxStaticBox* itemStaticBoxCPA = new wxStaticBox(itemPanelAIS, wxID_ANY, _T("CPA Calculation"));
+    wxStaticBoxSizer* itemStaticBoxSizerCPA= new wxStaticBoxSizer(itemStaticBoxCPA, wxVERTICAL);
+    itemBoxSizer6AIS->Add(itemStaticBoxSizerCPA, 0, wxALL|wxEXPAND, 5);
+
+    wxFlexGridSizer *pCPAGrid = new wxFlexGridSizer(2);
+    pCPAGrid->AddGrowableCol(1);
+    itemStaticBoxSizerCPA->Add(pCPAGrid, 0, wxALL|wxEXPAND, 5);
+
+    m_pCheck_CPA_Max = new wxCheckBox( itemPanelAIS, -1, _T("No CPA Calculation if target range is greater than (NMi):"));
+    pCPAGrid->Add(m_pCheck_CPA_Max, 0, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_CPA_Max = new wxTextCtrl(itemPanelAIS, -1);
+    pCPAGrid->Add(m_pText_CPA_Max, 0, wxALIGN_RIGHT, 2);
+
+    m_pCheck_CPA_Warn = new wxCheckBox( itemPanelAIS, -1, _T("Warn if CPA less than (NMi):"));
+    pCPAGrid->Add(m_pCheck_CPA_Warn, 0, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_CPA_Warn = new wxTextCtrl(itemPanelAIS, -1, _T(""), wxDefaultPosition, wxSize(-1, -1));
+    pCPAGrid->Add(m_pText_CPA_Warn, 0, wxALIGN_RIGHT, 2);
+
+    m_pCheck_CPA_WarnT = new wxCheckBox( itemPanelAIS, -1, _T("  ..And TCPA is less than (Minutes):"));
+    pCPAGrid->Add(m_pCheck_CPA_WarnT, 0, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_CPA_WarnT = new wxTextCtrl(itemPanelAIS, -1);
+    pCPAGrid->Add(m_pText_CPA_WarnT, 0, wxALIGN_RIGHT, 2);
+
+   //      Lost Targets
+    wxStaticBox* itemStaticBoxLostTargets = new wxStaticBox(itemPanelAIS, wxID_ANY, _T("Lost Targets"));
+    wxStaticBoxSizer* itemStaticBoxSizerLostTargets= new wxStaticBoxSizer(itemStaticBoxLostTargets, wxVERTICAL);
+    itemBoxSizer6AIS->Add(itemStaticBoxSizerLostTargets, 0, wxTOP|wxALL|wxEXPAND, 5);
+
+    wxFlexGridSizer *pLostGrid = new wxFlexGridSizer(2);
+    pLostGrid->AddGrowableCol(1);
+    itemStaticBoxSizerLostTargets->Add(pLostGrid, 0, wxALL|wxEXPAND, 5);
+
+    m_pCheck_Mark_Lost = new wxCheckBox( itemPanelAIS, -1, _T("Mark targets as lost after (Minutes:):"));
+    pLostGrid->Add(m_pCheck_Mark_Lost, 1, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_Mark_Lost = new wxTextCtrl(itemPanelAIS, -1);
+    pLostGrid->Add(m_pText_Mark_Lost, 1, wxALIGN_RIGHT, 2);
+
+    m_pCheck_Remove_Lost = new wxCheckBox( itemPanelAIS, -1, _T("Remove lost targets after (Minutes:):"));
+    pLostGrid->Add(m_pCheck_Remove_Lost, 1, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_Remove_Lost = new wxTextCtrl(itemPanelAIS, -1);
+    pLostGrid->Add(m_pText_Remove_Lost, 1, wxALIGN_RIGHT, 2);
+
+   //      Display
+    wxStaticBox* itemStaticBoxDisplay = new wxStaticBox(itemPanelAIS, wxID_ANY, _T("Display"));
+    wxStaticBoxSizer* itemStaticBoxSizerDisplay= new wxStaticBoxSizer(itemStaticBoxDisplay, wxVERTICAL);
+    itemBoxSizer6AIS->Add(itemStaticBoxSizerDisplay, 0, wxTOP|wxALL|wxEXPAND, 5);
+
+    wxFlexGridSizer *pDisplayGrid = new wxFlexGridSizer(2);
+    pDisplayGrid->AddGrowableCol(1);
+    itemStaticBoxSizerDisplay->Add(pDisplayGrid, 0, wxALL|wxEXPAND, 5);
+
+    m_pCheck_Show_COG = new wxCheckBox( itemPanelAIS, -1, _T("Show target COG arrows"));
+    pDisplayGrid->Add(m_pCheck_Show_COG, 1, wxALIGN_LEFT|wxALL, 2);
+
+    wxStaticText *pStatic_Dummy1 = new wxStaticText( itemPanelAIS, -1, _T(""));
+    pDisplayGrid->Add(pStatic_Dummy1, 1, wxALIGN_RIGHT|wxALL, 2);
+
+    wxStaticText *pStatic_COG_Predictor = new wxStaticText( itemPanelAIS, -1, _T("      COG arrow predictor length (Minutes):"));
+    pDisplayGrid->Add(pStatic_COG_Predictor, 1, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_COG_Predictor = new wxTextCtrl(itemPanelAIS, -1);
+    pDisplayGrid->Add(m_pText_COG_Predictor, 1, wxALIGN_RIGHT, 2);
+
+#if 0
+    m_pCheck_Show_Tracks = new wxCheckBox( itemPanelAIS, -1, _T("Show target tracks"));
+    pDisplayGrid->Add(m_pCheck_Show_Tracks, 1, wxALIGN_LEFT|wxALL, 2);
+
+    wxStaticText *pStatic_Dummy2 = new wxStaticText( itemPanelAIS, -1, _T(""));
+    pDisplayGrid->Add(pStatic_Dummy2, 1, wxALIGN_RIGHT|wxALL, 2);
+
+    wxStaticText *pStatic_Track_Length = new wxStaticText( itemPanelAIS, -1, _T("      Target track length (Minutes):"));
+    pDisplayGrid->Add(pStatic_Track_Length, 1, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_Track_Length = new wxTextCtrl(itemPanelAIS, -1);
+    pDisplayGrid->Add(m_pText_Track_Length, 1, wxALIGN_RIGHT, 2);
+#endif
+
+    m_pCheck_Show_Moored = new wxCheckBox( itemPanelAIS, -1, _T("Supress anchored/moored targets"));
+    pDisplayGrid->Add(m_pCheck_Show_Moored, 1, wxALIGN_LEFT|wxALL, 2);
+
+    wxStaticText *pStatic_Dummy3 = new wxStaticText( itemPanelAIS, -1, _T(""));
+    pDisplayGrid->Add(pStatic_Dummy3, 1, wxALIGN_RIGHT|wxALL, 2);
+
+    wxStaticText *pStatic_Moored_Speed = new wxStaticText( itemPanelAIS, -1, _T("      Max moored target speed (Kts.):"));
+    pDisplayGrid->Add(pStatic_Moored_Speed, 1, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_Moored_Speed = new wxTextCtrl(itemPanelAIS, -1);
+    pDisplayGrid->Add(m_pText_Moored_Speed, 1, wxALIGN_RIGHT, 2);
 
 
     //      Build Fonts panel
@@ -635,11 +799,11 @@ void options::CreateControls()
 
     wxStaticBox* itemFontStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _T("Font Options"));
     wxStaticBoxSizer* itemFontStaticBoxSizer = new wxStaticBoxSizer(itemFontStaticBox, wxVERTICAL);
-    itemBoxSizerFontPanel->Add(itemFontStaticBoxSizer, 0, wxGROW|wxALL, 5);
+    itemBoxSizerFontPanel->Add(itemFontStaticBoxSizer, 0, wxEXPAND|wxALL, 5);
 
     wxStaticBox* itemFontElementStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _T("Text Element"));
     wxStaticBoxSizer* itemFontElementStaticBoxSizer = new wxStaticBoxSizer(itemFontElementStaticBox, wxVERTICAL);
-    itemFontStaticBoxSizer->Add(itemFontElementStaticBoxSizer, 0, wxGROW|wxALL, 5);
+    itemFontStaticBoxSizer->Add(itemFontElementStaticBoxSizer, 0, wxEXPAND|wxALL, 5);
 
     m_itemFontElementListBox = new wxComboBox(itemPanelFont, ID_CHOICE_FONTELEMENT);
 
@@ -653,14 +817,103 @@ void options::CreateControls()
     if(nFonts)
           m_itemFontElementListBox->SetSelection(0);
 
-    itemFontElementStaticBoxSizer->Add(m_itemFontElementListBox, 0, wxGROW|wxALL, 5);
+    itemFontElementStaticBoxSizer->Add(m_itemFontElementListBox, 0, wxEXPAND|wxALL, 5);
 
     wxButton* itemFontChooseButton = new wxButton( itemPanelFont, ID_BUTTONFONTCHOOSE, _T("Choose Font..."),
                 wxDefaultPosition, wxDefaultSize, 0 );
-    itemFontElementStaticBoxSizer->Add(itemFontChooseButton, 0, wxGROW|wxALL, 5);
+    itemFontElementStaticBoxSizer->Add(itemFontChooseButton, 0, wxEXPAND|wxALL, 5);
 
 
     itemNotebook4->AddPage(itemPanelFont, _("Fonts"));
+
+    //      Build Etc. Page
+       // toh, 2009.02.14
+    itemPanelAdvanced = new wxPanel( itemNotebook4, ID_PANELADVANCED, wxDefaultPosition, wxDefaultSize,
+                                     wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+    wxBoxSizer* itemBoxSizerAdvancedPanel = new wxBoxSizer(wxVERTICAL);
+    itemPanelAdvanced->SetSizer(itemBoxSizerAdvancedPanel);
+
+    itemNotebook4->AddPage(itemPanelAdvanced, _("Etc."));
+
+    //  GPX import/export checkbox
+    wxStaticBox* itemStaticBoxSizerGPXStatic = new wxStaticBox(itemPanelAdvanced, wxID_ANY, _("GPX"));
+    wxStaticBoxSizer* itemStaticBoxSizerGPX = new wxStaticBoxSizer(itemStaticBoxSizerGPXStatic, wxVERTICAL);
+    itemBoxSizerAdvancedPanel->Add(itemStaticBoxSizerGPX, 0, wxGROW|wxALL, 5);
+    pGPXShowIcons = new wxCheckBox( itemPanelAdvanced, ID_GPXCHECKBOX, _("Show GPX icons"), wxDefaultPosition,
+                                    wxSize(-1, -1), 0 );
+    pGPXShowIcons->SetValue(FALSE);
+    itemStaticBoxSizerGPX->Add(pGPXShowIcons, 1, wxALIGN_LEFT|wxALL, 5);
+
+    // Radar rings
+    wxStaticBox* itemStaticBoxSizerRadarRingsStatic = new wxStaticBox(itemPanelAdvanced, wxID_ANY, _("Radar rings"));
+    wxStaticBoxSizer* itemStaticBoxSizerRadarRings = new wxStaticBoxSizer(itemStaticBoxSizerRadarRingsStatic, wxVERTICAL);
+    itemBoxSizerAdvancedPanel->Add(itemStaticBoxSizerRadarRings, 0, wxGROW|wxALL, 5);
+    pNavAidShowRadarRings = new wxCheckBox( itemPanelAdvanced, ID_GPXCHECKBOX, _("Show radar rings"), wxDefaultPosition,
+                                            wxSize(-1, -1), 0 );
+    pNavAidShowRadarRings->SetValue(FALSE);
+    itemStaticBoxSizerRadarRings->Add(pNavAidShowRadarRings, 1, wxALIGN_LEFT|wxALL, 5);
+
+    wxStaticText* itemStaticTextNumberRadarRings = new wxStaticText( itemPanelAdvanced, wxID_STATIC, _("Number of radar rings shown"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemStaticBoxSizerRadarRings->Add(itemStaticTextNumberRadarRings, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+    pNavAidRadarRingsNumberVisible = new wxTextCtrl( itemPanelAdvanced, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+    itemStaticBoxSizerRadarRings->Add(pNavAidRadarRingsNumberVisible, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+
+    wxStaticText* itemStaticTextStepRadarRings = new wxStaticText( itemPanelAdvanced, wxID_STATIC, _("Distance between rings"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemStaticBoxSizerRadarRings->Add(itemStaticTextStepRadarRings, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+    pNavAidRadarRingsStep = new wxTextCtrl( itemPanelAdvanced, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+    itemStaticBoxSizerRadarRings->Add(pNavAidRadarRingsStep, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+
+    wxString pDistUnitsStrings[] = {
+          _T("&Nautical miles"),
+             _T("&Kilometers"),
+    };
+    m_itemNavAidRadarRingsStepUnitsRadioBox = new wxRadioBox( itemPanelAdvanced, ID_RADIOBOX, _T("Units"), wxDefaultPosition, wxDefaultSize,
+                2, pDistUnitsStrings, 1, wxRA_SPECIFY_COLS );
+    itemStaticBoxSizerRadarRings->Add(m_itemNavAidRadarRingsStepUnitsRadioBox, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+
+    //  Disable/enable dragging waypoints while mark properties invisible
+    wxStaticBox* itemStaticBoxSizerWptDraggingStatic = new wxStaticBox(itemPanelAdvanced, wxID_ANY, _("Waypoint Locking"));
+    wxStaticBoxSizer* itemStaticBoxSizerWptDragging = new wxStaticBoxSizer(itemStaticBoxSizerWptDraggingStatic, wxVERTICAL);
+    itemBoxSizerAdvancedPanel->Add(itemStaticBoxSizerWptDragging, 0, wxGROW|wxALL, 5);
+    pWayPointPreventDragging = new wxCheckBox( itemPanelAdvanced, ID_DRAGGINGCHECKBOX, _("Lock all waypoints unless a waypoint property dialog is visible"),
+                                               wxDefaultPosition, wxSize(-1, -1), 0 );
+    pWayPointPreventDragging->SetValue(FALSE);
+    itemStaticBoxSizerWptDragging->Add(pWayPointPreventDragging, 1, wxALIGN_LEFT|wxALL, 5);
+
+
+    //  Printing checkbox
+/*    wxStaticBox* itemStaticBoxSizerPrintStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Printing"));
+    wxStaticBoxSizer* itemStaticBoxSizerPrint = new wxStaticBoxSizer(itemStaticBoxSizerPrintStatic, wxVERTICAL);
+    itemBoxSizer6->Add(itemStaticBoxSizerPrint, 0, wxGROW|wxALL, 5);
+    pPrintShowIcon = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Printing Icon"), wxDefaultPosition,
+    wxSize(-1, -1), 0 );
+    pPrintShowIcon->SetValue(FALSE);
+    itemStaticBoxSizerPrint->Add(pPrintShowIcon, 1, wxALIGN_LEFT|wxALL, 5);
+
+    // Chart Display Options Box
+    wxStaticBox* itemStaticBoxSizerCDOStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Chart Display Options"));
+    wxStaticBoxSizer* itemStaticBoxSizerCDO = new wxStaticBoxSizer(itemStaticBoxSizerCDOStatic, wxVERTICAL);
+    itemBoxSizer6->Add(itemStaticBoxSizerCDO, 0, wxGROW|wxALL, 5);
+
+    //  Chart Outlines checkbox
+    pCDOOutlines = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Chart Outlines"), wxDefaultPosition,
+    wxSize(-1, -1), 0 );
+    pCDOOutlines->SetValue(FALSE);
+    itemStaticBoxSizerCDO->Add(pCDOOutlines, 1, wxALIGN_LEFT|wxALL, 5);
+
+
+    //  Depth Unit checkbox
+    pSDepthUnits = new wxCheckBox( itemPanel5, ID_SHOWDEPTHUNITSBOX1, _("Show DepthUnits"), wxDefaultPosition,
+    wxSize(-1, -1), 0 );
+    pSDepthUnits->SetValue(FALSE);
+    itemStaticBoxSizerCDO->Add(pSDepthUnits, 1, wxALIGN_LEFT|wxALL, 5);
+*/
+
+
+
+    // toh, 2009.02.14; end
 
 
     pSettingsCB1 = pDebugShowStat;
@@ -722,6 +975,65 @@ void options::SetInitialSettings()
       pCDOOutlines->SetValue(g_bShowOutlines);
       pSDepthUnits->SetValue(g_bShowDepthUnits);
       pAutoAnchorMark->SetValue(g_bAutoAnchorMark);
+
+      pGPXShowIcons->SetValue(g_bShowGPXIcons);             // toh, 2009.02.14
+      pNavAidShowRadarRings->SetValue(g_bNavAidShowRadarRings);   // toh, 2009.02.24
+      wxString buf;
+      buf.Printf(_T("%d"),g_iNavAidRadarRingsNumberVisible);
+      pNavAidRadarRingsNumberVisible->SetValue(buf);  // toh, 2009.02.24
+      buf.Printf(_T("%.3f"),g_fNavAidRadarRingsStep);
+      pNavAidRadarRingsStep->SetValue(buf);     // toh, 2009.02.24
+      m_itemNavAidRadarRingsStepUnitsRadioBox->SetSelection(g_pNavAidRadarRingsStepUnits);      // toh, 2009.02.24
+      pWayPointPreventDragging->SetValue(g_bWayPointPreventDragging);   // toh, 2009.02.24
+
+
+//    AIS Parameters
+
+      wxString s;
+          //      CPA Box
+      m_pCheck_CPA_Max->SetValue(g_bCPAMax);
+
+      s.Printf(_T("%4.1f"),g_CPAMax_NM);
+      m_pText_CPA_Max->SetValue(s);
+
+      m_pCheck_CPA_Warn->SetValue(g_bCPAWarn);
+
+      s.Printf(_T("%4.1f"),g_CPAWarn_NM);
+      m_pText_CPA_Warn->SetValue(s);
+
+      m_pCheck_CPA_WarnT->SetValue(g_bTCPA_Max);
+
+      s.Printf(_T("%4.0f"),g_TCPA_Max);
+      m_pText_CPA_WarnT->SetValue(s);
+
+   //      Lost Targets
+      m_pCheck_Mark_Lost->SetValue(g_bMarkLost);
+
+      s.Printf(_T("%4.0f"),g_MarkLost_Mins);
+      m_pText_Mark_Lost->SetValue(s);
+
+      m_pCheck_Remove_Lost->SetValue(g_bRemoveLost);
+
+      s.Printf(_T("%4.0f"),g_RemoveLost_Mins);
+      m_pText_Remove_Lost->SetValue(s);
+
+   //      Display
+      m_pCheck_Show_COG->SetValue(g_bShowCOG);
+
+      s.Printf(_T("%4.0f"),g_ShowCOG_Mins);
+      m_pText_COG_Predictor->SetValue(s);
+
+#if 0
+      m_pCheck_Show_Tracks->SetValue(g_bShowTracks);
+
+      s.Printf(_T("%4.0f"),g_ShowTracks_Mins);
+      m_pText_Track_Length->SetValue(s);
+#endif
+
+      m_pCheck_Show_Moored->SetValue(!g_bShowMoored);
+
+      s.Printf(_T("%4.1f"),g_ShowMoored_Kts);
+      m_pText_Moored_Speed->SetValue(s);
 
 #ifdef USE_S57
 //    S52 Primary Filters
@@ -882,6 +1194,7 @@ void options::OnButtonaddClick( wxCommandEvent& event )
 
 void options::OnXidOkClick( wxCommandEvent& event )
 {
+
 //    Handle Chart Tab
       wxString dirname;
 
@@ -934,6 +1247,39 @@ void options::OnXidOkClick( wxCommandEvent& event )
     g_bShowDepthUnits = pSDepthUnits->GetValue();
     g_bAutoAnchorMark = pAutoAnchorMark->GetValue();
 
+    g_bShowGPXIcons = pGPXShowIcons->GetValue();        // toh, 2009.02.14
+    g_bNavAidShowRadarRings = pNavAidShowRadarRings->GetValue();  // toh, 2009.02.24
+    wxString buf = pNavAidRadarRingsNumberVisible->GetValue();
+    g_iNavAidRadarRingsNumberVisible = atoi(buf.mb_str());  // toh, 2009.02.24
+    g_fNavAidRadarRingsStep = atof(pNavAidRadarRingsStep->GetValue().mb_str());     // toh, 2009.02.24
+    g_pNavAidRadarRingsStepUnits = m_itemNavAidRadarRingsStepUnitsRadioBox->GetSelection();     // toh, 2009.02.24
+    g_bWayPointPreventDragging = pWayPointPreventDragging->GetValue();  // toh, 2009.02.24
+
+    //    AIS Parameters
+      //      CPA Box
+    g_bCPAMax = m_pCheck_CPA_Max->GetValue();
+    m_pText_CPA_Max->GetValue().ToDouble(&g_CPAMax_NM);
+    g_bCPAWarn = m_pCheck_CPA_Warn->GetValue();
+    m_pText_CPA_Warn->GetValue().ToDouble(&g_CPAWarn_NM);
+    g_bTCPA_Max = m_pCheck_CPA_WarnT->GetValue();
+    m_pText_CPA_WarnT->GetValue().ToDouble(&g_TCPA_Max);
+
+   //      Lost Targets
+    g_bMarkLost = m_pCheck_Mark_Lost->GetValue();
+    m_pText_Mark_Lost->GetValue().ToDouble(&g_MarkLost_Mins);
+    g_bRemoveLost = m_pCheck_Remove_Lost->GetValue();
+    m_pText_Remove_Lost->GetValue().ToDouble(&g_RemoveLost_Mins);
+
+   //      Display
+    g_bShowCOG = m_pCheck_Show_COG->GetValue();
+    m_pText_COG_Predictor->GetValue().ToDouble(&g_ShowCOG_Mins);
+#if 0
+    g_bShowTracks = m_pCheck_Show_Tracks->GetValue();
+    m_pText_Track_Length->GetValue().ToDouble(&g_ShowTracks_Mins);
+#endif
+    g_bShowMoored = !m_pCheck_Show_Moored->GetValue();
+    m_pText_Moored_Speed->GetValue().ToDouble(&g_ShowMoored_Kts);
+
 
 //    NMEA Options
 
@@ -951,12 +1297,12 @@ void options::OnXidOkClick( wxCommandEvent& event )
       }
     *pNMEADataSource = sel;
 
-	//	If the selection is anything other than "GARMIN",
-	//	then disable semipermanently the option to select GARMIN in future.
-	//	Note if GARMIN device is found in the future, the option will be
-	//	re-enabled.
-	if(!sel.Contains(_T("GARMIN")))
-		g_bGarminPersistance = false;
+      //    If the selection is anything other than "GARMIN",
+      //    then disable semipermanently the option to select GARMIN in future.
+      //    Note if GARMIN device is found in the future, the option will be
+      //    re-enabled.
+      if(!sel.Contains(_T("GARMIN")))
+            g_bGarminPersistance = false;
 
 // AP Output
     wxString selp(m_itemNMEAAutoListBox->GetStringSelection());
@@ -1065,8 +1411,10 @@ void options::OnXidOkClick( wxCommandEvent& event )
         pInit_Chart_Dir->Append(cur_path);
     }
 
+
     //      Could be a lot smarter here
     EndModal(GENERIC_CHANGED | S52_CHANGED);
+
 }
 
 
@@ -1175,15 +1523,15 @@ void options::OnPageChange(wxNotebookEvent& event)
           wxStaticBox* itemStaticBoxSizer11Static = new wxStaticBox(itemPanel9, wxID_ANY,
                   _("Available Chart Directories"));
           itemStaticBoxSizer11 = new wxStaticBoxSizer(itemStaticBoxSizer11Static, wxVERTICAL);
-          itemBoxSizer10->Add(itemStaticBoxSizer11, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
+          itemBoxSizer10->Add(itemStaticBoxSizer11, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
           pDirCtl = new wxGenericDirCtrl( itemPanel9, ID_DIRCTRL, *m_pinit_chart_dir, wxDefaultPosition,
                                           wxSize(-1, -1), 0, _T("All files (*.*)|*.*"), 0 );
           pDirCtl->SetMinSize(wxSize(-1, 160));
-          itemStaticBoxSizer11->Add(pDirCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
+          itemStaticBoxSizer11->Add(pDirCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
 
 
           pSelCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL1, _T(""), wxDefaultPosition, wxSize(-1, -1), 0 );
-          itemStaticBoxSizer11->Add(pSelCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
+          itemStaticBoxSizer11->Add(pSelCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
 
           wxBoxSizer* itemBoxSizer14 = new wxBoxSizer(wxHORIZONTAL);
           itemStaticBoxSizer11->Add(itemBoxSizer14, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
@@ -1194,7 +1542,7 @@ void options::OnPageChange(wxNotebookEvent& event)
           //    "Active" list
           itemActiveChartStaticBox = new wxStaticBox(itemPanel9, wxID_ANY, _("Active Chart Directories"));
           wxStaticBoxSizer* itemStaticBoxSizer16 = new wxStaticBoxSizer(itemActiveChartStaticBox, wxVERTICAL);
-          itemBoxSizer10->Add(itemStaticBoxSizer16, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
+          itemBoxSizer10->Add(itemStaticBoxSizer16, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
 
 
           int tc_flags = wxTE_MULTILINE;
@@ -1207,8 +1555,8 @@ void options::OnPageChange(wxNotebookEvent& event)
 
           pTextCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL, _T(""),
                                      wxDefaultPosition, wxSize(-1, -1), tc_flags  );
-          pTextCtl->SetMinSize(wxSize(-1, 200));
-          itemStaticBoxSizer16->Add(pTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxGROW, 5);
+          pTextCtl->SetMinSize(wxSize(-1, 100));
+          itemStaticBoxSizer16->Add(pTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
 
           wxButton* itemButton18 = new wxButton( itemPanel9, ID_BUTTONDELETE, _("Delete Selection"), wxDefaultPosition, wxDefaultSize, 0 );
           itemStaticBoxSizer16->Add(itemButton18, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.27 2008/12/23 00:47:34 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.28 2009/03/26 22:29:48 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -42,28 +42,19 @@
 #include "dychart.h"
 
 #include "nmea.h"
-//#include "chart1.h"
+#include "georef.h"
 
 #ifdef __WXOSX__              // begin rms
 #include "macsercomm.h"
 #endif                        // end rms
 
 
-#ifdef __WXMSW__
-    #ifdef ocpnUSE_MSW_SERCOMM
-    #include "sercomm.h"
-    #endif
-#endif
-
-#ifndef PI
-#define PI        3.1415926535897931160E0      /* pi */
-#endif
-
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.27 2008/12/23 00:47:34 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.28 2009/03/26 22:29:48 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
+extern ComPortManager   *g_pCommMan;
 
 int                      s_dns_test_flag;
 
@@ -77,8 +68,8 @@ static      GenericPosDat     ThreadPositionData;
 //------------------------------------------------------------------------------
 //    NMEA Window Implementation
 //------------------------------------------------------------------------------
+
 BEGIN_EVENT_TABLE(NMEAWindow, wxWindow)
-  EVT_PAINT(NMEAWindow::OnPaint)
   EVT_ACTIVATE(NMEAWindow::OnActivate)
   EVT_CLOSE(NMEAWindow::OnCloseWindow)
 
@@ -147,14 +138,14 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
                   CloseHandle(m_hSerialComm);
 
 //    Kick off the NMEA RX thread
-            m_pSecondary_Thread = new OCP_NMEA_Thread(this, frame, pMutex, comx);
+            m_pSecondary_Thread = new OCP_NMEA_Thread(this, frame, pMutex, comx, g_pCommMan);
             m_pSecondary_Thread->Run();
 
 #endif
 
 #ifdef __POSIX__
 //    Kick off the NMEA RX thread
-            m_pSecondary_Thread = new OCP_NMEA_Thread(this, frame, pMutex, comx);
+            m_pSecondary_Thread = new OCP_NMEA_Thread(this, frame, pMutex, comx, g_pCommMan);
             m_pSecondary_Thread->Run();
 #endif
 
@@ -282,11 +273,6 @@ void NMEAWindow::GetSource(wxString& source)
 
 void NMEAWindow::OnActivate(wxActivateEvent& event)
 {
-}
-
-void NMEAWindow::OnPaint(wxPaintEvent& event)
-{
-      wxPaintDC dc(this);
 }
 
 void NMEAWindow::Pause(void)
@@ -426,16 +412,26 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 
 
 
-//--------------TEST
+//--------------Simulator
 #if(0)
       {
             if(m_pShareMutex)
                   wxMutexLocker stateLocker(*m_pShareMutex) ;
-            float kCog = 63.;
-            float kSog = 6.5;
+            float kCog = 090.;
+            float kSog = 6.0;
 
-            float pred_lat = ThreadPositionData.kLat +  (cos(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
-            float pred_lon = ThreadPositionData.kLon +  (sin(kCog * PI / 180) * kSog * (1. / 60.) / 3600.)/(cos(kLat * PI/180.));
+            //    Kludge the startup case
+            if(ThreadPositionData.kLat < 1.0)
+                  ThreadPositionData.kLat = START_LAT;
+            if(fabs(ThreadPositionData.kLon) < 1.0)
+                  ThreadPositionData.kLon = START_LON;
+
+            double pred_lat;
+            double pred_lon;
+
+            double dist = kSog / 3600.;
+            ll_gc_ll(ThreadPositionData.kLat, ThreadPositionData.kLon, kCog, dist, &pred_lat, &pred_lon);
+
 
             ThreadPositionData.kCog = kCog;
             ThreadPositionData.kSog = kSog;
@@ -445,7 +441,7 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 
     //    Signal the main program thread
 
-            wxCommandEvent event( EVT_NMEA,  ID_NMEA_WINDOW );
+            wxCommandEvent event( EVT_NMEA,  GetId() );
             event.SetEventObject( (wxObject *)this );
             event.SetExtraLong(EVT_NMEA_DIRECT);
             event.SetClientData(&ThreadPositionData);
@@ -520,7 +516,7 @@ extern wxMutex                      *ps_mutexProtectingTheRXBuffer;
 
 //    ctor
 
-OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, wxMutex *pMutex, const wxString& PortName)
+OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, wxMutex *pMutex, const wxString& PortName, ComPortManager *pComMan)
 {
       m_total_error_messages = 0;
 
@@ -537,6 +533,8 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, 
       tak_ptr = rx_buffer;
 
       m_pShareMutex = pMutex;
+
+      m_pCommMan = pComMan;                           // store a lcal copy of the ComPortManager pointer
 
       Create();
 
@@ -567,88 +565,15 @@ void *OCP_NMEA_Thread::Entry()
       bool nl_found;
       wxString msg;
 
-    // Allocate the termios data structures
-    pttyset = (termios *)malloc(sizeof (termios));
-    pttyset_old = (termios *)malloc(sizeof (termios));
 
-    // Open the serial port.
-    if ((m_gps_fd = open(m_pPortName->mb_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
-//    if ((m_gps_fd = open(m_pPortName->mb_str(), O_RDWR|O_NOCTTY)) < 0)
-    {
-        wxString msg(_T("NMEA input device open failed: "));
-        msg.Append(*m_pPortName);
-        ThreadMessage(msg);
-        goto thread_exit;
-    }
-
-    msg = _T("NMEA input device opened: ");
-    msg.Append(*m_pPortName);
-    ThreadMessage(msg);
-
-    //something like this may be needed???
-//    fcntl(m_gps_fd, F_SETFL, fcntl(m_gps_fd, F_GETFL) & !O_NONBLOCK);
-
-    {
-        (void)cfsetispeed(pttyset, B4800);
-        (void)cfsetospeed(pttyset, (speed_t)B4800);
-        (void)tcsetattr(m_gps_fd, TCSANOW, pttyset);
-        (void)tcflush(m_gps_fd, TCIOFLUSH);
-    }
-
-    if (isatty(m_gps_fd)!=0)
-    {
-      /* Save original terminal parameters */
-      if (tcgetattr(m_gps_fd,pttyset_old) != 0)
+      //    Request the com port from the comm manager
+      if ((m_gps_fd = m_pCommMan->OpenComPort(*m_pPortName, 4800)) < 0)
       {
-          wxString msg(_T("NMEA input device getattr failed: "));
-          msg.Append(*m_pPortName);
-          ThreadMessage(msg);
-          goto thread_exit;
+            wxString msg(_T("NMEA input device open failed: "));
+            msg.Append(*m_pPortName);
+            ThreadMessage(msg);
+            goto thread_exit;
       }
-      (void)memcpy(pttyset, pttyset_old, sizeof(termios));
-
-      //  Build the new parms off the old
-
-      // Set blocking/timeout behaviour
-      memset(pttyset->c_cc,0,sizeof(pttyset->c_cc));
-      pttyset->c_cc[VTIME] = 5;                        // 0.5 sec timeout
-
-      /*
-      * No Flow Control
-      */
-      pttyset->c_cflag &= ~(PARENB | PARODD | CRTSCTS);
-      pttyset->c_cflag |= CREAD | CLOCAL;
-      pttyset->c_iflag = pttyset->c_oflag = pttyset->c_lflag = (tcflag_t) 0;
-
-      int stopbits = 1;
-      char parity = 'N';
-      pttyset->c_iflag &=~ (PARMRK | INPCK);
-      pttyset->c_cflag &=~ (CSIZE | CSTOPB | PARENB | PARODD);
-      pttyset->c_cflag |= (stopbits==2 ? CS7|CSTOPB : CS8);
-      switch (parity)
-      {
-          case 'E':
-              pttyset->c_iflag |= INPCK;
-              pttyset->c_cflag |= PARENB;
-              break;
-          case 'O':
-              pttyset->c_iflag |= INPCK;
-              pttyset->c_cflag |= PARENB | PARODD;
-              break;
-      }
-      pttyset->c_cflag &=~ CSIZE;
-      pttyset->c_cflag |= (CSIZE & (stopbits==2 ? CS7 : CS8));
-      if (tcsetattr(m_gps_fd, TCSANOW, pttyset) != 0)
-      {
-          wxString msg(_T("NMEA input device setattr failed: "));
-          msg.Append(*m_pPortName);
-          ThreadMessage(msg);
-          goto thread_exit;
-      }
-
-      (void)tcflush(m_gps_fd, TCIOFLUSH);
-    }
-
 
 
 
@@ -670,11 +595,10 @@ void *OCP_NMEA_Thread::Entry()
         ssize_t newdata;
         newdata = read(m_gps_fd, &next_byte, 1);            // read of one char
                                                             // return (-1) if no data available, timeout
-
         // begin rms
 #ifdef __WXOSX__
-            if (newdata < 0 )
-                  wxThread::Sleep(100) ;
+        if (newdata < 0 )
+            wxThread::Sleep(100) ;
 #endif
             // end rms
 
@@ -732,15 +656,8 @@ void *OCP_NMEA_Thread::Entry()
 
 
 //          Close the port cleanly
+    m_pCommMan->CloseComPort(m_gps_fd);
 
-
-        /* this is the clean way to do it */
-//    pttyset_old->c_cflag |= HUPCL;
-//    (void)tcsetattr(m_gps_fd,TCSANOW,pttyset_old);
-    (void)close(m_gps_fd);
-
-    free (pttyset);
-    free (pttyset_old);
 
 
 thread_exit:
@@ -759,83 +676,30 @@ thread_exit:
 void *OCP_NMEA_Thread::Entry()
 {
       wxString msg;
-//      wxMutexLocker *pStateLocker;
 
       m_launcher->SetSecThreadActive();       // I am alive
 
-      bool not_done;
-      BOOL fWaitingOnRead = FALSE;
       OVERLAPPED osReader = {0};
 
-//      COMSTAT comstat;
-//      int nBytesToRead;
+      bool not_done;
+      BOOL fWaitingOnRead = FALSE;
+      HANDLE hSerialComm = (HANDLE)(-1);
 
-//    Set up the serial port
-      m_hSerialComm = CreateFile(m_pPortName->mb_str(),      // Port Name
-                                             GENERIC_READ,              // Desired Access
-                                             0,                               // Shared Mode
-                                             NULL,                            // Security
-                                             OPEN_EXISTING,             // Creation Disposition
-                                             FILE_FLAG_OVERLAPPED,
-                                             NULL);                           // Non Overlapped
-
-      if(m_hSerialComm == INVALID_HANDLE_VALUE)
+           //    Request the com port from the comm manager
+      if ((m_gps_fd = m_pCommMan->OpenComPort(*m_pPortName, 4800)) < 0)
       {
-            error = ::GetLastError();
-            goto fail_point;
+            wxString msg(_T("NMEA input device open failed: "));
+            msg.Append(*m_pPortName);
+            ThreadMessage(msg);
+            goto thread_exit;
       }
 
-      msg = _T("NMEA input device opened: ");
-      msg.Append(*m_pPortName);
-      ThreadMessage(msg);
+      hSerialComm = (HANDLE)m_gps_fd;
 
-      if(!SetupComm(m_hSerialComm, 1024, 1024))
-            goto fail_point;
+//    Set up read event specification
 
-      DCB dcbConfig;
-
-      if(GetCommState(m_hSerialComm, &dcbConfig))           // Configuring Serial Port Settings
-      {
-            dcbConfig.BaudRate = 4800;
-            dcbConfig.ByteSize = 8;
-            dcbConfig.Parity = NOPARITY;
-            dcbConfig.StopBits = ONESTOPBIT;
-            dcbConfig.fBinary = TRUE;
-            dcbConfig.fParity = TRUE;
-      }
-
-      else
-            goto fail_point;
-
-      if(!SetCommState(m_hSerialComm, &dcbConfig))
-            goto fail_point;
-
-      COMMTIMEOUTS commTimeout;
-
-      if(GetCommTimeouts(m_hSerialComm, &commTimeout)) // Configuring Read & Write Time Outs
-      {
-            commTimeout.ReadIntervalTimeout = 1000*TimeOutInSec;
-            commTimeout.ReadTotalTimeoutConstant = 1000*TimeOutInSec;
-            commTimeout.ReadTotalTimeoutMultiplier = 0;
-            commTimeout.WriteTotalTimeoutConstant = 1000*TimeOutInSec;
-            commTimeout.WriteTotalTimeoutMultiplier = 0;
-      }
-
-      else
-            goto fail_point;
-
-      if(!SetCommTimeouts(m_hSerialComm, &commTimeout))
-            goto fail_point;
-
-
-//    Set up event specification
-
-      if(!SetCommMask(m_hSerialComm, EV_RXCHAR)) // Setting Event Type
-            goto fail_point;
-
-
-
-      DWORD dwRead;
+      if(!SetCommMask((HANDLE)m_gps_fd, EV_RXCHAR)) // Setting Event Type
+             return (0);
 
 // Create the overlapped event. Must be closed before exiting
 // to avoid a handle leak.
@@ -844,12 +708,13 @@ void *OCP_NMEA_Thread::Entry()
       if (osReader.hEvent == NULL)
             return 0;            // Error creating overlapped event; abort.
 
-
       not_done = true;
       bool nl_found;
 
 #define READ_BUF_SIZE 20
       char szBuf[READ_BUF_SIZE];
+
+      DWORD dwRead;
 
 //    The main loop
 
@@ -862,7 +727,7 @@ void *OCP_NMEA_Thread::Entry()
             if (!fWaitingOnRead)
             {
    // Issue read operation.
-                if (!ReadFile(m_hSerialComm, szBuf, READ_BUF_SIZE, &dwRead, &osReader))
+                  if (!ReadFile(hSerialComm, szBuf, READ_BUF_SIZE, &dwRead, &osReader))
                 {
                     if (GetLastError() != ERROR_IO_PENDING)     // read not delayed?
                     {
@@ -898,7 +763,7 @@ void *OCP_NMEA_Thread::Entry()
                         switch(dwRes)
                         {
                               case WAIT_OBJECT_0:
-                                  if (!GetOverlappedResult(m_hSerialComm, &osReader, &dwRead, FALSE))
+                                    if (!GetOverlappedResult(hSerialComm, &osReader, &dwRead, FALSE))
                                     {
              // Error in communications; report it.
                                     }
@@ -1014,8 +879,12 @@ HandleASuccessfulRead:
 
       }           // the big while...
 
+//          Close the port cleanly
+      m_pCommMan->CloseComPort(m_gps_fd);
+
 
 fail_point:
+thread_exit:
       m_launcher->SetSecThreadInActive();             // I am dead
 
       return 0;
@@ -1199,45 +1068,64 @@ void *OCP_GARMIN_Thread::Entry()
       HDEVINFO hdevinfo;
       SP_DEVICE_INTERFACE_DATA devinterface;
 
+      int n_short_read = 0;
 
-      //    Search for the Garmin Device Imterface Class
+      //    Search for the Garmin Device Interface Class
+thread_retry:
+      bool bgarmin_unit_found = false;
+      int nmsg = 1;
 
-    ThreadMsg(_T("Searching for Garmin DeviceInterface..."));
+      while(!bgarmin_unit_found)
+      {
+            if(nmsg > 0)
+                  ThreadMsg(_T("Searching for Garmin DeviceInterface..."));
 
-      hdevinfo = SetupDiGetClassDevs( (GUID *) &GARMIN_GUID, NULL, NULL,
+            hdevinfo = SetupDiGetClassDevs( (GUID *) &GARMIN_GUID, NULL, NULL,
                   DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
 
-      if (hdevinfo == INVALID_HANDLE_VALUE)
-      {
-            ThreadMsg(_T("   SetupDiGetClassDevs failed for Garmin DeviceInterface..."));
-            ThreadMsg(_T("   Is the Garmin USB driver installed?"));
+            if ((hdevinfo == INVALID_HANDLE_VALUE) && (nmsg > 0))
+            {
+                  ThreadMsg(_T("   SetupDiGetClassDevs failed for Garmin DeviceInterface..."));
+                  ThreadMsg(_T("   Is the Garmin USB driver installed?"));
 
-            goto thread_exit;
+                  goto thread_exit;
+            }
+
+            devinterface.cbSize = sizeof(devinterface);
+
+            bgarmin_unit_found = SetupDiEnumDeviceInterfaces(hdevinfo, NULL,(GUID *) &GARMIN_GUID, 0, &devinterface);
+
+            if((!bgarmin_unit_found) && (nmsg > 0))
+            {
+                  ThreadMsg(_T("   SetupDiEnumDeviceInterfaces failed for Garmin DeviceInterface..."));
+                  ThreadMsg(_T("   Is the Garmin USB unit powered up and connected?"));
+
+            }
+
+            if(nmsg > 0)
+                  nmsg--;
+
+            if(TestDestroy())
+                  goto thread_exit;
+
+            if(!bgarmin_unit_found)
+                  wxSleep(1);
       }
 
-      devinterface.cbSize = sizeof(devinterface);
-
-      if (!SetupDiEnumDeviceInterfaces(hdevinfo, NULL,
-                        (GUID *) &GARMIN_GUID,
-                        0,                                  // unit number
-                        &devinterface))
-      {
-            ThreadMsg(_T("   SetupDiEnumDeviceInterfaces failed for Garmin DeviceInterface..."));
-            ThreadMsg(_T("   Is the Garmin USB unit powered up and connected?"));
-
-            goto thread_exit;
-      }
 
       /* Now start the specific unit. */
       m_usb_handle = garmin_usb_start(hdevinfo, &devinterface);
 
       if(!m_usb_handle)
-            goto thread_exit;
+      {
+            ThreadMsg(_T("   Garmin USB handle is NULL..."));
+            nmsg = 1;
+            goto thread_retry;
+      }
 
       //    Send out a request for Garmin PVT data
 
-    m_receive_state = rs_fromintr;
-
+      m_receive_state = rs_fromintr;
       gusb_cmd_send((const garmin_usb_packet *) pvt_on, sizeof(pvt_on));
 
 
@@ -1248,7 +1136,32 @@ void *OCP_GARMIN_Thread::Entry()
                   not_done = false;                               // smooth exit
 
       //    Get one pvt packet
-            gusb_cmd_get(&iresp, sizeof(iresp));
+
+            //    The Windows Garmin device driver (Version 2.21) is lame...
+            //    There is no indication from the driver if the device is dynamically unplugged.
+            //    The driver simply repeats the last packet, over and over, as fast as it bloody can.
+            //    So, we must detect this condition by using a stopwatch to measure the expired time
+            //    of a driver read.  Me will assume that some number of successive reads taking less than some
+            //    (small) amount of time signal this condition.
+            //    Sigh.....
+
+            wxStopWatch st;
+            st.Start();
+
+            int nr = gusb_cmd_get(&iresp, sizeof(iresp));
+
+            st.Pause();
+
+            if(st.Time() < 100)
+            {
+                  if(++n_short_read > 20)         // device unplugged?
+                        goto thread_retry;        // so start over
+            }
+            else
+                  n_short_read = 0;
+
+
+
 
             if(iresp.gusb_pkt.pkt_id[0] == GUSB_RESPONSE_SDR)     //Satellite Data Record
             {
@@ -1345,13 +1258,6 @@ HANDLE OCP_GARMIN_Thread::garmin_usb_start(HDEVINFO hdevinfo, SP_DEVICE_INTERFAC
       msg.Printf(_T("Windows GUID for interface is %s"),pdd->DevicePath);
       ThreadMsg(msg);
 
-
-      if (m_usb_handle != INVALID_HANDLE_VALUE)
-      {
-            ThreadMsg(_T("   garmin_usb_start called while device already started."));
-            return NULL;
-      }
-
       m_usb_handle = CreateFile(pdd->DevicePath, GENERIC_READ|GENERIC_WRITE,
                   0, NULL, OPEN_EXISTING, 0, NULL );
       if (m_usb_handle == INVALID_HANDLE_VALUE)
@@ -1373,9 +1279,10 @@ HANDLE OCP_GARMIN_Thread::garmin_usb_start(HDEVINFO hdevinfo, SP_DEVICE_INTERFAC
       if(!gusb_syncup())
       {
             CloseHandle(m_usb_handle);
-            return NULL;
+            m_usb_handle = NULL;
       }
 
+      free(pdd);
       return m_usb_handle;
 }
 
@@ -1606,12 +1513,6 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
       m_pdata_ap_port_string = new wxString(AP_Port);
       m_bOK = false;
 
-#ifdef __WXMSW__
-#ifdef ocpnUSE_MSW_SERCOMM
-            pWinComm = NULL;
-#endif
-#endif
-
 //    Create and init the Serial Port for Autopilot control
 
       wxString msg(_T("NMEA AutoPilot Port is...."));
@@ -1620,21 +1521,9 @@ AutoPilotWindow::AutoPilotWindow(wxFrame *frame, const wxString& AP_Port):
 
       if((!m_pdata_ap_port_string->IsEmpty()) && (!m_pdata_ap_port_string->IsSameAs(_T("None"), false)))
       {
-            wxString port(m_pdata_ap_port_string->AfterFirst(':'));    // Strip "Serial"
+            m_port = m_pdata_ap_port_string->AfterFirst(':');    // Strip "Serial"
 
-#ifdef __WXMSW__
-#ifdef ocpnUSE_MSW_SERCOMM
-            pWinComm = new CSyncSerialComm(port.mb_str());
-            pWinComm->Open();
-            pWinComm->ConfigPort(4800, 5);
-            m_bOK = true;
-#endif
-#endif
-
-#ifdef __POSIX__
-
-            m_bOK = OpenPort(port);
-#endif
+            m_bOK = OpenPort(m_port);
     }
     Hide();
 }
@@ -1651,128 +1540,354 @@ void AutoPilotWindow::GetAP_Port(wxString& source)
 
 void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 {
-#ifdef __WXMSW__
-#if ocpnUSE_MSW_SERCOMM
-      delete pWinComm;
-#endif
-#endif
-
-#ifdef __POSIX__
     if(m_bOK)
     {
-        (void)close(m_ap_fd);
-        free (pttyset);
-        free (pttyset_old);
-        m_bOK = false;
+          g_pCommMan->CloseComPort(m_ap_fd);
+          m_bOK = false;
     }
-#endif
 }
 
 bool AutoPilotWindow::OpenPort(wxString &port)
 {
-#ifdef __POSIX__
-    // Allocate the termios data structures
-
-    pttyset = (termios *)malloc(sizeof (termios));
-    pttyset_old = (termios *)malloc(sizeof (termios));
-
-            // Open the serial port.
-    if ((m_ap_fd = open(port.mb_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
-    {
-        wxString msg(_T("Autopilot output device open failed: "));
-        msg.Append(port);
-        wxLogMessage(msg);
-        return false;
-    }
-
-
-    (void)cfsetispeed(pttyset, B4800);
-    (void)cfsetospeed(pttyset, (speed_t)B4800);
-    (void)tcsetattr(m_ap_fd, TCSANOW, pttyset);
-    (void)tcflush(m_ap_fd, TCIOFLUSH);
-
-
-    if (isatty(m_ap_fd)!=0)
-    {
-
-        /* Save original terminal parameters */
-        if (tcgetattr(m_ap_fd,pttyset_old) != 0)
-        {
-            wxString msg(_T("Autopilot output device getattr failed: "));
+      if ((m_ap_fd = g_pCommMan->OpenComPort(port, 4800)) < 0)
+      {
+            wxString msg(_T("Autopilot output device open failed: "));
             msg.Append(port);
             wxLogMessage(msg);
             return false;
-        }
-        (void)memcpy(pttyset, pttyset_old, sizeof(termios));
+      }
+
+      return true;
+}
+
+
+
+
+int AutoPilotWindow::AutopilotOut(const wxString& Sentence)
+{
+      ssize_t status;
+      status = g_pCommMan->WriteComPort(m_port, Sentence);
+      return status;
+}
+
+//-------------------------------------------------------------------------------------------------------------
+//
+//    Communications Port Manager
+//
+//-------------------------------------------------------------------------------------------------------------
+#include <wx/listimpl.cpp>
+WX_DEFINE_LIST(ListOfOpenCommPorts);
+
+ComPortManager:: ComPortManager()
+{
+}
+
+ComPortManager::~ComPortManager()
+{
+}
+
+//    Common Methods
+
+int ComPortManager::OpenComPort(wxString &com_name, int baud_rate)
+{
+      // Already open?
+      int port_descriptor = GetComPort(com_name);
+      if(-1 == port_descriptor)
+      {
+            port_descriptor = OpenComPortPhysical(com_name, 4800);
+            if( port_descriptor < 0)
+                  return port_descriptor;                                // error
+
+            OpenCommPortElement *pocpe = new OpenCommPortElement;
+            pocpe->com_name = com_name;
+            pocpe->port_descriptor = port_descriptor;
+
+            m_port_list.Append(pocpe);
+      }
+
+  //    wxString s;
+  //    s.Printf("OpenPD: %d", port_descriptor);
+  //    wxLogMessage(com_name);
+  //    wxLogMessage(s);
+
+      return port_descriptor;
+}
+
+int ComPortManager::CloseComPort(int fd)
+{
+      CloseComPortPhysical(fd);
+
+      for ( ListOfOpenCommPorts::Node *node = m_port_list.GetFirst(); node; node = node->GetNext() )
+      {
+            OpenCommPortElement *current = node->GetData();
+
+            if(current->port_descriptor == fd)
+            {
+                  m_port_list.DeleteObject(current);
+                  delete current;
+                  break;
+            }
+      }
+
+      return 0;
+}
+
+
+
+//------------------------------------------------------------
+//    GetComPort()
+//    Return the descriptor for an already open com port.
+//    return -1 if the port is not already open
+//------------------------------------------------------------
+
+int ComPortManager::GetComPort(wxString &com_name)
+{
+      for ( ListOfOpenCommPorts::Node *node = m_port_list.GetFirst(); node; node = node->GetNext() )
+      {
+            OpenCommPortElement *current = node->GetData();
+
+            if(current->com_name.IsSameAs(com_name))
+                  return current->port_descriptor;
+      }
+
+      return -1;
+}
+
+int ComPortManager::WriteComPort(wxString& com_name, const wxString& string)
+{
+      int port_descriptor = GetComPort(com_name);
+      if(-1 == port_descriptor)
+            port_descriptor = OpenComPort(com_name, 4800);
+
+      int status = WriteComPortPhysical(port_descriptor, string);
+
+      return status;
+}
+
+
+#ifdef __POSIX__
+int ComPortManager::OpenComPortPhysical(wxString &com_name, int baud_rate)
+{
+
+    // Declare the termios data structures
+      termios ttyset_old;
+      termios ttyset;
+
+    // Open the serial port.
+      int com_fd;
+      if ((com_fd = open(com_name.mb_str(), O_RDWR|O_NONBLOCK|O_NOCTTY)) < 0)
+//      if ((com_fd = open(com_name.mb_str(), O_RDWR|O_NOCTTY)) < 0)
+            return com_fd;
+
+
+      speed_t baud_parm;
+      switch(baud_rate)
+      {
+            case 4800:
+                  baud_parm = B4800;
+                  break;
+            case 38400:
+                  baud_parm = B38400;
+                  break;
+            default:
+                  baud_parm = B4800;
+                  break;
+      }
+
+
+
+     if (isatty(com_fd) != 0)
+      {
+            /* Save original terminal parameters */
+            if (tcgetattr(com_fd,&ttyset_old) != 0)
+                  return -128;
+
+            memcpy(&ttyset, &ttyset_old, sizeof(termios));
 
       //  Build the new parms off the old
 
+      //  Baud Rate
+            cfsetispeed(&ttyset, baud_parm);
+            cfsetospeed(&ttyset, baud_parm);
+
+            tcsetattr(com_fd, TCSANOW, &ttyset);
+
       // Set blocking/timeout behaviour
-//                memset(pttyset->c_cc,0,sizeof(pttyset->c_cc));
+            memset(ttyset.c_cc,0,sizeof(ttyset.c_cc));
+            ttyset.c_cc[VTIME] = 5;                        // 0.5 sec timeout
+            fcntl(com_fd, F_SETFL, fcntl(com_fd, F_GETFL) & !O_NONBLOCK);
 
-      /*
-        * No Flow Control
-      */
-        pttyset->c_cflag &= ~(PARENB | PARODD | CRTSCTS);
-        pttyset->c_cflag |= CREAD | CLOCAL;
-        pttyset->c_iflag = pttyset->c_oflag = pttyset->c_lflag = (tcflag_t) 0;
+      // No Flow Control
 
-        int stopbits = 1;
-        char parity = 'N';
-        pttyset->c_iflag &=~ (PARMRK | INPCK);
-        pttyset->c_cflag &=~ (CSIZE | CSTOPB | PARENB | PARODD);
-        pttyset->c_cflag |= (stopbits==2 ? CS7|CSTOPB : CS8);
-        switch (parity)
-        {
-            case 'E':
-                pttyset->c_iflag |= INPCK;
-                pttyset->c_cflag |= PARENB;
-                break;
-            case 'O':
-                pttyset->c_iflag |= INPCK;
-                pttyset->c_cflag |= PARENB | PARODD;
-                break;
-        }
-        pttyset->c_cflag &=~ CSIZE;
-        pttyset->c_cflag |= (CSIZE & (stopbits==2 ? CS7 : CS8));
-        if (tcsetattr(m_ap_fd, TCSANOW, pttyset) != 0)
-        {
-            wxString msg(_T("Autopilot output device getattr failed: "));
-            msg.Append(port);
-            wxLogMessage(msg);
-            return false;
-        }
+            ttyset.c_cflag &= ~(PARENB | PARODD | CRTSCTS);
+            ttyset.c_cflag |= CREAD | CLOCAL;
+            ttyset.c_iflag = ttyset.c_oflag = ttyset.c_lflag = (tcflag_t) 0;
 
+            int stopbits = 1;
+            char parity = 'N';
+            ttyset.c_iflag &=~ (PARMRK | INPCK);
+            ttyset.c_cflag &=~ (CSIZE | CSTOPB | PARENB | PARODD);
+            ttyset.c_cflag |= (stopbits==2 ? CS7|CSTOPB : CS8);
+            switch (parity)
+            {
+                  case 'E':
+                        ttyset.c_iflag |= INPCK;
+                        ttyset.c_cflag |= PARENB;
+                        break;
+                  case 'O':
+                        ttyset.c_iflag |= INPCK;
+                        ttyset.c_cflag |= PARENB | PARODD;
+                        break;
+            }
+            ttyset.c_cflag &=~ CSIZE;
+            ttyset.c_cflag |= (CSIZE & (stopbits==2 ? CS7 : CS8));
+            if (tcsetattr(com_fd, TCSANOW, &ttyset) != 0)
+                  return -129;
 
-        (void)tcflush(m_ap_fd, TCIOFLUSH);
+            tcflush(com_fd, TCIOFLUSH);
+      }
 
-        return true;
-    }
-#endif      //__POSIX__
-
-    return false;
-
+      return com_fd;
 }
 
 
-
-
-void AutoPilotWindow::AutopilotOut(const wxString& Sentence)
+int ComPortManager::CloseComPortPhysical(int fd)
 {
-    int char_count = Sentence.Len();
+        /* this is the clean way to do it */
+//    pttyset_old->c_cflag |= HUPCL;
+//    (void)tcsetattr(fd,TCSANOW,pttyset_old);
+
+      close(fd);
+
+      return 0;
+}
+
+
+int ComPortManager::WriteComPortPhysical(int port_descriptor, const wxString& string)
+{
+      ssize_t status;
+      status = write(port_descriptor, string.mb_str(), string.Len());
+
+      return status;
+}
+
+#endif            // __POSIX__
 
 #ifdef __WXMSW__
-#ifdef ocpnUSE_MSW_SERCOMM
-      pWinComm->Write(Sentence.mb_str(), char_count);
-#endif
-#endif
+int ComPortManager::OpenComPortPhysical(wxString &com_name, int baud_rate)
+{
 
-#ifdef __POSIX__
-      ssize_t status;
-      status = write(m_ap_fd, Sentence.mb_str(), char_count);
-#endif
+//    Set up the serial port
+      HANDLE hSerialComm = CreateFile(com_name.mb_str(),      // Port Name
+                                 GENERIC_READ | GENERIC_WRITE,     // Desired Access
+                                 0,                               // Shared Mode
+                                 NULL,                            // Security
+                                 OPEN_EXISTING,             // Creation Disposition
+                                 FILE_FLAG_OVERLAPPED,
+                                 NULL);                           // Non Overlapped
+
+      if(hSerialComm == INVALID_HANDLE_VALUE)
+            return (::GetLastError());
+
+      if(!SetupComm(hSerialComm, 1024, 1024))
+            return (::GetLastError());
+
+      DCB dcbConfig;
+
+      if(GetCommState(hSerialComm, &dcbConfig))           // Configuring Serial Port Settings
+      {
+            dcbConfig.BaudRate = baud_rate;
+            dcbConfig.ByteSize = 8;
+            dcbConfig.Parity = NOPARITY;
+            dcbConfig.StopBits = ONESTOPBIT;
+            dcbConfig.fBinary = TRUE;
+            dcbConfig.fParity = TRUE;
+      }
+
+      else
+            return (::GetLastError());
+
+      if(!SetCommState(hSerialComm, &dcbConfig))
+            return (::GetLastError());
+
+      COMMTIMEOUTS commTimeout;
+      int TimeOutInSec = 2;
+
+      if(GetCommTimeouts(hSerialComm, &commTimeout)) // Configuring Read & Write Time Outs
+      {
+            commTimeout.ReadIntervalTimeout = 1000*TimeOutInSec;
+            commTimeout.ReadTotalTimeoutConstant = 1000*TimeOutInSec;
+            commTimeout.ReadTotalTimeoutMultiplier = 0;
+            commTimeout.WriteTotalTimeoutConstant = 1000*TimeOutInSec;
+            commTimeout.WriteTotalTimeoutMultiplier = 0;
+      }
+
+      else
+            return (::GetLastError());
+
+      if(!SetCommTimeouts(hSerialComm, &commTimeout))
+            return (::GetLastError());
 
 
+      return (int)hSerialComm;
 }
 
+int ComPortManager::CloseComPortPhysical(int fd)
+{
+      if((HANDLE)fd != INVALID_HANDLE_VALUE)
+            CloseHandle((HANDLE)fd);
+      return 0;
+}
 
+int ComPortManager::WriteComPortPhysical(int port_descriptor, const wxString& string)
+{
+      unsigned int dwSize = string.Len();
+      char *pszBuf = (char *)malloc((dwSize + 1) * sizeof(char));
+      strncpy(pszBuf, string.mb_str(), dwSize+1);
+
+//      wxLogMessage(string);
+
+      OVERLAPPED osWrite = {0};
+      DWORD dwWritten;
+      int fRes;
+
+   // Create this writes OVERLAPPED structure hEvent.
+      osWrite.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+      if (osWrite.hEvent == NULL)
+      // Error creating overlapped event handle.
+            return 0;
+
+   // Issue write.
+      if (!WriteFile((HANDLE)port_descriptor, pszBuf, dwSize, &dwWritten, &osWrite))
+      {
+            if (GetLastError() != ERROR_IO_PENDING)
+            {
+         // WriteFile failed, but it isn't delayed. Report error and abort.
+                  fRes = 0;
+            }
+            else
+            {
+         // Write is pending.
+                  if (!GetOverlappedResult((HANDLE)port_descriptor, &osWrite, &dwWritten, TRUE))
+                        fRes = 0;
+                  else
+            // Write operation completed successfully.
+                        fRes = dwWritten;
+            }
+      }
+      else
+      // WriteFile completed immediately.
+            fRes = dwWritten;
+
+      CloseHandle(osWrite.hEvent);
+
+      free (pszBuf);
+
+//      wxString m;
+//      m.Printf("Result %d",fRes);
+//      wxLogMessage(m);
+
+      return fRes;
+}
+
+#endif            // __WXMSW__

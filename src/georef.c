@@ -55,7 +55,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #define snprintf mysnprintf
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.9 2008/12/19 01:45:18 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.10 2009/03/26 22:29:23 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -362,7 +362,7 @@ static double M(double phi, double a, double es);
 
 // DSR Shortcut, constants for WGS-84
 static const double a = 6378137.0;
-static const double s_z = 6378137.0 * PI / 2.;
+static const double s_z = 6378137.0;// * PI / 2.;
 static const double f = 1.0 / 298.257223563; // flattening
 static const double es = 6.69437999014e-3;  // eccentricity^2
 static const double e = 0.081819190842613;  // eccentricity
@@ -372,7 +372,7 @@ static const double k0 = 0.9996;
 /* Convert Lat/Lon <-> Simple Mercator                                      */
 /****************************************************************************/
 void
-toSM(float lat, float lon, float lat0, float lon0, double *x, double *y)
+toSM(double lat, double lon, double lat0, double lon0, double *x, double *y)
 {
       double z = s_z * k0; // 6378137.0 * PI / 2.;
 
@@ -550,7 +550,7 @@ static double M(double phi, double a, double es)
 // Given the lat/long of starting point, and traveling a specified distance,
 // at an initial bearing, calculates the lat/long of the resulting location.
 //
-//  Assumes spheirical earth shape.  There are more accurate ellipsoidal
+//  Assumes spherical earth shape.  There are more accurate ellipsoidal
 //  algorithms available, c.f. below.
 //
 //  Algorithm extracted from:
@@ -697,6 +697,24 @@ float DistGreatCircle(double slat, double slon, double dlat, double dlon)
 
 
 
+void DistanceBearing(double lat0, double lon0, double lat1, double lon1, double *brg, double *dist)
+{
+      double east, north, brgt;
+
+      *dist = DistGreatCircle(lat0, lon0, lat1, lon1);
+
+      //    Calculate bearing by conversion to SM (Mercator) coordinates, then simple trigonometry
+
+      toSM(lat1, lon1, lat0, lon0, &east, &north);
+
+      brgt = 270. - (atan2(north, east) * 180. / PI);
+      if (brgt < 0)
+            brgt += 360.;
+      if (brgt > 360.)
+            brgt -= 360;
+
+      *brg = brgt;
+}
 
 
 /* --------------------------------------------------------------------------------- */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.9 2008/08/26 13:46:25 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.10 2009/03/26 22:29:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.10  2009/03/26 22:29:16  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.9  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -36,6 +39,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.10  2009/03/26 22:29:16  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.9  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -107,11 +113,11 @@
 extern Routeman         *pRouteMan;
 extern FontMgr          *pFontMgr;
 
-extern                  float gCog;
-extern                  float gSog;
+extern                  double gCog;
+extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.9 2008/08/26 13:46:25 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.10 2009/03/26 22:29:16 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------

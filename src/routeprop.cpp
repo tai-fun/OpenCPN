@@ -16,6 +16,8 @@
 #include "wx/wx.h"
 #endif
 
+#include <wx/listimpl.cpp>    // toh, 2009.02.22
+
 #include "wx/datetime.h"
 
 #include "routeprop.h"
@@ -28,13 +30,17 @@
 
 extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
-extern float            gLat, gLon;
+extern double           gLat, gLon;
 extern double           g_PlanSpeed;
 extern MyConfig         *pConfig;
 extern WayPointman      *pWayPointMan;
 extern ChartCanvas      *cc1;
 extern Select           *pSelect;
 extern Routeman         *pRouteMan;
+
+WX_DEFINE_LIST(HyperlinkCtrlList);        // toh, 2009.02.22
+
+#define MAX_NUM_HYPERLINKS    6           // toh, 2009.02.23
 
 
 /*!
@@ -123,13 +129,13 @@ void RouteProp::CreateControls()
 
     wxStaticBox* itemStaticBoxSizer3Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Route Properties"));
     wxStaticBoxSizer* itemStaticBoxSizer3 = new wxStaticBoxSizer(itemStaticBoxSizer3Static, wxVERTICAL);
-    itemBoxSizer2->Add(itemStaticBoxSizer3, 0, wxGROW|wxALL, 5);
+    itemBoxSizer2->Add(itemStaticBoxSizer3, 0, wxEXPAND|wxALL, 5);
 
     wxStaticText* itemStaticText4 = new wxStaticText( itemDialog1, wxID_STATIC, _("Route Name"), wxDefaultPosition, wxDefaultSize, 0 );
     itemStaticBoxSizer3->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_RouteNameCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(600, -1), 0 );
-    itemStaticBoxSizer3->Add(m_RouteNameCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxGROW, 5);
+    itemStaticBoxSizer3->Add(m_RouteNameCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
 
     wxFlexGridSizer* itemFlexGridSizer6 = new wxFlexGridSizer(2, 2, 0, 0);
@@ -172,11 +178,11 @@ void RouteProp::CreateControls()
 
     wxStaticBox* itemStaticBoxSizer14Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Waypoints"));
     wxStaticBoxSizer* itemStaticBoxSizer14 = new wxStaticBoxSizer(itemStaticBoxSizer14Static, wxVERTICAL);
-    itemBoxSizer2->Add(itemStaticBoxSizer14, 1, wxGROW|wxALL, 5);
+    itemBoxSizer2->Add(itemStaticBoxSizer14, 1, wxEXPAND|wxALL, 5);
 
     m_wpList = new wxListCtrl( itemDialog1, ID_LISTCTRL, wxDefaultPosition, wxSize(-1, 100),
         wxLC_REPORT|wxLC_HRULES|wxLC_VRULES );
-    itemStaticBoxSizer14->Add(m_wpList, 2, wxGROW|wxALL, 5);
+    itemStaticBoxSizer14->Add(m_wpList, 2, wxEXPAND|wxALL, 5);
 
     wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
     itemBoxSizer2->Add(itemBoxSizer16, 0, wxALIGN_RIGHT|wxALL, 5);
@@ -375,35 +381,24 @@ bool RouteProp::UpdateProperties()
                     slon = gLon;
                 }
 
-                float leg_dist = DistGreatCircle(slat, slon, prp->m_lat, prp->m_lon );
+                double brg, leg_dist;
+                DistanceBearing(prp->m_lat, prp->m_lon, slat, slon, &brg, &leg_dist);
+
                 t.Printf(_T("%6.2f nm"),leg_dist);
                 m_wpList->SetItem(item_line_index, 2, t);
 
     //  Bearing
-                double north, east;
-                double brg;
-                toSM(prp->m_lat, prp->m_lon, slat, slon, &east, &north);
-                double a = atan(north / east);
-                if(prp->m_lon > slon)
-                    brg = 90. - (a * 180/PI);
-                else
-                    brg = 270. - (a * 180/PI);
-
                 t.Printf(_T("%03.0f Deg. T"),brg);
                 m_wpList->SetItem(item_line_index, 3, t);
 
     //  Lat/Lon
-                char tc[50];
-
-                todmm(1, prp->m_lat, tc, 49);
-                wxString tlat(tc, wxConvUTF8);
+                wxString tlat = toSDMM(1, prp->m_lat);
                 m_wpList->SetItem(item_line_index, 4, tlat);
 
-                todmm(2, prp->m_lon, tc, 49);
-                wxString tlon(tc, wxConvUTF8);
+                wxString tlon = toSDMM(2, prp->m_lon);
                 m_wpList->SetItem(item_line_index, 5, tlon);
 
-    //  Save for distance/bearing calculation
+    //  Save for iterating distance/bearing calculation
                 slat = prp->m_lat;
                 slon = prp->m_lon;
 
@@ -562,42 +557,42 @@ void MarkProp::CreateControls()
     wxStaticBox* itemStaticBoxSizer3Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Properties"));
 
     wxStaticBoxSizer* itemStaticBoxSizer3 = new wxStaticBoxSizer(itemStaticBoxSizer3Static, wxVERTICAL);
-    itemBoxSizer2->Add(itemStaticBoxSizer3, 1, wxGROW|wxALL, 5);
+    itemBoxSizer2->Add(itemStaticBoxSizer3, 1, wxEXPAND|wxALL, 5);
 
     wxStaticText* itemStaticText4 = new wxStaticText( itemDialog1, wxID_STATIC, _("Mark Name"), wxDefaultPosition, wxDefaultSize, 0 );
     itemStaticBoxSizer3->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_MarkNameCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(-1, -1), 0 );
-    itemStaticBoxSizer3->Add(m_MarkNameCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxGROW, 5);
+    itemStaticBoxSizer3->Add(m_MarkNameCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
     m_ShowNameCheckbox = new wxCheckBox( itemDialog1, ID_SHOWNAMECHECKBOX1, _("Show Name"), wxDefaultPosition, wxSize(-1, -1), 0 );
-    itemStaticBoxSizer3->Add(m_ShowNameCheckbox, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxGROW, 5);
+    itemStaticBoxSizer3->Add(m_ShowNameCheckbox, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
     wxStaticText* itemStaticText4a= new wxStaticText( itemDialog1, wxID_STATIC, _("Mark Icon"), wxDefaultPosition, wxDefaultSize, 0 );
     itemStaticBoxSizer3->Add(itemStaticText4a, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_IconList = new wxListCtrl( itemDialog1, ID_ICONCTRL, wxDefaultPosition, wxSize(300, 100),
         wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES );
-    itemStaticBoxSizer3->Add(m_IconList, 2, wxGROW|wxALL, 5);
+    itemStaticBoxSizer3->Add(m_IconList, 2, wxEXPAND|wxALL, 5);
 
 
     wxStaticBox* itemStaticBoxSizer4Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Position"));
 
     wxStaticBoxSizer* itemStaticBoxSizer4 = new wxStaticBoxSizer(itemStaticBoxSizer4Static, wxVERTICAL);
-    itemBoxSizer2->Add(itemStaticBoxSizer4, 0, wxGROW|wxALL, 5);
+    itemBoxSizer2->Add(itemStaticBoxSizer4, 0, wxEXPAND|wxALL, 5);
 
     wxStaticText* itemStaticText5 = new wxStaticText( itemDialog1, wxID_STATIC, _("Latitude"), wxDefaultPosition, wxDefaultSize, 0 );
     itemStaticBoxSizer4->Add(itemStaticText5, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_MarkLatCtl = new LatLonTextCtrl( itemDialog1, ID_LATCTRL, _T(""), wxDefaultPosition, wxSize(180, -1), 0 );
-    itemStaticBoxSizer4->Add(m_MarkLatCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxGROW, 5);
+    itemStaticBoxSizer4->Add(m_MarkLatCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
 
     wxStaticText* itemStaticText6 = new wxStaticText( itemDialog1, wxID_STATIC, _("Longitude"), wxDefaultPosition, wxDefaultSize, 0 );
     itemStaticBoxSizer4->Add(itemStaticText6, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_MarkLonCtl = new LatLonTextCtrl( itemDialog1, ID_LONCTRL, _T(""), wxDefaultPosition, wxSize(180, -1), 0 );
-    itemStaticBoxSizer4->Add(m_MarkLonCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxGROW, 5);
+    itemStaticBoxSizer4->Add(m_MarkLonCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
     wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
     itemBoxSizer2->Add(itemBoxSizer16, 0, wxALIGN_RIGHT|wxALL, 5);
@@ -711,15 +706,11 @@ bool MarkProp::UpdateProperties()
 
 
 //  Lat/Lon
-            char tc[50];
+            wxString s = toSDMM(1, m_pRoutePoint->m_lat);
+            m_MarkLatCtl->SetValue(s);
 
-            todmm(1, m_pRoutePoint->m_lat, tc, 49);
-            wxString strt(tc, wxConvUTF8);
-            m_MarkLatCtl->SetValue(strt);
-
-            todmm(2, m_pRoutePoint->m_lon, tc, 49);
-            wxString strn(tc, wxConvUTF8);
-            m_MarkLonCtl->SetValue(strn);
+            s = toSDMM(2, m_pRoutePoint->m_lon);
+            m_MarkLonCtl->SetValue(s);
 
 //    Highlite the icon current selection
             m_current_icon_Index = pWayPointMan->GetIconIndex(m_pRoutePoint->m_pbmIcon);
@@ -868,6 +859,315 @@ void LatLonTextCtrl::OnKillFocus(wxFocusEvent& event)
       m_pParentEventHandler->AddPendingEvent(up_event);
 }
 
+
+//-------------------------------------------------------------------------------
+//
+//    Mark Information Dialog Implementation
+//
+//-------------------------------------------------------------------------------
+/*!
+ * MarkInfo type definition
+ */
+
+IMPLEMENT_DYNAMIC_CLASS( MarkInfo, wxDialog )
+
+/*!
+ * MarkInfo event table definition
+ */
+
+            BEGIN_EVENT_TABLE( MarkInfo, wxDialog )
+
+////@begin MarkInfo event table entries
+
+            EVT_BUTTON( ID_MARKINFO_CANCEL, MarkInfo::OnMarkinfoCancelClick )
+            EVT_BUTTON( ID_MARKINFO_OK, MarkInfo::OnMarkinfoOkClick )
+
+////@end MarkInfo event table entries
+
+            END_EVENT_TABLE()
+
+/*!
+ * MarkInfo constructors
+ */
+
+            MarkInfo::MarkInfo( )
+{
+}
+
+MarkInfo::MarkInfo(  wxWindow* parent, wxWindowID id,
+                     const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
+{
+      Create(parent, id, caption, pos, size, style);
+}
+
+MarkInfo::~MarkInfo( )
+{
+      delete m_MarkNameCtl;
+      delete m_MarkLatCtl;
+      delete m_MarkLonCtl;
+}
+
+
+
+/*!
+ * MarkInfo creator
+ */
+
+bool MarkInfo::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
+{
+      SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS);
+      wxDialog::Create( parent, id, caption, pos, size, style );
+
+      CreateControls();
+      GetSizer()->Fit(this);
+      GetSizer()->SetSizeHints(this);
+      Centre();
+
+      return TRUE;
+}
+
+/*!
+ * Control creation for MarkInfo
+ */
+
+void MarkInfo::CreateControls()
+{
+      MarkInfo* itemDialog1 = this;
+
+      wxBoxSizer* itemBoxSizer2 = new wxBoxSizer(wxVERTICAL);
+      itemDialog1->SetSizer(itemBoxSizer2);
+
+      wxStaticBox* itemStaticBoxSizer3Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Name"),wxDefaultPosition, wxSize(-1, -1));
+
+      wxStaticBoxSizer* itemStaticBoxSizer3 = new wxStaticBoxSizer(itemStaticBoxSizer3Static, wxVERTICAL);
+      itemBoxSizer2->Add(itemStaticBoxSizer3, 0, wxEXPAND|wxALL|wxADJUST_MINSIZE, 5);
+
+      m_MarkNameCtl = new wxStaticText( itemDialog1, wxID_STATIC, _T(""), wxDefaultPosition,wxDefaultSize, 0 );
+      itemStaticBoxSizer3->Add(m_MarkNameCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxGROW, 5);
+
+      wxStaticBox* itemStaticBoxSizer4Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Position"));
+
+      wxStaticBoxSizer* itemStaticBoxSizer4 = new wxStaticBoxSizer(itemStaticBoxSizer4Static, wxVERTICAL);
+      itemBoxSizer2->Add(itemStaticBoxSizer4, 0, wxEXPAND|wxALL|wxADJUST_MINSIZE, 5);
+
+      wxStaticText* itemStaticText5 = new wxStaticText( itemDialog1, wxID_STATIC, _("Latitude"), wxDefaultPosition, wxDefaultSize, 0 );
+      itemStaticBoxSizer4->Add(itemStaticText5, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+      m_MarkLatCtl = new wxStaticText( itemDialog1, wxID_STATIC, _T(""), wxDefaultPosition, wxSize(180, -1), 0 );
+      itemStaticBoxSizer4->Add(m_MarkLatCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxGROW, 5);
+
+      wxStaticText* itemStaticText6 = new wxStaticText( itemDialog1, wxID_STATIC, _("Longitude"), wxDefaultPosition, wxDefaultSize, 0 );
+      itemStaticBoxSizer4->Add(itemStaticText6, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+      m_MarkLonCtl = new wxStaticText( itemDialog1, wxID_STATIC, _T(""), wxDefaultPosition, wxSize(180, -1), 0 );
+      itemStaticBoxSizer4->Add(m_MarkLonCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxGROW, 5);
+
+      // Hyperlinks etc.
+      wxStaticBox* itemStaticBoxSizer8Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Links"));
+
+    // Controls for some Hyperlinks
+      m_HyperlinkCtrlList = new HyperlinkCtrlList;
+      wxStaticBoxSizer* itemStaticBoxSizer8 = new wxStaticBoxSizer(itemStaticBoxSizer8Static, wxVERTICAL);
+      itemBoxSizer2->Add(itemStaticBoxSizer8, 1, wxEXPAND|wxALL|wxADJUST_MINSIZE, 5);
+      for (int i=0;i<MAX_NUM_HYPERLINKS;i++)
+      {
+            wxHyperlinkCtrl *HyperlinkCtrl;
+            HyperlinkCtrl = new wxHyperlinkCtrl(this,
+                        wxID_ANY,
+                        _T(" "),
+                           _T(" "));
+            itemStaticBoxSizer8->Add(HyperlinkCtrl, 1, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxEXPAND|wxFULL_REPAINT_ON_RESIZE, 5);
+            m_HyperlinkCtrlList->Append(HyperlinkCtrl);
+      }
+
+      wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
+      itemBoxSizer2->Add(itemBoxSizer16, 0, wxALIGN_RIGHT|wxALL, 5);
+
+      m_CancelButton = new wxButton( itemDialog1, ID_MARKINFO_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+      itemBoxSizer16->Add(m_CancelButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+      m_OKButton = new wxButton( itemDialog1, ID_MARKINFO_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+      itemBoxSizer16->Add(m_OKButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+      m_OKButton->SetDefault();
+
+      SetColorScheme((ColorScheme)0);
+}
+
+
+void MarkInfo::SetColorScheme(ColorScheme cs)
+{
+      SetBackgroundColour(GetGlobalColor(_T("DILG1")));
+
+      wxColour back_color =GetGlobalColor(_T("DILG2"));
+      wxColour text_color = GetGlobalColor(_T("DILG3"));
+
+      m_MarkNameCtl->SetBackgroundColour(back_color);
+      m_MarkNameCtl->SetForegroundColour(text_color);
+
+      m_MarkLatCtl->SetBackgroundColour(back_color);
+      m_MarkLatCtl->SetForegroundColour(text_color);
+
+      m_MarkLonCtl->SetBackgroundColour(back_color);
+      m_MarkLonCtl->SetForegroundColour(text_color);
+
+      m_CancelButton->SetBackgroundColour(back_color);
+      m_CancelButton->SetForegroundColour(text_color);
+
+      m_OKButton->SetBackgroundColour(back_color);
+      m_OKButton->SetForegroundColour(text_color);
+}
+
+bool MarkInfo::ShowToolTips()
+{
+      return TRUE;
+}
+
+
+void MarkInfo::SetRoutePoint(RoutePoint *pRP)
+{
+      m_pRoutePoint = pRP;
+
+      m_lat_save = m_pRoutePoint->m_lat;
+      m_lon_save = m_pRoutePoint->m_lon;
+}
+
+
+bool MarkInfo::UpdateProperties()
+{
+      wxString t;
+      if(m_pRoutePoint)
+      {
+//    Name
+            m_MarkNameCtl->SetLabel(m_pRoutePoint->m_MarkName);
+
+//  Lat/Lon
+            char tc[50];
+
+            todmm(1, m_pRoutePoint->m_lat, tc, 49);
+            wxString strt(tc, wxConvUTF8);
+            m_MarkLatCtl->SetLabel(strt);
+
+            todmm(2, m_pRoutePoint->m_lon, tc, 49);
+            wxString strn(tc, wxConvUTF8);
+            m_MarkLonCtl->SetLabel(strn);
+
+            int NbrOfLinks = m_pRoutePoint->m_HyperlinkList->GetCount();
+            HyperlinkList *hyperlinklist = m_pRoutePoint->m_HyperlinkList;
+            int len = 0;
+            if (NbrOfLinks > 0)
+            {
+                  wxHyperlinkListNode *linknode = hyperlinklist->GetFirst();
+                  wxHyperlinkCtrlListNode *ctrlnode = m_HyperlinkCtrlList->GetFirst();
+
+                  int i=0;
+                  while (linknode && ctrlnode && i<MAX_NUM_HYPERLINKS)
+                  {
+                        wxHyperlinkCtrl *ctrl = ctrlnode->GetData();
+                        Hyperlink *link = linknode->GetData();
+                        wxString Link = link->Link;
+                        wxString Descr = link->DescrText;
+
+                        ctrl->SetURL(Link);
+                        ctrl->SetLabel(Descr);
+
+                        int DescrLen = Descr.Length();
+                        if (DescrLen > len)
+                        {
+                              len = DescrLen;
+                              wxSize size = ctrl->GetBestSize();
+                              ctrl->SetSize(size);
+                              ctrl->Fit();
+                              ctrl->SetMinSize(size);
+                        }
+
+                        linknode = linknode->GetNext();
+                        ctrlnode = ctrlnode->GetNext();
+                        i++;
+                  }
+
+                  if (i < 3)
+                  {
+                        while (ctrlnode && i<MAX_NUM_HYPERLINKS)
+                        {
+                              wxHyperlinkCtrl *ctrl = ctrlnode->GetData();
+                              ctrl->SetURL("");
+                              ctrl->SetLabel("");
+
+                              ctrlnode = ctrlnode->GetNext();
+                              i++;
+                        }
+                  }
+            }
+
+            GetSizer()->Fit(this);
+            Centre();
+      }
+      return true;
+}
+
+bool MarkInfo::SaveChanges(void)
+{
+/*
+//  Get User input Text Fields
+      m_pRoutePoint->m_MarkName = m_MarkNameCtl->GetValue();
+
+      //    Here is some logic....
+      //    If the Markname is completely numeric, and is part of a route,
+      //    Then declare it to be of attribute m_bDynamicName = true
+      //    This is later used for re-numbering points on actions like
+      //    Insert Point, Delete Point, Append Point, etc
+
+      if(m_pRoutePoint->m_bIsInRoute)
+      {
+      bool b_name_is_numeric = true;
+      for(unsigned int i=0 ; i<m_pRoutePoint->m_MarkName.Len() ; i++)
+      {
+      if(wxChar('0') > m_pRoutePoint->m_MarkName[i])
+      b_name_is_numeric = false;
+      if(wxChar('9') < m_pRoutePoint->m_MarkName[i])
+      b_name_is_numeric = false;
+}
+
+      m_pRoutePoint->m_bDynamicName = b_name_is_numeric;
+}
+      else
+      m_pRoutePoint->m_bDynamicName = false;
+
+
+      if(m_pRoutePoint->m_bIsInRoute)
+      {
+      Route *pRoute = pRouteMan->FindRouteContainingWaypoint(m_pRoutePoint);
+      pConfig->UpdateRoute(pRoute);
+}
+      else
+      pConfig->UpdateWayPoint(m_pRoutePoint);
+
+      pConfig->UpdateSettings();
+*/
+      return true;
+}
+
+
+void MarkInfo::OnMarkinfoCancelClick( wxCommandEvent& event )
+{
+      //    Restore saved values for lat/lon and icon
+/*      m_pRoutePoint->m_lat = m_lat_save;
+      m_pRoutePoint->m_lon = m_lon_save;
+
+      m_pRoutePoint->m_pbmIcon = pWayPointMan->GetIconBitmap(m_IconName_save);
+*/
+      Show(false);
+      event.Skip();
+}
+
+
+void MarkInfo::OnMarkinfoOkClick( wxCommandEvent& event )
+{
+//    SaveChanges();              // write changes to globals and update config
+
+      Show(false);
+      event.Skip();
+}
 
 
 

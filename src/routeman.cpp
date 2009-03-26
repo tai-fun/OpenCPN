@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.11 2008/11/12 04:14:20 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.12 2009/03/26 22:30:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.12  2009/03/26 22:30:27  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.11  2008/11/12 04:14:20  bdbcat
  * Add member NMEA0183 object
  *
@@ -45,6 +48,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.12  2009/03/26 22:30:27  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.11  2008/11/12 04:14:20  bdbcat
  * Add member NMEA0183 object
  *
@@ -115,12 +121,6 @@
 
 #include <wx/listimpl.cpp>
 
-#ifdef __WXMSW__
-#if ocpnUSE_MSW_SERCOMM
-        #include "sercomm.h"
-#endif
-#endif
-
 #include "routeman.h"
 #include "concanv.h"
 #include "nmea.h"                   // for Autopilot
@@ -187,7 +187,7 @@ extern AutoPilotWindow  *pAPilot;
 extern WayPointman      *pWayPointMan;
 extern wxRect           g_blink_rect;
 
-extern float            gLat, gLon, gSog, gCog;
+extern double           gLat, gLon, gSog, gCog;
 
 //    List definitions for Waypoint Manager Icons
 WX_DECLARE_LIST(wxBitmap, markicon_bitmap_list_type);
@@ -202,7 +202,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.11 2008/11/12 04:14:20 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.12 2009/03/26 22:30:27 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -243,6 +243,68 @@ Route *Routeman::FindRouteContainingWaypoint(RoutePoint *pWP)
       }
 
       return NULL;                              // not found
+}
+
+//    Make a 2-D search to find the route containing both of two given waypoints
+Route *Routeman::FindRouteContainingTwoWaypoints(RoutePoint *pWP1, RoutePoint *pWP2)
+{
+      wxRouteListNode *route_node = pRouteList->GetFirst();
+      while(route_node)
+      {
+            Route *proute = route_node->GetData();
+
+            wxRoutePointListNode *waypoint_node = (proute->pRoutePointList)->GetFirst();
+            int match_count = 0;
+            while(waypoint_node)
+            {
+                  RoutePoint *prp = waypoint_node->GetData();
+                  if(prp == pWP1)                // success
+                        match_count++;
+                  if(prp == pWP2)                // success
+                        match_count++;
+
+                  if(match_count == 2)
+                        return proute;
+
+                  waypoint_node = waypoint_node->GetNext();           // next waypoint
+            }
+
+            route_node = route_node->GetNext();                         // next route
+      }
+
+      return NULL;                              // not found
+}
+
+wxArrayPtrVoid *Routeman::GetRouteArrayContaining(RoutePoint *pWP)
+{
+      wxArrayPtrVoid *pArray = new wxArrayPtrVoid;
+
+      wxRouteListNode *route_node = pRouteList->GetFirst();
+      while(route_node)
+      {
+            Route *proute = route_node->GetData();
+
+            wxRoutePointListNode *waypoint_node = (proute->pRoutePointList)->GetFirst();
+            while(waypoint_node)
+            {
+                  RoutePoint *prp = waypoint_node->GetData();
+                  if(prp == pWP)                // success
+                        pArray->Add((void *)proute);
+
+                  waypoint_node = waypoint_node->GetNext();           // next waypoint
+            }
+
+            route_node = route_node->GetNext();                         // next route
+      }
+
+      if(pArray->GetCount())
+            return pArray;
+
+      else
+      {
+            delete pArray;
+            return NULL;
+      }
 }
 
 
@@ -461,8 +523,6 @@ bool Routeman::UpdateProgress()
 
                   if(!ActivateNextPoint(pActiveRoute))            // at the end?
                           DeactivateRoute();
-
-//                  cc1->m_bForceReDraw = true;                     // cause a redraw if any RoutePoint changes
                 }
 
                 if(!bDidArrival)                                        // Only once on arrival
@@ -511,6 +571,8 @@ bool Routeman::UpdateAutopilot()
 
         if(pAPilot->IsOK())
         {
+                m_NMEA0183.TalkerID = _T("EC");
+
                 SENTENCE snt;
                 m_NMEA0183.Rmb.IsDataValid = NTrue;
                 m_NMEA0183.Rmb.CrossTrackError = CurrentXTEToActivePoint;
@@ -521,19 +583,32 @@ bool Routeman::UpdateAutopilot()
                       m_NMEA0183.Rmb.DirectionToSteer = Right;
 
 
-                str_buf.Printf(_T("%03d"), pActiveRoute->GetIndexOf(pActiveRouteSegmentBeginPoint));
-                wxString from = str_buf;
-                m_NMEA0183.Rmb.From = from;
+                m_NMEA0183.Rmb.To = pActivePoint->m_MarkName.Truncate(6);
+                m_NMEA0183.Rmb.From = pActiveRouteSegmentBeginPoint->m_MarkName.Truncate(6);
 
-                str_buf.Printf(_T("%03d"), pActiveRoute->GetIndexOf(pActivePoint));
-                wxString to = str_buf;
-                m_NMEA0183.Rmb.To = to;
+//                str_buf.Printf(_T("%03d"), pActiveRoute->GetIndexOf(pActiveRouteSegmentBeginPoint));
+//                wxString from = str_buf;
+//                m_NMEA0183.Rmb.From = from;
 
-                m_NMEA0183.Rmb.DestinationPosition.Latitude.Latitude = pActivePoint->m_lat;
-                m_NMEA0183.Rmb.DestinationPosition.Latitude.Northing = North;
+//                str_buf.Printf(_T("%03d"), pActiveRoute->GetIndexOf(pActivePoint));
+//                wxString to = str_buf;
+//                m_NMEA0183.Rmb.To = to;
 
-                m_NMEA0183.Rmb.DestinationPosition.Longitude.Longitude = fabs(pActivePoint->m_lon);
-                m_NMEA0183.Rmb.DestinationPosition.Longitude.Easting = West;
+                if(pActivePoint->m_lat < 0.)
+                      m_NMEA0183.Rmb.DestinationPosition.Latitude.Set(-pActivePoint->m_lat, _T("S"));
+                else
+                      m_NMEA0183.Rmb.DestinationPosition.Latitude.Set(pActivePoint->m_lat, _T("N"));
+
+                if(pActivePoint->m_lon < 0.)
+                      m_NMEA0183.Rmb.DestinationPosition.Longitude.Set(-pActivePoint->m_lon, _T("W"));
+                else
+                      m_NMEA0183.Rmb.DestinationPosition.Longitude.Set(pActivePoint->m_lon, _T("E"));
+
+ //               m_NMEA0183.Rmb.DestinationPosition.Latitude.Latitude = pActivePoint->m_lat;
+ //               m_NMEA0183.Rmb.DestinationPosition.Latitude.Northing = North;
+
+ //               m_NMEA0183.Rmb.DestinationPosition.Longitude.Longitude = fabs(pActivePoint->m_lon);
+ //               m_NMEA0183.Rmb.DestinationPosition.Longitude.Easting = West;
 
 
                 m_NMEA0183.Rmb.RangeToDestinationNauticalMiles = CurrentRngToActivePoint;
@@ -557,25 +632,34 @@ bool Routeman::UpdateAutopilot()
 
 void Routeman::DeleteRoute(Route *pRoute)
 {
+      //    Remove the route from associated lists
+      pSelect->DeleteAllSelectableRouteSegments(pRoute);
+      pRouteList->DeleteObject(pRoute);
+
       // walk the route, deleting points used only by this route
       wxRoutePointListNode *pnode = (pRoute->pRoutePointList)->GetFirst();
       while(pnode)
       {
             RoutePoint *prp = pnode->GetData();
+
+            // check all other routes to see if this point appears in any other route
+            Route *pcontainer_route = FindRouteContainingWaypoint(prp);
+
             if(prp->m_bDynamicName)                // Mark is a "route only" type
             {
-                  pConfig->DeleteWayPoint(prp);
-                  pSelect->DeleteSelectablePoint(prp, SELTYPE_ROUTEPOINT);
-                  delete prp;
+                  if(pcontainer_route == NULL)
+                  {
+                        pConfig->DeleteWayPoint(prp);
+                        pSelect->DeleteSelectablePoint(prp, SELTYPE_ROUTEPOINT);
+                        delete prp;
+                  }
             }
-            else
-                  prp->m_bIsInRoute = false;          // Take this point out of route
+            else if (pcontainer_route == NULL)
+               prp->m_bIsInRoute = false;          // Take this point out of this (and only) route
 
             pnode = pnode->GetNext();
       }
 
-      pSelect->DeleteAllSelectableRouteSegments(pRoute);
-      pRouteList->DeleteObject(pRoute);
       delete pRoute;
 }
 
@@ -629,11 +713,13 @@ void Routeman::AssembleAllRoutes(void)
 void Routeman::SetColorScheme(ColorScheme cs)
 {
       // Re-Create the pens and colors
-      m_pRoutePen =             wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
-      m_pSelectedRoutePen =     wxThePenList->FindOrCreatePen(wxColour(255,0,0), 2, wxSOLID);
-      m_pActiveRoutePen =       wxThePenList->FindOrCreatePen(wxColour(255,0,255), 2, wxSOLID);
+
+//      m_pRoutePen =             wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
+//      m_pSelectedRoutePen =     wxThePenList->FindOrCreatePen(wxColour(255,0,0), 2, wxSOLID);
+//      m_pActiveRoutePen =       wxThePenList->FindOrCreatePen(wxColour(255,0,255), 2, wxSOLID);
       m_pActiveRoutePointPen =  wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
       m_pRoutePointPen =        wxThePenList->FindOrCreatePen(wxColour(0,0,255), 2, wxSOLID);
+
 
 //    Or in something like S-52 compliance
 
@@ -644,17 +730,263 @@ void Routeman::SetColorScheme(ColorScheme cs)
 //      m_pRoutePointPen =        wxThePenList->FindOrCreatePen(GetGlobalColor(_T("CHBLK")), 2, wxSOLID);
 
 
-            //    Iterate on the RouteList to reload Icons
-/*
-      wxRouteListNode *node = pRouteList->GetFirst();
-      while(node)
-      {
-            Route *proute = node->GetData();
-            proute->ReloadRoutePointIcons();
-            node = node->GetNext();                   // Route
-      }
-*/
+
+      m_pRouteBrush =             wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UINFB")), wxSOLID);
+      m_pSelectedRouteBrush =     wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("CHRED")), wxSOLID);
+      m_pActiveRouteBrush =       wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("PLRTE")), wxSOLID);
+//      m_pActiveRoutePointBrush =  wxTheBrushList->FindOrCreatePen(GetGlobalColor(_T("PLRTE")), wxSOLID);
+//      m_pRoutePointBrush =        wxTheBrushList->FindOrCreatePen(GetGlobalColor(_T("CHBLK")), wxSOLID);
+
  }
+
+
+
+//-------------------------------------------------------------------------------
+//
+//   Route "Send to GPS..." Dialog Implementation
+//
+//-------------------------------------------------------------------------------
+
+
+IMPLEMENT_DYNAMIC_CLASS( SendToGpsDlg, wxDialog )
+
+BEGIN_EVENT_TABLE( SendToGpsDlg, wxDialog )
+      EVT_BUTTON( ID_STG_CANCEL, SendToGpsDlg::OnCancelClick )
+      EVT_BUTTON( ID_STG_OK, SendToGpsDlg::OnSendClick )
+END_EVENT_TABLE()
+
+
+
+SendToGpsDlg::SendToGpsDlg( )
+ {
+       m_itemCommListBox = NULL;
+       m_pgauge = NULL;
+       m_SendButton = NULL;
+       m_CancelButton = NULL;
+       m_pRoute = NULL;
+ }
+
+ SendToGpsDlg::SendToGpsDlg(  wxWindow* parent, wxWindowID id,
+                      const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
+{
+      Create(parent, id, caption, pos, size, style);
+}
+
+SendToGpsDlg::~SendToGpsDlg( )
+{
+      delete m_itemCommListBox;
+      delete m_pgauge;
+      delete m_SendButton;
+      delete m_CancelButton;
+}
+
+
+
+
+bool SendToGpsDlg::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
+{
+      SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS);
+      wxDialog::Create( parent, id, caption, pos, size, style );
+
+      CreateControls();
+      GetSizer()->Fit(this);
+      GetSizer()->SetSizeHints(this);
+      Centre();
+
+      return TRUE;
+}
+
+
+void SendToGpsDlg::CreateControls()
+{
+      SendToGpsDlg* itemDialog1 = this;
+
+      wxBoxSizer* itemBoxSizer2 = new wxBoxSizer(wxVERTICAL);
+      itemDialog1->SetSizer(itemBoxSizer2);
+
+//      Create the ScrollBox list of available com ports in a labeled staic box
+
+      wxStaticBox* comm_box = new wxStaticBox(this, wxID_ANY, _T("GPS/Plotter Port"));
+
+      wxStaticBoxSizer* comm_box_sizer = new wxStaticBoxSizer(comm_box, wxVERTICAL);
+      itemBoxSizer2->Add(comm_box_sizer, 0, wxEXPAND|wxALL, 5);
+
+
+      wxArrayString *pSerialArray = EnumerateSerialPorts();
+
+      m_itemCommListBox = new wxComboBox(this, ID_STG_CHOICE_COMM);
+
+      //    Fill in the listbox with all detected serial ports
+      for (unsigned int iPortIndex=0 ; iPortIndex < pSerialArray->GetCount() ; iPortIndex++)
+            m_itemCommListBox->Append( pSerialArray->Item(iPortIndex) );
+
+      //    Make the proper inital selection
+      int sidx = 0;
+      m_itemCommListBox->SetSelection(sidx);
+
+      comm_box_sizer->Add(m_itemCommListBox, 0, wxEXPAND|wxALL, 5);
+
+      //    Add a reminder text box
+      itemBoxSizer2->AddSpacer(20);
+
+      wxStaticText *premtext = new wxStaticText(this, -1, _T("Prepare GPS for Route/Waypoint upload and press Send..."));
+      itemBoxSizer2->Add(premtext, 0, wxEXPAND|wxALL, 10);
+
+      //    Create a progress gauge
+      wxStaticBox* prog_box = new wxStaticBox(this, wxID_ANY, _T("Progress..."));
+
+      wxStaticBoxSizer* prog_box_sizer = new wxStaticBoxSizer(prog_box, wxVERTICAL);
+      itemBoxSizer2->Add(prog_box_sizer, 0, wxEXPAND|wxALL, 5);
+
+      m_pgauge = new wxGauge(this, -1, 100);
+      prog_box_sizer->Add(m_pgauge, 0, wxEXPAND|wxALL, 5);
+
+
+      //    OK/Cancel/etc.
+      wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
+      itemBoxSizer2->Add(itemBoxSizer16, 0, wxALIGN_RIGHT|wxALL, 5);
+
+      m_CancelButton = new wxButton( itemDialog1, ID_STG_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+      itemBoxSizer16->Add(m_CancelButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+      m_SendButton = new wxButton( itemDialog1, ID_STG_OK, _("Send"), wxDefaultPosition, wxDefaultSize, 0 );
+      itemBoxSizer16->Add(m_SendButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+      m_SendButton->SetDefault();
+
+/*
+                            MarkProp* itemDialog1 = this;
+
+                            wxBoxSizer* itemBoxSizer2 = new wxBoxSizer(wxVERTICAL);
+                            itemDialog1->SetSizer(itemBoxSizer2);
+
+                            wxStaticBox* itemStaticBoxSizer3Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Properties"));
+
+                            wxStaticBoxSizer* itemStaticBoxSizer3 = new wxStaticBoxSizer(itemStaticBoxSizer3Static, wxVERTICAL);
+                            itemBoxSizer2->Add(itemStaticBoxSizer3, 1, wxEXPAND|wxALL, 5);
+
+                            wxStaticText* itemStaticText4 = new wxStaticText( itemDialog1, wxID_STATIC, _("Mark Name"), wxDefaultPosition, wxDefaultSize, 0 );
+                            itemStaticBoxSizer3->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+                            m_MarkNameCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(-1, -1), 0 );
+                            itemStaticBoxSizer3->Add(m_MarkNameCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
+
+                            m_ShowNameCheckbox = new wxCheckBox( itemDialog1, ID_SHOWNAMECHECKBOX1, _("Show Name"), wxDefaultPosition, wxSize(-1, -1), 0 );
+                            itemStaticBoxSizer3->Add(m_ShowNameCheckbox, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
+
+                            wxStaticText* itemStaticText4a= new wxStaticText( itemDialog1, wxID_STATIC, _("Mark Icon"), wxDefaultPosition, wxDefaultSize, 0 );
+                            itemStaticBoxSizer3->Add(itemStaticText4a, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+                            m_IconList = new wxListCtrl( itemDialog1, ID_ICONCTRL, wxDefaultPosition, wxSize(300, 100),
+                                        wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES );
+                            itemStaticBoxSizer3->Add(m_IconList, 2, wxEXPAND|wxALL, 5);
+
+
+                            wxStaticBox* itemStaticBoxSizer4Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Position"));
+
+                            wxStaticBoxSizer* itemStaticBoxSizer4 = new wxStaticBoxSizer(itemStaticBoxSizer4Static, wxVERTICAL);
+                            itemBoxSizer2->Add(itemStaticBoxSizer4, 0, wxEXPAND|wxALL, 5);
+
+                            wxStaticText* itemStaticText5 = new wxStaticText( itemDialog1, wxID_STATIC, _("Latitude"), wxDefaultPosition, wxDefaultSize, 0 );
+                            itemStaticBoxSizer4->Add(itemStaticText5, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+                            m_MarkLatCtl = new LatLonTextCtrl( itemDialog1, ID_LATCTRL, _T(""), wxDefaultPosition, wxSize(180, -1), 0 );
+                            itemStaticBoxSizer4->Add(m_MarkLatCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
+
+
+                            wxStaticText* itemStaticText6 = new wxStaticText( itemDialog1, wxID_STATIC, _("Longitude"), wxDefaultPosition, wxDefaultSize, 0 );
+                            itemStaticBoxSizer4->Add(itemStaticText6, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+
+                            m_MarkLonCtl = new LatLonTextCtrl( itemDialog1, ID_LONCTRL, _T(""), wxDefaultPosition, wxSize(180, -1), 0 );
+                            itemStaticBoxSizer4->Add(m_MarkLonCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
+
+                            wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
+                            itemBoxSizer2->Add(itemBoxSizer16, 0, wxALIGN_RIGHT|wxALL, 5);
+
+                            m_CancelButton = new wxButton( itemDialog1, ID_MARKPROP_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+                            itemBoxSizer16->Add(m_CancelButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+                            m_OKButton = new wxButton( itemDialog1, ID_MARKPROP_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+                            itemBoxSizer16->Add(m_OKButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+                            m_OKButton->SetDefault();
+
+    //  Fill in list control
+
+                            m_IconList->Hide();
+
+                            int client_x, client_y;
+                            m_IconList->GetClientSize(&client_x, &client_y);
+
+                            m_IconList->SetImageList(pWayPointMan->Getpmarkicon_image_list(), wxIMAGE_LIST_SMALL);
+
+                            wxListItem itemCol0;
+                            itemCol0.SetImage(-1);
+                            itemCol0.SetText(_T("Icon"));
+
+                            m_IconList->InsertColumn(0, itemCol0);
+                            m_IconList->SetColumnWidth( 0, 40 );
+
+                            wxListItem itemCol;
+                            itemCol.SetText(_T("Description"));
+                            itemCol.SetImage(-1);
+                            itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+                            m_IconList->InsertColumn(1, itemCol);
+                            m_IconList->SetColumnWidth( 1, client_x - 56 );
+
+
+    //      Iterate on the Icon Descriptions, filling in the control
+
+                            for(int i = 0 ; i < pWayPointMan->GetNumIcons() ; i++)
+                            {
+                                  wxString *ps = pWayPointMan->GetIconDescription(i);
+
+                                  long item_index = m_IconList->InsertItem(i, _T(""), 0);
+                                  m_IconList->SetItem(item_index, 1, *ps);
+
+                                  m_IconList->SetItemImage(item_index,i);
+                            }
+
+                            m_IconList->Show();
+
+                            SetColorScheme((ColorScheme)0);
+*/
+}
+
+
+void SendToGpsDlg::OnSendClick( wxCommandEvent& event )
+{
+      //    Get the selected comm port
+      int i = m_itemCommListBox->GetSelection();
+      wxString src(m_itemCommListBox->GetString(i));
+
+      //    And send it out
+      if(m_pRoute)
+            m_pRoute->SendToGPS(src, true, m_pgauge);
+
+      Show(false);
+      event.Skip();
+}
+
+void SendToGpsDlg::OnCancelClick( wxCommandEvent& event )
+{
+      Show(false);
+      event.Skip();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //--------------------------------------------------------------------------------
 //      WayPointman   Implementation
@@ -1032,4 +1364,28 @@ wxString WayPointman::CreateGUID(RoutePoint *pRP)
       GUID.Printf(_T("%d-%d-%d"), ((int)fabs(pRP->m_lat * 1e4)), ((int)fabs(pRP->m_lon * 1e4)), (int)ticks);
       return GUID;
 }
+
+RoutePoint *WayPointman::GetNearbyWaypoint(double lat, double lon, double radius_meters)
+{
+      //    Iterate on the RoutePoint list, checking distance
+
+      wxRoutePointListNode *node = m_pWayPointList->GetFirst();
+      while(node)
+      {
+            RoutePoint *pr = node->GetData();
+
+            double a = lat - pr->m_lat;
+            double b = lon - pr->m_lon;
+            double l = sqrt((a*a) + (b*b));
+
+            if((l * 60. * 1852.) < radius_meters)
+                  return pr;
+
+            node = node->GetNext();
+      }
+      return NULL;
+
+}
+
+
 

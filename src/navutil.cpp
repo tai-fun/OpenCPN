@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.22  2009/03/26 22:29:39  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.21  2008/12/22 18:38:56  bdbcat
  * Add NMEA Debug flag
  *
@@ -61,6 +64,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.22  2009/03/26 22:29:39  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.21  2008/12/22 18:38:56  bdbcat
  * Add NMEA Debug flag
  *
@@ -148,7 +154,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.21 2008/12/22 18:38:56 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.22 2009/03/26 22:29:39 bdbcat Exp $");
 
 //    Statics
 
@@ -162,8 +168,8 @@ extern RouteList        *pRouteList;
 extern Select           *pSelect;
 extern MyConfig         *pConfig;
 extern wxArrayString    *pChartDirArray;
-extern float            vLat, vLon, gLat, gLon;
-extern float            kLat, kLon;
+extern double           vLat, vLon, gLat, gLon;
+extern double           kLat, kLon;
 extern double           initial_scale_ppm;
 extern ColorScheme      global_color_scheme;
 
@@ -183,6 +189,7 @@ extern wxString         *pSData_Locn;
 extern wxString         *pInit_Chart_Dir;
 extern WayPointman      *pWayPointMan;
 extern Routeman         *pRouteMan;
+extern ComPortManager   *g_pCommMan;
 
 extern bool             s_bSetSystemTime;
 extern bool             g_bShowDepthUnits;
@@ -200,6 +207,33 @@ extern wxRect           g_blink_rect;
 
 extern wxArrayString    *pMessageOnceArray;
 
+//    AIS Global configuration
+extern bool             g_bCPAMax;
+extern double           g_CPAMax_NM;
+extern bool             g_bCPAWarn;
+extern double           g_CPAWarn_NM;
+extern bool             g_bTCPA_Max;
+extern double           g_TCPA_Max;
+extern bool             g_bMarkLost;
+extern double           g_MarkLost_Mins;
+extern bool             g_bRemoveLost;
+extern double           g_RemoveLost_Mins;
+extern bool             g_bShowCOG;
+extern double           g_ShowCOG_Mins;
+extern bool             g_bShowTracks;
+extern double           g_ShowTracks_Mins;
+extern bool             g_bShowMoored;
+extern double           g_ShowMoored_Kts;
+
+extern bool             g_bShowPrintIcon;
+extern bool             g_bShowGPXIcons;              // toh, 2009.02.14
+extern bool             g_bNavAidShowRadarRings;            // toh, 2009.02.24
+extern int              g_iNavAidRadarRingsNumberVisible;   // toh, 2009.02.24
+extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
+extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
+extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
+
+
 #ifdef USE_S57
 extern s52plib          *ps52plib;
 #endif
@@ -210,6 +244,7 @@ extern s52plib          *ps52plib;
 WX_DEFINE_LIST(RouteList);
 WX_DEFINE_LIST(SelectableItemList);
 WX_DEFINE_LIST(RoutePointList);
+WX_DEFINE_LIST(HyperlinkList);            // toh, 2009.02.22
 
 //-----------------------------------------------------------------------------
 //          Select
@@ -625,6 +660,8 @@ RoutePoint::RoutePoint(double lat, double lon, const wxString& icon_ident, const
       m_NameLocationOffsetX = -10;
       m_NameLocationOffsetY = 8;
 
+      // toh, 2009.02.22
+      m_HyperlinkList = new HyperlinkList;
 
       wxString GUID = pWayPointMan->CreateGUID(this);
 
@@ -827,6 +864,19 @@ void RoutePoint::CalculateDCRect(wxDC& dc, wxRect *prect)
 
 }
 
+// toh, 2009.02.23
+bool RoutePoint::IsSame(RoutePoint *pOtherRP)
+{
+      bool IsSame = false;
+
+      if (this->m_MarkName == pOtherRP->m_MarkName)
+      {
+            if (fabs(this->m_lat-pOtherRP->m_lat) < 1.e-6 && fabs(this->m_lon-pOtherRP->m_lon) < 1.e-6)
+                  IsSame = true;
+      }
+      return IsSame;
+}
+
 
 
 
@@ -842,6 +892,7 @@ Route::Route(void)
       m_bIsBeingEdited = false;
       m_bIsBeingCreated = false;
       m_nPoints = 0;
+      m_nm_sequence = 1;
 
       pRoutePointList = new RoutePointList;
 
@@ -913,7 +964,7 @@ void Route::DrawPointWhich(wxDC& dc, int iPoint, wxPoint *rpn)
 
 
 
-void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2)
+void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, double scale_ppm, bool bdraw_arrow)
 {
       if(m_bRtIsSelected)
             dc.SetPen(*pRouteMan->GetSelectedRoutePen());
@@ -922,21 +973,31 @@ void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2)
       else
             dc.SetPen(*pRouteMan->GetRoutePen());
 
-      DrawRouteLine(dc, rp1->x, rp1->y, rp2->x, rp2->y);            // with clipping
+      DrawRouteLine(dc, rp1->x, rp1->y, rp2->x, rp2->y, scale_ppm, bdraw_arrow);            // with clipping
 }
 
 
 
 
-void Route::DrawRoute(wxDC& dc)
+void Route::DrawRoute(wxDC& dc, double scale_ppm)
 {
 
       if(m_bRtIsSelected)
+      {
             dc.SetPen(*pRouteMan->GetRoutePen());
+            dc.SetBrush(*pRouteMan->GetRouteBrush());
+      }
       else if(m_bRtIsActive)
+      {
             dc.SetPen(*pRouteMan->GetActiveRoutePen());
+            dc.SetBrush(*pRouteMan->GetActiveRouteBrush());
+      }
       else
+      {
             dc.SetPen(*pRouteMan->GetRoutePen());
+            dc.SetBrush(*pRouteMan->GetRouteBrush());
+      }
+
 
 
       wxPoint rpt, rptn;
@@ -950,14 +1011,24 @@ void Route::DrawRoute(wxDC& dc)
 
             RoutePoint *prp = node->GetData();
             prp->DrawPoint(dc, &rptn);
-            DrawRouteLine(dc, rpt.x, rpt.y, rptn.x, rptn.y);            // with clipping
+            DrawRouteLine(dc, rpt.x, rpt.y, rptn.x, rptn.y, scale_ppm, true);            // with clipping
             rpt = rptn;
 
             node = node->GetNext();
       }
 }
 
-void Route::DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb)
+static int s_arrow_icon[] = {
+      0, 0,
+      5, 2,
+      18, 6,
+      12, 0,
+      18,-6,
+      5, -2,
+      0, 0
+};
+
+void Route::DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb, double scale_ppm, bool bdraw_arrow)
 {
       //    Get the dc boundary
       int sx, sy;
@@ -971,37 +1042,57 @@ void Route::DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb)
 
       if(Visible == cohen_sutherland_line_clip_i (&x0, &y0, &x1, &y1, 0, sx, 0, sy))
             dc.DrawLine(x0, y0, x1, y1);
+
+      if(bdraw_arrow)
+      {
+      //    Draw a direction arrow
+
+            double theta = atan2((yb-ya), (xb-xa));
+            theta -= PI / 2;
+
+
+            wxPoint icon[10];
+            double icon_scale_factor = 100 * scale_ppm;
+            icon_scale_factor = fmin(icon_scale_factor, 1.5);
+            icon_scale_factor = fmax(icon_scale_factor, 1.0);
+
+            for ( int i=0; i<7; i++ )
+            {
+                  int j = i * 2;
+                  double pxa = ( double ) (s_arrow_icon[j]  );
+                  double pya = ( double ) (s_arrow_icon[j+1]);
+
+                  pya *=  icon_scale_factor;
+                  pxa *=  icon_scale_factor;
+
+                  double px = ( pxa * sin ( theta ) ) + ( pya * cos ( theta ) );
+                  double py = ( pya * sin ( theta ) ) - ( pxa * cos ( theta ) );
+
+                  icon[i].x = ( int ) ( px ) + xb;
+                  icon[i].y = ( int ) ( py ) + yb;
+            }
+            dc.DrawPolygon ( 6, &icon[0], 0, 0 );
+      }
+
+
 }
 
 
-RoutePoint *Route::InsertPointBefore(RoutePoint *pRP, float rlat, float rlon)
+RoutePoint *Route::InsertPointBefore(RoutePoint *pRP, float rlat, float rlon, bool bRenamePoints)
 {
-      RoutePoint *newpoint = new RoutePoint(rlat, rlon, wxString(_T("diamond")), wxString(_T("")), NULL);
+      RoutePoint *newpoint = new RoutePoint(rlat, rlon, wxString(_T("diamond")), GetNewMarkSequenced(), NULL);
       newpoint->m_bIsInRoute = true;
-      newpoint->m_bDynamicName = true;
+      newpoint->m_bDynamicName = false;  //true;
 
       int nRP = pRoutePointList->IndexOf(pRP);
       pRoutePointList->Insert(nRP, newpoint);
 
       RoutePointGUIDList.Insert(pRP->m_GUID, nRP);
 
-      //    iterate on the points.
-      //    If dynamically named, rename according to list position
-
-      wxRoutePointListNode *node = pRoutePointList->GetFirst();
-
-      int i = 1;
-      while (node)
-      {
-            RoutePoint *prp = node->GetData();
-            if(prp->m_bDynamicName)
-                  prp->m_MarkName.Printf(_T("%03d"), i);
-
-            node = node->GetNext();
-            i++;
-      }
-
       m_nPoints++;
+
+      if(bRenamePoints)
+            RenameRoutePoints();
 
       CalculateBBox();
       UpdateSegmentDistances();
@@ -1009,6 +1100,15 @@ RoutePoint *Route::InsertPointBefore(RoutePoint *pRP, float rlat, float rlon)
       return(newpoint);
 }
 
+
+wxString Route::GetNewMarkSequenced(void)
+{
+      wxString ret;
+      ret.Printf(_T("NM%03d"), m_nm_sequence);
+      m_nm_sequence++;
+
+      return ret;
+}
 
 RoutePoint *Route::GetLastPoint()
 {
@@ -1033,34 +1133,49 @@ int Route::GetIndexOf(RoutePoint *prp)
 
 }
 
-void Route::DeletePoint(RoutePoint *rp)
+void Route::DeletePoint(RoutePoint *rp, bool bRenamePoints)
 {
       pRoutePointList->DeleteObject(rp);
       RoutePointGUIDList.Remove(rp->m_GUID);
 
       delete rp;
 
-      //    iterate on the route points.
-      //    If dynamically named, rename according to current list position
-
-      wxRoutePointListNode *node = pRoutePointList->GetFirst();
-
-      int i = 1;
-      while (node)
-      {
-            RoutePoint *prp = node->GetData();
-            if(prp->m_bDynamicName)
-                  prp->m_MarkName.Printf(_T("%03d"), i);
-
-            node = node->GetNext();
-            i++;
-      }
-
       m_nPoints -= 1;
+
+      if(bRenamePoints)
+            RenameRoutePoints();
 
       CalculateBBox();
       UpdateSegmentDistances();
 }
+
+void Route::RemovePoint(RoutePoint *rp, bool bRenamePoints)
+{
+      pRoutePointList->DeleteObject(rp);
+      RoutePointGUIDList.Remove(rp->m_GUID);
+      m_nPoints -= 1;
+
+
+      // check all other routes to see if this point appears in any other route
+      Route *pcontainer_route = pRouteMan->FindRouteContainingWaypoint(rp);
+
+      if(rp->m_bDynamicName)                // Mark is a "route only" type
+      {
+            if(pcontainer_route == NULL)
+                  rp->m_bDynamicName = false;
+      }
+      else if (pcontainer_route == NULL)
+            rp->m_bIsInRoute = false;          // Take this point out of this (and only) route
+
+
+      if(bRenamePoints)
+            RenameRoutePoints();
+
+      CalculateBBox();
+      UpdateSegmentDistances();
+}
+
+
 
 void Route::DeSelectRoute()
 {
@@ -1130,14 +1245,14 @@ void Route::CalculateBBox()
 
 }
 
-void Route::CalculateDCRect(wxDC& dc_route, wxRect *prect)
+void Route::CalculateDCRect(wxDC& dc_route, wxRect *prect, double scale_ppm)
 {
 
     dc_route.ResetBoundingBox();
     dc_route.DestroyClippingRegion();
 
     // Draw the route on the dc
-    DrawRoute(dc_route);
+    DrawRoute(dc_route, scale_ppm);
 
     //  Retrieve the drawing extents
     prect->x = dc_route.MinX() - 1;
@@ -1223,7 +1338,7 @@ void Route::Reverse(bool bRenamePoints)
       pRoutePointList->Clear();
       m_nPoints = 0;
 
-      AssembleRoute();                          // Rebuild the route points
+      AssembleRoute();                          // Rebuild the route points from the GUID list
 
       if(bRenamePoints)
             RenameRoutePoints();
@@ -1270,6 +1385,9 @@ void Route::AssembleRoute(void)
 
 void Route::RenameRoutePoints(void)
 {
+     //    iterate on the route points.
+     //    If dynamically named, rename according to current list position
+
       wxRoutePointListNode *node = pRoutePointList->GetFirst();
 
       int i = 1;
@@ -1285,9 +1403,96 @@ void Route::RenameRoutePoints(void)
 }
 
 
+ bool Route::SendToGPS(wxString& com_name, bool bsend_waypoints, wxGauge *pProgress)
+{
+      SENTENCE snt;
+      NMEA0183    oNMEA0183;
+      oNMEA0183.TalkerID = _T("EC");
+
+      int nProg = pRoutePointList->GetCount() + 1;
+      if(pProgress)
+            pProgress->SetRange(100);
+
+      //    Send out the waypoints, in order
+      if(bsend_waypoints)
+      {
+            wxRoutePointListNode *node = pRoutePointList->GetFirst();
+
+            int ip = 1;
+            while (node)
+            {
+                  RoutePoint *prp = node->GetData();
+
+                  if(prp->m_lat < 0.)
+                        oNMEA0183.Wpl.Position.Latitude.Set(-prp->m_lat, _T("S"));
+                  else
+                        oNMEA0183.Wpl.Position.Latitude.Set(prp->m_lat, _T("N"));
+
+                  if(prp->m_lon < 0.)
+                        oNMEA0183.Wpl.Position.Longitude.Set(-prp->m_lon, _T("W"));
+                  else
+                        oNMEA0183.Wpl.Position.Longitude.Set(prp->m_lon, _T("E"));
+
+
+                  oNMEA0183.Wpl.To = prp->m_MarkName.Truncate(6);
+
+                  oNMEA0183.Wpl.Write(snt);
+
+//                  printf("%s", snt.Sentence.mb_str());
+                  g_pCommMan->WriteComPort(com_name, snt.Sentence);
+
+                  if(pProgress)
+                  {
+                        pProgress->SetValue((ip * 100) / nProg);
+                        pProgress->Refresh();
+                  }
+
+                  wxMilliSleep(100);
+
+                  node = node->GetNext();
+
+                  ip++;
+            }
+      }
+
+      //    Create the NMEA Rte sentence
+
+      oNMEA0183.Rte.Empty();
+      oNMEA0183.Rte.TypeOfRoute = CompleteRoute;
+
+      if(m_RouteNameString.IsEmpty())
+            oNMEA0183.Rte.RouteName = _T("(NO NAME)");
+      else
+            oNMEA0183.Rte.RouteName = m_RouteNameString;
+
+      oNMEA0183.Rte.total_number_of_messages     = 1;
+      oNMEA0183.Rte.message_number               = 1;
+
+      //    add the waypoints
+      wxRoutePointListNode *node = pRoutePointList->GetFirst();
+      while (node)
+      {
+            RoutePoint *prp = node->GetData();
+            oNMEA0183.Rte.AddWaypoint(prp->m_MarkName.Truncate(6));
+            node = node->GetNext();
+      }
+
+
+      oNMEA0183.Rte.Write(snt);
+
+//      printf("%s", snt.Sentence.mb_str());
+      g_pCommMan->WriteComPort(com_name, snt.Sentence);
+
+
+      wxMilliSleep(100);
+
+      return true;
+}
+
+
 
 //-----------------------------------------------------------------------------
-//          MyConfig
+//          MyConfig Implementation
 //-----------------------------------------------------------------------------
 
 
@@ -1341,6 +1546,50 @@ int MyConfig::LoadMyConfig(int iteration)
       Read(_T("FrameWinY"), &g_nframewin_y);
       Read(_T("FrameMax"),  &g_bframemax);
 
+
+      //    AIS
+      wxString s;
+      SetPath(_T("/Settings/AIS"));
+
+      Read(_T("bNoCPAMax"), &g_bCPAMax);
+
+      Read(_T("NoCPAMaxNMi"),  &s);
+      s.ToDouble(&g_CPAMax_NM);
+
+      Read(_T("bCPAWarn"), &g_bCPAWarn);
+
+      Read(_T("CPAWarnNMi"),  &s);
+      s.ToDouble(&g_CPAWarn_NM);
+
+      Read(_T("bTCPAMax"), &g_bTCPA_Max);
+
+      Read(_T("TCPAMaxMinutes"),  &s);
+      s.ToDouble(&g_TCPA_Max);
+
+      Read(_T("bMarkLostTargets"), &g_bMarkLost);
+
+      Read(_T("MarkLost_Minutes"),  &s);
+      s.ToDouble(&g_MarkLost_Mins);
+
+      Read(_T("bRemoveLostTargets"), &g_bRemoveLost);
+
+      Read(_T("RemoveLost_Minutes"),  &s);
+      s.ToDouble(&g_RemoveLost_Mins);
+
+      Read(_T("bShowCOGArrows"), &g_bShowCOG);
+
+      Read(_T("CogArrowMinutes"),  &s);
+      s.ToDouble(&g_ShowCOG_Mins);
+
+      Read(_T("bShowTargetTracks"), &g_bShowTracks);
+
+      Read(_T("TargetTracksMinutes"),  &s);
+      s.ToDouble(&g_ShowTracks_Mins);
+
+      Read(_T("bShowMooredTargets"), &g_bShowMoored);
+
+      Read(_T("MooredTargetMaxSpeedKnots"),  &s);
+      s.ToDouble(&g_ShowMoored_Kts);
 
 #ifdef USE_S57
     if(NULL != ps52plib)
@@ -1479,6 +1728,9 @@ int MyConfig::LoadMyConfig(int iteration)
 
             if((st_lon > -179.9) && (st_lon < 179.9))
                   vLon = st_lon;
+
+            wxString s;
+            s.Printf(_T("Setting Viewpoint Lat/Lon %g, %g"), vLat, vLon);
       }
 
       if(Read(wxString(_T("VPScale")), &st))
@@ -1492,9 +1744,13 @@ int MyConfig::LoadMyConfig(int iteration)
 
 
       wxString sll;
+      float lat, lon;
       if(Read(_T("OwnShipLatLon"), &sll))
-            sscanf(sll.mb_str(wxConvUTF8), "%f,%f", &gLat, &gLon);
-
+      {
+            sscanf(sll.mb_str(wxConvUTF8), "%f,%f", &lat, &lon);
+            gLat = lat;
+            gLon = lon;
+      }
 
 
 #ifdef USE_S57
@@ -1867,6 +2123,49 @@ int MyConfig::LoadMyConfig(int iteration)
                               pWP->m_NameLocationOffsetY = tmp_prop;
                             }
 
+
+                                              // Get hyperlinks; toh, 2009.02.23
+                            wxString str_hyperlinks;
+                            wxString sipb3 = sipb;
+                            sipb3.Append(_T("Link"));
+
+                            bool cont = true;
+                            int i=1;
+                            while (cont)
+                            {
+                                  wxString sipb4 = sipb3;
+                                  wxString buf;
+                                  buf.Printf(_T("%d"), i);
+                                  sipb4.Append(buf);
+
+                                  cont = Read(sipb4, &str_hyperlinks);                          // hyperlinks
+
+                                  if(cont && !str_hyperlinks.IsEmpty())
+                                  {
+                                        Hyperlink *link;
+                                        link = new Hyperlink;
+
+                                        wxStringTokenizer tkp(str_hyperlinks, _T("^"));
+
+                                        token = tkp.GetNextToken();
+                                        link->Link = token;
+
+                                        token = tkp.GetNextToken();
+
+                                        if (token.Length() > 0)
+                                              link->DescrText = token;
+
+                                        token = tkp.GetNextToken();
+
+                                        if (token.Length() > 0)
+                                              link->Type = token;
+
+                                        pWP->m_HyperlinkList->Append(link);
+                                  }
+                                  i++;
+                            }
+
+
                             pSelect->AddSelectablePoint(rlat, rlon, pWP);
                             pWP->m_ConfigWPNum = MarkNum;
 
@@ -1913,6 +2212,33 @@ int MyConfig::LoadMyConfig(int iteration)
             }
       }
       */
+
+            // XML, toh, 2009.02.10
+      SetPath(_T("/Settings/Others"));
+      g_bShowGPXIcons = false;
+      Read(_T("ShowGPXIcons"), &g_bShowGPXIcons);
+
+      // Radar rings
+      g_bNavAidShowRadarRings = false;          // toh, 2009.02.24
+      Read(_T("ShowRadarRings"), &g_bNavAidShowRadarRings);
+
+      g_iNavAidRadarRingsNumberVisible = 1;     // toh, 2009.02.24
+      Read(_T("RadarRingsNumberVisible"), &val);
+      if (val.Length() > 0)
+            g_iNavAidRadarRingsNumberVisible = atoi(val.mb_str());
+
+      g_fNavAidRadarRingsStep = 1.0;            // toh, 2009.02.24
+      Read(_T("RadarRingsStep"), &val);
+      if (val.Length() > 0)
+            g_fNavAidRadarRingsStep = atof(val.mb_str());
+
+      g_pNavAidRadarRingsStepUnits = 0;         // toh, 2009.02.24
+      Read(_T("RadarRingsStepUnits"), &g_pNavAidRadarRingsStepUnits);
+
+      // Waypoint dragging with mouse
+      g_bWayPointPreventDragging = false;       // toh, 2009.02.24
+      Read(_T("WaypointPreventDragging"), &g_bWayPointPreventDragging);
+
 
       return(0);
 }
@@ -2073,6 +2399,44 @@ bool MyConfig::AddNewWayPoint(RoutePoint *pWP, int crm)
       str_buf1.Printf(_T("%d,%d"), pWP->m_NameLocationOffsetX, pWP->m_NameLocationOffsetY);
       Write(str_buf, str_buf1);
 
+            // toh, 2009.02.23
+      int NbrLinks = pWP->m_HyperlinkList->GetCount();
+      if (NbrLinks > 0)
+      {
+            HyperlinkList *hyperlinklist = pWP->m_HyperlinkList;
+
+            wxHyperlinkListNode *linknode = hyperlinklist->GetFirst();
+
+            int i=1;
+            while (linknode)
+            {
+                  Hyperlink *link = linknode->GetData();
+                  wxString Link = link->Link;
+                  wxString Descr = link->DescrText;
+                  linknode = linknode->GetNext();
+
+                  wxString t(_T("RoutePointLink"));
+                  str_buf.Printf(_T("%d"), i);
+                  t.Append(str_buf);
+
+                  str_buf1 = _T("");
+                  str_buf1.Append(link->Link);
+                  if (link->DescrText.Length() > 0)
+                  {
+                        str_buf1.Append(_T("^"));
+                        str_buf1.Append(link->DescrText);
+                  }
+                  if (link->Type.Length() > 0)
+                  {
+                        str_buf1.Append(_T("^"));
+                        str_buf1.Append(link->Type);
+                  }
+                  Write(t, str_buf1);
+                  i++;
+            }
+      }
+
+
       Flush();
 
       pWP->m_ConfigWPNum = acrm;
@@ -2216,8 +2580,29 @@ void MyConfig::UpdateSettings()
       Write(_T("FrameWinY"), g_nframewin_y);
       Write(_T("FrameMax"),  g_bframemax);
 
+            //    AIS
+      SetPath(_T("/Settings/AIS"));
+
+      Write(_T("bNoCPAMax"), g_bCPAMax);
+      Write(_T("NoCPAMaxNMi"),  g_CPAMax_NM);
+      Write(_T("bCPAWarn"), g_bCPAWarn);
+      Write(_T("CPAWarnNMi"),  g_CPAWarn_NM);
+      Write(_T("bTCPAMax"), g_bTCPA_Max);
+      Write(_T("TCPAMaxMinutes"),  g_TCPA_Max);
+      Write(_T("bMarkLostTargets"), g_bMarkLost);
+      Write(_T("MarkLost_Minutes"),  g_MarkLost_Mins);
+      Write(_T("bRemoveLostTargets"), g_bRemoveLost);
+      Write(_T("RemoveLost_Minutes"),  g_RemoveLost_Mins);
+      Write(_T("bShowCOGArrows"), g_bShowCOG);
+      Write(_T("CogArrowMinutes"),  g_ShowCOG_Mins);
+      Write(_T("bShowTargetTracks"), g_bShowTracks);
+      Write(_T("TargetTracksMinutes"),  g_ShowTracks_Mins);
+      Write(_T("bShowMooredTargets"), g_bShowMoored);
+      Write(_T("MooredTargetMaxSpeedKnots"),  g_ShowMoored_Kts);
+
 
 #ifdef USE_S57
+      SetPath(_T("/Settings/GlobalState"));
       Write(_T("bShowS57Text"), ps52plib->GetShowS57Text());
       Write(_T("nDisplayCategory"), (long)ps52plib->m_nDisplayCategory);
       Write(_T("nSymbolStyle"), (int)ps52plib->m_nSymbolStyle);
@@ -2301,6 +2686,20 @@ void MyConfig::UpdateSettings()
             Write(cfstring, valstring);
       }
 
+
+      SetPath(_T("/Settings/Others"));
+      Write(_T("ShowGPXIcons"), g_bShowGPXIcons);
+
+      // Radar rings; toh, 2009.02.24
+      Write(_T("ShowRadarRings"), g_bNavAidShowRadarRings);
+      Write(_T("RadarRingsNumberVisible"), g_iNavAidRadarRingsNumberVisible);
+      Write(_T("RadarRingsStep"), g_fNavAidRadarRingsStep);
+      Write(_T("RadarRingsStepUnits"), g_pNavAidRadarRingsStepUnits);
+
+      // Waypoint dragging with mouse; toh, 2009.02.24
+      Write(_T("WaypointPreventDragging"), g_bWayPointPreventDragging);
+
+
       Flush();
 
       /*
@@ -2309,6 +2708,256 @@ void MyConfig::UpdateSettings()
       WriteXMLNavObj(_T("test.xml"));
       */
 }
+
+// toh, 2009.02.15
+void MyConfig::ExportGPX(wxWindow* parent)
+{
+      wxFileDialog *saveDialog = new wxFileDialog(parent, wxT("Export GPX file"), wxT(""), wxT(""),
+                  wxT("GPX files (*.gpx)|*.gpx)"), wxSAVE);
+
+   // We have to check for the correct extension! If it can't be found, we have to set it!
+   // To do...
+      int response = saveDialog->ShowModal();
+      if (response == wxID_OK) {
+            wxString path = saveDialog->GetPath();
+
+            CreateGPXNavObj();
+            CreateGPXRoutePoints();
+            WriteXMLNavObj(path);
+      }
+}
+
+// toh, 2009.02.15
+void MyConfig::ImportGPX(wxWindow* parent)
+{
+      wxFileDialog *openDialog = new wxFileDialog(parent, wxT("Import GPX file"), wxT(""), wxT(""),
+                  wxT("GPX files (*.gpx)|*.gpx|All files (*.*)|*.*"), wxOPEN);
+      int response = openDialog->ShowModal();
+      if (response == wxID_OK) {
+            wxString path = openDialog->GetPath();
+
+            if(::wxFileExists(path))
+            {
+                  wxXmlDocument *pXMLNavObj = new wxXmlDocument;
+                  if(pXMLNavObj->Load(path))
+                  {
+                        wxXmlNode *root = pXMLNavObj->GetRoot();
+
+                        wxString RootName = root->GetName();
+                        if (RootName == _T("gpx"))
+                        {
+                              wxString RootContent = root->GetNodeContent();
+
+                              wxXmlNode *child = root->GetChildren();
+                              while (child)
+                              {
+                                    wxString ChildName = child->GetName();
+                                    if (ChildName == _T("wpt"))
+                                    {
+                                          bool WpExists;
+                                          GPXLoadWaypoint(child,WpExists);
+                                    }
+                                    if (ChildName == _T("rte"))
+                                    {
+                                          GPXLoadRoute(child);
+                                    }
+                                    if (ChildName == _T("trk"))        // For the future ;-)
+                                    {
+                                    }
+                                    child = child->GetNext();
+                              }
+                        }
+                  }
+            }
+      }
+}
+
+// toh, 2009.02.17
+RoutePoint *MyConfig::GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool LoadRoute)
+{
+      wxString LatString = wptnode->GetPropVal(_T("lat"),_T("0.0"));
+      wxString LonString = wptnode->GetPropVal(_T("lon"),_T("0.0"));
+
+      wxString SymString  = _T("");
+      wxString NameString = _T("null");
+      wxString DescString = _T("");
+      wxString TypeString = _T("");
+      wxString ChildName  = _T("");
+
+      HyperlinkList *linklist = new HyperlinkList;
+
+      wxString HrefString = _T("");
+      wxString HrefTextString = _T("");
+      wxString HrefTypeString = _T("");
+
+      wxXmlNode *child = wptnode->GetChildren();
+      while (child)
+      {
+            ChildName = child->GetName();
+            if (ChildName == _T("sym"))
+            {
+                  wxXmlNode *child1 = child->GetChildren();
+                  if (child1 != NULL)
+                        SymString = child1->GetContent();
+            }
+            if (ChildName == _T("name"))
+            {
+                  wxXmlNode *child1 = child->GetChildren();
+                  if (child1 != NULL)
+                        NameString = child1->GetContent();
+            }
+            if (ChildName == _T("desc"))
+            {
+                  wxXmlNode *child1 = child->GetChildren();
+                  if (child1 != NULL)
+                        DescString = child1->GetContent();
+            }
+            if (ChildName == _T("type"))
+            {
+                  wxXmlNode *child1 = child->GetChildren();
+                  if (child1 != NULL)
+                        TypeString = child1->GetContent();
+            }
+
+      // Read hyperlink
+            if (ChildName == _T("link"))
+            {
+                  HrefString = child->GetPropVal(_T("href"),_T(""));
+
+                  wxXmlNode *child1 = child->GetChildren();
+                  while (child1)
+                  {
+                        wxString LinkString = child1->GetName();
+
+                        if (LinkString == _T("text"))
+                        {
+                              wxXmlNode *child1a = child1->GetChildren();
+                              HrefTextString = child1a->GetContent();
+                        }
+
+                        if (LinkString == _T("type"))
+                        {
+                              wxXmlNode *child1a = child1->GetChildren();
+                              HrefTypeString = child1a->GetContent();
+                        }
+                        child1 = child1->GetNext();
+                  }
+
+                  Hyperlink *link = new Hyperlink;
+                  link->Link = HrefString;
+                  link->DescrText = HrefTextString;
+                  link->Type = HrefTypeString;
+                  linklist->Append(link);
+            }
+
+            child = child->GetNext();
+      }
+
+   // Create waypoint
+      double rlat;
+      double rlon;
+      LatString.ToDouble(&rlat);
+      LonString.ToDouble(&rlon);
+
+   // If WP already exists it mustn't be added again
+      wxRoutePointListNode *node = pWayPointMan->m_pWayPointList->GetFirst();
+
+      RoutePoint *pWP;
+      WpExists = false;
+      while(node)
+      {
+            RoutePoint *pr = node->GetData();
+
+            if (NameString == pr->m_MarkName)
+            {
+                  if (fabs(rlat-pr->m_lat) < 1.e-6 && fabs(rlon-pr->m_lon) < 1.e-6)
+                  {
+                        WpExists = true;
+                        pWP = pr;
+                        break;
+                  }
+            }
+            node = node->GetNext();
+      }
+
+      if (!WpExists)
+      {
+            pWP = new RoutePoint(rlat, rlon, SymString, NameString);
+            pWP->m_bDynamicName = true;
+            pWP->m_bShowName = true;
+            pWP->m_NameLocationOffsetX = -10;
+            pWP->m_NameLocationOffsetY = 8;
+            pWP->m_HyperlinkList = linklist;
+
+            if (!LoadRoute)
+                  pConfig->AddNewWayPoint ( pWP,m_NextWPNum);    // use auto next num
+            pSelect->AddSelectablePoint(rlat, rlon, pWP);
+            pWP->m_ConfigWPNum = m_NextWPNum;
+            m_NextWPNum++;
+      }
+
+      return (pWP);
+}
+
+// toh, 2009.02.17
+void MyConfig::GPXLoadRoute(wxXmlNode* rtenode)
+{
+      int routenum = m_NextRouteNum;
+
+      wxString Name = rtenode->GetName();
+      wxString RouteName = rtenode->GetPropVal(_T("name"),_T("N.N."));
+
+      if (Name == _T("rte"))
+      {
+            Route *pConfRoute = new Route();
+            pRouteList->Append(pConfRoute);
+            pConfig->AddNewRoute ( pConfRoute,routenum);    // use auto next num
+
+            pConfRoute->m_ConfigRouteNum = routenum;
+
+            pConfRoute->m_RouteNameString = RouteName;
+
+            m_NextRouteNum = routenum + 1;
+
+            wxXmlNode *child = rtenode->GetChildren();
+            int ip = 0;
+            float prev_rlat, prev_rlon;
+            RoutePoint *prev_pConfPoint;
+
+            while (child)
+            {
+                  wxString ChildName = child->GetName();
+                  if (ChildName == _T("rtept"))
+                  {
+                        bool WpExists;
+                        RoutePoint *pWp = GPXLoadWaypoint(child,WpExists,true);
+                        pConfRoute->AddPoint(pWp);
+                        if (WpExists)
+                              pSelect->AddSelectablePoint(pWp->m_lat,pWp->m_lon, pWp);
+
+                        float rlat = pWp->m_lat;
+                        float rlon = pWp->m_lon;
+
+                        if (ip)
+                              pSelect->AddSelectableRouteSegment(prev_rlat, prev_rlon, rlat, rlon,prev_pConfPoint, pWp);
+
+                        prev_rlat = pWp->m_lat;
+                        prev_rlon = pWp->m_lon;
+                        prev_pConfPoint = pWp;
+                        pWp->m_ConfigWPNum = 1000 + (routenum * 100) + ip;          // dummy mark number
+                        ip++;
+                  }
+                  child = child->GetNext();
+            }
+            pConfig->UpdateRoute ( pConfRoute );
+            pConfRoute->RebuildGUIDList();                  // ensure the GUID list is intact and
+      }
+}
+
+
+
+
+
 
 
 /*
@@ -2407,6 +3056,307 @@ wxXmlNode *MyConfig::CreateMarkNode(RoutePoint *pr)
 }
 
 */
+
+
+// toh, 2009.02.10
+//---------------------------------------------------------------------------------
+//    GPX XML Support for Navigation Objects
+//---------------------------------------------------------------------------------
+
+void MyConfig::CreateGPXNavObj(void)
+{
+      m_pXMLNavObj = new wxXmlDocument;
+      m_XMLrootnode = new wxXmlNode(wxXML_ELEMENT_NODE, _T("gpx"));
+      m_XMLrootnode->AddProperty(_T("version"),_T("1.1"));
+      m_XMLrootnode->AddProperty(_T("creator"),_T("OpenCPN"));
+      m_pXMLNavObj->SetRoot(m_XMLrootnode);
+}
+
+
+void MyConfig::CreateGPXRoutePoints(void)
+{
+      //    Iterate on the RoutePoint list
+      // If a waypoint is also in the route, it mustn't be written
+
+      wxRoutePointListNode *node = pWayPointMan->m_pWayPointList->GetFirst();
+
+      RoutePoint *pr;
+      wxXmlNode *prev_node;
+
+      bool IsFirst = true;
+      while(node)
+      {
+            pr = node->GetData();
+
+            if (!WptIsInRouteList(pr))
+            {
+                  wxXmlNode *mark_node = CreateGPXWptNode(pr);
+
+                  if (IsFirst)
+                  {
+                        IsFirst = false;
+                        m_XMLrootnode->AddChild(mark_node);
+                  }
+                  else
+                        prev_node->SetNext(mark_node);
+
+                  prev_node = mark_node;
+            }
+            node = node->GetNext();
+      }
+
+            // Route
+      wxRouteListNode *node1 = pRouteList->GetFirst();
+      while ( node1 )
+      {
+            Route *pRoute = node1->GetData();
+            RoutePointList *pRoutePointList = pRoute->pRoutePointList;
+
+            wxXmlNode *GPXWpt_node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("rte"));
+            GPXWpt_node->AddProperty(_T("name"),pRoute->m_RouteNameString);
+            wxString strnum;
+            strnum.Printf(_T("%d"),pRoute->m_ConfigRouteNum);
+            GPXWpt_node->AddProperty(_T("number"),strnum);
+            m_XMLrootnode->AddChild(GPXWpt_node);
+
+            wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
+            RoutePoint *prp;
+
+            int i=1;
+            while(node2)
+            {
+                  prp = node2->GetData();
+
+                  wxXmlNode *rpt_node = CreateGPXRptNode(prp,i+1);
+                  GPXWpt_node->AddChild(rpt_node);
+
+                  node2=node2->GetNext();
+                  i++;
+            }
+            node1 = node1->GetNext();
+      }
+}
+
+// toh, 2009.02.24
+bool MyConfig::WptIsInRouteList(RoutePoint *pr)
+{
+      bool IsInList = false;
+
+      wxRouteListNode *node1 = pRouteList->GetFirst();
+      while ( node1 )
+      {
+            Route *pRoute = node1->GetData();
+            RoutePointList *pRoutePointList = pRoute->pRoutePointList;
+
+            wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
+            RoutePoint *prp;
+
+            while(node2)
+            {
+                  prp = node2->GetData();
+
+                  if (pr->IsSame(prp))
+                  {
+                        IsInList = true;
+                        break;
+                  }
+
+                  node2=node2->GetNext();
+            }
+            node1 = node1->GetNext();
+      }
+      return IsInList;
+}
+
+void MyConfig::WriteXMLNavObj(const wxString& file)
+{
+      m_pXMLNavObj->Save(file, 4);
+}
+
+
+wxXmlNode *MyConfig::CreateGPXWptNode(RoutePoint *pr)
+{
+      wxXmlNode *GPXWpt_node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("wpt"));
+
+      wxString str_lat;
+      str_lat.Printf(_T("%.6f"), fabs(pr->m_lat));
+      wxString str_lon;
+      str_lon.Printf(_T("%.6f"), fabs(pr->m_lon));
+      GPXWpt_node->AddProperty(_T("lat"),str_lat);
+      GPXWpt_node->AddProperty(_T("lon"),str_lon);
+
+    //  Get and create the mark properties, one by one
+      wxXmlNode *node;
+      wxXmlNode *tnode;
+      wxXmlNode *current_sib_node;
+
+            //  Icon
+      node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("sym"));
+      GPXWpt_node->AddChild(node);
+      tnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""), pr->m_IconName);
+      node->AddChild(tnode);
+
+      current_sib_node = node;
+
+            //  Name
+      node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("name"));
+      current_sib_node->SetNext(node);
+      tnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""), pr->m_MarkName);
+      node->AddChild(tnode);
+
+      current_sib_node = node;
+
+    // Description
+      node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("desc"));
+      current_sib_node->SetNext(node);
+      tnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""), pr->m_MarkDescription);
+      node->AddChild(tnode);
+
+      current_sib_node = node;
+
+    // Hyperlinks
+      HyperlinkList *linklist = pr->m_HyperlinkList;
+      wxHyperlinkListNode *linknode = linklist->GetFirst();
+      while (linknode)
+      {
+            Hyperlink *link = linknode->GetData();
+            wxString Link = link->Link;
+            wxString Descr = link->DescrText;
+            wxString Type = link->Type;
+
+            node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("link"));
+            current_sib_node->SetNext(node);
+
+            wxXmlProperty *prop = new wxXmlProperty(_T("href"),Link);
+            node->SetProperties(prop);
+
+            if (Descr.Length() > 0)
+            {
+                  wxXmlNode *textnode = new wxXmlNode(wxXML_ELEMENT_NODE, _T("text"));
+                  node->AddChild(textnode);
+                  wxXmlNode *descrnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""),Descr);
+                  textnode->AddChild(descrnode);
+
+            }
+
+            current_sib_node = node;
+
+            if (Type.Length() > 0)
+            {
+                  wxXmlNode *typenode = new wxXmlNode(wxXML_ELEMENT_NODE, _T("type"));
+                  node->AddChild(typenode);
+                  wxXmlNode *typnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""),Type);
+                  typenode->AddChild(typnode);
+            }
+
+            current_sib_node = node;
+
+            linknode = linknode->GetNext();
+      }
+
+    // Type (waypoint or POI)
+      node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("type"));
+      current_sib_node->SetNext(node);
+      tnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""),_T("WPT") /* pr->m_MarkDescription*/);
+      node->AddChild(tnode);
+
+      current_sib_node = node;
+
+      return(GPXWpt_node);
+}
+
+wxXmlNode *MyConfig::CreateGPXRptNode(RoutePoint *pr,int nbr)
+{
+      wxXmlNode *GPXWpt_node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("rtept"));
+
+      wxString str_lat;
+      str_lat.Printf(_T("%.6f"), fabs(pr->m_lat));
+      wxString str_lon;
+      str_lon.Printf(_T("%.6f"), fabs(pr->m_lon));
+      GPXWpt_node->AddProperty(_T("lat"),str_lat);
+      GPXWpt_node->AddProperty(_T("lon"),str_lon);
+
+    //  Get and create the mark properties, one by one
+      wxXmlNode *node;
+      wxXmlNode *tnode;
+      wxXmlNode *current_sib_node;
+
+            //  Icon
+      node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("sym"));
+      GPXWpt_node->AddChild(node);
+      tnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""), pr->m_IconName);
+      node->AddChild(tnode);
+
+      current_sib_node = node;
+
+            //  Name
+      node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("name"));
+      current_sib_node->SetNext(node);
+      tnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""), pr->m_MarkName);
+      node->AddChild(tnode);
+
+      current_sib_node = node;
+
+    // Description
+      node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("desc"));
+      current_sib_node->SetNext(node);
+      tnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""), pr->m_MarkDescription);
+      node->AddChild(tnode);
+
+      current_sib_node = node;
+
+    // Hyperlinks
+      HyperlinkList *linklist = pr->m_HyperlinkList;
+      wxHyperlinkListNode *linknode = linklist->GetFirst();
+      while (linknode)
+      {
+            Hyperlink *link = linknode->GetData();
+            wxString Link = link->Link;
+            wxString Descr = link->DescrText;
+            wxString Type = link->Type;
+
+            node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("link"));
+            current_sib_node->SetNext(node);
+
+            wxXmlProperty *prop = new wxXmlProperty(_T("href"),Link);
+            node->SetProperties(prop);
+
+            if (Descr.Length() > 0)
+            {
+                  wxXmlNode *textnode = new wxXmlNode(wxXML_ELEMENT_NODE, _T("text"));
+                  node->AddChild(textnode);
+                  wxXmlNode *descrnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""),Descr);
+                  textnode->AddChild(descrnode);
+
+            }
+
+            current_sib_node = node;
+
+            if (Type.Length() > 0)
+            {
+                  wxXmlNode *typenode = new wxXmlNode(wxXML_ELEMENT_NODE, _T("type"));
+                  node->AddChild(typenode);
+                  wxXmlNode *typnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""),Type);
+                  typenode->AddChild(typnode);
+            }
+
+            current_sib_node = node;
+
+            linknode = linknode->GetNext();
+      }
+
+    // Type (waypoint or POI)
+      node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("type"));
+      current_sib_node->SetNext(node);
+      tnode = new wxXmlNode(wxXML_TEXT_NODE, _T(""),_T("WPT") /* pr->m_MarkDescription*/);
+      node->AddChild(tnode);
+
+      current_sib_node = node;
+
+      return(GPXWpt_node);
+}
+
+
 
 //---------------------------------------------------------------------------------
 //          Private Font Manager and Helpers
@@ -2869,13 +3819,13 @@ void X11FontPicker::CreateWidgets()
       this->SetAutoLayout(TRUE);
 
       wxBoxSizer* itemBoxSizer3 = new wxBoxSizer(wxVERTICAL);
-      itemBoxSizer2->Add(itemBoxSizer3, 1, wxGROW|wxALL, 5);
+      itemBoxSizer2->Add(itemBoxSizer3, 1, wxEXPAND|wxALL, 5);
 
       wxFlexGridSizer* itemGridSizer4 = new wxFlexGridSizer(noRows, noCols, 0, 0);
-      itemBoxSizer3->Add(itemGridSizer4, 0, wxGROW, 5);
+      itemBoxSizer3->Add(itemGridSizer4, 0, wxEXPAND, 5);
 
       wxBoxSizer* itemBoxSizer5 = new wxBoxSizer(wxVERTICAL);
-      itemGridSizer4->Add(itemBoxSizer5, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW, 5);
+      itemGridSizer4->Add(itemBoxSizer5, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5);
       wxStaticText* itemStaticText6 = new wxStaticText( this, wxID_STATIC, _("&Font family:"),
                   wxDefaultPosition, wxDefaultSize, 0 );
       itemBoxSizer5->Add(itemStaticText6, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
@@ -2888,7 +3838,7 @@ void X11FontPicker::CreateWidgets()
       itemBoxSizer5->Add(itemChoice7, 0, wxALIGN_LEFT|wxALL, 5);
 
       wxBoxSizer* itemBoxSizer8 = new wxBoxSizer(wxVERTICAL);
-      itemGridSizer4->Add(itemBoxSizer8, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW, 5);
+      itemGridSizer4->Add(itemBoxSizer8, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5);
       wxStaticText* itemStaticText9 = new wxStaticText( this, wxID_STATIC, _("&Style:"), wxDefaultPosition, wxDefaultSize, 0 );
       itemBoxSizer8->Add(itemStaticText9, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
@@ -2899,7 +3849,7 @@ void X11FontPicker::CreateWidgets()
       itemBoxSizer8->Add(itemChoice10, 0, wxALIGN_LEFT|wxALL, 5);
 
       wxBoxSizer* itemBoxSizer11 = new wxBoxSizer(wxVERTICAL);
-      itemGridSizer4->Add(itemBoxSizer11, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW, 5);
+      itemGridSizer4->Add(itemBoxSizer11, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5);
       wxStaticText* itemStaticText12 = new wxStaticText( this, wxID_STATIC, _("&Weight:"), wxDefaultPosition, wxDefaultSize, 0 );
       itemBoxSizer11->Add(itemStaticText12, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
@@ -2910,7 +3860,7 @@ void X11FontPicker::CreateWidgets()
       itemBoxSizer11->Add(itemChoice13, 0, wxALIGN_LEFT|wxALL, 5);
 
       wxBoxSizer* itemBoxSizer14 = new wxBoxSizer(wxVERTICAL);
-      itemGridSizer4->Add(itemBoxSizer14, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW, 5);
+      itemGridSizer4->Add(itemBoxSizer14, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5);
       if (m_fontData.GetEnableEffects())
       {
             wxStaticText* itemStaticText15 = new wxStaticText( this, wxID_STATIC, _("C&olour:"),
@@ -2930,7 +3880,7 @@ void X11FontPicker::CreateWidgets()
       }
 
       wxBoxSizer* itemBoxSizer17 = new wxBoxSizer(wxVERTICAL);
-      itemGridSizer4->Add(itemBoxSizer17, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW, 5);
+      itemGridSizer4->Add(itemBoxSizer17, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5);
       wxStaticText* itemStaticText18 = new wxStaticText( this, wxID_STATIC, _("&Point size:"),
                   wxDefaultPosition, wxDefaultSize, 0 );
       itemBoxSizer17->Add(itemStaticText18, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
@@ -2965,11 +3915,11 @@ void X11FontPicker::CreateWidgets()
       itemWindow24->SetHelpText(_("Shows the font preview."));
       if (ShowToolTips())
             itemWindow24->SetToolTip(_("Shows the font preview."));
-      itemBoxSizer3->Add(itemWindow24, 0, wxGROW, 5);
+      itemBoxSizer3->Add(itemWindow24, 0, wxEXPAND, 5);
 
       wxBoxSizer* itemBoxSizer25 = new wxBoxSizer(wxHORIZONTAL);
-      itemBoxSizer3->Add(itemBoxSizer25, 0, wxGROW, 5);
-      itemBoxSizer25->Add(5, 5, 1, wxGROW|wxALL, 5);
+      itemBoxSizer3->Add(itemBoxSizer25, 0, wxEXPAND, 5);
+      itemBoxSizer25->Add(5, 5, 1, wxEXPAND|wxALL, 5);
 
     wxButton* itemButton28 = new wxButton( this, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     if (ShowToolTips())
@@ -3441,5 +4391,61 @@ bool LogMessageOnce(wxString &msg)
       wxLogMessage(msg);
       return true;
 }
+
+
+/**************************************************************************/
+/*          Some assorted utilities                                       */
+/**************************************************************************/
+
+wxString toSDMM(int NEflag, double a)
+{
+      short neg = 0;
+      int d;
+      long m;
+
+      if (a < 0.0)
+      {
+            a = -a;
+            neg = 1;
+      }
+      d = (int) a;
+      m = (long) ((a - (double) d) * 60000.0);
+
+      if (neg)
+            d = -d;
+
+      wxString s;
+
+      if (!NEflag)
+            s.Printf(_T("%d %02ld.%03ld'"), d, m / 1000, m % 1000);
+      else
+      {
+            if (NEflag == 1)
+            {
+                  char c = 'N';
+
+                  if (neg)
+                  {
+                        d = -d;
+                        c = 'S';
+                  }
+
+                  s.Printf(_T("%02d %02ld.%03ld %c"), d, m / 1000, (m % 1000), c);
+            }
+            else if (NEflag == 2)
+            {
+                  char c = 'E';
+
+                  if (neg)
+                  {
+                        d = -d;
+                        c = 'W';
+                  }
+                  s.Printf(_T("%03d %02ld.%03ld %c"), d, m / 1000, (m % 1000), c);
+            }
+      }
+      return s;
+}
+
 
 

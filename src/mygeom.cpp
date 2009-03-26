@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.10 2008/12/09 03:31:13 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.11 2009/03/26 22:29:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -25,16 +25,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************
  *
-<<<<<<< mygeom.cpp
  * $Log: mygeom.cpp,v $
- * Revision 1.10  2008/12/09 03:31:13  bdbcat
- * Add stream method
+ * Revision 1.11  2009/03/26 22:29:29  bdbcat
+ * Opencpn 1.3.0 Update
  *
- * Revision 1.9  2008/03/30 22:01:50  bdbcat
- * Optimize SENC format
- *
-=======
- * $Log: mygeom.cpp,v $
  * Revision 1.10  2008/12/09 03:31:13  bdbcat
  * Add stream method
  *
@@ -44,7 +38,6 @@
  * Revision 1.8  2008/01/12 06:20:27  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.8
  * Revision 1.7  2007/06/10 02:28:15  bdbcat
  * Cleanup
  *
@@ -82,7 +75,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.10 2008/12/09 03:31:13 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.11 2009/03/26 22:29:29 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -167,6 +160,7 @@ typedef void GLvoid;
 
 #ifdef USE_GLU_TESS
 static int            s_nvcall;
+static int            s_nvmax;
 static double         *s_pwork_buf;
 static int            s_buf_len;
 static int            s_buf_idx;
@@ -281,6 +275,9 @@ PolyTessGeo::PolyTessGeo(OGRPolygon *poly, bool bSENC_SM, double ref_lat, double
 {
     ErrorCode = 0;
     m_ppg_head = NULL;
+
+    m_ref_lat = ref_lat;
+    m_ref_lon = ref_lon;
 
     if(bUseInternalTess)
         ErrorCode = PolyTessGeoTri(poly, bSENC_SM, ref_lat, ref_lon);
@@ -523,6 +520,7 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_SM, double ref_lat,
         int npti = poly->getInteriorRing(iir)->getNumPoints();
         cntr[iir + 1] = npti;
 
+
       //  Check and account for winding direction of ring
         bool cw = poly->getInteriorRing(iir)->isClockwise();
 
@@ -615,6 +613,7 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_SM, double ref_lat,
     }
 
 //  Check the list for duplicates
+
     pr = polys;
     for(int idt = 0 ; idt<npoly0-1 ; idt++)
     {
@@ -648,6 +647,8 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_SM, double ref_lat,
 
 
         //  Create the data structures
+
+    m_nvertex_max = 0;
 
     m_ppg_head = new PolyTriGroup;
 
@@ -722,6 +723,9 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_SM, double ref_lat,
             pTP->p_next = NULL;
             pTP->type = PTG_TRIANGLES;
             pTP->nVert = pr->nvert;
+
+            if(pr->nvert > m_nvertex_max)
+                  m_nvertex_max = pr->nvert;                         // keep track of largest vertex count
 
             //  Convert to SM
             pTP->p_vertex = (double *)malloc(pr->nvert * 2 * sizeof(double));
@@ -878,7 +882,7 @@ int PolyTessGeo::Write_PolyTriGroup( FILE *ofs)
     ostream2->Write(stemp.mb_str(), stemp.Len());
 
     int nrecl = ostream1->GetSize() + ostream2->GetSize();
-    stemp.sprintf( _T("  POLYTESSGEO  %08d\n"), nrecl);
+    stemp.sprintf( _T("  POLYTESSGEO  %08d %g %g\n"), nrecl, m_ref_lat, m_ref_lon);
 
     fwrite(stemp.mb_str(), 1, stemp.Len(), ofs);                 // Header, + record length
 
@@ -898,7 +902,7 @@ int PolyTessGeo::Write_PolyTriGroup( FILE *ofs)
     return 0;
 }
 
-int PolyTessGeo::Write_PolyTriGroup( wxFileOutputStream &out_stream)
+int PolyTessGeo::Write_PolyTriGroup( wxOutputStream &out_stream)
 {
       wxString    sout;
       wxString    sout1;
@@ -977,7 +981,7 @@ int PolyTessGeo::Write_PolyTriGroup( wxFileOutputStream &out_stream)
       ostream2->Write(stemp.mb_str(), stemp.Len());
 
       int nrecl = ostream1->GetSize() + ostream2->GetSize();
-      stemp.sprintf( _T("  POLYTESSGEO  %08d\n"), nrecl);
+      stemp.sprintf( _T("  POLYTESSGEO  %08d %g %g\n"), nrecl, m_ref_lat, m_ref_lon);
 
       out_stream.Write(stemp.mb_str(), stemp.Len());                 // Header, + record length
 
@@ -1361,7 +1365,11 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_SM, double ref_lat, 
     s_pTPG_Last = NULL;
     s_pTPG_Head = NULL;
 
+    s_nvmax = 0;
+
     gluTessEndPolygon(GLUtessobj);          // here it goes
+
+    m_nvertex_max = s_nvmax;               // record largest vertex count, updates in callback
 
 
     //  Tesselation all done, so...
@@ -1458,6 +1466,9 @@ void __CALL_CONVENTION endCallback(void)
     //      Create a TriPrim
 
     char buf[40];
+
+    if(s_nvcall > s_nvmax)                            // keep track of largest number of triangle vertices
+          s_nvmax = s_nvcall;
 
     switch(s_gltri_type)
     {
@@ -1592,6 +1603,141 @@ void __CALL_CONVENTION combineCallback(GLdouble coords[3],
 }
 #endif
 
+wxStopWatch *s_stwt;
+
+
+//      Build Trapezoidal PolyTessGeoTrap Object from Extended_Geometry
+PolyTessGeoTrap::PolyTessGeoTrap(Extended_Geometry *pxGeom, double ref_lat, double ref_lon)
+{
+      m_bOK = false;
+
+      //    Flip the passed vertex array, contour-by-contour
+      int offset = 1;
+      for(int ict=0 ; ict < pxGeom->n_contours ; ict++)
+      {
+            int nvertex = pxGeom->contour_array[ict];
+
+            for(int iv=0 ; iv < nvertex/2 ; iv++)
+            {
+                  wxPoint2DDouble a = pxGeom->vertex_array[iv + offset];
+                  wxPoint2DDouble b = pxGeom->vertex_array[(nvertex - 1) - iv + offset];
+                  pxGeom->vertex_array[iv + offset] = b;
+                  pxGeom->vertex_array[(nvertex - 1) - iv + offset] = a;
+            }
+
+            offset += nvertex;
+      }
+
+
+      itrap_t *itr;
+      isegment_t *iseg;
+      int n_traps;
+
+ s_stwt->Resume();
+      int trap_err = int_trapezate_polygon(pxGeom->n_contours, pxGeom->contour_array, (double (*)[2])pxGeom->vertex_array, &itr, &iseg, &n_traps);
+s_stwt->Pause();
+
+
+        //  Create the data structures
+
+      m_nvertex_max = 0;
+
+      m_ptg_head = new PolyTrapGroup;
+
+      m_ptg_head->nContours = pxGeom->n_contours;
+      m_ptg_head->pn_vertex = pxGeom->contour_array;             // pointer to array of poly vertex counts
+      m_ptg_head->m_trap_error = trap_err;
+      m_ptg_head->ptrapgroup_geom = pxGeom->vertex_array;
+
+
+      if(0 != n_traps)
+      {
+
+            m_nvertex_max = pxGeom->n_max_vertex;             // record the maximum number of segment vertices
+
+       //  Now the Trapezoid Primitives
+
+      //    Iterate thru the trapezoid structure counting valid, non-empty traps
+
+      int nvtrap = 0;
+      for(int it=1 ; it< n_traps ; it++)
+      {
+//            if((itr[i].state == ST_VALID) && (itr[i].hi.y != itr[i].lo.y) && (itr[i].lseg != -1) && (itr[i].rseg != -1) && (itr[i].inside == 1))
+            if(itr[it].inside == 1)
+                  nvtrap++;
+      }
+
+      m_ptg_head->ntrap_count = nvtrap;
+
+      //    Allocate enough memory
+      m_ptg_head->trap_array = (trapz_t *)malloc(nvtrap * sizeof(trapz_t));
+
+      //    Iterate again and capture the valid trapezoids
+      trapz_t *prtrap = m_ptg_head->trap_array;
+      for(int i=1 ; i< n_traps ; i++)
+      {
+//            if((itr[i].state == ST_VALID) && (itr[i].hi.y != itr[i].lo.y) && (itr[i].lseg != -1) && (itr[i].rseg != -1) && (itr[i].inside == 1))
+            if(itr[i].inside == 1)
+            {
+
+
+                  //    Fix up the trapezoid segment indices to account for ring closure points in the input vertex array
+                  int i_adjust = 0;
+                  int ic = 0;
+                  int pcount = pxGeom->contour_array[0]-1;
+                  while(itr[i].lseg > pcount)
+                  {
+                      i_adjust++;
+                      ic++;
+                      if(ic >= pxGeom->n_contours)
+                            break;
+                      pcount += pxGeom->contour_array[ic]-1;
+                  }
+                  prtrap->ilseg = itr[i].lseg + i_adjust;
+
+
+                  i_adjust = 0;
+                  ic = 0;
+                  pcount = pxGeom->contour_array[0]-1;
+                  while(itr[i].rseg > pcount)
+                  {
+                        i_adjust++;
+                        ic++;
+                        if(ic >=  pxGeom->n_contours)
+                              break;
+                        pcount += pxGeom->contour_array[ic]-1;
+                  }
+                  prtrap->irseg = itr[i].rseg + i_adjust;
+
+                  //    Set the trap y values
+
+                  prtrap->hiy = itr[i].hi.y;
+                  prtrap->loy = itr[i].lo.y;
+
+                  prtrap++;
+            }
+      }
+
+            m_bOK = true;
+
+      }     // n_traps_ok
+
+
+//  Free the trapezoid structure array
+      free(itr);
+      free(iseg);
+
+
+      m_bOK = true;
+}
+
+
+PolyTessGeoTrap::~PolyTessGeoTrap()
+{
+      delete m_ptg_head;
+}
+
+
 
 
 //------------------------------------------------------------------------------
@@ -1635,6 +1781,24 @@ TriPrim::~TriPrim()
 }
 
 
+//------------------------------------------------------------------------------
+//          PolyTrapGroup Implementation
+//------------------------------------------------------------------------------
+PolyTrapGroup::PolyTrapGroup()
+{
+      pn_vertex = NULL;             // pointer to array of poly vertex counts
+      ptrapgroup_geom = NULL;           // pointer to Raw geometry, used for contour line drawing
+      trap_array = NULL;            // pointer to trapz_t array
+
+      ntrap_count = 0;
+}
+
+PolyTrapGroup::~PolyTrapGroup()
+{
+      free(pn_vertex);
+      free(ptrapgroup_geom);
+      free (trap_array);
+}
 
 
 

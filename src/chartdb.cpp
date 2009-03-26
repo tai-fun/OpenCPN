@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.12 2008/12/19 04:16:57 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.13 2009/03/26 22:28:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.13  2009/03/26 22:28:55  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.12  2008/12/19 04:16:57  bdbcat
  * Improve database logic.
  *
@@ -94,7 +97,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.12 2008/12/19 04:16:57 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.13 2009/03/26 22:28:55 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -509,21 +512,26 @@ bool ChartDB::Update(wxArrayString *dir_list, bool bshow_prog)
 
 int ChartDB::TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate)
 {
+ wxLogMessage(dir_name);
     int nAdd = 0;
-
+ wxLogMessage(_T("  searching for .geo"));
     nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.geo")), bshow_prog, bupdate);
 
+    wxLogMessage(_T("  searching for .KAP"));
     nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.KAP")), bshow_prog, bupdate);
 
 #ifdef USE_S57
+    wxLogMessage(_T("  searching for .000"));
     nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.000")), bshow_prog, bupdate);
 
+    wxLogMessage(_T("  searching for .S57"));
     nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.S57")), bshow_prog, bupdate);
 
 #endif
 
 #ifdef USE_CM93
-    nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.?")), bshow_prog, bupdate);          // for cm93
+    wxLogMessage(_T("  searching for .CM93"));
+    nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("00300000.A")), bshow_prog, bupdate);     // for cm93
 #endif
 
     return nAdd;
@@ -538,9 +546,6 @@ int ChartDB::TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bu
 
 //          SearchDirAndAddBSB(dir_name,  (const wxString &)wxString("*.KAP"), bshow_prog);
 
-
-
-    return nAdd;
 }
 
 
@@ -551,24 +556,54 @@ int ChartDB::TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bu
 //  if target chart is already in table, mark it valid and skip chart processing
 // ----------------------------------------------------------------------------
 
-int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
+int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& filespec,
                                                       bool bshow_prog, bool bupdate)
 {
+      wxString dir_name = dir_name_base;
+
       wxString filename;
-      wxDir dir(dir_name);
 
       wxProgressDialog *pprog = NULL;
 
 //    Count the files
       wxArrayString FileList;
+      int gaf_flags = wxDIR_DEFAULT;                  // as default, recurse into subdirs
 
-      dir.GetAllFiles(dir_name, &FileList, filespec);
+      //    An optimization, peephole-wise, especially for __WXMSW__....
+      //    If the dir seems to be cm93 root, optimize the directory searching.
+      //    If the filespec is not looking for the base cm93 cell,
+      //    then clip the search by making the search flags parameter empty....
+      //    Otherwise, for instance, .KAP searches will have to traverse the entire cm93 tree.
+      //    Very slow on MSW, and clearly unproductive.
+      //    If the target filespec is the CM93 reference file, search only its directory
+
+      wxString cm93_test = dir_name;
+      cm93_test += _T("/00300000/A/00300000.A");
+      if(wxFile::Exists(cm93_test))                   // The target dir probably is cm93
+      {
+            gaf_flags =  wxDIR_FILES;                 // dont recurse
+
+            if(filespec.IsSameAs(_T("00300000.A")))
+                dir_name += _T("/00300000/A");              // Manage the directory search
+      }
+
+
+      wxDir dir(dir_name);
+      dir.GetAllFiles(dir_name, &FileList, filespec, gaf_flags);
       int nFile = FileList.GetCount();
+
+      /*
+      wxString fs_lower = filespec.Lower();
+      dir.GetAllFiles(dir_name, &FileList, fs_lower, gaf_flags);
+      nFile = FileList.GetCount();
+*/
+
 
       if(!nFile)
           return false;
 
 
+      InitReturn rc;
 
       ChartTableEntry *pTempChartTable = (ChartTableEntry *)calloc((nFile ) * sizeof(ChartTableEntry), 1);
       ChartTableEntry *pEntry = pTempChartTable;
@@ -584,9 +619,18 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
 
       for(int ifile=0 ; ifile < nFile ; ifile++)
       {
-
             wxFileName file(FileList.Item(ifile));
             wxString full_name = file.GetFullPath(); //dir_name;
+
+            if(bshow_prog)
+            {
+                  if(NULL == pprog)
+                        pprog = new wxProgressDialog (  _T("OpenCPN Add Chart"), full_name, nFile, NULL,
+                              wxPD_AUTO_HIDE | wxPD_SMOOTH | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME);
+
+                  pprog->Update(ifile, full_name);
+            }
+
 
             //    As a speed optimization, use strcmp instead of wxString::IsSameAs()
             char test_str[512];
@@ -638,7 +682,8 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
             //      If updating the database, and this is a duplicate chart, need to check the Edition date of the candidate chart
             if(bupdate && bDuplicateName)
             {
-                  if(CreateChartTableEntry(full_name, pEntry))
+                  rc = CreateChartTableEntry(full_name, pEntry);
+                  if(rc == INIT_OK)
                   {
                         wxDateTime candidate_ed(pEntry->edition_date);
                         wxDateTime existing_chart_ed(pChartTable[iDuplicate].edition_date);
@@ -651,10 +696,14 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
                   }
                   else
                   {
-                        wxString msg = _T("   CreateChartTableEntry() failed for file: ");
-                        msg.Append(full_name);
-                        wxLogMessage(msg);
                         bAddFinal = false;
+
+                        if(rc != INIT_FAIL_NOERROR)
+                        {
+                              wxString msg = _T("   CreateChartTableEntry() failed for file: ");
+                              msg.Append(full_name);
+                              wxLogMessage(msg);
+                        }
                   }
             }
             else if(bupdate && bDuplicatePath)                // exactly the same chart
@@ -665,12 +714,16 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
             {
                   if(!pEntry->bValid)
                   {
-                        if(!CreateChartTableEntry(full_name, pEntry))
+                        rc = CreateChartTableEntry(full_name, pEntry);
+                        if(rc != INIT_OK)
                         {
-                              wxString msg = _T("   CreateChartTableEntry() failed for file: ");
-                              msg.Append(full_name);
-                              wxLogMessage(msg);
                               bAddFinal = false;
+                              if(rc != INIT_FAIL_NOERROR)
+                              {
+                                    wxString msg = _T("   CreateChartTableEntry() failed for file: ");
+                                    msg.Append(full_name);
+                                    wxLogMessage(msg);
+                              }
                         }
                   }
 
@@ -681,17 +734,6 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
                         pEntry++;
                   }
             }
-
-
-          if(bshow_prog && bAddFinal)
-          {
-                if(NULL == pprog)
-                      pprog = new wxProgressDialog (  _T("OpenCPN Add Chart"), full_name, nFile, NULL,
-                                  wxPD_AUTO_HIDE | wxPD_SMOOTH |
-                                              wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME);
-
-                pprog->Update(ifile, full_name);
-          }
       }
 
       ChartTableEntry *pt = (ChartTableEntry *)malloc( (nEntry + nDirEntry)*sizeof(ChartTableEntry));
@@ -704,6 +746,8 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
       pChartTable = pt;
       nEntry += nDirEntry;
 
+      if(pprog)                     // looks nicer
+            pprog->Hide();
       delete pprog;
       return nDirEntry;
 }
@@ -715,13 +759,13 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name, const wxString& filespec,
 // ----------------------------------------------------------------------------
 // Create Chart Table entry by reading chart header info, etc.
 // ----------------------------------------------------------------------------
-bool ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
+InitReturn ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
 {
       wxFileName fn(full_name);
 
 //    Quick sanity check for file existence
       if(!fn.FileExists())
-            return false;
+            return INIT_FAIL_REMOVE;
 
       wxString msg(_T("Create ChartTable Entry for "));
       msg.Append(full_name);
@@ -755,17 +799,29 @@ bool ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
 
 
 #ifdef USE_CM93
+/*
       else if(charttype.Len() == 1)                   // speculative, assuming the file will be found to be a cm93 cell...
       {
             pch = new cm93chart;
             pEntry->ChartType = CHART_TYPE_CM93;
       }
+*/
+      else if(fn.GetFullName().IsSameAs(_T("00300000.A")))
+      {
+            pch = new cm93compchart;
+            pEntry->ChartType = CHART_TYPE_CM93COMP;
+
+      }
 #endif
 
-      if(pch->Init(full_name, HEADER_ONLY, GLOBAL_COLOR_SCHEME_DAY) != INIT_OK)
+      if(NULL == pch)
+            return INIT_FAIL_REMOVE;
+
+      InitReturn rc = pch->Init(full_name, HEADER_ONLY, GLOBAL_COLOR_SCHEME_DAY);
+      if(rc != INIT_OK)
       {
             delete pch;
-            return false;
+            return rc;
       }
 
       char *pt = (char *)malloc(full_name.Length() + 1);
@@ -864,7 +920,7 @@ bool ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
       delete pch;
 
       pEntry->bValid = true;
-      return true;
+      return INIT_OK;
 }
 
 
@@ -1152,6 +1208,7 @@ int ChartDB::GetCSChartType(ChartStack *ps, int stackindex)
             return 0;
 }
 
+
 //-------------------------------------------------------------------
 //    Get DBChart Type
 //-------------------------------------------------------------------
@@ -1373,6 +1430,28 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                   ext.ELON = pChartTable[dbIndex].LonMax;
                   Chcm93->SetFullExtent(ext);
             }
+
+            else if(GetCSChartType(pStack, StackEntry) == CHART_TYPE_CM93COMP)
+            {
+                  Ch = new cm93compchart();
+                  int dbIndex = pStack->DBIndex[StackEntry];
+
+                  cm93compchart *Chcm93 = dynamic_cast<cm93compchart*>(Ch);
+
+                  Chcm93->SetNativeScale(pChartTable[dbIndex].Scale);
+
+                  //    Explicitely set the chart extents from the database to
+                  //    support the case wherein the SENC file has not yet been built
+                  Extent ext;
+                  ext.NLAT = pChartTable[dbIndex].LatMax;
+                  ext.SLAT = pChartTable[dbIndex].LatMin;
+                  ext.WLON = pChartTable[dbIndex].LonMin;
+                  ext.ELON = pChartTable[dbIndex].LonMax;
+                  Chcm93->SetFullExtent(ext);
+            }
+
+
+
 #endif
 
             else
@@ -1407,7 +1486,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                         delete Ch;
                         Ch = NULL;
 
-//          Mark this chart in the database, so that it will not be seen during this run
+//          Mark this chart in the database, so that it will not be seen during this run, but will stay in the database
                         int dbIndex = pStack->DBIndex[StackEntry];
                         wxString ChartToDisable = wxString(pChartTable[dbIndex].pFullPath,  wxConvUTF8);
                         DisableChart(ChartToDisable);

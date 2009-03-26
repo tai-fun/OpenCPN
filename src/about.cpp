@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.15 2008/12/09 03:51:52 bdbcat Exp $
+ * $Id: about.cpp,v 1.16 2009/03/26 22:28:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.16  2009/03/26 22:28:44  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.15  2008/12/09 03:51:52  bdbcat
  * Cleanup Comments
  *
@@ -81,12 +84,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.15 2008/12/09 03:51:52 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.16 2009/03/26 22:28:44 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.2.8"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.2.9"};
 
 
 char AboutText[] =
@@ -150,7 +153,10 @@ char AuthorText[] =
       CIE->RGB Color Conversion Matrix\n\n\
    Robert Lipe\n\
       robertlipe@usa.net\n\
-      Garmin USB GPS Interface\n"
+      Garmin USB GPS Interface\n\n\
+   Thomas Haller\n\
+      thomasmartin.haller@web.de\n\
+      GPX Import/Export Implementation\n"
 
 };
 
@@ -224,7 +230,7 @@ void about::CreateControls()
 
 
   wxNotebook* itemNotebook4 = new wxNotebook( itemDialog1, -1 , wxDefaultPosition, wxSize(-1, -1), wxNB_TOP );
-  itemBoxSizer2->Add(itemNotebook4, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
+  itemBoxSizer2->Add(itemNotebook4, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxALL, 5);
 
   //    About Panel
   wxPanel* itemPanelAbout = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
@@ -235,7 +241,7 @@ void about::CreateControls()
 
   wxTextCtrl *pAboutTextCtl = new wxTextCtrl( itemPanelAbout, -1, _T(""), wxDefaultPosition, wxSize(-1, 400),
                                               wxTE_MULTILINE | wxTE_READONLY );
-  itemBoxSizer6->Add(pAboutTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
+  itemBoxSizer6->Add(pAboutTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxALL, 5);
 
 
   wxString *pAboutString = new wxString(AboutText,  wxConvUTF8);
@@ -254,7 +260,7 @@ void about::CreateControls()
 
   wxTextCtrl *pAuthorTextCtl = new wxTextCtrl( itemPanelAuthors, -1, _T(""), wxDefaultPosition, wxSize(-1, 400),
                                                wxTE_MULTILINE | wxTE_READONLY );
-  itemBoxSizer7->Add(pAuthorTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
+  itemBoxSizer7->Add(pAuthorTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxALL, 5);
 
   wxString *pAuthorsString = new wxString(AuthorText,  wxConvUTF8);
   pAuthorTextCtl->WriteText(*pAuthorsString);
@@ -279,7 +285,7 @@ void about::CreateControls()
 #endif
   wxTextCtrl *pLicenseTextCtl = new wxTextCtrl( itemPanelLicense, -1, _T(""), wxDefaultPosition, wxSize(-1, 400), tcflags);
 
-  itemBoxSizer8->Add(pLicenseTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW|wxALL, 5);
+  itemBoxSizer8->Add(pLicenseTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxALL, 5);
 
   wxString license_loc(*pLicenseLocn);
   license_loc.Append(_T("license.txt"));
