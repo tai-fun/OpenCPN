@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.1 2009/03/26 22:25:46 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.2 2009/03/27 01:02:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.2  2009/03/27 01:02:54  bdbcat
+ * No pragma pack()
+ *
  * Revision 1.1  2009/03/26 22:25:46  bdbcat
  * Add cm93 support
  *
@@ -884,16 +887,29 @@ bool read_vector_record_table(FILE *stream, int count, Cell_Info_Block *pCIB)
             p->index = iedge;
 
             unsigned short npoints;
-            rv = read_and_decode_bytes(stream, &npoints, 2);
+            rv = read_and_decode_ushort(stream, &npoints);
             if(!rv)
                   return false;
 
             p->n_points = npoints;
             p->p_points = q;
 
-            rv = read_and_decode_bytes(stream, q, p->n_points * sizeof(cm93_point));
-            if(!rv)
-                  return false;
+//           rv = read_and_decode_bytes(stream, q, p->n_points * sizeof(cm93_point));
+//            if(!rv)
+//                  return false;
+
+            unsigned short x, y;
+            for(int index = 0 ; index <  p->n_points ; index++)
+            {
+                  if(!read_and_decode_ushort(stream, &x))
+                        return false;
+                  if(!read_and_decode_ushort(stream, &y))
+                        return false;
+
+                  q[index].x = x;
+                  q[index].y = y;
+            }
+
 
             //    Compute and store the min/max of this block of n_points
             cm93_point *t = p->p_points;
@@ -942,16 +958,32 @@ bool read_3dpoint_table(FILE *stream, int count, Cell_Info_Block *pCIB)
       for(int i = 0 ; i < count ; i++)
       {
             unsigned short npoints;
-            if(!read_and_decode_bytes(stream, &npoints, 2))
+            if(!read_and_decode_ushort(stream, &npoints))
                   return false;
 
             p->n_points = npoints;
             p->p_points = (cm93_point *)q;          // might not be the right cast
 
-            unsigned short t = p->n_points;
+//            unsigned short t = p->n_points;
 
-            if(!read_and_decode_bytes(stream, q, t*6))
-                  return false;
+//            if(!read_and_decode_bytes(stream, q, t*6))
+//                  return false;
+
+            unsigned short x, y, z;
+            for(int index = 0 ; index < p->n_points ; index++)
+            {
+                  if(!read_and_decode_ushort(stream, &x))
+                        return false;
+                  if(!read_and_decode_ushort(stream, &y))
+                        return false;
+                  if(!read_and_decode_ushort(stream, &z))
+                        return false;
+
+                  q[index].x = x;
+                  q[index].y = y;
+                  q[index].z = z;
+            }
+
 
             p++;
             q++;
@@ -964,9 +996,20 @@ bool read_3dpoint_table(FILE *stream, int count, Cell_Info_Block *pCIB)
 bool read_2dpoint_table(FILE *stream, int count, Cell_Info_Block *pCIB)
 {
 
-      int rv = read_and_decode_bytes(stream, pCIB->p2dpoint_array, count * 4);
-      if(!rv)
-            return false;
+//      int rv = read_and_decode_bytes(stream, pCIB->p2dpoint_array, count * 4);
+
+      unsigned short x, y;
+      for(int index = 0 ; index < count ; index++)
+      {
+            if(!read_and_decode_ushort(stream, &x))
+                return false;
+            if(!read_and_decode_ushort(stream, &y))
+                return false;
+
+            pCIB->p2dpoint_array[index].x = x;
+            pCIB->p2dpoint_array[index].y = y;
+      }
+
 
       return true;
 }
@@ -998,12 +1041,10 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
       for(int iobject = 0 ; iobject < n_features ; iobject++)
       {
 
-//            read_and_decode_bytes(stream, &optr, 4);
-
             // read the object definition
             read_and_decode_bytes(stream, &object_type, 1);              // read the object type
             read_and_decode_bytes(stream, &geom_prim, 1);                // read the object geometry primitive type
-            read_and_decode_bytes(stream, &obj_desc_bytes, 2);           // read the object byte count
+            read_and_decode_ushort(stream, &obj_desc_bytes);             // read the object byte count
 
             pobj->otype = object_type;
             pobj->geotype = geom_prim;
@@ -1015,7 +1056,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
                   {
 
 
-                       if(!read_and_decode_bytes(stream, &n_elements, 2))
+                        if(!read_and_decode_ushort(stream, &n_elements))
                               return false;
 
                         pobj->n_geom_elements = n_elements;
@@ -1026,7 +1067,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
 
                         for(unsigned short i = 0 ; i < pobj->n_geom_elements ; i++)
                         {
-                              if(!read_and_decode_bytes(stream, &index, 2))
+                              if(!read_and_decode_ushort(stream, &index))
                                      return false;
 
                               if((index & 0x1fff) > pCIB->m_nvector_records)
@@ -1049,7 +1090,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
                   case 2:                                         // LINE geometry
                   {
 
-                        if(!read_and_decode_bytes(stream, &n_elements, 2))      // read geometry element count
+                        if(!read_and_decode_ushort(stream, &n_elements))      // read geometry element count
                               return false;
 
                         pobj->n_geom_elements = n_elements;
@@ -1062,7 +1103,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
                         {
                               unsigned short geometry_index;
 
-                              if(!read_and_decode_bytes(stream, &geometry_index, 2))
+                              if(!read_and_decode_ushort(stream, &geometry_index))
                                return false;
 
 
@@ -1085,7 +1126,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
 
                   case 1:
                   {
-                        if(!read_and_decode_bytes(stream, &index, 2))
+                        if(!read_and_decode_ushort(stream, &index))
                               return false;
 
                         obj_desc_bytes -= 2;
@@ -1099,7 +1140,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
 
                   case 8:
                   {
-                        if(!read_and_decode_bytes(stream, &index, 2))
+                        if(!read_and_decode_ushort(stream, &index))
                               return false;
                         obj_desc_bytes -= 2;
 
@@ -1130,7 +1171,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
                   Object **w = (Object **)pobj->p_related_object_pointer_array;
                   for(unsigned char j = 0 ; j < pobj->n_related_objects ; j++)
                   {
-                        if(!read_and_decode_bytes(stream, &index, 2))
+                        if(!read_and_decode_ushort(stream, &index))
                               return false;
 
                         if(index > pCIB->m_nfeature_records)
@@ -1153,7 +1194,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
 //                   *(int *)(0) = 0;                              // cause break error
 
                   unsigned short nrelated;
-                  if(!read_and_decode_bytes(stream, &nrelated, 2))
+                  if(!read_and_decode_ushort(stream, &nrelated))
                         return false;
 
                   pobj->n_related_objects = nrelated;
@@ -2313,7 +2354,7 @@ Extended_Geometry *cm93chart::BuildGeom(Object *pobject, wxFileOutputStream *pos
                         else
                               zp = z / 10.;
 
-                        OGRPoint *ppoint = new OGRPoint(rseg[ip].point.x, rseg[ip].point.y, zp);
+                        OGRPoint *ppoint = new OGRPoint(rseg[ip].x, rseg[ip].y, zp);
                         pSMP->addGeometryDirectly( ppoint );
                   }
 

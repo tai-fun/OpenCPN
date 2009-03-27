@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.2 2009/03/26 22:53:00 bdbcat Exp $
+ * $Id: cm93.h,v 1.3 2009/03/27 01:02:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.3  2009/03/27 01:02:22  bdbcat
+ * No pragma pack()
+ *
  * Revision 1.2  2009/03/26 22:53:00  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -68,7 +71,7 @@ static const double mercator_k0                       = 0.9996;
 
 //    CM93 Data structures
 
-#pragma pack(push,1)
+//#pragma pack(push,1)
 
 typedef struct{
       unsigned short    x;
@@ -77,11 +80,12 @@ typedef struct{
 
 
 typedef struct{
-      cm93_point              point;
-      unsigned short          z;
+      unsigned short    x;
+      unsigned short    y;
+      unsigned short    z;
 }cm93_point_3d;
 
-#pragma pack(pop)
+//#pragma pack(pop)
 
 
 //    This is the 128 byte cm93 cell header, found at offset 0x0a in the cell file
