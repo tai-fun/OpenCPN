@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.34 2009/03/26 22:29:10 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.35 2009/03/27 01:02:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.35  2009/03/27 01:02:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.34  2009/03/26 22:29:10  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -66,6 +69,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.35  2009/03/27 01:02:46  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.34  2009/03/26 22:29:10  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -240,7 +246,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.34 2009/03/26 22:29:10 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.35 2009/03/27 01:02:46 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1333,7 +1339,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       if (g_pNavAidRadarRingsStepUnits == 0)          // nautical miles
                             factor = 1.852;
 
-                      int pix_radius = round(g_fNavAidRadarRingsStep * (ViewScale * 1852 * factor /** 60*/));
+                      int pix_radius = (int)round(g_fNavAidRadarRingsStep * (ViewScale * 1852 * factor /** 60*/));
 
 
                       wxBrush CurrentBrush = dc.GetBrush();
