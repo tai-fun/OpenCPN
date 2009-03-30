@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.23  2009/03/30 19:06:17  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.22  2009/03/26 22:29:39  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -64,6 +67,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.23  2009/03/30 19:06:17  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.22  2009/03/26 22:29:39  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -154,7 +160,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.22 2009/03/26 22:29:39 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.23 2009/03/30 19:06:17 bdbcat Exp $");
 
 //    Statics
 
@@ -2713,7 +2719,7 @@ void MyConfig::UpdateSettings()
 void MyConfig::ExportGPX(wxWindow* parent)
 {
       wxFileDialog *saveDialog = new wxFileDialog(parent, wxT("Export GPX file"), wxT(""), wxT(""),
-                  wxT("GPX files (*.gpx)|*.gpx)"), wxSAVE);
+                  wxT("GPX files (*.gpx)|*.gpx"), wxSAVE);
 
    // We have to check for the correct extension! If it can't be found, we have to set it!
    // To do...

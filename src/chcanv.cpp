@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.35 2009/03/27 01:02:46 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.36 2009/03/30 19:06:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.36  2009/03/30 19:06:17  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.35  2009/03/27 01:02:46  bdbcat
  * *** empty log message ***
  *
@@ -69,6 +72,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.36  2009/03/30 19:06:17  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.35  2009/03/27 01:02:46  bdbcat
  * *** empty log message ***
  *
@@ -246,7 +252,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.35 2009/03/27 01:02:46 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.36 2009/03/30 19:06:17 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -5656,7 +5662,7 @@ wxString S57QueryDialog::format_attributes(wxString &attr, int lcol, int rcol)
                         unsigned int iline=0;
                         wxString tkr;
 
-                        wxStringTokenizer tk(attval, wxT(" |"));
+                        wxStringTokenizer tk(attval, wxT(" |,"));
                         while ( tk.HasMoreTokens() )
                         {
                               wxString token = tk.GetNextToken();

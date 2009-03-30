@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.2 2009/03/27 01:02:54 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.3 2009/03/30 19:06:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.3  2009/03/30 19:06:17  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.2  2009/03/27 01:02:54  bdbcat
  * No pragma pack()
  *
@@ -3575,7 +3578,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
                   break;                        // G, 7500
             cmscale--;
 
-            if(scale_mpp < 10000)
+            if(scale_mpp < 15000/*10000*/)
                   break;                        // F, 20000
             cmscale--;
 
@@ -3601,7 +3604,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
       }
 
 #ifdef CM93_DEBUG_PRINTF
-      if(cmscale != m_cmscale)
+//      if(cmscale != m_cmscale)
             printf("on SetVPParms, scale_mpp %g...resulting in cmscale:%d, %c\n", scale_mpp, cmscale, (char)('A' + cmscale -1));
 #endif
 
@@ -3792,6 +3795,10 @@ ListOfS57Obj *cm93compchart::GetObjListAtLatLon(float lat, float lon, float sele
       return  m_pcm93chart_current->GetObjListAtLatLon(lat, lon, select_radius, VPoint);
 }
 
+S57ObjectDesc *cm93compchart::CreateObjDescription(const S57Obj *obj)
+{
+      return m_pcm93chart_current->CreateObjDescription(obj);
+}
 
 int cm93compchart::Get_nve_elements(void)
 {

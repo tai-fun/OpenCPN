@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrs57datasource.cpp,v 1.4 2008/08/27 22:51:38 bdbcat Exp $
+ * $Id: ogrs57datasource.cpp,v 1.5 2009/03/30 19:08:43 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements OGRS57DataSource class
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: ogrs57datasource.cpp,v $
+ * Revision 1.5  2009/03/30 19:08:43  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.4  2008/08/27 22:51:38  bdbcat
  * Add error returns to ENC update logic
  *
@@ -124,7 +127,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrs57datasource.cpp,v 1.4 2008/08/27 22:51:38 bdbcat Exp $");
+CPL_CVSID("$Id: ogrs57datasource.cpp,v 1.5 2009/03/30 19:08:43 bdbcat Exp $");
 
 S57ClassRegistrar *OGRS57DataSource::poRegistrar = NULL;
 
@@ -348,7 +351,7 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
 /* -------------------------------------------------------------------- */
 /*      Add the primitive layers if they are called for.                */
 /* -------------------------------------------------------------------- */
-/*
+
     if( GetOption( S57O_RETURN_PRIMITIVES ) != NULL )
     {
         OGRFeatureDefn  *poDefn;
@@ -365,7 +368,7 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
         poDefn = S57GenerateVectorPrimitiveFeatureDefn( RCNM_VF, poModule->GetOptionFlags());
         AddLayer( new OGRS57Layer( this, poDefn ) );
     }
- */
+
 /* -------------------------------------------------------------------- */
 /*      Initialize a layer for each type of geometry.  Eventually       */
 /*      we will do this by object class.                                */
