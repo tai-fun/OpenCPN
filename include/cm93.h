@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.3 2009/03/27 01:02:22 bdbcat Exp $
+ * $Id: cm93.h,v 1.4 2009/03/30 19:21:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.4  2009/03/30 19:21:21  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.3  2009/03/27 01:02:22  bdbcat
  * No pragma pack()
  *
@@ -371,6 +374,7 @@ class cm93compchart : public s57chart
             void InvalidateCache();
 
             ListOfS57Obj *GetObjListAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint);
+            S57ObjectDesc *CreateObjDescription(const S57Obj *obj);
 
             int Get_nve_elements(void);
             int Get_nvc_elements(void);

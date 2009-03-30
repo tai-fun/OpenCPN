@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.19 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: s57chart.h,v 1.20 2009/03/30 19:21:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.20  2009/03/30 19:21:21  bdbcat
+ * Opencpn 1.3.0 Update
+ *
  * Revision 1.19  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -202,7 +205,7 @@ public:
       virtual ListOfS57Obj *GetObjListAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint);
       bool DoesLatLonSelectObject(float lat, float lon, float select_radius, S57Obj *obj);
       bool IsPointInObjArea(float lat, float lon, float select_radius, S57Obj *obj);
-      S57ObjectDesc *CreateObjDescription(const S57Obj *obj);
+      virtual S57ObjectDesc *CreateObjDescription(const S57Obj *obj);
       wxString GetAttributeDecode(wxString& att, int ival);
 
       wxFileName GetSENCFileName(){ return m_SENCFileName; }
