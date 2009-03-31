@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.36 2009/03/30 19:06:17 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.37 2009/03/31 13:34:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.37  2009/03/31 13:34:13  bdbcat
+ * Correct waypoint dragging logic
+ *
  * Revision 1.36  2009/03/30 19:06:17  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -72,6 +75,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.37  2009/03/31 13:34:13  bdbcat
+ * Correct waypoint dragging logic
+ *
  * Revision 1.36  2009/03/30 19:06:17  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -252,7 +258,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.36 2009/03/30 19:06:17 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.37 2009/03/31 13:34:13 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -2137,8 +2143,11 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                                                           // dsr, after toh
                    bool DraggingAllowed = true;
 
-                   if ( NULL == pMarkPropDialog && g_bWayPointPreventDragging)
-                         DraggingAllowed = false;
+                   if ( NULL == pMarkPropDialog )
+                   {
+                         if( g_bWayPointPreventDragging)
+                              DraggingAllowed = false;
+                   }
                    else if ( !pMarkPropDialog->IsShown() && g_bWayPointPreventDragging)
                          DraggingAllowed = false;
 
