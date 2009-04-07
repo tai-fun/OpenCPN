@@ -1090,8 +1090,8 @@ bool MarkInfo::UpdateProperties()
                         while (ctrlnode && i<MAX_NUM_HYPERLINKS)
                         {
                               wxHyperlinkCtrl *ctrl = ctrlnode->GetData();
-                              ctrl->SetURL("");
-                              ctrl->SetLabel("");
+                              ctrl->SetURL(_T(""));
+                              ctrl->SetLabel(_T(""));
 
                               ctrlnode = ctrlnode->GetNext();
                               i++;
