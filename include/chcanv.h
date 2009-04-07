@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.19 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: chcanv.h,v 1.20 2009/04/07 16:54:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.20  2009/04/07 16:54:42  bdbcat
+ * New Tide station icon
+ *
  * Revision 1.19  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -328,6 +331,7 @@ private:
       void EmbossDepthScale(wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, int emboss_ident);
       int *CreateEmbossMap(wxFont &font, int width, int height, char *str, ColorScheme cs);
       void CreateDepthUnitEmbossMaps(ColorScheme cs);
+      wxBitmap CreateDimBitmap(wxBitmap &Bitmap, double factor);
 
 
       //    Data
@@ -392,6 +396,16 @@ private:
       double      m_true_scale_ppm;
 
       ownship_state_t   m_ownship_state;
+
+      ColorScheme m_cs;
+
+      wxBitmap    m_bmTideDay;
+      wxBitmap    m_bmTideDusk;
+      wxBitmap    m_bmTideNight;
+      wxBitmap    m_bmCurrentDay;
+      wxBitmap    m_bmCurrentDusk;
+      wxBitmap    m_bmCurrentNight;
+
 
 DECLARE_EVENT_TABLE()
 };

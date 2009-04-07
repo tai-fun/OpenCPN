@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.37 2009/03/31 13:34:13 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.38 2009/04/07 16:52:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.38  2009/04/07 16:52:25  bdbcat
+ * New Tide station icon
+ *
  * Revision 1.37  2009/03/31 13:34:13  bdbcat
  * Correct waypoint dragging logic
  *
@@ -75,6 +78,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.38  2009/04/07 16:52:25  bdbcat
+ * New Tide station icon
+ *
  * Revision 1.37  2009/03/31 13:34:13  bdbcat
  * Correct waypoint dragging logic
  *
@@ -258,7 +264,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.37 2009/03/31 13:34:13 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.38 2009/04/07 16:52:25 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -270,6 +276,8 @@ CPL_CVSID ( "$Id: chcanv.cpp,v 1.37 2009/03/31 13:34:13 bdbcat Exp $" );
 #include "bitmaps/left.xpm"
 #include "bitmaps/right.xpm"
 #include "bitmaps/pencil.xpm"
+
+#include "bitmaps/tidesml.xpm"
 
 //    Constants for right click menus
 enum
@@ -385,7 +393,6 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         m_pFoundPoint                 = NULL;
         m_pMouseRoute                 = NULL;
         m_prev_pMousePoint            = NULL;
-//        m_pEditRoute                  = NULL;
         m_pEditRouteArray             = NULL;
         m_pFoundRoutePoint            = NULL;
         m_pFoundRoutePointSecond      = NULL;
@@ -493,6 +500,7 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
 
 // Set some benign initial values
 
+        m_cs = GLOBAL_COLOR_SCHEME_DAY;
         VPoint.clat = 0;
         VPoint.clon = 0;
         VPoint.view_scale_ppm = 1;
@@ -511,6 +519,18 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         m_pEM_Fathoms = NULL;
 
         CreateDepthUnitEmbossMaps( GLOBAL_COLOR_SCHEME_DAY );
+
+//    Build icons for tide/current points
+        m_bmTideDay = wxBitmap(tidesml);
+
+//    Dusk
+        m_bmTideDusk = CreateDimBitmap(m_bmTideDay, .50);
+
+//    Night
+        m_bmTideNight = CreateDimBitmap(m_bmTideDay, .20);
+
+
+
 }
 
 ChartCanvas::~ChartCanvas()
@@ -550,7 +570,38 @@ ChartCanvas::~ChartCanvas()
 void ChartCanvas::SetColorScheme(ColorScheme cs)
 {
       CreateDepthUnitEmbossMaps( cs );
+
+      m_cs = cs;
 }
+
+wxBitmap ChartCanvas::CreateDimBitmap(wxBitmap &Bitmap, double factor)
+{
+      wxImage img = Bitmap.ConvertToImage();
+      int sx = img.GetWidth();
+      int sy = img.GetHeight();
+
+      wxImage new_img(img);
+
+      for(int i = 0 ; i < sx ; i++)
+      {
+            for(int j = 0 ; j < sy ; j++)
+            {
+                  if(!img.IsTransparent(i,j))
+                  {
+                        new_img.SetRGB(i, j, (unsigned char)(img.GetRed(i, j) * factor),
+                                       (unsigned char)(img.GetGreen(i, j) * factor),
+                                        (unsigned char)(img.GetBlue(i, j) * factor));
+                  }
+            }
+      }
+
+      wxBitmap ret = wxBitmap(new_img);
+
+      return ret;
+
+}
+
+
 
 
 void ChartCanvas::RescaleTimerEvent ( wxTimerEvent& event )
@@ -1572,8 +1623,6 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                       if ( ores != Invisible )
                                             dc.DrawLine (  tCPAPoint.x, tCPAPoint.y, oCPAPoint.x, oCPAPoint.y );
 
-
-
 /*
                                       //  Draw a little cross at the end of the line
                                       double px =  ( double ) (-10 * sin ( theta )) + ( double ) (-0 * cos ( theta ));
@@ -1594,8 +1643,9 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                 }
                           }
 
-                          //        Draw the target ship
+                          //        Actually Draw the target ship
                           dc.DrawPolygon ( 3, ais_tri_icon, TargetPoint.x, TargetPoint.y );
+
 
                                 //        Draw the inactive cross-out line
                           if(!td->b_active)
@@ -1610,33 +1660,6 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                 p2 = transrot(wxPoint(14, -5), theta, TargetPoint);
                                 dc.DrawLine ( p1.x, p1.y, p2.x, p2.y );
 
-/*
-                                double px =  ( double ) (-14 * sin ( theta )) + ( double ) (-5 * cos ( theta ));
-                                double py =  ( double ) (-5 * sin ( theta )) - ( double ) (-14 * cos ( theta ));
-                                int inact1x = (int) round( px );
-                                int inact1y = (int) round( py );
-
-                                px =  ( double ) (14 * sin ( theta )) + ( double ) (5 * cos ( theta ));
-                                py =  ( double ) (5 * sin ( theta )) - ( double ) (14 * cos ( theta ));
-                                int inact2x = (int) round( px );
-                                int inact2y = (int) round( py );
-
-                                dc.DrawLine ( inact1x + TargetPoint.x, inact1y + TargetPoint.y, inact2x + TargetPoint.x, inact2y + TargetPoint.y );
-
-                                px =  ( double ) (-14 * sin ( theta )) + ( double ) (5 * cos ( theta ));
-                                py =  ( double ) (5 * sin ( theta )) - ( double ) (-14 * cos ( theta ));
-                                inact1x = (int) round( px );
-                                inact1y = (int) round( py );
-
-                                px =  ( double ) (14 * sin ( theta ));
-                                py =  - ( double ) (14 * cos ( theta ));
-                                px =  ( double ) (14 * sin ( theta )) + ( double ) (-5 * cos ( theta ));
-                                py =  ( double ) (-5 * sin ( theta )) - ( double ) (14 * cos ( theta ));
-                                inact2x = (int) round( px );
-                                inact2y = (int) round( py );
-
-                                dc.DrawLine ( inact1x + TargetPoint.x, inact1y + TargetPoint.y, inact2x + TargetPoint.x, inact2y + TargetPoint.y );
-*/
                                 dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "UBLCK" )), 1) );
                            }
 
@@ -1671,6 +1694,14 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                         dc.DrawLine ( pixx1, pixy1, xrot, yrot );
                                     }
                            }
+
+                           //        If this is an AIS Class B target, so symbolize it
+                           if(td->Class == AIS_CLASS_B)
+                           {
+                                 dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "BLUE3" ) ) ) );
+                                 dc.DrawCircle ( TargetPoint.x, TargetPoint.y, 5 );
+                           }
+
 
                 }       // drawit
         }         // iterator
@@ -3887,14 +3918,13 @@ void ChartCanvas::DrawAllWaypointsInBBox ( wxDC& dc, wxBoundingBox& BltBBox, boo
 
 
 
-
 void ChartCanvas::DrawAllTidesInBBox ( wxDC& dc, wxBoundingBox& BBox,
                                        bool bRebuildSelList, bool bdraw_mono_for_mask )
 {
 
         wxPen *pblack_pen = wxThePenList->FindOrCreatePen ( GetGlobalColor ( _T ( "UINFD" ) ), 1, wxSOLID );
         wxBrush *pgreen_brush = wxTheBrushList->FindOrCreateBrush ( GetGlobalColor ( _T ( "GREEN1" ) ), wxSOLID );
-        wxBrush *pblack_brush = wxTheBrushList->FindOrCreateBrush ( GetGlobalColor ( _T ( "UINFD" ) ), wxSOLID );
+//        wxBrush *pblack_brush = wxTheBrushList->FindOrCreateBrush ( GetGlobalColor ( _T ( "UINFD" ) ), wxSOLID );
 
 
         if ( bdraw_mono_for_mask )
@@ -3918,6 +3948,25 @@ void ChartCanvas::DrawAllTidesInBBox ( wxDC& dc, wxBoundingBox& BBox,
         if ( bRebuildSelList )
                 pSelectTC->DeleteAllSelectableTypePoints ( SELTYPE_TIDEPOINT );
 
+        wxBitmap bm;
+        switch(m_cs)
+        {
+              case GLOBAL_COLOR_SCHEME_DAY:
+                    bm = m_bmTideDay;
+                    break;
+              case GLOBAL_COLOR_SCHEME_DUSK:
+                    bm = m_bmTideDusk;
+                    break;
+              case GLOBAL_COLOR_SCHEME_NIGHT:
+                    bm = m_bmTideNight;
+                    break;
+              default:
+                    bm = m_bmTideDay;
+                    break;
+        }
+
+        int bmw = bm.GetWidth();
+        int bmh = bm.GetHeight();
 
 //      if(1/*BBox.GetValid()*/)
         {
@@ -3941,6 +3990,11 @@ void ChartCanvas::DrawAllTidesInBBox ( wxDC& dc, wxBoundingBox& BBox,
                                         wxPoint r;
                                         GetPointPix ( lat, lon, &r );
 
+                                        if(bdraw_mono_for_mask)
+                                              dc.DrawRectangle(r.x - bmw/2, r.y - bmh/2, bmw, bmh);
+                                        else
+                                              dc.DrawBitmap(bm, r.x - bmw/2, r.y - bmh/2, true);
+/*
                                         wxPoint d[4];
                                         int dd = 6;
                                         d[0].x = r.x; d[0].y = r.y+dd;
@@ -3958,6 +4012,7 @@ void ChartCanvas::DrawAllTidesInBBox ( wxDC& dc, wxBoundingBox& BBox,
                                                 dc.SetPen ( *pblack_pen );
                                                 dc.SetBrush ( *pgreen_brush );
                                         }
+*/
                                 }
                         }
                 }
@@ -4030,7 +4085,7 @@ void ChartCanvas::DrawAllCurrentsInBBox ( wxDC& dc, wxBoundingBox& BBox, double 
                         {
                                 // with directions known
 
-//  This is a ---HACK---
+//  TODO This is a ---HACK---
 //  try to avoid double current arrows.  Select the first in the list only
 //  Proper fix is to correct the TCDATA index file for depth indication
 
@@ -5637,7 +5692,7 @@ wxString S57QueryDialog::format_attributes(wxString &attr, int lcol, int rcol)
       wxString result;
 
       //    First, emit verbatim everything up to and including the string "Attributes\n"
-      int index = attr.Find("Attributes\n");
+      int index = attr.Find(_T("Attributes\n"));
       if(index != wxNOT_FOUND)
       {
             index += strlen("Attributes\n");
@@ -5650,7 +5705,7 @@ wxString S57QueryDialog::format_attributes(wxString &attr, int lcol, int rcol)
       while(remains.Len())
       {
             // emit verbatim up to <atval>
-            int rindex = remains.Find("<atval>");
+            int rindex = remains.Find(_T("<atval>"));
             if(rindex != wxNOT_FOUND)
             {
                   result << remains.Mid(0, rindex);
@@ -5658,7 +5713,7 @@ wxString S57QueryDialog::format_attributes(wxString &attr, int lcol, int rcol)
                   //    Skip the keyword
                   rindex += 7;
                   //    Find the ending keyword
-                  int rtindex = remains.Find("<\\atval>");
+                  int rtindex = remains.Find(_T("<\\atval>"));
                   if(rtindex != wxNOT_FOUND)
                   {
                         //    extract the denoted string
