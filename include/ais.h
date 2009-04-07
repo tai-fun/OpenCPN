@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.11 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: ais.h,v 1.12 2009/04/07 16:54:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,19 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
- * Revision 1.11  2009/03/26 22:35:35  bdbcat
- * Opencpn 1.3.0 Update
+ * Revision 1.12  2009/04/07 16:54:54  bdbcat
+ * Support AIS Class B
  *
- * Revision 1.10  2008/04/10 00:57:08  bdbcat
- * Cleanup
- *
- * Revision 1.9  2008/03/30 23:20:36  bdbcat
- * *** empty log message ***
- *
- * Revision 1.8  2008/03/30 23:13:42  bdbcat
- * *** empty log message ***
- *
- * $Log: ais.h,v $
  * Revision 1.11  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -54,7 +44,6 @@
  * Revision 1.7  2008/01/12 06:17:45  bdbcat
  * Update for Mac OSX/Unicode
  *
->>>>>>> 1.7
  * Revision 1.6  2008/01/02 21:04:07  bdbcat
  * Update for Version 1.2.2
  *
@@ -130,6 +119,14 @@ typedef enum ais_nav_status
 
 }_ais_nav_status;
 
+//      Describe Transponder Class
+typedef enum ais_transponder_class
+{
+      AIS_CLASS_A = 0,
+      AIS_CLASS_B
+
+}_ais_transponder_class;
+
 //---------------------------------------------------------------------------------
 //
 //  AIS_Decoder Helpers
@@ -142,23 +139,24 @@ public:
 
     AIS_Target_Data();
 
-    int         MID;
-    int         MMSI;
-    int         NavStatus;
-    int         SyncState;
-    int         SlotTO;
-    double      SOG;
-    double      COG;
-    double      HDG;
-    double      Lon;
-    double      Lat;
-    int         ROTAIS;
-    char        CallSign[8];                // includes terminator
-    char        ShipName[21];
-    unsigned char ShipType;
-    time_t      ReportTicks;
-    int         RecentPeriod;
-    bool        b_active;
+    int                       MID;
+    int                       MMSI;
+    ais_transponder_class     Class;
+    int                       NavStatus;
+    int                       SyncState;
+    int                       SlotTO;
+    double                    SOG;
+    double                    COG;
+    double                    HDG;
+    double                    Lon;
+    double                    Lat;
+    int                       ROTAIS;
+    char                      CallSign[8];                // includes terminator
+    char                      ShipName[21];
+    unsigned char             ShipType;
+    time_t                    ReportTicks;
+    int                       RecentPeriod;
+    bool                      b_active;
 
     //      Per target collision parameters
     double      TCPA;                     // Minutes
