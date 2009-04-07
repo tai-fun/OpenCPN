@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.3 2009/03/30 19:06:17 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.4 2009/04/07 16:49:48 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.4  2009/04/07 16:49:48  bdbcat
+ * No debug printf
+ *
  * Revision 1.3  2009/03/30 19:06:17  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -1451,8 +1454,11 @@ double cm93chart::GetNormalScaleMax(double canvas_scale_factor)
 
 wxString cm93chart::GetName()
 {
-      wxString data;
-      data.Printf(_T("CM93Chart %s  1/%d"), m_scalechar.mb_str(), m_Chart_Scale);
+      wxString data = _T("CM93Chart ");
+      data.Append(m_scalechar);
+      wxString s;
+      s.Printf(_T("  1/%d"), m_Chart_Scale);
+      data.Append(s);
       return data;
 }
 
@@ -3560,7 +3566,7 @@ double cm93compchart::GetNormalScaleMax(double canvas_scale_factor)
       return 1.0e8;
 }
 
-#define CM93_DEBUG_PRINTF 1
+///#define CM93_DEBUG_PRINTF 1
 
 //-----------------------------------------------------------------------
 //              Calculate and Set ViewPoint Constants
