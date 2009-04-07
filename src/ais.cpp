@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.11 2009/03/26 22:26:06 bdbcat Exp $
+ * $Id: ais.cpp,v 1.12 2009/04/07 16:48:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.12  2009/04/07 16:48:50  bdbcat
+ * Support AIS Class B
+ *
  * Revision 1.11  2009/03/26 22:26:06  bdbcat
  * *** empty log message ***
  *
@@ -100,7 +103,7 @@ extern double           g_ShowMoored_Kts;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.11 2009/03/26 22:26:06 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.12 2009/04/07 16:48:50 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -157,6 +160,8 @@ AIS_Target_Data::AIS_Target_Data()
 
     CPA = 100;                // Large values avoid false alarms
     TCPA = 100;
+
+    Class = AIS_CLASS_A;      // default
 
 }
 
@@ -537,14 +542,14 @@ AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tth
      int last_report_ticks = tlast->ReportTicks;
 
      //  Name update
-     if(tthis->MID == 5)
+     if((tthis->MID == 5) || (tthis->MID == 24))
      {
          *result = *tlast;
          strncpy(&result->ShipName[0], &tthis->ShipName[0], 21);
      }
 
      //     Position update
-     else if((tthis->MID == 1) || (tthis->MID == 2) || (tthis->MID == 3))
+     else if((tthis->MID == 1) || (tthis->MID == 2) || (tthis->MID == 3) || (tthis->MID == 18))
      {
          *result = *tthis;
          strncpy(&result->ShipName[0], &tlast->ShipName[0], 21);
@@ -552,7 +557,6 @@ AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tth
 
      else
      {
-//         printf("Copying with unexpected MID= %d\n", tthis->MID);
          *result = *tlast;                  // default
      }
 
@@ -634,9 +638,6 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
 
     int message_ID = bstr->GetInt(1, 6);        // Parse on message ID
 
-    /// Debug
-//    if(message_ID > 5)
-//        printf("message_ID bogus: %d\n", message_ID);
 
     ///
     switch (message_ID)
@@ -644,6 +645,7 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
     case 1:                                 // Position Report
     case 2:
     case 3:
+    case 18:
         {
             atd.MID = message_ID;
             atd.MMSI = bstr->GetInt(9, 30);
@@ -688,7 +690,7 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
             if(0 == atd.MMSI)
                 parse_result = 0;
 
-            else
+#if 0
             {
                 //  Todo there may be a bug here.  Sometimes get invalid utc_hour, utc_min
                 if((utc_hour < 24) && (utc_min < 60) && (utc_sec < 60))
@@ -701,16 +703,20 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
                 else
                       parse_result = false;
             }
+#endif
+            if(message_ID == 18)
+                  atd.Class = AIS_CLASS_B;
+            else
+                  atd.Class = AIS_CLASS_A;
+
             break;
         }
 
     case 5:
         {
+            atd.Class = AIS_CLASS_A;
             atd.MID = message_ID;
             atd.MMSI = bstr->GetInt(9, 30);
-/// Debug
-///            if(atd.MMSI < 100000000)
-///                atd.MMSI = bstr->GetInt(9, 30);
 
             int DSI = bstr->GetInt(39, 2);
             if(0 == DSI)
@@ -723,6 +729,24 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
             }
             break;
         }
+
+     case 24:
+         {
+               atd.Class = AIS_CLASS_B;
+               atd.MID = message_ID;
+               atd.MMSI = bstr->GetInt(9, 30);
+
+               int part_number = bstr->GetInt(39, 2);
+               if(0 == part_number)
+               {
+                     bstr->GetStr(41,120, &atd.ShipName[0], 20);
+                     parse_result = true;
+               }
+
+
+               break;
+         }
+
     }
 
 
