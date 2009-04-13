@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.15 2009/03/26 22:30:21 bdbcat Exp $
+ * $Id: options.cpp,v 1.16 2009/04/13 02:33:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.16  2009/04/13 02:33:25  bdbcat
+ * Add "show ATON labels" option
+ *
  * Revision 1.15  2009/03/26 22:30:21  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -582,6 +585,10 @@ void options::CreateControls()
     pCheck_SCAMIN->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_SCAMIN, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
+    pCheck_ATONTEXT = new wxCheckBox( ps57Ctl, ID_ATONTEXTCHECKBOX, _T("Show ATON labels"), wxDefaultPosition,
+                                    wxSize(-1, -1), 0 );
+    pCheck_SCAMIN->SetValue(FALSE);
+    itemBoxSizer75->Add(pCheck_ATONTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
     wxStaticBox* itemStaticBoxSizer83Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Chart Display Style"));
     wxStaticBoxSizer* itemStaticBoxSizer83 = new wxStaticBoxSizer(itemStaticBoxSizer83Static, wxVERTICAL);
@@ -1083,6 +1090,7 @@ void options::SetInitialSettings()
       pCheck_META->SetValue(ps52plib->m_bShowMeta);
       pCheck_SHOWTEXT->SetValue(ps52plib->m_bShowS57Text);
       pCheck_SCAMIN->SetValue(ps52plib->m_bUseSCAMIN);
+      pCheck_ATONTEXT->SetValue(ps52plib->m_bShowAtonText);
 
       // Chart Display Style
       if(ps52plib->m_nSymbolStyle == PAPER_CHART)
@@ -1365,6 +1373,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
             ps52plib->m_bShowMeta =    pCheck_META->GetValue();
             ps52plib->m_bShowS57Text = pCheck_SHOWTEXT->GetValue();
             ps52plib->m_bUseSCAMIN =   pCheck_SCAMIN->GetValue();
+            ps52plib->m_bShowAtonText= pCheck_ATONTEXT->GetValue();
+
 
             if(0 == pPointStyle->GetSelection())
                 ps52plib->m_nSymbolStyle = PAPER_CHART;

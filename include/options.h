@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.8 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: options.h,v 1.9 2009/04/13 02:34:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.9  2009/04/13 02:34:17  bdbcat
+ * Add "show ATON labels" option
+ *
  * Revision 1.8  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -108,6 +111,7 @@ enum {
         ID_SHOWDEPTHUNITSBOX1,
         ID_AUTOANCHORMARKBOX1,
         ID_PANELAIS,
+        ID_ATONTEXTCHECKBOX,
         ID_PANELADVANCED,   // toh, 2009.02.14
         ID_GPXCHECKBOX,       // toh, 2009.02.14
         ID_DRAGGINGCHECKBOX   // toh, 2009.02.14
@@ -197,6 +201,7 @@ public:
     wxCheckBox              *pCheck_META;
     wxCheckBox              *pCheck_SHOWTEXT;
     wxCheckBox              *pCheck_SCAMIN;
+    wxCheckBox              *pCheck_ATONTEXT;
     wxTextCtrl              *m_ShallowCtl;
     wxTextCtrl              *m_SafetyCtl;
     wxTextCtrl              *m_DeepCtl;

@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.24  2009/04/13 02:33:25  bdbcat
+ * Add "show ATON labels" option
+ *
  * Revision 1.23  2009/03/30 19:06:17  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -67,6 +70,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.24  2009/04/13 02:33:25  bdbcat
+ * Add "show ATON labels" option
+ *
  * Revision 1.23  2009/03/30 19:06:17  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -160,7 +166,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.23 2009/03/30 19:06:17 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.24 2009/04/13 02:33:25 bdbcat Exp $");
 
 //    Statics
 
@@ -1601,32 +1607,30 @@ int MyConfig::LoadMyConfig(int iteration)
     if(NULL != ps52plib)
     {
       SetPath(_T("/Settings/GlobalState"));
+
       Read(_T("bShowS57Text"), &read_int, 0);
       ps52plib->SetShowS57Text(read_int);
 
-      SetPath(_T("/Settings/GlobalState"));
       Read(_T("nDisplayCategory"), &read_int, (enum _DisCat)OTHER);
       ps52plib->m_nDisplayCategory = (enum _DisCat)read_int;
 
-      SetPath(_T("/Settings/GlobalState"));
       Read(_T("nSymbolStyle"), &read_int, (enum _LUPname)PAPER_CHART);
       ps52plib->m_nSymbolStyle = (LUPname)read_int;
 
-      SetPath(_T("/Settings/GlobalState"));
       Read(_T("nBoundaryStyle"), &read_int, 0);
       ps52plib->m_nBoundaryStyle = (LUPname)read_int;
 
-      SetPath(_T("/Settings/GlobalState"));
       Read(_T("bShowSoundg"), &read_int, 0);
       ps52plib->m_bShowSoundg = read_int;
 
-      SetPath(_T("/Settings/GlobalState"));
       Read(_T("bShowMeta"), &read_int, 0);
       ps52plib->m_bShowMeta = read_int;
 
-      SetPath(_T("/Settings/GlobalState"));
       Read(_T("bUseSCAMIN"), &read_int, 0);
       ps52plib->m_bUseSCAMIN = read_int;
+
+      Read(_T("bShowAtonText"), &read_int, 0);
+      ps52plib->m_bShowAtonText = read_int;
 
       double dval;
       if(Read(_T("S52_MAR_SAFETY_CONTOUR"), &dval, 5.0))
@@ -2617,6 +2621,7 @@ void MyConfig::UpdateSettings()
       Write(_T("bShowSoundg"), ps52plib->m_bShowSoundg);
       Write(_T("bShowMeta"), ps52plib->m_bShowMeta);
       Write(_T("bUseSCAMIN"), ps52plib->m_bUseSCAMIN);
+      Write(_T("bShowAtonText"), ps52plib->m_bShowAtonText);
 
       Write(_T("S52_MAR_SAFETY_CONTOUR"), S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR));
       Write(_T("S52_MAR_SHALLOW_CONTOUR"), S52_getMarinerParam(S52_MAR_SHALLOW_CONTOUR));

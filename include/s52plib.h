@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.11 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: s52plib.h,v 1.12 2009/04/13 02:34:17 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.12  2009/04/13 02:34:17  bdbcat
+ * Add "show ATON labels" option
+ *
  * Revision 1.11  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -42,6 +45,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.12  2009/04/13 02:34:17  bdbcat
+ * Add "show ATON labels" option
+ *
  * Revision 1.11  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -164,6 +170,7 @@ public:
       bool        m_bShowMeta;
       bool        m_bShowS57Text;
       bool        m_bUseSCAMIN;
+      bool        m_bShowAtonText;
 
       int         m_nDepthUnitDisplay;
 
@@ -288,7 +295,6 @@ public:
       double      m_display_pix_per_mm;
 
       bool        m_bCheckTextOverlap;
-      bool        m_bShowAtonText;
 
 };
 
