@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.25 2009/03/26 22:30:54 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.26 2009/04/13 02:32:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.26  2009/04/13 02:32:27  bdbcat
+ * Improve object query logic
+ *
  * Revision 1.25  2009/03/26 22:30:54  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -61,6 +64,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.26  2009/04/13 02:32:27  bdbcat
+ * Improve object query logic
+ *
  * Revision 1.25  2009/03/26 22:30:54  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -160,7 +166,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.25 2009/03/26 22:30:54 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.26 2009/04/13 02:32:27 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -1867,11 +1873,8 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
         wxBitmap *pBMP;
         if(ThumbFileNameLook.FileExists())
         {
-//#ifdef ocpnUSE_ocpnBitmap
-//                pBMP =  new ocpnBitmap;
-//#else
                 pBMP =  new wxBitmap;
-//#endif
+
                 pBMP->LoadFile(ThumbFileNameLook.GetFullPath(), wxBITMAP_TYPE_BMP );
                 m_pDIBThumbDay = pBMP;
         }
@@ -1905,11 +1908,16 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
 
     if(fn.GetExt() == _T("000"))
     {
-          GetBaseFileAttr(fn);
-          if(FindOrCreateSenc(name) != INIT_OK)
-                return ret_value;
+          if(GetBaseFileAttr(fn))
+          {
+                if(FindOrCreateSenc(name) != INIT_OK)
+                      ret_value = INIT_FAIL_REMOVE;
+                else
+                      ret_value = PostInit(flags, cs);
+          }
+          else
+                ret_value = INIT_FAIL_REMOVE;
 
-          ret_value = PostInit(flags, cs);
     }
 
     else if(fn.GetExt() == _T("S57"))
@@ -2181,7 +2189,7 @@ InitReturn s57chart::PostInit( ChartInitFlag flags, ColorScheme cs )
 
 //    Set some plib behaviour flags
     ps52plib->SetTextOverlapAvoid(true);
-    ps52plib->SetShowAtonText(true);
+//    ps52plib->SetShowAtonText(true);
 
 //    Build array of contour values for later use by conditional symbology
 
@@ -3177,6 +3185,8 @@ int s57chart::ValidateAndCountUpdates( const wxFileName file000, const wxString 
 
 bool s57chart::GetBaseFileAttr(wxFileName fn)
 {
+      if(!wxFileName::FileExists(fn.GetFullPath()))
+            return false;
 
       wxString FullPath000 = fn.GetFullPath();
       DDFModule *poModule = new DDFModule();
@@ -5259,6 +5269,10 @@ bool s57chart::DoesLatLonSelectObject(float lat, float lon, float select_radius,
 
 S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
 {
+// Debug
+//      if(!strncmp(obj->FeatureName, "_bcngn", 6))
+//         int uup = 4;
+
       S57ObjectDesc *ret_val = new S57ObjectDesc;
       char *curr_att;
       int iatt;
@@ -5293,6 +5307,9 @@ S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
                   else
                       name_desc = "";
 
+                  // In case there is no nice description for this object class, use the 6 char class name
+                  if(0 == strlen(name_desc))
+                        name_desc = obj->FeatureName;
 
                   ret_val->S57ClassDesc = wxString(name_desc,  wxConvUTF8);
 
