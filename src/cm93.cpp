@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.4 2009/04/07 16:49:48 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.5 2009/04/13 02:33:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.5  2009/04/13 02:33:44  bdbcat
+ * Improve dictionary logic
+ *
  * Revision 1.4  2009/04/07 16:49:48  bdbcat
  * No debug printf
  *
@@ -69,31 +72,6 @@
 
 
 
-
-/*
-#include "wx/image.h"                           // for some reason, needed for msvc???
-#include "wx/tokenzr.h"
-#include <wx/textfile.h>
-
-#include "dychart.h"
-
-#include "s52s57.h"
-#include "s52plib.h"
-
-#include "nmea.h"                               // for Pause/UnPause
-
-#include "mygeom.h"
-#include "cutil.h"
-#include "georef.h"
-
-#include "cpl_csv.h"
-#include "setjmp.h"
-
-#include "mygdal/ogr_s57.h"
-*/
-
-
-
 extern wxString         *g_pSENCPrefix;
 extern s52plib          *ps52plib;
 extern cm93manager      *s_pcm93mgr;
@@ -101,6 +79,10 @@ extern cm93manager      *s_pcm93mgr;
 
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY(Array_Of_M_COVR_Desc);
+
+
+//#define CM93_DEBUG_PRINTF 1
+
 
 //    CM93 Encode/Decode support tables
 
@@ -135,6 +117,7 @@ cm93_dictionary::cm93_dictionary()
       m_AttrArray       = NULL;
       m_GeomTypeArray   = NULL;;
       m_ValTypeArray    = NULL;
+      m_max_class       = 0;
       m_ok = false;
 
 }
@@ -197,6 +180,8 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
             }
 
       }
+
+      m_max_class = iclass_max;
 
       //    Create the class name array
       m_S57ClassArray = new wxArrayString;
@@ -297,6 +282,8 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
                         }
                   }
 
+                  m_max_attr = iattr_max;
+
                   filea.SeekI(0);
 
 
@@ -345,22 +332,22 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
                                     token = tkz.GetNextToken();
                                     token = tkz.GetNextToken();
                                     token = tkz.GetNextToken();
-                                    token = tkz.GetNextToken();
+                                    token = tkz.GetNextToken().Trim();
 
                                     char atype = '?';
-                                    if(token.IsSameAs(_T("aFLOAT ")))
+                                    if(token.IsSameAs(_T("aFLOAT")))
                                           atype = 'R';
-                                    else if(token.IsSameAs(_T("aBYTE  ")))
+                                    else if(token.IsSameAs(_T("aBYTE")))
                                           atype = 'B';
                                     else if(token.IsSameAs(_T("aSTRING")))
                                           atype = 'S';
-                                    else if(token.IsSameAs(_T("aCMPLX ")))
+                                    else if(token.IsSameAs(_T("aCMPLX")))
                                           atype = 'C';
-                                    else if(token.IsSameAs(_T("aLIST  ")))
+                                    else if(token.IsSameAs(_T("aLIST")))
                                           atype = 'L';
                                     else if(token.IsSameAs(_T("aWORD10")))
                                           atype = 'W';
-                                    else if(token.IsSameAs(_T("aLONG  ")))
+                                    else if(token.IsSameAs(_T("aLONG")))
                                           atype = 'G';
 
                                     m_ValTypeArray[iattr] = atype;
@@ -426,6 +413,8 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
                               }
                         }
 
+                        m_max_attr = iattr_max;
+
                         filea.SeekI(0);
 
 
@@ -436,6 +425,8 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
 
       //    And an array of chars describing the attribute value type
                         m_ValTypeArray = (char *)malloc((iattr_max + 1) * sizeof(char));
+                        for(int iat=0 ; iat < iattr_max + 1 ; iat++)
+                              m_ValTypeArray[iat] = '?';
 
 
       //    Iterate over the file, filling in the values
@@ -470,7 +461,7 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
                                           m_AttrArray->Insert( attr_name, iattr);
                                           m_AttrArray->RemoveAt( iattr + 1);
 
-                                         token = tkz.GetNextToken();
+                                         token = tkz.GetNextToken().Trim();
 
                                           char atype = '?';
                                           if(token.IsSameAs(_T("aFLOAT")))
@@ -511,6 +502,33 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
 
       return ret_val;
 }
+
+wxString cm93_dictionary::GetClassName(int iclass)
+{
+      if((iclass > m_max_class) || (iclass < 0))
+            return(_T("Unknown"));
+      else
+            return(m_S57ClassArray->Item(iclass));
+}
+
+wxString cm93_dictionary::GetAttrName(int iattr)
+{
+      if((iattr > m_max_attr) || (iattr < 0))
+            return(_T("UnknownAttr"));
+      else
+            return(m_AttrArray->Item(iattr));
+}
+
+//      char vtype = m_pDict->m_ValTypeArray[iattr];
+char cm93_dictionary::GetAttrType(int iattr)
+{
+      if((iattr > m_max_attr) || (iattr < 0))
+            return('?');
+      else
+            return(m_ValTypeArray[iattr]);
+}
+
+
 
 
 cm93_dictionary::~cm93_dictionary()
@@ -2421,7 +2439,8 @@ unsigned char *cm93_attr_block::GetNextAttr()
       unsigned char iattr = *(m_block + m_cptr);
       m_cptr++;
 
-      char vtype = m_pDict->m_ValTypeArray[iattr];
+//      char vtype = m_pDict->m_ValTypeArray[iattr];
+      char vtype = m_pDict->GetAttrType(iattr);
 
       switch(vtype){
             case 'I':                           // never seen?
@@ -2699,7 +2718,16 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
 //      if(iobject == 4415)
 //            int ffk = 3;
 
-      wxString sclass = pDict->m_S57ClassArray->Item(iclass);
+      wxString sclass = pDict->GetClassName(iclass);
+      if(sclass == _T("Unknown"))
+      {
+            wxString msg;
+            msg.Printf(_T("   CM93 Error...object type %d not found in CM93OBJ.DIC"), iclass);
+            wxLogMessage(msg);
+            return NULL;
+      }
+
+//      wxString sclass = pDict->m_S57ClassArray->Item(iclass);
       wxString sclass_sub = sclass;
 
         //  Going to make some substitutions here
@@ -2762,10 +2790,7 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
       pobj->attVal =  new wxArrayOfS57attVal();
 
 
-
-
       cm93_attr_block *pab = new cm93_attr_block(pobject->attributes_block, pDict);
-
 
 
       for( int jattr = 0 ; jattr  < pobject->n_attributes ; jattr++)
@@ -2775,11 +2800,9 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
 
             unsigned char iattr = *curr_attr;
 
-            wxString *sattr = new wxString(pDict->m_AttrArray->Item(iattr));
+            wxString sattr = pDict->GetAttrName(iattr);
 
-// if(sattr->IsSameAs(_T("SECTR1")))
-//       int ggk = 4;
-            char vtype = pDict->m_ValTypeArray[iattr];
+            char vtype = pDict->GetAttrType(iattr);
 
             unsigned char *aval = curr_attr + 1;
 
@@ -2878,15 +2901,15 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
                         pattValTmp->value   = pAVR;
                         break;
                   default:
-                        sattr->Clear();               // Unknown, TODO track occasional case '?'
+                        sattr.Clear();               // Unknown, TODO track occasional case '?'
                         break;
             }     // switch
 
 
-            if(sattr->IsSameAs(_T("COLMAR")))
+            if(sattr.IsSameAs(_T("COLMAR")))
             {
                   translate_colmar(sclass, pattValTmp);
-                  *sattr = _T("COLOUR");
+                  sattr = _T("COLOUR");
             }
 
 
@@ -2915,7 +2938,7 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
 */
 
             //    Do CM93 $SCODE attribute substitutions
-            if(sclass.IsSameAs(_T("$AREAS")) && (vtype == 'S') && sattr->IsSameAs(_T("$SCODE")))
+            if(sclass.IsSameAs(_T("$AREAS")) && (vtype == 'S') && sattr.IsSameAs(_T("$SCODE")))
             {
                   if(!strcmp((char *)pattValTmp->value, "II25"))
                   {
@@ -2927,20 +2950,23 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
 
 
             //    Capture some attributes on the fly as needed
-            if(sclass_sub.IsSameAs(_T("M_COVR")) && (vtype == 'S') && sattr->IsSameAs(_T("RECDAT")))
+            if(sattr.IsSameAs(_T("RECDAT")) || sattr.IsSameAs(_T("_dgdat")))
             {
-                  wxString pub_year((char *)pattValTmp->value, wxConvUTF8);
-                  pub_year.Truncate(4);
+                  if(sclass_sub.IsSameAs(_T("M_COVR")) && (vtype == 'S') )
+                  {
+                        wxString pub_year((char *)pattValTmp->value, wxConvUTF8);
+                        pub_year.Truncate(4);
 
-                  long nyear = 0;
-                  pub_year.ToLong(&nyear);
-                  npub_year = nyear;
+                        long nyear = 0;
+                        pub_year.ToLong(&nyear);
+                        npub_year = nyear;
+                  }
             }
 
 
-            if(sattr->Len())
+            if(sattr.Len())
             {
-                  pobj->attList->Append(*sattr);
+                  pobj->attList->Append(sattr);
                   pobj->attList->Append('\037');
 
                   pobj->attVal->Add(pattValTmp);
@@ -2948,7 +2974,6 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
             else
                   delete pattValTmp;
 
-            delete sattr;
 
       }     //for
 
@@ -3546,7 +3571,7 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
 
 
       ps52plib->SetTextOverlapAvoid(false);
-      ps52plib->SetShowAtonText(false);
+//      ps52plib->SetShowAtonText(false);
 
       bReadyToRender = true;
 
@@ -3565,8 +3590,6 @@ double cm93compchart::GetNormalScaleMax(double canvas_scale_factor)
 {
       return 1.0e8;
 }
-
-///#define CM93_DEBUG_PRINTF 1
 
 //-----------------------------------------------------------------------
 //              Calculate and Set ViewPoint Constants

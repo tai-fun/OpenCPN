@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.4 2009/03/30 19:21:21 bdbcat Exp $
+ * $Id: cm93.h,v 1.5 2009/04/13 02:34:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.5  2009/04/13 02:34:29  bdbcat
+ * Improve dictionary logic
+ *
  * Revision 1.4  2009/03/30 19:21:21  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -219,15 +222,21 @@ class cm93_dictionary
             ~cm93_dictionary();
 
             bool LoadDictionary(wxString dictionary_dir);
-
             bool IsOk(void){ return m_ok; }
 
-            wxArrayString     *m_S57ClassArray;
-            int               *m_GeomTypeArray;
-            wxArrayString     *m_AttrArray;
-            char              *m_ValTypeArray;
+            wxString GetClassName(int iclass);
+            wxString GetAttrName(int iattr);
+            char GetAttrType(int iattr);
 
+      private:
+            int               m_max_class;
+            int               m_max_attr;
+            wxArrayString     *m_S57ClassArray;
+            wxArrayString     *m_AttrArray;
+            int               *m_GeomTypeArray;
+            char              *m_ValTypeArray;
             bool              m_ok;
+
 };
 
 
