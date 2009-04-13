@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.24 2009/03/30 19:06:17 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.25 2009/04/13 02:31:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.25  2009/04/13 02:31:54  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.24  2009/03/30 19:06:17  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -60,6 +63,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.25  2009/04/13 02:31:54  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.24  2009/03/30 19:06:17  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -159,7 +165,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.24 2009/03/30 19:06:17 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.25 2009/04/13 02:31:54 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -4506,11 +4512,9 @@ int s52plib::_draw ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 //   if(rzRules->obj->Index == 3557)
 //         int rrt = 5;
 
-//    if(!strncmp(rzRules->LUP->OBCL, "$AREAS", 6))
-//            int yyrkt = 4;
 
-//    if(strncmp(rzRules->LUP->OBCL, "SOUNDG", 6))
-//            return 0;
+//    if(!strncmp(rzRules->LUP->OBCL, "BOYLAT", 6))
+//            int yyrkt = 4;
 
         while ( rules != NULL )
         {
