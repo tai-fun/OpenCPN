@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.26 2009/04/13 02:32:27 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.27 2009/04/18 03:31:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.27  2009/04/18 03:31:26  bdbcat
+ * Optimize drawing order
+ *
  * Revision 1.26  2009/04/13 02:32:27  bdbcat
  * Improve object query logic
  *
@@ -64,6 +67,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.27  2009/04/18 03:31:26  bdbcat
+ * Optimize drawing order
+ *
  * Revision 1.26  2009/04/13 02:32:27  bdbcat
  * Improve object query logic
  *
@@ -166,7 +172,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.26 2009/04/13 02:32:27 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.27 2009/04/18 03:31:26 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -1695,21 +1701,17 @@ int s57chart::DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
 //      Render the areas quickly
     for (i=0; i<PRIO_NUM; ++i)
     {
+          if(ps52plib->m_nBoundaryStyle == SYMBOLIZED_BOUNDARIES)
                 top = razRules[i][4];           // Area Symbolized Boundaries
-                while ( top != NULL)
-                {
-                        crnt = top;
-                        top  = top->next;               // next object
-                        ps52plib->RenderArea(&dcinput, crnt, &vp, &pb_spec);
-                }
-
+          else
                 top = razRules[i][3];           // Area Plain Boundaries
-                while ( top != NULL)
-                {
-                        crnt = top;
-                        top  = top->next;               // next object
-                        ps52plib->RenderArea(&dcinput, crnt, &vp, &pb_spec);
-                }
+
+          while ( top != NULL)
+          {
+                crnt = top;
+                top  = top->next;               // next object
+                ps52plib->RenderArea(&dcinput, crnt, &vp, &pb_spec);
+          }
     }
 
 
@@ -1780,49 +1782,29 @@ bool s57chart::DCRenderLPB(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
         }
 
         if(ps52plib->m_nSymbolStyle == SIMPLIFIED)
-        {
-            top = razRules[i][0];           //SIMPLIFIED Points
-            while ( top != NULL)
-            {
-                crnt = top;
-                top  = top->next;
-                ps52plib->_draw(&dcinput, crnt, &vp);
-
-            }
-        }
+              top = razRules[i][0];           //SIMPLIFIED Points
         else
-        {
-            top = razRules[i][1];           //Paper Chart Points Points
-            while ( top != NULL)
-            {
-                crnt = top;
-                top  = top->next;
-                ps52plib->_draw(&dcinput, crnt, &vp);
+              top = razRules[i][1];           //Paper Chart Points Points
 
-            }
+        while ( top != NULL)
+        {
+              crnt = top;
+              top  = top->next;
+              ps52plib->_draw(&dcinput, crnt, &vp);
         }
+
 
         if(ps52plib->m_nBoundaryStyle == SYMBOLIZED_BOUNDARIES)
-        {
             top = razRules[i][4];           // Area Symbolized Boundaries
-            while ( top != NULL)
-            {
-                crnt = top;
-                top  = top->next;               // next object
-                ps52plib->_draw(&dcinput, crnt, &vp);
-            }
+        else
+            top = razRules[i][3];           // Area Plain Boundaries
+        while ( top != NULL)
+        {
+            crnt = top;
+            top  = top->next;               // next object
+            ps52plib->_draw(&dcinput, crnt, &vp);
         }
 
-        else
-        {
-            top = razRules[i][3];           // Area Plain Boundaries
-            while ( top != NULL)
-            {
-                crnt = top;
-                top  = top->next;               // next object
-                ps52plib->_draw(&dcinput, crnt, &vp);
-            }
-        }
 
         //      Destroy Clipper
         if(pdcc)
