@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.20 2009/03/30 19:21:21 bdbcat Exp $
+ * $Id: s57chart.h,v 1.21 2009/04/18 03:33:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.21  2009/04/18 03:33:44  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.20  2009/03/30 19:21:21  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -330,8 +333,6 @@ private:
       int         *m_pVectorEdgeHelperTable;
 
       MyNatsurHash m_natsur_hash;               // hash table for cacheing NATSUR string values from int attributes
-
-
 
 };
 

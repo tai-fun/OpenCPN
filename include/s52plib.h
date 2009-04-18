@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.12 2009/04/13 02:34:17 bdbcat Exp $
+ * $Id: s52plib.h,v 1.13 2009/04/18 03:33:21 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.13  2009/04/18 03:33:21  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.12  2009/04/13 02:34:17  bdbcat
  * Add "show ATON labels" option
  *
@@ -45,6 +48,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.13  2009/04/18 03:33:21  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.12  2009/04/13 02:34:17  bdbcat
  * Add "show ATON labels" option
  *
@@ -159,7 +165,6 @@ public:
       void SetTextOverlapAvoid(bool f){m_bCheckTextOverlap = f;}
       void SetShowAtonText(bool f){m_bShowAtonText = f;}
 
-
  //Todo accessors
       DisCat      m_nDisplayCategory;
       LUPname     m_nSymbolStyle;
@@ -241,6 +246,8 @@ public:
 
       void DestroyLUPArray(wxArrayOfLUPrec *pLUPArray);
       void DestroyLUP(LUPrec *pLUP);
+
+      bool TextRenderCheck(ObjRazRules *rzRules);
 
 //    Library data
 
