@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.25 2009/04/13 02:31:54 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.26 2009/04/18 03:32:51 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.26  2009/04/18 03:32:51  bdbcat
+ * Fix pattern render, add CM93 text optimization
+ *
  * Revision 1.25  2009/04/13 02:31:54  bdbcat
  * *** empty log message ***
  *
@@ -63,6 +66,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.26  2009/04/18 03:32:51  bdbcat
+ * Fix pattern render, add CM93 text optimization
+ *
  * Revision 1.25  2009/04/13 02:31:54  bdbcat
  * *** empty log message ***
  *
@@ -165,7 +171,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.25 2009/04/13 02:31:54 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.26 2009/04/18 03:32:51 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -2589,16 +2595,33 @@ bool s52plib::CheckTextBBList ( const wxBoundingBox &test_box )
         return false;
 }
 
+bool s52plib::TextRenderCheck(ObjRazRules *rzRules)
+{
+      if ( !m_bShowS57Text )
+            return false;
+
+      if((rzRules->obj->bIsAton) && (!m_bShowAtonText))
+            return false;
+
+      //    An optimization for CM93 charts.
+      //    Don't show the text associated with some objects, since CM93 datbase includes _texto objects aplenty
+      if(rzRules->chart->m_ChartType == CHART_TYPE_CM93)
+      {
+            if(!strncmp(rzRules->obj->FeatureName, "BUAARE", 6))
+                  return false;
+            else if(!strncmp(rzRules->obj->FeatureName, "SEAARE", 6))
+                  return false;
+      }
+
+      return true;
+}
 
 
 // Text
 int s52plib::RenderTX ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 {
-        if ( !m_bShowS57Text )
-                return 0;
-
-        if((rzRules->obj->bIsAton) && (!m_bShowAtonText))
-              return 0;
+        if(!TextRenderCheck(rzRules))
+          return 0;
 
         S52_Text *text = NULL;
 
@@ -2660,18 +2683,14 @@ int s52plib::RenderTX ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 // Text formatted
 int s52plib::RenderTE ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 {
-        if ( !m_bShowS57Text )
-                return 0;
-
-        if((rzRules->obj->bIsAton) && (!m_bShowAtonText))
-              return 0;
+        if(!TextRenderCheck(rzRules))
+            return 0;
 
         S52_Text *text = NULL;
 
         //  Render text at declared x/y of object
         wxPoint r;
         rzRules->chart->GetPointPix ( rzRules, rzRules->obj->y, rzRules->obj->x, &r );
-
 
         int dx, dy;
         text = S52_PL_parseTE ( rzRules, rules, NULL );
@@ -4513,7 +4532,7 @@ int s52plib::_draw ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 //         int rrt = 5;
 
 
-//    if(!strncmp(rzRules->LUP->OBCL, "BOYLAT", 6))
+//    if(!strncmp(rzRules->LUP->OBCL, "FSHFAC", 6))
 //            int yyrkt = 4;
 
         while ( rules != NULL )
@@ -4932,8 +4951,11 @@ int s52plib::dda_tri ( wxPoint *ptp, color *c, render_canvas_parms *pb_spec, ren
                                         {
                                                 while ( ix <= ixm )
                                                 {
-                                                        int patt_x = ix  % patt_size_x;
-                                                        int patt_y = iyp % patt_size_y;
+//                                                        int patt_x = ix  % patt_size_x;
+//                                                        int patt_y = iyp % patt_size_y;
+
+                                                        int patt_x = (ix - pPatt_spec->x)   % patt_size_x;
+                                                        int patt_y = (iyp -pPatt_spec->y)   % patt_size_y;
 
                                                         unsigned char *pp = patt_s0 + ( patt_y * patt_pitch ) +
                                                                             patt_x * 3;
@@ -5035,8 +5057,11 @@ __asm__ __volatile__ ( \
                                         {
                                                 while ( ix <= ixm )
                                                 {
-                                                        int patt_x = ix  % patt_size_x;
-                                                        int patt_y = iyp % patt_size_y;
+//                                                        int patt_x = ix  % patt_size_x;
+//                                                        int patt_y = iyp % patt_size_y;
+
+                                                        int patt_x = (ix - pPatt_spec->x)   % patt_size_x;
+                                                        int patt_y = (iyp -pPatt_spec->y)   % patt_size_y;
 
                                                         unsigned char *pp = patt_s0 + ( patt_y * patt_pitch ) +
                                                                             patt_x * 4;
@@ -5340,14 +5365,15 @@ inline int s52plib::dda_trap( wxPoint *segs, int lseg, int rseg, int ytop, int y
 
                               unsigned char *px =  py  + xoff;
 
-//                                   int ixm = redge[iyp];
-
                               if ( pPatt_spec )       // Pattern
                               {
                                     while ( ix <= ixm )
                                     {
-                                          int patt_x = ix  % patt_size_x;
-                                          int patt_y = iyp % patt_size_y;
+//                                          int patt_x = ix  % patt_size_x;
+//                                          int patt_y = iyp % patt_size_y;
+
+                                          int patt_x = (ix - pPatt_spec->x)   % patt_size_x;
+                                          int patt_y = (iyp -pPatt_spec->y)   % patt_size_y;
 
                                           unsigned char *pp = patt_s0 + ( patt_y * patt_pitch ) +
                                                       patt_x * 3;
@@ -5441,9 +5467,11 @@ inline int s52plib::dda_trap( wxPoint *segs, int lseg, int rseg, int ytop, int y
                               {
                                     while ( ix <= ixm )
                                     {
-                                          int patt_x = ix  % patt_size_x;
-                                          int patt_y = iyp % patt_size_y;
+//                                          int patt_x = ix  % patt_size_x;
+//                                          int patt_y = iyp % patt_size_y;
 
+                                          int patt_x = (ix - pPatt_spec->x)   % patt_size_x;
+                                          int patt_y = (iyp -pPatt_spec->y)   % patt_size_y;
                                           unsigned char *pp = patt_s0 + ( patt_y * patt_pitch ) +
                                                       patt_x * 4;
 
@@ -5692,50 +5720,59 @@ int s52plib::RenderToBufferAP ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
                         Rule *prule = rules->razRule;
                         float fsf = 100 / canvas_pix_per_mm;
 
-                        int width  = prule->pos.symb.bnbox_x.SBXC + prule->pos.symb.bnbox_w.SYHL;
-//            width *= 2;
-                        width = ( int ) ( width/fsf );
-                        int height = prule->pos.symb.bnbox_y.SBXR + prule->pos.symb.bnbox_h.SYVL;
-//            height *= 2;
-                        height = ( int ) ( height/fsf );
+                        // Base bounding box
+                        wxBoundingBox box(prule->pos.patt.bnbox_x.PBXC,  prule->pos.patt.bnbox_y.PBXR,
+                                          prule->pos.patt.bnbox_x.PBXC + prule->pos.patt.bnbox_w.PAHL,
+                                          prule->pos.patt.bnbox_y.PBXR +prule->pos.patt.bnbox_h.PAVL);
 
-                        int pivot_x = prule->pos.symb.pivot_x.SYCL;
-                        int pivot_y = prule->pos.symb.pivot_y.SYRW;
+                        // Expand to include pivot
+                        box.Expand(prule->pos.patt.pivot_x.PACL,  prule->pos.patt.pivot_y.PARW);
+
+                        double dwidth = box.GetWidth();
+                        double dheight = box.GetHeight();
+
+                        //  Add in the pattern spacing parameters
+                        dwidth  += prule->pos.patt.minDist.PAMI;
+                        dheight += prule->pos.patt.minDist.PAMI;
+
+                        //  Prescale
+                        dwidth  /= fsf;
+                        dheight /= fsf;
+
+                        int width = (int) dwidth;
+                        int height = (int) dheight;
 
                         //      Instantiate the vector pattern to a wxBitmap
-                        wxBitmap *pbm = new wxBitmap ( width, height );
-                        wxMemoryDC mdc;
-                        mdc.SelectObject ( *pbm );
-                        mdc.SetBackground ( wxBrush ( wxColour ( unused_color.R, unused_color.G, unused_color.B ) ) );
-                        mdc.Clear();
+                        wxBitmap *pbm;
+                        if((0 != width) && (0 != height))
+                        {
+                              pbm = new wxBitmap ( width, height );
+                              wxMemoryDC mdc;
+                              mdc.SelectObject ( *pbm );
+                              mdc.SetBackground ( wxBrush ( wxColour ( unused_color.R, unused_color.G, unused_color.B ) ) );
+                              mdc.Clear();
 
-                        char *str = prule->vector.LVCT;
-                        char *col = prule->colRef.LCRF;
-                        wxPoint pivot ( pivot_x, pivot_y );
-                        wxPoint r0 ( ( int ) ( pivot_x/fsf ), ( int ) ( pivot_y/fsf ) );
-//           wxPoint r0(0,0);
-                        RenderHPGLtoDC ( str, col, &mdc, r0, pivot, 0 );
+                              int pivot_x = prule->pos.patt.pivot_x.PACL;
+                              int pivot_y = prule->pos.patt.pivot_y.PARW;
+
+                              char *str = prule->vector.LVCT;
+                              char *col = prule->colRef.LCRF;
+                              wxPoint pivot ( pivot_x, pivot_y );
+                              wxPoint r0 ( ( int ) ( pivot_x/fsf ), ( int ) ( pivot_y/fsf ) );
+                              RenderHPGLtoDC ( str, col, &mdc, r0, pivot, 0 );
+                        }
+                        else
+                        {
+                              pbm = new wxBitmap ( 2, 2 );                // substitute small, blank pattern
+                              wxMemoryDC mdc;
+                              mdc.SelectObject ( *pbm );
+                              mdc.SetBackground ( wxBrush ( wxColour ( unused_color.R, unused_color.G, unused_color.B ) ) );
+                              mdc.Clear();
+                        }
 
                         //    Build a wxImage from the wxBitmap
                         Image = pbm->ConvertToImage();
                         delete pbm;
-                        /*
-                                    int bm_width  = (mdc.MaxX() - mdc.MinX()) + 1;
-                                    int bm_height = (mdc.MaxY() - mdc.MinY()) + 1;
-                                    int bm_orgx = wxMax(0, mdc.MinX());
-                                    int bm_orgy = wxMax(0, mdc.MinY());
-
-                                    mdc.SelectObject(wxNullBitmap);
-
-                                    //          Get smallest containing bitmap
-                                    wxBitmap *sbm = new wxBitmap(pbm->GetSubBitmap(wxRect(bm_orgx, bm_orgy, bm_width, bm_height)));
-
-                                    delete pbm;
-
-                                    //    Build a wxImage from the wxBitmap
-                                    Image = sbm->ConvertToImage();
-                                    delete sbm;
-                        */
                 }
 
 
@@ -5806,8 +5843,13 @@ int s52plib::RenderToBufferAP ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
         //  Render the Area using the pattern spec stored in the rules
         render_canvas_parms *ppatt_spec = ( render_canvas_parms * ) rules->razRule->pixelPtr;
 
-//    if(pb_spec->height == 1)
-//          int ggl = 4;
+        //  Set the pattern reference point
+
+        wxPoint r;
+        rzRules->chart->GetPointPix ( rzRules, rzRules->obj->y, rzRules->obj->x, &r );
+
+        ppatt_spec->x = r.x - 10000;                  // bias way down to avoid zero-crossing logic in dda
+        ppatt_spec->y = r.y - 10000;
 
         RenderToBufferFilledPolygon ( rzRules, rzRules->obj, NULL, vp->vpBBox, pb_spec, ppatt_spec );
 
@@ -5842,7 +5884,7 @@ int s52plib::RenderArea ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp,
         Rules *rules = rzRules->LUP->ruleList;
 
  //Debug Hooks
-// if(!strncmp(rzRules->LUP->OBCL, "DEPARE", 6))
+// if(!strncmp(rzRules->LUP->OBCL, "FSHFAC", 6))
 //              int yyrjt = 4;
 
 //  if(rzRules->obj->Index != 699)
