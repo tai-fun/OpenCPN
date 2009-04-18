@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.14 2009/03/26 22:30:38 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.15 2009/04/18 03:30:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.15  2009/04/18 03:30:47  bdbcat
+ * Correct math on soundings
+ *
  * Revision 1.14  2009/03/26 22:30:38  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -111,7 +114,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.14 2009/03/26 22:30:38 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.15 2009/04/18 03:30:47 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -2564,15 +2567,19 @@ wxString *SNDFRM02(S57Obj *obj, double depth_value_in)
 
     double   leading_digit    = 0.0;
 
+    double safety_depth = S52_getMarinerParam(S52_MAR_SAFETY_DEPTH);
+
     //      Do the math to convert soundings to ft/metres/fathoms on request
     double depth_value = depth_value_in;
     switch(ps52plib->m_nDepthUnitDisplay)
     {
           case 0:
-                depth_value = depth_value * 3 * 39.37 / 36;              // feet
+                depth_value = depth_value   * 3 * 39.37 / 36;              // feet
+                safety_depth = safety_depth * 3 * 39.37 / 36;
                 break;
           case 2:
-                depth_value = depth_value * 3 * 39.37 / (36 * 6);        // fathoms
+                depth_value = depth_value   * 3 * 39.37 / (36 * 6);        // fathoms
+                safety_depth = safety_depth * 3 * 39.37 / (36 * 6);
                 break;
           default:
                 break;
@@ -2583,7 +2590,7 @@ wxString *SNDFRM02(S57Obj *obj, double depth_value_in)
     depth_value  += (depth_value > 0.0)? 0.01: -0.01;
     leading_digit = (int) depth_value;
 
-    if (depth_value <= S52_getMarinerParam(S52_MAR_SAFETY_DEPTH))
+    if (depth_value <= safety_depth)            //S52_getMarinerParam(S52_MAR_SAFETY_DEPTH)
         symbol_prefix = _T("SOUNDS");
     else
         symbol_prefix = _T("SOUNDG");
