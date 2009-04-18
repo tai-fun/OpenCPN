@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.5 2009/04/13 02:33:44 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.6 2009/04/18 03:29:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.6  2009/04/18 03:29:53  bdbcat
+ * Correct Area Geometry
+ *
  * Revision 1.5  2009/04/13 02:33:44  bdbcat
  * Improve dictionary logic
  *
@@ -3070,13 +3073,9 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
                   pobj->BBObj.SetMax(lon, lat);
 
 
-                  //  and declare x/y of the object to be average east/north of all points
-                  double e1, e2, n1, n2;
-                  toSM(pobj->BBObj.GetMaxY(), pobj->BBObj.GetMaxX(), ref_lat, ref_lon, &e1, &n1);
-                  toSM(pobj->BBObj.GetMinY(), pobj->BBObj.GetMinX(), ref_lat, ref_lon, &e2, &n2);
-
-                  pobj->x = (e1 + e2) / 2.;
-                  pobj->y = (n1 + n2) / 2.;
+                  //  and declare x/y of the object to be average of all cm93points
+                  pobj->x = (xgeom->xmin + xgeom->xmax) / 2.;
+                  pobj->y = (xgeom->ymin + xgeom->ymax) / 2.;
 
                   //    associate the vector(edge) index table
                   pobj->m_n_lsindex = xgeom->n_vector_indices;
@@ -3611,7 +3610,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
                   break;                        // F, 20000
             cmscale--;
 
-            if(scale_mpp < 30000)
+            if(scale_mpp < 40000/*30000*/)
                   break;                        // E, 50000
             cmscale--;
 
