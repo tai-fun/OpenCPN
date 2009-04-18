@@ -19548,4 +19548,991 @@ SBTM   25@@@@@@@@@@@@@@@@@@@@@@@@
 SBTM   25@@@@@@@@@@@@@@@@@@@@@@@@
 SBTM   25@@@@@@@@@@@@@@@@@@@@@@@@
 SBTM   25@@@@@@@@@@@@@@@@@@@@@@@@
-
+****
+0001
+SYMB   10SY00184NIL
+SYMD   39SOUNDS00R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00185NIL
+SYMD   39SOUNDS01R-00020000400004000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    5@@AB
+SBTM    5@AAB
+SBTM    5ABAB
+SBTM    5B@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@BB
+****
+0001
+SYMB   10SY00186NIL
+SYMD   39SOUNDS02R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@AB@@@
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAAB
+SBTM    7BBBBBB
+****
+0001
+SYMB   10SY00187NIL
+SYMD   39SOUNDS03R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@@AB
+SBTM    7@@AAB@
+SBTM    7@@BBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00188NIL
+SYMD   39SOUNDS04R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@@@@AB
+SBTM    7@@@AAB
+SBTM    7@@ABAB
+SBTM    7@AB@AB
+SBTM    7AB@@AB
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7@@@@BB
+****
+0001
+SYMB   10SY00189NIL
+SYMD   39SOUNDS05R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7ABBBBB
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7AAAABB
+SBTM    7BBBBB@
+****
+0001
+SYMB   10SY00190NIL
+SYMD   39SOUNDS06R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@BB
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00191NIL
+SYMD   39SOUNDS07R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@ABB
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@BB@@
+****
+0001
+SYMB   10SY00192NIL
+SYMD   39SOUNDS08R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00193NIL
+SYMD   39SOUNDS09R-00020000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAAB
+SBTM    7@BBBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00194NIL
+SYMD   39SOUNDS10R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00195NIL
+SYMD   39SOUNDS11R000040000400004000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    5@@AB
+SBTM    5@AAB
+SBTM    5ABAB
+SBTM    5B@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@BB
+****
+0001
+SYMB   10SY00196NIL
+SYMD   39SOUNDS12R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@AB@@@
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAAB
+SBTM    7BBBBBB
+****
+0001
+SYMB   10SY00197NIL
+SYMD   39SOUNDS13R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@@AB
+SBTM    7@@AAB@
+SBTM    7@@BBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00198NIL
+SYMD   39SOUNDS14R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@@@@AB
+SBTM    7@@@AAB
+SBTM    7@@ABAB
+SBTM    7@AB@AB
+SBTM    7AB@@AB
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7@@@@BB
+****
+0001
+SYMB   10SY00199NIL
+SYMD   39SOUNDS15R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7ABBBBB
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7AAAABB
+SBTM    7BBBBB@
+****
+0001
+SYMB   10SY00200NIL
+SYMD   39SOUNDS16R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@BB
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00201NIL
+SYMD   39SOUNDS17R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@AB@
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@BB@@
+****
+0001
+SYMB   10SY00202NIL
+SYMD   39SOUNDS18R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00203NIL
+SYMD   39SOUNDS19R000050000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAAB
+SBTM    7@BBBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00204NIL
+SYMD   39SOUNDS20R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00205NIL
+SYMD   39SOUNDS21R000110000400004000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    5@@AB
+SBTM    5@AAB
+SBTM    5ABAB
+SBTM    5B@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@BB
+****
+0001
+SYMB   10SY00206NIL
+SYMD   39SOUNDS22R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@AB@@@
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAAB
+SBTM    7BBBBBB
+****
+0001
+SYMB   10SY00207NIL
+SYMD   39SOUNDS23R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@@AB
+SBTM    7@@AAB@
+SBTM    7@@BBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00208NIL
+SYMD   39SOUNDS24R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@@@@AB
+SBTM    7@@@AAB
+SBTM    7@@ABAB
+SBTM    7@AB@AB
+SBTM    7AB@@AB
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7@@@@BB
+****
+0001
+SYMB   10SY00209NIL
+SYMD   39SOUNDS25R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7ABBBBB
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7AAAABB
+SBTM    7BBBBB@
+****
+0001
+SYMB   10SY00210NIL
+SYMD   39SOUNDS26R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@BB
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00211NIL
+SYMD   39SOUNDS27R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@AB@
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@BB@@
+****
+0001
+SYMB   10SY00212NIL
+SYMD   39SOUNDS28R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00213NIL
+SYMD   39SOUNDS29R000120000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAAB
+SBTM    7@BBBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00214NIL
+SYMD   39SOUNDS30R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00215NIL
+SYMD   39SOUNDS31R000180000400004000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    5@@AB
+SBTM    5@AAB
+SBTM    5ABAB
+SBTM    5B@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@BB
+****
+0001
+SYMB   10SY00216NIL
+SYMD   39SOUNDS32R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@AB@@@
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAAB
+SBTM    7BBBBBB
+****
+0001
+SYMB   10SY00217NIL
+SYMD   39SOUNDS33R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@@AB
+SBTM    7@@AAB@
+SBTM    7@@BBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAAB@
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00218NIL
+SYMD   39SOUNDS34R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@@@@AB
+SBTM    7@@@AAB
+SBTM    7@@ABAB
+SBTM    7@AB@AB
+SBTM    7AB@@AB
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7@@@@BB
+****
+0001
+SYMB   10SY00219NIL
+SYMD   39SOUNDS35R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7ABBBBB
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7AAAABB
+SBTM    7BBBBB@
+****
+0001
+SYMB   10SY00220NIL
+SYMD   39SOUNDS36R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@BB
+SBTM    7AB@@@@
+SBTM    7AAAA@@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00221NIL
+SYMD   39SOUNDS37R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@AB@
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@BB@@
+****
+0001
+SYMB   10SY00222NIL
+SYMD   39SOUNDS38R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00223NIL
+SYMD   39SOUNDS39R000190000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAAB
+SBTM    7@BBBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00224NIL
+SYMD   39SOUNDS40R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00225NIL
+SYMD   39SOUNDS41R-00090000400004000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    5@@AB
+SBTM    5@AAB
+SBTM    5ABAB
+SBTM    5B@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@BB
+****
+0001
+SYMB   10SY00226NIL
+SYMD   39SOUNDS42R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@AB@@@
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAAB
+SBTM    7BBBBBB
+****
+0001
+SYMB   10SY00227NIL
+SYMD   39SOUNDS43R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@@AB
+SBTM    7@@AAB@
+SBTM    7@@BBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00228NIL
+SYMD   39SOUNDS44R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@@@@AB
+SBTM    7@@@AAB
+SBTM    7@@ABAB
+SBTM    7@AB@AB
+SBTM    7AB@@AB
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7@@@@BB
+****
+0001
+SYMB   10SY00229NIL
+SYMD   39SOUNDS45R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7ABBBBB
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7AAAABB
+SBTM    7BBBBB@
+****
+0001
+SYMB   10SY00230NIL
+SYMD   39SOUNDS46R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@BB
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00231NIL
+SYMD   39SOUNDS47R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@AB@
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@BB@@
+****
+0001
+SYMB   10SY00232NIL
+SYMD   39SOUNDS48R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00233NIL
+SYMD   39SOUNDS49R-00090000400006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAAB
+SBTM    7@BBBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00234NIL
+SYMD   39SOUNDS50R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00235NIL
+SYMD   39SOUNDS51R-00020000000004000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    5@@AB
+SBTM    5@AAB
+SBTM    5ABAB
+SBTM    5B@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@AB
+SBTM    5@@BB
+****
+0001
+SYMB   10SY00236NIL
+SYMD   39SOUNDS52R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@AB@@@
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAAB
+SBTM    7BBBBBB
+****
+0001
+SYMB   10SY00237NIL
+SYMD   39SOUNDS53R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7B@@@AB
+SBTM    7@@@@AB
+SBTM    7@@AAB@
+SBTM    7@@BBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00238NIL
+SYMD   39SOUNDS54R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@@@@AB
+SBTM    7@@@AAB
+SBTM    7@@ABAB
+SBTM    7@AB@AB
+SBTM    7AB@@AB
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7@@@@BB
+****
+0001
+SYMB   10SY00239NIL
+SYMD   39SOUNDS55R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7ABBBBB
+SBTM    7AB@@@@
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7BBBBAB
+SBTM    7@@@@AB
+SBTM    7@@@@AB
+SBTM    7AAAABB
+SBTM    7BBBBB@
+****
+0001
+SYMB   10SY00240NIL
+SYMD   39SOUNDS56R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@BB
+SBTM    7AB@@@@
+SBTM    7AAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00241NIL
+SYMD   39SOUNDS57R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7AAAAAB
+SBTM    7BBBBAB
+SBTM    7@@@AB@
+SBTM    7@@@AB@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@AB@@
+SBTM    7@@BB@@
+****
+0001
+SYMB   10SY00242NIL
+SYMD   39SOUNDS58R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00243NIL
+SYMD   39SOUNDS59R-00020000000006000100000000000
+SXPO   58shallow soundings, less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    7@AAAB@
+SBTM    7ABBBAB
+SBTM    7AB@@AB
+SBTM    7AB@@AB
+SBTM    7BAAAAB
+SBTM    7@BBBAB
+SBTM    7@@@@AB
+SBTM    7A@@@AB
+SBTM    7BAAABB
+SBTM    7@BBBB@
+****
+0001
+SYMB   10SY00244NIL
+SYMD   39SOUNDGA1R00006-000600008000020000000000
+SXPO   94symbol for drying height, used for soundings less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    9AAAAAAAB
+SBTM    9BBBBBBBB
+****
+0001
+SYMB   10SY00244NIL
+SYMD   39SOUNDGA1R000060000600008000020000000000
+SXPO   94symbol for drying height, used for soundings less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM    9AAAAAAAB
+SBTM    9BBBBBBBB
+****
+0001
+SYMB   10SY00245NIL
+SYMD   39SOUNDGB1R00012-000800023000050000000000
+SXPO   95symbol for swept sounding, used for soundings less than or equal to the safety depth
+SCRF   12ASNDG2BDEPMD
+SBTM   24AB@@@@@@@@@@@@@@@@@@@AB
+SBTM   24AB@@@@@@@@@@@@@@@@@@@AB
+SBTM   24AB@@@@@@@@@@@@@@@@@@@AB
+SBTM   24AAAAAAAAAAAAAAAAAAAAAAB
+SBTM   24BBBBBBBBBBBBBBBBBBBBBBB
+****
