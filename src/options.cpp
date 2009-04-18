@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.16 2009/04/13 02:33:25 bdbcat Exp $
+ * $Id: options.cpp,v 1.17 2009/04/18 03:30:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.17  2009/04/18 03:30:27  bdbcat
+ * Add tab "Vector Charts"
+ *
  * Revision 1.16  2009/04/13 02:33:25  bdbcat
  * Add "show ATON labels" option
  *
@@ -623,26 +626,26 @@ void options::CreateControls()
     wxStaticBoxSizer *pdepth_sizer = new wxStaticBoxSizer(pdepth_static, wxHORIZONTAL);
     itemBoxSizer25->Add(pdepth_sizer, 0, wxTOP|wxALL|wxEXPAND, 2);
 
-    wxStaticBox* itemStaticBoxSizer27Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Contours"));
+    wxStaticBox* itemStaticBoxSizer27Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Settings(m)"));
     wxStaticBoxSizer* itemStaticBoxSizer27 = new wxStaticBoxSizer(itemStaticBoxSizer27Static, wxVERTICAL);
     pdepth_sizer/*itemBoxSizer25*/->Add(itemStaticBoxSizer27, 0, wxTOP|wxALL|wxEXPAND, 2);
 
     wxStaticText* itemStaticText4 = new wxStaticText( ps57Ctl, wxID_STATIC, _T("Shallow Depth"));
     itemStaticBoxSizer27->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
-    m_ShallowCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+    m_ShallowCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(110, -1), 0 );
     itemStaticBoxSizer27->Add(m_ShallowCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 2);
 
     wxStaticText* itemStaticText5 = new wxStaticText( ps57Ctl, wxID_STATIC, _T("Safety Depth"));
     itemStaticBoxSizer27->Add(itemStaticText5, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
-    m_SafetyCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+    m_SafetyCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(110, -1), 0 );
     itemStaticBoxSizer27->Add(m_SafetyCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 2);
 
     wxStaticText* itemStaticText6 = new wxStaticText( ps57Ctl, wxID_STATIC, _T("Deep Depth"));
     itemStaticBoxSizer27->Add(itemStaticText6, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
-    m_DeepCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+    m_DeepCtl = new wxTextCtrl( ps57Ctl, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(110, -1), 0 );
     itemStaticBoxSizer27->Add(m_DeepCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 2);
 
 
@@ -657,12 +660,12 @@ void options::CreateControls()
              _T("&Fathoms"),
     };
 
-    pDepthUnitSelect = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Depth Units"), wxDefaultPosition, wxDefaultSize,
+    pDepthUnitSelect = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _T("Chart Depth Units"), wxDefaultPosition, wxDefaultSize,
                                3, pDepthUnitStrings, 1, wxRA_SPECIFY_COLS );
     pdepth_sizer->Add(pDepthUnitSelect, 0, wxALIGN_TOP | wxALL, 5);
 
 
-    itemNotebook4->AddPage(ps57Ctl, _T("S52 Options"));
+    itemNotebook4->AddPage(ps57Ctl, _T("Vector Charts"));
 
 
         //  Create "AIS" panel
