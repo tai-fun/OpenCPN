@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.26 2009/04/18 03:32:51 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.27 2009/04/19 02:24:56 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.27  2009/04/19 02:24:56  bdbcat
+ * Implement "Important Text" option
+ *
  * Revision 1.26  2009/04/18 03:32:51  bdbcat
  * Fix pattern render, add CM93 text optimization
  *
@@ -66,6 +69,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.27  2009/04/19 02:24:56  bdbcat
+ * Implement "Important Text" option
+ *
  * Revision 1.26  2009/04/18 03:32:51  bdbcat
  * Fix pattern render, add CM93 text optimization
  *
@@ -171,7 +177,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.26 2009/04/18 03:32:51 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.27 2009/04/19 02:24:56 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -222,6 +228,7 @@ s52plib::s52plib ( const wxString& PLib )
         m_bOK = S52_load_Plib ( PLib );
 
         m_bShowS57Text = false;
+        m_bShowS57ImportantTextOnly = false;
         m_colortable_index = 0;
 
         _symb_symR = NULL;
@@ -1179,18 +1186,28 @@ int s52plib::ParsePos ( position *pos, char *buf, bool patt )
 
 int s52plib::ParseLBID ( FILE *fp )
 {
-        char st_rev[21];
-        ChopS52Line ( pBuf, '\0' );
+
+        wxString s(pBuf, wxConvUTF8);
+        wxStringTokenizer tkz(s, '\037');
+
+        wxString token = tkz.GetNextToken();          // something like "113LI00001REVIHO"
+        token = tkz.GetNextToken();                   // ESID
+        token = tkz.GetNextToken();
 
         //    Get PLIB version number
-        int i = 0;
-        while ( ( pBuf[25 + i] != '\037' ) && ( i < 20 ) )
-                st_rev[i] = pBuf[i+25];
-        st_rev[i] = 0;
+        double version;
+        if(token.ToDouble(&version))
+        {
+              m_VersionMajor = ((int)(version * 10)) / 10;
+              m_VersionMinor = (int)round((version - m_VersionMajor) * 10);
+        }
+        else
+        {
+              m_VersionMajor = 0;
+              m_VersionMinor = 0;
+        }
 
-        sscanf ( st_rev, "%d.%d", &m_VersionMajor, &m_VersionMinor );
-
-        return 0;
+        return 1;
 }
 
 int s52plib::ParseCOLS ( FILE *fp )
@@ -2143,7 +2160,8 @@ wxColour s52plib::S52_getwxColour ( const wxString &colorName )
 #define APOS   '\047'
 #define MAXL       256
 
-wxString GetStringAttr ( S57Obj *obj, char *AttrName )
+#if 0
+wxString GetGenericAttr ( S57Obj *obj, char *AttrName )
 {
         wxString str;
         char *attList = ( char * ) calloc ( obj->attList->Len() +1, 1 );
@@ -2177,15 +2195,40 @@ wxString GetStringAttr ( S57Obj *obj, char *AttrName )
 
         S57attVal *v = pattrVal->Item ( idx );
 
-        char *val = ( char * ) ( v->value );
+        switch(v->valType)
+        {
+              case OGR_STR:
+              {
+                    char *val = ( char * ) ( v->value );
+                    str.Append ( wxString ( val,wxConvUTF8 ) );
+                    break;
+              }
+              case OGR_REAL:
+              {
+                    double dval = *(double*)(v->value);
+                    str.Printf(_T("%g"), dval);
+                    break;
+              }
+              case OGR_INT:
+              {
+                    int ival = *((int *)v->value);
+                    str.Printf(_T("%d"), ival);
+                    break;
+              }
+              default:
+              {
+                    str.Printf(_T("Unknown attribute type"));
+                    break;
+              }
+        }
 
-        str.Append ( wxString ( val,wxConvUTF8 ) );
+
 
         free ( attList );
         return str;
 }
 
-/*
+
 bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
 {
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
@@ -2260,7 +2303,9 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val)
 
     return true;
 }
-*/
+
+#endif
+
 
 char      *_getParamVal ( ObjRazRules *rzRules, char *str, char *buf, int bsz )
 // Symbology Command Word Parameter Value Parser.
@@ -2315,7 +2360,8 @@ char      *_getParamVal ( ObjRazRules *rzRules, char *str, char *buf, int bsz )
                 defval = 1;
         }
 
-        value = GetStringAttr ( rzRules->obj,buf );
+        value = rzRules->obj->GetAttrValueAsString ( buf );
+
         if ( value.IsNull() )
         {
                 if ( defval )
@@ -2409,7 +2455,7 @@ S52_Text  *_parseTEXT ( ObjRazRules *rzRules, char *str0 )
         str         = _getParamVal ( rzRules, str, buf, MAXL );
         text->col   = ps52plib->S52_getColor ( buf );  // COLOUR
         str         = _getParamVal ( rzRules, str, buf, MAXL );
-        text->dis   = atoi ( buf );          // DISPLAY
+        text->dis   = atoi ( buf );          // Text Group, used for "Important" text detection
 
         return text;
 }
@@ -2519,7 +2565,7 @@ S52_Text   *S52_PL_parseTE ( ObjRazRules *rzRules, Rules *rules, char *cmd )
 }
 
 void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
-                           int x, int y, color *pcol, int &dx, int &dy,
+                           int x, int y, int xoff_unit, int yoff_unit, color *pcol, wxRect *pRectDrawn,
                            bool bCheckOverlap )
 {
 #ifdef DrawText
@@ -2534,10 +2580,8 @@ void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
 
         pdc->SetFont ( *pFont );
 
-        wxCoord w, h;
-        pdc->GetTextExtent ( str, &w, &h );    // measure the text
-        dx = w+2;                              // report text string size
-        dy = h+2;
+        wxCoord w, h, descent, exlead;
+        pdc->GetTextExtent ( str, &w, &h, &descent, &exlead );    // measure the text
 
         if ( bCheckOverlap )
         {
@@ -2545,6 +2589,20 @@ void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
                         bdraw = false;
         }
 
+        //  Adjust the y position to account for the convention that S52 text is drawn
+        //  with the lower left corner at the specified point, instead of the wx convention
+        //  using upper right corner
+        int yp = y  - (h - descent);
+        int xp = x;
+
+        //  Add in the offsets, specified in units of nominal font height
+        yp += yoff_unit * (h - descent);
+        xp += xoff_unit * (h - descent);
+
+        pRectDrawn->SetX(xp);
+        pRectDrawn->SetY(yp);
+        pRectDrawn->SetWidth(w);
+        pRectDrawn->SetHeight(h);
 
         if ( bdraw )
         {
@@ -2554,16 +2612,21 @@ void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
                 pdc->SetTextForeground ( color );
                 pdc->SetBackgroundMode ( wxTRANSPARENT );
 
-                pdc->DrawText ( str, x, y+1 );
-                pdc->DrawText ( str, x, y-1 );
-                pdc->DrawText ( str, x+1, y );
-                pdc->DrawText ( str, x-1, y );
+                pdc->DrawText ( str, xp, yp+1 );
+                pdc->DrawText ( str, xp, yp-1 );
+                pdc->DrawText ( str, xp+1, yp );
+                pdc->DrawText ( str, xp-1, yp );
 
-                bcolor = pcol;              //S52_getColor("CHBLK");
+                bcolor = pcol;
                 wxColour wcolor ( bcolor->R, bcolor->G, bcolor->B );
                 pdc->SetTextForeground ( wcolor );
 
-                pdc->DrawText ( str, x, y );
+                pdc->DrawText ( str, xp, yp );
+
+ //   TODO Remove Debug
+//                pdc->SetBrush(*wxTRANSPARENT_BRUSH);
+//                pdc->SetPen(*wxBLACK_PEN);
+//                pdc->DrawRectangle(xp, yp, w, h);
 
         }
 
@@ -2605,35 +2668,40 @@ bool s52plib::TextRenderCheck(ObjRazRules *rzRules)
 
       //    An optimization for CM93 charts.
       //    Don't show the text associated with some objects, since CM93 datbase includes _texto objects aplenty
-      if(rzRules->chart->m_ChartType == CHART_TYPE_CM93)
+      if((rzRules->chart->m_ChartType == CHART_TYPE_CM93) || (rzRules->chart->m_ChartType == CHART_TYPE_CM93COMP))
       {
             if(!strncmp(rzRules->obj->FeatureName, "BUAARE", 6))
                   return false;
             else if(!strncmp(rzRules->obj->FeatureName, "SEAARE", 6))
+                  return false;
+            else if(!strncmp(rzRules->obj->FeatureName, "LNDRGN", 6))
                   return false;
       }
 
       return true;
 }
 
-
-// Text
-int s52plib::RenderTX ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
+int s52plib::RenderT_All ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp, bool bTX )
 {
         if(!TextRenderCheck(rzRules))
-          return 0;
+            return 0;
 
         S52_Text *text = NULL;
 
-//  Render text at declared x/y of object
-        wxPoint r;
-        rzRules->chart->GetPointPix ( rzRules, rzRules->obj->y, rzRules->obj->x, &r );
 
+        if(bTX)
+              text = S52_PL_parseTX ( rzRules, rules, NULL );
+        else
+              text = S52_PL_parseTE ( rzRules, rules, NULL );
 
-        int dx, dy;
-        text = S52_PL_parseTX ( rzRules, rules, NULL );
         if ( text )
         {
+              if(m_bShowS57ImportantTextOnly && (text->dis >= 20))
+              {
+                    free ( text );
+                    return 0;
+              }
+
                 wxString str ( *text->frmtd );
 
                 int weight = text->weight - 0x30;
@@ -2650,27 +2718,32 @@ int s52plib::RenderTX ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                                 wxFONTSTYLE_NORMAL,
                                 fontweight );
 
-                RenderText ( pdc, pFont, str, r.x + text->xoffs, r.y + text->yoffs, text->col, dx, dy, m_bCheckTextOverlap );
+                //  Render text at declared x/y of object
+                wxPoint r;
+                rzRules->chart->GetPointPix ( rzRules, rzRules->obj->y, rzRules->obj->x, &r );
 
-                rzRules->obj->BBText = wxBoundingBox ( r.x + text->xoffs, - ( r.y + text->yoffs + dy ),
-                                                       r.x + text->xoffs + dx, - ( r.y + text->yoffs ) );
+                wxRect rect;
+                RenderText ( pdc, pFont, str, r.x, r.y, text->xoffs, text->yoffs, text->col, &rect, m_bCheckTextOverlap );
+
+                rzRules->obj->BBText = wxBoundingBox ( rect.GetX(), - rect.GetY(),
+                                                       rect.GetX() + rect.GetWidth(), -(rect.GetY() + rect.GetHeight()) );
                 m_textBBList.Append ( &rzRules->obj->BBText );
 
 
                 //  Update the object Bounding box if this object is a POINT object,
                 //  so that subsequent drawing operations will redraw the item fully
-                //  But only if the underlying object is a GEO_POINT
-                //  Thus not disturbing the BBox of GEO_AREA objects with centred symbols like CTNARE
+
                 if ( rzRules->obj->Primitive_type == GEO_POINT )
                 {
                         double plat, plon;
-                        rzRules->chart->GetPixPoint ( r.x + text->xoffs, r.y + text->yoffs + dy, &plat, &plon, vp );
+                        rzRules->chart->GetPixPoint ( rect.GetX(), rect.GetY() + rect.GetHeight(), &plat, &plon, vp );
                         rzRules->obj->BBObj.SetMin ( plon, plat );
 
-                        rzRules->chart->GetPixPoint ( r.x + text->xoffs + dx, r.y + text->yoffs, &plat, &plon, vp );
+                        rzRules->chart->GetPixPoint ( rect.GetX() + rect.GetWidth(), rect.GetY(), &plat, &plon, vp );
                         rzRules->obj->BBObj.SetMax ( plon, plat );
 
                 }
+
 
                 delete text->frmtd;
                 free ( text );
@@ -2680,66 +2753,17 @@ int s52plib::RenderTX ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 }
 
 
+// Text
+int s52plib::RenderTX ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
+{
+      return RenderT_All ( rzRules, rules, vp, true );
+}
+
+
 // Text formatted
 int s52plib::RenderTE ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 {
-        if(!TextRenderCheck(rzRules))
-            return 0;
-
-        S52_Text *text = NULL;
-
-        //  Render text at declared x/y of object
-        wxPoint r;
-        rzRules->chart->GetPointPix ( rzRules, rzRules->obj->y, rzRules->obj->x, &r );
-
-        int dx, dy;
-        text = S52_PL_parseTE ( rzRules, rules, NULL );
-        if ( text )
-        {
-                wxString str ( *text->frmtd );
-
-                int weight = text->weight - 0x30;
-                wxFontWeight fontweight;
-                if ( weight < 5 )
-                        fontweight = wxFONTWEIGHT_LIGHT;
-                else if ( weight == 5 )
-                        fontweight = wxFONTWEIGHT_NORMAL;
-                else
-                        fontweight = wxFONTWEIGHT_BOLD;
-
-                wxFont *pFont = wxTheFontList->FindOrCreateFont ( text->bsize,
-                                wxFONTFAMILY_SWISS,
-                                wxFONTSTYLE_NORMAL,
-                                fontweight );
-
-                RenderText ( pdc, pFont, str, r.x + text->xoffs, r.y + text->yoffs, text->col, dx, dy, m_bCheckTextOverlap );
-
-                rzRules->obj->BBText = wxBoundingBox ( r.x + text->xoffs, - ( r.y + text->yoffs + dy ),
-                                                       r.x + text->xoffs + dx, - ( r.y + text->yoffs ) );
-                m_textBBList.Append ( &rzRules->obj->BBText );
-
-
-
-                //  Update the object Bounding box if this object is a POINT object,
-                //  so that subsequent drawing operations will redraw the item fully
-
-                if ( rzRules->obj->Primitive_type == GEO_POINT )
-                {
-                        double plat, plon;
-                        rzRules->chart->GetPixPoint ( r.x + text->xoffs, r.y + text->yoffs + dy, &plat, &plon, vp );
-                        rzRules->obj->BBObj.SetMin ( plon, plat );
-
-                        rzRules->chart->GetPixPoint ( r.x + text->xoffs + dx, r.y + text->yoffs, &plat, &plon, vp );
-                        rzRules->obj->BBObj.SetMax ( plon, plat );
-
-                }
-
-
-                delete text->frmtd;
-                free ( text );
-        }
-
-        return 1;
+      return RenderT_All ( rzRules, rules, vp, false );
 }
 
 bool s52plib::RenderHPGLtoDC ( char *str, char *col, wxDC *pdc, wxPoint &r, wxPoint &pivot, double rot_angle )

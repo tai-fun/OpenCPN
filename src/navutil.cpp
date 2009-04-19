@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.25  2009/04/19 02:24:56  bdbcat
+ * Implement "Important Text" option
+ *
  * Revision 1.24  2009/04/13 02:33:25  bdbcat
  * Add "show ATON labels" option
  *
@@ -70,6 +73,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.25  2009/04/19 02:24:56  bdbcat
+ * Implement "Important Text" option
+ *
  * Revision 1.24  2009/04/13 02:33:25  bdbcat
  * Add "show ATON labels" option
  *
@@ -166,7 +172,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.24 2009/04/13 02:33:25 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.25 2009/04/19 02:24:56 bdbcat Exp $");
 
 //    Statics
 
@@ -1611,6 +1617,9 @@ int MyConfig::LoadMyConfig(int iteration)
       Read(_T("bShowS57Text"), &read_int, 0);
       ps52plib->SetShowS57Text(read_int);
 
+      Read(_T("bShowS57ImportantTextOnly"), &read_int, 0);
+      ps52plib->SetShowS57ImportantTextOnly(read_int);
+
       Read(_T("nDisplayCategory"), &read_int, (enum _DisCat)OTHER);
       ps52plib->m_nDisplayCategory = (enum _DisCat)read_int;
 
@@ -2614,6 +2623,7 @@ void MyConfig::UpdateSettings()
 #ifdef USE_S57
       SetPath(_T("/Settings/GlobalState"));
       Write(_T("bShowS57Text"), ps52plib->GetShowS57Text());
+      Write(_T("bShowS57ImportantTextOnly"), ps52plib->GetShowS57ImportantTextOnly());
       Write(_T("nDisplayCategory"), (long)ps52plib->m_nDisplayCategory);
       Write(_T("nSymbolStyle"), (int)ps52plib->m_nSymbolStyle);
       Write(_T("nBoundaryStyle"), (int)ps52plib->m_nBoundaryStyle);

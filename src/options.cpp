@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.17 2009/04/18 03:30:27 bdbcat Exp $
+ * $Id: options.cpp,v 1.18 2009/04/19 02:24:56 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.18  2009/04/19 02:24:56  bdbcat
+ * Implement "Important Text" option
+ *
  * Revision 1.17  2009/04/18 03:30:27  bdbcat
  * Add tab "Vector Charts"
  *
@@ -578,10 +581,15 @@ void options::CreateControls()
     pCheck_META->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_META, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
-    pCheck_SHOWTEXT = new wxCheckBox( ps57Ctl, ID_TEXTCHECKBOX, _T("ShowText"), wxDefaultPosition,
-            wxSize(-1, -1), 0 );
-    pCheck_SHOWTEXT->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_SHOWTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
+//    pCheck_SHOWTEXT = new wxCheckBox( ps57Ctl, ID_TEXTCHECKBOX, _T("Show Text"), wxDefaultPosition,
+//            wxSize(-1, -1), 0 );
+//    pCheck_SHOWTEXT->SetValue(FALSE);
+//    itemBoxSizer75->Add(pCheck_SHOWTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
+
+    pCheck_SHOWIMPTEXT = new wxCheckBox( ps57Ctl, ID_IMPTEXTCHECKBOX, _T("Show Important Text Onlyt"), wxDefaultPosition,
+                                      wxSize(-1, -1), 0 );
+    pCheck_SHOWIMPTEXT->SetValue(FALSE);
+    itemBoxSizer75->Add(pCheck_SHOWIMPTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
     pCheck_SCAMIN = new wxCheckBox( ps57Ctl, ID_SCAMINCHECKBOX, _T("Use SCAMIN"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
@@ -1091,7 +1099,7 @@ void options::SetInitialSettings()
       //  Other Display Filters
       pCheck_SOUNDG->SetValue(ps52plib->m_bShowSoundg);
       pCheck_META->SetValue(ps52plib->m_bShowMeta);
-      pCheck_SHOWTEXT->SetValue(ps52plib->m_bShowS57Text);
+      pCheck_SHOWIMPTEXT->SetValue(ps52plib->m_bShowS57ImportantTextOnly);
       pCheck_SCAMIN->SetValue(ps52plib->m_bUseSCAMIN);
       pCheck_ATONTEXT->SetValue(ps52plib->m_bShowAtonText);
 
@@ -1374,7 +1382,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
             ps52plib->m_bShowSoundg =  pCheck_SOUNDG->GetValue();
             ps52plib->m_bShowMeta =    pCheck_META->GetValue();
-            ps52plib->m_bShowS57Text = pCheck_SHOWTEXT->GetValue();
+            ps52plib->m_bShowS57ImportantTextOnly = pCheck_SHOWIMPTEXT->GetValue();
             ps52plib->m_bUseSCAMIN =   pCheck_SCAMIN->GetValue();
             ps52plib->m_bShowAtonText= pCheck_ATONTEXT->GetValue();
 
