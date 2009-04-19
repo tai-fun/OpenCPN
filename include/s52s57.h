@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.14 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: s52s57.h,v 1.15 2009/04/19 02:23:52 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.15  2009/04/19 02:23:52  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.14  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -89,7 +92,7 @@
 
 #include "bbox.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  121
+#define CURRENT_SENC_FORMAT_VERSION  122
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
@@ -333,6 +336,9 @@ public:
       S57Obj();
       ~S57Obj();
       S57Obj(char *first_line, wxInputStream *fpx, double ref_lat, double ref_lon);
+
+      wxString GetAttrValueAsString ( char *attr );
+
 
       // Private Methods
 private:

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.27 2009/04/18 03:31:26 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.28 2009/04/19 02:25:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.28  2009/04/19 02:25:12  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.27  2009/04/18 03:31:26  bdbcat
  * Optimize drawing order
  *
@@ -67,6 +70,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.28  2009/04/19 02:25:12  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.27  2009/04/18 03:31:26  bdbcat
  * Optimize drawing order
  *
@@ -172,7 +178,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.27 2009/04/18 03:31:26 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.28 2009/04/19 02:25:12 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -990,6 +996,68 @@ bool S57Obj::IsUsefulAttribute(char *buf)
     return nLineLen;
 }
 
+wxString S57Obj::GetAttrValueAsString ( char *AttrName )
+{
+      wxString str;
+      char *tattList = ( char * ) calloc ( attList->Len() +1, 1 );
+      strncpy ( tattList, attList->mb_str(), attList->Len() );
+
+      char *patl = tattList;
+      char *patr;
+      int idx = 0;
+      while ( *patl )
+      {
+            patr = patl;
+            while ( *patr != '\037' )
+                  patr++;
+
+            if ( !strncmp ( patl, AttrName, 6 ) )
+                  break;
+
+            patl = patr + 1;
+            idx++;
+      }
+
+      if ( !*patl )
+      {
+            free ( tattList );
+            return str;
+      }
+
+//      using idx to get the attribute value
+
+      S57attVal *v = attVal->Item ( idx );
+
+      switch(v->valType)
+      {
+            case OGR_STR:
+            {
+                  char *val = ( char * ) ( v->value );
+                  str.Append ( wxString ( val,wxConvUTF8 ) );
+                  break;
+            }
+            case OGR_REAL:
+            {
+                  double dval = *(double*)(v->value);
+                  str.Printf(_T("%g"), dval);
+                  break;
+            }
+            case OGR_INT:
+            {
+                  int ival = *((int *)v->value);
+                  str.Printf(_T("%d"), ival);
+                  break;
+            }
+            default:
+            {
+                  str.Printf(_T("Unknown attribute type"));
+                  break;
+            }
+      }
+
+      free ( tattList );
+      return str;
+}
 
 
 
@@ -5066,16 +5134,6 @@ void  s57chart::CreateSENCConnNodeTable(FILE * fpOut, S57Reader *poReader)
 
 
 
-/*
-      LUPname     m_nSymbolStyle;
-      LUPname     m_nBoundaryStyle;
-      bool        m_bOK;
-
-      bool        m_bShowSoundg;
-      bool        m_bShowMeta;
-      bool        m_bShowS57Text;
-      bool        m_bUseSCAMIN;
-*/
 
 ListOfS57Obj *s57chart::GetObjListAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint)
 {

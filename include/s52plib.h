@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.13 2009/04/18 03:33:21 bdbcat Exp $
+ * $Id: s52plib.h,v 1.14 2009/04/19 02:23:52 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.14  2009/04/19 02:23:52  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.13  2009/04/18 03:33:21  bdbcat
  * *** empty log message ***
  *
@@ -48,6 +51,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.14  2009/04/19 02:23:52  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.13  2009/04/18 03:33:21  bdbcat
  * *** empty log message ***
  *
@@ -159,6 +165,9 @@ public:
       bool GetShowS57Text(){return m_bShowS57Text;}
       void SetShowS57Text(bool f){m_bShowS57Text = f;}
 
+      bool GetShowS57ImportantTextOnly(){return m_bShowS57ImportantTextOnly;}
+      void SetShowS57ImportantTextOnly(bool f){m_bShowS57ImportantTextOnly = f;}
+
       int GetMajorVersion(void){return m_VersionMajor;}
       int GetMinorVersion(void){return m_VersionMinor;}
 
@@ -176,6 +185,7 @@ public:
       bool        m_bShowS57Text;
       bool        m_bUseSCAMIN;
       bool        m_bShowAtonText;
+      bool        m_bShowS57ImportantTextOnly;
 
       int         m_nDepthUnitDisplay;
 
@@ -209,9 +219,13 @@ public:
       bool RenderHPGL(ObjRazRules *rzRules, Rule * rule_in, wxDC *pdc, wxPoint &r,  ViewPort *vp, float rot_angle = 0.);
       bool RenderRasterSymbol(ObjRazRules *rzRules, Rule *prule, wxDC *pdc, wxPoint &r,  ViewPort *vp, float rot_angle = 0.);
       wxImage RuleXBMToImage(Rule *prule);
-      void RenderText(wxDC *pdc, wxFont *pFont, const wxString& str,
-            int x, int y, color *pcol, int &dx, int &dy,bool bCheckOverlap);
+
+      void RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
+            int x, int y, int xoff_unit, int yoff_unit, color *pcol, wxRect *pRectDrawn,
+            bool bCheckOverlap );
+
       bool CheckTextBBList( const wxBoundingBox &test_box);
+      int  RenderT_All ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp, bool bTX );
 
       int PrioritizeLineFeature ( ObjRazRules *rzRules, int npriority);
 
