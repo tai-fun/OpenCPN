@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.12 2009/04/07 16:48:50 bdbcat Exp $
+ * $Id: ais.cpp,v 1.13 2009/04/30 00:39:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.13  2009/04/30 00:39:08  bdbcat
+ * Correct Logic
+ *
  * Revision 1.12  2009/04/07 16:48:50  bdbcat
  * Support AIS Class B
  *
@@ -103,7 +106,7 @@ extern double           g_ShowMoored_Kts;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.12 2009/04/07 16:48:50 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.13 2009/04/30 00:39:08 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -684,11 +687,12 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
                     utc_min = bstr->GetInt(160,7);
                 }
             }
+            parse_result = true;                // so far so good
 
             if((111111111 == atd.MMSI) || (181.0 == atd.Lon) || (91.0 == atd.Lat))      // bogus data
                 parse_result = false;
             if(0 == atd.MMSI)
-                parse_result = 0;
+                parse_result = false;
 
 #if 0
             {
