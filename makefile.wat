@@ -184,7 +184,7 @@ __OPTIMIZEFLAG_2 =
 __OPTIMIZEFLAG_2 = -od
 !endif
 !ifeq BUILD release
-__OPTIMIZEFLAG_2 = -ot -ox
+__OPTIMIZEFLAG_2 = -ot -ox -on
 !endif
 
 __THREADSFLAG_5 =
@@ -785,8 +785,7 @@ SOURCE=$(SRC_DIR)\src\mygeom.cpp
 DEP_CPP_MYGEO=&
 	$(SRC_DIR)\include\mygeom.h&
 	$(SRC_DIR)\include\dychart.h&
-	$(SRC_DIR)\include\triangulate.h&
-	$(SRC_DIR)\include\cm93.h
+	$(SRC_DIR)\include\triangulate.h
 
 
 $(OUTDIR)/mygeom.obj : $(SRC_DIR)\src\mygeom.cpp $(DEP_CPP_MYGEO)
