@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.28 2009/05/05 04:02:22 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.29 2009/05/05 15:02:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.29  2009/05/05 15:02:25  bdbcat
+ * Fix Unicode config bugs
+ *
  * Revision 1.28  2009/05/05 04:02:22  bdbcat
  * New text options
  *
@@ -72,6 +75,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.29  2009/05/05 15:02:25  bdbcat
+ * Fix Unicode config bugs
+ *
  * Revision 1.28  2009/05/05 04:02:22  bdbcat
  * New text options
  *
@@ -183,7 +189,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.28 2009/05/05 04:02:22 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.29 2009/05/05 15:02:25 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -1194,7 +1200,7 @@ int s52plib::ParseLBID ( FILE *fp )
 {
 
         wxString s(pBuf, wxConvUTF8);
-        wxStringTokenizer tkz(s, '\037');
+        wxStringTokenizer tkz(s, _T('\037'));
 
         wxString token = tkz.GetNextToken();          // something like "113LI00001REVIHO"
         token = tkz.GetNextToken();                   // ESID

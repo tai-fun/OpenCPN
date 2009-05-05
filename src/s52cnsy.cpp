@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.16 2009/05/05 03:59:59 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.17 2009/05/05 15:02:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.17  2009/05/05 15:02:25  bdbcat
+ * Fix Unicode config bugs
+ *
  * Revision 1.16  2009/05/05 03:59:59  bdbcat
  * Add light descriptions
  *
@@ -117,7 +120,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.16 2009/05/05 03:59:59 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.17 2009/05/05 15:02:25 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -3320,7 +3323,7 @@ static wxString _LITDSN01(S57Obj *obj)
       GetStringAttr(obj, "SIGGRP", grp_str, 19);
       if(strlen(grp_str))
       {
-            wxString s(grp_str);
+            wxString s(grp_str, wxConvUTF8);
             if(s != _T("(1)"))
                   return_value.Append(s);
       }

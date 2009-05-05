@@ -105,7 +105,7 @@ static int alloc_mem(int, int[]);
 
 static int nrecurse;
 
-CPL_CVSID("$Id: tri.c,v 1.6 2009/03/26 22:31:55 bdbcat Exp $");
+CPL_CVSID("$Id: tri.c,v 1.7 2009/05/05 15:02:25 bdbcat Exp $");
 
 
 
@@ -3429,8 +3429,8 @@ static int int_add_segment(int segnum)
 {
 //      printf("int_add_segment %d\n", segnum);
 
-//todo debug out
-      int rrt;
+//TODO debug out
+//      int rrt;
       int td0, td1;
 
       isegment_t s;
