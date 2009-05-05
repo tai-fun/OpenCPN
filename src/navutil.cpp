@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.26  2009/05/05 03:59:27  bdbcat
+ * New text options
+ *
  * Revision 1.25  2009/04/19 02:24:56  bdbcat
  * Implement "Important Text" option
  *
@@ -73,6 +76,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.26  2009/05/05 03:59:27  bdbcat
+ * New text options
+ *
  * Revision 1.25  2009/04/19 02:24:56  bdbcat
  * Implement "Important Text" option
  *
@@ -172,7 +178,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.25 2009/04/19 02:24:56 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.26 2009/05/05 03:59:27 bdbcat Exp $");
 
 //    Statics
 
@@ -1620,6 +1626,9 @@ int MyConfig::LoadMyConfig(int iteration)
       Read(_T("bShowS57ImportantTextOnly"), &read_int, 0);
       ps52plib->SetShowS57ImportantTextOnly(read_int);
 
+      Read(_T("bShowLightDescription"), &read_int, 0);
+      ps52plib->SetShowLdisText(read_int);
+
       Read(_T("nDisplayCategory"), &read_int, (enum _DisCat)OTHER);
       ps52plib->m_nDisplayCategory = (enum _DisCat)read_int;
 
@@ -1640,6 +1649,9 @@ int MyConfig::LoadMyConfig(int iteration)
 
       Read(_T("bShowAtonText"), &read_int, 0);
       ps52plib->m_bShowAtonText = read_int;
+
+      Read(_T("bDeClutterText"), &read_int, 0);
+      ps52plib->m_bDeClutterText = read_int;
 
       double dval;
       if(Read(_T("S52_MAR_SAFETY_CONTOUR"), &dval, 5.0))
@@ -2632,6 +2644,8 @@ void MyConfig::UpdateSettings()
       Write(_T("bShowMeta"), ps52plib->m_bShowMeta);
       Write(_T("bUseSCAMIN"), ps52plib->m_bUseSCAMIN);
       Write(_T("bShowAtonText"), ps52plib->m_bShowAtonText);
+      Write(_T("bShowLightDescription"), ps52plib->m_bShowLdisText);
+      Write(_T("bDeClutterText"), ps52plib->m_bDeClutterText);
 
       Write(_T("S52_MAR_SAFETY_CONTOUR"), S52_getMarinerParam(S52_MAR_SAFETY_CONTOUR));
       Write(_T("S52_MAR_SHALLOW_CONTOUR"), S52_getMarinerParam(S52_MAR_SHALLOW_CONTOUR));

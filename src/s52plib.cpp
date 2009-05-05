@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.27 2009/04/19 02:24:56 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.28 2009/05/05 04:02:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.28  2009/05/05 04:02:22  bdbcat
+ * New text options
+ *
  * Revision 1.27  2009/04/19 02:24:56  bdbcat
  * Implement "Important Text" option
  *
@@ -69,6 +72,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.28  2009/05/05 04:02:22  bdbcat
+ * New text options
+ *
  * Revision 1.27  2009/04/19 02:24:56  bdbcat
  * Implement "Important Text" option
  *
@@ -177,12 +183,12 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.27 2009/04/19 02:24:56 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.28 2009/05/05 04:02:22 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
 #include <wx/listimpl.cpp>
-WX_DEFINE_LIST ( BBList );
+WX_DEFINE_LIST ( ObjList );
 
 
 //    Testing
@@ -258,7 +264,7 @@ s52plib::s52plib ( const wxString& PLib )
         m_display_pix_per_mm = ( ( double ) sx ) / ( ( double ) mmx );
 
         //        Set up some default flags
-        m_bCheckTextOverlap = true;
+        m_bDeClutterText = false;
         m_bShowAtonText = true;
 }
 
@@ -2453,7 +2459,7 @@ S52_Text  *_parseTEXT ( ObjRazRules *rzRules, char *str0 )
         str         = _getParamVal ( rzRules, str, buf, MAXL );
         text->yoffs = atoi ( buf );          // YOFFS
         str         = _getParamVal ( rzRules, str, buf, MAXL );
-        text->col   = ps52plib->S52_getColor ( buf );  // COLOUR
+        text->pcol   = ps52plib->S52_getColor ( buf );  // COLOUR
         str         = _getParamVal ( rzRules, str, buf, MAXL );
         text->dis   = atoi ( buf );          // Text Group, used for "Important" text detection
 
@@ -2564,9 +2570,7 @@ S52_Text   *S52_PL_parseTE ( ObjRazRules *rzRules, Rules *rules, char *cmd )
         return text;
 }
 
-void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
-                           int x, int y, int xoff_unit, int yoff_unit, color *pcol, wxRect *pRectDrawn,
-                           bool bCheckOverlap )
+bool s52plib::RenderText ( wxDC *pdc, S52_Text *ptext, int x, int y, wxRect *pRectDrawn, S57Obj *pobj, bool bCheckOverlap )
 {
 #ifdef DrawText
 #undef DrawText
@@ -2578,16 +2582,10 @@ void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
 
         wxFont oldfont = pdc->GetFont(); // save current font
 
-        pdc->SetFont ( *pFont );
+        pdc->SetFont ( *(ptext->pFont) );
 
         wxCoord w, h, descent, exlead;
-        pdc->GetTextExtent ( str, &w, &h, &descent, &exlead );    // measure the text
-
-        if ( bCheckOverlap )
-        {
-                if ( CheckTextBBList ( wxBoundingBox ( x, - ( y+h ), x+w, -y ) ) )
-                        bdraw = false;
-        }
+        pdc->GetTextExtent ( *(ptext->frmtd), &w, &h, &descent, &exlead );    // measure the text
 
         //  Adjust the y position to account for the convention that S52 text is drawn
         //  with the lower left corner at the specified point, instead of the wx convention
@@ -2596,34 +2594,40 @@ void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
         int xp = x;
 
         //  Add in the offsets, specified in units of nominal font height
-        yp += yoff_unit * (h - descent);
-        xp += xoff_unit * (h - descent);
+        yp += ptext->yoffs * (h - descent);
+        xp += ptext->xoffs * (h - descent);
 
         pRectDrawn->SetX(xp);
         pRectDrawn->SetY(yp);
         pRectDrawn->SetWidth(w);
         pRectDrawn->SetHeight(h);
 
+        if ( bCheckOverlap )
+        {
+              if ( CheckTextRectList ( *pRectDrawn, pobj) )
+                    bdraw = false;
+        }
+
         if ( bdraw )
         {
-                color *bcolor = S52_getColor ( "CHGRF" ); //CHGRF
+                color *bcolor = S52_getColor ( "CHGRF" );
                 wxColour color ( bcolor->R, bcolor->G, bcolor->B );
 
                 pdc->SetTextForeground ( color );
                 pdc->SetBackgroundMode ( wxTRANSPARENT );
 
-                pdc->DrawText ( str, xp, yp+1 );
-                pdc->DrawText ( str, xp, yp-1 );
-                pdc->DrawText ( str, xp+1, yp );
-                pdc->DrawText ( str, xp-1, yp );
+                pdc->DrawText ( *(ptext->frmtd), xp, yp+1 );
+                pdc->DrawText ( *(ptext->frmtd), xp, yp-1 );
+                pdc->DrawText ( *(ptext->frmtd), xp+1, yp );
+                pdc->DrawText ( *(ptext->frmtd), xp-1, yp );
 
-                bcolor = pcol;
+                bcolor = ptext->pcol;
                 wxColour wcolor ( bcolor->R, bcolor->G, bcolor->B );
                 pdc->SetTextForeground ( wcolor );
 
-                pdc->DrawText ( str, xp, yp );
+                pdc->DrawText ( *(ptext->frmtd), xp, yp );
 
- //   TODO Remove Debug
+//   TODO Remove Debug
 //                pdc->SetBrush(*wxTRANSPARENT_BRUSH);
 //                pdc->SetPen(*wxBLACK_PEN);
 //                pdc->DrawRectangle(xp, yp, w, h);
@@ -2633,6 +2637,7 @@ void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
         pdc->SetFont ( oldfont );              // restore last font
 
 
+        return bdraw;
 
 #ifdef FIXIT
 #undef FIXIT
@@ -2643,17 +2648,21 @@ void s52plib::RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
 }
 
 
-//    Return true if test_box overlaps any box in the current text bbox list
-bool s52plib::CheckTextBBList ( const wxBoundingBox &test_box )
+//    Return true if test_rect overlaps any rect in the current text rectangle list, except itself
+bool s52plib::CheckTextRectList ( const wxRect &test_rect, S57Obj *pobj )
 {
-        //    Iterate over the current bbox list
+        //    Iterate over the current object list, looking at rText
 
-        for ( BBList::Node *node = m_textBBList.GetFirst(); node; node = node->GetNext() )
+        for ( ObjList::Node *node = m_textObjList.GetFirst(); node; node = node->GetNext() )
         {
-                wxBoundingBox *current = node->GetData();
+                wxRect *pcurrent_rect = &(node->GetData()->rText);
 
-                if ( _OUT != current->Intersect ( ( wxBoundingBox & ) test_box, 0 ) )
-                        return true;
+                if ( pcurrent_rect->Intersects ( test_rect ) )
+                {
+                      if(node->GetData() != pobj)
+                            return true;
+
+                }
         }
         return false;
 }
@@ -2663,11 +2672,20 @@ bool s52plib::TextRenderCheck(ObjRazRules *rzRules)
       if ( !m_bShowS57Text )
             return false;
 
+      //    This logic:  if Aton text is off, but "light description" is on, then show light description anyway
       if((rzRules->obj->bIsAton) && (!m_bShowAtonText))
-            return false;
+      {
+            if(!strncmp(rzRules->obj->FeatureName, "LIGHTS", 6))
+            {
+                  if(!m_bShowLdisText)
+                        return false;
+            }
+            else
+                  return false;
+      }
 
       //    An optimization for CM93 charts.
-      //    Don't show the text associated with some objects, since CM93 datbase includes _texto objects aplenty
+      //    Don't show the text associated with some objects, since CM93 database includes _texto objects aplenty
       if((rzRules->chart->m_ChartType == CHART_TYPE_CM93) || (rzRules->chart->m_ChartType == CHART_TYPE_CM93COMP))
       {
             if(!strncmp(rzRules->obj->FeatureName, "BUAARE", 6))
@@ -2688,65 +2706,88 @@ int s52plib::RenderT_All ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp, boo
 
         S52_Text *text = NULL;
 
+        //  The Ftext object is cached in the S57Obj.
+        //  If not present, create it on demand
+        if(!rzRules->obj->bFText_Added)
+        {
+            if(bTX)
+                  text = S52_PL_parseTX ( rzRules, rules, NULL );
+            else
+                  text = S52_PL_parseTE ( rzRules, rules, NULL );
 
-        if(bTX)
-              text = S52_PL_parseTX ( rzRules, rules, NULL );
-        else
-              text = S52_PL_parseTE ( rzRules, rules, NULL );
+            if(text)
+            {
+                  int spec_weight = text->weight - 0x30;
+                  wxFontWeight fontweight;
+                  if ( spec_weight < 5 )
+                        fontweight = wxFONTWEIGHT_LIGHT;
+                  else if ( spec_weight == 5 )
+                        fontweight = wxFONTWEIGHT_NORMAL;
+                  else
+                        fontweight = wxFONTWEIGHT_BOLD;
+
+                  text->pFont = wxTheFontList->FindOrCreateFont ( text->bsize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, fontweight );
+
+                  rzRules->obj->bFText_Added = true;
+                  rzRules->obj->FText = text;
+            }
+        }
+
+        text =  rzRules->obj->FText;
 
         if ( text )
         {
               if(m_bShowS57ImportantTextOnly && (text->dis >= 20))
-              {
-                    free ( text );
                     return 0;
-              }
-
-                wxString str ( *text->frmtd );
-
-                int weight = text->weight - 0x30;
-                wxFontWeight fontweight;
-                if ( weight < 5 )
-                        fontweight = wxFONTWEIGHT_LIGHT;
-                else if ( weight == 5 )
-                        fontweight = wxFONTWEIGHT_NORMAL;
-                else
-                        fontweight = wxFONTWEIGHT_BOLD;
-
-                wxFont *pFont = wxTheFontList->FindOrCreateFont ( text->bsize,
-                                wxFONTFAMILY_SWISS,
-                                wxFONTSTYLE_NORMAL,
-                                fontweight );
 
                 //  Render text at declared x/y of object
                 wxPoint r;
                 rzRules->chart->GetPointPix ( rzRules, rzRules->obj->y, rzRules->obj->x, &r );
 
                 wxRect rect;
-                RenderText ( pdc, pFont, str, r.x, r.y, text->xoffs, text->yoffs, text->col, &rect, m_bCheckTextOverlap );
+//                bool bwas_drawn = RenderText ( pdc, text->pFont, str, r.x, r.y, text->xoffs, text->yoffs, text->col, &rect, rzRules->obj, m_bDeClutterText  );
+                bool bwas_drawn = RenderText ( pdc, text, r.x, r.y, &rect, rzRules->obj, m_bDeClutterText  );
 
-                rzRules->obj->BBText = wxBoundingBox ( rect.GetX(), - rect.GetY(),
-                                                       rect.GetX() + rect.GetWidth(), -(rect.GetY() + rect.GetHeight()) );
-                m_textBBList.Append ( &rzRules->obj->BBText );
+                rzRules->obj->rText = rect;
 
+                //      If this text was actually drawn, add a pointer to its rect to the de-clutter list if it doesn't already exist
+                if(m_bDeClutterText)
+                {
+                        if(bwas_drawn)
+                        {
+                              bool b_found = false;
+                              for ( ObjList::Node *node = m_textObjList.GetFirst(); node; node = node->GetNext() )
+                              {
+                                    S57Obj *oc = node->GetData();
+
+                                    if ( oc == rzRules->obj)
+                                    {
+                                          b_found = true;
+                                          break;
+                                    }
+                              }
+                              if(!b_found)
+                                    m_textObjList.Append ( rzRules->obj );
+                        }
+                }
 
                 //  Update the object Bounding box if this object is a POINT object,
                 //  so that subsequent drawing operations will redraw the item fully
+                //  and so that cursor hit testing includes both the text and the object
 
                 if ( rzRules->obj->Primitive_type == GEO_POINT )
                 {
+                        wxBoundingBox bbtext;
                         double plat, plon;
+
                         rzRules->chart->GetPixPoint ( rect.GetX(), rect.GetY() + rect.GetHeight(), &plat, &plon, vp );
-                        rzRules->obj->BBObj.SetMin ( plon, plat );
+                        bbtext.SetMin ( plon, plat );
 
                         rzRules->chart->GetPixPoint ( rect.GetX() + rect.GetWidth(), rect.GetY(), &plat, &plon, vp );
-                        rzRules->obj->BBObj.SetMax ( plon, plat );
+                        bbtext.SetMax ( plon, plat );
 
+                        rzRules->obj->BBObj.Expand(bbtext);
                 }
-
-
-                delete text->frmtd;
-                free ( text );
         }
 
         return 1;
@@ -3107,10 +3148,11 @@ bool s52plib::RenderHPGL ( ObjRazRules *rzRules,  Rule *prule, wxDC *pdc, wxPoin
         float fsf = 100 / canvas_pix_per_mm;
 
         int width  = prule->pos.symb.bnbox_x.SBXC + prule->pos.symb.bnbox_w.SYHL;
-        width *= 2;
+        width *= 4;           // Grow the drawing bitmap to allow for rotation of symbols with highly offset pivot points
         width = ( int ) ( width/fsf );
+
         int height = prule->pos.symb.bnbox_y.SBXR + prule->pos.symb.bnbox_h.SYVL;
-        height *= 2;
+        height *= 4;
         height = ( int ) ( height/fsf );
 
         int pivot_x = prule->pos.symb.pivot_x.SYCL;
@@ -3135,6 +3177,17 @@ bool s52plib::RenderHPGL ( ObjRazRules *rzRules,  Rule *prule, wxDC *pdc, wxPoin
                 int bm_height = ( mdc.MaxY() - mdc.MinY() ) + 1;
                 int bm_orgx = wxMax ( 0, mdc.MinX() );
                 int bm_orgy = wxMax ( 0, mdc.MinY() );
+
+                //      Pre-clip the sub-bitmap to avoid assert errors
+                if((bm_height + bm_orgy) > height)
+                      bm_height = height - bm_orgy;
+                if((bm_width + bm_orgx) > width)
+                      bm_width = width - bm_orgx;
+
+                //   TODO Remove Debug
+//                mdc.SetBrush(*wxTRANSPARENT_BRUSH);
+//                mdc.SetPen(*wxGREEN_PEN);
+//                mdc.DrawRectangle(bm_orgx, bm_orgy, bm_width, bm_height);
 
                 mdc.SelectObject ( wxNullBitmap );
 
@@ -3177,6 +3230,7 @@ bool s52plib::RenderHPGL ( ObjRazRules *rzRules,  Rule *prule, wxDC *pdc, wxPoin
         }
 
 
+
         //        Get the bounding box for the as-drawn symbol
         int b_width  = ( ( wxBitmap * ) ( prule->pixelPtr ) )->GetWidth();
         int b_height = ( ( wxBitmap * ) ( prule->pixelPtr ) )->GetHeight();
@@ -3195,7 +3249,7 @@ bool s52plib::RenderHPGL ( ObjRazRules *rzRules,  Rule *prule, wxDC *pdc, wxPoin
         //  Special case for GEO_AREA objects with centred symbols
         if ( rzRules->obj->Primitive_type == GEO_AREA )
         {
-                if ( rzRules->obj->BBObj.Intersect ( symbox, 0 ) != _IN ) // Symbol is wholly outside base object
+                if ( rzRules->obj->BBObj.Intersect ( symbox, 0 ) == _OUT ) // Symbol is wholly outside base object
                         return true;
         }
 
@@ -3567,7 +3621,7 @@ int s52plib::RenderLS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                     VE_Element *pedge = pve_array[enode];
 
                     //  Here we decide to draw or not based on the highest priority seen for this segment
-                    //  That is, if this segment is going to be drawn at a higher priority later, then don't draw it here.
+                    //  That is, if this segment is going to be drawn at a higher priority later, then "continue", and don't draw it here.
                     if(pedge->max_priority != priority_current)
                           continue;
 
@@ -4541,7 +4595,7 @@ char *s52plib::RenderCS ( ObjRazRules *rzRules, Rules *rules )
 int s52plib::_draw ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 {
         //  Debug Hook
-//   if(!strncmp(rzRules->LUP->OBCL, "COALNE", 6))
+//   if(!strncmp(rzRules->LUP->OBCL, "NAVLNE", 6))
 //        int yyrt = 4;
 
         if ( !ObjectRenderCheck ( rzRules, vp ) )
@@ -4552,7 +4606,7 @@ int s52plib::_draw ( wxDC *pdcin, ObjRazRules *rzRules, ViewPort *vp)
 
 
 //  Debug Hooks
-//   if(rzRules->obj->Index == 3557)
+//   if(rzRules->obj->Index == 1427)
 //         int rrt = 5;
 
 
@@ -4625,22 +4679,59 @@ int s52plib::SetLineFeaturePriority ( ObjRazRules *rzRules, int npriority )
 //   if(!strncmp(rzRules->LUP->OBCL, "FAIRWY", 6))
 //        int yyrt = 4;
 
+      int priority_set = npriority;             // may be adjusted
+
       Rules *rules = rzRules->LUP->ruleList;
 
 
-//      if(rzRules->obj->Index == 108)
-//            int oop = 4;
+      //      Do Object Type Filtering
+      //    If the object s not currently visible (i.e. on a not-currently visible layer),
+      //    then do not set the line segment priorities at all
 
-//      if(npriority == 0)
-//            int yyp = 4;
+        bool b_catfilter = true;
+
+        if ( m_nDisplayCategory == MARINERS_STANDARD )
+        {
+              if ( ! ( ( OBJLElement * ) ( pOBJLArray->Item ( rzRules->obj->iOBJL ) ) )->nViz )
+                    b_catfilter = false;
+        }
+
+        if ( m_nDisplayCategory == OTHER )
+        {
+              if ( ( DISPLAYBASE != rzRules->LUP->DISC )
+                     && ( STANDARD != rzRules->LUP->DISC )
+                     && ( OTHER != rzRules->LUP->DISC ) )
+              {
+                    b_catfilter = false;
+              }
+        }
+
+        else if ( m_nDisplayCategory == STANDARD )
+        {
+              if ( ( DISPLAYBASE != rzRules->LUP->DISC ) && ( STANDARD != rzRules->LUP->DISC ) )
+              {
+                    b_catfilter = false;
+              }
+        }
+        else if ( m_nDisplayCategory == DISPLAYBASE )
+        {
+              if ( DISPLAYBASE != rzRules->LUP->DISC )
+              {
+                    b_catfilter = false;
+              }
+        }
+
+        if(!b_catfilter)
+              return 0;
+
 
       while ( rules != NULL )
       {
             switch ( rules->ruleType )
             {
 
-                  case RUL_SIM_LN:       PrioritizeLineFeature ( rzRules, npriority );break;          // LS
-                  case RUL_COM_LN:       PrioritizeLineFeature ( rzRules, npriority );break;          // LC
+                  case RUL_SIM_LN:       PrioritizeLineFeature ( rzRules, priority_set );break;          // LS
+                  case RUL_COM_LN:       PrioritizeLineFeature ( rzRules, priority_set );break;          // LC
 
                   case RUL_CND_SY:
                   {
@@ -4657,8 +4748,8 @@ int s52plib::SetLineFeaturePriority ( ObjRazRules *rzRules, int npriority )
                         {
                               switch ( rules->ruleType )
                               {
-                                    case RUL_SIM_LN:       PrioritizeLineFeature ( rzRules, npriority );break;
-                                    case RUL_COM_LN:       PrioritizeLineFeature ( rzRules, npriority );break;
+                                    case RUL_SIM_LN:       PrioritizeLineFeature ( rzRules, priority_set );break;
+                                    case RUL_COM_LN:       PrioritizeLineFeature ( rzRules, priority_set );break;
                                     case RUL_NONE:
                                     default:
                                           break; // no rule type (init)
@@ -6203,10 +6294,43 @@ bool s52plib::ObjectRenderCheck ( ObjRazRules *rzRules, ViewPort *vp)
 //    Do all those things necessary to prepare for a new rendering
 void s52plib::PrepareForRender()
 {
-        //      Clear the current text bounding box list
-        m_textBBList.Clear();
+}
+
+void s52plib::ClearTextList(void)
+{
+        //      Clear the current text rectangle list
+      m_textObjList.Clear();
 
 }
+
+void s52plib::AdjustTextList(int dx, int dy, int screenw, int screenh)
+{
+      wxRect rScreen(0, 0, screenw, screenh);
+              //    Iterate over the text rectangle list
+              //        1.  Apply the specified offset to the list elements
+              //        2.. Remove any list elements that are off screen after applied offset
+
+      for ( ObjList::Node *node = m_textObjList.GetFirst(); node; node = node->GetNext() )
+      {
+//            S57Obj *oc = node->GetData();
+//            if(oc->Index == 1948)
+//                  int ggl = 4;
+
+            wxRect *pcurrent = &(node->GetData()->rText);
+            pcurrent->Offset(dx, dy);
+            if(!pcurrent->Intersects(rScreen))
+            {
+//                  if(oc->Index == 1948)
+//                        int gglf = 4;
+
+                  m_textObjList.DeleteNode(node);
+            }
+      }
+}
+
+
+
+
 
 /*----------------------------------------------------------------------------------*/
 /*    Draw anti-aliased dash or solid line 1 pixel wide                             */

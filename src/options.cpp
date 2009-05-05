@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.18 2009/04/19 02:24:56 bdbcat Exp $
+ * $Id: options.cpp,v 1.19 2009/05/05 03:59:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.19  2009/05/05 03:59:27  bdbcat
+ * New text options
+ *
  * Revision 1.18  2009/04/19 02:24:56  bdbcat
  * Implement "Important Text" option
  *
@@ -571,35 +574,47 @@ void options::CreateControls()
     itemBoxSizer75->Add(pDispCat, 0, wxALL|wxEXPAND, 2);
 
 
+    int check_spacing = 4;
+
     pCheck_SOUNDG = new wxCheckBox( ps57Ctl, ID_SOUNDGCHECKBOX, _T("ShowSoundings"), wxDefaultPosition,
                                      wxSize(-1, -1), 0 );
     pCheck_SOUNDG->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_SOUNDG, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
+    itemBoxSizer75->Add(pCheck_SOUNDG, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing);
 
     pCheck_META = new wxCheckBox( ps57Ctl, ID_METACHECKBOX, _T("META Objects"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_META->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_META, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
+    itemBoxSizer75->Add(pCheck_META, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing);
 
 //    pCheck_SHOWTEXT = new wxCheckBox( ps57Ctl, ID_TEXTCHECKBOX, _T("Show Text"), wxDefaultPosition,
 //            wxSize(-1, -1), 0 );
 //    pCheck_SHOWTEXT->SetValue(FALSE);
 //    itemBoxSizer75->Add(pCheck_SHOWTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
-    pCheck_SHOWIMPTEXT = new wxCheckBox( ps57Ctl, ID_IMPTEXTCHECKBOX, _T("Show Important Text Onlyt"), wxDefaultPosition,
+    pCheck_SHOWIMPTEXT = new wxCheckBox( ps57Ctl, ID_IMPTEXTCHECKBOX, _T("Show Important Text Only"), wxDefaultPosition,
                                       wxSize(-1, -1), 0 );
     pCheck_SHOWIMPTEXT->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_SHOWIMPTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
+    itemBoxSizer75->Add(pCheck_SHOWIMPTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing);
 
     pCheck_SCAMIN = new wxCheckBox( ps57Ctl, ID_SCAMINCHECKBOX, _T("Use SCAMIN"), wxDefaultPosition,
             wxSize(-1, -1), 0 );
     pCheck_SCAMIN->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_SCAMIN, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
+    itemBoxSizer75->Add(pCheck_SCAMIN, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing);
 
     pCheck_ATONTEXT = new wxCheckBox( ps57Ctl, ID_ATONTEXTCHECKBOX, _T("Show ATON labels"), wxDefaultPosition,
                                     wxSize(-1, -1), 0 );
     pCheck_SCAMIN->SetValue(FALSE);
-    itemBoxSizer75->Add(pCheck_ATONTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
+    itemBoxSizer75->Add(pCheck_ATONTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing);
+
+    pCheck_LDISTEXT = new wxCheckBox( ps57Ctl, ID_LDISTEXTCHECKBOX, _T("Show Light Descriptions"), wxDefaultPosition,
+                                      wxSize(-1, -1), 0 );
+    pCheck_LDISTEXT->SetValue(FALSE);
+    itemBoxSizer75->Add(pCheck_LDISTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing);
+
+    pCheck_DECLTEXT = new wxCheckBox( ps57Ctl, ID_DECLTEXTCHECKBOX, _T("De-Clutter Text (exp.)"), wxDefaultPosition,
+                                      wxSize(-1, -1), 0 );
+    pCheck_DECLTEXT->SetValue(FALSE);
+    itemBoxSizer75->Add(pCheck_DECLTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing);
 
     wxStaticBox* itemStaticBoxSizer83Static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Chart Display Style"));
     wxStaticBoxSizer* itemStaticBoxSizer83 = new wxStaticBoxSizer(itemStaticBoxSizer83Static, wxVERTICAL);
@@ -1102,8 +1117,10 @@ void options::SetInitialSettings()
       pCheck_SHOWIMPTEXT->SetValue(ps52plib->m_bShowS57ImportantTextOnly);
       pCheck_SCAMIN->SetValue(ps52plib->m_bUseSCAMIN);
       pCheck_ATONTEXT->SetValue(ps52plib->m_bShowAtonText);
+      pCheck_LDISTEXT->SetValue(ps52plib->m_bShowLdisText);
+      pCheck_DECLTEXT->SetValue(ps52plib->m_bDeClutterText);
 
-      // Chart Display Style
+     // Chart Display Style
       if(ps52plib->m_nSymbolStyle == PAPER_CHART)
           pPointStyle->SetSelection(0);
       else
@@ -1385,6 +1402,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
             ps52plib->m_bShowS57ImportantTextOnly = pCheck_SHOWIMPTEXT->GetValue();
             ps52plib->m_bUseSCAMIN =   pCheck_SCAMIN->GetValue();
             ps52plib->m_bShowAtonText= pCheck_ATONTEXT->GetValue();
+            ps52plib->m_bShowLdisText= pCheck_LDISTEXT->GetValue();
+            ps52plib->m_bDeClutterText= pCheck_DECLTEXT->GetValue();
 
 
             if(0 == pPointStyle->GetSelection())
