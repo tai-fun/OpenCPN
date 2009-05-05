@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.6 2009/04/18 03:29:53 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.7 2009/05/05 03:58:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.7  2009/05/05 03:58:53  bdbcat
+ * Correct object lat/lon declaration
+ *
  * Revision 1.6  2009/04/18 03:29:53  bdbcat
  * Correct Area Geometry
  *
@@ -2115,6 +2118,9 @@ Extended_Geometry *cm93chart::BuildGeom(Object *pobject, wxFileOutputStream *pos
 
       Extended_Geometry *ret_ptr = (Extended_Geometry *)malloc(sizeof(Extended_Geometry));
 
+      int lon_max, lat_max, lon_min, lat_min;
+      lon_max = 0; lon_min = 65536; lat_max = 0; lat_min = 65536;
+
       switch(geomtype){
 
             case 3:                               // Areas
@@ -2146,8 +2152,6 @@ Extended_Geometry *cm93chart::BuildGeom(Object *pobject, wxFileOutputStream *pos
                   bool bnew_ring = true;
                   int ncontours = 0;
                   iseg = 0;
-                  int lon_max, lat_max, lon_min, lat_min;
-                  lon_max = 0; lon_min = 65536; lat_max = 0; lat_min = 65536;
 
                   while(iseg < nsegs)
                   {
@@ -2386,9 +2390,21 @@ Extended_Geometry *cm93chart::BuildGeom(Object *pobject, wxFileOutputStream *pos
 
                         OGRPoint *ppoint = new OGRPoint(rseg[ip].x, rseg[ip].y, zp);
                         pSMP->addGeometryDirectly( ppoint );
+
+                        lon_max = wxMax(lon_max, rseg[ip].x);
+                        lon_min = wxMin(lon_min, rseg[ip].x);
+                        lat_max = wxMax(lat_max, rseg[ip].y);
+                        lat_min = wxMin(lat_min, rseg[ip].y);
+
                   }
 
                   ret_ptr->pogrGeom = pSMP;
+
+                  ret_ptr->xmin = lon_min;
+                  ret_ptr->xmax = lon_max;
+                  ret_ptr->ymin = lat_min;
+                  ret_ptr->ymax = lat_max;
+
 
                   break;
             }
@@ -3124,11 +3140,6 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
                   double *pdd = pobj->geoPtz;
                   double *pdl = pobj->geoPtMulti;
 
-                  //  Set absurd bbox starting limits
-                  double lonmax = -1000;
-                  double lonmin = 1000;
-                  double latmax = -1000;
-                  double latmin = 1000;
 
                   for(int ip=0 ; ip<pobj->npt ; ip++)
                   {
@@ -3145,31 +3156,30 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
 
                         Transform(&p, &lat, &lon);
 
-                        //  Save point in lat/lon for later use in decomposed bboxes
+                        //  Save lat/lon of point in obj->geoPtMulti for later use in decomposed bboxes
 
                         *pdl++ = lon;
                         *pdl++ = lat;
-
-
-                        //  Keep a running calculation of min/max
-                        lonmax = fmax(lon, lonmax);
-                        lonmin = fmin(lon, lonmin);
-                        latmax = fmax(lat, latmax);
-                        latmin = fmin(lat, latmin);
-
                   }
 
-                  //    Record the object bounding box
-                  pobj->BBObj.SetMin(lonmin, latmin);
-                  pobj->BBObj.SetMax(lonmax, latmax);
+                  //  Set the s57obj bounding box as lat/lon
+                  double lat, lon;
+                  cm93_point p;
 
-                  //  and declare x/y of the object to be average east/north of all points
-                  double e1, e2, n1, n2;
-                  toSM(latmax, lonmax, ref_lat, ref_lon, &e1, &n1);
-                  toSM(latmin, lonmin, ref_lat, ref_lon, &e2, &n2);
+                  p.x = (int)xgeom->xmin;
+                  p.y = (int)xgeom->ymin;
+                  Transform(&p, &lat, &lon);
+                  pobj->BBObj.SetMin(lon, lat);
 
-                  pobj->x = (e1 + e2) / 2.;
-                  pobj->y = (n1 + n2) / 2.;
+                  p.x = (int)xgeom->xmax;
+                  p.y = (int)xgeom->ymax;
+                  Transform(&p, &lat, &lon);
+                  pobj->BBObj.SetMax(lon, lat);
+
+
+                  //  and declare x/y of the object to be average of all cm93points
+                  pobj->x = (xgeom->xmin + xgeom->xmax) / 2.;
+                  pobj->y = (xgeom->ymin + xgeom->ymax) / 2.;
 
                   if(bDeleteGeomInline)
                         delete pGeo;
@@ -3203,15 +3213,11 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
                   Transform(&p, &lat, &lon);
                   pobj->BBObj.SetMax(lon, lat);
 
-                  //  and declare x/y of the object to be average east/north of all points
-                  double e1, e2, n1, n2;
-                  toSM(pobj->BBObj.GetMaxY(), pobj->BBObj.GetMaxX(), ref_lat, ref_lon, &e1, &n1);
-                  toSM(pobj->BBObj.GetMinY(), pobj->BBObj.GetMinX(), ref_lat, ref_lon, &e2, &n2);
+                  //  and declare x/y of the object to be average of all cm93points
+                  pobj->x = (xgeom->xmin + xgeom->xmax) / 2.;
+                  pobj->y = (xgeom->ymin + xgeom->ymax) / 2.;
 
-                  pobj->x = (e1 + e2) / 2.;
-                  pobj->y = (n1 + n2) / 2.;
-
-                  //    associate the vector(edge) index teble
+                  //    associate the vector(edge) index table
                   pobj->m_n_lsindex = xgeom->n_vector_indices;
                   pobj->m_lsindex_array = xgeom->pvector_index;         // object now owns the array
 
@@ -3569,7 +3575,7 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
       SetColorScheme(cs, false);
 
 
-      ps52plib->SetTextOverlapAvoid(false);
+//      ps52plib->SetTextOverlapAvoid(true);
 //      ps52plib->SetShowAtonText(false);
 
       bReadyToRender = true;
@@ -3815,6 +3821,15 @@ void cm93compchart::InvalidateCache()
       {
             if(m_pcm93chart_array[i])
                   m_pcm93chart_array[i]->InvalidateCache();
+      }
+}
+
+void cm93compchart::ForceEdgePriorityEvaluate(void)
+{
+      for(int i = 0 ; i < 8 ; i++)
+      {
+            if(m_pcm93chart_array[i])
+                  m_pcm93chart_array[i]->ForceEdgePriorityEvaluate();
       }
 }
 
