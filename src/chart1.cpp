@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.34 2009/03/26 22:29:03 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.35 2009/05/05 03:56:30 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.35  2009/05/05 03:56:30  bdbcat
+ * Force Edge Priority update on dialog
+ *
  * Revision 1.34  2009/03/26 22:29:03  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -69,6 +72,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.35  2009/05/05 03:56:30  bdbcat
+ * Force Edge Priority update on dialog
+ *
  * Revision 1.34  2009/03/26 22:29:03  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -211,7 +217,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.34 2009/03/26 22:29:03 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.35 2009/05/05 03:56:30 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -1087,7 +1093,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
                 if(pChartDirArray->GetCount())
                 {
-//              Create and Save a new Chart Database
+//              Create and Save a new Chart Database based on the hints given in the config file
 
                         delete ChartData;
                         ChartData = new ChartDB(gFrame);
@@ -2494,10 +2500,12 @@ int MyFrame::DoOptionsDialog()
                 {
                     CacheEntry *pce = (CacheEntry *)(ChartData->pChartCache->Item(i));
                     ChartBase *Ch = (ChartBase *)pce->pChart;
-                    if(Ch->m_ChartFamily == CHART_FAMILY_VECTOR) //((Ch->m_ChartType == CHART_TYPE_S57) || (Ch->m_ChartType == CHART_TYPE_CM93))
+                    if(Ch->m_ChartFamily == CHART_FAMILY_VECTOR)
                     {
                         s57chart *S57_Ch = dynamic_cast<s57chart *>(Ch);
                         S57_Ch->UpdateLUPs(S57_Ch);
+                        S57_Ch->ForceEdgePriorityEvaluate();             // force re-evaluation of line segment (edge) priorities
+
                     }
                 }
             }
