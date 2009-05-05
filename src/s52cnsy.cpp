@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.15 2009/04/18 03:30:47 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.16 2009/05/05 03:59:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.16  2009/05/05 03:59:59  bdbcat
+ * Add light descriptions
+ *
  * Revision 1.15  2009/04/18 03:30:47  bdbcat
  * Correct math on soundings
  *
@@ -114,7 +117,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.15 2009/04/18 03:30:47 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.16 2009/05/05 03:59:59 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -412,11 +415,11 @@ wxString *GetStringAttrWXS(S57Obj *obj, char *AttrName)
         return ret;
 }
 
-static int      _parseList(const char *str_in, char *buf)
+static int      _parseList(const char *str_in, char *buf, int buf_size)
 // Put a string of comma delimited number in an array (buf).
 // Return: the number of value in buf.
 // Assume: - number < 256,
-//         - list size less then LISTSIZE-1 .
+//         - list size less than buf_size .
 // Note: buf is \0 terminated for strpbrk().
 {
     char *str = (char *)str_in;
@@ -440,7 +443,6 @@ static int      _parseList(const char *str_in, char *buf)
 
             while(isdigit(*str))
                   str++;   // next
-            //while( g_ascii_isdigit(c));   // next
 
         } while(*str++ != '\0');      // skip ',' or exit
     }
@@ -1213,6 +1215,8 @@ static void *LIGHTS05A(void *param)
 }
 */
 
+static wxString _LITDSN01(S57Obj *obj);
+
 static void *LIGHTS05 (void *param)
 // Remarks: A light is one of the most complex S-57 objects. Its presentation depends on
 // whether it is a light on a floating or fixed platform, its range, it's colour and
@@ -1269,7 +1273,7 @@ static void *LIGHTS05 (void *param)
 
     if ( strlen(catlitstr))
     {
-        _parseList(catlitstr, catlit);
+        _parseList(catlitstr, catlit, sizeof(colist));
 
         // FIXME: OR vs AND/OR
         if (strpbrk(catlit, "\010\013")) {
@@ -1300,7 +1304,7 @@ static void *LIGHTS05 (void *param)
     GetStringAttr(obj, "COLOUR", col_str, 19);
 
     if (strlen(col_str))
-        _parseList(col_str, colist);
+          _parseList(col_str, colist, sizeof(colist));
     else
     {
         colist[0] = '\014';  // magenta (12)
@@ -1362,22 +1366,8 @@ static void *LIGHTS05 (void *param)
 
         }
 
-/*
-        if (TRUE == S52_getMarinerParam(S52_MAR_SHOW_TEXT))
-        {
-            GString *litdsn01 = _LITDSN01(geo);
-            if (NULL != litdsn01){
-                lights05.Append(_T(";TX('");
-                lights05.Append(_T(litdsn01->str);
-                g_string_free(litdsn01, TRUE);
 
-                if (flare_at_45)
-                    lights05.Append(_T("',3,3,3,'15110',2,-1,CHBLK,23)" );
-                else
-                    lights05.Append(_T("',3,2,3,'15110',2,0,CHBLK,23)" );
-            }
-        }
-*/
+
 
         goto l05_end;
     }
@@ -1486,7 +1476,7 @@ static void *LIGHTS05 (void *param)
 
             if ( strlen(litvisstr))               // Obscured/faint sector?
             {
-                _parseList(litvisstr, litvis);
+                  _parseList(litvisstr, litvis, sizeof(litvis));
 
                 if (strpbrk(litvis, "\003\007\010"))
                      strcpy(sym, ";CA(CHBLK, 1,CHBLK, 0");
@@ -1521,6 +1511,22 @@ static void *LIGHTS05 (void *param)
 
 
 l05_end:
+
+    if(ps52plib->m_bShowLdisText)
+    {
+          wxString litdsn01 = _LITDSN01(obj);
+          if (litdsn01.Len())
+          {
+               lights05.Append(_T(";TX('"));
+               lights05.Append(litdsn01);
+
+               if (flare_at_45)
+                    lights05.Append(_T("',3,3,3,'15110',2,-1,CHBLK,23)" ));
+               else
+                    lights05.Append(_T("',3,2,3,'15110',2,0,CHBLK,23)" ));
+          }
+    }
+
     lights05.Append('\037');
 
     char *r = (char *)malloc(lights05.Len() + 1);
@@ -2226,9 +2232,9 @@ static void *RESARE02(void *param)
     wxString prio;
 
     if ( NULL != restrnstr) {
-        _parseList(restrnstr->mb_str(), restrn);
+          _parseList(restrnstr->mb_str(), restrn, sizeof(restrn));
 
-        if (NULL != catreastr) _parseList(catreastr->mb_str(), catrea);
+          if (NULL != catreastr) _parseList(catreastr->mb_str(), catrea, sizeof(catrea));
 
         if (strpbrk(restrn, "\007\010\016")) {                          // entry restrictions
             // Continuation A
@@ -2425,7 +2431,7 @@ static void *_RESCSP01(void *param)
     char    *r;
 
     if ( restrnstr->Len()) {
-        _parseList(restrnstr->mb_str(), restrn);
+          _parseList(restrnstr->mb_str(), restrn, sizeof(restrn));
 
         if (strpbrk(restrn, "\007\010\016")) {
             // continuation A
@@ -2599,7 +2605,7 @@ wxString *SNDFRM02(S57Obj *obj, double depth_value_in)
 
     if (NULL != tecsoustr)
     {
-        _parseList(tecsoustr->mb_str(), tecsou);
+          _parseList(tecsoustr->mb_str(), tecsou, sizeof(tecsou));
         if (strpbrk(tecsou, "\006"))
         {
             sprintf(temp_str, ";SY(%sB1)", symbol_prefix_a);
@@ -2607,8 +2613,8 @@ wxString *SNDFRM02(S57Obj *obj, double depth_value_in)
         }
     }
 
-    if (NULL != quasoustr) _parseList(quasoustr->mb_str(), quasou);
-    if (NULL != statusstr) _parseList(statusstr->mb_str(), status);
+    if (NULL != quasoustr) _parseList(quasoustr->mb_str(), quasou, sizeof(quasou));
+    if (NULL != statusstr) _parseList(statusstr->mb_str(), status, sizeof(status));
 
     if (strpbrk(quasou, "\003\004\005\010\011") || strpbrk(status, "\022"))
     {
@@ -3207,6 +3213,228 @@ static void *WRECKS02 (void *param)
     return r;
 }
 
+
+static wxString _LITDSN01(S57Obj *obj)
+// Remarks: In S-57 the light characteristics are held as a series of attributes values. The
+// mariner may wish to see a light description text string displayed on the
+// screen similar to the string commonly found on a paper chart. This
+// conditional procedure, reads the attribute values from the above list of
+// attributes and composes a light description string which can be displayed.
+// This procedure is provided as a C function which has as input, the above
+// listed attribute values and as output, the light description.
+{
+    // CATLIT, LITCHR, COLOUR, HEIGHT, LITCHR, SIGGRP, SIGPER, STATUS, VALNMR
+
+      char colist[20];
+      wxString return_value;
+
+    // CATLIT
+      int catlit = -9;
+      GetIntAttr(obj, "CATLIT", catlit);
+
+      if(-9 != catlit)
+      {
+      }
+
+
+    /*
+      1: directional function  IP 30.1-3;  475.7;
+      2: rear/upper light
+      3: front/lower light
+      4: leading light           IP 20.1-3;      475.6;
+      5: aero light                  IP 60;      476.1;
+      6: air obstruction light IP 61;      476.2;
+      7: fog detector light        IP 62;  477;
+      8: flood light                 IP 63;      478.2;
+      9: strip light                 IP 64;      478.5;
+      10: subsidiary light          IP 42;  471.8;
+      11: spotlight
+      12: front
+      13: rear
+      14: lower
+      15: upper
+      16: moire' effect           IP 31;    475.8;
+      17: emergency
+      18: bearing light                   478.1;
+      19: horizontally disposed
+      20: vertically disposed
+    */
+
+    // LITCHR
+      int litchr = -9;
+      GetIntAttr(obj, "LITCHR", litchr);
+
+      if(-9 != litchr)
+      {
+            switch (litchr)
+            {
+                  case 1:   return_value.Append(_T("F"));    break;
+                  case 2:   return_value.Append(_T("Fl"));   break;
+                  case 3:   return_value.Append(_T("Fl"));   break;
+                  case 4:   return_value.Append(_T("Q"));    break;
+                  case 7:   return_value.Append(_T("Iso"));  break;
+                  case 8:   return_value.Append(_T("Occ"));  break;
+                  case 12:  return_value.Append(_T("Mo"));   break;
+
+                  default: break;
+            }
+      }
+
+
+
+
+    /*
+      1: fixed     IP 10.1;
+      2: flashing  IP 10.4;
+      3: long-flashing   IP 10.5;
+      4: quick-flashing  IP 10.6;
+      5: very quick-flashing   IP 10.7;
+      6: ultra quick-flashing  IP 10.8;
+      7: isophased IP 10.3;
+      8: occulting IP 10.2;
+      9: interrupted quick-flashing  IP 10.6;
+      10: interrupted very quick-flashing   IP 10.7;
+      11: interrupted ultra quick-flashing  IP 10.8;
+      12: morse     IP 10.9;
+      13: fixed/flash     IP 10.10;
+      14: flash/long-flash
+      15: occulting/flash
+      16: fixed/long-flash
+      17: occulting alternating
+      18: long-flash alternating
+      19: flash alternating
+      20: group alternating
+      21: 2 fixed (vertical)
+      22: 2 fixed (horizontal)
+      23: 3 fixed (vertical)
+      24: 3 fixed (horizontal)
+      25: quick-flash plus long-flash
+      26: very quick-flash plus long-flash
+      27: ultra quick-flash plus long-flash
+      28: alternating
+      29: fixed and alternating flashing
+    */
+
+     // SIGGRP, (c)(c) ...
+      char grp_str[20] = {'\0'};;
+      GetStringAttr(obj, "SIGGRP", grp_str, 19);
+      if(strlen(grp_str))
+      {
+            wxString s(grp_str);
+            if(s != _T("(1)"))
+                  return_value.Append(s);
+      }
+
+    // COLOUR,
+      char col_str[20];
+      GetStringAttr(obj, "COLOUR", col_str, 19);
+
+      if (strlen(col_str))
+            _parseList(col_str, colist, sizeof(colist));
+
+      int colour = colist[0];
+
+      if(-9 != colour)
+      {
+            switch (colour)
+            {
+                  case 1:  return_value.Append(_T(" W")); break;
+                  case 3:  return_value.Append(_T(" R")); break;
+                  case 4:  return_value.Append(_T(" G")); break;
+                  case 6:  return_value.Append(_T(" Y")); break;
+                  default:  break;
+            }
+      }
+
+    /*
+      1: white     IP 11.1;    450.2-3;
+      2: black
+      3: red IP 11.2;    450.2-3;
+      4: green     IP 11.3;    450.2-3;
+      5: blue      IP 11.4;    450.2-3;
+      6: yellow    IP 11.6;    450.2-3;
+      7: grey
+      8: brown
+      9: amber     IP 11.8;    450.2-3;
+      10: violet    IP 11.5;    450.2-3;
+      11: orange    IP 11.7;    450.2-3;
+      12: magenta
+      13: pink
+    */
+
+    // SIGPER, xx.xx
+      double   sigper      = UNKNOWN;
+      GetDoubleAttr(obj, "SIGPER", sigper);
+
+      if(UNKNOWN != sigper)
+      {
+            wxString s;
+            s.Printf(_T("%2.0fs"), sigper);
+            s.Trim(false);          // remove leading spaces
+            s.Prepend(_T(" "));
+            return_value.Append(s);
+      }
+
+
+    // HEIGHT, xxx.x
+      double   height      = UNKNOWN;
+      GetDoubleAttr(obj, "HEIGHT", height);
+
+      if(UNKNOWN != height)
+      {
+            wxString s;
+            s.Printf(_T("%3.0fm"), height);
+            s.Trim(false);          // remove leading spaces
+            s.Prepend(_T(" "));
+            return_value.Append(s);
+      }
+
+
+    // VALNMR, xx.x
+      double   valnmr      = UNKNOWN;
+      GetDoubleAttr(obj, "VALNMR", valnmr);
+
+      if(UNKNOWN != valnmr)
+      {
+            wxString s;
+            s.Printf(_T("%2.0fNM"), valnmr);
+            s.Trim(false);          // remove leading spaces
+            s.Prepend(_T(" "));
+            return_value.Append(s);
+      }
+
+#if 0
+
+    // STATUS,
+      gstr = S57_getAttVal(geo, "STATUS");
+      if (NULL != gstr)
+            g_string_append(litdsn01, gstr->str);
+
+    /*
+      1: permanent
+      2: occasional      IP 50;      473.2;
+      3: recommended     IN 10;      431.1;
+      4: not in use      IL 14, 44;  444.7;
+      5: periodic/intermittent IC 21; IQ 71;     353.3; 460.5;
+      6: reserved  IN 12.9;
+      7: temporary IP 54;
+      8: private   IQ 70;
+      9: mandatory
+      10: destroyed/ruined
+      11: extinguished
+      12: illuminated
+      13: historic
+      14: public
+      15: synchronized
+      16: watched
+      17: un-watched
+      18: existence doubtful
+    */
+
+
+#endif
+      return return_value;
+}
 
 
 //--------------------------------
