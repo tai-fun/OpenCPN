@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.13 2009/03/26 22:28:55 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.14 2009/05/05 03:57:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.14  2009/05/05 03:57:36  bdbcat
+ * New logic for db update, incomplete....
+ *
  * Revision 1.13  2009/03/26 22:28:55  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -97,7 +100,7 @@ extern ChartBase    *Current_Ch;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.13 2009/03/26 22:28:55 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.14 2009/05/05 03:57:36 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -398,7 +401,20 @@ bool ChartDB::Update(wxArrayString *dir_list, bool bshow_prog)
     for(unsigned int j=0 ; j<dir_list->GetCount() ; j++)
     {
         wxString dir_name = dir_list->Item(j);
-        TraverseDirAndAddCharts(dir_name, bshow_prog, true);
+
+        wxString dir_magic;
+        TraverseDirAndAddCharts(dir_name, bshow_prog, true, dir_magic);
+
+#if 0
+        //  Update the dir_list entry, even if the magic values are the same
+        wxString dir_path = dir_name.BeforeFirst('^');
+
+        dir_path.Append('^');
+        dir_path.Append(dir_magic);
+
+        dir_list->RemoveAt(j);
+        dir_list->Insert(dir_path, j);
+#endif
     }           //for
 
     //  It is likely that there are duplicate charts in the list now.
@@ -510,28 +526,52 @@ bool ChartDB::Update(wxArrayString *dir_list, bool bshow_prog)
 //  If target chart is already in database, mark the entry valid and skip additional processing
 // ----------------------------------------------------------------------------
 
-int ChartDB::TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate)
+int ChartDB::TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate, wxString &dir_magic)
 {
- wxLogMessage(dir_name);
+      //    Extract the true dir name and magic number from the compound string
+      wxString dir_path = dir_name.BeforeFirst('^');
+      wxString old_magic = dir_name.AfterFirst('^');
+      wxString new_magic = old_magic;
+      dir_magic = old_magic;              // provisionally the same
+
+      //    Quick scan the directory to see if it has changed
+      //    If not, there is no need to scan again.....
+
+/*
+this logic is busted.... We need a true update method, and some good struct to hold dirs.....
+            current problem is that old database is deleted and recreated from scratch always
+      if(!DetectDirChange(dir_path, old_magic, new_magic))
+      {
+            wxString msg(_T("   No change detected on directory "));
+            msg.Append(dir_path);
+            wxLogMessage(msg);
+
+            return 0;
+      }
+*/
+      //    There presumably was a change in the directory contents.  Return the new magic number
+      dir_magic = new_magic;
+
     int nAdd = 0;
- wxLogMessage(_T("  searching for .geo"));
-    nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.geo")), bshow_prog, bupdate);
+
+    wxLogMessage(_T("  searching for .geo"));
+    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), bshow_prog, bupdate);
 
     wxLogMessage(_T("  searching for .KAP"));
-    nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.KAP")), bshow_prog, bupdate);
+    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), bshow_prog, bupdate);
 
 #ifdef USE_S57
     wxLogMessage(_T("  searching for .000"));
-    nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.000")), bshow_prog, bupdate);
+    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.000")), bshow_prog, bupdate);
 
     wxLogMessage(_T("  searching for .S57"));
-    nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("*.S57")), bshow_prog, bupdate);
+    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.S57")), bshow_prog, bupdate);
 
 #endif
 
 #ifdef USE_CM93
     wxLogMessage(_T("  searching for .CM93"));
-    nAdd += SearchDirAndAddCharts(dir_name, wxString(_T("00300000.A")), bshow_prog, bupdate);     // for cm93
+    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("00300000.A")), bshow_prog, bupdate);     // for cm93
 #endif
 
     return nAdd;
@@ -546,6 +586,45 @@ int ChartDB::TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bu
 
 //          SearchDirAndAddBSB(dir_name,  (const wxString &)wxString("*.KAP"), bshow_prog);
 
+}
+
+bool ChartDB::DetectDirChange(wxString dir_path, wxString magic, wxString &new_magic)
+{
+      //    parse the magic number
+      long long unsigned int nmagic;
+      wxULongLong nacc = 0;
+
+      magic.ToULongLong(&nmagic, 10);
+
+      //    Get an arraystring of all files
+      wxArrayString FileList;
+      wxDir dir(dir_path);
+      int n_files = dir.GetAllFiles(dir_path, &FileList);
+
+      //Traverse the list of files, getting their interesting stuff to add to accumulator
+      for(int ifile=0 ; ifile < n_files ; ifile++)
+      {
+            wxFileName file(FileList.Item(ifile));
+
+            //    File Size;
+            wxULongLong size = file.GetSize();
+            if(wxInvalidSize != size)
+                  nacc = nacc + size;
+
+            //    Mod time, in ticks
+            wxDateTime t = file.GetModificationTime();
+            nacc += t.GetTicks();
+
+      }
+
+      //    Return the calculated magic number
+      new_magic = nacc.ToString();
+
+      //    And do the test
+      if(new_magic != magic)
+            return true;
+      else
+            return false;
 }
 
 
