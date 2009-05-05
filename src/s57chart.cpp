@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.28 2009/04/19 02:25:12 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.29 2009/05/05 04:01:51 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.29  2009/05/05 04:01:51  bdbcat
+ * Various, including VERCLR
+ *
  * Revision 1.28  2009/04/19 02:25:12  bdbcat
  * *** empty log message ***
  *
@@ -70,6 +73,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.29  2009/05/05 04:01:51  bdbcat
+ * Various, including VERCLR
+ *
  * Revision 1.28  2009/04/19 02:25:12  bdbcat
  * *** empty log message ***
  *
@@ -178,7 +184,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.28 2009/04/19 02:25:12 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.29 2009/05/05 04:01:51 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -249,7 +255,7 @@ S57Obj::S57Obj()
         bIsClone = false;
         Scamin = 10000000;                              // ten million enough?
         nRef = 0;
-        BBText.SetValid(true);
+
         bIsAton = false;
         m_n_lsindex = 0;
         m_lsindex_array = NULL;
@@ -333,7 +339,6 @@ S57Obj::S57Obj(char *first_line, wxInputStream *pfpx, double dummy, double dummy
     x_origin = 0.0;
     y_origin = 0.0;
 
-    BBText.SetValid(true);
 
     int FEIndex;
 
@@ -1113,9 +1118,7 @@ s57chart::s57chart()
     m_nvc_elements = 0;
     m_pvc_array = NULL;
 
-//    m_c_easting = 0.;
-//    m_c_northing = 0.;
-
+    m_bLinePrioritySet = false;
 
 }
 
@@ -1496,50 +1499,58 @@ void s57chart::SetFullExtent(Extent& ext)
       m_bExtentSet = true;
 }
 
+void s57chart::ForceEdgePriorityEvaluate(void)
+{
+       m_bLinePrioritySet = false;
+}
+
 bool s57chart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type)
 {
 //    CALLGRIND_START_INSTRUMENTATION
 
     ps52plib->PrepareForRender();
 
+    //      If necessary.....
     //      Establish line feature rendering priorities
 
-    ObjRazRules *top;
-    ObjRazRules *crnt;
-
-    for (int i=0; i<PRIO_NUM; ++i)
+    if(!m_bLinePrioritySet)
     {
+      ObjRazRules *top;
+      ObjRazRules *crnt;
 
-      top = razRules[i][2];           //LINES
-      while ( top != NULL)
+      for (int i=0; i<PRIO_NUM; ++i)
       {
-            ObjRazRules *crnt = top;
-            top  = top->next;
-            ps52plib->SetLineFeaturePriority(crnt, i);
-      }
 
-      if(ps52plib->m_nBoundaryStyle == SYMBOLIZED_BOUNDARIES)
-      {
-          top = razRules[i][4];           // Area Symbolized Boundaries
-          while ( top != NULL)
-          {
-                crnt = top;
-                top  = top->next;               // next object
-                ps52plib->SetLineFeaturePriority(crnt, i);
-          }
-      }
+            top = razRules[i][2];           //LINES
+            while ( top != NULL)
+            {
+                  ObjRazRules *crnt = top;
+                  top  = top->next;
+                  ps52plib->SetLineFeaturePriority(crnt, i);
+            }
 
-      else
-      {
-          top = razRules[i][3];           // Area Plain Boundaries
-          while ( top != NULL)
-          {
-                crnt = top;
-                top  = top->next;               // next object
-                ps52plib->SetLineFeaturePriority(crnt, i);
-          }
+            //    In the interest of speed, choose only the one necessary area boundary style index
+            int j;
+            if(ps52plib->m_nBoundaryStyle == SYMBOLIZED_BOUNDARIES)
+                  j=4;
+            else
+                  j=3;
+
+            top = razRules[i][j];
+            while ( top != NULL)
+            {
+                  crnt = top;
+                  top  = top->next;               // next object
+                  ps52plib->SetLineFeaturePriority(crnt, i);
+            }
+
+
       }
     }
+
+    //      Mark the priority as set.
+    //      Generally only reset by Options Dialog post processing
+    m_bLinePrioritySet = true;
 
     return DoRenderViewOnDC(dc, VPoint, DC_RENDER_ONLY);
 
@@ -1645,6 +1656,10 @@ bool s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, RenderTypeEnum
 //        printf("reuse blit %d %d %d %d %d %d\n",desx, desy, wu, hu,  srcx, srcy);
         dc_new.Blit(desx, desy, wu, hu, (wxDC *)&dc_last, srcx, srcy, wxCOPY);
 
+        //        Ask the plib to adjust the persistent text rectangle list for this canvas shift
+        //        This ensures that, on pans, the list stays in registration with the new text renders to come
+        ps52plib->AdjustTextList(desx - srcx, desy - srcy, VPoint.pix_width, VPoint.pix_height);
+
         dc_new.SelectObject(wxNullBitmap);
         dc_last.SelectObject(wxNullBitmap);
 
@@ -1706,6 +1721,10 @@ bool s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, RenderTypeEnum
 
         wxRect full_rect(0, 0,VPoint.pix_width, VPoint.pix_height);
         pDIB->SelectIntoDC(dc);
+
+        //        Clear the text declutter list
+        ps52plib->ClearTextList();
+
         DCRenderRect(dc, VPoint, &full_rect);
 
         dc.SelectObject(wxNullBitmap);
@@ -2238,7 +2257,7 @@ InitReturn s57chart::PostInit( ChartInitFlag flags, ColorScheme cs )
 
 
 //    Set some plib behaviour flags
-    ps52plib->SetTextOverlapAvoid(true);
+//    ps52plib->SetTextOverlapAvoid(true);
 //    ps52plib->SetShowAtonText(true);
 
 //    Build array of contour values for later use by conditional symbology
@@ -5513,7 +5532,26 @@ S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
                         case OGR_REAL:
                         {
                               double dval = *((double *)pval->value);
-                              value.Printf(_T("%g"), dval);
+                              wxString val_suffix = _T("(m)");
+
+                              //    As a special case, convert some attribute values to feet.....
+                              if(att == _T("VERCLR"))
+                              {
+                                    switch(ps52plib->m_nDepthUnitDisplay)
+                                    {
+                                          case 0:
+                                                dval = dval * 3 * 39.37 / 36;              // feet
+                                                val_suffix = _T("(ft)");
+                                                break;
+                                          default:
+                                                break;
+                                    }
+                              }
+
+                              value.Printf(_T("%4.1f"), dval);
+
+                              value << val_suffix;
+
                               break;
                         }
 
