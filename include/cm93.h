@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.5 2009/04/13 02:34:29 bdbcat Exp $
+ * $Id: cm93.h,v 1.6 2009/05/05 04:02:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.6  2009/05/05 04:02:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.5  2009/04/13 02:34:29  bdbcat
  * Improve dictionary logic
  *
@@ -392,6 +395,7 @@ class cm93compchart : public s57chart
             VC_Element  **Get_pvc_array(void);
 
             void UpdateLUPs(s57chart *pOwner);
+            void ForceEdgePriorityEvaluate(void);
 
       private:
             InitReturn CreateHeaderData();

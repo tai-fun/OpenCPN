@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.14 2009/04/19 02:23:52 bdbcat Exp $
+ * $Id: s52plib.h,v 1.15 2009/05/05 04:02:49 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.15  2009/05/05 04:02:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.14  2009/04/19 02:23:52  bdbcat
  * *** empty log message ***
  *
@@ -51,6 +54,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.15  2009/05/05 04:02:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.14  2009/04/19 02:23:52  bdbcat
  * *** empty log message ***
  *
@@ -121,7 +127,7 @@ WX_DEFINE_SORTED_ARRAY(LUPrec *, wxArrayOfLUPrec);
 
 WX_DECLARE_STRING_HASH_MAP( wxColour, ColourHash );
 
-WX_DECLARE_LIST(wxBoundingBox, BBList);
+WX_DECLARE_LIST(S57Obj, ObjList);
 
 
 
@@ -156,7 +162,9 @@ public:
       void RestoreColorScheme(void){m_colortable_index_save = m_colortable_index_save;}
 
 //    Rendering stuff
-      void PrepareForRender();
+      void PrepareForRender(void);
+      void AdjustTextList(int dx, int dy,  int screenw, int screenh);
+      void ClearTextList(void);
       int _draw(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp);
       int RenderArea(wxDC *pdc, ObjRazRules *rzRules, ViewPort *vp, render_canvas_parms *pb_spec);
       int SetLineFeaturePriority( ObjRazRules *rzRules, int npriority );
@@ -171,8 +179,9 @@ public:
       int GetMajorVersion(void){return m_VersionMajor;}
       int GetMinorVersion(void){return m_VersionMinor;}
 
-      void SetTextOverlapAvoid(bool f){m_bCheckTextOverlap = f;}
+      void SetTextOverlapAvoid(bool f){m_bDeClutterText = f;}
       void SetShowAtonText(bool f){m_bShowAtonText = f;}
+      void SetShowLdisText(bool f){m_bShowLdisText = f;}
 
  //Todo accessors
       DisCat      m_nDisplayCategory;
@@ -185,7 +194,9 @@ public:
       bool        m_bShowS57Text;
       bool        m_bUseSCAMIN;
       bool        m_bShowAtonText;
+      bool        m_bShowLdisText;
       bool        m_bShowS57ImportantTextOnly;
+      bool        m_bDeClutterText;
 
       int         m_nDepthUnitDisplay;
 
@@ -220,11 +231,12 @@ public:
       bool RenderRasterSymbol(ObjRazRules *rzRules, Rule *prule, wxDC *pdc, wxPoint &r,  ViewPort *vp, float rot_angle = 0.);
       wxImage RuleXBMToImage(Rule *prule);
 
-      void RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
-            int x, int y, int xoff_unit, int yoff_unit, color *pcol, wxRect *pRectDrawn,
-            bool bCheckOverlap );
+//      bool RenderText ( wxDC *pdc, wxFont *pFont, const wxString& str,
+//            int x, int y, int xoff_unit, int yoff_unit, color *pcol, wxRect *pRectDrawn,
+//            S57Obj *pobj, bool bCheckOverlap );
+      bool RenderText ( wxDC *pdc, S52_Text *ptext, int x, int y, wxRect *pRectDrawn, S57Obj *pobj, bool bCheckOverlap );
 
-      bool CheckTextBBList( const wxBoundingBox &test_box);
+      bool CheckTextRectList( const wxRect &test_rect,  S57Obj *pobj);
       int  RenderT_All ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp, bool bTX );
 
       int PrioritizeLineFeature ( ObjRazRules *rzRules, int npriority);
@@ -308,14 +320,13 @@ public:
       int         m_colortable_index;
       int         m_colortable_index_save;
 
-      BBList      m_textBBList;
+      ObjList     m_textObjList;
 
       int         m_VersionMajor;
       int         m_VersionMinor;
 
       double      m_display_pix_per_mm;
 
-      bool        m_bCheckTextOverlap;
 
 };
 

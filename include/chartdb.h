@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.11 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: chartdb.h,v 1.12 2009/05/05 04:02:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.12  2009/05/05 04:02:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.11  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -39,6 +42,9 @@
  * *** empty log message ***
  *
  * $Log: chartdb.h,v $
+ * Revision 1.12  2009/05/05 04:02:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.11  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -202,6 +208,8 @@ public:
       int DisableChart(wxString& PathToDisable);
       void ApplyColorSchemeToCachedCharts(ColorScheme cs);
 
+      bool DetectDirChange(wxString dir_path, wxString magic, wxString &new_magic);
+
       // Public data
       //Todo build accessors
       int   nEntry;
@@ -211,7 +219,7 @@ public:
 private:
 
       InitReturn CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry);
-      int TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate);
+      int TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate, wxString& dir_magic);
       int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, bool bshow_prog, bool bupdate);
 
       int SearchDirAndAddSENC(wxString& dir, bool bshow_prog, bool bupdate);

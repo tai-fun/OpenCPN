@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.21 2009/04/18 03:33:44 bdbcat Exp $
+ * $Id: s57chart.h,v 1.22 2009/05/05 04:02:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.22  2009/05/05 04:02:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.21  2009/04/18 03:33:44  bdbcat
  * *** empty log message ***
  *
@@ -233,6 +236,7 @@ public:
       virtual VE_Element  **Get_pve_array(void){ return m_pve_array;}
       virtual VC_Element  **Get_pvc_array(void){ return m_pvc_array;}
 
+      virtual void ForceEdgePriorityEvaluate(void);
 
 // Public data
 //Todo Accessors here
@@ -242,8 +246,8 @@ public:
 
       double        ref_lat, ref_lon;             // Common reference point, derived from FullExtent
       Extent        m_FullExtent;
-      bool         m_bExtentSet;
-
+      bool          m_bExtentSet;
+      bool          m_bLinePrioritySet;
 
       //  SM Projection parms, stored as convenience to expedite pixel conversions
       double    m_easting_vp_center, m_northing_vp_center;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.10 2009/04/19 02:23:52 bdbcat Exp $
+ * $Id: options.h,v 1.11 2009/05/05 04:02:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.11  2009/05/05 04:02:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.10  2009/04/19 02:23:52  bdbcat
  * *** empty log message ***
  *
@@ -116,6 +119,8 @@ enum {
         ID_AUTOANCHORMARKBOX1,
         ID_PANELAIS,
         ID_ATONTEXTCHECKBOX,
+        ID_LDISTEXTCHECKBOX,
+        ID_DECLTEXTCHECKBOX,
         ID_PANELADVANCED,   // toh, 2009.02.14
         ID_GPXCHECKBOX,       // toh, 2009.02.14
         ID_DRAGGINGCHECKBOX   // toh, 2009.02.14
@@ -206,6 +211,8 @@ public:
     wxCheckBox              *pCheck_SHOWIMPTEXT;
     wxCheckBox              *pCheck_SCAMIN;
     wxCheckBox              *pCheck_ATONTEXT;
+    wxCheckBox              *pCheck_LDISTEXT;
+    wxCheckBox              *pCheck_DECLTEXT;
     wxTextCtrl              *m_ShallowCtl;
     wxTextCtrl              *m_SafetyCtl;
     wxTextCtrl              *m_DeepCtl;

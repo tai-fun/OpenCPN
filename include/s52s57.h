@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.15 2009/04/19 02:23:52 bdbcat Exp $
+ * $Id: s52s57.h,v 1.16 2009/05/05 04:02:49 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.16  2009/05/05 04:02:49  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.15  2009/04/19 02:23:52  bdbcat
  * *** empty log message ***
  *
@@ -265,10 +268,11 @@ typedef struct _S52_Text {
     char       weight;      // CHARS
     char       width;       // CHARS
     int        bsize;       // CHARS -body size
-    int        xoffs;       // pica (1 = 0.531mm)
-    int        yoffs;       // pica (1 = 0.531mm)
-    color      *col;        // colour
+    int        xoffs;       // text offsets, in units of bsize
+    int        yoffs;       //
+    color      *pcol;       // colour
     int        dis;         // display
+    wxFont     *pFont;
 } S52_Text;
 
 
@@ -375,7 +379,7 @@ public:
 
       S52_Text                *FText;
       int                     bFText_Added;
-      wxBoundingBox           BBText;
+      wxRect                  rText;
 
       int                     Scamin;                 // SCAMIN attribute decoded during load
       bool                    bIsClone;
