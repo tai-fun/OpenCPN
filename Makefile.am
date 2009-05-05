@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-VERSION=1.2.8
-COPYRIGHT_YEAR=2008
+VERSION=1.3.0
+COPYRIGHT_YEAR=2009
 WX_LIB_DIR=$(WX_HOME)/lib
 
 INCLUDES = \
