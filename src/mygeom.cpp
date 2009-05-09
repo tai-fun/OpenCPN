@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.11 2009/03/26 22:29:29 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.12 2009/05/09 01:30:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.12  2009/05/09 01:30:15  bdbcat
+ * Ensure wxMac compatible re opengl include file locations.
+ *
  * Revision 1.11  2009/03/26 22:29:29  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -66,8 +69,13 @@
 #include "triangulate.h"
 
 #ifdef USE_GLU_TESS
+#ifdef __WXOSX__
+#include <gl.h>
+#include <glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
 
 #ifdef __WXMSW__
 #include <windows.h>
@@ -75,7 +83,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.11 2009/03/26 22:29:29 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.12 2009/05/09 01:30:15 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
