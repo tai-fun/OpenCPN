@@ -24,8 +24,6 @@
 			792F545B0BFCF74F006EAA19 /* openCPN */,
 		);
 		breakpoints = (
-			796A55A80EBDFCFD002A4375 /* chart1.cpp:2032 */,
-			794171100EE07C0D00ACE3FD /* smi_driver.c:624 */,
 		);
 		codeSenseManager = 792F54530BFCF735006EAA19 /* Code sense */;
 		executables = (
@@ -161,8 +159,8 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 250181778;
-			PBXWorkspaceStateSaveDate = 250181778;
+			PBXPerProjectTemplateStateSaveDate = 263323599;
+			PBXWorkspaceStateSaveDate = 263323599;
 		};
 		sourceControlManager = 792F54520BFCF735006EAA19 /* Source Control */;
 		userBuildSettings = {
@@ -193,7 +191,7 @@
 		argumentStrings = (
 		);
 		autoAttachOnCrash = 1;
-		breakpointsEnabled = 1;
+		breakpointsEnabled = 0;
 		configStateDict = {
 		};
 		customDataFormattersEnabled = 0;
@@ -228,18 +226,18 @@
 	};
 	792F54630BFCF79B006EAA19 /* chart1.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {720, 64694}}";
-			sepNavSelRange = "{19377, 10}";
-			sepNavVisRange = "{20281, 682}";
+			sepNavIntBoundsRect = "{{0, 0}, {1030, 66052}}";
+			sepNavSelRange = "{21541, 3}";
+			sepNavVisRange = "{20822, 2064}";
 			sepNavVisRect = "{{1, 33373}, {699, 321}}";
 			sepNavWindowFrame = "{{172, 65}, {1089, 789}}";
 		};
 	};
 	792F54A90BFDF0DB006EAA19 /* about.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {900, 4970}}";
-			sepNavSelRange = "{2926, 23}";
-			sepNavVisRange = "{2582, 413}";
+			sepNavIntBoundsRect = "{{0, 0}, {679, 4830}}";
+			sepNavSelRange = "{2858, 0}";
+			sepNavVisRange = "{2603, 382}";
 			sepNavVisRect = "{{0, 510}, {947, 76}}";
 			sepNavWindowFrame = "{{245, 213}, {738, 450}}";
 		};
@@ -280,9 +278,9 @@
 	};
 	792F54B60BFDF145006EAA19 /* chcanv.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {852, 72030}}";
-			sepNavSelRange = "{14168, 13}";
-			sepNavVisRange = "{13989, 408}";
+			sepNavIntBoundsRect = "{{0, 0}, {900, 82432}}";
+			sepNavSelRange = "{216313, 0}";
+			sepNavVisRange = "{215813, 743}";
 			sepNavVisRect = "{{0, 3052}, {699, 321}}";
 			sepNavWindowFrame = "{{130, 97}, {1064, 671}}";
 		};
@@ -306,11 +304,11 @@
 	};
 	792F54DD0BFDF387006EAA19 /* chart1.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {985, 4508}}";
-			sepNavSelRange = "{7359, 8}";
-			sepNavVisRange = "{3885, 1151}";
+			sepNavIntBoundsRect = "{{0, 0}, {985, 4886}}";
+			sepNavSelRange = "{3021, 0}";
+			sepNavVisRange = "{2488, 1066}";
 			sepNavVisRect = "{{0, 2308}, {986, 186}}";
-			sepNavWindowFrame = "{{71, 38}, {1044, 731}}";
+			sepNavWindowFrame = "{{127, 37}, {1044, 731}}";
 		};
 	};
 	792F54DE0BFDF387006EAA19 /* chartbase.h */ = {
@@ -355,9 +353,9 @@
 	};
 	792F54E90BFDF387006EAA19 /* nmea.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {773, 3990}}";
-			sepNavSelRange = "{4342, 15}";
-			sepNavVisRange = "{3561, 1508}";
+			sepNavIntBoundsRect = "{{0, 0}, {900, 6944}}";
+			sepNavSelRange = "{9531, 18}";
+			sepNavVisRange = "{9229, 635}";
 			sepNavWindowFrame = "{{38, 38}, {832, 814}}";
 		};
 	};
@@ -479,9 +477,9 @@
 	};
 	792F559E0BFDF4F9006EAA19 /* navutil.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {720, 47628}}";
-			sepNavSelRange = "{75798, 4}";
-			sepNavVisRange = "{75594, 213}";
+			sepNavIntBoundsRect = "{{0, 0}, {900, 61796}}";
+			sepNavSelRange = "{40582, 49}";
+			sepNavVisRange = "{40383, 614}";
 			sepNavVisRect = "{{0, 18398}, {699, 321}}";
 			sepNavWindowFrame = "{{69, 68}, {1195, 732}}";
 		};
@@ -686,46 +684,6 @@
 			sepNavWindowFrame = "{{176, 276}, {738, 450}}";
 		};
 	};
-	7941710E0EE07C0D00ACE3FD /* smi_driver.c */ = {
-		isa = PBXFileReference;
-		lastKnownFileType = sourcecode.c.c;
-		name = smi_driver.c;
-		path = /Users/richard/Movies/Documents/Temp/Kit/smi_driver.c;
-		sourceTree = "<absolute>";
-	};
-	794171100EE07C0D00ACE3FD /* smi_driver.c:624 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = 7941710E0EE07C0D00ACE3FD /* smi_driver.c */;
-		functionName = "SMI_PreInit()";
-		hitCount = 0;
-		ignoreCount = 0;
-		lineNumber = 624;
-		modificationTime = 249671907.237156;
-		state = 2;
-	};
-	796A55A80EBDFCFD002A4375 /* chart1.cpp:2032 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = 792F54630BFCF79B006EAA19 /* chart1.cpp */;
-		functionName = "MyFrame::OnToolLeftClick(wxCommandEvent& event)";
-		hitCount = 0;
-		ignoreCount = 0;
-		lineNumber = 2032;
-		location = openCPN;
-		modificationTime = 249671907.23714;
-		state = 1;
-	};
 	79701D0D0D4E897B005B834E /* nmea.cpp */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {900, 26348}}";
@@ -779,6 +737,30 @@
 			sepNavIntBoundsRect = "{{0, 0}, {720, 3178}}";
 			sepNavSelRange = "{462, 10}";
 			sepNavVisRange = "{356, 150}";
+		};
+	};
+	79DDECB80F9DFE2700417C0E /* wpl.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1040, 1162}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 931}";
+			sepNavWindowFrame = "{{61, 55}, {1099, 776}}";
+		};
+	};
+	79DDECBD0F9DFE5B00417C0E /* rte.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1040, 2184}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 812}";
+			sepNavWindowFrame = "{{84, 34}, {1099, 776}}";
+		};
+	};
+	79DDECC20F9DFE9000417C0E /* cm93.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1040, 56070}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 2040}";
+			sepNavWindowFrame = "{{107, 13}, {1099, 776}}";
 		};
 	};
 	79FFF0790D3EBC0200BFB4C0 /* georef.c */ = {

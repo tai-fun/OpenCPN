@@ -109,6 +109,9 @@
 		798221350EC9C4BA00F9A406 /* APPL.icns in Resources */ = {isa = PBXBuildFile; fileRef = 798221340EC9C4BA00F9A406 /* APPL.icns */; };
 		79D3A78A0DA834470003D34D /* chart1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54630BFCF79B006EAA19 /* chart1.cpp */; };
 		79D3A78B0DA834490003D34D /* chcanv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 792F54B60BFDF145006EAA19 /* chcanv.cpp */; };
+		79DDECB90F9DFE2700417C0E /* wpl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79DDECB80F9DFE2700417C0E /* wpl.cpp */; };
+		79DDECBE0F9DFE5B00417C0E /* rte.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79DDECBD0F9DFE5B00417C0E /* rte.cpp */; };
+		79DDECC30F9DFE9000417C0E /* cm93.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79DDECC20F9DFE9000417C0E /* cm93.cpp */; };
 		79FFF07A0D3EBC0200BFB4C0 /* georef.c in Sources */ = {isa = PBXBuildFile; fileRef = 79FFF0790D3EBC0200BFB4C0 /* georef.c */; };
 /* End PBXBuildFile section */
 
@@ -198,6 +201,7 @@
 		790A05A00ED0722700E47D76 /* readmewvs.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = readmewvs.txt; sourceTree = "<group>"; };
 		790A05A10ED0722700E47D76 /* wvs1.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = wvs1.dat; sourceTree = "<group>"; };
 		790A05A20ED0722700E47D76 /* wvs43.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = wvs43.dat; sourceTree = "<group>"; };
+		790CB98F0F9CAF27002E7645 /* cm93.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cm93.h; path = ../include/cm93.h; sourceTree = SOURCE_ROOT; };
 		791762100D4E7A6700635077 /* libiconv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiconv.a; path = libraries/libiconv.a; sourceTree = "<group>"; };
 		792B49F20DA83B45005621E0 /* routeprop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = routeprop.cpp; path = ../src/routeprop.cpp; sourceTree = SOURCE_ROOT; };
 		792B4A1F0DA84667005621E0 /* opencp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = opencp.cpp; path = ../src/opencp.cpp; sourceTree = SOURCE_ROOT; };
@@ -353,6 +357,9 @@
 		79CC39D80E66D2CC00C46882 /* gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl.h; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers/gl.h; sourceTree = SYSTEM_DEVELOPER_DIR; };
 		79CC39D90E66D2CC00C46882 /* glu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glu.h; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers/glu.h; sourceTree = SYSTEM_DEVELOPER_DIR; };
 		79D3A7980DA835D40003D34D /* routeprop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = routeprop.h; path = ../include/routeprop.h; sourceTree = SOURCE_ROOT; };
+		79DDECB80F9DFE2700417C0E /* wpl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wpl.cpp; path = ../src/nmea0183/wpl.cpp; sourceTree = SOURCE_ROOT; };
+		79DDECBD0F9DFE5B00417C0E /* rte.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rte.cpp; path = ../src/nmea0183/rte.cpp; sourceTree = SOURCE_ROOT; };
+		79DDECC20F9DFE9000417C0E /* cm93.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cm93.cpp; path = ../src/cm93.cpp; sourceTree = SOURCE_ROOT; };
 		79FFF0790D3EBC0200BFB4C0 /* georef.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = georef.c; path = ../src/georef.c; sourceTree = SOURCE_ROOT; };
 		79FFF10A0D3EBC3600BFB4C0 /* georef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = georef.h; path = ../include/georef.h; sourceTree = SOURCE_ROOT; };
 		79FFF1120D3EBE9A00BFB4C0 /* dychart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = dychart.h; path = ../include/dychart.h; sourceTree = SOURCE_ROOT; };
@@ -514,6 +521,7 @@
 		792F544C0BFCF735006EAA19 = {
 			isa = PBXGroup;
 			children = (
+				790CB98F0F9CAF27002E7645 /* cm93.h */,
 				790A059F0ED0722700E47D76 /* wvsdata */,
 				790A05970ED071C800E47D76 /* tcdata */,
 				790A05870ED0711600E47D76 /* s57data */,
@@ -642,6 +650,9 @@
 				792F54B80BFDF145006EAA19 /* cutil.c */,
 				792F545D0BFCF74F006EAA19 /* Products */,
 				792F545F0BFCF74F006EAA19 /* openCPN-Info.plist */,
+				79DDECB80F9DFE2700417C0E /* wpl.cpp */,
+				79DDECBD0F9DFE5B00417C0E /* rte.cpp */,
+				79DDECC20F9DFE9000417C0E /* cm93.cpp */,
 			);
 			sourceTree = "<group>";
 		};
@@ -856,6 +867,9 @@
 				792B49F30DA83B45005621E0 /* routeprop.cpp in Sources */,
 				792B4A220DA84667005621E0 /* opencp.cpp in Sources */,
 				792B4A240DA84667005621E0 /* sercomm.cpp in Sources */,
+				79DDECB90F9DFE2700417C0E /* wpl.cpp in Sources */,
+				79DDECBE0F9DFE5B00417C0E /* rte.cpp in Sources */,
+				79DDECC30F9DFE9000417C0E /* cm93.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

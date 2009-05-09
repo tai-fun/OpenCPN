@@ -534,12 +534,12 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>798820200EE9791100A318B9</string>
-				<string>798820210EE9791100A318B9</string>
+				<string>797683F20FB1FFD700FDED0E</string>
+				<string>797683F30FB1FFD700FDED0E</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>798820220EE9791100A318B9</string>
+				<string>797683F40FB1FFD700FDED0E</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -671,7 +671,11 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>1C530D57069F1CE1000CFCEE</string>
+		<string>797684010FB206A000FDED0E</string>
+		<string>797684020FB206A000FDED0E</string>
+		<string>1C78EAAD065D492600B07095</string>
+		<string>1CD10A99069EF8BA00B06720</string>
+		<string>7911A2130D25EBD600659567</string>
 		<string>/Users/richard/opencpn/buildosx/openCPNOSx.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
@@ -754,7 +758,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>7911A2130D25EBD600659567</string>
-				<string>79B2B78E0EE2163600866AAF</string>
+				<string>797683F50FB1FFD700FDED0E</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
@@ -874,13 +878,13 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>1CD10A99069EF8BA00B06720</string>
-				<string>79B2B78F0EE2163600866AAF</string>
+				<string>797683F60FB1FFD700FDED0E</string>
 				<string>1C162984064C10D400B95A72</string>
-				<string>79B2B7900EE2163600866AAF</string>
-				<string>79B2B7910EE2163600866AAF</string>
-				<string>79B2B7920EE2163600866AAF</string>
-				<string>79B2B7930EE2163600866AAF</string>
-				<string>79B2B7940EE2163600866AAF</string>
+				<string>797683F70FB1FFD700FDED0E</string>
+				<string>797683F80FB1FFD700FDED0E</string>
+				<string>797683F90FB1FFD700FDED0E</string>
+				<string>797683FA0FB1FFD700FDED0E</string>
+				<string>797683FB0FB1FFD700FDED0E</string>
 			</array>
 			<key>ToolbarConfiguration</key>
 			<string>xcode.toolbar.config.debugV3</string>
@@ -912,7 +916,7 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CDD528C0622207200134675</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>&lt;No Editor&gt;</string>
+										<string></string>
 										<key>StatusBarVisibility</key>
 										<true/>
 									</dict>
@@ -970,8 +974,8 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>1C530D57069F1CE1000CFCEE</string>
-				<string>7988201E0EE9790E00A318B9</string>
-				<string>7988201F0EE9790E00A318B9</string>
+				<string>790CB97F0F9CABB1002E7645</string>
+				<string>790CB9800F9CABB1002E7645</string>
 				<string>1CDD528C0622207200134675</string>
 				<string>1CD0528E0623707200166675</string>
 			</array>
@@ -1036,7 +1040,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>1C78EAAD065D492600B07095</string>
-				<string>79B2B7950EE2163600866AAF</string>
+				<string>797683FC0FB1FFD700FDED0E</string>
 				<string>1C78EAAC065D492600B07095</string>
 			</array>
 			<key>ToolbarConfiguration</key>
@@ -1299,8 +1303,8 @@
 			<true/>
 			<key>TableOfContents</key>
 			<array>
-				<string>79C2A7EE0EB4AE4400E1E68E</string>
-				<string>79C2A7EF0EB4AE4400E1E68E</string>
+				<string>79DDECC80F9DFF1C00417C0E</string>
+				<string>79DDECC90F9DFF1C00417C0E</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
 				<string>1CA1AED706398EBD00589147</string>
 			</array>
@@ -1309,7 +1313,7 @@
 			<key>WindowString</key>
 			<string>21 446 744 409 0 0 1440 878 </string>
 			<key>WindowToolGUID</key>
-			<string>79C2A7EE0EB4AE4400E1E68E</string>
+			<string>79DDECC80F9DFF1C00417C0E</string>
 			<key>WindowToolIsVisible</key>
 			<false/>
 		</dict>
