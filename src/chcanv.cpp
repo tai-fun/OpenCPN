@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.38 2009/04/07 16:52:25 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.39 2009/05/09 01:29:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.39  2009/05/09 01:29:38  bdbcat
+ * Ensure wxMac compatible.
+ *
  * Revision 1.38  2009/04/07 16:52:25  bdbcat
  * New Tide station icon
  *
@@ -78,6 +81,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.39  2009/05/09 01:29:38  bdbcat
+ * Ensure wxMac compatible.
+ *
  * Revision 1.38  2009/04/07 16:52:25  bdbcat
  * New Tide station icon
  *
@@ -264,7 +270,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.38 2009/04/07 16:52:25 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.39 2009/05/09 01:29:38 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -5701,7 +5707,7 @@ wxString S57QueryDialog::format_attributes(wxString &attr, int lcol, int rcol)
       else
             index = 0;
 
-      wxString remains = attr.Mid(index, wxSTRING_MAXLEN);
+      wxString remains = attr.Mid(index);
       while(remains.Len())
       {
             // emit verbatim up to <atval>
@@ -5760,7 +5766,7 @@ wxString S57QueryDialog::format_attributes(wxString &attr, int lcol, int rcol)
                         }
 
                         //    Adjust the remains string
-                        wxString tmp = remains.Mid(rtindex+8, wxSTRING_MAXLEN);
+                        wxString tmp = remains.Mid(rtindex+8);
                         remains = tmp;
 
 
