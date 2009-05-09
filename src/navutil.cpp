@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.27  2009/05/09 01:30:52  bdbcat
+ * Correct wx constants in wxFileDialog.
+ *
  * Revision 1.26  2009/05/05 03:59:27  bdbcat
  * New text options
  *
@@ -76,6 +79,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.27  2009/05/09 01:30:52  bdbcat
+ * Correct wx constants in wxFileDialog.
+ *
  * Revision 1.26  2009/05/05 03:59:27  bdbcat
  * New text options
  *
@@ -178,7 +184,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.26 2009/05/05 03:59:27 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.27 2009/05/09 01:30:52 bdbcat Exp $");
 
 //    Statics
 
@@ -2748,7 +2754,7 @@ void MyConfig::UpdateSettings()
 void MyConfig::ExportGPX(wxWindow* parent)
 {
       wxFileDialog *saveDialog = new wxFileDialog(parent, wxT("Export GPX file"), wxT(""), wxT(""),
-                  wxT("GPX files (*.gpx)|*.gpx"), wxSAVE);
+                  wxT("GPX files (*.gpx)|*.gpx"), wxFD_SAVE);
 
    // We have to check for the correct extension! If it can't be found, we have to set it!
    // To do...
@@ -2766,7 +2772,7 @@ void MyConfig::ExportGPX(wxWindow* parent)
 void MyConfig::ImportGPX(wxWindow* parent)
 {
       wxFileDialog *openDialog = new wxFileDialog(parent, wxT("Import GPX file"), wxT(""), wxT(""),
-                  wxT("GPX files (*.gpx)|*.gpx|All files (*.*)|*.*"), wxOPEN);
+                  wxT("GPX files (*.gpx)|*.gpx|All files (*.*)|*.*"), wxFD_OPEN);
       int response = openDialog->ShowModal();
       if (response == wxID_OK) {
             wxString path = openDialog->GetPath();
