@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.39 2009/05/09 01:29:38 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.40 2009/05/10 03:40:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.40  2009/05/10 03:40:50  bdbcat
+ * Correct Radar Ring logic
+ *
  * Revision 1.39  2009/05/09 01:29:38  bdbcat
  * Ensure wxMac compatible.
  *
@@ -81,6 +84,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.40  2009/05/10 03:40:50  bdbcat
+ * Correct Radar Ring logic
+ *
  * Revision 1.39  2009/05/09 01:29:38  bdbcat
  * Ensure wxMac compatible.
  *
@@ -270,7 +276,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.39 2009/05/09 01:29:38 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.40 2009/05/10 03:40:50 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1402,14 +1408,16 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                         // Draw radar rings if activated
                 if (g_bNavAidShowRadarRings)
                 {
-                      double ViewScale = VPoint.view_scale_ppm;
-
                       double factor = 1.00;
-                      if (g_pNavAidRadarRingsStepUnits == 0)          // nautical miles
-                            factor = 1.852;
+                      if (g_pNavAidRadarRingsStepUnits == 1)          // nautical miles
+                            factor = 1 / 1.852;
 
-                      int pix_radius = (int)round(g_fNavAidRadarRingsStep * (ViewScale * 1852 * factor /** 60*/));
 
+                      double tlat, tlon;
+                      wxPoint r;
+                      ll_gc_ll ( gLat, gLon, 0, factor, &tlat, &tlon );
+                      GetPointPix ( tlat, tlon, &r );
+                      int pix_radius = abs(lShipPoint.y - r.y);
 
                       wxBrush CurrentBrush = dc.GetBrush();
                       wxBrush RingBrush(CurrentBrush.GetColour(),wxTRANSPARENT);
