@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.28  2009/05/14 02:48:34  bdbcat
+ * Correct southern latitude restore on startup.
+ *
  * Revision 1.27  2009/05/09 01:30:52  bdbcat
  * Correct wx constants in wxFileDialog.
  *
@@ -79,6 +82,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.28  2009/05/14 02:48:34  bdbcat
+ * Correct southern latitude restore on startup.
+ *
  * Revision 1.27  2009/05/09 01:30:52  bdbcat
  * Correct wx constants in wxFileDialog.
  *
@@ -184,7 +190,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.27 2009/05/09 01:30:52 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.28 2009/05/14 02:48:34 bdbcat Exp $");
 
 //    Statics
 
@@ -1760,10 +1766,10 @@ int MyConfig::LoadMyConfig(int iteration)
       {
             sscanf(st.mb_str(wxConvUTF8), "%f,%f", &st_lat, &st_lon);
             //    Sanity check the lat/lon
-            if((st_lat > 0.0) && (st_lat < 90.0))
+            if(fabs(st_lat) < 90.0)
                   vLat = st_lat;
 
-            if((st_lon > -179.9) && (st_lon < 179.9))
+            if(fabs(st_lon) < 180.0)
                   vLon = st_lon;
 
             wxString s;
