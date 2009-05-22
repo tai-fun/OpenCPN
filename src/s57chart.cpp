@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.29 2009/05/05 04:01:51 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.30 2009/05/22 00:00:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.30  2009/05/22 00:00:18  bdbcat
+ * Correct update file search logic.
+ *
  * Revision 1.29  2009/05/05 04:01:51  bdbcat
  * Various, including VERCLR
  *
@@ -73,6 +76,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.30  2009/05/22 00:00:18  bdbcat
+ * Correct update file search logic.
+ *
  * Revision 1.29  2009/05/05 04:01:51  bdbcat
  * Various, including VERCLR
  *
@@ -184,7 +190,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.29 2009/05/05 04:01:51 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.30 2009/05/22 00:00:18 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -3047,70 +3053,75 @@ int s57chart::GetUpdateFileArray(const wxFileName file000, wxArrayString *UpFile
         {
                 wxFileName file(filename);
                 ext = file.GetExt();
-                if(ext.IsNumber())
+
+                long tmp;
+                if(ext.ToLong(&tmp))            // replace deprecated wxString::IsNumber() which failed on empty string anyway
                 {
                         wxString FileToAdd(DirName000);
                         FileToAdd.Append(file.GetFullName());
 
+                        if(!filename.IsSameAs(_T("CATALOG.031"), false))            // don't process catalogs
+                        {
 //          We must check the update file for validity
 //          1.  Is update field DSID:EDTN  equal to base .000 file DSID:EDTN?
 //          2.  Is update file DSID.ISDT greter than or equal to base .000 file DSID:ISDT
 
-                        wxDateTime umdate;
-                        wxString sumdate;
-                        wxString umedtn;
-                        DDFModule *poModule = new DDFModule();
-                        if(!poModule->Open( FileToAdd.mb_str() ))
-                        {
-                              wxString msg(_T("   s57chart::BuildS57File  Unable to open update file "));
-                              msg.Append(FileToAdd);
-                              wxLogMessage(msg);
-                        }
-                        else
-                        {
-                              poModule->Rewind();
-
-//    Read and parse DDFRecord 0 to get some interesting data
-//    n.b. assumes that the required fields will be in Record 0....  Is this always true?
-
-                              DDFRecord *pr = poModule->ReadRecord();                               // Record 0
-//    pr->Dump(stdout);
-
-//  Fetch ISDT(Issue Date)
-                              char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0));
-                              if(u)
-                                    sumdate = wxString(u, wxConvUTF8);
-                              else
+                              wxDateTime umdate;
+                              wxString sumdate;
+                              wxString umedtn;
+                              DDFModule *poModule = new DDFModule();
+                              if(!poModule->Open( FileToAdd.mb_str() ))
                               {
-                                    wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:ISDT in update file "));
+                                    wxString msg(_T("   s57chart::BuildS57File  Unable to open update file "));
                                     msg.Append(FileToAdd);
                                     wxLogMessage(msg);
-
-                                    sumdate = _T("20000101");                // backstop, very early, so wont be used
                               }
-
-                              umdate.ParseFormat(sumdate, _T("%Y%m%d"));
-                              umdate.ResetTime();
-
-//    Fetch the EDTN(Edition) field
-                              u = (char *)(pr->GetStringSubfield("DSID", 0, "EDTN", 0));
-                              if(u)
-                                    umedtn = wxString(u, wxConvUTF8);
                               else
                               {
-                                    wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:EDTN in update file "));
-                                    msg.Append(FileToAdd);
-                                   wxLogMessage(msg);
+                                    poModule->Rewind();
 
-                                   umedtn = _T("1");                // backstop
+      //    Read and parse DDFRecord 0 to get some interesting data
+      //    n.b. assumes that the required fields will be in Record 0....  Is this always true?
+
+                                    DDFRecord *pr = poModule->ReadRecord();                               // Record 0
+      //    pr->Dump(stdout);
+
+      //  Fetch ISDT(Issue Date)
+                                    char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0));
+                                    if(u)
+                                          sumdate = wxString(u, wxConvUTF8);
+                                    else
+                                    {
+                                          wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:ISDT in update file "));
+                                          msg.Append(FileToAdd);
+                                          wxLogMessage(msg);
+
+                                          sumdate = _T("20000101");                // backstop, very early, so wont be used
+                                    }
+
+                                    umdate.ParseFormat(sumdate, _T("%Y%m%d"));
+                                    umdate.ResetTime();
+
+      //    Fetch the EDTN(Edition) field
+                                    u = (char *)(pr->GetStringSubfield("DSID", 0, "EDTN", 0));
+                                    if(u)
+                                          umedtn = wxString(u, wxConvUTF8);
+                                    else
+                                    {
+                                          wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:EDTN in update file "));
+                                          msg.Append(FileToAdd);
+                                    wxLogMessage(msg);
+
+                                    umedtn = _T("1");                // backstop
+                                    }
+
+                                    delete poModule;
                               }
 
-                              delete poModule;
+
+                              if((!umdate.IsEarlierThan(m_date000)) && (umedtn.IsSameAs(m_edtn000)))        // Note polarity on Date compare....
+                                    dummy_array->Add(FileToAdd);                                            // Looking for umdate >= m_date000
                         }
-
-
-                        if((!umdate.IsEarlierThan(m_date000)) && (umedtn.IsSameAs(m_edtn000)))        // Note polarity on Date compare....
-                              dummy_array->Add(FileToAdd);                                            // Looking for umdate >= m_date000
                 }
 
                 cont = dir.GetNext(&filename);
