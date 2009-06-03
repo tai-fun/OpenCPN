@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.12 2009/05/09 01:30:15 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.13 2009/06/03 03:17:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.13  2009/06/03 03:17:36  bdbcat
+ * Remove wxString::IsNumber()
+ *
  * Revision 1.12  2009/05/09 01:30:15  bdbcat
  * Ensure wxMac compatible re opengl include file locations.
  *
@@ -83,7 +86,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.12 2009/05/09 01:30:15 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.13 2009/06/03 03:17:36 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -331,16 +334,16 @@ PolyTessGeo::PolyTessGeo(unsigned char *polybuf, int nrecl, int index)
 
     wxString ivc_str(buf + 10,  wxConvUTF8);
     wxStringTokenizer tkc(ivc_str, wxT(" ,\n"));
-    int icvert = 0;
+    long icv = 0;
+
     while ( tkc.HasMoreTokens() )
     {
         wxString token = tkc.GetNextToken();
-        if(token.IsNumber())
+        if(token.ToLong(&icv))
         {
-            icvert = atoi(token.mb_str());
-            if(icvert)
+            if(icv)
             {
-                *pctr = icvert;
+                *pctr = icv;
                 pctr++;
             }
         }
