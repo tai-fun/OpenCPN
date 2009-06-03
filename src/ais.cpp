@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.13 2009/04/30 00:39:08 bdbcat Exp $
+ * $Id: ais.cpp,v 1.14 2009/06/03 03:12:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.14  2009/06/03 03:12:17  bdbcat
+ * Implement AIS/GPS Port sharing
+ *
  * Revision 1.13  2009/04/30 00:39:08  bdbcat
  * Correct Logic
  *
@@ -85,6 +88,7 @@ extern  wxString        *pAISDataSource;
 extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 extern  double          gLat, gLon, gSog, gCog;
+extern  bool            g_bGPSAISMux;
 
 //    AIS Global configuration
 extern bool             g_bCPAMax;
@@ -104,9 +108,17 @@ extern double           g_ShowTracks_Mins;
 extern bool             g_bShowMoored;
 extern double           g_ShowMoored_Kts;
 
+extern bool             g_bGPSAISMux;
+
+extern AISTargetAlertDialog    *g_pais_alarm_dialog_active;
+
+//    A static structure storing generic position data
+//    Used to communicate from NMEA threads to main application thread
+static      GenericPosDat     AISPositionMuxData;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.13 2009/04/30 00:39:08 bdbcat Exp $");
+
+CPL_CVSID("$Id: ais.cpp,v 1.14 2009/06/03 03:12:17 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -165,6 +177,7 @@ AIS_Target_Data::AIS_Target_Data()
     TCPA = 100;
 
     Class = AIS_CLASS_A;      // default
+    n_alarm_state = AIS_NO_ALARM;
 
 }
 
@@ -291,7 +304,7 @@ BEGIN_EVENT_TABLE(AIS_Decoder, wxWindow)
 
 
 
-AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource):
+AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource, wxMutex *pGPSMutex):
       wxWindow(pParent, window_id, wxPoint(20,30), wxSize(5,5), wxSIMPLE_BORDER)
 
 {
@@ -300,6 +313,12 @@ AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDat
       m_death_age_seconds = 300;
 
       AISTargetList = new AIS_Target_Hash;
+
+      m_pShareGPSMutex = pGPSMutex;
+
+      m_pMainEventHandler = pParent->GetEventHandler();
+
+      g_pais_alarm_dialog_active = NULL;
 
       OpenDataSource(pParent, AISDataSource);
 
@@ -356,6 +375,12 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
 //                  printf("AIS Decode() returned error: %d\n", nr);
             }
 
+
+            if(g_bGPSAISMux)
+            {
+                  Parse_And_Send_Posn(message);
+            }
+
             /*
             ///debug
             wxString imsg(_T(" AIS Event:"));
@@ -392,6 +417,59 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
 */
 }
 
+void AIS_Decoder::Parse_And_Send_Posn(wxString &str_temp_buf)
+{
+
+   // Send the NMEA string to the decoder
+      m_NMEA0183 << str_temp_buf;
+
+   // we must check the return from parse, as some usb to serial adaptors on the MAC spew
+   // junk if there is not a serial data cable connected.
+      if (true == m_NMEA0183.Parse())
+      {
+            if(m_NMEA0183.LastSentenceIDReceived == wxString(_T("RMC")))
+            {
+
+                  if(m_NMEA0183.Rmc.IsDataValid == NTrue)
+                  {
+
+                        if(m_pShareGPSMutex)
+                              m_pShareGPSMutex->Lock();
+
+                        float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
+                        int lat_deg_int = (int)(llt / 100);
+                        float lat_deg = lat_deg_int;
+                        float lat_min = llt - (lat_deg * 100);
+                        AISPositionMuxData.kLat = lat_deg + (lat_min/60.);
+                        if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
+                              AISPositionMuxData.kLat = -AISPositionMuxData.kLat;
+
+                        float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
+                        int lon_deg_int = (int)(lln / 100);
+                        float lon_deg = lon_deg_int;
+                        float lon_min = lln - (lon_deg * 100);
+                        AISPositionMuxData.kLon = lon_deg + (lon_min/60.);
+                        if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
+                              AISPositionMuxData.kLon = -AISPositionMuxData.kLon;
+
+                        AISPositionMuxData.kSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                        AISPositionMuxData.kCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
+                        AISPositionMuxData.FixTime = 0;
+
+                        if(m_pShareGPSMutex)
+                              m_pShareGPSMutex->Unlock();
+
+
+ //    Signal the main program thread
+                        wxCommandEvent event( EVT_NMEA,  GetId());
+                        event.SetEventObject( (wxObject *)this );
+                        event.SetExtraLong(EVT_NMEA_DIRECT);
+                        event.SetClientData(&AISPositionMuxData);
+                        m_pMainEventHandler->AddPendingEvent(event);
+                  }
+            }
+      }
+}
 
 
 //----------------------------------------------------------------------------------
@@ -429,19 +507,12 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
     isentence = atoi(token.mb_str());
 
     token = tkz.GetNextToken();
-    int sequence_id;
-    if(token.IsNumber())
-        sequence_id = atoi(token.mb_str());
-    else
-        sequence_id = 0;
+    long lsequence_id = 0;
+    token.ToLong(&lsequence_id);
 
     token = tkz.GetNextToken();
-    int channel;
-    if(token.IsNumber())
-        channel = atoi(token.mb_str());
-    else
-        channel = 0;
-
+    long lchannel;
+    token.ToLong(&lchannel);
 
     //  Now, some decisions
 
@@ -800,7 +871,7 @@ bool AIS_Decoder::NMEACheckSumOK(const wxString& str)
 
 void AIS_Decoder::UpdateAllCPA(void)
 {
-      //    Iterate thru all the target
+      //    Iterate thru all the targets
       AIS_Target_Hash::iterator it;
       AIS_Target_Hash *current_targets = GetTargetList();
 
@@ -812,6 +883,45 @@ void AIS_Decoder::UpdateAllCPA(void)
                   UpdateOneCPA(td);
       }
 }
+void AIS_Decoder::UpdateAllAlarms(void)
+{
+           //    Iterate thru all the targets
+      AIS_Target_Hash::iterator it;
+      AIS_Target_Hash *current_targets = GetTargetList();
+
+      for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
+      {
+            AIS_Target_Data *td = it->second;
+
+            if(NULL != td)
+            {
+                  ais_alarm_type this_alarm = AIS_NO_ALARM;
+                  if(g_bCPAWarn && td->b_active)
+                  {
+                        if((td->CPA < g_CPAWarn_NM) && (td->TCPA > 0))
+                        {
+                              if(g_bTCPA_Max)
+                              {
+                                    if(td->TCPA < g_TCPA_Max)
+                                          this_alarm = AIS_ALARM_SET;
+                              }
+                        else
+                              this_alarm = AIS_ALARM_SET;
+                        }
+                  }
+
+                  //    If the alarm has been acknowledged, we can only turn it off
+                  if(td->n_alarm_state == AIS_ALARM_ACKNOWLEDGED)
+                  {
+                        if(AIS_NO_ALARM == this_alarm)
+                              td->n_alarm_state = AIS_NO_ALARM;
+                  }
+                  else
+                        td->n_alarm_state = this_alarm;
+            }
+      }
+}
+
 
 void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
 {
@@ -1340,6 +1450,56 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 
       UpdateAllCPA();
 
+/*
+      UpdateAllAlarms();
+
+      //    Process any Alarms
+
+      //    If the AIS Alrm Dialog is not currently shown....
+
+      //    Show the Alarm dialog
+      //    Which of multiple targets?
+      //    search the list for any targets with alarms, selecting the target with shortest TCPA
+
+      if(NULL == g_pais_alarm_dialog_active)
+      {
+            double tcpa_min = 1000;             // really long
+            AIS_Target_Data *palarm_target;
+
+            for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
+            {
+                  AIS_Target_Data *td = it->second;
+                  if(td->b_active)
+                  {
+                        if(AIS_ALARM_SET == td->n_alarm_state)
+                        {
+                              if(td->TCPA < tcpa_min)
+                              {
+                                    tcpa_min = td->TCPA;
+                                    palarm_target = td;
+                              }
+                        }
+                  }
+            }
+
+            //    Show the alarm
+            wxString *pQueryResult = BuildQueryResult ( palarm_target );
+            wxString oQueryResult = *pQueryResult;
+            delete pQueryResult;
+
+            AISTargetAlertDialog *pAISAlertDialog = new AISTargetAlertDialog();
+            pAISAlertDialog->SetText ( oQueryResult );
+
+            pAISAlertDialog->Create ( NULL, -1, wxT ( "AIS Target Alarm" ) );
+
+            g_pais_alarm_dialog_active = pAISAlertDialog;
+            pAISAlertDialog->Show();                        // Show modeless, so it stays on the screen
+
+      }
+
+*/
+
+
       TimerAIS.Start(TIMER_AIS_MSEC,wxTIMER_CONTINUOUS);
 }
 
@@ -1856,7 +2016,158 @@ fail_point:
 
 }
 
+#endif            //__WXMSW__
+
+
+//---------------------------------------------------------------------------------------
+//          AISTargetAlertDialog Implementation
+//---------------------------------------------------------------------------------------
+IMPLEMENT_CLASS ( AISTargetAlertDialog, wxDialog )
+
+
+// AISTargetQueryDialog event table definition
+
+            BEGIN_EVENT_TABLE ( AISTargetAlertDialog, wxDialog )
+            END_EVENT_TABLE()
+
+
+            AISTargetAlertDialog::AISTargetAlertDialog( )
+{
+      Init();
+}
+
+AISTargetAlertDialog::AISTargetAlertDialog ( wxWindow* parent,
+                                             wxWindowID id, const wxString& caption,
+                                             const wxPoint& pos, const wxSize& size, long style )
+{
+      Init();
+      Create ( parent, id, caption, pos, size, style );
+}
+
+AISTargetAlertDialog::~AISTargetAlertDialog( )
+{
+      delete pQueryResult;
+}
+
+
+void AISTargetAlertDialog::Init( )
+{
+      pQueryResult = NULL;
+}
+
+void AISTargetAlertDialog::SetText ( wxString &text_string )
+{
+      pQueryResult = new wxString ( text_string );
+}
+
+bool AISTargetAlertDialog::Create ( wxWindow* parent,
+                                    wxWindowID id, const wxString& caption,
+                                    const wxPoint& pos, const wxSize& size, long style )
+{
+
+        //    As a display optimization....
+        //    if current color scheme is other than DAY,
+        //    Then create the dialog ..WITHOUT.. borders and title bar.
+        //    This way, any window decorations set by external themes, etc
+        //    will not detract from night-vision
+
+      long wstyle = wxDEFAULT_FRAME_STYLE;
+//      if ( global_color_scheme != GLOBAL_COLOR_SCHEME_DAY )
+//            wstyle |= ( wxNO_BORDER );
+
+      if ( !wxDialog::Create ( parent, id, caption, pos, size, wstyle ) )
+            return false;
+
+      wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
+      SetBackgroundColour ( back_color );
+
+      wxFont *dFont = wxTheFontList->FindOrCreateFont ( 10, wxFONTFAMILY_TELETYPE,
+                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+
+      SetFont ( *dFont );
+      CreateControls();
+
+//      SetDialogHelp();
+//      SetDialogValidators();
+
+// This fits the dialog to the minimum size dictated by
+// the sizers
+      GetSizer()->Fit ( this );
+
+// This ensures that the dialog cannot be sized smaller
+// than the minimum size
+      GetSizer()->SetSizeHints ( this );
+
+// Centre the dialog on the parent or (if none) screen
+      Centre();
+      return true;
+}
 
 
 
-#endif
+
+void AISTargetAlertDialog::CreateControls()
+{
+
+// A top-level sizer
+      wxBoxSizer* topSizer = new wxBoxSizer ( wxVERTICAL );
+      this->SetSizer ( topSizer );
+
+// A second box sizer to give more space around the controls
+      wxBoxSizer* boxSizer = new wxBoxSizer ( wxVERTICAL );
+      topSizer->Add ( boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+// Here is the query result
+
+      wxTextCtrl *pQueryTextCtl = new wxTextCtrl ( this, -1, _T ( "" ),
+                  wxDefaultPosition, wxSize ( 500, 500 ), wxTE_MULTILINE /*| wxTE_DONTWRAP*/ | wxTE_READONLY );
+
+      wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
+      pQueryTextCtl->SetBackgroundColour ( back_color );
+
+      wxColour text_color = GetGlobalColor ( _T ( "UINFF" ) );
+      pQueryTextCtl->SetForegroundColour ( text_color );
+
+      boxSizer->Add ( pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE, 5 );
+
+      wxFont *qFont = wxTheFontList->FindOrCreateFont ( 14, wxFONTFAMILY_TELETYPE,
+                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+      pQueryTextCtl->SetFont ( *qFont );
+
+      if ( pQueryResult )
+            pQueryTextCtl->AppendText ( *pQueryResult );
+
+      pQueryTextCtl->SetSelection ( 0,0 );
+      pQueryTextCtl->SetInsertionPoint ( 0 );
+
+// A horizontal box sizer to contain Reset, OK, Cancel and Help
+      wxBoxSizer* okCancelBox = new wxBoxSizer ( wxHORIZONTAL );
+      boxSizer->Add ( okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,
+                      5 );
+
+//    Button color
+      wxColour button_color = GetGlobalColor ( _T ( "UIBCK" ) );;
+
+// The OK button
+      wxButton* ok = new wxButton ( this, wxID_OK, wxT ( "&OK" ),
+                                    wxDefaultPosition, wxDefaultSize, 0 );
+      okCancelBox->Add ( ok, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+      ok->SetBackgroundColour ( button_color );
+
+// The Cancel button
+      wxButton* cancel = new wxButton ( this, wxID_CANCEL,
+                                        wxT ( "&Cancel" ), wxDefaultPosition, wxDefaultSize, 0 );
+      okCancelBox->Add ( cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+      cancel->SetBackgroundColour ( button_color );
+
+// The Help button
+      wxButton* help = new wxButton ( this, wxID_HELP, _T ( "&Help" ),
+                                      wxDefaultPosition, wxDefaultSize, 0 );
+      okCancelBox->Add ( help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+      help->SetBackgroundColour ( button_color );
+
+}
+
+
+
+
