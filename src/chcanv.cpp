@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.40 2009/05/10 03:40:50 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.41 2009/06/03 03:16:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.41  2009/06/03 03:16:32  bdbcat
+ * Implement canvas panning, wheel zoom, etc.
+ *
  * Revision 1.40  2009/05/10 03:40:50  bdbcat
  * Correct Radar Ring logic
  *
@@ -84,6 +87,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.41  2009/06/03 03:16:32  bdbcat
+ * Implement canvas panning, wheel zoom, etc.
+ *
  * Revision 1.40  2009/05/10 03:40:50  bdbcat
  * Correct Radar Ring logic
  *
@@ -241,7 +247,7 @@ extern s52plib          *ps52plib;
 extern bool             bGPSValid;
 extern bool             g_bShowOutlines;
 extern bool             g_bShowDepthUnits;
-extern AIS_Decoder      *pAIS;
+extern AIS_Decoder      *g_pAIS;
 extern FontMgr         *pFontMgr;
 
 //    AIS Global configuration
@@ -276,7 +282,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.40 2009/05/10 03:40:50 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.41 2009/06/03 03:16:32 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -371,6 +377,7 @@ BEGIN_EVENT_TABLE ( ChartCanvas, wxWindow )
         EVT_MENU ( ID_WP_MENU_ADDITIONAL_INFO,    ChartCanvas::PopupMenuHandler )   // toh, 2009.02.08
 
 END_EVENT_TABLE()
+
 
 // Define a constructor for my canvas
 ChartCanvas::ChartCanvas ( wxFrame *frame ) :
@@ -706,6 +713,12 @@ void ChartCanvas::OnCursorTrackTimerEvent ( wxTimerEvent& event )
                         double cursor_lat, cursor_lon;
                         GetPixPoint ( mouse_x, mouse_y, cursor_lat, cursor_lon );
 
+                        while(cursor_lon < -180.)
+                              cursor_lon += 360.;
+
+                        while(cursor_lon > 180.)
+                              cursor_lon -= 360.;
+
                         if ( parent_frame->m_pStatusBar )
                         {
                               wxString s1 = _T("Cursor:   ");
@@ -834,6 +847,58 @@ void ChartCanvas::FlushBackgroundRender ( void )
         }
 }
 
+bool ChartCanvas::ZoomCanvasIn(void)
+{
+       double proposed_scale_onscreen = GetCanvasScaleFactor() / (GetVPScale() * 2);
+
+        //  Query the chart to determine the appropriate zoom range
+       if(proposed_scale_onscreen < Current_Ch->GetNormalScaleMin(GetCanvasScaleFactor()))
+            return false;
+
+       SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
+       Refresh(false);
+
+       return true;
+}
+
+
+bool ChartCanvas::ZoomCanvasOut(void)
+{
+      double proposed_scale_onscreen = GetCanvasScaleFactor() / (GetVPScale() / 2);
+
+        //  Query the chart to determine the appropriate zoom range, allowing a little slop for FP calculations
+      double zout_max = 1.01 * (Current_Ch->GetNormalScaleMax(GetCanvasScaleFactor()));
+      if(proposed_scale_onscreen > zout_max)
+            return false;
+
+      SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
+      Refresh(false);
+      return true;
+}
+
+
+bool ChartCanvas::PanCanvas(int dx, int dy)
+{
+      double dlat, dlon;
+      wxPoint p;
+      GetPointPix ( VPoint.clat, VPoint.clon, &p );
+
+      GetPixPoint ( p.x + dx, p.y + dy, dlat, dlon );
+
+      if(dlon > 360.) dlon -= 360.;
+      if(dlon < -360.) dlon += 360.;
+
+      SetViewPoint ( dlat, dlon, VPoint.view_scale_ppm, VPoint.skew, FORCE_SUBSAMPLE );
+      vLat = dlat;
+      vLon = dlon;
+
+      m_bFollow = false;      // update the follow flag
+      toolBar->ToggleTool ( ID_FOLLOW, false );
+
+      Refresh(false);
+
+      return true;
+}
 
 
 
@@ -1491,7 +1556,7 @@ void ChartCanvas::ScaleBarDraw( wxDC& dc, int x_origin, int y_origin )
 
 void ChartCanvas::AISDraw ( wxDC& dc )
 {
-        if ( !pAIS )
+        if ( !g_pAIS )
                 return;
 
         wxBrush *p_yellow_brush = wxTheBrushList->FindOrCreateBrush ( GetGlobalColor ( _T ( "CHYLW" ) ), wxSOLID );   // yellow
@@ -1499,7 +1564,7 @@ void ChartCanvas::AISDraw ( wxDC& dc )
         //      Iterate over the AIS Target Hashmap
         AIS_Target_Hash::iterator it;
 
-        AIS_Target_Hash *current_targets = pAIS->GetTargetList();
+        AIS_Target_Hash *current_targets = g_pAIS->GetTargetList();
 
         int ntargets = 0;
         for ( it = ( *current_targets ).begin(); it != ( *current_targets ).end(); ++it )
@@ -1942,6 +2007,9 @@ bool ChartCanvas::CheckEdgePan ( int x, int y )
 
         if ( ( bft ) && !pPanTimer->IsRunning() )
         {
+              if(new_lon > 360.) new_lon -= 360.;
+              if(new_lon < -360.) new_lon += 360.;
+
                 SetViewPoint ( new_lat, new_lon, VPoint.view_scale_ppm, VPoint.skew, FORCE_SUBSAMPLE );
                 Refresh ( false );
 
@@ -2033,10 +2101,19 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
         {
                 if ( parent_frame->m_pStatusBar )
                 {
+                      double show_cursor_lon = cursor_lon;
+                      double show_cursor_lat = cursor_lat;
+
+                      while(show_cursor_lon < -180.)
+                            show_cursor_lon += 360.;
+
+                      while(show_cursor_lon > 180.)
+                            show_cursor_lon -= 360.;
+
                       wxString s1 = _T("Cursor:   ");
-                      s1 += toSDMM(1, cursor_lat);
+                      s1 += toSDMM(1, show_cursor_lat);
                       s1 += _T("   ");
-                      s1 += toSDMM(2, cursor_lon);
+                      s1 += toSDMM(2, show_cursor_lon);
                       parent_frame->SetStatusText ( s1, 1 );
 
                       double brg, dist;
@@ -2047,6 +2124,14 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                 }
         }
 #endif
+
+        //        Check for wheel rotation
+        int wheel_dir = event.GetWheelRotation();
+        if(wheel_dir > 0)
+              ZoomCanvasIn();
+        else if(wheel_dir < 0)
+              ZoomCanvasOut();
+
 
 //    Route Creation Rubber Banding
         if ( parent_frame->nRoute_State >= 2 )
@@ -2262,8 +2347,11 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                                     // toh, 2009.02.24
                       bool DraggingAllowed = true;
 
-                      if ( NULL == pMarkPropDialog && g_bWayPointPreventDragging)
-                            DraggingAllowed = false;
+                      if ( NULL == pMarkPropDialog )
+                      {
+                            if( g_bWayPointPreventDragging)
+                                  DraggingAllowed = false;
+                      }
                       else if ( !pMarkPropDialog->IsShown() && g_bWayPointPreventDragging)
                             DraggingAllowed = false;
 
@@ -2308,6 +2396,9 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                                 p.y -=( my - last_drag.y );
 
                                 GetPixPoint ( p.x, p.y, dlat, dlon );
+
+                                if(dlon > 360.) dlon -= 360.;
+                                if(dlon < -360.) dlon += 360.;
                                 SetViewPoint ( dlat, dlon, GetVPScale(), VPoint.skew, FORCE_SUBSAMPLE );
                                 vLat = dlat;
                                 vLon = dlon;
@@ -2379,56 +2470,54 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                       if(!m_bChartDragging)
                       {
 //          Chart Panning
-                                  double dlat, dlon;
-                                  wxPoint p;
-                                  GetPointPix ( VPoint.clat, VPoint.clon, &p );
-
-                                  int pan_pixels = 100;
 
                                   switch ( cursor_region )
                                   {
                                         case MID_RIGHT:
                                         {
-                                              p.x += pan_pixels;            // pixels
+                                              PanCanvas(100, 0);
                                               break;
                                         }
 
                                         case MID_LEFT:
                                         {
-                                              p.x -= pan_pixels;
+                                              PanCanvas(-100, 0);
                                               break;
                                         }
 
                                         case MID_TOP:
                                         {
-                                              p.y += pan_pixels;
+                                              PanCanvas(0, 100);
                                               break;
                                         }
 
                                         case MID_BOT:
                                         {
-                                              p.y -= pan_pixels;
+                                              PanCanvas(0, -100);
                                               break;
                                         }
 
                                         case CENTER:
                                         {
-                                              p.x = x;                        // center the viewport on the cursor
-                                              p.y = y;
+                                              double dlat, dlon;
+                                              wxPoint p;
+                                              GetPixPoint ( x, y, dlat, dlon );
+
+                                              if(dlon > 360.) dlon -= 360.;
+                                              if(dlon < -360.) dlon += 360.;
+
+                                              SetViewPoint ( dlat, dlon, VPoint.view_scale_ppm, VPoint.skew, FORCE_SUBSAMPLE );
+                                              vLat = dlat;
+                                              vLon = dlon;
+
+                                              m_bFollow = false;      // update the follow flag
+                                              toolBar->ToggleTool ( ID_FOLLOW, false );
+
+                                              Refresh ( false );
+                                              PanCanvas(0, 0);
                                               break;
                                         }
                                   }                             // switch
-
-
-                                  GetPixPoint ( p.x, p.y, dlat, dlon );
-                                  SetViewPoint ( dlat, dlon, VPoint.view_scale_ppm, VPoint.skew, FORCE_SUBSAMPLE );
-                                  vLat = dlat;
-                                  vLon = dlon;
-
-                                  m_bFollow = false;      // update the follow flag
-                                  toolBar->ToggleTool ( ID_FOLLOW, false );
-
-                                  Refresh ( false );
                       }
                       else
                         m_bChartDragging = false;
@@ -2889,7 +2978,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                 }
 #endif
                 case ID_DEF_MENU_AIS_QUERY:
-                        QueryResult = pAIS->BuildQueryResult ( m_pSnapshotAIS_Target_Data );
+                        QueryResult = g_pAIS->BuildQueryResult ( m_pSnapshotAIS_Target_Data );
                         delete m_pSnapshotAIS_Target_Data;                // no longer needed
 
                         pAISdialog = new AISTargetQueryDialog();

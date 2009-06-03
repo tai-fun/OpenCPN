@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.20 2009/04/07 16:54:42 bdbcat Exp $
+ * $Id: chcanv.h,v 1.21 2009/06/03 03:21:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.21  2009/06/03 03:21:15  bdbcat
+ * Implement canvas panning, wheel zoom, etc.
+ *
  * Revision 1.20  2009/04/07 16:54:42  bdbcat
  * New Tide station icon
  *
@@ -234,6 +237,9 @@ public:
 
       void SetOwnShipState(ownship_state_t state){ m_ownship_state = state;}
 
+      bool ZoomCanvasIn(void);
+      bool ZoomCanvasOut(void);
+      bool PanCanvas(int dx, int dy);
 
       //Todo build more accessors
       bool        m_bFollow;
@@ -332,6 +338,7 @@ private:
       int *CreateEmbossMap(wxFont &font, int width, int height, char *str, ColorScheme cs);
       void CreateDepthUnitEmbossMaps(ColorScheme cs);
       wxBitmap CreateDimBitmap(wxBitmap &Bitmap, double factor);
+
 
 
       //    Data
