@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.12 2009/04/07 16:54:54 bdbcat Exp $
+ * $Id: ais.h,v 1.13 2009/06/03 03:20:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.13  2009/06/03 03:20:50  bdbcat
+ * Implement AIS/GPS Port sharing
+ *
  * Revision 1.12  2009/04/07 16:54:54  bdbcat
  * Support AIS Class B
  *
@@ -127,6 +130,15 @@ typedef enum ais_transponder_class
 
 }_ais_transponder_class;
 
+//    Describe AIS Alarm state
+typedef enum ais_alarm_type
+{
+      AIS_NO_ALARM = 0,
+      AIS_ALARM_SET,
+      AIS_ALARM_ACKNOWLEDGED
+
+}_ais_alarm_type;
+
 //---------------------------------------------------------------------------------
 //
 //  AIS_Decoder Helpers
@@ -157,6 +169,7 @@ public:
     time_t                    ReportTicks;
     int                       RecentPeriod;
     bool                      b_active;
+    ais_alarm_type            n_alarm_state;
 
     //      Per target collision parameters
     double      TCPA;                     // Minutes
@@ -214,7 +227,7 @@ class AIS_Decoder : public wxWindow
 
 public:
     AIS_Decoder(void);
-    AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource);
+    AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource,  wxMutex *pGPSMutex = 0);
 
     ~AIS_Decoder(void);
 
@@ -240,7 +253,8 @@ private:
     int AddUpdateTarget(AIS_Target_Data *pNewTargetData);
     void UpdateAllCPA(void);
     void UpdateOneCPA(AIS_Target_Data *ptarget);
-
+    void UpdateAllAlarms(void);
+    void Parse_And_Send_Posn(wxString &str_temp_buf);
 
 
 
@@ -264,6 +278,10 @@ private:
     int               m_death_age_seconds;
 
     int              m_nsim;
+
+    NMEA0183         m_NMEA0183;
+    wxMutex          *m_pShareGPSMutex;
+    wxEvtHandler     *m_pMainEventHandler;
 
 DECLARE_EVENT_TABLE()
 
@@ -324,7 +342,43 @@ private:
 #ifdef __WXMSW__
       HANDLE                  m_hSerialComm;
 #endif
-
 };
+
+
+//----------------------------------------------------------------------------------------------------------
+//    AISTargetAlertDialog Specification
+//----------------------------------------------------------------------------------------------------------
+class AISTargetAlertDialog: public wxDialog
+{
+      DECLARE_CLASS( AISTargetAlertDialog )
+                  DECLARE_EVENT_TABLE()
+      public:
+
+           AISTargetAlertDialog( );
+            AISTargetAlertDialog( wxWindow* parent,
+                                  wxWindowID id = wxID_ANY,
+                                  const wxString& caption = wxT("Object Query"),
+                                              const wxPoint& pos = wxDefaultPosition,
+                                              const wxSize& size = wxDefaultSize,
+                                              long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
+
+            ~AISTargetAlertDialog( );
+            void Init();
+
+            bool Create( wxWindow* parent,
+                         wxWindowID id = wxID_ANY,
+                         const wxString& caption = wxT("Object Query"),
+                                     const wxPoint& pos = wxDefaultPosition,
+                                     const wxSize& size = wxDefaultSize,
+                                     long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
+
+           void CreateControls();
+
+           void SetText(wxString &text_string);
+
+           wxString    *pQueryResult;
+};
+
+
 
 

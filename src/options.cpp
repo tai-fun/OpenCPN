@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.19 2009/05/05 03:59:27 bdbcat Exp $
+ * $Id: options.cpp,v 1.20 2009/06/03 03:19:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.20  2009/06/03 03:19:22  bdbcat
+ * Implement AIS/GPS Port sharing
+ *
  * Revision 1.19  2009/05/05 03:59:27  bdbcat
  * New text options
  *
@@ -373,6 +376,9 @@ void options::CreateControls()
       m_itemNMEAListBox->Append( _T("Network GPSD"));
 #endif
 
+      m_itemNMEAListBox->Append( _T("AIS Port (Shared)"));
+
+
 //    Activate the proper selections
 //    n.b. Hard coded indices
       int sidx;
@@ -386,8 +392,12 @@ void options::CreateControls()
       }
       else if(source.Upper().Contains(_T("NONE")))
           sidx = 0;
-        else if(source.Upper().Contains(_("GARMIN")))
+
+      else if(source.Upper().Contains(_("GARMIN")))
           sidx = m_itemNMEAListBox->FindString(_T("GARMIN"));
+
+      else if(source.Upper().Contains(_("AIS")))
+            sidx = m_itemNMEAListBox->FindString(_T("AIS Port (Shared)"));
 
 #ifndef OCPN_DISABLE_SOCKETS
       else if(source.Upper().Contains(_T("GPSD")))
@@ -718,13 +728,25 @@ void options::CreateControls()
           m_itemAISListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
 
-    wxString ais_com;
-    if(pAIS_Port->Contains(_T("Serial")))
-          ais_com = pAIS_Port->Mid(7);
+    if(pAIS_Port->Upper().Contains(_T("SERIAL")))
+    {
+          wxString ais_com = pAIS_Port->Mid(7);
+          sidx = m_itemAISListBox->FindString(ais_com);
+    }
+    else if(pAIS_Port->Upper().Contains(_T("NONE")))
+          sidx = 0;
     else
-          ais_com = _T("None");
+          sidx = 0;                                 // malformed selection
 
-    m_itemAISListBox->SetStringSelection(ais_com);
+
+    if(sidx ==  wxNOT_FOUND)                  // user specified in ComboBox
+    {
+          wxString nport = pAIS_Port->AfterFirst(':');
+          m_itemAISListBox->Append( nport );
+          sidx = m_itemAISListBox->FindString(nport);
+    }
+
+    m_itemAISListBox->SetSelection(sidx);
 
     itemAISStaticBoxSizer->Add(m_itemAISListBox, 0, wxEXPAND|wxALL, 5);
 
@@ -1321,10 +1343,16 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
 // Source
       wxString sel(m_itemNMEAListBox->GetStringSelection());
+
       if(sel.Contains(_T("COM")))
           sel.Prepend(_T("Serial:"));
+
       else if(sel.Contains(_T("/dev")))
           sel.Prepend(_T("Serial:"));
+
+      else if(sel.Contains(_T("AIS")))
+            sel.Prepend(_T("Serial:"));
+
       else if(sel.Contains(_T("GPSD")))
       {
             sel.Empty();
@@ -1349,7 +1377,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
     *pNMEA_AP_Port = selp;
 
 // AIS Input
-    wxString selais(m_itemAISListBox->GetStringSelection());
+//    wxString selais(m_itemAISListBox->GetStringSelection());
+    wxString selais(m_itemAISListBox->GetValue());
     if(selais.Contains(_T("COM")))
         selais.Prepend(_T("Serial:"));
     else if(selais.Contains(_T("/dev")))

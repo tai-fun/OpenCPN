@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.28 2009/03/26 22:29:48 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.29 2009/06/03 03:19:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,10 +51,11 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.28 2009/03/26 22:29:48 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.29 2009/06/03 03:19:12 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
+extern bool             g_bGPSAISMux;
 
 int                      s_dns_test_flag;
 
@@ -105,9 +106,16 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
       msg.Append(m_data_source_string);
       wxLogMessage(msg);
 
+//    NMEA Data Source is shared with AIS port, AIS does the muxing
+//    and we don't have anything else to do......
+      if(m_data_source_string.Contains(_T("AIS")))
+      {
+            g_bGPSAISMux = true;
+      }
+
 
 //    NMEA Data Source is specified serial port
-      if(m_data_source_string.Contains(_T("Serial")))
+      else if(m_data_source_string.Contains(_T("Serial")))
       {
           wxString comx;
           comx =  m_data_source_string.Mid(7);        // either "COM1" style or "/dev/ttyS0" style
