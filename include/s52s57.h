@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.16 2009/05/05 04:02:49 bdbcat Exp $
+ * $Id: s52s57.h,v 1.17 2009/06/03 03:22:38 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.17  2009/06/03 03:22:38  bdbcat
+ * Correct Area Pattern Logic
+ *
  * Revision 1.16  2009/05/05 04:02:49  bdbcat
  * *** empty log message ***
  *
@@ -431,6 +434,7 @@ public:
       int                     width;
       int                     height;
       int                     depth;
+      bool                    b_stagger;
 };
 
 //----------------------------------------------------------------------------------

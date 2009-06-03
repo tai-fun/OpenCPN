@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.15 2009/05/05 04:02:49 bdbcat Exp $
+ * $Id: s52plib.h,v 1.16 2009/06/03 03:22:25 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.16  2009/06/03 03:22:25  bdbcat
+ * Correct Area Pattern Logic
+ *
  * Revision 1.15  2009/05/05 04:02:49  bdbcat
  * *** empty log message ***
  *
@@ -54,6 +57,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.16  2009/06/03 03:22:25  bdbcat
+ * Correct Area Pattern Logic
+ *
  * Revision 1.15  2009/05/05 04:02:49  bdbcat
  * *** empty log message ***
  *
@@ -274,6 +280,7 @@ public:
       void DestroyLUP(LUPrec *pLUP);
 
       bool TextRenderCheck(ObjRazRules *rzRules);
+      bool inter_tri_rect(wxPoint *ptp, render_canvas_parms *pb_spec);
 
 //    Library data
 
