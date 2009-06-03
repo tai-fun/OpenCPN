@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.9 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: navutil.h,v 1.10 2009/06/03 03:22:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.10  2009/06/03 03:22:04  bdbcat
+ * Correct GPX Route import logic
+ *
  * Revision 1.9  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -197,6 +200,7 @@ public:
       void ReloadRoutePointIcons();
       wxString GetNewMarkSequenced(void);
       void AssembleRoute();
+      bool IsEqualTo(Route *ptargetroute);
 
       bool SendToGPS(wxString& com_name, bool bsend_waypoints, wxGauge *pProgress);
 

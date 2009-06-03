@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.29  2009/06/03 03:18:27  bdbcat
+ * Correct GPX Route import logic
+ *
  * Revision 1.28  2009/05/14 02:48:34  bdbcat
  * Correct southern latitude restore on startup.
  *
@@ -82,6 +85,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.29  2009/06/03 03:18:27  bdbcat
+ * Correct GPX Route import logic
+ *
  * Revision 1.28  2009/05/14 02:48:34  bdbcat
  * Correct southern latitude restore on startup.
  *
@@ -167,7 +173,7 @@
 #include <wx/tokenzr.h>
 #include <wx/sstream.h>
 #include <wx/image.h>
-
+#include <wx/filename.h>
 #include "dychart.h"
 
 #include <stdlib.h>
@@ -190,7 +196,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.28 2009/05/14 02:48:34 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.29 2009/06/03 03:18:27 bdbcat Exp $");
 
 //    Statics
 
@@ -220,7 +226,7 @@ extern wxString         *g_pPresLibData;
 extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
 extern wxString         *pAIS_Port;
-extern AIS_Decoder      *pAIS;
+extern AIS_Decoder      *g_pAIS;
 extern wxString         *pSData_Locn;
 extern wxString         *pInit_Chart_Dir;
 extern WayPointman      *pWayPointMan;
@@ -1525,6 +1531,32 @@ void Route::RenameRoutePoints(void)
       return true;
 }
 
+//    Is this route equal to another, meaning,
+//    Do all routepoint positions and names match?
+bool Route::IsEqualTo(Route *ptargetroute)
+{
+      wxRoutePointListNode *pthisnode = (this->pRoutePointList)->GetFirst();
+      wxRoutePointListNode *pthatnode = (ptargetroute->pRoutePointList)->GetFirst();
+      while(pthisnode)
+      {
+            RoutePoint *pthisrp = pthisnode->GetData();
+            RoutePoint *pthatrp = pthatnode->GetData();
+
+            if(NULL == pthatnode)
+                  return false;
+
+            if((fabs(pthisrp->m_lat - pthatrp->m_lat) > 1.0e-6) || (fabs(pthisrp->m_lon - pthatrp->m_lon) > 1.0e-6))
+                  return false;
+
+            if(!pthisrp->m_MarkName.IsSameAs(pthatrp->m_MarkName))
+                  return false;
+
+            pthisnode = pthisnode->GetNext();
+            pthatnode = pthatnode->GetNext();
+      }
+
+      return true;                              // success, they are the same
+}
 
 
 //-----------------------------------------------------------------------------
@@ -1765,16 +1797,24 @@ int MyConfig::LoadMyConfig(int iteration)
       if(Read(_T("VPLatLon"), &st))
       {
             sscanf(st.mb_str(wxConvUTF8), "%f,%f", &st_lat, &st_lon);
-            //    Sanity check the lat/lon
+
+            //    Sanity check the lat/lon...both have to be reasonable.
+            while(st_lon < -180.)
+                  st_lon += 360.;
+
+            while(st_lon > 180.)
+                  st_lon -= 360.;
+
+            vLon = st_lon;
+
             if(fabs(st_lat) < 90.0)
                   vLat = st_lat;
 
-            if(fabs(st_lon) < 180.0)
-                  vLon = st_lon;
-
             wxString s;
             s.Printf(_T("Setting Viewpoint Lat/Lon %g, %g"), vLat, vLon);
+            wxLogMessage(s);
       }
+
 
       if(Read(wxString(_T("VPScale")), &st))
       {
@@ -2696,11 +2736,11 @@ void MyConfig::UpdateSettings()
       Write(_T("Server"), *pWIFIServerName);
 
 
-      if(pAIS)
+      if(g_pAIS)
       {
           SetPath(_T("/Settings/AISPort"));
         wxString ais_port;
-        pAIS->GetSource(ais_port);
+        g_pAIS->GetSource(ais_port);
         Write(_T("Port"), ais_port);
       }
 
@@ -2749,11 +2789,6 @@ void MyConfig::UpdateSettings()
 
       Flush();
 
-      /*
-      CreateXMLNavObj();
-      CreateXMLRoutePoints();
-      WriteXMLNavObj(_T("test.xml"));
-      */
 }
 
 // toh, 2009.02.15
@@ -2762,15 +2797,16 @@ void MyConfig::ExportGPX(wxWindow* parent)
       wxFileDialog *saveDialog = new wxFileDialog(parent, wxT("Export GPX file"), wxT(""), wxT(""),
                   wxT("GPX files (*.gpx)|*.gpx"), wxFD_SAVE);
 
-   // We have to check for the correct extension! If it can't be found, we have to set it!
-   // To do...
       int response = saveDialog->ShowModal();
       if (response == wxID_OK) {
             wxString path = saveDialog->GetPath();
 
+            wxFileName fn(path);
+            fn.SetExt(_T("gpx"));
+
             CreateGPXNavObj();
             CreateGPXRoutePoints();
-            WriteXMLNavObj(path);
+            WriteXMLNavObj(fn.GetFullPath());
       }
 }
 
@@ -2937,10 +2973,12 @@ RoutePoint *MyConfig::GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool Loa
             pWP->m_HyperlinkList = linklist;
 
             if (!LoadRoute)
+            {
                   pConfig->AddNewWayPoint ( pWP,m_NextWPNum);    // use auto next num
-            pSelect->AddSelectablePoint(rlat, rlon, pWP);
-            pWP->m_ConfigWPNum = m_NextWPNum;
-            m_NextWPNum++;
+                  pSelect->AddSelectablePoint(rlat, rlon, pWP);
+                  pWP->m_ConfigWPNum = m_NextWPNum;
+                  m_NextWPNum++;
+            }
       }
 
       return (pWP);
@@ -2956,20 +2994,12 @@ void MyConfig::GPXLoadRoute(wxXmlNode* rtenode)
 
       if (Name == _T("rte"))
       {
-            Route *pConfRoute = new Route();
-            pRouteList->Append(pConfRoute);
-            pConfig->AddNewRoute ( pConfRoute,routenum);    // use auto next num
+            Route *pTentRoute = new Route();
 
-            pConfRoute->m_ConfigRouteNum = routenum;
-
-            pConfRoute->m_RouteNameString = RouteName;
-
-            m_NextRouteNum = routenum + 1;
+            pTentRoute->m_RouteNameString = RouteName;
 
             wxXmlNode *child = rtenode->GetChildren();
             int ip = 0;
-            float prev_rlat, prev_rlon;
-            RoutePoint *prev_pConfPoint;
 
             while (child)
             {
@@ -2978,26 +3008,96 @@ void MyConfig::GPXLoadRoute(wxXmlNode* rtenode)
                   {
                         bool WpExists;
                         RoutePoint *pWp = GPXLoadWaypoint(child,WpExists,true);
-                        pConfRoute->AddPoint(pWp);
-                        if (WpExists)
-                              pSelect->AddSelectablePoint(pWp->m_lat,pWp->m_lon, pWp);
-
-                        float rlat = pWp->m_lat;
-                        float rlon = pWp->m_lon;
-
-                        if (ip)
-                              pSelect->AddSelectableRouteSegment(prev_rlat, prev_rlon, rlat, rlon,prev_pConfPoint, pWp);
-
-                        prev_rlat = pWp->m_lat;
-                        prev_rlon = pWp->m_lon;
-                        prev_pConfPoint = pWp;
-                        pWp->m_ConfigWPNum = 1000 + (routenum * 100) + ip;          // dummy mark number
+                        pTentRoute->AddPoint(pWp);
+                        if(!WpExists)
+                              pWp->m_ConfigWPNum = 1000 + (routenum * 100) + ip;          // dummy mark number
                         ip++;
                   }
                   child = child->GetNext();
             }
-            pConfig->UpdateRoute ( pConfRoute );
-            pConfRoute->RebuildGUIDList();                  // ensure the GUID list is intact and
+
+            //    Search for an identical route already in place.  If found, discard this one
+
+            bool  routeExists = false;
+            wxRouteListNode *route_node = pRouteList->GetFirst();
+            while(route_node)
+            {
+                  Route *proute = route_node->GetData();
+
+                  if(proute->IsEqualTo(pTentRoute))
+                  {
+                        routeExists = true;
+                        break;
+                  }
+                  route_node = route_node->GetNext();                         // next route
+            }
+
+//    TODO  All this trouble for a tentative route.......Should make some Route methods????
+            if(!routeExists)
+            {
+                  pRouteList->Append(pTentRoute);
+                  pConfig->AddNewRoute ( pTentRoute,routenum);    // use auto next num
+                  pTentRoute->m_ConfigRouteNum = routenum;
+                  m_NextRouteNum = routenum + 1;
+
+                  pConfig->UpdateRoute ( pTentRoute );
+                  pTentRoute->RebuildGUIDList();                  // ensure the GUID list is intact
+
+                  //    Add the selectable points and segments
+
+                  int ip = 0;
+                  float prev_rlat, prev_rlon;
+                  RoutePoint *prev_pConfPoint;
+
+                  wxRoutePointListNode *node = pTentRoute->pRoutePointList->GetFirst();
+                  while (node)
+                  {
+
+                        RoutePoint *prp = node->GetData();
+
+                        pSelect->AddSelectablePoint(prp->m_lat,prp->m_lon, prp);
+
+                        if (ip)
+                              pSelect->AddSelectableRouteSegment(prev_rlat, prev_rlon, prp->m_lat, prp->m_lon,prev_pConfPoint, prp);
+
+                        prev_rlat = prp->m_lat;
+                        prev_rlon = prp->m_lon;
+                        prev_pConfPoint = prp;
+
+                        ip++;
+
+                        node = node->GetNext();
+                  }
+            }
+            else
+            {
+       //    Remove the route from associated lists
+                  pRouteList->DeleteObject(pTentRoute);
+
+      // walk the route, deleting points used only by this route
+                  wxRoutePointListNode *pnode = (pTentRoute->pRoutePointList)->GetFirst();
+                  while(pnode)
+                  {
+                        RoutePoint *prp = pnode->GetData();
+
+            // check all other routes to see if this point appears in any other route
+                        Route *pcontainer_route = pRouteMan->FindRouteContainingWaypoint(prp);
+
+                        if(prp->m_bDynamicName)                // Mark is a "route only" type
+                        {
+                              if(pcontainer_route == NULL)
+                              {
+                                    pConfig->DeleteWayPoint(prp);
+                                    delete prp;
+                              }
+                        }
+                        else if (pcontainer_route == NULL)
+                              prp->m_bIsInRoute = false;          // Take this point out of this (and only) route
+
+                        pnode = pnode->GetNext();
+                  }
+            }
+
       }
 }
 
@@ -3226,9 +3326,9 @@ wxXmlNode *MyConfig::CreateGPXWptNode(RoutePoint *pr)
       wxXmlNode *GPXWpt_node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("wpt"));
 
       wxString str_lat;
-      str_lat.Printf(_T("%.6f"), fabs(pr->m_lat));
+      str_lat.Printf(_T("%.6f"), pr->m_lat);
       wxString str_lon;
-      str_lon.Printf(_T("%.6f"), fabs(pr->m_lon));
+      str_lon.Printf(_T("%.6f"), pr->m_lon);
       GPXWpt_node->AddProperty(_T("lat"),str_lat);
       GPXWpt_node->AddProperty(_T("lon"),str_lon);
 
@@ -3317,9 +3417,9 @@ wxXmlNode *MyConfig::CreateGPXRptNode(RoutePoint *pr,int nbr)
       wxXmlNode *GPXWpt_node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("rtept"));
 
       wxString str_lat;
-      str_lat.Printf(_T("%.6f"), fabs(pr->m_lat));
+      str_lat.Printf(_T("%.6f"), pr->m_lat);
       wxString str_lon;
-      str_lon.Printf(_T("%.6f"), fabs(pr->m_lon));
+      str_lon.Printf(_T("%.6f"), pr->m_lon);
       GPXWpt_node->AddProperty(_T("lat"),str_lat);
       GPXWpt_node->AddProperty(_T("lon"),str_lon);
 
