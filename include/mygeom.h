@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.h,v 1.9 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: mygeom.h,v 1.10 2009/06/03 03:21:51 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselation of Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.h,v $
+ * Revision 1.10  2009/06/03 03:21:51  bdbcat
+ * Cleanup.
+ *
  * Revision 1.9  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -83,7 +86,6 @@
 
 #include <ogr_geometry.h>
 #include "s52s57.h"
-#include "cm93.h"                               // for Extended_Geometry
 
 #define TESS_VERT   0                           // constants describing preferred tess orientation
 #define TESS_HORZ   1
@@ -107,6 +109,22 @@
 //      Internal data structures used for describing/rendering tesselated polygons
 //
 //--------------------------------------------------------------------------------------------------
+
+class Extended_Geometry
+{
+public:
+
+      OGRGeometry       *pogrGeom;
+      int               n_vector_indices;
+      int               *pvector_index;
+      int               n_contours;                          // parameters passed to trapezoid tesselator
+      int               *contour_array;
+      int               n_max_vertex;
+      int               pointx;
+      int               pointy;
+      wxPoint2DDouble   *vertex_array;
+      int               xmin, xmax, ymin, ymax;
+};
 
 
 class TriPrim
