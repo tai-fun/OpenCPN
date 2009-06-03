@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.7 2009/05/05 03:58:53 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.8 2009/06/03 03:16:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.8  2009/06/03 03:16:55  bdbcat
+ * Correct 360 longitude logic.
+ *
  * Revision 1.7  2009/05/05 03:58:53  bdbcat
  * Correct object lat/lon declaration
  *
@@ -694,7 +697,7 @@ int Get_CM93_CellIndex(double lat, double lon, int scale)
 
       //    Longitude
       double lon1 = (lon + 360.) * 3.;                      // basic cell size
-      if(lon1 >= 1080.0)
+      while(lon1 >= 1080.0)
             lon1 -= 1080.0;
       unsigned int lon2 = ((unsigned int)lon1) / dval;      // normalize
       unsigned int lon3 = lon2 * dval;
@@ -715,16 +718,12 @@ int Get_CM93_CellIndex(double lat, double lon, int scale)
 
 //    Calculate the Lat/Lon of the lower left corner of a CM93 cell,
 //    given a CM93 CellIndex and scale
-
+//    Returned longitude value is always > 0
 void Get_CM93_Cell_Origin(int cellindex, int scale, double *lat, double *lon)
 {
       //    Longitude
       double idx1 = cellindex % 10000;
-      double lont = (idx1 / 3.) - 360.;
-      if(lont <= -360.)
-            lont += 360.;
-      if(lont < -180.)
-            lont += 360.;
+      double lont = (idx1 / 3.);
 
       *lon = lont;
 
@@ -757,9 +756,6 @@ bool Is_CM93Cell_Present(wxString &fileprefix, double lat, double lon, int scale
 
       int cellindex = Get_CM93_CellIndex(lat, lon, scale);
 
-      double lato, lono;
-
-      Get_CM93_Cell_Origin(cellindex, scale, &lato, &lono);
 
       //    Create the file name
       wxString file;
@@ -864,7 +860,10 @@ bool read_header_and_populate_cib(FILE *stream, Cell_Info_Block *pCIB)
       pCIB->transform_x_rate = delta_x / 65535;
       pCIB->transform_y_rate = (header.northing_max - header.northing_min) / 65535;
 
+      //    Force all transforms to produce positive longitude only
       pCIB->transform_x_origin = header.easting_min;
+      if(pCIB->transform_x_origin < 0)
+            pCIB->transform_x_origin += CM93_semimajor_axis_meters * 2.0 * PI;              // add one trip around
       pCIB->transform_y_origin = header.northing_min;
 
 
@@ -1493,6 +1492,16 @@ void cm93chart::GetPointPix(ObjRazRules *rzRules, float north, float east, wxPoi
       double valx = (east * obj->x_rate)  + obj->x_origin;
       double valy = (north * obj->y_rate) + obj->y_origin;
 
+            //    Crossing Greenwich right
+      if(m_vp_current.vpBBox.GetMaxX() > 360.)
+      {
+            wxBoundingBox bbRight(0., m_vp_current.vpBBox.GetMinY(), m_vp_current.vpBBox.GetMaxX() - 360., m_vp_current.vpBBox.GetMaxY());
+            if ( bbRight.Intersect ( rzRules->obj->BBObj, 0 ) != _OUT )
+            {
+                  valx += mercator_k0 * WGS84_semimajor_axis_meters * 2.0 * PI;      //6375586.0;
+            }
+      }
+
       r->x = (int)round(((valx - m_easting_vp_center) * m_view_scale_ppm) + m_pixx_vp_center);
       r->y = (int)round(m_pixy_vp_center - ((valy - m_northing_vp_center) * m_view_scale_ppm));
 }
@@ -1505,6 +1514,17 @@ void cm93chart::GetPointPix(ObjRazRules *rzRules, wxPoint2DDouble *en, wxPoint *
       double xo =  obj->x_origin;
       double yr =  obj->y_rate;
       double yo =  obj->y_origin;
+
+      //    Crossing Greenwich right
+      if(m_vp_current.vpBBox.GetMaxX() > 360.)
+      {
+            wxBoundingBox bbRight(0., m_vp_current.vpBBox.GetMinY(), m_vp_current.vpBBox.GetMaxX() - 360., m_vp_current.vpBBox.GetMaxY());
+            if ( bbRight.Intersect ( rzRules->obj->BBObj, 0 ) != _OUT )
+            {
+                  xo += mercator_k0 * WGS84_semimajor_axis_meters * 2.0 * PI;
+            }
+      }
+
 
       for(int i=0 ; i < nPoints ; i++)
       {
@@ -1521,6 +1541,10 @@ void cm93chart::GetPointPix(ObjRazRules *rzRules, wxPoint2DDouble *en, wxPoint *
 
 void cm93chart::SetVPParms(ViewPort *vpt)
 {
+      //    Save a copy for later reference
+
+      m_vp_current = *vpt;
+
       if(!m_bref_is_set)
       {
             ref_lat = 0.;//vpt->clat;
@@ -1536,17 +1560,20 @@ void cm93chart::SetVPParms(ViewPort *vpt)
 
       toSM ( vpt->clat, vpt->clon, ref_lat, ref_lon, &m_easting_vp_center, &m_northing_vp_center );
 
-      //    Calculate the lat/lon of the screen corner points
+      //    Fetch the lat/lon of the screen corner points
+      double ll_lon = vpt->vpBBox.GetMinX();
+      double ll_lat = vpt->vpBBox.GetMinY();
 
-      double ll_lat, ll_lon;
-      GetPixPoint(0, vpt->pix_height, &ll_lat, &ll_lon, vpt);
+      double ur_lon = vpt->vpBBox.GetMaxX();
+      double ur_lat = vpt->vpBBox.GetMaxY();
 
-//      double lr_lat, lr_lon;
-//      GetPixPoint(vpt->pix_width, vpt->pix_height, &lr_lat, &lr_lon, vpt);
 
-      double ur_lat, ur_lon;
-      GetPixPoint(vpt->pix_width, 0, &ur_lat, &ur_lon, vpt);
-
+      //    Adjust to always positive for easier cell calculations
+      if(ll_lon < 0)
+      {
+            ll_lon += 360;
+            ur_lon += 360;
+      }
 
       //    Create an array of CellIndexes covering the current viewport
       ArrayOfInts vpcells;
@@ -1554,7 +1581,7 @@ void cm93chart::SetVPParms(ViewPort *vpt)
       vpcells.Clear();
 
       int lower_left_cell = Get_CM93_CellIndex(ll_lat, ll_lon, GetNativeScale());
-      vpcells.Add(lower_left_cell);
+      vpcells.Add(lower_left_cell);                   // always add the lower left cell
 
       double rlat, rlon;
       Get_CM93_Cell_Origin(lower_left_cell, GetNativeScale(), &rlat, &rlon);
@@ -1577,11 +1604,8 @@ void cm93chart::SetVPParms(ViewPort *vpt)
       double dlat = dval / 3.;
       double dlon = dval / 3.;
 
-      if(rlon + dlon >= 180.)
-            rlon -= 360.;
 
       double loni = rlon + dlon;
-
       double lati = rlat;
 
       while(lati < ur_lat)
@@ -1657,9 +1681,6 @@ int cm93chart::loadcell(int cellindex)
       s_stwp->Pause();
 
 
-      double lat, lon;
-      Get_CM93_Cell_Origin(cellindex, 0, &lat, &lon);
-
       //    Create the file name
 
       int ilat = cellindex / 10000;
@@ -1682,6 +1703,8 @@ int cm93chart::loadcell(int cellindex)
 #ifdef CM93_DEBUG_PRINTF
       double dlat = dval / 3.;
       double dlon = dval / 3.;
+      double lat, lon;
+      Get_CM93_Cell_Origin(cellindex, GetNativeScale(), &lat, &lon);
       printf(" loadcell %d at lat: %g/%g lon:%g/%g\n", cellindex, lat, lat + dlat, lon, lon+dlon);
 #endif
 
@@ -2116,7 +2139,7 @@ Extended_Geometry *cm93chart::BuildGeom(Object *pobject, wxFileOutputStream *pos
 
       int iseg;
 
-      Extended_Geometry *ret_ptr = (Extended_Geometry *)malloc(sizeof(Extended_Geometry));
+      Extended_Geometry *ret_ptr = new Extended_Geometry; //(Extended_Geometry *)malloc(sizeof(Extended_Geometry));
 
       int lon_max, lat_max, lon_min, lat_min;
       lon_max = 0; lon_min = 65536; lat_max = 0; lat_min = 65536;
@@ -3700,9 +3723,15 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
             m_pcm93chart_current->SetVPParms(vpt);
 
             //    Check to see if the viewpoint center is actually on the selected chart
-
-            float xc = vpt->clon;
             float yc = vpt->clat;
+            float xc = vpt->clon;
+
+
+            while(xc < 0)
+            {
+                  xc += 360.;
+            }
+
             bool bin_mcovr = false;
             if(!m_pcm93chart_current->m_covr_array.GetCount())
             {
@@ -3786,9 +3815,28 @@ wxString cm93compchart::GetPubDate()
       return data;
 }
 
+void cm93compchart::SetVPPositive(ViewPort *pvp)
+{
+      while(pvp->vpBBox.GetMinX() < 0)
+      {
+            pvp->clon += 360.;
+            wxPoint2DDouble t(360., 0.);
+            pvp->vpBBox.Translate(t);
+      }
+}
+
 bool cm93compchart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type)
 {
-      return m_pcm93chart_current->RenderViewOnDC(dc, VPoint, scale_type);
+      ViewPort *pvp_positive = new ViewPort;
+      *pvp_positive = VPoint;
+
+      SetVPPositive(pvp_positive);
+      m_pcm93chart_current->SetVPParms(pvp_positive);
+
+      bool render_return = m_pcm93chart_current->RenderViewOnDC(dc, *pvp_positive, scale_type);
+
+      delete pvp_positive;
+      return render_return;
 }
 
 void cm93compchart::GetPointPix(ObjRazRules *rzRules, float rlat, float rlon, wxPoint *r)
@@ -3835,7 +3883,17 @@ void cm93compchart::ForceEdgePriorityEvaluate(void)
 
 ListOfS57Obj *cm93compchart::GetObjListAtLatLon(float lat, float lon, float select_radius, ViewPort *VPoint)
 {
-      return  m_pcm93chart_current->GetObjListAtLatLon(lat, lon, select_radius, VPoint);
+      float alon = lon;
+
+      while(alon < 0)               // CM93 longitudes are all positive
+            alon += 360;
+
+      ViewPort *pvp_positive = new ViewPort;          // needs a new ViewPort also for ObjectRenderCheck()
+      *pvp_positive = *VPoint;
+
+      SetVPPositive(pvp_positive);
+
+      return  m_pcm93chart_current->GetObjListAtLatLon(lat, alon, select_radius, pvp_positive);
 }
 
 S57ObjectDesc *cm93compchart::CreateObjDescription(const S57Obj *obj)
@@ -3894,8 +3952,8 @@ InitReturn cm93compchart::CreateHeaderData()
 
       //    Specify the whole world as chart coverage
       //    Note the odd longitude range, to align with cm93 cell boundaries
-      m_FullExtent.ELON = 200.0;
-      m_FullExtent.WLON = -160.0;
+      m_FullExtent.ELON = 360.0;
+      m_FullExtent.WLON = -360.0;
       m_FullExtent.NLAT = 80.0;
       m_FullExtent.SLAT = -80.0;
       m_bExtentSet = true;

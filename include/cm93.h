@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.6 2009/05/05 04:02:49 bdbcat Exp $
+ * $Id: cm93.h,v 1.7 2009/06/03 03:21:24 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.7  2009/06/03 03:21:24  bdbcat
+ * Correct 360 longitude logic.
+ *
  * Revision 1.6  2009/05/05 04:02:49  bdbcat
  * *** empty log message ***
  *
@@ -74,11 +77,13 @@ WX_DECLARE_OBJARRAY(M_COVR_Desc, Array_Of_M_COVR_Desc);
       //    This value corresponds to the semi-major axis for the "International 1924" geo-standard
       //    For WGS84, it should be 6378137.0......
 
-static const double CM93_semimajor_axis_meters        = 6378388.0;           // CM93 semimajor axis
+static const double CM93_semimajor_axis_meters        = 6378388.0; //6375586.0; //6378388.0;           // CM93 semimajor axis
 static const double WGS84_semimajor_axis_meters       = 6378137.0;           // WGS84 semimajor axis
 static const double mercator_k0                       = 0.9996;
 
 //    CM93 Data structures
+
+class Extended_Geometry;
 
 //#pragma pack(push,1)
 
@@ -197,7 +202,7 @@ typedef struct{
 
 
 
-
+/*
 typedef struct{
       OGRGeometry       *pogrGeom;
       int               n_vector_indices;
@@ -210,6 +215,7 @@ typedef struct{
       wxPoint2DDouble   *vertex_array;
       int               xmin, xmax, ymin, ymax;
 }Extended_Geometry;
+*/
 
 //----------------------------------------------------------------------------
 // cm93_dictionary class
@@ -348,6 +354,7 @@ class cm93chart : public s57chart
             int               m_current_cell_vearray_offset;
             int               *m_pcontour_array;
             int               m_ncontour_alloc;
+            ViewPort          m_vp_current;
 
 };
 
@@ -400,6 +407,7 @@ class cm93compchart : public s57chart
       private:
             InitReturn CreateHeaderData();
             cm93_dictionary *FindAndLoadDict(const wxString &file);
+            void SetVPPositive(ViewPort *pvp);
 
 
             //    Data members
