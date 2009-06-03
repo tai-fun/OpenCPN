@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.19 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: chart1.h,v 1.20 2009/06/03 03:21:03 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.20  2009/06/03 03:21:03  bdbcat
+ * Implement HotKey support
+ *
  * Revision 1.19  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -222,7 +225,6 @@ class MyFrame: public wxFrame
     bool DoChartUpdate(int bSelectType);
     void OnEvtNMEA(wxCommandEvent& event);
     void OnEvtTHREADMSG(wxCommandEvent& event);
-    void OnChar(wxKeyEvent &event);
 
     void OnToolLeftClick(wxCommandEvent& event);
     void ClearRouteTool();
@@ -337,6 +339,18 @@ enum {
     FRAME_TC_TIMER,
     ID_NMEA_THREADMSG
 
+};
+
+//-----------------------------------------------------------------------
+//          Dummy Text Control for global key events
+//-----------------------------------------------------------------------
+class DummyTextCtrl: public wxTextCtrl
+{
+public:
+      DummyTextCtrl(wxWindow *parent, wxWindowID id);
+      void OnChar(wxKeyEvent &event);
+
+      DECLARE_EVENT_TABLE()
 };
 
 #endif
