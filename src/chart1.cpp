@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.35 2009/05/05 03:56:30 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.36 2009/06/03 03:13:28 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.36  2009/06/03 03:13:28  bdbcat
+ * Implement HotKey support
+ *
  * Revision 1.35  2009/05/05 03:56:30  bdbcat
  * Force Edge Priority update on dialog
  *
@@ -72,6 +75,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.36  2009/06/03 03:13:28  bdbcat
+ * Implement HotKey support
+ *
  * Revision 1.35  2009/05/05 03:56:30  bdbcat
  * Force Edge Priority update on dialog
  *
@@ -217,7 +223,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.35 2009/05/05 03:56:30 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.36 2009/06/03 03:13:28 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -373,8 +379,9 @@ extern HINSTANCE      s_hGLU_DLL;                   // Handle to DLL
 
 
 OCP_AIS_Thread  *pAIS_Thread;
-AIS_Decoder     *pAIS;
+AIS_Decoder     *g_pAIS;
 wxString        *pAIS_Port;
+bool             g_bGPSAISMux;
 
 bool            s_socket_test_running;
 bool            s_socket_test_passed;
@@ -458,6 +465,9 @@ double           g_ShowTracks_Mins;
 bool             g_bShowMoored;
 double           g_ShowMoored_Kts;
 
+AISTargetAlertDialog    *g_pais_alarm_dialog_active;
+
+DummyTextCtrl    *g_pDummyTextCtrl;
 
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
@@ -1027,6 +1037,8 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 #endif
 
 
+        app_style |= wxWANTS_CHARS;
+
 // Create the main frame window
         gFrame = new MyFrame(NULL, _T("OpenCPN"), wxPoint(0, 0), new_frame_size, app_style );
 
@@ -1047,8 +1059,9 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
         stats = new StatWin(gFrame);
 
+        //  Moved to MyFrame ctor
 //        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, wxString("TCP/IP:66.235.48.168"));  // a test
-        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port);
+//        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port);
 
         pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port);
 
@@ -1350,6 +1363,8 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
         g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, this, *pNMEADataSource, &m_mutexNMEAEvent);
 
 
+//        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, wxString("TCP/IP:66.235.48.168"));  // a test
+        g_pAIS = new AIS_Decoder(ID_AIS_WINDOW, this, *pAIS_Port, &m_mutexNMEAEvent);
 
 
 //  Initialize the Printer data structures
@@ -1383,6 +1398,9 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
         SaveSystemColors();
 #endif
 
+        g_pDummyTextCtrl = new DummyTextCtrl(this, -1);
+        g_pDummyTextCtrl->Show();
+        g_pDummyTextCtrl->SetFocus();
 
 }
 
@@ -2013,10 +2031,10 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
     }
 #endif
 
-    if(pAIS)
+    if(g_pAIS)
     {
-        pAIS->Close();
-        pAIS = NULL;
+        g_pAIS->Close();
+        g_pAIS = NULL;
     }
 
     if(NULL != console)
@@ -2133,11 +2151,6 @@ void MyFrame::OnSize(wxSizeEvent& event)
 }
 
 
-void MyFrame::OnChar(wxKeyEvent &event)
-{
-}
-
-
 void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 {
   switch(event.GetId())
@@ -2153,29 +2166,14 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_ZOOMIN:
     {
-        double proposed_scale_onscreen = cc1->GetCanvasScaleFactor() / (cc1->GetVPScale() * 2);
-
-        //  Query the chart to determine the appropriate zoom range
-        if(proposed_scale_onscreen < Current_Ch->GetNormalScaleMin(cc1->GetCanvasScaleFactor()))
-                break;
-
-        cc1->SetVPScale(cc1->GetCanvasScaleFactor() / proposed_scale_onscreen);
-        cc1->Refresh(false);
-        break;
+            cc1->ZoomCanvasIn();
+            break;
     }
 
     case ID_ZOOMOUT:
     {
-        double proposed_scale_onscreen = cc1->GetCanvasScaleFactor() / (cc1->GetVPScale() / 2);
-
-        //  Query the chart to determine the appropriate zoom range, allowing a little slop for FP calculations
-        double zout_max = 1.01 * (Current_Ch->GetNormalScaleMax(cc1->GetCanvasScaleFactor()));
-        if(proposed_scale_onscreen > zout_max)
-              break;
-
-        cc1->SetVPScale(cc1->GetCanvasScaleFactor() / proposed_scale_onscreen);
-        cc1->Refresh(false);
-        break;
+            cc1->ZoomCanvasOut();
+            break;
     }
 
     case ID_ROUTE:
@@ -2432,8 +2430,8 @@ int MyFrame::DoOptionsDialog()
           pWIFI->Pause();
 #endif
 
-      if(pAIS)
-          pAIS->Pause();
+      if(g_pAIS)
+          g_pAIS->Pause();
       if(g_pnmea)
             g_pnmea->Pause();
 
@@ -2483,10 +2481,10 @@ int MyFrame::DoOptionsDialog()
 
             if(*pAIS_Port != previous_AIS_Port)
             {
-                if(pAIS)
-                    pAIS->Close();
-                delete pAIS;
-                pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port );
+                if(g_pAIS)
+                    g_pAIS->Close();
+                delete g_pAIS;
+                g_pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port, &m_mutexNMEAEvent );
             }
 
 #ifdef USE_S57
@@ -2520,8 +2518,8 @@ int MyFrame::DoOptionsDialog()
           pWIFI->UnPause();
 #endif
 
-      if(pAIS)
-          pAIS->UnPause();
+      if(g_pAIS)
+          g_pAIS->UnPause();
       if(g_pnmea)
             g_pnmea->UnPause();
 
@@ -3341,8 +3339,9 @@ update_finish:
         //  Update the ownship position on thumbnail chart, if shown
         if(pthumbwin->IsShown())
         {
-            if(pthumbwin->pThumbChart->UpdateThumbData(gLat, gLon))
-                pthumbwin->Refresh(TRUE);
+              if(pthumbwin->pThumbChart)
+                  if(pthumbwin->pThumbChart->UpdateThumbData(gLat, gLon))
+                        pthumbwin->Refresh(TRUE);
         }
 
         delete pWorkStack;
@@ -4714,5 +4713,60 @@ void SetSystemColors ( ColorScheme cs )
 #endif
 }
 
+//------------------------------------------------------------------------------
+// DummyTextCtrl
+//------------------------------------------------------------------------------
 
+
+//      DummyTextCtrl implementation
+BEGIN_EVENT_TABLE(DummyTextCtrl, wxTextCtrl)
+            EVT_CHAR(DummyTextCtrl::OnChar)
+END_EVENT_TABLE()
+
+DummyTextCtrl::DummyTextCtrl(wxWindow *parent, wxWindowID id):
+            wxTextCtrl(parent, id)
+{
+}
+
+void DummyTextCtrl::OnChar(wxKeyEvent &event)
+{
+      int key_code = event.GetKeyCode();
+
+      switch(key_code)
+      {
+            case  WXK_LEFT:
+                  cc1->PanCanvas(-100, 0);
+                  break;
+
+            case  WXK_UP:
+                  cc1->PanCanvas(0, -100);
+                  break;
+
+            case  WXK_RIGHT:
+                  cc1->PanCanvas(100, 0);
+                  break;
+
+            case  WXK_DOWN:
+                  cc1->PanCanvas(0, 100);
+                  break;
+
+            default:
+                  break;
+
+      }
+
+      char key_char = (char)key_code;
+      switch(key_char)
+      {
+            case '+':
+                  cc1->ZoomCanvasIn();
+                  break;
+
+            case '-':
+                  cc1->ZoomCanvasOut();
+                  break;
+      }
+
+
+}
 
