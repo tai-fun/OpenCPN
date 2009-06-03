@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.30 2009/05/22 00:00:18 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.31 2009/06/03 03:20:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.31  2009/06/03 03:20:36  bdbcat
+ * Set Overzoom limits
+ *
  * Revision 1.30  2009/05/22 00:00:18  bdbcat
  * Correct update file search logic.
  *
@@ -76,6 +79,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.31  2009/06/03 03:20:36  bdbcat
+ * Set Overzoom limits
+ *
  * Revision 1.30  2009/05/22 00:00:18  bdbcat
  * Correct update file search logic.
  *
@@ -190,7 +196,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.30 2009/05/22 00:00:18 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.31 2009/06/03 03:20:36 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -1314,6 +1320,18 @@ void s57chart::FreeObjectsAndRules()
     }
  }
 
+ double s57chart::GetNormalScaleMin(double canvas_scale_factor)
+ {
+       double ppm = canvas_scale_factor /m_Chart_Scale;        // true_chart_scale_on_display   = m_canvas_scale_factor / pixels_per_meter of displayed chart
+
+       ppm *= 4;
+
+       return canvas_scale_factor / ppm;
+ }
+ double s57chart::GetNormalScaleMax(double canvas_scale_factor)
+ {
+        return 1.0e7;
+ }
 
 //-----------------------------------------------------------------------
 //              Pixel to Lat/Long Conversion helpers
@@ -3055,7 +3073,7 @@ int s57chart::GetUpdateFileArray(const wxFileName file000, wxArrayString *UpFile
                 ext = file.GetExt();
 
                 long tmp;
-                if(ext.ToLong(&tmp))            // replace deprecated wxString::IsNumber() which failed on empty string anyway
+                if(ext.ToLong(&tmp))
                 {
                         wxString FileToAdd(DirName000);
                         FileToAdd.Append(file.GetFullName());
@@ -5460,9 +5478,9 @@ S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
                             if(pval->value)
                             {
                                 wxString val_str((char *)(pval->value),  wxConvUTF8);
-                                if(val_str.IsNumber())
+                                long ival;
+                                if(val_str.ToLong(&ival))
                                 {
-                                    int ival = atoi(val_str.mb_str());
                                     if(0 == ival)
                                         value = _T("Unknown");
                                     else
@@ -5472,11 +5490,11 @@ S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
                                         {
                                             value = decode_val;
                                             wxString iv;
-                                            iv.Printf(_T("(%d)"), ival);
+                                            iv.Printf(_T("(%d)"), (int)ival);
                                             value.Append(iv);
                                         }
                                         else
-                                            value.Printf(_T("(%d)"), ival);
+                                            value.Printf(_T("(%d)"), (int)ival);
                                     }
                                 }
 
@@ -5492,14 +5510,14 @@ S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
                                     while ( tk.HasMoreTokens() )
                                     {
                                         wxString token = tk.GetNextToken();
-                                        if(token.IsNumber())
+                                        long ival;
+                                        if(token.ToLong(&ival))
                                         {
-                                            int ival = atoi(token.mb_str());
                                             wxString decode_val = GetAttributeDecode(att, ival);
                                             if(!decode_val.IsEmpty())
                                                 value_increment = decode_val;
                                             else
-                                                value_increment.Printf(_T("(%d)"), ival);
+                                                value_increment.Printf(_T("(%d)"), (int)ival);
 
                                             if(iv)
                                                 value_increment.Prepend(wxT(", "));

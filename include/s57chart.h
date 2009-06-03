@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.22 2009/05/05 04:02:49 bdbcat Exp $
+ * $Id: s57chart.h,v 1.23 2009/06/03 03:22:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.23  2009/06/03 03:22:50  bdbcat
+ * Set Overzoom limits
+ *
  * Revision 1.22  2009/05/05 04:02:49  bdbcat
  * *** empty log message ***
  *
@@ -177,8 +180,8 @@ public:
       bool UpdateThumbData(float lat, float lon);
 
       virtual int GetNativeScale(){return m_Chart_Scale;}
-      virtual double GetNormalScaleMin(double canvas_scale_factor){return 1.0;}
-      virtual double GetNormalScaleMax(double canvas_scale_factor){ return 1.0e7;}
+      virtual double GetNormalScaleMin(double canvas_scale_factor);
+      virtual double GetNormalScaleMax(double canvas_scale_factor);
 
       void SetNativeScale(int s){m_Chart_Scale = s;}
 
