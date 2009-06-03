@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.14 2009/05/05 03:57:36 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.15 2009/06/03 03:14:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.15  2009/06/03 03:14:29  bdbcat
+ * Correct chart discard logic for thumbnail window.
+ *
  * Revision 1.14  2009/05/05 03:57:36  bdbcat
  * New logic for db update, incomplete....
  *
@@ -80,6 +83,7 @@
 #include "chartdb.h"
 #include "chartimg.h"
 #include "chart1.h"
+#include "thumbwin.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -95,12 +99,13 @@
 
 
 extern ChartBase    *Current_Ch;
+extern ThumbWin     *pthumbwin;
 
 
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.14 2009/05/05 03:57:36 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.15 2009/06/03 03:14:29 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -627,7 +632,7 @@ bool ChartDB::DetectDirChange(wxString dir_path, wxString magic, wxString &new_m
             return false;
 }
 
-
+#include <wx/encconv.h>
 
 // ----------------------------------------------------------------------------
 // Populate Chart Table by directory search for specified file type
@@ -639,6 +644,8 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
                                                       bool bshow_prog, bool bupdate)
 {
       wxString dir_name = dir_name_base;
+//      wxString dir_name(dir_name_base.fn_str(), wxConvFileName);
+
 
       wxString filename;
 
@@ -1403,6 +1410,13 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 //                            wxLogMessage(_T("Deleting/Removing oldest chart from cache"));
 //                            wxLogMessage(_T("oMem_Free before chart removal is %d"), omem_free);
 
+                              //  If this chart should happen to be in the thumbnail window....
+                              if(pthumbwin)
+                              {
+                                    if(pthumbwin->pThumbChart == pDeleteCandidate)
+                                          pthumbwin->pThumbChart = NULL;
+                              }
+
                               //    Delete the chart
                               delete pDeleteCandidate;
 
@@ -1450,11 +1464,25 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 ///                      wxLogMessage("Deleting/Removing oldest chart from cache");
 ///                      wxLogMessage("oMem_Free before chart removal is %d", omem_free);
 
+                    //  If this chart should happen to be in the thumbnail window....
+                        if(pthumbwin)
+                        {
+                              if(pthumbwin->pThumbChart == pDeleteCandidate)
+                                    pthumbwin->pThumbChart = NULL;
+                        }
+
                    //    Delete the chart
                         delete pDeleteCandidate;
 
                    //remove the cache entry
                         pChartCache->Remove(pce);
+
+                        if(pthumbwin)
+                        {
+                              if(pthumbwin->pThumbChart == pDeleteCandidate)
+                                    pthumbwin->pThumbChart = NULL;
+                        }
+
                   }
             }
 #endif      //CACHE_N_LIMIT
