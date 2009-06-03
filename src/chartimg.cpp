@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.19 2009/03/26 22:28:35 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.20 2009/06/03 03:15:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.20  2009/06/03 03:15:26  bdbcat
+ * Add more error log messages.
+ *
  * Revision 1.19  2009/03/26 22:28:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -48,6 +51,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.20  2009/06/03 03:15:26  bdbcat
+ * Add more error log messages.
+ *
  * Revision 1.19  2009/03/26 22:28:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -127,7 +133,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.19 2009/03/26 22:28:35 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.20 2009/06/03 03:15:26 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1594,6 +1600,15 @@ InitReturn ChartBaseBSB::PostInit(void)
 
             int thisline_size = pline_table[iplt+1] - pline_table[iplt] ;
 
+            if(thisline_size < 0)
+            {
+                  wxString msg(_T("   Chart File corrupt in PostInit() on chart "));
+                  msg.Append(*m_pFullPath);
+                  wxLogMessage(msg);
+
+                  return INIT_FAIL_REMOVE;
+            }
+
             ifs_bitmap->Read(ifs_buf, thisline_size);
 
             unsigned char *lp = ifs_buf;
@@ -1625,12 +1640,15 @@ InitReturn ChartBaseBSB::PostInit(void)
         // Recreate the scan line index if the imbedded version seems corrupt
       if(!bline_index_ok)
       {
-          wxString msg(_T("   Line Index corrupt, recreating on chart "));
+          wxString msg(_T("   Line Index corrupt, recreating Index for chart "));
           msg.Append(*m_pFullPath);
           wxLogMessage(msg);
           if(!CreateLineIndex())
           {
-            return INIT_FAIL_REMOVE;
+                wxString msg(_T("   Error creating Line Index for chart "));
+                msg.Append(*m_pFullPath);
+                wxLogMessage(msg);
+                return INIT_FAIL_REMOVE;
           }
       }
 
@@ -3908,7 +3926,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.19 2009/03/26 22:28:35 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.20 2009/06/03 03:15:26 bdbcat Exp $
 *
 */
 
