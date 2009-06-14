@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.41 2009/06/03 03:16:32 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.42 2009/06/14 01:51:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.42  2009/06/14 01:51:45  bdbcat
+ * Update AIS Symbolization
+ *
  * Revision 1.41  2009/06/03 03:16:32  bdbcat
  * Implement canvas panning, wheel zoom, etc.
  *
@@ -87,6 +90,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.42  2009/06/14 01:51:45  bdbcat
+ * Update AIS Symbolization
+ *
  * Revision 1.41  2009/06/03 03:16:32  bdbcat
  * Implement canvas panning, wheel zoom, etc.
  *
@@ -282,7 +288,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.41 2009/06/03 03:16:32 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.42 2009/06/14 01:51:45 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1593,7 +1599,6 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                 double pred_lat, pred_lon;
 
                 ll_gc_ll ( td->Lat, td->Lon, td->COG, td->SOG * g_ShowCOG_Mins / 60., &pred_lat, &pred_lon );
-//TODO Debug testing TCPA                ll_gc_ll ( td->Lat, td->Lon, td->COG, td->SOG * td->TCPA / 60., &pred_lat, &pred_lon );
 
                 //    Is predicted point in the VPoint?
                 if ( VPoint.vpBBox.PointInBox ( pred_lon, pred_lat, 0 ) )
@@ -1606,24 +1611,36 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                         GetPointPix ( td->Lat, td->Lon, &TargetPoint );
                         GetPointPix ( pred_lat, pred_lon, &PredPoint );
 
+                        //  Calculate the relative angle for this chart orientation
+                        //  Exception:  if speed is very low, force the target symbol to be rendered at COG 000 (North)
+                        //  Another exception:  if g_ShowCOG_Mins is zero, we'll need to use a dummy value to get the
+                        //  angle for symbolization.  Say 5 minutes.
 
-                        GetPointPix ( pred_lat, pred_lon, &PredPoint );
-
-                                //  Calculate the relative angle for this chart orientation
-                                //  Exception:  if speed is very low, force the target symbol to be rendered at COG 000 (North)
                         double theta;
-                        if( abs( PredPoint.x - TargetPoint.x ) > 0 )
+                        wxPoint PredPointAngleCalc;
+
+                        if(g_ShowCOG_Mins > 0)
+                              PredPointAngleCalc = PredPoint;
+                        else
+                        {
+                              double pred_lat_dummy, pred_lon_dummy;
+                              ll_gc_ll ( td->Lat, td->Lon, td->COG, td->SOG * 5.0 / 60., &pred_lat_dummy, &pred_lon_dummy );
+                              GetPointPix ( pred_lat_dummy, pred_lon_dummy, &PredPointAngleCalc );
+                        }
+
+
+                        if( abs( PredPointAngleCalc.x - PredPointAngleCalc.x ) > 0 )
                         {
                               if(td->SOG > g_ShowMoored_Kts)
-                                    theta = atan2 ( ( PredPoint.y - TargetPoint.y ), ( PredPoint.x - TargetPoint.x ) );
+                                    theta = atan2 ( ( PredPointAngleCalc.y - PredPointAngleCalc.y ), ( PredPointAngleCalc.x - PredPointAngleCalc.x ) );
                               else
                                     theta = -PI / 2;
                         }
                         else
                         {
-                             if( PredPoint.y > TargetPoint.y)
-                                    theta = PI / 2.;              // valid COG 180
-                             else
+                              if( PredPointAngleCalc.y > PredPointAngleCalc.y)
+                                    theta =  PI / 2.;             // valid COG 180
+                              else
                                     theta = -PI / 2.;            //  valid COG 000 or speed is too low to resolve course
                          }
 
@@ -1652,23 +1669,9 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                           if ( !strncmp ( td->ShipName, "UNKNOWN", 7 ) )
                                  dc.SetBrush ( *p_yellow_brush );
 
-//    Check for CPA here
-                          if(g_bCPAWarn && td->b_active)
+//    Check for alarms here, maintained by AIS class timer tick
+                          if((td->n_alarm_state == AIS_ALARM_SET) || (td->n_alarm_state == AIS_ALARM_ACKNOWLEDGED))
                           {
-                                bool bcpawarn = false;
-                                if((td->CPA < g_CPAWarn_NM) && (td->TCPA > 0))
-                                {
-                                      if(g_bTCPA_Max)
-                                      {
-                                            if(td->TCPA < g_TCPA_Max)
-                                                  bcpawarn = true;
-                                      }
-                                      else
-                                            bcpawarn = true;
-                                }
-
-                                if(bcpawarn)
-                                {
                                       dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "URED" ) ) ) );
 
                                       //  Calculate the point of CPA for target
@@ -1718,8 +1721,6 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                       dc.DrawLine ( intcrossx1 + CPAPoint.x, intcrossy1 + CPAPoint.y, intcrossx2 + CPAPoint.x, intcrossy2 + CPAPoint.y );
 */
                                       dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "UBLCK" ) ) ) );
-
-                                }
                           }
 
                           //        Actually Draw the target ship
