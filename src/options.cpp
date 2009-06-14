@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.20 2009/06/03 03:19:22 bdbcat Exp $
+ * $Id: options.cpp,v 1.21 2009/06/14 01:50:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.21  2009/06/14 01:50:08  bdbcat
+ * AIS Alert Dialog
+ *
  * Revision 1.20  2009/06/03 03:19:22  bdbcat
  * Implement AIS/GPS Port sharing
  *
@@ -142,6 +145,8 @@ extern bool             g_bShowTracks;
 extern double           g_ShowTracks_Mins;
 extern bool             g_bShowMoored;
 extern double           g_ShowMoored_Kts;
+extern bool             g_bAIS_CPA_Alert;
+extern bool             g_bAIS_CPA_Alert_Audio;
 
 extern bool             g_bShowGPXIcons;                     // toh, 2009.02.14
 extern bool             g_bNavAidShowRadarRings;            // toh, 2009.02.24
@@ -184,6 +189,8 @@ BEGIN_EVENT_TABLE( options, wxDialog )
     EVT_RADIOBOX(ID_RADIOBOX, options::OnDisplayCategoryRadioButton )
     EVT_BUTTON( ID_CLEARLIST, options::OnButtonClearClick )
     EVT_BUTTON( ID_SELECTLIST, options::OnButtonSelectClick )
+    EVT_BUTTON( ID_AISALERTSELECTSOUND, options::OnButtonSelectSound )
+    EVT_CHECKBOX( ID_AISALERTTESTSOUND, options::OnButtonTestSound )
 
 END_EVENT_TABLE()
 
@@ -292,7 +299,7 @@ void options::CreateControls()
     wxStaticBox* itemStaticBoxSizerDebugStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Debug"));
     wxStaticBoxSizer* itemStaticBoxSizerDebug = new wxStaticBoxSizer(itemStaticBoxSizerDebugStatic, wxVERTICAL);
     itemBoxSizer6->Add(itemStaticBoxSizerDebug, 0, wxEXPAND|wxALL, 5);
-    pDebugShowStat = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Status and Debug Windows"), wxDefaultPosition,
+    pDebugShowStat = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Status Bar"), wxDefaultPosition,
                              wxSize(-1, -1), 0 );
     pDebugShowStat->SetValue(FALSE);
     itemStaticBoxSizerDebug->Add(pDebugShowStat, 1, wxALIGN_LEFT|wxALL, 2);
@@ -845,6 +852,26 @@ void options::CreateControls()
     m_pText_Moored_Speed = new wxTextCtrl(itemPanelAIS, -1);
     pDisplayGrid->Add(m_pText_Moored_Speed, 1, wxALIGN_RIGHT, 2);
 
+        //      Alert Box
+    wxStaticBox* itemStaticBoxAlert = new wxStaticBox(itemPanelAIS, wxID_ANY, _T("CPA/TCPA Alerts"));
+    wxStaticBoxSizer* itemStaticBoxSizerAlert= new wxStaticBoxSizer(itemStaticBoxAlert, wxVERTICAL);
+    itemBoxSizer6AIS->Add(itemStaticBoxSizerAlert, 0, wxALL|wxEXPAND, 5);
+
+    wxFlexGridSizer *pAlertGrid = new wxFlexGridSizer(2);
+    pAlertGrid->AddGrowableCol(1);
+    itemStaticBoxSizerAlert->Add(pAlertGrid, 0, wxALL|wxEXPAND, 5);
+
+    m_pCheck_AlertDialog = new wxCheckBox( itemPanelAIS, ID_AISALERTDIALOG, _T("Show CPA/TCPA Alert Dialog"));
+    pAlertGrid->Add(m_pCheck_AlertDialog, 0, wxALIGN_LEFT|wxALL, 2);
+
+    wxButton *m_SelSound = new wxButton( itemPanelAIS, ID_AISALERTSELECTSOUND, _("Select Alert Sound"), wxDefaultPosition, wxDefaultSize, 0 );
+    pAlertGrid->Add(m_SelSound, 0, wxALIGN_RIGHT|wxALL, 2);
+
+    m_pCheck_AlertAudio = new wxCheckBox( itemPanelAIS, ID_AISALERTAUDIO, _T("Play Sound on CPA/TCPA Alerts"));
+    pAlertGrid->Add(m_pCheck_AlertAudio, 0, wxALIGN_LEFT|wxALL, 2);
+
+    wxButton *m_pPlay_Sound = new wxButton( itemPanelAIS, ID_AISALERTTESTSOUND, _T("Test Alert Sound"));
+    pAlertGrid->Add(m_pPlay_Sound, 0, wxALIGN_RIGHT|wxALL, 2);
 
     //      Build Fonts panel
     itemPanelFont = new wxPanel( itemNotebook4, ID_PANELFONT, wxDefaultPosition, wxDefaultSize,
@@ -1089,6 +1116,11 @@ void options::SetInitialSettings()
 
       s.Printf(_T("%4.1f"),g_ShowMoored_Kts);
       m_pText_Moored_Speed->SetValue(s);
+
+         //      Alerts
+      m_pCheck_AlertDialog->SetValue(g_bAIS_CPA_Alert);
+      m_pCheck_AlertAudio->SetValue(g_bAIS_CPA_Alert_Audio);
+
 
 #ifdef USE_S57
 //    S52 Primary Filters
@@ -1337,6 +1369,10 @@ void options::OnXidOkClick( wxCommandEvent& event )
 #endif
     g_bShowMoored = !m_pCheck_Show_Moored->GetValue();
     m_pText_Moored_Speed->GetValue().ToDouble(&g_ShowMoored_Kts);
+
+    //      Alert
+    g_bAIS_CPA_Alert = m_pCheck_AlertDialog->GetValue();
+    g_bAIS_CPA_Alert_Audio = m_pCheck_AlertAudio->GetValue();
 
 
 //    NMEA Options
@@ -1735,4 +1771,12 @@ void options::SetControlColors(wxWindow *ctrl, ColorScheme cs)
                   win->SetForegroundColour(text_color);
             }
       }
+}
+
+void options::OnButtonSelectSound(wxCommandEvent& event)
+{
+}
+
+void options::OnButtonTestSound(wxCommandEvent& event)
+{
 }

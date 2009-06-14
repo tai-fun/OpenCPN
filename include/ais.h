@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.13 2009/06/03 03:20:50 bdbcat Exp $
+ * $Id: ais.h,v 1.14 2009/06/14 01:51:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.14  2009/06/14 01:51:58  bdbcat
+ * AIS Alert Dialog
+ *
  * Revision 1.13  2009/06/03 03:20:50  bdbcat
  * Implement AIS/GPS Port sharing
  *
@@ -94,6 +97,8 @@
 
 
 #define TIMER_AIS_MSEC      998
+
+#define ID_ACKNOWLEDGE        10001
 
 typedef enum AIS_Error
 {
@@ -171,6 +176,9 @@ public:
     bool                      b_active;
     ais_alarm_type            n_alarm_state;
 
+    double                    Range_NM;
+    double                    Brg;
+
     //      Per target collision parameters
     double      TCPA;                     // Minutes
     double      CPA;                      // Nautical Miles
@@ -239,6 +247,7 @@ public:
     void GetSource(wxString& source);
     AIS_Target_Hash *GetTargetList(void) {return AISTargetList;}
     wxString *BuildQueryResult(AIS_Target_Data *td);
+    AIS_Target_Data *Get_Target_Data_From_MMSI(int mmsi);
 
 private:
     AIS_Error OpenDataSource(wxFrame *pParent, const wxString& AISDataSource);
@@ -355,28 +364,35 @@ class AISTargetAlertDialog: public wxDialog
       public:
 
            AISTargetAlertDialog( );
-            AISTargetAlertDialog( wxWindow* parent,
-                                  wxWindowID id = wxID_ANY,
-                                  const wxString& caption = wxT("Object Query"),
-                                              const wxPoint& pos = wxDefaultPosition,
-                                              const wxSize& size = wxDefaultSize,
-                                              long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
 
             ~AISTargetAlertDialog( );
             void Init();
 
-            bool Create( wxWindow* parent,
+            bool Create( int target_mmsi,
+                         wxWindow* parent,
                          wxWindowID id = wxID_ANY,
-                         const wxString& caption = wxT("Object Query"),
-                                     const wxPoint& pos = wxDefaultPosition,
-                                     const wxSize& size = wxDefaultSize,
-                                     long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
+                         const wxString& caption = wxT("AIS Alert"),
+                         const wxPoint& pos = wxDefaultPosition,
+                         const wxSize& size = wxDefaultSize,
+                         long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
 
            void CreateControls();
 
-           void SetText(wxString &text_string);
+           int Get_Dialog_MMSI(void){ return m_target_mmsi; }
+           void UpdateText();
 
-           wxString    *pQueryResult;
+      private:
+            bool GetAlertText(int mmsi, wxString *presult);
+            void OnClose(wxCloseEvent& event);
+            void OnIdAckClick( wxCommandEvent& event );
+            void OnMove( wxMoveEvent& event );
+            void OnSize( wxSizeEvent& event );
+
+
+            wxTextCtrl        *m_pAlertTextCtl;
+            int               m_target_mmsi;
+            AIS_Decoder       *m_pparent;
+
 };
 
 

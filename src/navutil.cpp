@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.30  2009/06/14 01:51:16  bdbcat
+ * AIS Alert Dialog
+ *
  * Revision 1.29  2009/06/03 03:18:27  bdbcat
  * Correct GPX Route import logic
  *
@@ -85,6 +88,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.30  2009/06/14 01:51:16  bdbcat
+ * AIS Alert Dialog
+ *
  * Revision 1.29  2009/06/03 03:18:27  bdbcat
  * Correct GPX Route import logic
  *
@@ -196,7 +202,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.29 2009/06/03 03:18:27 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.30 2009/06/14 01:51:16 bdbcat Exp $");
 
 //    Statics
 
@@ -266,6 +272,10 @@ extern bool             g_bShowTracks;
 extern double           g_ShowTracks_Mins;
 extern bool             g_bShowMoored;
 extern double           g_ShowMoored_Kts;
+extern bool             g_bAIS_CPA_Alert;
+extern bool             g_bAIS_CPA_Alert_Audio;
+extern int               g_ais_alert_dialog_x, g_ais_alert_dialog_y;
+extern int               g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
 
 extern bool             g_bShowPrintIcon;
 extern bool             g_bShowGPXIcons;              // toh, 2009.02.14
@@ -1659,6 +1669,16 @@ int MyConfig::LoadMyConfig(int iteration)
       Read(_T("MooredTargetMaxSpeedKnots"),  &s);
       s.ToDouble(&g_ShowMoored_Kts);
 
+      Read(_T("bAISAlertDialog"), &g_bAIS_CPA_Alert);
+
+      Read(_T("bAISAlertAudio"), &g_bAIS_CPA_Alert_Audio);
+
+      g_ais_alert_dialog_sx = Read(_T("AlertDialogSizeX"), 400L);
+      g_ais_alert_dialog_sy = Read(_T("AlertDialogSizeY"), 400L);
+      g_ais_alert_dialog_x = Read(_T("AlertDialogPosX"), 400L);
+      g_ais_alert_dialog_y = Read(_T("AlertDialogPosY"), 400L);
+
+
 #ifdef USE_S57
     if(NULL != ps52plib)
     {
@@ -2682,6 +2702,12 @@ void MyConfig::UpdateSettings()
       Write(_T("TargetTracksMinutes"),  g_ShowTracks_Mins);
       Write(_T("bShowMooredTargets"), g_bShowMoored);
       Write(_T("MooredTargetMaxSpeedKnots"),  g_ShowMoored_Kts);
+      Write(_T("bAISAlertDialog"), g_bAIS_CPA_Alert);
+      Write(_T("bAISAlertAudio"), g_bAIS_CPA_Alert_Audio);
+      Write(_T("AlertDialogSizeX"),  g_ais_alert_dialog_sx);
+      Write(_T("AlertDialogSizeY"),  g_ais_alert_dialog_sy);
+      Write(_T("AlertDialogPosX"),  g_ais_alert_dialog_x);
+      Write(_T("AlertDialogPosY"),  g_ais_alert_dialog_y);
 
 
 #ifdef USE_S57

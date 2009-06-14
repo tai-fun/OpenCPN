@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.11 2009/05/05 04:02:49 bdbcat Exp $
+ * $Id: options.h,v 1.12 2009/06/14 01:51:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.12  2009/06/14 01:51:58  bdbcat
+ * AIS Alert Dialog
+ *
  * Revision 1.11  2009/05/05 04:02:49  bdbcat
  * *** empty log message ***
  *
@@ -123,7 +126,11 @@ enum {
         ID_DECLTEXTCHECKBOX,
         ID_PANELADVANCED,   // toh, 2009.02.14
         ID_GPXCHECKBOX,       // toh, 2009.02.14
-        ID_DRAGGINGCHECKBOX   // toh, 2009.02.14
+        ID_DRAGGINGCHECKBOX,   // toh, 2009.02.14
+        ID_AISALERTDIALOG,
+        ID_AISALERTAUDIO,
+        ID_AISALERTSELECTSOUND,
+        ID_AISALERTTESTSOUND
 
 };
 
@@ -179,6 +186,8 @@ public:
     void OnButtonSelectClick( wxCommandEvent& event );
     void OnPageChange(wxNotebookEvent& event);
     void OnNMEASourceChoice(wxCommandEvent& event);
+    void OnButtonSelectSound(wxCommandEvent& event);
+    void OnButtonTestSound(wxCommandEvent& event);
 
     void SetControlColors(wxWindow *ctrl, ColorScheme cs);
 
@@ -260,6 +269,8 @@ public:
     wxTextCtrl                *m_pText_Track_Length;
     wxCheckBox                *m_pCheck_Show_Moored;
     wxTextCtrl                *m_pText_Moored_Speed;
+    wxCheckBox                *m_pCheck_AlertDialog;
+    wxCheckBox                *m_pCheck_AlertAudio;
 
 //    For Fonts page
     wxPanel*                itemPanelFont;
