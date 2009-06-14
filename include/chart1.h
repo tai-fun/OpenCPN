@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.20 2009/06/03 03:21:03 bdbcat Exp $
+ * $Id: chart1.h,v 1.21 2009/06/14 03:32:36 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.21  2009/06/14 03:32:36  bdbcat
+ * Accessors
+ *
  * Revision 1.20  2009/06/03 03:21:03  bdbcat
  * Implement HotKey support
  *
@@ -242,7 +245,10 @@ class MyFrame: public wxFrame
     void ResumeSockets(void);
     void DoExportGPX(void);     // toh, 2009.02.15
     void DoImportGPX(void);   // toh, 2009.02.15
-
+    void TogglebFollow(void);
+    void SetbFollow(void);
+    void ClearbFollow(void);
+    void ToggleChartOutlines(void);
 
     ColorScheme GetColorScheme();
     void SetAndApplyColorScheme(ColorScheme cs);
