@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.36 2009/06/03 03:13:28 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.37 2009/06/14 01:51:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.37  2009/06/14 01:51:04  bdbcat
+ * AIS Alert Dialog, Update toolbar
+ *
  * Revision 1.36  2009/06/03 03:13:28  bdbcat
  * Implement HotKey support
  *
@@ -75,6 +78,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.37  2009/06/14 01:51:04  bdbcat
+ * AIS Alert Dialog, Update toolbar
+ *
  * Revision 1.36  2009/06/03 03:13:28  bdbcat
  * Implement HotKey support
  *
@@ -223,7 +229,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.36 2009/06/03 03:13:28 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.37 2009/06/14 01:51:04 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -382,6 +388,11 @@ OCP_AIS_Thread  *pAIS_Thread;
 AIS_Decoder     *g_pAIS;
 wxString        *pAIS_Port;
 bool             g_bGPSAISMux;
+bool             g_bAIS_CPA_Alert;
+bool             g_bAIS_CPA_Alert_Audio;
+AISTargetAlertDialog    *g_pais_alert_dialog_active;
+int               g_ais_alert_dialog_x, g_ais_alert_dialog_y;
+int               g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
 
 bool            s_socket_test_running;
 bool            s_socket_test_passed;
@@ -465,7 +476,6 @@ double           g_ShowTracks_Mins;
 bool             g_bShowMoored;
 double           g_ShowMoored_Kts;
 
-AISTargetAlertDialog    *g_pais_alarm_dialog_active;
 
 DummyTextCtrl    *g_pDummyTextCtrl;
 
@@ -560,7 +570,7 @@ bool MyApp::OnInit()
       //    processes.  The exception filter is in cutil.c
     //  Dunno why it wont link in MSVC.....
 #ifndef __MSVC__
-    SetUnhandledExceptionFilter( &MyUnhandledExceptionFilter );
+//    SetUnhandledExceptionFilter( &MyUnhandledExceptionFilter );
 #endif
 #endif
 
@@ -1399,6 +1409,7 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 #endif
 
         g_pDummyTextCtrl = new DummyTextCtrl(this, -1);
+        g_pDummyTextCtrl->Move(-100,-100);
         g_pDummyTextCtrl->Show();
         g_pDummyTextCtrl->SetFocus();
 
@@ -1640,9 +1651,9 @@ wxToolBar *MyFrame::CreateAToolbar()
     tb->AddSeparator();
     x += pitch_sep;
 
-    tb->AddTool( ID_STKDN, _T(""), *(*phash)[wxString(_T("scin"))], _T("Stack +"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKDN, _T(""), *(*phash)[wxString(_T("scin"))], _T("Shift to Smaller Scale Chart"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_STKUP, _T(""),*(*phash)[wxString(_T("scout"))], _T("Stack -"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKUP, _T(""),*(*phash)[wxString(_T("scout"))], _T("Shift to Larger Scale Chart"), wxITEM_NORMAL);
     x += pitch_tool;
 
     tb->AddSeparator();
@@ -1656,9 +1667,9 @@ wxToolBar *MyFrame::CreateAToolbar()
     tb->AddSeparator();
     x += pitch_sep;
 
-    tb->AddTool( ID_SETTINGS, _T(""), *(*phash)[wxString(_T("settings"))], _T("Settings"), wxITEM_NORMAL);
+    tb->AddTool( ID_SETTINGS, _T(""), *(*phash)[wxString(_T("settings"))], _T("ToolBox"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_TEXT, _T(""), *(*phash)[wxString(_T("text"))], _T("Enable S57 Text"), wxITEM_CHECK);
+    tb->AddTool( ID_TEXT, _T(""), *(*phash)[wxString(_T("text"))], _T("Show ENC Text"), wxITEM_CHECK);
     x += pitch_tool;
 
     tb->AddSeparator();
@@ -1730,7 +1741,7 @@ wxToolBar *MyFrame::CreateAToolbar()
     tb->AddControl(m_ptool_ct_dummy);
 
 //      And add the "Exit" tool
-    tb->AddTool( ID_TBEXIT, _T(""), *(*phash)[wxString(_T("exitt"))], _T("Exit"), wxITEM_NORMAL);
+    tb->AddTool( ID_TBEXIT, _T(""), *(*phash)[wxString(_T("exitt"))], _T("Exit OpenCPN"), wxITEM_NORMAL);
 
 // Realize() the toolbar
     tb->Realize();
@@ -2386,22 +2397,21 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
         }
 
       if(bnewtoolbar)
-      {
           UpdateToolbar(global_color_scheme);
-      }
 
-      if(bFlyingUpdate)
-      {
+
+//      if(bFlyingUpdate)
+//      {
 //           wxSizeEvent sevt;
 //           OnSize(sevt);
-      }
+//      }
 
 }
 
 int MyFrame::DoOptionsDialog()
 {
-    options *pSetDlg = new options(this, -1, _T("Options"), *pInit_Chart_Dir,
-          wxDefaultPosition, wxSize(-1, -1/*500, 500*/) );
+    options *pSetDlg = new options(this, -1, _T("ToolBox"), *pInit_Chart_Dir,
+          wxDefaultPosition, wxSize(-1, -1) );
 
 //      Pass two working pointers for Chart Dir Dialog
       pSetDlg->SetCurrentDirListPtr(pChartDirArray);
@@ -2948,7 +2958,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       toolBar->InsertControl(m_statTool_pos, m_ptool_ct_dummy);
 
 //      Re-insert the EXIT tool
-      toolBar->AddTool( ID_TBEXIT, _T(""), *(*m_phash)[wxString(_T("exitt"))], _T("Exit"), wxITEM_NORMAL);
+      toolBar->AddTool( ID_TBEXIT, _T(""), *(*m_phash)[wxString(_T("exitt"))], _T("Exit OpenCPN"), wxITEM_NORMAL);
 
  //     Realize the toolbar to reflect changes
       toolBar->Realize();
