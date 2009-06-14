@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.42 2009/06/14 01:51:45 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.43 2009/06/14 03:33:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.43  2009/06/14 03:33:41  bdbcat
+ * Cleanup.
+ *
  * Revision 1.42  2009/06/14 01:51:45  bdbcat
  * Update AIS Symbolization
  *
@@ -90,6 +93,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.43  2009/06/14 03:33:41  bdbcat
+ * Cleanup.
+ *
  * Revision 1.42  2009/06/14 01:51:45  bdbcat
  * Update AIS Symbolization
  *
@@ -288,7 +294,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.42 2009/06/14 01:51:45 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.43 2009/06/14 03:33:41 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -595,6 +601,10 @@ ChartCanvas::~ChartCanvas()
 void ChartCanvas::SetColorScheme(ColorScheme cs)
 {
       CreateDepthUnitEmbossMaps( cs );
+
+      SetbTCUpdate(true);                        // force re-render of tide/current locators
+      FlushBackgroundRender();
+      Refresh(false);
 
       m_cs = cs;
 }
