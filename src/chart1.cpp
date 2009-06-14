@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.37 2009/06/14 01:51:04 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.38 2009/06/14 03:33:02 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,58 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
- * Revision 1.37  2009/06/14 01:51:04  bdbcat
- * AIS Alert Dialog, Update toolbar
+ * Revision 1.38  2009/06/14 03:33:02  bdbcat
+ * More HotKeys
  *
- * Revision 1.36  2009/06/03 03:13:28  bdbcat
- * Implement HotKey support
- *
- * Revision 1.35  2009/05/05 03:56:30  bdbcat
- * Force Edge Priority update on dialog
- *
- * Revision 1.34  2009/03/26 22:29:03  bdbcat
- * Opencpn 1.3.0 Update
- *
- * Revision 1.33  2008/12/22 18:40:04  bdbcat
- * Add NMEA Debug flag
- *
- * Revision 1.32  2008/12/19 04:15:43  bdbcat
- * Constrain log file length
- *
- * Revision 1.31  2008/12/05 23:05:49  bdbcat
- * *** empty log message ***
- *
- * Revision 1.30  2008/11/12 04:13:24  bdbcat
- * Support Garmin Devices / Cleanup
- *
- * Revision 1.29  2008/11/01 16:03:08  bdbcat
- * Improve data file location logic
- *
- * Revision 1.28  2008/08/29 02:25:58  bdbcat
- * Add compiler #ifdef to support ConvertToGreyscale
- *
- * Revision 1.27  2008/08/26 13:46:25  bdbcat
- * Better color scheme support
- *
- * Revision 1.26  2008/08/09 23:58:40  bdbcat
- * Numerous revampings....
- *
- * Revision 1.24  2008/04/14 19:38:00  bdbcat
- * Add quitflag++ to OnExit()
- *
- * Revision 1.23  2008/04/11 03:25:08  bdbcat
- * Implement Auto Anchor Mark
- *
- * Revision 1.22  2008/04/10 01:06:38  bdbcat
- * Cleanup
- *
- * Revision 1.21  2008/03/31 00:23:06  bdbcat
- * Correct merge problems
- *
- * Revision 1.20  2008/03/30 21:51:57  bdbcat
- * Update for Mac OSX/Unicode
- *
- * $Log: chart1.cpp,v $
  * Revision 1.37  2009/06/14 01:51:04  bdbcat
  * AIS Alert Dialog, Update toolbar
  *
@@ -229,7 +180,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.37 2009/06/14 01:51:04 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.38 2009/06/14 03:33:02 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -2196,6 +2147,8 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_FOLLOW:
         {
+              TogglebFollow();
+/*
             if(!cc1->m_bFollow)
             {
                 cc1->m_bFollow = true;
@@ -2210,7 +2163,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             }
 
             toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
-
+*/
             break;
         }
 
@@ -2333,12 +2286,6 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
             SetAndApplyColorScheme(s);
 
-            if(cc1)
-            {
-                cc1->SetbTCUpdate(true);                        // force re-render of tide/current locators
-                cc1->FlushBackgroundRender();
-                cc1->Refresh(false);
-            }
             break;
         }
 
@@ -2363,7 +2310,57 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
 
 }
+void MyFrame::TogglebFollow(void)
+{
+      if(!cc1->m_bFollow)
+      {
+            cc1->m_bFollow = true;
+//      Warp speed jump to current position
+            cc1->SetViewPoint(gLat, gLon, cc1->GetVPScale(),
+                              Current_Ch->GetChartSkew() * PI / 180., FORCE_SUBSAMPLE);
+            cc1->Refresh(false);
+      }
+      else
+      {
+            //    Center the screen on the GPS position, for lack of a better place
+            vLat = gLat;
+            vLon = gLon;
 
+            cc1->m_bFollow = false;
+      }
+
+      toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
+}
+
+void MyFrame::SetbFollow(void)
+{
+      cc1->m_bFollow = true;
+//      Warp speed jump to current position
+      cc1->SetViewPoint(gLat, gLon, cc1->GetVPScale(),
+                              Current_Ch->GetChartSkew() * PI / 180., FORCE_SUBSAMPLE);
+      cc1->Refresh(false);
+      toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
+}
+
+void MyFrame::ClearbFollow(void)
+{
+      //    Center the screen on the GPS position, for lack of a better place
+      vLat = gLat;
+      vLon = gLon;
+      cc1->m_bFollow = false;
+      toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
+}
+
+void MyFrame::ToggleChartOutlines(void)
+{
+      if(!g_bShowOutlines)
+            g_bShowOutlines = true;
+      else
+            g_bShowOutlines = false;
+
+      cc1->Refresh(false);
+
+}
 
 void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 {
@@ -3162,7 +3159,7 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                 return false;
 
 //      If in auto-follow mode, use the current glat,glon to build chart stack.
-//      Otherwise, use vLat, vLon gotten from double-click on chart canvas, or other means
+//      Otherwise, use vLat, vLon gotten from click on chart canvas, or other means
 
         if(cc1->m_bFollow == true)
         {
@@ -4760,6 +4757,26 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
                   cc1->PanCanvas(0, 100);
                   break;
 
+            case WXK_F10:
+                  gFrame->DoStackDown();
+                  break;
+
+            case WXK_F11:
+                  gFrame->DoStackUp();
+                  break;
+
+            case WXK_F2:
+                  gFrame->TogglebFollow();
+                  break;
+
+            case WXK_F12:
+                  gFrame->ToggleChartOutlines();
+                  break;
+
+            case WXK_F9:
+                  gFrame->ClearbFollow();
+                  break;
+
             default:
                   break;
 
@@ -4769,12 +4786,64 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
       switch(key_char)
       {
             case '+':
+            case 26:                     // Ctrl Z
                   cc1->ZoomCanvasIn();
                   break;
 
             case '-':
+            case 24:                     // Ctrl X
                   cc1->ZoomCanvasOut();
                   break;
+
+            case 19:                     // Ctrl S
+                  gFrame->DoStackDown();
+                  break;
+
+            case 22:                     // Ctrl V
+                  gFrame->DoStackUp();
+                  break;
+
+            case 1:                      // Ctrl A
+                  gFrame->TogglebFollow();
+                  break;
+
+            case 15:                     // Ctrl O
+                  gFrame->ToggleChartOutlines();
+                  break;
+
+            case 49:                     // Ctrl 1
+                  gFrame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_DAY);
+                  break;
+
+            case 50:                     // Ctrl 2
+                  gFrame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_DUSK);
+                  break;
+
+            case 51:                     // Ctrl 3
+                  gFrame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_NIGHT);
+                  break;
+
+
+            case 6:                      // Ctrl F
+                  gFrame->SetbFollow();
+                  break;
+
+            case 2:                      // Ctrl B
+                  gFrame->ClearbFollow();
+                  break;
+
+            case 13:                     // Ctrl M
+//                  Drop Marker;
+                  break;
+
+            case 32:                     // Ctrl Space
+            {
+//                  if ( event.GetModifiers() == wxMOD_CONTROL )
+//                        Drop MOB
+                  break;
+            }
+
+
       }
 
 
