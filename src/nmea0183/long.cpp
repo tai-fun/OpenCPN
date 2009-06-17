@@ -80,11 +80,7 @@ void LONGITUDE::Write( SENTENCE& sentence )
     if (neg)
             d = -d;
 
-      float f = (m % 1000)/10. + 0.5;
-      int g = (int)f;
-
-      temp_string.Printf(_T("%03d%02d.%03d"), d, m / 1000, g);
-
+    temp_string.Printf(_T("%03d%02d.%03d"), d, m / 1000, m % 1000);
 
    sentence += temp_string;
 
