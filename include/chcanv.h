@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.21 2009/06/03 03:21:15 bdbcat Exp $
+ * $Id: chcanv.h,v 1.22 2009/06/17 02:49:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.22  2009/06/17 02:49:09  bdbcat
+ * Cleanup.
+ *
  * Revision 1.21  2009/06/03 03:21:15  bdbcat
  * Implement canvas panning, wheel zoom, etc.
  *
@@ -247,6 +250,8 @@ public:
       TCWin       *pCwin;
       ViewPort    VPoint;
       wxBitmap    *pscratch_bm;
+      double      m_cursor_lon, m_cursor_lat;
+
 
 private:
       bool        m_bShowCurrent;
