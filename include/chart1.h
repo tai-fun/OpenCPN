@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.21 2009/06/14 03:32:36 bdbcat Exp $
+ * $Id: chart1.h,v 1.22 2009/06/17 02:48:47 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.22  2009/06/17 02:48:47  bdbcat
+ * Update hotkeys
+ *
  * Revision 1.21  2009/06/14 03:32:36  bdbcat
  * Accessors
  *
@@ -249,6 +252,7 @@ class MyFrame: public wxFrame
     void SetbFollow(void);
     void ClearbFollow(void);
     void ToggleChartOutlines(void);
+    void ToggleENCText(void);
 
     ColorScheme GetColorScheme();
     void SetAndApplyColorScheme(ColorScheme cs);
@@ -338,6 +342,7 @@ enum {
     FRAME_TIMER_1,
     FRAME_TIMER_2,
     TIMER_AIS1,
+    TIMER_AISAUDIO,
     AIS_SOCKET_ID,
     WIFI_SOCKET_ID,
     TIMER_WIFI1,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.38 2009/06/14 03:33:02 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.39 2009/06/17 02:43:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.39  2009/06/17 02:43:54  bdbcat
+ * Update hotkeys
+ *
  * Revision 1.38  2009/06/14 03:33:02  bdbcat
  * More HotKeys
  *
@@ -180,7 +183,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.38 2009/06/14 03:33:02 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.39 2009/06/17 02:43:54 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -231,7 +234,7 @@ TCMgr           *ptcmgr;
 
 bool            bDrawCurrentValues;
 
-wxString        *pSData_Locn;
+wxString        *g_pSData_Locn;
 wxString        *pChartListFileName;
 wxString        *pTC_Dir;
 wxString        *pHome_Locn;
@@ -426,7 +429,7 @@ bool             g_bShowTracks;
 double           g_ShowTracks_Mins;
 bool             g_bShowMoored;
 double           g_ShowMoored_Kts;
-
+wxString         g_sAIS_Alert_Sound_File;
 
 DummyTextCtrl    *g_pDummyTextCtrl;
 
@@ -730,9 +733,9 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
             * Mac: appname.app/Contents/SharedSupport bundle subdirectory
 */
 
-        pSData_Locn= new wxString;
-        pSData_Locn->Append(std_path.GetDataDir());         // where the application is located
-        appendOSDirSlash(pSData_Locn) ;
+        g_pSData_Locn= new wxString;
+        g_pSData_Locn->Append(std_path.GetDataDir());         // where the application is located
+        appendOSDirSlash(g_pSData_Locn) ;
 
 
 //      Establish the location of the config file
@@ -806,15 +809,15 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
               if(!tflag)
               {
                     g_pcsv_locn->Clear();
-                    g_pcsv_locn->Append(*pSData_Locn);
+                    g_pcsv_locn->Append(*g_pSData_Locn);
                     g_pcsv_locn->Append(_T("s57data"));
               }
 
         }
         else
         {
-            g_pcsv_locn->Append(*pSData_Locn);
-            g_pcsv_locn->Append(_T("s57data"));
+              g_pcsv_locn->Append(*g_pSData_Locn);
+              g_pcsv_locn->Append(_T("s57data"));
         }
 
 //      If the config file contains an entry for SENC file prefix, use it.
@@ -880,7 +883,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
             if(ps52plib->m_bOK)
             {
                   *g_pcsv_locn = look_data_dir;
-                  *pSData_Locn = tentative_SData_Locn;
+                  *g_pSData_Locn = tentative_SData_Locn;
             }
         }
 
@@ -892,7 +895,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
               delete ps52plib;
 
               wxString look_data_dir;
-              look_data_dir = *pSData_Locn;
+              look_data_dir = *g_pSData_Locn;
               look_data_dir.Append(_T("s57data"));
 
               plib_data = look_data_dir;
@@ -943,7 +946,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 //      Establish location of Tide and Current data
         pTC_Dir = new wxString(_T("tcdata"));
-        pTC_Dir->Prepend(*pSData_Locn);
+        pTC_Dir->Prepend(*g_pSData_Locn);
         pTC_Dir->Append(wxFileName::GetPathSeparator());
 
         wxLogMessage(_T("Using Tide/Current data from:  ") + *pTC_Dir);
@@ -955,13 +958,13 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         if(pInit_Chart_Dir->IsEmpty())
         {
             pInit_Chart_Dir->Append(_T("charts"));
-            pInit_Chart_Dir->Prepend(*pSData_Locn);
+            pInit_Chart_Dir->Prepend(*g_pSData_Locn);
         }
 
 
 //      Establish the WorldVectorShoreline Dataset location
         pWVS_Locn = new wxString(_T("wvsdata"));
-        pWVS_Locn->Prepend(*pSData_Locn);
+        pWVS_Locn->Prepend(*g_pSData_Locn);
         pWVS_Locn->Append(wxFileName::GetPathSeparator());
 
 //      Reload the config data, to pick up any missing data class configuration info
@@ -1148,7 +1151,7 @@ int MyApp::OnExit()
 
         delete pChartListFileName;
         delete pHome_Locn;
-        delete pSData_Locn;
+        delete g_pSData_Locn;
         delete g_pcsv_locn;
         delete g_pSENCPrefix;
         delete pTC_Dir;
@@ -2263,10 +2266,10 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_HELP:
       {
-        about *pAboutDlg = new about(this, pSData_Locn);
-        pAboutDlg->ShowModal();
+            about *pAboutDlg = new about(this, g_pSData_Locn);
+            pAboutDlg->ShowModal();
 
-        break;
+            break;
       }
 
     case ID_PRINT:
@@ -2307,9 +2310,22 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
        }
 
   }         // switch
-
-
 }
+
+void MyFrame::ToggleENCText(void)
+{
+#ifdef USE_S57
+      if(ps52plib)
+      {
+            ps52plib->SetShowS57Text(!ps52plib->GetShowS57Text());
+            toolBar->ToggleTool(ID_TEXT, ps52plib->GetShowS57Text());
+            Current_Ch->InvalidateCache();
+            cc1->Refresh(false);
+      }
+
+#endif
+}
+
 void MyFrame::TogglebFollow(void)
 {
       if(!cc1->m_bFollow)
@@ -4742,7 +4758,10 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
       switch(key_code)
       {
             case  WXK_LEFT:
-                  cc1->PanCanvas(-100, 0);
+                  if ( event.GetModifiers() == wxMOD_CONTROL )
+                        gFrame->DoStackDown();
+                  else
+                        cc1->PanCanvas(-100, 0);
                   break;
 
             case  WXK_UP:
@@ -4750,7 +4769,10 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
                   break;
 
             case  WXK_RIGHT:
-                  cc1->PanCanvas(100, 0);
+                  if ( event.GetModifiers() == wxMOD_CONTROL )
+                        gFrame->DoStackUp();
+                  else
+                        cc1->PanCanvas(100, 0);
                   break;
 
             case  WXK_DOWN:
@@ -4777,6 +4799,14 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
                   gFrame->ClearbFollow();
                   break;
 
+            case WXK_F8:
+                  gFrame->SetbFollow();
+                  break;
+
+            case WXK_F3:
+                  gFrame->ToggleENCText();
+                  break;
+
             default:
                   break;
 
@@ -4796,11 +4826,7 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
                   break;
 
             case 19:                     // Ctrl S
-                  gFrame->DoStackDown();
-                  break;
-
-            case 22:                     // Ctrl V
-                  gFrame->DoStackUp();
+                  gFrame->ToggleENCText();
                   break;
 
             case 1:                      // Ctrl A
@@ -4823,29 +4849,34 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
                   gFrame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_NIGHT);
                   break;
 
-
-            case 6:                      // Ctrl F
-                  gFrame->SetbFollow();
-                  break;
-
-            case 2:                      // Ctrl B
-                  gFrame->ClearbFollow();
-                  break;
-
-            case 13:                     // Ctrl M
-//                  Drop Marker;
-                  break;
-
-            case 32:                     // Ctrl Space
+            case 13:                     // Ctrl M                      //    Drop Marker;
             {
-//                  if ( event.GetModifiers() == wxMOD_CONTROL )
-//                        Drop MOB
+                  RoutePoint *pWP = new RoutePoint ( cc1->m_cursor_lat, cc1->m_cursor_lon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "New Mark" ) ), NULL );
+                  pSelect->AddSelectablePoint ( cc1->m_cursor_lat, cc1->m_cursor_lon, pWP );
+                  pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
+                  cc1->Refresh ( false );
                   break;
             }
 
+            case 32:                     // Ctrl Space            //    Drop MOB
+            {
+                  if ( event.GetModifiers() == wxMOD_CONTROL )
+                  {
+                        RoutePoint *pWP = new RoutePoint ( gLat, gLon, wxString ( _T ( "mob" ) ), wxString ( _T ( "MAN OVERBOARD" ) ), NULL );
+                        pSelect->AddSelectablePoint ( gLat, gLon, pWP );
+                        pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
+                        cc1->Refresh ( false );
+                  }
+                  break;
+            }
+
+            case 17:                       // Ctrl Q
+                  gFrame->Close();
+                  break;
+
+            default:
+                  break;
 
       }
-
-
 }
 
