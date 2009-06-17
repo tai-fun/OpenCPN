@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.31  2009/06/17 02:46:29  bdbcat
+ * More Options
+ *
  * Revision 1.30  2009/06/14 01:51:16  bdbcat
  * AIS Alert Dialog
  *
@@ -88,6 +91,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.31  2009/06/17 02:46:29  bdbcat
+ * More Options
+ *
  * Revision 1.30  2009/06/14 01:51:16  bdbcat
  * AIS Alert Dialog
  *
@@ -202,7 +208,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.30 2009/06/14 01:51:16 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.31 2009/06/17 02:46:29 bdbcat Exp $");
 
 //    Statics
 
@@ -233,7 +239,7 @@ extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
 extern wxString         *pAIS_Port;
 extern AIS_Decoder      *g_pAIS;
-extern wxString         *pSData_Locn;
+extern wxString         *g_pSData_Locn;
 extern wxString         *pInit_Chart_Dir;
 extern WayPointman      *pWayPointMan;
 extern Routeman         *pRouteMan;
@@ -274,8 +280,9 @@ extern bool             g_bShowMoored;
 extern double           g_ShowMoored_Kts;
 extern bool             g_bAIS_CPA_Alert;
 extern bool             g_bAIS_CPA_Alert_Audio;
-extern int               g_ais_alert_dialog_x, g_ais_alert_dialog_y;
-extern int               g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
+extern int              g_ais_alert_dialog_x, g_ais_alert_dialog_y;
+extern int              g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
+extern wxString         g_sAIS_Alert_Sound_File;
 
 extern bool             g_bShowPrintIcon;
 extern bool             g_bShowGPXIcons;              // toh, 2009.02.14
@@ -1672,6 +1679,7 @@ int MyConfig::LoadMyConfig(int iteration)
       Read(_T("bAISAlertDialog"), &g_bAIS_CPA_Alert);
 
       Read(_T("bAISAlertAudio"), &g_bAIS_CPA_Alert_Audio);
+      Read(_T("AISAlertAudioFile"),  &g_sAIS_Alert_Sound_File);
 
       g_ais_alert_dialog_sx = Read(_T("AlertDialogSizeX"), 400L);
       g_ais_alert_dialog_sy = Read(_T("AlertDialogSizeY"), 400L);
@@ -1947,7 +1955,7 @@ int MyConfig::LoadMyConfig(int iteration)
 
                         pConfig->DeleteEntry(str);
                         wxString new_dir = dirname.Mid(dirname.Find(_T("SampleCharts")));
-                        new_dir.Prepend(*pSData_Locn);
+                        new_dir.Prepend(*g_pSData_Locn);
                         dirname=new_dir;
                     }
 
@@ -2704,6 +2712,8 @@ void MyConfig::UpdateSettings()
       Write(_T("MooredTargetMaxSpeedKnots"),  g_ShowMoored_Kts);
       Write(_T("bAISAlertDialog"), g_bAIS_CPA_Alert);
       Write(_T("bAISAlertAudio"), g_bAIS_CPA_Alert_Audio);
+      Write(_T("AISAlertAudioFile"),  g_sAIS_Alert_Sound_File);
+
       Write(_T("AlertDialogSizeX"),  g_ais_alert_dialog_sx);
       Write(_T("AlertDialogSizeY"),  g_ais_alert_dialog_sy);
       Write(_T("AlertDialogPosX"),  g_ais_alert_dialog_x);
