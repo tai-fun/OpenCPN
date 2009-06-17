@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.8 2009/06/03 03:16:55 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.9 2009/06/17 02:46:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.9  2009/06/17 02:46:12  bdbcat
+ * Add line priority rescan
+ *
  * Revision 1.8  2009/06/03 03:16:55  bdbcat
  * Correct 360 longitude logic.
  *
@@ -1644,7 +1647,10 @@ void cm93chart::SetVPParms(ViewPort *vpt)
 
                   //    On successful load, add it to the member list
                   if(rv)
+                  {
                         m_cells_loaded_array.Add(vpcells.Item(i));
+                        ForceEdgePriorityEvaluate();              // need to re-evaluate priorities
+                  }
             }
       }
 }
@@ -1797,6 +1803,7 @@ int cm93chart::loadcell(int cellindex)
             vep->index = iedge + m_current_cell_vearray_offset;
             vep->nCount = pgd->n_points;
             vep->pPoints = NULL;
+            vep->max_priority = -99;            // Default
 
             if(pgd->n_points)
             {
