@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.20 2009/06/03 03:15:26 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.21 2009/06/17 02:42:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.21  2009/06/17 02:42:45  bdbcat
+ * Dummy->No Chart Available
+ *
  * Revision 1.20  2009/06/03 03:15:26  bdbcat
  * Add more error log messages.
  *
@@ -51,6 +54,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.21  2009/06/17 02:42:45  bdbcat
+ * Dummy->No Chart Available
+ *
  * Revision 1.20  2009/06/03 03:15:26  bdbcat
  * Add more error log messages.
  *
@@ -133,7 +139,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.20 2009/06/03 03:15:26 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.21 2009/06/17 02:42:45 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -237,7 +243,7 @@ ChartDummy::ChartDummy()
       m_ChartFamily = CHART_FAMILY_UNKNOWN;
 
 
-      m_pFullPath = new wxString(_T("Dummy"));
+      m_pFullPath = new wxString(_T("No Chart Available"));
 
 }
 
@@ -3926,7 +3932,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.20 2009/06/03 03:15:26 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.21 2009/06/17 02:42:45 bdbcat Exp $
 *
 */
 
