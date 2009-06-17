@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.30 2009/06/03 03:19:46 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.31 2009/06/17 02:47:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.31  2009/06/17 02:47:39  bdbcat
+ * Improve Line Priority logic
+ *
  * Revision 1.30  2009/06/03 03:19:46  bdbcat
  * Correct Area Pattern Logic
  *
@@ -78,6 +81,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.31  2009/06/17 02:47:39  bdbcat
+ * Improve Line Priority logic
+ *
  * Revision 1.30  2009/06/03 03:19:46  bdbcat
  * Correct Area Pattern Logic
  *
@@ -195,7 +201,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.30 2009/06/03 03:19:46 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.31 2009/06/17 02:47:39 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -4805,15 +4811,20 @@ int s52plib::PrioritizeLineFeature ( ObjRazRules *rzRules, int npriority )
                   //  Get the edge
                   int enode = *index_run++;
 
-                  if ( enode < rzRules->chart->Get_nve_elements() )
+                  if(enode >= 0)
                   {
-                        VE_Element *pedge = edge_array[enode]; //rzRules->chart->m_pve_array[enode];
+                        if ( enode < rzRules->chart->Get_nve_elements() )
+                        {
+                              VE_Element *pedge = edge_array[enode];
 
-                        //    Set priority
-                        pedge->max_priority = npriority;
+                              //    Set priority
+                              pedge->max_priority = npriority;
+                        }
+      //                  else
+      //                        int rrty = 9;                       // index is out of bounds
                   }
 //                  else
-//                        int rrty = 9;                       // index is out of bounds
+//                        int rttu = 9;                             //  enode is negative, some init error
 
                   //  Get last connected node
                   inode = *index_run++;
