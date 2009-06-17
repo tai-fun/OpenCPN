@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.21 2009/06/14 01:50:08 bdbcat Exp $
+ * $Id: options.cpp,v 1.22 2009/06/17 02:46:43 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.22  2009/06/17 02:46:43  bdbcat
+ * Add AIS Alerts
+ *
  * Revision 1.21  2009/06/14 01:50:08  bdbcat
  * AIS Alert Dialog
  *
@@ -104,6 +107,7 @@
 #endif
 
 #include "wx/generic/progdlgg.h"
+#include "wx/sound.h"
 
 
 #include "dychart.h"
@@ -127,6 +131,7 @@ extern wxString         *pInit_Chart_Dir;
 extern bool             g_bAutoAnchorMark;
 extern ColorScheme      global_color_scheme;
 extern bool             g_bGarminPersistance;
+extern wxString         *g_pSData_Locn;
 
 //    AIS Global configuration
 extern bool             g_bCPAMax;
@@ -147,6 +152,7 @@ extern bool             g_bShowMoored;
 extern double           g_ShowMoored_Kts;
 extern bool             g_bAIS_CPA_Alert;
 extern bool             g_bAIS_CPA_Alert_Audio;
+extern wxString         g_sAIS_Alert_Sound_File;
 
 extern bool             g_bShowGPXIcons;                     // toh, 2009.02.14
 extern bool             g_bNavAidShowRadarRings;            // toh, 2009.02.24
@@ -190,7 +196,7 @@ BEGIN_EVENT_TABLE( options, wxDialog )
     EVT_BUTTON( ID_CLEARLIST, options::OnButtonClearClick )
     EVT_BUTTON( ID_SELECTLIST, options::OnButtonSelectClick )
     EVT_BUTTON( ID_AISALERTSELECTSOUND, options::OnButtonSelectSound )
-    EVT_CHECKBOX( ID_AISALERTTESTSOUND, options::OnButtonTestSound )
+    EVT_BUTTON( ID_AISALERTTESTSOUND, options::OnButtonTestSound )
 
 END_EVENT_TABLE()
 
@@ -1775,8 +1781,24 @@ void options::SetControlColors(wxWindow *ctrl, ColorScheme cs)
 
 void options::OnButtonSelectSound(wxCommandEvent& event)
 {
+      wxString sound_dir = *g_pSData_Locn;
+      sound_dir.Append(_T("sounds"));
+
+      wxFileDialog *openDialog = new wxFileDialog(this, wxT("Select Sound File"), sound_dir, wxT(""),
+                  wxT("WAV files (*.wav)|*.wav|All files (*.*)|*.*"), wxFD_OPEN);
+      int response = openDialog->ShowModal();
+      if (response == wxID_OK)
+      {
+            g_sAIS_Alert_Sound_File = openDialog->GetPath();
+      }
+
 }
 
 void options::OnButtonTestSound(wxCommandEvent& event)
 {
+      wxSound AIS_Sound(g_sAIS_Alert_Sound_File);
+
+      if(AIS_Sound.IsOk())
+            AIS_Sound.Play();
+
 }

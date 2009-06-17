@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.14 2009/06/14 01:51:58 bdbcat Exp $
+ * $Id: ais.h,v 1.15 2009/06/17 02:48:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.15  2009/06/17 02:48:32  bdbcat
+ * Add AIS Alerts
+ *
  * Revision 1.14  2009/06/14 01:51:58  bdbcat
  * AIS Alert Dialog
  *
@@ -80,6 +83,7 @@
 
 #include <wx/datetime.h>
 #include "wx/socket.h"
+#include "wx/sound.h"
 
 #include "dychart.h"
 #include "chart1.h"
@@ -97,8 +101,10 @@
 
 
 #define TIMER_AIS_MSEC      998
+#define TIMER_AIS_AUDIO_MSEC 2000
 
 #define ID_ACKNOWLEDGE        10001
+#define ID_SILENCE            10002
 
 typedef enum AIS_Error
 {
@@ -175,11 +181,13 @@ public:
     int                       RecentPeriod;
     bool                      b_active;
     ais_alarm_type            n_alarm_state;
+    bool                      b_suppress_audio;
 
     double                    Range_NM;
     double                    Brg;
 
     //      Per target collision parameters
+    bool                      bCPA_Valid;
     double      TCPA;                     // Minutes
     double      CPA;                      // Nautical Miles
 
@@ -255,6 +263,7 @@ private:
     void OnSocketEvent(wxSocketEvent& event);
     void OnTimerAIS(wxTimerEvent& event);
     void OnCloseWindow(wxCloseEvent& event);
+    void OnTimerAISAudio(wxTimerEvent& event);
 
     bool NMEACheckSumOK(const wxString& str);
     AIS_Target_Data *Parse_VDMBitstring(AIS_Bitstring *bstr);
@@ -291,6 +300,10 @@ private:
     NMEA0183         m_NMEA0183;
     wxMutex          *m_pShareGPSMutex;
     wxEvtHandler     *m_pMainEventHandler;
+
+    bool             m_bAIS_Audio_Alert_On;
+    wxTimer          m_AIS_Audio_Alert_Timer;
+    wxSound          m_AIS_Sound;
 
 DECLARE_EVENT_TABLE()
 
@@ -387,6 +400,7 @@ class AISTargetAlertDialog: public wxDialog
             void OnIdAckClick( wxCommandEvent& event );
             void OnMove( wxMoveEvent& event );
             void OnSize( wxSizeEvent& event );
+            void OnIdSilenceClick( wxCommandEvent& event );
 
 
             wxTextCtrl        *m_pAlertTextCtl;
