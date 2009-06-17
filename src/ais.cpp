@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.15 2009/06/14 01:50:20 bdbcat Exp $
+ * $Id: ais.cpp,v 1.16 2009/06/17 02:44:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.16  2009/06/17 02:44:38  bdbcat
+ * Alarms/Alerts
+ *
  * Revision 1.15  2009/06/14 01:50:20  bdbcat
  * AIS Alert Dialog
  *
@@ -73,6 +76,7 @@
 #include "wx/wx.h"
 #include "wx/tokenzr.h"
 #include "wx/datetime.h"
+#include "wx/sound.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -118,8 +122,9 @@ extern bool             g_bAIS_CPA_Alert;
 extern bool             g_bAIS_CPA_Alert_Audio;
 
 extern AISTargetAlertDialog    *g_pais_alert_dialog_active;
-extern int               g_ais_alert_dialog_x, g_ais_alert_dialog_y;
-extern int               g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
+extern int              g_ais_alert_dialog_x, g_ais_alert_dialog_y;
+extern int              g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
+extern wxString         g_sAIS_Alert_Sound_File;
 
 //    A static structure storing generic position data
 //    Used to communicate from NMEA threads to main application thread
@@ -127,7 +132,7 @@ static      GenericPosDat     AISPositionMuxData;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.15 2009/06/14 01:50:20 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.16 2009/06/17 02:44:38 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -174,7 +179,9 @@ AIS_Target_Data::AIS_Target_Data()
     SOG = 555.;
     COG = 666.;
 
-    ReportTicks = (time_t)1;
+    wxDateTime now = wxDateTime::Now();
+    now.MakeGMT();
+    ReportTicks = now.GetTicks();       // Default is my idea of NOW
 
     MID = 555;
     MMSI = 666;
@@ -188,9 +195,11 @@ AIS_Target_Data::AIS_Target_Data()
     Range_NM = 1.;
     Brg = 0;
 
+    RecentPeriod = 0;
 
     Class = AIS_CLASS_A;      // default
     n_alarm_state = AIS_NO_ALARM;
+    b_suppress_audio = false;
 
 }
 
@@ -310,6 +319,7 @@ BEGIN_EVENT_TABLE(AIS_Decoder, wxWindow)
 
   EVT_SOCKET(AIS_SOCKET_ID, AIS_Decoder::OnSocketEvent)
   EVT_TIMER(TIMER_AIS1, AIS_Decoder::OnTimerAIS)
+  EVT_TIMER(TIMER_AISAUDIO, AIS_Decoder::OnTimerAISAudio)
   EVT_COMMAND(ID_AIS_WINDOW, EVT_AIS, AIS_Decoder::OnEvtAIS)
 
   END_EVENT_TABLE()
@@ -332,6 +342,7 @@ AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDat
       m_pMainEventHandler = pParent->GetEventHandler();
 
       g_pais_alert_dialog_active = NULL;
+      m_bAIS_Audio_Alert_On = false;
 
       OpenDataSource(pParent, AISDataSource);
 
@@ -932,6 +943,7 @@ void AIS_Decoder::UpdateAllAlarms(void)
                   }
                   else
                         td->n_alarm_state = this_alarm;
+
             }
       }
 }
@@ -940,55 +952,69 @@ void AIS_Decoder::UpdateAllAlarms(void)
 void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
 {
 
-      //    Calculate the TCPA first
-
-      //    Working on a Reduced Lat/Lon orthogonal plotting sheet....
-      //    Get easting/northing to target,  in meters
-
-      double east1 = (ptarget->Lon - gLon) * 60 * 1852;
-      double north1 = (ptarget->Lat - gLat) * 60 * 1852;
-
-      double east = east1 * (cos(gLat * PI / 180));;
-      double north = north1;
-
-      //    Convert COGs trigonometry to standard unit circle
-      double cosa = cos((90. - gCog) * PI / 180.);
-      double sina = sin((90. - gCog) * PI / 180.);
-      double cosb = cos((90. - ptarget->COG) * PI / 180.);
-      double sinb = sin((90. - ptarget->COG) * PI / 180.);
-
-      //    Express the SOGs as meters per hour
+            //    Express the SOGs as meters per hour
       double v0 = gSog         * 1852.;
       double v1 = ptarget->SOG * 1852.;
 
-      //    These will be useful
-      double fc = (v0 * cosa) - (v1 * cosb);
-      double fs = (v0 * sina) - (v1 * sinb);
+      if((v0 < 1e-6) && (v1 < 1e-6))
+      {
+            ptarget->TCPA = 0.;
+            ptarget->CPA = 0.;
 
-      //    Here is the equation for t, which will be in hours
-      double tcpa = ((fc * east) + (fs * north)) / ((fc * fc) + (fs * fs));
+            ptarget->bCPA_Valid = false;
+      }
+      else
+      {
+            //    Calculate the TCPA first
 
-      //    Convert to minutes
-      ptarget->TCPA = tcpa * 60.;
+            //    Working on a Reduced Lat/Lon orthogonal plotting sheet....
+            //    Get easting/northing to target,  in meters
+
+            double east1 = (ptarget->Lon - gLon) * 60 * 1852;
+            double north1 = (ptarget->Lat - gLat) * 60 * 1852;
+
+            double east = east1 * (cos(gLat * PI / 180));;
+            double north = north1;
+
+            //    Convert COGs trigonometry to standard unit circle
+            double cosa = cos((90. - gCog) * PI / 180.);
+            double sina = sin((90. - gCog) * PI / 180.);
+            double cosb = cos((90. - ptarget->COG) * PI / 180.);
+            double sinb = sin((90. - ptarget->COG) * PI / 180.);
 
 
-      //    Calculate CPA
-      //    Using TCPA, predict ownship and target positions
+            //    These will be useful
+            double fc = (v0 * cosa) - (v1 * cosb);
+            double fs = (v0 * sina) - (v1 * sinb);
 
-      double OwnshipLatCPA, OwnshipLonCPA, TargetLatCPA, TargetLonCPA;
+            //    Here is the equation for t, which will be in hours
+            double tcpa = ((fc * east) + (fs * north)) / ((fc * fc) + (fs * fs));
 
-      ll_gc_ll(gLat,         gLon,         gCog,         gSog * tcpa,         &OwnshipLatCPA, &OwnshipLonCPA);
-      ll_gc_ll(ptarget->Lat, ptarget->Lon, ptarget->COG, ptarget->SOG * tcpa, &TargetLatCPA,  &TargetLonCPA);
+            //    Convert to minutes
+            ptarget->TCPA = tcpa * 60.;
 
-      //   And compute the distance
-      ptarget->CPA = DistGreatCircle(OwnshipLatCPA, OwnshipLonCPA, TargetLatCPA, TargetLonCPA);
+            //    Calculate CPA
+            //    Using TCPA, predict ownship and target positions
+
+            double OwnshipLatCPA, OwnshipLonCPA, TargetLatCPA, TargetLonCPA;
+
+            ll_gc_ll(gLat,         gLon,         gCog,         gSog * tcpa,         &OwnshipLatCPA, &OwnshipLonCPA);
+            ll_gc_ll(ptarget->Lat, ptarget->Lon, ptarget->COG, ptarget->SOG * tcpa, &TargetLatCPA,  &TargetLonCPA);
+
+            //   And compute the distance
+            ptarget->CPA = DistGreatCircle(OwnshipLatCPA, OwnshipLonCPA, TargetLatCPA, TargetLonCPA);
+
+            ptarget->bCPA_Valid = true;
+
+            if(ptarget->TCPA  < 0)
+                  ptarget->bCPA_Valid = false;
+      }
 
       //    Compute the current Range/Brg to the target
       double brg, dist;
-      DistanceBearing(gLat, gLon, ptarget->Lat, ptarget->Lon, &brg, &dist);
+      DistanceBearing(ptarget->Lat, ptarget->Lon, gLat, gLon, &brg, &dist);
       ptarget->Range_NM = dist;
       ptarget->Brg = brg;
-
 }
 
 
@@ -1022,45 +1048,28 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
     line.Append(_T("\n\n"));
     result->Append(line);
 
-    line.Printf(_T("Course: %6.0f Deg.\n"), td->COG);
+    line.Printf(_T("Course:   %5.0f Deg.\n"), td->COG);
     result->Append(line);
 
-    line.Printf(_T("Speed: %5.2f Kts.\n"), td->SOG);
+    line.Printf(_T("Speed:    %5.2f Kts.\n"), td->SOG);
     result->Append(line);
+
+    line.Printf(_T("Range:    %5.1f NM\n"), td->Range_NM);
+    result->Append(line);
+
+    line.Printf(_T("Bearing:  %5.0f Deg.\n"), td->Brg);
+    result->Append(line);
+
+
 
     wxDateTime now = wxDateTime::Now();
     now.MakeGMT();
     int target_age = now.GetTicks() - td->ReportTicks;
 
-///  TODO Debug
-/*
-    line.Printf("MID: %d\n", td->MID);
-    res->Append(line);
+//    line.Printf("NavStatus: %d\n", td->NavStatus);
+//    res->Append(line);
 
-    line.Printf("NavStatus: %d\n", td->NavStatus);
-    res->Append(line);
-
-    line.Printf("ReportTicks: %d\n", (int)td->ReportTicks);
-    res->Append(line);
-*/
-
-/*
-    if((target_age > 600) || (target_age < -500))
-    {
-        printf("\nAIS:Found absurd target age\n");
-        printf("Here is the hash map\n");
-        AIS_Target_Hash::iterator it;
-        AIS_Target_Hash *current_targets = GetTargetList();
-        for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
-        {
-            AIS_Target_Data *tdd = it->second;
-
-            int target_aged = now.GetTicks() - tdd->ReportTicks;
-            printf("Current Target: MMSI: %d    target_age:%d\n", tdd->MMSI, target_aged);
-        }
-    }
-*/
-    line.Printf(_T("Report Age: %d Sec.\n"), target_age);
+    line.Printf(_T("Report Age:           %d Sec.\n"), target_age);
     result->Append(line);
 
     line.Printf(_T("Recent Report Period: %d Sec.\n"), td->RecentPeriod);
@@ -1068,10 +1077,17 @@ wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
 
     double mins = floor(td->TCPA);
     int secs = (int)((td->TCPA - mins) * 60);
-    line.Printf(_T("TCPA:  %d:%02d Min:Sec\n"), (int)mins, secs);
+
+    if(td->bCPA_Valid)
+          line.Printf(_T("TCPA:  %d:%02d Min:Sec\n"), (int)mins, secs);
+    else
+          line.Printf(_T("TCPA:  \n"));
     result->Append(line);
 
-    line.Printf(_T("CPA: %6.1f NM"), td->CPA);
+    if(td->bCPA_Valid)
+          line.Printf(_T("CPA:   %6.1f NM"), td->CPA);
+    else
+          line.Printf(_T("CPA:       "));
     result->Append(line);
 
     return result;
@@ -1351,6 +1367,18 @@ void AIS_Decoder::OnSocketEvent(wxSocketEvent& event)
 
 }
 
+void AIS_Decoder::OnTimerAISAudio(wxTimerEvent& event)
+{
+      if(g_bAIS_CPA_Alert_Audio && m_bAIS_Audio_Alert_On)
+      {
+            m_AIS_Sound.Create(g_sAIS_Alert_Sound_File);
+            if(m_AIS_Sound.IsOk())
+                  m_AIS_Sound.Play();
+      }
+      m_AIS_Audio_Alert_Timer.Start(TIMER_AIS_AUDIO_MSEC,wxTIMER_CONTINUOUS);
+}
+
+
 void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 {
       TimerAIS.Stop();
@@ -1422,6 +1450,8 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
       if(g_bAIS_CPA_Alert)
       {
 
+            m_bAIS_Audio_Alert_On = false;            // default, may be set on
+
             //    Process any Alarms
 
             //    If the AIS Alert Dialog is not currently shown....
@@ -1432,7 +1462,7 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 
             if(NULL == g_pais_alert_dialog_active)
             {
-                  double tcpa_min = 1000;             // really long
+                  double tcpa_min = 1e6;             // really long
                   AIS_Target_Data *palarm_target = NULL;
 
                   for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
@@ -1462,20 +1492,58 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 
                         g_pais_alert_dialog_active = pAISAlertDialog;
                         pAISAlertDialog->Show();                        // Show modeless, so it stays on the screen
+
+                        //    Audio alert if requested
+                        m_bAIS_Audio_Alert_On = true;             // always on when alert is first shown
                   }
             }
 
-            //    The AIS Alert dialog is shown.  If the  dialog MMSI number is still alerted, update the dialog
+            //    The AIS Alert dialog is already shown.  If the  dialog MMSI number is still alerted, update the dialog
             //    otherwise, destroy the dialog
             else
             {
                   AIS_Target_Data *palert_target = Get_Target_Data_From_MMSI(g_pais_alert_dialog_active->Get_Dialog_MMSI());
+
                   if(AIS_ALARM_SET == palert_target->n_alarm_state)
+                  {
                         g_pais_alert_dialog_active->UpdateText();
+                  }
                   else
+                  {
                         g_pais_alert_dialog_active->Close();
+                        m_bAIS_Audio_Alert_On = false;
+                  }
+
+                  if(true == palert_target->b_suppress_audio)
+                        m_bAIS_Audio_Alert_On = false;
+                  else
+                        m_bAIS_Audio_Alert_On = true;
+
             }
       }
+
+      //    At this point, the audio flag is set
+
+      //    Honor the global flag
+      if(!g_bAIS_CPA_Alert_Audio)
+            m_bAIS_Audio_Alert_On = false;
+
+
+      if(m_bAIS_Audio_Alert_On)
+      {
+            if(!m_AIS_Audio_Alert_Timer.IsRunning())
+            {
+                  m_AIS_Audio_Alert_Timer.SetOwner(this, TIMER_AISAUDIO);
+                  m_AIS_Audio_Alert_Timer.Start(TIMER_AIS_AUDIO_MSEC);
+
+                  m_AIS_Sound.Create(g_sAIS_Alert_Sound_File);
+                  if(m_AIS_Sound.IsOk())
+                        m_AIS_Sound.Play();
+            }
+      }
+      else
+            m_AIS_Audio_Alert_Timer.Stop();
+
 
       TimerAIS.Start(TIMER_AIS_MSEC,wxTIMER_CONTINUOUS);
 }
@@ -2040,6 +2108,7 @@ IMPLEMENT_CLASS ( AISTargetAlertDialog, wxDialog )
 
             EVT_CLOSE(AISTargetAlertDialog::OnClose)
             EVT_BUTTON( ID_ACKNOWLEDGE, AISTargetAlertDialog::OnIdAckClick )
+            EVT_BUTTON( ID_SILENCE, AISTargetAlertDialog::OnIdSilenceClick )
             EVT_MOVE( AISTargetAlertDialog::OnMove )
             EVT_SIZE( AISTargetAlertDialog::OnSize )
 
@@ -2147,12 +2216,17 @@ void AISTargetAlertDialog::CreateControls()
 //    Button color
       wxColour button_color = GetGlobalColor ( _T ( "UIBCK" ) );;
 
+// The Silence button
+      wxButton* silence = new wxButton ( this, ID_SILENCE, wxT ( "&Silence Alert" ),
+                                    wxDefaultPosition, wxDefaultSize, 0 );
+      AckBox->Add ( silence, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+      silence->SetBackgroundColour ( button_color );
+
 // The Ack button
       wxButton* ack = new wxButton ( this, ID_ACKNOWLEDGE, wxT ( "&Acknowledge" ),
-                                    wxDefaultPosition, wxDefaultSize, 0 );
+                                     wxDefaultPosition, wxDefaultSize, 0 );
       AckBox->Add ( ack, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
       ack->SetBackgroundColour ( button_color );
-
 
 }
 
@@ -2183,17 +2257,23 @@ void AISTargetAlertDialog::CreateControls()
                   line.Append(_T("\n\n"));
                   presult->Append(line);
 
-                  line.Printf(_T("Course: %6.0f Deg.\n"), td_found->COG);
+                  line.Printf(_T("Course:   %5.0f Deg.\n"), td_found->COG);
                   presult->Append(line);
 
-                  line.Printf(_T("Speed: %5.2f Kts.\n"), td_found->SOG);
+                  line.Printf(_T("Speed:    %5.2f Kts.\n"), td_found->SOG);
+                  presult->Append(line);
+
+                  line.Printf(_T("Range:    %5.1f NM\n"), td_found->Range_NM);
+                  presult->Append(line);
+
+                  line.Printf(_T("Bearing:  %5.0f Deg.\n"), td_found->Brg);
                   presult->Append(line);
 
                   wxDateTime now = wxDateTime::Now();
                   now.MakeGMT();
                   int target_age = now.GetTicks() - td_found->ReportTicks;
 
-                  line.Printf(_T("Report Age: %d Sec.\n"), target_age);
+                  line.Printf(_T("Report Age:           %d Sec.\n"), target_age);
                   presult->Append(line);
 
                   line.Printf(_T("Recent Report Period: %d Sec.\n"), td_found->RecentPeriod);
@@ -2251,6 +2331,17 @@ void AISTargetAlertDialog::OnIdAckClick( wxCommandEvent& event )
       }
       Destroy();
       g_pais_alert_dialog_active = NULL;
+}
+
+void AISTargetAlertDialog::OnIdSilenceClick( wxCommandEvent& event )
+{
+      //    Set the suppress audio flag
+      if(m_pparent)
+      {
+            AIS_Target_Data *td = m_pparent->Get_Target_Data_From_MMSI(Get_Dialog_MMSI());
+            if(td)
+                  td->b_suppress_audio = true;
+      }
 }
 
 void AISTargetAlertDialog::OnMove( wxMoveEvent& event )
