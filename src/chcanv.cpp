@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.43 2009/06/14 03:33:41 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.44 2009/06/17 02:45:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.44  2009/06/17 02:45:36  bdbcat
+ * Update AIS
+ *
  * Revision 1.43  2009/06/14 03:33:41  bdbcat
  * Cleanup.
  *
@@ -93,6 +96,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.44  2009/06/17 02:45:36  bdbcat
+ * Update AIS
+ *
  * Revision 1.43  2009/06/14 03:33:41  bdbcat
  * Cleanup.
  *
@@ -294,7 +300,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.43 2009/06/14 03:33:41 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.44 2009/06/17 02:45:36 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1614,7 +1620,6 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                 if ( VPoint.vpBBox.PointInBox ( pred_lon, pred_lat, 0 ) )
                         drawit++;                                 // yep
 
-
                 //    Do the draw if either the target or prediction is within the current VPoint
                 if ( drawit )
                 {
@@ -1630,7 +1635,9 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                         wxPoint PredPointAngleCalc;
 
                         if(g_ShowCOG_Mins > 0)
+                        {
                               PredPointAngleCalc = PredPoint;
+                        }
                         else
                         {
                               double pred_lat_dummy, pred_lon_dummy;
@@ -1639,20 +1646,28 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                         }
 
 
-                        if( abs( PredPointAngleCalc.x - PredPointAngleCalc.x ) > 0 )
+                        if( abs( PredPointAngleCalc.x - TargetPoint.x ) > 0 )
                         {
                               if(td->SOG > g_ShowMoored_Kts)
-                                    theta = atan2 ( ( PredPointAngleCalc.y - PredPointAngleCalc.y ), ( PredPointAngleCalc.x - PredPointAngleCalc.x ) );
+                              {
+                                    theta = atan2 ( ( PredPointAngleCalc.y - TargetPoint.y ), ( PredPointAngleCalc.x - TargetPoint.x ) );
+                              }
                               else
+                              {
                                     theta = -PI / 2;
+                              }
                         }
                         else
                         {
-                              if( PredPointAngleCalc.y > PredPointAngleCalc.y)
+                              if( PredPointAngleCalc.y > TargetPoint.y)
+                              {
                                     theta =  PI / 2.;             // valid COG 180
+                              }
                               else
+                              {
                                     theta = -PI / 2.;            //  valid COG 000 or speed is too low to resolve course
-                         }
+                              }
+                        }
 
                                 //  Draw the icon rotated to the COG
                          wxPoint ais_tri_icon[3];
@@ -2048,8 +2063,6 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
 
         int x,y;
         int mx, my;
-        double cursor_lon ;
-        double cursor_lat ;
 
 //    May get spurious mouse events during "settings" dialog
         if ( !Current_Ch )
@@ -2079,7 +2092,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
 
         mx = x;
         my = y;
-        GetPixPoint ( x, y, cursor_lat, cursor_lon );
+        GetPixPoint ( x, y, m_cursor_lat, m_cursor_lon );
 
         //    Calculate meaningful SelectRadius
         float SelectRadius;
@@ -2112,8 +2125,8 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
         {
                 if ( parent_frame->m_pStatusBar )
                 {
-                      double show_cursor_lon = cursor_lon;
-                      double show_cursor_lat = cursor_lat;
+                      double show_cursor_lon = m_cursor_lon;
+                      double show_cursor_lat = m_cursor_lat;
 
                       while(show_cursor_lon < -180.)
                             show_cursor_lon += 360.;
@@ -2128,7 +2141,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                       parent_frame->SetStatusText ( s1, 1 );
 
                       double brg, dist;
-                      DistanceBearing(cursor_lat, cursor_lon, gLat, gLon, &brg, &dist);
+                      DistanceBearing(m_cursor_lat, m_cursor_lon, gLat, gLon, &brg, &dist);
                       wxString s;
                       s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
                       parent_frame->SetStatusText ( s, 2 );
@@ -2183,8 +2196,8 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
 
 
                         SetMyCursor ( pCursorPencil );
-                        rlat = cursor_lat;
-                        rlon = cursor_lon;
+                        rlat = m_cursor_lat;
+                        rlon = m_cursor_lon;
 
                         if ( parent_frame->nRoute_State == 1 )
                         {
@@ -2232,10 +2245,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                 {
                         // So look for selectable route point
 
-                        double slat, slon;
-                        slat = cursor_lat;
-                        slon = cursor_lon;
-                        SelectItem *pFind = pSelect->FindSelection ( slat, slon, SELTYPE_ROUTEPOINT, SelectRadius );
+                        SelectItem *pFind = pSelect->FindSelection ( m_cursor_lat, m_cursor_lon, SELTYPE_ROUTEPOINT, SelectRadius );
 
                         if ( pFind )
                         {
@@ -2309,10 +2319,10 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                             }
                       }
 
-                        m_pRoutePointEditTarget->m_lat = cursor_lat;     // update the RoutePoint entry
-                        m_pRoutePointEditTarget->m_lon = cursor_lon;
-                        m_pFoundPoint->m_slat = cursor_lat;             // update the SelectList entry
-                        m_pFoundPoint->m_slon = cursor_lon;
+                        m_pRoutePointEditTarget->m_lat = m_cursor_lat;     // update the RoutePoint entry
+                        m_pRoutePointEditTarget->m_lon = m_cursor_lon;
+                        m_pFoundPoint->m_slat = m_cursor_lat;             // update the SelectList entry
+                        m_pFoundPoint->m_slon = m_cursor_lon;
 
                         if ( CheckEdgePan ( x, y ) )
                         {
@@ -2372,10 +2382,10 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         wxRect pre_rect;
                         m_pRoutePointEditTarget->CalculateDCRect ( m_dc_route, &pre_rect );
 
-                        m_pRoutePointEditTarget->m_lat = cursor_lat;     // update the RoutePoint entry
-                        m_pRoutePointEditTarget->m_lon = cursor_lon;
-                        m_pFoundPoint->m_slat = cursor_lat;             // update the SelectList entry
-                        m_pFoundPoint->m_slon = cursor_lon;
+                        m_pRoutePointEditTarget->m_lat = m_cursor_lat;     // update the RoutePoint entry
+                        m_pRoutePointEditTarget->m_lon = m_cursor_lon;
+                        m_pFoundPoint->m_slat = m_cursor_lat;             // update the SelectList entry
+                        m_pFoundPoint->m_slon = m_cursor_lon;
 
                         //    Update the MarkProperties Dialog, if currently shown
                         if ( ( NULL != pMarkPropDialog ) && ( pMarkPropDialog->IsShown() ) )
@@ -2547,8 +2557,8 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                 {
                         // Look for selectable objects
                         float slat, slon;
-                        slat = cursor_lat;
-                        slon = cursor_lon;
+                        slat = m_cursor_lat;
+                        slon = m_cursor_lon;
                         SelectItem *pFind;
                         wxClientDC dc ( this );
 
