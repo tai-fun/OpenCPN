@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.19 2009/06/03 03:48:38 bdbcat Exp $
+ * $Id: about.cpp,v 1.20 2009/06/17 02:41:43 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.20  2009/06/17 02:41:43  bdbcat
+ * Add Philip
+ *
  * Revision 1.19  2009/06/03 03:48:38  bdbcat
  * 2009
  *
@@ -93,7 +96,7 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.19 2009/06/03 03:48:38 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.20 2009/06/17 02:41:43 bdbcat Exp $");
 
 
 //    Some constants
@@ -118,6 +121,9 @@ char AuthorText[] =
    David Herring\n\
       dherring@dherring.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
+   Philip Lange\n\
+      philip.lange@albemarleweb.com\n\
+      OpenCPN Documentation\n\n\
    Julian Smart, Robert Roebling et al\n\
       wxwidgets.org\n\
       wxWidgets Authors\n\n\
