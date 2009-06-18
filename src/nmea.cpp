@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.29 2009/06/03 03:19:12 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.30 2009/06/18 02:22:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.29 2009/06/03 03:19:12 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.30 2009/06/18 02:22:45 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -232,9 +232,9 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
             }
 
             //      Resolved the name, somehow, so Connect() the socket
-            addr.Hostname(NMEA_data_ip);
-            addr.Service(GPSD_PORT_NUMBER);
-            m_sock->Connect(addr, FALSE);       // Non-blocking connect
+            m_addr.Hostname(NMEA_data_ip);
+            m_addr.Service(GPSD_PORT_NUMBER);
+            m_sock->Connect(m_addr, FALSE);       // Non-blocking connect
 
             TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
     }
@@ -393,7 +393,21 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
 
     case wxSOCKET_LOST       :
+    {
+          m_sock->Connect(m_addr, FALSE);       // Try to re-connect
+          break;
+    }
+
     case wxSOCKET_CONNECTION :
+    {
+          //      Sign up for watcher mode
+          char c[10];
+          strcpy(c, "w+\n");
+          m_sock->Write(c, strlen(c));
+
+          break;
+    }
+
     default                  :
           break;
   }
@@ -409,12 +423,12 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
       {
         if(m_sock->IsConnected())
         {
-            unsigned char c = 'O';
-            m_sock->Write(&c, 1);
+//            unsigned char c = 'O';                  // Don't need this in watcher mode
+//            m_sock->Write(&c, 1);
         }
         else                                    // try to connect
         {
-            m_sock->Connect(addr, FALSE);       // Non-blocking connect
+            m_sock->Connect(m_addr, FALSE);       // Non-blocking connect
         }
       }
 
