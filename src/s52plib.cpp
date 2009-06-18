@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.31 2009/06/17 02:47:39 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.32 2009/06/18 01:35:43 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.32  2009/06/18 01:35:43  bdbcat
+ * Cleanup and correct some sscanf %f.
+ *
  * Revision 1.31  2009/06/17 02:47:39  bdbcat
  * Improve Line Priority logic
  *
@@ -81,6 +84,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.32  2009/06/18 01:35:43  bdbcat
+ * Cleanup and correct some sscanf %f.
+ *
  * Revision 1.31  2009/06/17 02:47:39  bdbcat
  * Improve Line Priority logic
  *
@@ -201,7 +207,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.31 2009/06/17 02:47:39 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.32 2009/06/18 01:35:43 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -409,7 +415,7 @@ static double c_gamma = 2.20;
 
 int s52plib::_CIE2RGB()
 {
-      color *c2;
+      S52color *c2;
       int R,G,B;
       colTable *ctp;
       double dR, dG, dB;
@@ -422,7 +428,7 @@ int s52plib::_CIE2RGB()
             for ( unsigned int ic=0 ; ic < ctp->color->GetCount() ; ic++ )
             {
 
-                  c2 = ( color * ) ( ctp->color->Item ( ic ) );
+                  c2 = ( S52color * ) ( ctp->color->Item ( ic ) );
 
                   //    Transform CIE xyL into CIE XYZ
 
@@ -501,7 +507,7 @@ void s52plib::CreateColourHash ( void )
 
             for ( unsigned int ic=0 ; ic < ctp->color->GetCount() ; ic++ )
             {
-                  color *c2 = ( color * ) ( ctp->color->Item ( ic ) );
+                  S52color *c2 = ( S52color * ) ( ctp->color->Item ( ic ) );
 
                   wxColour c ( c2->R, c2->G, c2->B );
                   wxString key ( c2->colName, wxConvUTF8 );
@@ -663,10 +669,10 @@ bool s52plib::FindUnusedColor ( void )
       //   This alogorithm only tries to vary R for uniqueness
       //   ....could be better
 
-      color ctent;
+      S52color ctent;
       ctent.R = 0;
       ctent.G = ctent.B = 1;
-      color *c2;
+      S52color *c2;
       colTable *ct;
 
       bool bdone = false;
@@ -680,7 +686,7 @@ bool s52plib::FindUnusedColor ( void )
 
                   for ( unsigned int ic=0; ic<ct->color->GetCount(); ++ic )
                   {
-                        c2 = ( _color * ) ct->color->Item ( ic );
+                        c2 = ( S52color * ) ct->color->Item ( ic );
                         if ( ( c2->R == ctent.R ) && ( c2->G == ctent.G ) && ( c2->B == ctent.B ) )
                               match++;
                   }
@@ -689,12 +695,14 @@ bool s52plib::FindUnusedColor ( void )
 
             if ( match == 0 )
             {
-                  unused_color = ctent;
+                  m_unused_color = ctent;
                   bdone = true;
             }
 
             ctent.R ++;
       }
+
+      m_unused_wxColor.Set(m_unused_color.R, m_unused_color.G, m_unused_color.B);
 
       return true;
 }
@@ -1251,13 +1259,12 @@ int s52plib::ParseCOLS ( FILE *fp )
       ret  = ReadS52Line ( pBuf, NEWLN, 0,fp );
       while ( 0 != strncmp ( pBuf, "****",4 ) )
       {
-            color *c = new color;
+            S52color *c = new S52color;
             ChopS52Line ( pBuf, ' ' );
             strncpy ( c->colName, pBuf+9, 5 );
             c->colName[5] = 0;
 
-            sscanf ( pBuf+14,"%f %f %f",&c->x,&c->y,&c->L );
-
+            sscanf ( pBuf+14,"%lf %lf %lf",&c->x,&c->y,&c->L );
             ct->color->Add ( c );
             ret  = ReadS52Line ( pBuf, NEWLN, 0,fp );
       }
@@ -1942,7 +1949,7 @@ bool s52plib::S52_flush_Plib()
                   delete ct->tableName;
                   for ( unsigned int icc = 0 ; icc < ct->color->GetCount() ; icc++ )
                   {
-                        delete ( color * ) ( ct->color->Item ( icc ) );
+                        delete ( S52color * ) ( ct->color->Item ( icc ) );
                   }
 
                   delete ct->color;
@@ -2131,9 +2138,9 @@ void s52plib::SetPLIBColorScheme ( wxString scheme )
 }
 
 
-color *s52plib::S52_getColor ( char *colorName )
+S52color *s52plib::S52_getColor ( char *colorName )
 {
-      color *c;
+      S52color *c;
 
       unsigned int i;
       colTable *ct;
@@ -2143,7 +2150,7 @@ color *s52plib::S52_getColor ( char *colorName )
       for ( i=0; i<ct->color->GetCount(); ++i )
       {
 
-            c = ( _color * ) ct->color->Item ( i );
+            c = ( S52color * ) ct->color->Item ( i );
             if ( 0 == strncmp ( colorName, c->colName, 5 ) )
                   return c;
       }
@@ -2629,7 +2636,7 @@ bool s52plib::RenderText ( wxDC *pdc, S52_Text *ptext, int x, int y, wxRect *pRe
 
       if ( bdraw )
       {
-            color *bcolor = S52_getColor ( "CHGRF" );
+            S52color *bcolor = S52_getColor ( "CHGRF" );
             wxColour color ( bcolor->R, bcolor->G, bcolor->B );
 
             pdc->SetTextForeground ( color );
@@ -2833,7 +2840,7 @@ bool s52plib::RenderHPGLtoDC ( char *str, char *col, wxDC *pdc, wxPoint &r, wxPo
       int    tessObj       = FALSE;
       int    polyMode      = FALSE;
       int    inBegEnd      = FALSE;
-      color *newColor;
+      S52color *newColor;
       float trans = 1.0;
 
       int x1, x2, y1, y2;
@@ -3183,7 +3190,7 @@ return true;
             wxBitmap *pbm = new wxBitmap ( width, height );
             wxMemoryDC mdc;
             mdc.SelectObject ( *pbm );
-            mdc.SetBackground ( wxBrush ( wxColour ( unused_color.R, unused_color.G, unused_color.B ) ) );
+            mdc.SetBackground ( wxBrush ( m_unused_wxColor ) );
             mdc.Clear();
 
             char *str = prule->vector.LVCT;
@@ -3216,8 +3223,7 @@ return true;
             delete pbm;
 
             //      Make the mask
-            wxMask *pmask = new wxMask ( *sbm,
-                                         wxColour ( unused_color.R, unused_color.G, unused_color.B ) );
+            wxMask *pmask = new wxMask ( *sbm, m_unused_wxColor);
 
             //      Associate the mask with the bitmap
             sbm->SetMask ( pmask );
@@ -3341,7 +3347,7 @@ wxImage s52plib::RuleXBMToImage ( Rule *prule )
 
             strncpy ( colname, &cstr[i], 5 );
             colname[5]=0;
-            color *pColor =  S52_getColor ( colname );
+            S52color *pColor =  S52_getColor ( colname );
 
             pColorArray->Add ( ( void * ) pColor );
 
@@ -3368,12 +3374,12 @@ wxImage s52plib::RuleXBMToImage ( Rule *prule )
                   int cref = ( int ) ( thisrow[ix] - 'A' );       // make an index
                   if ( cref >= 0 )
                   {
-                        color *pthisbitcolor = ( color * ) ( pColorArray->Item ( cref ) );
+                        S52color *pthisbitcolor = ( S52color * ) ( pColorArray->Item ( cref ) );
                         Image.SetRGB ( ix, iy, pthisbitcolor->R, pthisbitcolor->G, pthisbitcolor->B );
                   }
                   else
                   {
-                        Image.SetRGB ( ix, iy, unused_color.R, unused_color.G, unused_color.B );
+                        Image.SetRGB ( ix, iy, m_unused_color.R, m_unused_color.G, m_unused_color.B );
                   }
 
             }
@@ -3424,8 +3430,7 @@ bool s52plib::RenderRasterSymbol ( ObjRazRules *rzRules, Rule *prule, wxDC *pdc,
 //                if(pbm->IsOk())
             {
                   //      Make the mask
-                  wxMask *pmask = new wxMask ( *pbm,
-                  wxColour ( unused_color.R, unused_color.G, unused_color.B ) );
+                  wxMask *pmask = new wxMask ( *pbm, m_unused_wxColor);
 
                   //      Associate the mask with the bitmap
                   pbm->SetMask ( pmask );
@@ -3550,7 +3555,7 @@ int s52plib::RenderLS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
       wxPoint         *ptp;
       int     npt;
-      color   *c;
+      S52color   *c;
       int     w;
 
       char *str = ( char* ) rules->INSTstr;
@@ -3861,7 +3866,7 @@ int s52plib::RenderLC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
       wxPoint   *ptp;
       int       npt;
-      color     *c;
+      S52color     *c;
       int       w;
       wxPoint   r;
 
@@ -4357,7 +4362,7 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
             wxBitmap *pbm = new wxBitmap ( width, height, -1 );
             wxMemoryDC mdc;
             mdc.SelectObject ( *pbm );
-            mdc.SetBackground ( wxBrush ( wxColour ( unused_color.R, unused_color.G, unused_color.B ) ) );
+            mdc.SetBackground ( wxBrush ( m_unused_wxColor ) );
             mdc.Clear();
 
 
@@ -4480,7 +4485,7 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
 
             //      Make the mask
-            wxMask *pmask = new wxMask ( *sbm, wxColour ( unused_color.R, unused_color.G, unused_color.B ) );
+            wxMask *pmask = new wxMask ( *sbm, m_unused_wxColor );
 
             //      Associate the mask with the bitmap
             sbm->SetMask ( pmask );
@@ -5023,7 +5028,7 @@ bool s52plib::inter_tri_rect(wxPoint *ptp, render_canvas_parms *pb_spec)
 //              Render triangle
 //
 //----------------------------------------------------------------------------------
-int s52plib::dda_tri ( wxPoint *ptp, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec )
+int s52plib::dda_tri ( wxPoint *ptp, S52color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec )
 {
       unsigned char r, g, b;
 
@@ -5517,7 +5522,7 @@ __asm__ __volatile__ ( \
 //              Render Trapezoid
 //
 //----------------------------------------------------------------------------------
-inline int s52plib::dda_trap ( wxPoint *segs, int lseg, int rseg, int ytop, int ybot, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec )
+inline int s52plib::dda_trap ( wxPoint *segs, int lseg, int rseg, int ytop, int ybot, S52color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec )
 {
       unsigned char r, g, b;
 
@@ -5924,10 +5929,10 @@ inline int s52plib::dda_trap ( wxPoint *segs, int lseg, int rseg, int ytop, int 
 
 
 
-void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, color *c, wxBoundingBox &BBView,
+void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, S52color *c, wxBoundingBox &BBView,
         render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec )
 {
-      color cp;
+      S52color cp;
       if ( NULL != c )
       {
             cp.R = c->R;
@@ -6045,7 +6050,7 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, c
                   int ntraps = ptg->ntrap_count;
                   trapz_t *ptraps = ptg->trap_array;
 
-                  color cs;
+                  S52color cs;
                   cs.R = 255;
                   cs.G = 0;
                   cs.B = 0;
@@ -6060,7 +6065,7 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, c
                         int rseg = ptraps->irseg;
 
                         //    Get the screen co-ordinates of top and bottom of trapezoid,
-                        //    undestanding that ptraps->hiy is the upper line
+                        //    understanding that ptraps->hiy is the upper line
                         wxPoint pr;
                         rzRules->chart->GetPointPix ( rzRules, ptraps->hiy, 0., &pr );
                         int trap_y_top = pr.y;
@@ -6068,7 +6073,7 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, c
                         rzRules->chart->GetPointPix ( rzRules, ptraps->loy, 0., &pr );
                         int trap_y_bot = pr.y;
 
-                        color *cd = &cp;
+                        S52color *cd = &cp;
                         if ( ptg->m_trap_error )
                         {
                               cd = &cs;
@@ -6165,7 +6170,7 @@ int s52plib::RenderToBufferAP ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
                         pbm = new wxBitmap ( width, height );
                         wxMemoryDC mdc;
                         mdc.SelectObject ( *pbm );
-                        mdc.SetBackground ( wxBrush ( wxColour ( unused_color.R, unused_color.G, unused_color.B ) ) );
+                        mdc.SetBackground ( wxBrush ( m_unused_wxColor ) );
                         mdc.Clear();
 
                         //    For pattern debugging
@@ -6187,7 +6192,7 @@ int s52plib::RenderToBufferAP ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
                         pbm = new wxBitmap ( 2, 2 );                // substitute small, blank pattern
                         wxMemoryDC mdc;
                         mdc.SelectObject ( *pbm );
-                        mdc.SetBackground ( wxBrush ( wxColour ( unused_color.R, unused_color.G, unused_color.B ) ) );
+                        mdc.SetBackground ( wxBrush (m_unused_wxColor ) );
                         mdc.Clear();
                   }
 
@@ -6282,7 +6287,7 @@ int s52plib::RenderToBufferAP ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp
 int s52plib::RenderToBufferAC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp,
                                 render_canvas_parms *pb_spec )
 {
-      color *c;
+      S52color *c;
       char *str = ( char* ) rules->INSTstr;
 
       c = ps52plib->S52_getColor ( str );
