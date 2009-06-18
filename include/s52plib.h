@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.16 2009/06/03 03:22:25 bdbcat Exp $
+ * $Id: s52plib.h,v 1.17 2009/06/18 01:35:57 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.17  2009/06/18 01:35:57  bdbcat
+ * Cleanup.
+ *
  * Revision 1.16  2009/06/03 03:22:25  bdbcat
  * Correct Area Pattern Logic
  *
@@ -57,6 +60,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.17  2009/06/18 01:35:57  bdbcat
+ * Cleanup.
+ *
  * Revision 1.16  2009/06/03 03:22:25  bdbcat
  * Correct Area Pattern Logic
  *
@@ -153,7 +159,7 @@ public:
       void  SetPPMM(float ppmm){ canvas_pix_per_mm = ppmm;}
       LUPrec  *S52_LUPLookup(LUPname LUP_name, const char * objectName, S57Obj *pObj, bool bStrict = 0);
       int   _LUP2rules(LUPrec *LUP, S57Obj *pObj);
-      color *S52_getColor(char *colorName);
+      S52color *S52_getColor(char *colorName);
       wxColour S52_getwxColour(const wxString &colorName);
 
       void UpdateMarinerParams(void);
@@ -226,7 +232,7 @@ public:
       int RenderToBufferAC(ObjRazRules *rzRules, Rules *rules, ViewPort *vp, render_canvas_parms *pb_spec);
       int RenderToBufferAP(ObjRazRules *rzRules, Rules *rules, ViewPort *vp, render_canvas_parms *pb_spec);
 
-      void RenderToBufferFilledPolygon(ObjRazRules *rzRules, S57Obj *obj, color *c, wxBoundingBox &BBView,
+      void RenderToBufferFilledPolygon(ObjRazRules *rzRules, S57Obj *obj, S52color *c, wxBoundingBox &BBView,
                render_canvas_parms *pb_spec, render_canvas_parms *patt_spec);
 
       void draw_lc_poly(wxDC *pdc, wxPoint *ptp, int npt,
@@ -247,8 +253,8 @@ public:
 
       int PrioritizeLineFeature ( ObjRazRules *rzRules, int npriority);
 
-      int dda_tri(wxPoint *ptp, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec);
-      int dda_trap(wxPoint *segs, int lseg, int rseg, int ytop, int ybot, color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec );
+      int dda_tri(wxPoint *ptp, S52color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec);
+      int dda_trap(wxPoint *segs, int lseg, int rseg, int ytop, int ybot, S52color *c, render_canvas_parms *pb_spec, render_canvas_parms *pPatt_spec );
 
       wxArrayOfLUPrec *SelectLUPARRAY(LUPname TNAM);
 
@@ -316,7 +322,9 @@ public:
 
       float       canvas_pix_per_mm;            // Set by parent, used to scale symbols/lines/patterns
 
-      color       unused_color;
+      S52color    m_unused_color;
+      wxColor     m_unused_wxColor;
+
       bool        bUseRasterSym;
 
       wxDC       *pdc;                       // The current DC

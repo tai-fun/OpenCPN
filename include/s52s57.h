@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.17 2009/06/03 03:22:38 bdbcat Exp $
+ * $Id: s52s57.h,v 1.18 2009/06/18 01:35:57 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.18  2009/06/18 01:35:57  bdbcat
+ * Cleanup.
+ *
  * Revision 1.17  2009/06/03 03:22:38  bdbcat
  * Correct Area Pattern Logic
  *
@@ -252,15 +255,15 @@ typedef struct _Cond{
 
 
 
-typedef struct _color{
+typedef struct _S52color{
    char colName[20];
-   float x;
-   float y;
-   float L;
+   double x;
+   double y;
+   double L;
    unsigned char  R;
    unsigned char  G;
    unsigned char  B;
-}color;
+}S52color;
 
 typedef struct _S52_Text {
     wxString   *frmtd;       // formated text string
@@ -273,7 +276,7 @@ typedef struct _S52_Text {
     int        bsize;       // CHARS -body size
     int        xoffs;       // text offsets, in units of bsize
     int        yoffs;       //
-    color      *pcol;       // colour
+    S52color   *pcol;       // pointer to S52colour
     int        dis;         // display
     wxFont     *pFont;
 } S52_Text;

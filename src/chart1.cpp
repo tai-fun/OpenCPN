@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.39 2009/06/17 02:43:54 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.40 2009/06/18 01:34:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.40  2009/06/18 01:34:36  bdbcat
+ * Cleanup.
+ *
  * Revision 1.39  2009/06/17 02:43:54  bdbcat
  * Update hotkeys
  *
@@ -183,7 +186,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.39 2009/06/17 02:43:54 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.40 2009/06/18 01:34:36 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -4493,7 +4496,7 @@ void InitializeUserColors(void)
                   }
                   name[j] = 0;
 
-                  color *c = new color;
+                  S52color *c = new S52color;
                   strcpy(c->colName, name);
 
 
@@ -4520,7 +4523,7 @@ void InitializeUserColors(void)
 
                   for ( unsigned int ic=0 ; ic < ctp->color->GetCount() ; ic++ )
                   {
-                        color *c2 = ( color * ) ( ctp->color->Item ( ic ) );
+                        S52color *c2 = ( S52color * ) ( ctp->color->Item ( ic ) );
 
                         wxColour c ( c2->R, c2->G, c2->B );
                         wxString key ( c2->colName, wxConvUTF8 );
@@ -4543,7 +4546,7 @@ void DeInitializeUserColors(void)
 
             for(unsigned int j = 0 ; j<ct->color->GetCount() ; j++)
             {
-                  color *c = (color *)ct->color->Item(j);
+                  S52color *c = (S52color *)ct->color->Item(j);
                   delete c;                     //color
             }
 
