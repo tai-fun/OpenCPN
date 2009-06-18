@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.16 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: nmea.h,v 1.17 2009/06/18 02:22:18 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.17  2009/06/18 02:22:18  bdbcat
+ * Cleanup.
+ *
  * Revision 1.16  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -167,7 +170,7 @@ private:
       void OnTimerNMEA(wxTimerEvent& event);
       void OnCloseWindow(wxCloseEvent& event);
 
-      wxIPV4address     addr;
+      wxIPV4address     m_addr;
       wxSocketClient    *m_sock;
       bool              m_busy;
       wxTimer           TimerNMEA;
