@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.12 2009/05/05 04:02:49 bdbcat Exp $
+ * $Id: chartdb.h,v 1.13 2009/06/18 01:33:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.13  2009/06/18 01:33:35  bdbcat
+ * Allow u/l case dir search.
+ *
  * Revision 1.12  2009/05/05 04:02:49  bdbcat
  * *** empty log message ***
  *
@@ -42,6 +45,9 @@
  * *** empty log message ***
  *
  * $Log: chartdb.h,v $
+ * Revision 1.13  2009/06/18 01:33:35  bdbcat
+ * Allow u/l case dir search.
+ *
  * Revision 1.12  2009/05/05 04:02:49  bdbcat
  * *** empty log message ***
  *
@@ -220,7 +226,7 @@ private:
 
       InitReturn CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry);
       int TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate, wxString& dir_magic);
-      int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, bool bshow_prog, bool bupdate);
+      int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, bool bshow_prog, bool bupdate, bool bCheckBothCases = false);
 
       int SearchDirAndAddSENC(wxString& dir, bool bshow_prog, bool bupdate);
       bool CreateS57SENCChartTableEntry(wxString full_name, ChartTableEntry *pEntry, Extent *pext);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.15 2009/06/03 03:14:29 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.16 2009/06/18 01:33:48 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.16  2009/06/18 01:33:48  bdbcat
+ * Allow u/l case dir search.
+ *
  * Revision 1.15  2009/06/03 03:14:29  bdbcat
  * Correct chart discard logic for thumbnail window.
  *
@@ -105,7 +108,7 @@ extern ThumbWin     *pthumbwin;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.15 2009/06/03 03:14:29 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.16 2009/06/18 01:33:48 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -563,7 +566,7 @@ this logic is busted.... We need a true update method, and some good struct to h
     nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), bshow_prog, bupdate);
 
     wxLogMessage(_T("  searching for .KAP"));
-    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), bshow_prog, bupdate);
+    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), bshow_prog, bupdate, true);
 
 #ifdef USE_S57
     wxLogMessage(_T("  searching for .000"));
@@ -641,7 +644,8 @@ bool ChartDB::DetectDirChange(wxString dir_path, wxString magic, wxString &new_m
 // ----------------------------------------------------------------------------
 
 int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& filespec,
-                                                      bool bshow_prog, bool bupdate)
+                                                      bool bshow_prog, bool bupdate,
+                                                      bool bCheckBothCases)
 {
       wxString dir_name = dir_name_base;
 //      wxString dir_name(dir_name_base.fn_str(), wxConvFileName);
@@ -675,15 +679,20 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
 
 
       wxDir dir(dir_name);
-      dir.GetAllFiles(dir_name, &FileList, filespec, gaf_flags);
+
+      if(bCheckBothCases)
+      {
+            wxString fs_upper = filespec.Upper();
+            dir.GetAllFiles(dir_name, &FileList, fs_upper, gaf_flags);
+
+            wxString fs_lower = filespec.Lower();
+            dir.GetAllFiles(dir_name, &FileList, fs_lower, gaf_flags);
+      }
+      else
+            dir.GetAllFiles(dir_name, &FileList, filespec, gaf_flags);
+
+
       int nFile = FileList.GetCount();
-
-      /*
-      wxString fs_lower = filespec.Lower();
-      dir.GetAllFiles(dir_name, &FileList, fs_lower, gaf_flags);
-      nFile = FileList.GetCount();
-*/
-
 
       if(!nFile)
           return false;
