@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.40 2009/06/18 01:34:36 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.41 2009/06/20 03:40:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.41  2009/06/20 03:40:55  bdbcat
+ * Add setlocale() to avoid "," vs "." problem.
+ *
  * Revision 1.40  2009/06/18 01:34:36  bdbcat
  * Cleanup.
  *
@@ -186,7 +189,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.40 2009/06/18 01:34:36 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.41 2009/06/20 03:40:55 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -587,6 +590,12 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 //      wxHandleFatalExceptions(true);
 
+
+//      Establish the locale
+//Fulup: force floating point to use dot as separation.
+#ifdef __POSIX__
+        setlocale(LC_NUMERIC,"C");
+#endif
 
 //      Init the private environment handler
         pval = new wxString;
