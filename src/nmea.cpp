@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.30 2009/06/18 02:22:45 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.31 2009/06/20 03:41:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.30 2009/06/18 02:22:45 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.31 2009/06/20 03:41:55 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -314,14 +314,20 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
     double dglat, dglon, dgcog, dgsog;
     double dtime;
     wxDateTime fix_time;
+    wxString str_buf;
 
   switch(event.GetSocketEvent())
   {
       case wxSOCKET_INPUT :                     // from gpsd Daemon
-            m_sock->SetFlags(wxSOCKET_NOWAIT);
+            m_sock->SetFlags(wxSOCKET_WAITALL);                               // was (wxSOCKET_NOWAIT);
+
+            //    Disable input event notifications to preclude re-entrancy on non-blocking socket
+            m_sock->SetNotify(wxSOCKET_LOST_FLAG);
 
 
 //          Read the reply, one character at a time, looking for 0x0a (lf)
+//          If the reply contains no lf, break on the buffer full
+
             bp = buf;
             char_count = 0;
 
@@ -329,8 +335,12 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
             {
                 m_sock->Read(bp, 1);
                 nBytes = m_sock->LastCount();
+
+                if(m_sock->Error())
+                      break;                    // non-specific error
                 if(*bp == 0x0a)
-                    break;
+
+                      break;
 
                 bp++;
                 char_count++;
@@ -340,19 +350,15 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
 //          Validate the string
 
-// a debug test
-//            if(1)
-//                printf("%s", buf);
+            str_buf = (wxString((const char *)buf, wxConvUTF8));
 
-            if(!strncmp((const char *)buf, "GPSD", 4))
+            if(str_buf.StartsWith("GPSD,O"))           // valid position data?
             {
-                wxString str_buf(wxString((const char *)buf, wxConvUTF8));
+                wxStringTokenizer tkz(str_buf, _T(" "));
+                token = tkz.GetNextToken();
 
-                if(buf[7] != '?')           // valid data?
+                if(!token.IsSameAs("GPSD,O=?"))         // Fix?
                 {
-                    wxStringTokenizer tkz(str_buf, _T(" "));
-                    token = tkz.GetNextToken();
-
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dtime))
                          ThreadPositionData.FixTime = (time_t)floor(dtime);
@@ -380,7 +386,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                           ThreadPositionData.kSog = dgsog;
 
 
-//    Signal the main program thread
+//    Signal the main program
 
                     wxCommandEvent event( EVT_NMEA,  GetId() );
                     event.SetEventObject( (wxObject *)this );
@@ -390,11 +396,16 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                 }
             }
 
+                     // Enable input events again.
+            m_sock->SetNotify(wxSOCKET_LOST_FLAG | wxSOCKET_INPUT_FLAG);
+
+            break;
 
 
-    case wxSOCKET_LOST       :
+    case wxSOCKET_LOST:
     {
-          m_sock->Connect(m_addr, FALSE);       // Try to re-connect
+//          wxSocketError e = m_sock->LastError();          // this produces wxSOCKET_WOULDBLOCK    The socket is non-blocking and the operation would block.
+                                                            // which seems to be extraneous
           break;
     }
 
@@ -428,6 +439,10 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
         }
         else                                    // try to connect
         {
+            m_sock->SetNotify(wxSOCKET_CONNECTION_FLAG |
+                          wxSOCKET_INPUT_FLAG |
+                          wxSOCKET_LOST_FLAG);
+
             m_sock->Connect(m_addr, FALSE);       // Non-blocking connect
         }
       }
