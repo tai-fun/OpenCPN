@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.44 2009/06/17 02:45:36 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.45 2009/06/21 03:16:57 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.45  2009/06/21 03:16:57  bdbcat
+ * Optimize Mouse Pan logic.
+ *
  * Revision 1.44  2009/06/17 02:45:36  bdbcat
  * Update AIS
  *
@@ -96,6 +99,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.45  2009/06/21 03:16:57  bdbcat
+ * Optimize Mouse Pan logic.
+ *
  * Revision 1.44  2009/06/17 02:45:36  bdbcat
  * Update AIS
  *
@@ -300,7 +306,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.44 2009/06/17 02:45:36 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.45 2009/06/21 03:16:57 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -2524,8 +2530,8 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                                               wxPoint p;
                                               GetPixPoint ( x, y, dlat, dlon );
 
-                                              if(dlon > 360.) dlon -= 360.;
-                                              if(dlon < -360.) dlon += 360.;
+                                              if(dlon > 180.) dlon -= 360.;
+                                              if(dlon < -180.) dlon += 360.;
 
                                               SetViewPoint ( dlat, dlon, VPoint.view_scale_ppm, VPoint.skew, FORCE_SUBSAMPLE );
                                               vLat = dlat;
