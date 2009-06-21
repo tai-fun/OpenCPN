@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.31 2009/06/20 03:41:55 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.32 2009/06/21 01:00:23 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.31 2009/06/20 03:41:55 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.32 2009/06/21 01:00:23 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -352,12 +352,12 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
             str_buf = (wxString((const char *)buf, wxConvUTF8));
 
-            if(str_buf.StartsWith("GPSD,O"))           // valid position data?
+            if(str_buf.StartsWith(_T("GPSD,O")))           // valid position data?
             {
                 wxStringTokenizer tkz(str_buf, _T(" "));
                 token = tkz.GetNextToken();
 
-                if(!token.IsSameAs("GPSD,O=?"))         // Fix?
+                if(!token.IsSameAs(_T("GPSD,O=?")))         // Fix?
                 {
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dtime))
