@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.9 2008/12/09 03:14:52 bdbcat Exp $
+ * $Id: wvschart.cpp,v 1.10 2009/06/21 03:19:43 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.10  2009/06/21 03:19:43  bdbcat
+ * Update for southern latitudes.
+ *
  * Revision 1.9  2008/12/09 03:14:52  bdbcat
  * Cleanup
  *
@@ -39,6 +42,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.10  2009/06/21 03:19:43  bdbcat
+ * Update for southern latitudes.
+ *
  * Revision 1.9  2008/12/09 03:14:52  bdbcat
  * Cleanup
  *
@@ -111,7 +117,7 @@
 #include "cutil.h"
 #include "georef.h"
 
-CPL_CVSID("$Id: wvschart.cpp,v 1.9 2008/12/09 03:14:52 bdbcat Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.10 2009/06/21 03:19:43 bdbcat Exp $");
 
 //      Local Prototypes
 extern "C" int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray, int **segray);
@@ -186,20 +192,31 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
         dc.SetPen(*pthispen);
 
 //      Compute the 1 degree cell boundaries
-        int lat_min = (int)floor(VPoint.pref_c_lat);
-        int lat_max = (int)ceil(VPoint.pref_a_lat);
-        int lon_min = (int)floor(VPoint.pref_c_lon);
-        int lon_max = (int)ceil(VPoint.pref_a_lon);
 
-/// debug
-        lat_min = (int)floor(VPoint.vpBBox.GetMinY());
-        lat_max = (int)ceil(VPoint.vpBBox.GetMaxY());
-        lon_min = (int)floor(VPoint.vpBBox.GetMinX());
-        lon_max = (int)ceil(VPoint.vpBBox.GetMaxX());
+        int lat_min = (int)floor(VPoint.vpBBox.GetMinY());
+        int lat_max = (int)ceil(VPoint.vpBBox.GetMaxY());
+        int lon_min = (int)floor(VPoint.vpBBox.GetMinX());
+        int lon_max = (int)ceil(VPoint.vpBBox.GetMaxX());
 
-        if(lat_min < 0)
-            lat_min = 0;
+        if(lon_min > 180)
+        {
+              lon_min -= 360;
+              lon_max -= 360;
+        }
 
+        if(lon_min < -180)
+        {
+              lon_min += 360;
+              lon_max += 360;
+        }
+
+//        printf("%d %d\n", lon_min, lon_max);
+
+        //  Make positive definite longitude for easier math
+        lon_min += 720;
+        lon_max += 720;
+
+//        debug a seg fault caused by this stuff....
 
 //      Loop around the lat/lon spec to get and draw the vector segments
         for(y = lat_min ; y < lat_max ; y++)
@@ -208,20 +225,24 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                 {
 //      Get the arrays of lat/lon vector segments
 //      Sanity Check
-                        if(  (x > 179) || (x < -179) || (y > 89) || (y < -89) )
-                        {
-                                continue;
-                        }
+                      int xt = x;
+                      int yt = y;
 //      Check the cache first
-                        int ix = x + 180;                               // bias to positive
-                        int iy = y + 90;
+                        int ix = xt % 360; //xt + 180;                               // bias to positive
+                        int iy = yt + 90;
+
+                        if(  (ix > 359) || (ix < 0) || (iy > 179) || (iy < 0) )
+                                continue;
+
+
                         if(-1 == nseg[ix][iy])                          // no data yet
-                        {                                                                       // so fill cache
+                        {
+                                                                                                     // so fill cache
                                 platray = NULL;
                                 plonray = NULL;
                                 psegray = NULL;
                                 int nsegments = wvsrtv (*pwvs_file_name,
-                                        y, x, &platray, &plonray, &psegray);
+                                        y, ix, &platray, &plonray, &psegray);
                                 plat_ray[ix][iy] = platray;
                                 plon_ray[ix][iy] = plonray;
                                 pseg_ray[ix][iy] = psegray;
@@ -232,6 +253,7 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                                 float *plat_seg = plat_ray[ix][iy];
                                 float *plon_seg = plon_ray[ix][iy];
                                 int *pseg_cnt = pseg_ray[ix][iy];
+                                float *plon_seg_save;
                                 for(int iseg = 0 ; iseg < nseg[ix][iy] ; iseg++)
                                 {
                                         int seg_cnt = *pseg_cnt++;
@@ -242,10 +264,28 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                                         }
                                         wxPoint *pr = ptp;
                                         wxPoint p;
+
+
+                                        //      Keep all points in one segment in the same "phase"
+                                        bool badj = false;
+                                        plon_seg_save = plon_seg;
+
+                                        for(int ip = 0 ; ip < seg_cnt ; ip++)
+                                        {
+                                              float plon = *plon_seg++;
+                                              if(plon - VPoint.clon > 180.)
+                                                   badj = true;
+                                        }
+
+                                        plon_seg = plon_seg_save;
+
                                         for(int ip = 0 ; ip < seg_cnt ; ip++)
                                         {
                                                 float plat = *plat_seg++;
                                                 float plon = *plon_seg++;
+
+                                                if(badj)                                  // possibly adjust from 0-360 to retain proper phase
+                                                      plon -= 360.;
 
                                                 double easting, northing;
                                                 toSM(plat, plon, VPoint.clat, VPoint.clon, &easting, &northing);
