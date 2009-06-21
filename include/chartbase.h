@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.12 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: chartbase.h,v 1.13 2009/06/21 03:12:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.13  2009/06/21 03:12:05  bdbcat
+ * Update dummy chart zoom limits.
+ *
  * Revision 1.12  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -271,7 +274,7 @@ public:
 
       virtual int GetNativeScale();
       double GetNormalScaleMin(double canvas_scale_factor){return 1.0;}
-      double GetNormalScaleMax(double canvas_scale_factor){ return 1.0e7;}
+      double GetNormalScaleMax(double canvas_scale_factor){ return 1.0e8;}
 
       virtual wxString GetPubDate();
       virtual double GetChartSkew(){ return 0.0;}
