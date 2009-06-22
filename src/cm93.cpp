@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.9 2009/06/17 02:46:12 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.10 2009/06/22 02:46:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.10  2009/06/22 02:46:54  bdbcat
+ * Optimize CM93 ATON displayed leabels.
+ *
  * Revision 1.9  2009/06/17 02:46:12  bdbcat
  * Add line priority rescan
  *
@@ -1973,8 +1976,9 @@ int cm93chart::CreateObjChain()
  // Debug hooks
 //        if(!strncmp(obj->FeatureName, "_m_sor", 6))
 //            int ffl = 4;
-//    if(obj->Index == 2099)
+//    if(obj->Index == 2173)
 //        int rrt = 5;
+
  s_stwp->Resume();
                          LUP = ps52plib->S52_LUPLookup(LUP_Name, obj->FeatureName, obj);
   s_stwp->Pause();
@@ -2914,6 +2918,7 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
                         pattValTmp->valType = OGR_STR;
                         pattValTmp->value   = pAVS;
                         break;
+
                   case 'C':
                         nlen = strlen((const char *)&aval[3]);
                         pAVS = (char *)malloc(nlen + 1);          ;
@@ -3054,7 +3059,94 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
       }
 */
 
+      //    ATON label optimization:
+      //    Some CM93 ATON objects do not contain OBJNAM attribute, which means that no label is shown
+      //    for these objects when ATON labals are requested
+      //    Look for these cases, and change the OBJNAM attribute label to INFORM, if present.
 
+
+      if (1 == geomtype)
+      {
+            if ((!strncmp(pobj->FeatureName,   "LIT",    3)) ||
+                  (!strncmp(pobj->FeatureName, "LIGHTS", 6)) ||
+                  (!strncmp(pobj->FeatureName, "BCN",    3)) ||
+                  (!strncmp(pobj->FeatureName, "_slgto", 6)) ||
+                  (!strncmp(pobj->FeatureName, "_boygn", 6)) ||
+                  (!strncmp(pobj->FeatureName, "_bcngn", 6)) ||
+                  (!strncmp(pobj->FeatureName, "_extgn", 6)) ||
+                  (!strncmp(pobj->FeatureName, "TOWERS", 6)) ||
+                  (!strncmp(pobj->FeatureName, "BOY",    3)))
+                  {
+                        // Walk the attribute list  looking for OBJNAM and INFORM
+                        char *curr_att0 = (char *)calloc(pobj->attList->Len()+1, 1);
+                        strncpy(curr_att0, pobj->attList->mb_str(), pobj->attList->Len());
+                        char *curr_att = curr_att0;
+
+                        int iatt = 0;
+                        int iOBJNAM, iINFORM;
+                        bool bfound_OBJNAM = false;
+                        bool bfound_INFORM = false;
+
+                        char *pszatt_name;
+                        char *psz_INFORM;
+                        wxString att;
+
+                        while(*curr_att)
+                        {
+                              pszatt_name = curr_att;       //Pointer to current attribute name
+
+                              att.Clear();
+                              while((*curr_att) && (*curr_att != '\037'))
+                              {
+                                    char t = *curr_att++;
+                                    att.Append(t);
+                              }
+
+                              if(*curr_att == '\037')
+                                    curr_att++;
+
+
+                              if(att.IsSameAs(_T("OBJNAM")))
+                              {
+                                    iOBJNAM = iatt;
+                                    bfound_OBJNAM = true;
+                              }
+
+
+                              if(att.IsSameAs(_T("INFORM")))
+                              {
+                                    iINFORM = iatt;
+                                    bfound_INFORM = true;
+                                    psz_INFORM = pszatt_name;
+                              }
+
+//  Debug
+/*
+                              S57attVal *pval;
+                              pval = pobj->attVal->Item(iatt);
+                              if(pval->valType == OGR_STR)
+                              {
+                                    char * t = (char *)pval->value;
+
+                                    if(!strncmp((const char *)pval->value, "R_CONOLL", 8))
+                                          int yyp = 5;
+                              }
+*/
+
+                              iatt++;
+                        }
+
+                        if((!bfound_OBJNAM) && (bfound_INFORM))               // can make substitution
+                        {
+                              memcpy(psz_INFORM, "OBJNAM", 6);               // make it
+                              pobj->attList->Clear();
+                              pobj->attList->Append(wxString(curr_att0, wxConvUTF8));
+                        }
+
+                        free(curr_att0);
+
+                  }
+      }
 
 
 
