@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.45 2009/06/21 03:16:57 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.46 2009/06/22 02:44:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.46  2009/06/22 02:44:35  bdbcat
+ * Implement AIS Target highlight.
+ *
  * Revision 1.45  2009/06/21 03:16:57  bdbcat
  * Optimize Mouse Pan logic.
  *
@@ -99,6 +102,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.46  2009/06/22 02:44:35  bdbcat
+ * Implement AIS Target highlight.
+ *
  * Revision 1.45  2009/06/21 03:16:57  bdbcat
  * Optimize Mouse Pan logic.
  *
@@ -297,6 +303,7 @@ extern int              g_iNavAidRadarRingsNumberVisible;   // toh, 2009.02.24
 extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
 extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
 extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
+extern AISTargetAlertDialog    *g_pais_alert_dialog_active;
 
 
 
@@ -306,7 +313,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.45 2009/06/21 03:16:57 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.46 2009/06/22 02:44:35 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1758,6 +1765,13 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                           dc.DrawPolygon ( 3, ais_tri_icon, TargetPoint.x, TargetPoint.y );
 
 
+                          //  Highlight the AIS target symbol if an alert dialog is currently open for it
+                          if(g_pais_alert_dialog_active)
+                          {
+                                if(g_pais_alert_dialog_active->Get_Dialog_MMSI() == td->MMSI)
+                                      JaggyCircle(dc,  wxPen ( GetGlobalColor ( _T ( "URED" ) ) , 2 ), TargetPoint.x, TargetPoint.y, 100);
+                          }
+
                                 //        Draw the inactive cross-out line
                           if(!td->b_active)
                           {
@@ -1816,6 +1830,62 @@ void ChartCanvas::AISDraw ( wxDC& dc )
 
                 }       // drawit
         }         // iterator
+}
+
+void ChartCanvas::JaggyCircle(wxDC &dc, wxPen pen, int x, int y, int radius)
+{
+      //    Constants?
+      double da_min = 2.;
+      double da_max = 6.;
+      double ra_min = 0.;
+      double ra_max = 40.;
+
+      wxPen pen_save = dc.GetPen();
+
+      wxDateTime now = wxDateTime::Now();
+
+      srand( now.GetTicks());
+      dc.SetPen(pen);
+
+      int x0, y0, x1, y1;
+
+      x0 = x + radius;                    // Start point
+      y0 = y;
+      double angle = 0.;
+     int i = 0;
+
+      while(angle < 360.)
+      {
+            double da =  da_min + (((double)rand() / RAND_MAX) * (da_max - da_min));
+            angle += da;
+
+            if(angle > 360.)
+                  angle = 360.;
+
+            double ra =  ra_min + (((double)rand() / RAND_MAX) * (ra_max - ra_min));
+
+            double r;
+            if(i % 1)
+                  r = radius + ra;
+            else
+                  r = radius - ra;
+
+
+            x1 = (int)(x + cos(angle * PI / 180.)*r);
+            y1 = (int)(y + sin(angle * PI / 180.)*r);
+
+            dc.DrawLine(x0, y0, x1, y1);
+
+            x0 = x1;
+            y0 = y1;
+
+            i++;
+
+      }
+
+      dc.DrawLine(x + radius, y, x1, y1);             // closure
+
+      dc.SetPen(pen_save);
 }
 
 void ChartCanvas::UpdateShips()

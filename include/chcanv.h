@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.22 2009/06/17 02:49:09 bdbcat Exp $
+ * $Id: chcanv.h,v 1.23 2009/06/22 02:44:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.23  2009/06/22 02:44:05  bdbcat
+ * Implement AIS Target highlight.
+ *
  * Revision 1.22  2009/06/17 02:49:09  bdbcat
  * Cleanup.
  *
@@ -344,6 +347,7 @@ private:
       void CreateDepthUnitEmbossMaps(ColorScheme cs);
       wxBitmap CreateDimBitmap(wxBitmap &Bitmap, double factor);
 
+      void JaggyCircle(wxDC &dc, wxPen pen, int x, int y, int radius);
 
 
       //    Data
