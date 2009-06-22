@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.32 2009/06/18 01:35:43 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.33 2009/06/22 02:45:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.33  2009/06/22 02:45:49  bdbcat
+ * Remove extraneous printfs.
+ *
  * Revision 1.32  2009/06/18 01:35:43  bdbcat
  * Cleanup and correct some sscanf %f.
  *
@@ -84,6 +87,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.33  2009/06/22 02:45:49  bdbcat
+ * Remove extraneous printfs.
+ *
  * Revision 1.32  2009/06/18 01:35:43  bdbcat
  * Cleanup and correct some sscanf %f.
  *
@@ -207,7 +213,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.32 2009/06/18 01:35:43 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.33 2009/06/22 02:45:49 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -5615,7 +5621,7 @@ inline int s52plib::dda_trap ( wxPoint *segs, int lseg, int rseg, int ytop, int 
 
       if ( ( ytop < ymin ) || ( ybot > ymax ) )
       {
-            printf ( "### ledge out of range\n" );
+//            printf ( "### ledge out of range\n" );
             ret_val = 1;
             r=255;
             g=0;
@@ -5680,7 +5686,7 @@ inline int s52plib::dda_trap ( wxPoint *segs, int lseg, int rseg, int ytop, int 
 
       if ( ( ytop < ymin ) || ( ybot > ymax ) )
       {
-            printf ( "### redge out of range\n" );
+//            printf ( "### redge out of range\n" );
             ret_val = 1;
             r=255;
             g=0;
@@ -6104,7 +6110,7 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, S
 //                  printf("\nTrap %d  lseg: %d   rseg: %d   loy: %d   hiy: %d\n", i, lseg, rseg, loy, hiy);
                               if ( dda_trap ( ptp, lseg, rseg, trap_y_top, trap_y_bot, cd, pb_spec, pPatt_spec ) )
                               {
-                                    printf ( "Error on object %d\n", obj->Index );
+//                                    printf ( "Error on object %d\n", obj->Index );
                               }
                         }
 
