@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.32 2009/06/21 01:00:23 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.33 2009/06/24 03:36:43 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.32 2009/06/21 01:00:23 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.33 2009/06/24 03:36:43 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -322,7 +322,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
             m_sock->SetFlags(wxSOCKET_WAITALL);                               // was (wxSOCKET_NOWAIT);
 
             //    Disable input event notifications to preclude re-entrancy on non-blocking socket
-            m_sock->SetNotify(wxSOCKET_LOST_FLAG);
+ //           m_sock->SetNotify(wxSOCKET_LOST_FLAG);
 
 
 //          Read the reply, one character at a time, looking for 0x0a (lf)
@@ -397,7 +397,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
             }
 
                      // Enable input events again.
-            m_sock->SetNotify(wxSOCKET_LOST_FLAG | wxSOCKET_INPUT_FLAG);
+ //           m_sock->SetNotify(wxSOCKET_LOST_FLAG | wxSOCKET_INPUT_FLAG);
 
             break;
 
