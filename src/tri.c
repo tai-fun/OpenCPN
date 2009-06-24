@@ -105,7 +105,7 @@ static int alloc_mem(int, int[]);
 
 static int nrecurse;
 
-CPL_CVSID("$Id: tri.c,v 1.7 2009/05/05 15:02:25 bdbcat Exp $");
+CPL_CVSID("$Id: tri.c,v 1.8 2009/06/24 04:04:19 bdbcat Exp $");
 
 
 
@@ -2244,7 +2244,7 @@ static int add_segment(int segnum)
 
       if ((tr[t].d0 <= 0) && (tr[t].d1 <= 0)) /* case cannot arise */
         {
-          printf("add_segment: error\n");
+//          printf("add_segment: error\n");
           break;
         }
 
@@ -3631,7 +3631,7 @@ static int int_add_segment(int segnum)
 
         if ((itr[t].d0 <= 0) && (itr[t].d1 <= 0)) /* case cannot arise */
         {
-              printf("add_segment: error\n");
+//              printf("add_segment: error\n");
               itr[t].ase = 1;
               itr[t].inside = 1;
 //              return 1;
@@ -3684,7 +3684,7 @@ static int int_add_segment(int segnum)
                     int tmp_u = itr[t].u0;
                     if(tmp_u < 0)
                     {
-                          printf("add_segment: error tmp_u<0\n");
+//                          printf("add_segment: error tmp_u<0\n");
                           break;
                     }
 
