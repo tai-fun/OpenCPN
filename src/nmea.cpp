@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.33 2009/06/24 03:36:43 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.34 2009/06/24 04:01:14 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.33 2009/06/24 03:36:43 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.34 2009/06/24 04:01:14 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -412,9 +412,9 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
     case wxSOCKET_CONNECTION :
     {
           //      Sign up for watcher mode
-          char c[10];
-          strcpy(c, "w+\n");
-          m_sock->Write(c, strlen(c));
+//          char c[10];
+//          strcpy(c, "w+\n");
+//          m_sock->Write(c, strlen(c));
 
           break;
     }
@@ -434,8 +434,8 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
       {
         if(m_sock->IsConnected())
         {
-//            unsigned char c = 'O';                  // Don't need this in watcher mode
-//            m_sock->Write(&c, 1);
+            unsigned char c = 'O';                  // Don't need this in watcher mode
+            m_sock->Write(&c, 1);
         }
         else                                    // try to connect
         {
