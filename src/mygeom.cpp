@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.13 2009/06/03 03:17:36 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.14 2009/06/24 02:08:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.14  2009/06/24 02:08:18  bdbcat
+ * Correct static memory allocation in SENC read/decode.
+ *
  * Revision 1.13  2009/06/03 03:17:36  bdbcat
  * Remove wxString::IsNumber()
  *
@@ -86,7 +89,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.13 2009/06/03 03:17:36 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.14 2009/06/24 02:08:18 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -306,31 +309,34 @@ PolyTessGeo::PolyTessGeo(OGRPolygon *poly, bool bSENC_SM, double ref_lat, double
 //      Build PolyGeo Object from SENC file record
 PolyTessGeo::PolyTessGeo(unsigned char *polybuf, int nrecl, int index)
 {
-#define POLY_LINE_MAX 10000
+#define POLY_LINE_HDR_MAX 1000
 //      Todo Add a try/catch set here, in case SENC file is corrupted??
 
-
-    char *buf = (char *)malloc(POLY_LINE_MAX);
+    char hdr_buf[POLY_LINE_HDR_MAX];
     int twkb_len;
 
     m_buf_head = (char *) polybuf;                      // buffer beginning
     m_buf_ptr = m_buf_head;
     m_nrecl = nrecl;
-    my_bufgets( buf, POLY_LINE_MAX );
+
+
+    my_bufgets( hdr_buf, POLY_LINE_HDR_MAX );
     //  Read the s57obj extents as lat/lon
-    sscanf(buf, "  POLYTESSGEOPROP %lf %lf %lf %lf",
+    sscanf(hdr_buf, "  POLYTESSGEOPROP %lf %lf %lf %lf",
            &xmin, &ymin, &xmax, &ymax);
 
 
     PolyTriGroup *ppg = new PolyTriGroup;
     int nctr;
-    my_bufgets( buf, POLY_LINE_MAX );
-    sscanf(buf, "Contours/nWKB %d %d", &nctr, &twkb_len);
+    my_bufgets( hdr_buf, POLY_LINE_HDR_MAX );
+    sscanf(hdr_buf, "Contours/nWKB %d %d", &nctr, &twkb_len);
     ppg->nContours = nctr;
     ppg->pn_vertex = (int *)malloc(nctr * sizeof(int));
     int *pctr = ppg->pn_vertex;
 
-    my_bufgets( buf, POLY_LINE_MAX );                       // contour nVert
+    char *buf = (char *)malloc(twkb_len + 2);        // allocate a buffer guaranteed big enough
+
+    my_bufgets( buf, twkb_len + 2 );                       // contour nVert, plus geometry
 
     wxString ivc_str(buf + 10,  wxConvUTF8);
     wxStringTokenizer tkc(ivc_str, wxT(" ,\n"));
