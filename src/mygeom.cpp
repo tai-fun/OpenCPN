@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.14 2009/06/24 02:08:18 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.15 2009/06/24 02:11:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.15  2009/06/24 02:11:31  bdbcat
+ * Correct static memory allocation in SENC read/decode.
+ *
  * Revision 1.14  2009/06/24 02:08:18  bdbcat
  * Correct static memory allocation in SENC read/decode.
  *
@@ -89,7 +92,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.14 2009/06/24 02:08:18 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.15 2009/06/24 02:11:31 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
