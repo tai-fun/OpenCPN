@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.21 2009/06/17 02:42:45 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.22 2009/06/25 02:33:02 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.22  2009/06/25 02:33:02  bdbcat
+ * Normalize charts near International Dateline.
+ *
  * Revision 1.21  2009/06/17 02:42:45  bdbcat
  * Dummy->No Chart Available
  *
@@ -54,6 +57,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.22  2009/06/25 02:33:02  bdbcat
+ * Normalize charts near International Dateline.
+ *
  * Revision 1.21  2009/06/17 02:42:45  bdbcat
  * Dummy->No Chart Available
  *
@@ -139,7 +145,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.21 2009/06/17 02:42:45 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.22 2009/06/25 02:33:02 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -698,80 +704,8 @@ found_uclc_file:
 
       free(pPlyTable);
 
-//    Calculate the Chart Extents from the COVR data, for fast database search
-      LonMax = -179.0;
-      LonMin = 179.0;
-      LatMax = 0.0;
-      LatMin = 90.0;
-
-      Plypoint *ppp = (Plypoint *)GetCOVRTableHead(0);
-      int cnPlypoint = GetCOVRTablenPoints(0);
-
-      for(int u=0 ; u<cnPlypoint ; u++)
-      {
-            if(ppp->lnp > LonMax)
-                  LonMax = ppp->lnp;
-            if(ppp->lnp < LonMin)
-                  LonMin = ppp->lnp;
-
-            if(ppp->ltp > LatMax)
-                  LatMax = ppp->ltp;
-            if(ppp->ltp < LatMin)
-                  LatMin = ppp->ltp;
-
-            ppp++;
-      }
-
-
-      //    Check for special cases
-
-      //    Case 1:  Chart spans International Date Line, Longitude min/max is non-obvious.
-      if((LonMax * LonMin) < 0)              // min/max are opposite signs
-      {
-      //    Georeferencing is unavailable, so find the reference points closest to min/max ply points
-
-          if(0 == nRefpoint)
-              return INIT_FAIL_REMOVE;          // have to bail here
-
-            //    for LonMax
-          double min_dist_x = 360;
-          int imaxclose;
-          for(int ic=0 ; ic<nRefpoint ; ic++)
-          {
-              double dist = sqrt(((LatMax - pRefTable[ic].latr) * (LatMax - pRefTable[ic].latr))
-                          + ((LonMax - pRefTable[ic].lonr) * (LonMax - pRefTable[ic].lonr)));
-
-              if(dist < min_dist_x)
-              {
-                  min_dist_x = dist;
-                  imaxclose = ic;
-              }
-          }
-
-            //    for LonMin
-          double min_dist_n = 360;
-          int iminclose;
-          for(int id=0 ; id<nRefpoint ; id++)
-          {
-              double dist = sqrt(((LatMin - pRefTable[id].latr) * (LatMin - pRefTable[id].latr))
-                          + ((LonMin - pRefTable[id].lonr) * (LonMin - pRefTable[id].lonr)));
-
-              if(dist < min_dist_n)
-              {
-                  min_dist_n = dist;
-                  iminclose = id;
-              }
-          }
-
-            // Make the check
-          if(pRefTable[imaxclose].xr < pRefTable[iminclose].xr)
-          {
-              float t_lonmin = LonMin;
-              LonMin = LonMax;
-              LonMax = t_lonmin;
-          }
-      }
-
+      if(!SetMinMax())
+            return INIT_FAIL_REMOVE;          // have to bail here
 
       if(init_flags == HEADER_ONLY)
             return INIT_OK;
@@ -1213,83 +1147,8 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 
       free(pPlyTable);
 
-
-//      int         m_nCOVREntries;                       // number of coverage table entries
-//      int         *m_pCOVRContourTable;                 // int table of number of points in each coverage table entry
-//      float       **m_pCOVRTable;                       // table of pointers to list of floats describing valid COVR
-
-//    Calculate the Chart Extents from the COVR data, for fast database search
-      LonMax = -179.0;
-      LonMin = 179.0;
-      LatMax = 0.0;
-      LatMin = 90.0;
-
-      Plypoint *ppp = (Plypoint *)GetCOVRTableHead(0);
-      int cnPlypoint = GetCOVRTablenPoints(0);
-
-      for(int u=0 ; u<cnPlypoint ; u++)
-      {
-            if(ppp->lnp > LonMax)
-                  LonMax = ppp->lnp;
-            if(ppp->lnp < LonMin)
-                  LonMin = ppp->lnp;
-
-            if(ppp->ltp > LatMax)
-                  LatMax = ppp->ltp;
-            if(ppp->ltp < LatMin)
-                  LatMin = ppp->ltp;
-
-            ppp++;
-      }
-
-      //    Check for special cases
-
-      //    Case 1:  Chart spans International Date Line, Longitude min/max is non-obvious.
-      if((LonMax * LonMin) < 0)              // min/max are opposite signs
-      {
-      //    Georeferencing is unavailable, so find the reference points closest to min/max ply points
-
-            if(0 == nRefpoint)
-                return INIT_FAIL_REMOVE;          // have to bail here
-
-            //    for LonMax
-            double min_dist_x = 360;
-            int imaxclose;
-            for(int ic=0 ; ic<nRefpoint ; ic++)
-            {
-                double dist = sqrt(((LatMax - pRefTable[ic].latr) * (LatMax - pRefTable[ic].latr))
-                            + ((LonMax - pRefTable[ic].lonr) * (LonMax - pRefTable[ic].lonr)));
-
-                if(dist < min_dist_x)
-                {
-                    min_dist_x = dist;
-                    imaxclose = ic;
-                }
-            }
-
-            //    for LonMin
-            double min_dist_n = 360;
-            int iminclose;
-            for(int id=0 ; id<nRefpoint ; id++)
-            {
-                double dist = sqrt(((LatMin - pRefTable[id].latr) * (LatMin - pRefTable[id].latr))
-                            + ((LonMin - pRefTable[id].lonr) * (LonMin - pRefTable[id].lonr)));
-
-                if(dist < min_dist_n)
-                {
-                    min_dist_n = dist;
-                    iminclose = id;
-                }
-            }
-
-            // Make the check
-            if(pRefTable[imaxclose].xr < pRefTable[iminclose].xr)
-            {
-                float t_lonmin = LonMin;
-                LonMin = LonMax;
-                LonMax = t_lonmin;
-            }
-      }
+      if(!SetMinMax())
+            return INIT_FAIL_REMOVE;          // have to bail here
 
       if(init_flags == HEADER_ONLY)
             return INIT_OK;
@@ -1769,14 +1628,112 @@ void ChartBaseBSB::InvalidateLineCache(void)
 
 bool ChartBaseBSB::GetChartExtent(Extent *pext)
 {
-      pext->NLAT = LatMax;
-      pext->SLAT = LatMin;
-      pext->ELON = LonMax;
-      pext->WLON = LonMin;
+      pext->NLAT = m_LatMax;
+      pext->SLAT = m_LatMin;
+      pext->ELON = m_LonMax;
+      pext->WLON = m_LonMin;
 
       return true;
 }
 
+
+bool ChartBaseBSB::SetMinMax(void)
+{
+      //    Calculate the Chart Extents(M_LatMin, M_LonMin, etc.)
+      //     from the COVR data, for fast database search
+      m_LonMax = -360.0;
+      m_LonMin = 360.0;
+      m_LatMax = -90.0;
+      m_LatMin = 90.0;
+
+      Plypoint *ppp = (Plypoint *)GetCOVRTableHead(0);
+      int cnPlypoint = GetCOVRTablenPoints(0);
+
+      for(int u=0 ; u<cnPlypoint ; u++)
+      {
+            if(ppp->lnp > m_LonMax)
+                  m_LonMax = ppp->lnp;
+            if(ppp->lnp < m_LonMin)
+                  m_LonMin = ppp->lnp;
+
+            if(ppp->ltp > m_LatMax)
+                  m_LatMax = ppp->ltp;
+            if(ppp->ltp < m_LatMin)
+                  m_LatMin = ppp->ltp;
+
+            ppp++;
+      }
+
+      //    Check for special cases
+
+      //    Case 1:  Chart spans International Date Line, Longitude min/max is non-obvious.
+      if((m_LonMax * m_LonMin) < 0)              // min/max are opposite signs
+      {
+            //    Georeferencing is not yet available, so find the reference points closest to min/max ply points
+
+            if(0 == nRefpoint)
+                  return false;        // have to bail here
+
+                  //    for m_LonMax
+            double min_dist_x = 360;
+            int imaxclose;
+            for(int ic=0 ; ic<nRefpoint ; ic++)
+            {
+                  double dist = sqrt(((m_LatMax - pRefTable[ic].latr) * (m_LatMax - pRefTable[ic].latr))
+                                    + ((m_LonMax - pRefTable[ic].lonr) * (m_LonMax - pRefTable[ic].lonr)));
+
+                  if(dist < min_dist_x)
+                  {
+                        min_dist_x = dist;
+                        imaxclose = ic;
+                  }
+            }
+
+                  //    for m_LonMin
+            double min_dist_n = 360;
+            int iminclose;
+            for(int id=0 ; id<nRefpoint ; id++)
+            {
+                  double dist = sqrt(((m_LatMin - pRefTable[id].latr) * (m_LatMin - pRefTable[id].latr))
+                                    + ((m_LonMin - pRefTable[id].lonr) * (m_LonMin - pRefTable[id].lonr)));
+
+                  if(dist < min_dist_n)
+                  {
+                        min_dist_n = dist;
+                        iminclose = id;
+                  }
+            }
+
+                  // Make the check
+            if(pRefTable[imaxclose].xr < pRefTable[iminclose].xr)
+            {
+                  float t_lonmin = m_LonMin;
+                  m_LonMin = m_LonMax;
+                  m_LonMax = t_lonmin;
+            }
+      }
+
+      // Case 2 Lons are both < -180, which means the extent will be reported incorrectly
+      // and the plypoint structure will be wrong
+      // This case is seen first on 81004_1.KAP, (Mariannas)
+
+      if((m_LonMax < -180.) && (m_LonMin < -180.))
+      {
+            m_LonMin += 360.;               // Normalize the extents
+            m_LonMax += 360.;
+
+            Plypoint *ppp = (Plypoint *)GetCOVRTableHead(0);      // Normalize the plypoints
+            int cnPlypoint = GetCOVRTablenPoints(0);
+
+            for(int u=0 ; u<cnPlypoint ; u++)
+            {
+                  ppp->lnp += 360.;
+                  ppp++;
+            }
+      }
+
+      return true;
+}
 
 void ChartBaseBSB::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
 {
@@ -3932,7 +3889,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.21 2009/06/17 02:42:45 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.22 2009/06/25 02:33:02 bdbcat Exp $
 *
 */
 

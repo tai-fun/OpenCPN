@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.13 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: chartimg.h,v 1.14 2009/06/25 02:37:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.14  2009/06/25 02:37:15  bdbcat
+ * Normalize charts near International Dateline.
+ *
  * Revision 1.13  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -239,6 +242,7 @@ protected:
       virtual int BSBScanScanline(wxInputStream *pinStream);
       virtual int ReadBSBHdrLine( wxFileInputStream*, char *, int );
       virtual int AnalyzeRefpoints(void);
+      virtual bool SetMinMax(void);
 
       void ComputeSourceRectangle(ViewPort &vp, wxRect *pSourceRect);
 
@@ -310,10 +314,10 @@ protected:
       bool        bUseLineCache;
       double      Chart_Skew;
 
-      float       LonMax;
-      float       LonMin;
-      float       LatMax;
-      float       LatMin;
+      float       m_LonMax;
+      float       m_LonMin;
+      float       m_LatMax;
+      float       m_LatMin;
 
       int         *pPalette;
       PaletteDir  palette_direction;
