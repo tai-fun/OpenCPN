@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.31 2009/06/03 03:20:36 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.32 2009/06/25 02:31:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.32  2009/06/25 02:31:04  bdbcat
+ * Calculate extents for ENC with no M_COVR.
+ *
  * Revision 1.31  2009/06/03 03:20:36  bdbcat
  * Set Overzoom limits
  *
@@ -79,6 +82,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.32  2009/06/25 02:31:04  bdbcat
+ * Calculate extents for ENC with no M_COVR.
+ *
  * Revision 1.31  2009/06/03 03:20:36  bdbcat
  * Set Overzoom limits
  *
@@ -196,7 +202,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.31 2009/06/03 03:20:36 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.32 2009/06/25 02:31:04 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -2662,44 +2668,53 @@ bool s57chart::CreateHeaderDataFromENC(void)
             //  There is no M_COVR object in the Exchange Set.
             else
             {
-                  wxString msg(_T("   ENC contains no M_COVR features:  "));
-                  msg.Append(*m_pFullPath);
-                  wxLogMessage(msg);
+//                  wxString msg(_T("   ENC contains no M_COVR features:  "));
+//                  msg.Append(*m_pFullPath);
+//                  msg.Append(_T("\n                Calculating Chart Extents as fallback."));
+//                  wxLogMessage(msg);
 
-                  return false;
+                  OGREnvelope Env;
 
-  /*
-                  Extent ext;
-                  if(s57_GetChartExtent(full_name, &ext))
+                  //    Get the reader
+                  S57Reader *pENCReader = m_pENCDS->GetModule(0);
+
+                  if(pENCReader->GetExtent( &Env, true ) == OGRERR_NONE)
                   {
-                        pEntry->LatMax = ext.NLAT;
-                        pEntry->LatMin = ext.SLAT;
-                        pEntry->LonMin = ext.WLON;
-                        pEntry->LonMax = ext.ELON;
 
-                        pEntry->nPlyEntries = 4;
+                        LatMax = Env.MaxY;
+                        LonMax = Env.MaxX;
+                        LatMin = Env.MinY;
+                        LonMin = Env.MinX;
+
+                        m_nCOVREntries = 1;
+                        m_pCOVRContourTable = (int *)malloc(sizeof(int));
+                        *m_pCOVRContourTable = 4;
+                        m_pCOVRTable = (float **)malloc(sizeof(float *));
                         float *pf = (float *)malloc(2 * 4 * sizeof(float));
-                        pEntry->pPlyTable = pf;
+                        *m_pCOVRTable = pf;
                         float *pfe = pf;
 
-                        *pfe++ = ext.NLAT;
-                        *pfe++ = ext.WLON;
+                        *pfe++ = LatMax;
+                        *pfe++ = LonMin;
 
-                        *pfe++ = ext.NLAT;
-                        *pfe++ = ext.ELON;
+                        *pfe++ = LatMax;
+                        *pfe++ = LonMax;
 
-                        *pfe++ = ext.SLAT;
-                        *pfe++ = ext.ELON;
+                        *pfe++ = LatMin;
+                        *pfe++ = LonMax;
 
-                        *pfe++ = ext.SLAT;
-                        *pfe++ = ext.WLON;
+                        *pfe++ = LatMin;
+                        *pfe++ = LonMin;
+
                   }
                   else
                   {
+                        wxString msg(_T("   Cannot calculate Extents for ENC:  "));
+                        msg.Append(*m_pFullPath);
+                        wxLogMessage(msg);
+
                         return false;                     // chart is completely unusable
                   }
-*/
-
             }
 
             //    Populate the chart's extent structure
