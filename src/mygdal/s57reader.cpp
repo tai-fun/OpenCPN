@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57reader.cpp,v 1.5 2008/08/27 22:51:38 bdbcat Exp $
+ * $Id: s57reader.cpp,v 1.6 2009/06/25 02:38:01 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Reader class.
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: s57reader.cpp,v $
+ * Revision 1.6  2009/06/25 02:38:01  bdbcat
+ * Add debug support.
+ *
  * Revision 1.5  2008/08/27 22:51:38  bdbcat
  * Add error returns to ENC update logic
  *
@@ -187,7 +190,7 @@
 #include "cpl_string.h"
 #include "ogr_s57.h"
 
-CPL_CVSID("$Id: s57reader.cpp,v 1.5 2008/08/27 22:51:38 bdbcat Exp $");
+CPL_CVSID("$Id: s57reader.cpp,v 1.6 2009/06/25 02:38:01 bdbcat Exp $");
 
 /************************************************************************/
 /*                             S57Reader()                              */
@@ -512,6 +515,8 @@ int S57Reader::Ingest()
         //  Feature records
         else if( EQUAL(pszname,"FRID") )
         {
+
+//              poRecord->Dump(stderr);               //  for debugging, try ./opencpn &>test.dbg
 
             int         nRCID = poRecord->GetIntSubfield( "FRID",0, "RCID",0);
 
