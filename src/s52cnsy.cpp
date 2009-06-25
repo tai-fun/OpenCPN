@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.17 2009/05/05 15:02:25 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.18 2009/06/25 02:32:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.18  2009/06/25 02:32:03  bdbcat
+ * Symbolize lights of undefined color as magenta.
+ *
  * Revision 1.17  2009/05/05 15:02:25  bdbcat
  * Fix Unicode config bugs
  *
@@ -120,7 +123,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.17 2009/05/05 15:02:25 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.18 2009/06/25 02:32:03 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -574,30 +577,33 @@ wxString _selSYcol(char *buf, bool bsectr, double valnmr)
       if ('\0' == buf[1])
       {
           if (strpbrk(buf, "\003"))
-//                sym = _T(",LITRD, 2,0,360,4,0");
                 sym.Printf(_T(",LITRD, 2,0,360,%d,0"), radius + 1);
           else if (strpbrk(buf, "\004"))
                 sym.Printf(_T(",LITGN, 2,0,360,%d,0"), radius);
-//                sym = _T(",LITGN, 2,0,360,3,0");
           else if (strpbrk(buf, "\001\006\011"))
                 sym.Printf(_T(",LITYW, 2,0,360,%d,0"), radius + 2);
-//                sym = _T(",LITGN, 2,0,360,3,0");
+          else if (strpbrk(buf, "\014"))
+                sym.Printf(_T(",CHMGD, 2,0,360,%d,0"), radius + 3);
+          else
+                sym.Printf(_T(",CHMGD, 2,0,360,%d,0"), radius + 5);           // default
+
       }
       else  if ('\0' == buf[2])       // or 2 color
       {
                 if (strpbrk(buf, "\001") && strpbrk(buf, "\003"))
                       sym.Printf(_T(",LITRD, 2,0,360,%d,0"), radius + 1);
-//                      sym = _T(",LITRD, 2,0,360,4,0");
                 else if (strpbrk(buf, "\001") && strpbrk(buf, "\004"))
                       sym.Printf(_T(",LITGN, 2,0,360,%d,0"), radius);
-//                  sym = _T(",LITGN, 2,0,360,3,0");
+                else
+                      sym.Printf(_T(",CHMGD, 2,0,360,%d,0"), radius + 5);           // default
 
       }
       else
             sym.Printf(_T(",CHMGD, 2,0,360,%d,0"), radius + 5);
-//            sym = _T(",CHMGD, 2,0,360,8,0");
 
-    sym.Prepend(_T(";CA(OUTLW, 4"));
+
+      if(sym.Len())
+            sym.Prepend(_T(";CA(OUTLW, 4"));
     }
 
 
@@ -1265,6 +1271,7 @@ static void *LIGHTS05 (void *param)
     double   sectr2            = UNKNOWN_DOUBLE;
     double   sweep;
     char     colist[LISTSIZE]  = {'\0'};   // colour list
+    bool     b_isflare = false;
 
     wxString orientstr;
 
@@ -1343,9 +1350,14 @@ static void *LIGHTS05 (void *param)
                     flare_at_45 = true;
 */
             ssym = _selSYcol(colist, 0, valnmr);              // flare
+            b_isflare = true;
         }
         else
+        {
             ssym = _selSYcol(colist, 1, valnmr);              // all round light
+            b_isflare = false;
+        }
+
 
         //  Is the light a directional or moire?
         if (strpbrk(catlit, "\001\016"))
@@ -1362,14 +1374,14 @@ static void *LIGHTS05 (void *param)
         else
         {
             lights05.Append(ssym);
-            if (flare_at_45)
-                lights05.Append(_T(",45)"));
-            else
-                lights05.Append(_T(",135)"));
-
+            if(b_isflare)
+            {
+                if (flare_at_45)
+                      lights05.Append(_T(",45)"));
+                else
+                      lights05.Append(_T(",135)"));
+            }
         }
-
-
 
 
         goto l05_end;
