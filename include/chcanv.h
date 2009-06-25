@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.23 2009/06/22 02:44:05 bdbcat Exp $
+ * $Id: chcanv.h,v 1.24 2009/06/25 02:37:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.24  2009/06/25 02:37:04  bdbcat
+ * Slow down mouse wheel, fix chart outlines near IDL.
+ *
  * Revision 1.23  2009/06/22 02:44:05  bdbcat
  * Implement AIS Target highlight.
  *
@@ -379,6 +382,10 @@ private:
       wxTimer     *pRescaleTimer;   // This timer used for bi-linear rescale
       wxTimer     *pPanTimer;       // This timer used for auto panning on route creation and edit
       wxTimer     *pCurTrackTimer;  // This timer used to update the status window on mouse idle
+
+      wxTimer     m_MouseWheelTimer;
+      int         m_mouse_wheel_oneshot;
+      int         m_last_wheel_dir;
 
       int         m_rescale_timer_msec;
       int         m_curtrack_timer_msec;

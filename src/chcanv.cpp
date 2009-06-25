@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.46 2009/06/22 02:44:35 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.47 2009/06/25 02:36:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.47  2009/06/25 02:36:47  bdbcat
+ * Slow down mouse wheel, fix chart outlines near IDL.
+ *
  * Revision 1.46  2009/06/22 02:44:35  bdbcat
  * Implement AIS Target highlight.
  *
@@ -102,6 +105,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.47  2009/06/25 02:36:47  bdbcat
+ * Slow down mouse wheel, fix chart outlines near IDL.
+ *
  * Revision 1.46  2009/06/22 02:44:35  bdbcat
  * Implement AIS Target highlight.
  *
@@ -313,7 +319,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.46 2009/06/22 02:44:35 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.47 2009/06/25 02:36:47 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -531,6 +537,8 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         pCurTrackTimer->Stop();
         m_curtrack_timer_msec = 1000;
 
+        m_MouseWheelTimer.SetOwner(this);
+
         pBM = NULL;
 
 //    Set up current arrow drawing factors
@@ -696,6 +704,12 @@ void ChartCanvas::RescaleTimerEvent ( wxTimerEvent& event )
         }
 }
 
+/*
+void ChartCanvas::MouseWheelTimerEvent ( wxTimerEvent& event )
+{
+      m_bEnableWheelEvents = true;
+}
+*/
 
 void ChartCanvas::OnIdleEvent ( wxIdleEvent& event )
 {
@@ -1844,7 +1858,8 @@ void ChartCanvas::JaggyCircle(wxDC &dc, wxPen pen, int x, int y, int radius)
 
       wxDateTime now = wxDateTime::Now();
 
-      srand( now.GetTicks());
+//      srand( now.GetTicks());
+      srand( 1);
       dc.SetPen(pen);
 
       int x0, y0, x1, y1;
@@ -2226,11 +2241,30 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
 #endif
 
         //        Check for wheel rotation
+        m_mouse_wheel_oneshot = 50;                  //msec
+                                                      // ideally, should be just longer than the time between
+                                                      // processing accumulated mouse events from the event queue
+                                                      // as would happen during screen redraws.
         int wheel_dir = event.GetWheelRotation();
-        if(wheel_dir > 0)
-              ZoomCanvasIn();
-        else if(wheel_dir < 0)
-              ZoomCanvasOut();
+
+        if(m_MouseWheelTimer.IsRunning())
+        {
+              if(wheel_dir != m_last_wheel_dir)
+                    m_MouseWheelTimer.Stop();
+              else
+                    m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // restart timer
+        }
+
+        m_last_wheel_dir = wheel_dir;
+
+        if(!m_MouseWheelTimer.IsRunning())
+        {
+           if(wheel_dir > 0)
+                    ZoomCanvasIn();
+            else if(wheel_dir < 0)
+                    ZoomCanvasOut();
+            m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // start timer
+        }
 
 
 //    Route Creation Rubber Banding
@@ -3359,13 +3393,44 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
         float plylat, plylon, plylat1, plylon1;
 
         int pixx, pixy, pixx1, pixy1;
+        bool b_draw = false;
+        double lon_bias = 0.;
 
         wxBoundingBox box;
         ChartData->GetDBBoundingBox ( dbIndex, &box );
 
-        if ( vp.vpBBox.Intersect ( box, 0 ) == _OUT )
-                return;
+        if ( vp.vpBBox.Intersect ( box, 0 ) != _OUT )               // chart is not outside of viewport
+              b_draw = true;
 
+        //  Does simple test fail, and current vp cross international dateline?
+        if(((vp.pref_b_lon < -180.) || (vp.pref_d_lon > 180.)) && !b_draw)
+        {
+              //  If so, do an explicit test with alternate phasing
+              if(vp.pref_b_lon < -180.)
+              {
+                    wxPoint2DDouble p(-360., 0);
+                    box.Translate(p);
+                    if ( vp.vpBBox.Intersect ( box, 0 ) != _OUT )               // chart is not outside of viewport
+                    {
+                          b_draw = true;
+                          lon_bias = -360.;
+                    }
+              }
+              else
+              {
+                    wxPoint2DDouble p(360., 0);
+                    box.Translate(p);
+                    if ( vp.vpBBox.Intersect ( box, 0 ) != _OUT )               // chart is not outside of viewport
+                    {
+                          b_draw = true;
+                          lon_bias = 360.;
+                    }
+            }
+
+        }
+
+        if(!b_draw)
+              return;
 
 
         int nPly = ChartData->GetDBPlyPoint ( dbIndex, 0, &plylat, &plylon );
@@ -3388,6 +3453,8 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
         wxPoint r, r1;
 
         ChartData->GetDBPlyPoint ( dbIndex, 0, &plylat, &plylon );
+        plylon += lon_bias;
+
         GetPointPix ( plylat, plylon, &r );
         pixx = r.x;
         pixy = r.y;
@@ -3395,6 +3462,7 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
         for ( int i=0 ; i<nPly-1 ; i++ )
         {
                 ChartData->GetDBPlyPoint ( dbIndex, i+1, &plylat1, &plylon1 );
+                plylon1 += lon_bias;
 
                 GetPointPix ( plylat1, plylon1, &r1 );
                 pixx1 = r1.x;
@@ -3415,6 +3483,8 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
         }
 
         ChartData->GetDBPlyPoint ( dbIndex, 0, &plylat1, &plylon1 );
+        plylon1 += lon_bias;
+
         GetPointPix ( plylat1, plylon1, &r1 );
         pixx1 = r1.x;
         pixy1 = r1.y;
