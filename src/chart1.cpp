@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.41 2009/06/20 03:40:55 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.42 2009/06/28 02:04:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.42  2009/06/28 02:04:08  bdbcat
+ * Convert "About" dialog to non-modal.
+ *
  * Revision 1.41  2009/06/20 03:40:55  bdbcat
  * Add setlocale() to avoid "," vs "." problem.
  *
@@ -133,6 +136,7 @@
 #include "wx/stdpaths.h"
 
 
+
 #include "dychart.h"
 
 #ifdef __WXMSW__
@@ -189,7 +193,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.41 2009/06/20 03:40:55 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.42 2009/06/28 02:04:08 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -446,8 +450,6 @@ static int tick_idx;
 #ifdef  __WXMSW__
 DEFINE_GUID(GARMIN_DETECT_GUID, 0x2c9c45c2L, 0x8e7d, 0x4c08, 0xa1, 0x2d, 0x81, 0x6b, 0xba, 0xe7, 0x22, 0xc0);
 #endif
-
-
 
 #ifdef __MSVC__
 #define _CRTDBG_MAP_ALLOC
@@ -1112,7 +1114,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         pCurrentStack = new ChartStack;
 
 
-
 //      All set to go.....
 
 #ifndef __WXMSW__
@@ -1378,6 +1379,8 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
         g_pDummyTextCtrl->Move(-100,-100);
         g_pDummyTextCtrl->Show();
         g_pDummyTextCtrl->SetFocus();
+
+
 
 }
 
@@ -2279,7 +2282,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     case ID_HELP:
       {
             about *pAboutDlg = new about(this, g_pSData_Locn);
-            pAboutDlg->ShowModal();
+            pAboutDlg->Show();
 
             break;
       }
