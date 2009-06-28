@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.32 2009/06/25 02:31:04 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.33 2009/06/28 02:01:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.33  2009/06/28 02:01:11  bdbcat
+ * Correct Feature Decsription Longitude.
+ *
  * Revision 1.32  2009/06/25 02:31:04  bdbcat
  * Calculate extents for ENC with no M_COVR.
  *
@@ -82,6 +85,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.33  2009/06/28 02:01:11  bdbcat
+ * Correct Feature Decsription Longitude.
+ *
  * Revision 1.32  2009/06/25 02:31:04  bdbcat
  * Calculate extents for ENC with no M_COVR.
  *
@@ -202,7 +208,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.32 2009/06/25 02:31:04 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.33 2009/06/28 02:01:11 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -5424,6 +5430,9 @@ S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
                   {
                         double lon, lat;
                         fromSM((obj->x * obj->x_rate) + obj->x_origin, (obj->y * obj->y_rate) + obj->y_origin, ref_lat, ref_lon, &lat, &lon);
+
+                        if(lon > 180.0)
+                              lon -= 360.;
 
                         wxString pos_st;
                         pos_st.Printf(_T("Position: "));
