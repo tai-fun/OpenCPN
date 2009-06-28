@@ -314,6 +314,7 @@ install-data-local:
 	cp -p ./$(srcdir)/data/tcdata/HARMONIC  $(DESTDIR)$(pkgdatadir)/tcdata
 	cp -p ./$(srcdir)/data/tcdata/HARMONIC.IDX  $(DESTDIR)$(pkgdatadir)/tcdata
 	cp -p ./$(srcdir)/data/license.txt  $(DESTDIR)$(pkgdatadir)
+	cp -p ./$(srcdir)/data/tips.html  $(DESTDIR)$(pkgdatadir)
 
 uninstall-local:
 	rm -fr $(DESTDIR)$(pkgdatadir)/wvsdata/*
