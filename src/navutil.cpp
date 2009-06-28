@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.33  2009/06/28 21:41:09  bdbcat
+ * Save GPX_IO directory fix.
+ *
  * Revision 1.32  2009/06/28 03:34:52  bdbcat
  * Save GPX_IO directory.
  *
@@ -94,6 +97,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.33  2009/06/28 21:41:09  bdbcat
+ * Save GPX_IO directory fix.
+ *
  * Revision 1.32  2009/06/28 03:34:52  bdbcat
  * Save GPX_IO directory.
  *
@@ -214,7 +220,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.32 2009/06/28 03:34:52 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.33 2009/06/28 21:41:09 bdbcat Exp $");
 
 //    Statics
 
@@ -2843,11 +2849,11 @@ void MyConfig::ExportGPX(wxWindow* parent)
 
       int response = saveDialog->ShowModal();
 
+      wxString path = saveDialog->GetPath();
       wxFileName fn(path);
       m_gpx_path = fn.GetPath();
 
       if (response == wxID_OK) {
-            wxString path = saveDialog->GetPath();
 
             fn.SetExt(_T("gpx"));
 
