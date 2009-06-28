@@ -55,7 +55,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #define snprintf mysnprintf
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.10 2009/03/26 22:29:23 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.11 2009/06/28 01:59:31 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -231,6 +231,19 @@ void datumParams(short datum, double *a, double *es)
     *a = gEllipsoid[gDatum[datum].ellipsoid].a;       // semimajor axis
 }
 
+int GetDatumIndex(char *str)
+{
+      int i = 0;
+      while (i < 102)
+      {
+            if(!strcmp(str, gDatum[i].name))
+                  return i;
+            i++;
+      }
+
+      return -1;
+}
+
 /****************************************************************************/
 /* Convert degrees to dd mm'ss.s" (DMS-Format)                              */
 /****************************************************************************/
@@ -360,6 +373,7 @@ double fromDMM(char *dms)
 
 static double M(double phi, double a, double es);
 
+
 // DSR Shortcut, constants for WGS-84
 static const double a = 6378137.0;
 static const double s_z = 6378137.0;// * PI / 2.;
@@ -443,6 +457,79 @@ fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon)
      *lat = phi;
 */
 }
+
+#if 0
+Molodensky
+In the listing below, the class GeodeticPosition has three members, lon, lat, and h. They are double-precision values indicating the longitude and latitude in radians, and height in meters above the ellipsoid.
+
+            The source code in the listing below may be copied and reused without restriction, but it is offered AS-IS with NO WARRANTY.
+
+    /*
+                        * transform
+                        *
+    * Parameters:
+                        *     from:     The geodetic position to be translated.
+                        *     from_a:   The semi-major axis of the "from" ellipsoid.
+                        *     from_f:   Flattening of the "from" ellipsoid.
+                        *     from_esq: Eccentricity-squared of the "from" ellipsoid.
+                        *     da:       Change in semi-major axis length (meters); "to" minus "from"
+                        *     df:       Change in flattening; "to" minus "from"
+                        *     dx:       Change in x between "from" and "to" datum.
+                        *     dy:       Change in y between "from" and "to" datum.
+                        *     dz:       Change in z between "from" and "to" datum.
+    */
+                        public GeodeticPosition transform (GeodeticPosition from,
+                                    double from_a, double from_f,
+
+                                    double from_esq, double da, double df,
+                                    double dx, double dy, double dz)
+
+#endif
+void MolodenskyTransform (double lat, double lon, double *to_lat, double *to_lon, int from_datum_index, int to_datum_index)
+{
+      double from_lat = lat * DEGREE;
+      double from_lon = lon * DEGREE;
+      double from_f = 1.0 / gEllipsoid[gDatum[from_datum_index].ellipsoid].invf;    // flattening
+      double from_esq = 2 * from_f - from_f * from_f;                               // eccentricity^2
+      double from_a = gEllipsoid[gDatum[from_datum_index].ellipsoid].a;             // semimajor axis
+      double dx = gDatum[from_datum_index].dx;
+      double dy = gDatum[from_datum_index].dy;
+      double dz = gDatum[from_datum_index].dz;
+      double to_f = 1.0 / gEllipsoid[gDatum[to_datum_index].ellipsoid].invf;        // flattening
+      double to_a = gEllipsoid[gDatum[to_datum_index].ellipsoid].a;                 // semimajor axis
+      double da = to_a - from_a;
+      double df = to_f - from_f;
+      double from_h = 0;
+
+
+      double slat = sin (from_lat);
+      double clat = cos (from_lat);
+      double slon = sin (from_lon);
+      double clon = cos (from_lon);
+      double ssqlat = slat * slat;
+      double adb = 1.0 / (1.0 - from_f);  // "a divided by b"
+      double dlat, dlon, dh;
+
+      double rn = from_a / sqrt (1.0 - from_esq * ssqlat);
+      double rm = from_a * (1. - from_esq) / pow ((1.0 - from_esq * ssqlat), 1.5);
+
+      dlat = (((((-dx * slat * clon - dy * slat * slon) + dz * clat)
+                  + (da * ((rn * from_esq * slat * clat) / from_a)))
+                  + (df * (rm * adb + rn / adb) * slat * clat)))
+            / (rm + from_h);
+
+      dlon = (-dx * slon + dy * clon) / ((rn + from_h) * clat);
+
+      dh = (dx * clat * clon) + (dy * clat * slon) + (dz * slat)
+                  - (da * (from_a / rn)) + ((df * rn * ssqlat) / adb);
+
+      *to_lon = lon + dlon/DEGREE;
+      *to_lat = lat + dlat/DEGREE;
+//    *to_h = from.h + dh;
+
+      return;
+}
+
 
 
 /****************************************************************************/
