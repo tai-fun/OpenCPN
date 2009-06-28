@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.h,v 1.5 2008/08/26 13:49:53 bdbcat Exp $
+ * $Id: concanv.h,v 1.6 2009/06/28 03:08:41 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.h,v $
+ * Revision 1.6  2009/06/28 03:08:41  bdbcat
+ * Set minimum size for Console.
+ *
  * Revision 1.5  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -33,6 +36,9 @@
  * *** empty log message ***
  *
  * $Log: concanv.h,v $
+ * Revision 1.6  2009/06/28 03:08:41  bdbcat
+ * Set minimum size for Console.
+ *
  * Revision 1.5  2008/08/26 13:49:53  bdbcat
  * Better color scheme support
  *
@@ -151,6 +157,7 @@ public:
       void MouseEvent(wxMouseEvent& event);
       void ShowWithFreshFonts(void);
       void SetColorScheme(ColorScheme cs);
+      wxSize GetMiniSize(void);
 
       wxStaticBox       *pThisLegBox;
       AnnunText         *pXTE;

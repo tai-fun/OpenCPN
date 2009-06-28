@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.10 2009/03/26 22:29:16 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.11 2009/06/28 03:09:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.11  2009/06/28 03:09:05  bdbcat
+ * Set minimum size for Console.
+ *
  * Revision 1.10  2009/03/26 22:29:16  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -39,6 +42,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.11  2009/06/28 03:09:05  bdbcat
+ * Set minimum size for Console.
+ *
  * Revision 1.10  2009/03/26 22:29:16  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -117,7 +123,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.10 2009/03/26 22:29:16 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.11 2009/06/28 03:09:05 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -173,6 +179,14 @@ ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
       delete pSBoxRgn;
 }
 
+wxSize ConsoleCanvas::GetMiniSize(void)
+{
+      //TODO Really need to switch to a sizer here.
+      int sx = 140;
+      int sy = 330;
+
+      return wxSize(sx, sy);
+}
 
 void ConsoleCanvas::OnSize(wxSizeEvent& event)
 {
