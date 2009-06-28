@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.22 2009/06/25 02:33:02 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.23 2009/06/28 02:02:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.23  2009/06/28 02:02:08  bdbcat
+ * Implement Datum transforms.
+ *
  * Revision 1.22  2009/06/25 02:33:02  bdbcat
  * Normalize charts near International Dateline.
  *
@@ -57,6 +60,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.23  2009/06/28 02:02:08  bdbcat
+ * Implement Datum transforms.
+ *
  * Revision 1.22  2009/06/25 02:33:02  bdbcat
  * Normalize charts near International Dateline.
  *
@@ -145,7 +151,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.22 2009/06/25 02:33:02 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.23 2009/06/28 02:02:08 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -219,6 +225,9 @@ ChartBase::ChartBase()
       m_nCOVREntries = 0;
 
       m_EdDate.Set(1, wxDateTime::Jan, 2000);
+
+      m_lon_datum_adjust = 0.;
+      m_lat_datum_adjust = 0.;
 }
 
 ChartBase::~ChartBase()
@@ -918,6 +927,13 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                             wxString str(&buffer[i], wxConvUTF8);
                             pDepthUnits->Append(str.BeforeFirst(','));
                         }
+                        if(token.IsSameAs(_T("GD"), TRUE))                  // extract Datum
+                        {
+                              int i;
+                              i = tkz.GetPosition();
+                              wxString str(&buffer[i], wxConvUTF8);
+                              m_datum_str = str.BeforeFirst(',').Trim();
+                        }
 
                  }
             }
@@ -1243,6 +1259,8 @@ ChartBaseBSB::ChartBaseBSB()
 
       m_mapped_color_index = COLOR_RGB_DEFAULT;
 
+      m_datum_str = _T("WGS84");                // assume until proven otherwise
+
 }
 
 ChartBaseBSB::~ChartBaseBSB()
@@ -1556,6 +1574,17 @@ InitReturn ChartBaseBSB::PostInit(void)
       int analyze_ret_val = AnalyzeRefpoints();
       if(0 != analyze_ret_val)
             return INIT_FAIL_REMOVE;
+
+      //    Setup the datum transform parameters
+      char d_str[100];
+      strncpy(d_str, m_datum_str.mb_str(), 99);
+      d_str[99] = 0;
+
+      int datum_index = GetDatumIndex(d_str);
+      if(-1 != datum_index)
+            m_datum_index = datum_index;
+      else
+            m_datum_index = GetDatumIndex("WGS84");
 
       bReadyToRender = true;
       return INIT_OK;
@@ -1967,16 +1996,16 @@ int ChartBaseBSB::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
         {
             double lon = polytrans( pwx, pixx, pixy );
             lon = (lon < 0) ? lon + m_cph : lon - m_cph;
-            *plon = lon;
-            *plat = polytrans( pwy, pixx, pixy );
+            *plon = lon - m_lon_datum_adjust;
+            *plat = polytrans( pwy, pixx, pixy ) - m_lat_datum_adjust;
 
         }
         else                                            // use calculated coefficients
         {
             double lon = polytrans( cPoints.pwx, pixx, pixy );
             lon = (lon < 0) ? lon + m_cph : lon - m_cph;
-            *plon = lon;
-            *plat = polytrans( cPoints.pwy, pixx, pixy );
+            *plon = lon - m_lon_datum_adjust;
+            *plat = polytrans( cPoints.pwy, pixx, pixy ) - m_lat_datum_adjust;
 
         }
         return 0;
@@ -1998,14 +2027,19 @@ int ChartBaseBSB::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *pl
 
 int ChartBaseBSB::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
 {
+      double alat, alon;
+
+      alon = lon + m_lon_datum_adjust;
+      alat = lat + m_lat_datum_adjust;
+
     if(bUseGeoRef)
     {
         if(bHaveImbeddedGeoref)
         {
             /* change longitude phase (CPH) */
-            double lonp = (lon < 0) ? lon + m_cph : lon - m_cph;
-            double xd = polytrans( wpx, lonp, lat );
-            double yd = polytrans( wpy, lonp, lat );
+            double lonp = (alon < 0) ? alon + m_cph : alon - m_cph;
+            double xd = polytrans( wpx, lonp, alat );
+            double yd = polytrans( wpy, lonp, alat );
             pixx = (int)(xd + 0.5);
             pixy = (int)(yd + 0.5);
 
@@ -2013,9 +2047,9 @@ int ChartBaseBSB::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
         else                                            // use calculated coefficients
         {
             /* change longitude phase (CPH) */
-            double lonp = (lon < 0) ? lon + m_cph : lon - m_cph;
-            double xd = polytrans( cPoints.wpx, lonp, lat );
-            double yd = polytrans( cPoints.wpy, lonp, lat );
+            double lonp = (alon < 0) ? alon + m_cph : alon - m_cph;
+            double xd = polytrans( cPoints.wpx, lonp, alat );
+            double yd = polytrans( cPoints.wpy, lonp, alat );
             pixx = (int)(xd + 0.5);
             pixy = (int)(yd + 0.5);
         }
@@ -2084,6 +2118,21 @@ void ChartBaseBSB::ComputeSourceRectangle(ViewPort &vp, wxRect *pSourceRect)
 
 void ChartBaseBSB::SetVPParms(ViewPort *vpt)
 {
+      //    Calculate the potential datum offset parameters for this viewport, if not WGS84
+
+      if(m_datum_index != DATUM_INDEX_WGS84)
+      {
+            double to_lat, to_lon;
+            MolodenskyTransform (vpt->clat, vpt->clon, &to_lat, &to_lon, m_datum_index, DATUM_INDEX_WGS84);
+            m_lon_datum_adjust = -(to_lon - vpt->clon);
+            m_lat_datum_adjust = -(to_lat - vpt->clat);
+      }
+      else
+      {
+            m_lon_datum_adjust = 0.;
+            m_lat_datum_adjust = 0.;
+      }
+
       ComputeSourceRectangle(*vpt, &Rsrc);
 }
 
@@ -3443,10 +3492,17 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 
         if(!bHaveImbeddedGeoref)
         {
-            cPoints.order = 3;
-
-            if(Georef_Calculate_Coefficients(&cPoints))
-                bUseGeoRef = false;         // some error in georef calculation
+              if(nRefpoint == 4)          // typical old BSB chart
+              {
+                  cPoints.order = 1;
+                  Georef_Calculate_Coefficients(&cPoints);
+              }
+              else
+              {
+                    cPoints.order = 3;
+                    if(Georef_Calculate_Coefficients(&cPoints))
+                        bUseGeoRef = false;         // some error in georef calculation
+              }
 
             // Touch up the coefficients
             if(cPoints.order < 3)
@@ -3889,7 +3945,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.22 2009/06/25 02:33:02 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.23 2009/06/28 02:02:08 bdbcat Exp $
 *
 */
 

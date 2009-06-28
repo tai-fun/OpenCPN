@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.14 2009/06/25 02:37:15 bdbcat Exp $
+ * $Id: chartimg.h,v 1.15 2009/06/28 02:02:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.15  2009/06/28 02:02:29  bdbcat
+ * Implement Datum transforms.
+ *
  * Revision 1.14  2009/06/25 02:37:15  bdbcat
  * Normalize charts near International Dateline.
  *
@@ -327,7 +330,6 @@ protected:
       double      m_ppm_avg;              // Calculated true scale factor of the 1X chart,
                                         // pixels per meter
 
-//      double      m_current_binary_scale_factor;            //Set in UpdateViewPortParms()
 
       //    Storage for background render machine
 
@@ -343,6 +345,9 @@ protected:
       int       br_get_bits_submap;
       int       br_target_y;
       int       bwb_size;
+
+      wxString  m_datum_str;
+      int       m_datum_index;
 };
 
 

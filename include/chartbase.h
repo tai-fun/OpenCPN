@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.13 2009/06/21 03:12:05 bdbcat Exp $
+ * $Id: chartbase.h,v 1.14 2009/06/28 02:02:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.14  2009/06/28 02:02:35  bdbcat
+ * Implement Datum transforms.
+ *
  * Revision 1.13  2009/06/21 03:12:05  bdbcat
  * Update dummy chart zoom limits.
  *
@@ -249,6 +252,9 @@ public:
 protected:
       int               m_Chart_Scale;
       wxDateTime        m_EdDate;
+
+      double            m_lon_datum_adjust;             // Add these numbers to WGS84 position to obtain internal chart position
+      double            m_lat_datum_adjust;
 
 
 };
