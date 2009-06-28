@@ -1,0 +1,780 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.3  (Linux)">
+	<META NAME="AUTHOR" CONTENT="Noyb">
+	<META NAME="CREATED" CONTENT="20090522;16472300">
+	<META NAME="CHANGEDBY" CONTENT="Philip Lange">
+	<META NAME="CHANGED" CONTENT="20090622;15311200">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { size: 8.5in 11in; margin: 0.79in }
+		P { margin-bottom: 0.08in }
+		TT { font-family: "DejaVu Sans Mono", monospace }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>O<I>penCPN</I>
+Version 1.3.3  Released   June <FONT COLOR="#c90016"><B>??</B></FONT>,
+2009</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>What
+is OpenCPN?</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>OpenCPN
+is a simple, concise chart plotter/navigator.  It is designed to be
+used continuously at the ships helm station while underway. It will
+allow the operator to easily track their position on accurate chart
+images. Additionally, O<I>penCPN</I> can display tide and current
+predictions. If you have a suitable AIS receiver it will display AIS
+information transmitted by AIS equipped vessels.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><I>OpenCPN</I>
+is a complete and fully functioning program.  It is licensed to you
+under the GNU public license. This and future upgrades will always be
+free to download without any gotchas. The source code is available
+and if you have programing skills, modifications can be made to suit
+your particular situation. See the <A HREF="/tmp/%20#http://www.gnu.org/copyleft/gpl.html">GNU
+Public License</A> for details.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Why
+should I use it instead of a commercial product?</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>a)
+ It is Open Source software, meaning, among other things, that it is
+FREE TO DOWNLOAD and use.  Escape the commercial paid upgrade
+treadmill!</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>b)
+ It is &quot;concise,&quot; meaning that the feature set is optimized
+for daily use, and excess features (aka &quot;bloatware&quot;) are
+not present. The application is thus smaller and faster, running
+acceptably on as little as a 300 Mhz Pentium-II Windows-98 computer.
+Especially, it starts up and shuts down quickly.<BR></FONT></FONT><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><TT><FONT FACE="Bitstream Vera Sans, sans-serif">c)
+ OpenCPN conforms more closely than many other consumer ECS's to
+international IMO specification S52 for ENC display. This is a
+worldwide standard, and promotes portability among watch-keeping
+officers on all ECDIS equipped ships and boats.</FONT></TT><FONT FACE="Bitstream Vera Sans, sans-serif"><BR><BR></FONT><TT><FONT FACE="Bitstream Vera Sans, sans-serif">Based
+on extensive human factors engineering, the main objective of S52 is
+to reduce clutter and extraneous information. For example, the colors
+are very carefully selected to produce the most effective viewing
+under real bridge conditions. Thus, in high stress conditions at sea
+(crossings, low viz, etc.), the proper situational awareness is
+maintained.</FONT></TT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Is
+it reliable for day to day use?</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>O<I>penCPN</I>
+is currently in a Beta release stage.  Traditionally, this means that
+there may be a few bugs. However, for normal usage, it runs just
+fine.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>On
+a personal note, <I>openCPN</I> has, for years, been the full-time
+everyday navigator aboard M/V Dyad, a trawler catamaran cruising from
+Newfoundland to the Bahamas.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Of
+course any prudent mariner will have navigation tools  and paper
+charts for the areas they will be sailing. Nothing that is electric
+and sails in salt water is 100% reliable. Low tech backups work even
+when wet.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>I'm
+not techno savvy, is this easy to use?</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Some
+familiarity with competitive products is assumed.  There is precious
+little documentation available on OpenCPN yet.  Usage is fairly
+intuitive.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>How
+accurate is it?</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>OpenCPN's
+accuracy is dependent upon the accuracy of  your GPS and the
+underlying chart database.  As for all such programs, o<I>penCPN</I>
+does not remove from the operator the responsibility to LOOK OUT THE
+WINDOW.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>With
+that said, </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>OpenCPN
+will plot the boat position to within about 100 ft of its true
+position most of the time.</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>OpenCPN
+will warn the user if the chart data accuracy does not allow for safe
+navigation.</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Do
+I need GPS?</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>O<I>penCPN</I>
+is optimized as an underway tool, so GPS data is necessary to allow
+boat position plotting. However, o<I>penCPN</I> can be used without
+GPS for planning purposes, such as route and waypoint entry and
+time/distance calculations.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Where
+can I find the charts I need?</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><I>OpenCPN</I>
+comes with a few sample charts. These are included to provide instant
+opportunity to experience the potential of the program. S57 vector
+charts (the equivalent to CM93/3) are now available for free download
+from NOAA. Find all the charts you need, both raster (RNC) and ENC's,
+for your region through NOOA OCS Website:
+<A HREF="http://www.nauticalcharts.noaa.gov/staff/charts.htm">http://www.nauticalcharts.noaa.gov/staff/charts.htm</A>
+</FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>If
+I need help, where can I find it?</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>I
+check the SCCA Bulletin board at </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><A HREF="http://ssca.org/phpBB3/viewforum.php?f=12"><FONT SIZE=4>http://ssca.org/phpBB3/viewforum.php?f=12</FONT></A></P>
+<P STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>I
+also check in at the Cruiser Forum at:</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"> <A HREF="http://www.cruisersforum.com/forums/f121/opencpn-13653-8.html">
+</A><A HREF="http://www.cruisersforum.com/forums/f121/opencpn-13653-8.html"><FONT SIZE=4>http://www.cruisersforum.com/forums/f121/opencpn-13653-8.html</FONT></A></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in">         
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><B>How
+can I help?</B></FONT><FONT COLOR="#c90016"> </FONT>         </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>If
+you'd like to develop enhancements to <I>openCPN</I>, check out the
+project on SourceForge: http://sourceforge.net/projects/opencpn/</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Current
+items of interest are:</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	a)
+Testing: Use it, cruise it, abuse it, take notes.  Your feedback is
+		appreciated.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	b)
+Icons, color palettes, etc: Graphic designers invited.</FONT></FONT></P>
+<OL TYPE=i START=100>
+	<P STYLE="margin-bottom: 0in"></P>
+</OL>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>We
+welcome all comments and ideas, and especially look forward to your
+bug reports. I can be reached by email at:</FONT></FONT><FONT FACE="Arial, sans-serif"><FONT SIZE=4>
+</FONT></FONT><A HREF="mailto:bdbcat@yahoo.co"><FONT FACE="Arial, sans-serif"><FONT SIZE=4>bdbcat@yahoo.co</FONT></FONT></A></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><FONT FACE="Arial, sans-serif"><FONT SIZE=4>*************************</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Getting
+Started with <I>openCPN</I></B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>1.3.3
+is a major feature enhancement release adding the following new
+functions and features: </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	1
+ Mouse wheel zooms the chart.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	2.
+Multiple Keyboard Hot Keys added.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	3.
+And, as usual, miscellaneous bug fixes and user optimizations.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>For
+a complete listing of all changes read the Release Notes and Change
+Log included in this distribution.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>We
+assume here that you have downloaded the proper file for your
+operating system and have installed it keeping all the default
+folders.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>On
+Linux machines the x-executable file is in usr/bin/opencpn.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>When
+your launch <I>openCPN</I>. For the first time you will be greeted by
+a green tinted screen with raged outlines of coast lines. A Bulls Eye
+shows the default location on the U.S. coast at 31.8439 N and ,
+080.7019&quot; W</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>The
+outline of the installed ENC chart  shows as a green square.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Let's
+get familiar with the Tool Bar. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>From
+left to right    </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><B>ZOOM
+IN and  ZOOM OUT</B></FONT> -  Magnigfying Glass  </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>These
+change the scale (size on your screen) of the chart you are working
+with. This  allows you to see more details. <I>OpenCPN</I> now
+supports the use of the scroll wheel to accomplish this</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Next
+is   </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><B>SCALE
+IN</B></FONT><B> and </B><FONT COLOR="#800000"><B>SCALE OUT</B></FONT>.
+</FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>These
+buttons will allow you to change the scale of chart you are using. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.98in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"> <FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>If
+a larger scale chart (large scale = greater detail in a smaller area)
+is available for the location of you mouse pointer will see more than
+one segmented bar in the lower left hand corner of the chart window. 
+ The segmented color bars in the Status Bar -BLUE for Raster  Green
+For ENC's, <FONT COLOR="#000000">Brown/Yellow for CM93 charts</FONT>
+–  The  current chart displays as a lighter shade of its color.</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>When
+you hover the mouse pointer over the bar a thumbnail of the chart
+will appear under the SCALE IN/OUT icons. By clicking on the
+appropriate bar, or using the appropriate  HOT KEYS, you will switch
+to the chart shown in the thumbnail.   This feature is especially
+useful if you wish to view ECN or a Raster chart of the same area.  </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"> </FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><B>CREATE
+NEW ROUTE</B></FONT> </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"> <FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	Click
+it. Using the cursor keys  navigate to the appropriate chart.
+	Left-Clicking sets a waypoint – Right-Click displays the route
+	context menu. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>If
+creating a route which extends off the currently displayed chart,
+move the route cursor into the desired area, Right-Click and select 
+'MAX DETAIL HERE' or 'Scale Out'.  This will give you a  chart
+showing the area under your mouse pointer without ending the route.
+Continue creating the route, using Right-Click drop-down menu zoom
+wheel or courser keys as necessary change chart, scale and/or zoom or
+to move the chart under your cursor. Practice to see which
+combination and methods work best for you.</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Activate
+Route. Turns red</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Deactivated
+ routes are blue</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"> 
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">The
+current version of <I><B>openCPN</B></I>, (1.3.3) has no provision to
+hide multiple routes so all your routes will show on the chart all
+the time. </SPAN></FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">	<FONT COLOR="#800000"><B>HACK:</B></FONT>
+To keep the chart clear of useful but un-needed 					routes follow
+these steps:</SPAN></FONT></FONT></P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Create
+	your route.			</SPAN></FONT></FONT></P>
+</UL>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent"><B>'Export
+	to GPX'</B> with an descriptive file name and 			save it is a
+	created folder called GPX_Routes.</SPAN></FONT></FONT></P>
+</UL>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Delete
+	the route from the chart.</SPAN></FONT></FONT></P>
+</UL>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">When
+	needed simply use the '<B>Import GPX</B>' to open 		the route file.</SPAN></FONT></FONT></P>
+</UL>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"> <FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=5 STYLE="font-size: 20pt"><FONT COLOR="#800000"><FONT SIZE=4><B>AUTO
+FOLLOW</B></FONT></FONT><FONT COLOR="#800000"><FONT SIZE=4> – the
+big GREEN </FONT></FONT><FONT COLOR="#00ae00"><FONT SIZE=6 STYLE="font-size: 22pt"><B>+</B></FONT></FONT><FONT COLOR="#800000"><FONT SIZE=4>
+ </FONT></FONT></FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Click
+on this  to center the chart display on your current GPS location and
+engage <I>Auto Follow</I>, sometime called 'Cruise Mode', for
+navigation. </FONT></FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><I><SPAN STYLE="font-weight: medium">OpenCPN</SPAN></I>
+will automatically place the  boat's position at the center of the
+screen.  If the boat leaves the current chart, <I>openCPN</I> will
+open a new chart with roughly the same scale at its current location.<FONT SIZE=5 STYLE="font-size: 20pt">
+ </FONT></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800080"><B>Wrench
+</B></FONT>icon.</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Click
+this icon to open the <FONT COLOR="#800080"><B>Tool Box</B></FONT>.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>		<FONT COLOR="#800080"><B>TOOL
+BOX</B></FONT></FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800080"><B>			Settings
+– </B></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">
+Selections are self explanatory with this exception: </SPAN></FONT><FONT COLOR="#800080"><FONT SIZE=3 STYLE="font-size: 13pt"><B>Automatic
+Anchor Mark  </B></FONT></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">This
+is what it does:<BR><BR></SPAN></FONT><FONT COLOR="#000000"><B>If </B></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">the
+following are </SPAN></FONT><FONT COLOR="#000000"><B>ALL</B></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">
+true:<BR> 1. In &quot;Cruising&quot; mode, meaning that speed has at
+some point exceeded 3.0 kts.<BR> 2.  Current speed is less than 0.5
+kts.<BR> 3.  Opencpn has been up at least 30 minutes<BR> 4. And,&nbsp;
+opencpn is going down now by normal exit.<BR> 5. And, there is no
+&quot;Anchorage&quot; waypoint within 0.25 NM of current GPS
+location....<BR><BR>T</SPAN></FONT><FONT COLOR="#000000"><B>hen</B></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">,
+openCPN will drop a waypoint at the current location, with the name -
+&quot;Anchorage created on [Date Stamp]&quot;.<BR></SPAN></FONT></FONT></FONT><BR>
+</P>
+<P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Thus
+ waypoints are automatically created for known good anchorages as you
+shut down the computer. The 0.25 NM condition prevents clogging up
+frequently visited anchorages with closely spaced waypoints.&nbsp;
+The other conditions help to prevent spurious waypoints. </FONT></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in; font-weight: medium"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800080"><B>			Charts-
+</B></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">Set
+and/or  remove your chart directories</SPAN></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800080"><B>			Vector
+Charts   </B></FONT><FONT COLOR="#000000"><B>- </B></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">ECN
+Settings</SPAN></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800080"><B>			AIS
+ - </B></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">Your
+settings and preferences </SPAN></FONT></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">The
+AIS function  makes it is easy to interrogate targets. </SPAN></FONT></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>It
+will  calculate and display CPA and TCPA. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800080"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>			</B></FONT></FONT></FONT><FONT COLOR="#800080"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B><SPAN STYLE="background: transparent">Fonts
+-  </SPAN></B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><I><B><SPAN STYLE="background: transparent">Console</SPAN></B></I></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B><SPAN STYLE="background: transparent">
+</SPAN></B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="font-weight: medium"><SPAN STYLE="background: transparent">refers
+to  navigation info window   						displayed when a route  is
+activated. </SPAN></SPAN></FONT></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><SPAN STYLE="background: transparent"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><I><SPAN STYLE="font-weight: medium">					</SPAN></I></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="font-style: normal"><B>Marks
+</B></SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>
+</B></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="font-weight: medium">Font
+properties of  waypoint marks.</SPAN></FONT></FONT></FONT></SPAN></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent"><FONT COLOR="#800080"><B>			Etc
+– </B></FONT><FONT COLOR="#000000"><SPAN STYLE="font-weight: medium">More
+display preferences </SPAN></FONT><FONT COLOR="#000000"><B> </B></FONT></SPAN></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Show
+ENC Text</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	Click
+to show S57 Text on your ENC's</FONT></FONT></P>
+<P STYLE="margin-left: 0.98in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Note:
+This will may not appear to work if you have “Show Important Text
+Only” selected in the 'Settings/Vector Charts' tab. It serves no
+function on Raster Charts.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Show
+Currents</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	To
+show or hide current velocity and direction arrows. Click the 	base
+of the current arrow to display data for that location. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Show
+Tides</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>	Shows
+Tide Stations on chart. Right Click the '<FONT COLOR="#800000"><B>T</B></FONT>'
+icon to display  	tide information for that location. Close the box
+to hide the 	information.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.98in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Hint</B>:
+The tide icon, '<B>T</B>', remains the same size regardless of chart
+scale. Zoom out and the icons will be easier to find. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.98in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><B>Half
+Moon</B></FONT>  </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Clicking
+this icon will cycle through preset screen/color/brightness settings
+for night viewing.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><FONT SIZE=6 STYLE="font-size: 22pt"><B>?</B></FONT></FONT>
+</FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Link
+to this Document  and 'About' </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>The
+About OpenCPN box. On the first of three tabs you will find the
+version number, 1.3.2 as of this writing, and copyright info. The
+middle tab shows the names and email addresses of the </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>authors
+of this work and the third tab displays the  GNU General Public </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>License.
+This document describes the conditions under which this application
+is licensed to you, the user. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"> 
+</P>
+<P STYLE="margin-bottom: 0in; background: transparent"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>The
+Big Red </B><FONT SIZE=5><B>X</B></FONT><FONT SIZE=5> </FONT></FONT></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in; background: transparent"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><FONT SIZE=5>	</FONT></FONT><FONT COLOR="#000000">Hit
+this button or the one above it to shut down openCPN. You can also
+use the Hot KEY Ctrl + Q to exit the program.</FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4 STYLE="font-size: 16pt"><B>Navigating
+with</B> <I><B>openCPN</B></I></FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#c90016"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><B>Load
+Your Charts</B></FONT> </FONT></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"> 
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Open
+the <FONT COLOR="#800000">Tool Box</FONT> and choose the tab marked
+&quot;Charts&quot;. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Use
+the top window pane to locate and highlight the directories
+containing your charts. When you have a chart directory highlighted,
+chose &quot;Add Selection&quot;. The directory you selected will then
+appear in the bottom pane of the window and be added to the openCPN
+chart database. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Repeat
+this for all the chart directories you wish openCPN to be able to 
+display. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>When
+you have finished selecting and adding chart directories, choose
+&quot;OK&quot;. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>A
+window with a progress bar will open showing that <I>openCPN</I> is
+recognizing you selections.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>NOTE</B>:
+<I>openCPN</I> can share chart directories with any other installed
+chart navigation system. There is no need to make a separate
+directory for <I>openCPN</I> charts. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><FONT COLOR="#800000"><B>Get
+your GPS working</B></FONT>.  </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"> 
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Open
+the <FONT COLOR="#000000">Tool Box</FONT> . </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>In
+the 'Settings' tab select the NMEA Data Source from the choices in
+shown in the drop-down box, and choose the port to which your GPS is
+connected. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>If
+you are using a standard serial port, then choose the proper physical
+port number to match. If, on the other hand, you are using a USB GPS,
+then you will select the virtual serial port which was created by
+your GPS device driver. You may need to try several selections to
+find the correct port. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>			Hint</B>:
+For XP/Vista: Using the Device Manager, look for a serial port which
+appears and disappears dynamically as you plug and unplug the USB GPS
+cable. This is your virtual GPS serial port.</FONT></FONT></P>
+<P STYLE="margin-left: 0.98in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>When
+the properly configured GPS is connected, powered up, and recognized,
+then <I>openCPN</I> will show a pale green background in the upper
+right window of the tool bar. This bar also displays the current
+chart's PATH, File name as well as its Chart Name and Edition Year. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>If
+no GPS is present or recognized, the chart identification window will
+have a pale red, or plum colored background. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="font-style: normal"><B>NOTE:</B></SPAN><I>
+OpenCPN</I> automatically configures baud rate, bits, parity, etc.
+These do not need to be separately specified. </FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Connect
+To Your Auto Pilot</B></FONT></FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in; font-weight: medium">
+<FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">OpenCPN
+may be interfaced to any NMEA compatible autopilot which recognizes
+the RMB NMEA sentence.  The serial port may be selected  on the Tool
+Box dialog.</SPAN></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"> </FONT>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Hot
+Keys</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in; font-weight: medium"><BR>
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Arrow
+	Keys,		Moves the  chart view  </FONT></FONT></FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Ctrl
+	+ Z or -    		Zoom In or X (Zoom Out)  </FONT></FONT></FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent"><SPAN STYLE="font-style: normal">Ctrl
+	+ X or -     		Zoom Out</SPAN><I> </I></SPAN></FONT></FONT></FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Ctrl
+	+ Q	   		Quits openCPN  </FONT></FONT></FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ L-Arow - F10	Smaller Scale Chart (Scale In) </SPAN></FONT></FONT></FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ R-Arow - F11	Larger Scale Chart (Scale Out) </SPAN></FONT></FONT></FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ A or F2   	Auto-Follow On/Off  </SPAN></FONT></FONT></FONT>
+	</P>
+</UL>
+<OL>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ O or F12  	Show/Hide Chart Outlines </SPAN></FONT></FONT></FONT>
+	</P>
+</OL>
+<UL>
+	<LI VALUE=1><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ 1         		Normal Brightness </SPAN></FONT></FONT></FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ 2         		Dusk Brightness </SPAN></FONT></FONT></FONT>
+	</P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ 3         		Night Brightness</SPAN></FONT></FONT></FONT></P>
+	<LI><P STYLE="margin-bottom: 0in; font-style: normal; font-weight: medium">
+	<FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ S  or F-3  	Show / hide ENC Text </SPAN></FONT></FONT></FONT>
+	</P>
+	<P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+ M        		Drop Marker at current cursor position.</SPAN></FONT></FONT></FONT></P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">F-8
+	  &amp;   F-9		Auto Follow ON/OFF</SPAN></FONT></FONT></FONT></P>
+	<P STYLE="margin-bottom: 0in; font-weight: medium"></P>
+	<LI><P STYLE="margin-bottom: 0in; font-weight: medium"><FONT COLOR="#000000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><SPAN STYLE="background: transparent">Ctrl
+	+space   		Man Over Board, sets MOB Marker at current 					GPS
+	position.</SPAN></FONT></FONT></FONT></P>
+</UL>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT COLOR="#800000"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>FAQ</B></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>What
+are all those 'U' things all over my chart?</B></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>The
+feature being rendered is S57 Text relating to 'M_QUAL'. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>This
+ is a meta-object describing the quality of data shown. The Attribute
+of interest is CATZOC, or &quot;Category of Zone of Confidence&quot;.
+The value on most US ENC's is &quot;6&quot;, or &quot;un-assessed&quot;.
+Thus, the 'U'. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>You
+can turn this symbol off in <I>openCPN</I> by de-selecting the box
+next to M_QUAL in 'Tool Box' / 'Vector Charts' tab 'Mariners
+Standard'   selection list box.</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>To
+learn the acronyms used in this application search the  S57 'Object
+and Attribute' catalog: http://www.s-57.com/</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>I
+have routes and way points in Sea Clear and  I would like to import
+them into <I>openCPN.   </I><SPAN STYLE="font-style: normal">Can I do
+it?</SPAN></B></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Yes.
+I had originally created and maintained all my routes and waypoints
+in SeaClear, exported them, loaded them into GPSUtility (for Windows)
+and saved them as text files. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>To
+import into opencpn 1.3.0, I opened all my text files (routes and
+waypoints) with GPSUtility, saved that out as one big gpx file, and
+loaded it into openCPN. Works like a champ. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>I've
+edited them and saved them back out as gpx files with no trouble. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Individual
+routes can be edited and saved in appropriately named .GPX files.</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in; font-weight: medium"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>Whenever
+I try to open a particular chart the OpenCPN crashes. What's going
+on?</B></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Chances
+are the chart file is corrupted. Note  the  name and number of the
+suspect chart and replace it with a fresh download. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.98in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>NOTE:
+A list of the charts with their names and file names can be found in
+the README.TEXT that accompanies the charts downloaded from NOOA.</FONT></FONT></P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4><B>OpenCPN
+and Great Circle Navigation</B></FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Raster
+charts display bearings and headings as straight, measurable lines on
+the chart. Similarly, Vector ENC's are rendered as Mercator
+projections in <I>openCPN</I> and most other ECS's for the same
+reason. </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>For
+typical coastal navigation errors which occur using rhumb line
+instead of great circle calculations are small for the distances
+usually covered by one chart.  </FONT></FONT>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-left: 0.49in; margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Great
+circle navigation is more useful when one wants to travel the minimum
+possible distance between two widely spaced points on the globe. I
+cannot personally imagine using one chart for one electronically
+navigated leg across an entire ocean. However, if I crossed an ocean
+with <I>openCPN </I>, I would lay out a route with great circle
+points manually plotted every couple of degrees, and engage the
+autopilot. Maybe the weather would cooperate.....</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Fair
+winds and following seas -</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Bitstream Vera Sans, sans-serif"><FONT SIZE=4>Dave
+and the <I>openCPN</I> Team</FONT></FONT></P>
+<P STYLE="margin-bottom: 0in"> 
+</P>
+</BODY>
+</HTML>
