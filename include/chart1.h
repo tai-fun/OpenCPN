@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.22 2009/06/17 02:48:47 bdbcat Exp $
+ * $Id: chart1.h,v 1.23 2009/06/28 03:08:14 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.23  2009/06/28 03:08:14  bdbcat
+ * Add MouseEvent to dummy TextCtrl.
+ *
  * Revision 1.22  2009/06/17 02:48:47  bdbcat
  * Update hotkeys
  *
@@ -360,6 +363,11 @@ class DummyTextCtrl: public wxTextCtrl
 public:
       DummyTextCtrl(wxWindow *parent, wxWindowID id);
       void OnChar(wxKeyEvent &event);
+      void OnMouseEvent(wxMouseEvent& event);
+
+      wxTimer     m_MouseWheelTimer;
+      int         m_mouse_wheel_oneshot;
+      int         m_last_wheel_dir;
 
       DECLARE_EVENT_TABLE()
 };

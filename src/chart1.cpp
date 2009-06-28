@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.42 2009/06/28 02:04:08 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.43 2009/06/28 03:08:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.43  2009/06/28 03:08:55  bdbcat
+ * Add MouseEvent to dummy TextCtrl.
+ *
  * Revision 1.42  2009/06/28 02:04:08  bdbcat
  * Convert "About" dialog to non-modal.
  *
@@ -193,7 +196,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.42 2009/06/28 02:04:08 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.43 2009/06/28 03:08:55 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -2093,8 +2096,9 @@ void MyFrame::OnSize(wxSizeEvent& event)
 
         if(console)
         {
+                wxSize smin = console->GetMiniSize();
                 console->Size_X = 160;
-                console->Size_Y = y/2;
+                console->Size_Y = wxMax(y/2, smin.y);
                 console->Pos_X = cccw - console->Size_X;
                 console->Pos_Y = 0;
                 console->SetSize(console->Pos_X,console->Pos_Y,console->Size_X, console->Size_Y);
@@ -4759,12 +4763,57 @@ void SetSystemColors ( ColorScheme cs )
 //      DummyTextCtrl implementation
 BEGIN_EVENT_TABLE(DummyTextCtrl, wxTextCtrl)
             EVT_CHAR(DummyTextCtrl::OnChar)
+            EVT_MOUSE_EVENTS ( DummyTextCtrl::OnMouseEvent )
+
 END_EVENT_TABLE()
 
 DummyTextCtrl::DummyTextCtrl(wxWindow *parent, wxWindowID id):
             wxTextCtrl(parent, id)
 {
+      m_MouseWheelTimer.SetOwner(this);
 }
+void DummyTextCtrl::OnMouseEvent(wxMouseEvent &event)
+{
+      //    Note:  On WXMSW, mouse wheel events only happen for the window
+      //    which has the focus, independent of where the cursor is.
+      //    Since this window needs the focus to get wxKey events, so it
+      //    also gets wheels
+#ifdef __WXMSW__
+
+         //        Check for wheel rotation
+      m_mouse_wheel_oneshot = 50;                  //msec
+                                                      // ideally, should be just longer than the time between
+                                                      // processing accumulated mouse events from the event queue
+                                                      // as would happen during screen redraws.
+      int wheel_dir = event.GetWheelRotation();
+
+      if(m_MouseWheelTimer.IsRunning())
+      {
+            if(wheel_dir != m_last_wheel_dir)
+                  m_MouseWheelTimer.Stop();
+            else
+                  m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // restart timer
+      }
+
+      m_last_wheel_dir = wheel_dir;
+
+      if(!m_MouseWheelTimer.IsRunning())
+      {
+            if(wheel_dir > 0)
+            {
+                  if(cc1)
+                        cc1->ZoomCanvasIn();
+            }
+            else if(wheel_dir < 0)
+            {
+                  if(cc1)
+                        cc1->ZoomCanvasOut();
+            }
+            m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // start timer
+      }
+#endif
+}
+
 
 void DummyTextCtrl::OnChar(wxKeyEvent &event)
 {
