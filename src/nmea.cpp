@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.34 2009/06/24 04:01:14 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.35 2009/06/28 01:57:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.34 2009/06/24 04:01:14 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.35 2009/06/28 01:57:26 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -354,11 +354,11 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
             if(str_buf.StartsWith(_T("GPSD,O")))           // valid position data?
             {
-                wxStringTokenizer tkz(str_buf, _T(" "));
-                token = tkz.GetNextToken();
-
-                if(!token.IsSameAs(_T("GPSD,O=?")))         // Fix?
+                if(str_buf.GetChar(7) != '?')              // GPSd connected and we get real data
                 {
+                    wxStringTokenizer tkz(str_buf, _T(" "));
+                    token = tkz.GetNextToken();
+
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dtime))
                          ThreadPositionData.FixTime = (time_t)floor(dtime);
