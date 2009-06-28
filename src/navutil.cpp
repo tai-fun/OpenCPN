@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.32  2009/06/28 03:34:52  bdbcat
+ * Save GPX_IO directory.
+ *
  * Revision 1.31  2009/06/17 02:46:29  bdbcat
  * More Options
  *
@@ -91,6 +94,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.32  2009/06/28 03:34:52  bdbcat
+ * Save GPX_IO directory.
+ *
  * Revision 1.31  2009/06/17 02:46:29  bdbcat
  * More Options
  *
@@ -208,7 +214,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.31 2009/06/17 02:46:29 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.32 2009/06/28 03:34:52 bdbcat Exp $");
 
 //    Statics
 
@@ -1793,6 +1799,7 @@ int MyConfig::LoadMyConfig(int iteration)
          }
      }
 
+     Read(_T("GPXIODir"), &m_gpx_path);                 // Get the Directory name
 
       SetPath(_T("/Settings/GlobalState"));
       Read(_T("nColorScheme"), &read_int, 0);
@@ -2751,6 +2758,7 @@ void MyConfig::UpdateSettings()
 
       SetPath(_T("/Directories"));
       Write(_T("InitChartDir"), *pInit_Chart_Dir);
+      Write(_T("GPXIODir"), m_gpx_path);
 
       if(g_pnmea)
       {
@@ -2830,14 +2838,17 @@ void MyConfig::UpdateSettings()
 // toh, 2009.02.15
 void MyConfig::ExportGPX(wxWindow* parent)
 {
-      wxFileDialog *saveDialog = new wxFileDialog(parent, wxT("Export GPX file"), wxT(""), wxT(""),
+      wxFileDialog *saveDialog = new wxFileDialog(parent, wxT("Export GPX file"), m_gpx_path, wxT(""),
                   wxT("GPX files (*.gpx)|*.gpx"), wxFD_SAVE);
 
       int response = saveDialog->ShowModal();
+
+      wxFileName fn(path);
+      m_gpx_path = fn.GetPath();
+
       if (response == wxID_OK) {
             wxString path = saveDialog->GetPath();
 
-            wxFileName fn(path);
             fn.SetExt(_T("gpx"));
 
             CreateGPXNavObj();
@@ -2849,9 +2860,13 @@ void MyConfig::ExportGPX(wxWindow* parent)
 // toh, 2009.02.15
 void MyConfig::ImportGPX(wxWindow* parent)
 {
-      wxFileDialog *openDialog = new wxFileDialog(parent, wxT("Import GPX file"), wxT(""), wxT(""),
+      wxFileDialog *openDialog = new wxFileDialog(parent, wxT("Import GPX file"), m_gpx_path, wxT(""),
                   wxT("GPX files (*.gpx)|*.gpx|All files (*.*)|*.*"), wxFD_OPEN);
       int response = openDialog->ShowModal();
+
+      wxFileName fn(openDialog->GetPath());
+      m_gpx_path = fn.GetPath();
+
       if (response == wxID_OK) {
             wxString path = openDialog->GetPath();
 

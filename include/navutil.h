@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.10 2009/06/03 03:22:04 bdbcat Exp $
+ * $Id: navutil.h,v 1.11 2009/06/28 03:34:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.11  2009/06/28 03:34:39  bdbcat
+ * Save GPX_IO directory.
+ *
  * Revision 1.10  2009/06/03 03:22:04  bdbcat
  * Correct GPX Route import logic
  *
@@ -289,6 +292,8 @@ public:
 
       float st_lat, st_lon, st_view_scale;            // startup values
       bool  st_bFollow;
+
+      wxString    m_gpx_path;
 
 //    These members are set/reset in Options dialog
       bool  m_bShowDebugWindows;
