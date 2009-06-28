@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.20 2009/06/17 02:41:43 bdbcat Exp $
+ * $Id: about.cpp,v 1.21 2009/06/28 02:03:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.21  2009/06/28 02:03:06  bdbcat
+ * Implement "Tips" tab.
+ *
  * Revision 1.20  2009/06/17 02:41:43  bdbcat
  * Add Philip
  *
@@ -91,12 +94,13 @@
 #endif
 
 #include "wx/textfile.h"
+#include <wx/html/htmlwin.h>
 
 
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.20 2009/06/17 02:41:43 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.21 2009/06/28 02:03:06 bdbcat Exp $");
 
 
 //    Some constants
@@ -194,13 +198,13 @@ char AuthorText[] =
 */
 
 
-
-
 IMPLEMENT_DYNAMIC_CLASS( about, wxDialog )
 
 
 BEGIN_EVENT_TABLE( about, wxDialog )
     EVT_BUTTON( xID_OK, about::OnXidOkClick )
+    EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK_HELP, about::OnPageChange)
+
 END_EVENT_TABLE()
 
 
@@ -208,11 +212,12 @@ about::about( )
 {
 }
 
-about::about( wxWindow* parent,wxString *pLicense_Data_Locn, wxWindowID id, const wxString& caption,
+about::about( wxWindow* parent,wxString *pData_Locn, wxWindowID id, const wxString& caption,
                   const wxPoint& pos, const wxSize& size, long style)
 {
-  pLicenseLocn = pLicense_Data_Locn;
+  m_pDataLocn = pData_Locn;
   Create(parent, id, caption, pos, size, style);
+  m_parent = parent;
 }
 
 
@@ -221,6 +226,10 @@ bool about::Create( wxWindow* parent, wxWindowID id, const wxString& caption,
 {
     SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS);
     wxDialog::Create( parent, id, caption, pos, size, style );
+
+    m_parent = parent;
+
+    m_btips_loaded = false;
 
     CreateControls();
     GetSizer()->Fit(this);
@@ -244,7 +253,7 @@ void about::CreateControls()
   itemBoxSizer2->Add(pST1);
 
 
-  wxNotebook* itemNotebook4 = new wxNotebook( itemDialog1, -1 , wxDefaultPosition, wxSize(-1, -1), wxNB_TOP );
+  wxNotebook* itemNotebook4 = new wxNotebook( itemDialog1, ID_NOTEBOOK_HELP, wxDefaultPosition, wxSize(-1, -1), wxNB_TOP );
   itemBoxSizer2->Add(itemNotebook4, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxALL, 5);
 
   //    About Panel
@@ -302,7 +311,7 @@ void about::CreateControls()
 
   itemBoxSizer8->Add(pLicenseTextCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxALL, 5);
 
-  wxString license_loc(*pLicenseLocn);
+  wxString license_loc(*m_pDataLocn);
   license_loc.Append(_T("license.txt"));
 
   wxTextFile license_file(license_loc);
@@ -329,6 +338,18 @@ void about::CreateControls()
   }
   pLicenseTextCtl->SetInsertionPoint(0);
 
+    //     Tips Panel
+  wxPanel* itemPanelTips = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+  itemNotebook4->AddPage(itemPanelTips, _T("Tips"));
+
+  wxBoxSizer* itemBoxSizer9 = new wxBoxSizer(wxVERTICAL);
+  itemPanelTips->SetSizer(itemBoxSizer9);
+
+
+  m_ptips_window = new  wxHtmlWindow(itemPanelTips, -1, wxDefaultPosition, wxSize(100,400), wxHW_DEFAULT_STYLE, _T("OpenCPN Tips"));
+  itemBoxSizer9->Add(m_ptips_window, 0, wxGROW);
+
+
   //    Close Button
 
   wxBoxSizer* itemBoxSizer28 = new wxBoxSizer(wxHORIZONTAL);
@@ -342,7 +363,26 @@ void about::CreateControls()
 
 void about::OnXidOkClick( wxCommandEvent& event )
 {
-  EndModal(1);
+  Close();
+}
+
+void about::OnPageChange(wxNotebookEvent& event)
+{
+      int i = event.GetSelection();
+
+      if(3 == i)                        // 3 is the index of "Tips" page
+      {
+            if(NULL != m_ptips_window)
+            {
+                  if(!m_btips_loaded)
+                  {
+                        wxString tips_locn = _T("tips.html");
+                        tips_locn.Prepend(*m_pDataLocn);
+                        m_ptips_window->LoadPage(tips_locn);
+                        m_btips_loaded = true;
+                  }
+            }
+      }
 }
 
 

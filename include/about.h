@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.h,v 1.3 2007/05/03 13:31:19 dsr Exp $
+ * $Id: about.h,v 1.4 2009/06/28 02:02:56 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: about.h,v $
+ * Revision 1.4  2009/06/28 02:02:56  bdbcat
+ * Implement "Tips" tab.
+ *
  * Revision 1.3  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -64,7 +67,9 @@
 #define SYMBOL_ABOUT_TITLE _("About OpenCPN")
 
 #define xID_OK 10009
+#define ID_NOTEBOOK_HELP 10002
 
+class wxHtmlWindow;
 
 class about: public wxDialog
 {
@@ -89,8 +94,13 @@ class about: public wxDialog
 
     void CreateControls();
     void OnXidOkClick( wxCommandEvent& event );
+    void OnPageChange(wxNotebookEvent& event);
 
-    wxString          *pLicenseLocn;
+    wxString          *m_pDataLocn;
+    wxWindow          *m_parent;
+    wxHtmlWindow      *m_ptips_window;
+    bool              m_btips_loaded;
+
 
 };
 
