@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.35 2009/06/28 01:57:26 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.36 2009/06/29 01:10:19 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.35 2009/06/28 01:57:26 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.36 2009/06/29 01:10:19 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -638,6 +638,47 @@ void *OCP_NMEA_Thread::Entry()
             wxThread::Sleep(100) ;
 #endif
             // end rms
+
+
+   // Fulup patch for handling hot-plug or wakeup events
+   // from serial port drivers
+        {
+              static int maxErrorLoop;
+
+              if (newdata > 0)
+              {
+      // we have data, so clear error
+                    maxErrorLoop =0;
+              }
+              else
+              {
+        // no need to retry every 1ms when on error
+                    sleep (1);
+
+        // if we have more no character for 5 second then try to reopen the port
+                    if (maxErrorLoop++ > 5)
+                    {
+
+          // do not retry for the next 5s
+                          maxErrorLoop = 0;
+
+          // free old unplug current port
+                          m_pCommMan->CloseComPort(m_gps_fd);
+
+          //    Request the com port from the comm manager
+                          if ((m_gps_fd = m_pCommMan->OpenComPort(*m_pPortName, 4800)) < 0)  {
+                                wxString msg(_T("NMEA input device open failed (will retry): "));
+                                msg.Append(*m_pPortName);
+                                ThreadMessage(msg);
+                          } else {
+                                wxString msg(_T("NMEA input device open on hotplug OK: "));
+                          }
+                    }
+              }
+        } // end Fulup hack
+
+
+        //  And process any character
 
         if(newdata > 0)
         {
