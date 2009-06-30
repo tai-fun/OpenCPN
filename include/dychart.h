@@ -13,7 +13,7 @@
 
 //  Chart cacheing policy
 //  n.b. use only one of the following policy options....
-#define CACHE_N_LIMIT 2                                     // Cache no more than n charts
+#define CACHE_N_LIMIT_DEFAULT 4                              // Cache no more than n charts
 //#define CACHE_MEM_LIMIT 60000                             // Free mem threshold for freeing a chart from cache
 
 

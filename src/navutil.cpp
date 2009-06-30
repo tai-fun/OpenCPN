@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.34  2009/06/30 03:02:16  bdbcat
+ * Add configurable chart cache limit.
+ *
  * Revision 1.33  2009/06/28 21:41:09  bdbcat
  * Save GPX_IO directory fix.
  *
@@ -97,6 +100,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.34  2009/06/30 03:02:16  bdbcat
+ * Add configurable chart cache limit.
+ *
  * Revision 1.33  2009/06/28 21:41:09  bdbcat
  * Save GPX_IO directory fix.
  *
@@ -220,7 +226,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.33 2009/06/28 21:41:09 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.34 2009/06/30 03:02:16 bdbcat Exp $");
 
 //    Statics
 
@@ -304,6 +310,9 @@ extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
 extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
 extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
 
+extern int              g_nCacheLimit;
+
+extern bool             g_bGDAL_Debug;
 
 #ifdef USE_S57
 extern s52plib          *ps52plib;
@@ -1153,7 +1162,7 @@ RoutePoint *Route::InsertPointBefore(RoutePoint *pRP, float rlat, float rlon, bo
 {
       RoutePoint *newpoint = new RoutePoint(rlat, rlon, wxString(_T("diamond")), GetNewMarkSequenced(), NULL);
       newpoint->m_bIsInRoute = true;
-      newpoint->m_bDynamicName = false;  //true;
+      newpoint->m_bDynamicName = true;
 
       int nRP = pRoutePointList->IndexOf(pRP);
       pRoutePointList->Insert(nRP, newpoint);
@@ -1632,6 +1641,10 @@ int MyConfig::LoadMyConfig(int iteration)
       wxString stps;
       Read(_T("PlanSpeed"),  &stps);
       stps.ToDouble(&g_PlanSpeed);
+
+      Read(_T("nCacheLimit"), &g_nCacheLimit, CACHE_N_LIMIT_DEFAULT);
+
+      Read(_T("DebugGDAL"), &g_bGDAL_Debug, 0);
 
       g_bNMEADebug = false;
       Read(_T("DebugNMEA"),  &g_bNMEADebug);

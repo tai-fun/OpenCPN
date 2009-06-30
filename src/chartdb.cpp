@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.16 2009/06/18 01:33:48 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.17 2009/06/30 03:02:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.17  2009/06/30 03:02:03  bdbcat
+ * Add configurable chart cache limit.
+ *
  * Revision 1.16  2009/06/18 01:33:48  bdbcat
  * Allow u/l case dir search.
  *
@@ -103,12 +106,13 @@
 
 extern ChartBase    *Current_Ch;
 extern ThumbWin     *pthumbwin;
+extern int          g_nCacheLimit;
 
 
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.16 2009/06/18 01:33:48 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.17 2009/06/30 03:02:03 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -1373,7 +1377,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
       if(!bInCache)                    // not in cache
       {
 
-#ifndef __WXMSW__       // for MSW, we assume the cache upper size limit is unbounded,
+//#ifndef __WXMSW__       // for MSW, we assume the cache upper size limit is unbounded,
                         // and so NEVER remove a chart from the cache
 
 #ifdef CACHE_MEM_LIMIT
@@ -1389,7 +1393,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                   unsigned int nCache = pChartCache->GetCount();
                   if(nCache > 2)
                   {
-//                      wxLogMessage(_T("Searching chart cache for oldest entry"));
+                      wxLogMessage(_T("Searching chart cache for oldest entry"));
                         int LRUTime = now.GetTicks();
                         int iOldest = 0;
                         for(unsigned int i=0 ; i<nCache ; i++)
@@ -1404,19 +1408,19 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                                     }
                               }
                         }
-//                      int dt = now.GetTicks() - LRUTime;
-//                      wxLogMessage(_T("Oldest cache index is %d, delta t is %d"), iOldest, dt);
+                      int dt = now.GetTicks() - LRUTime;
+                      wxLogMessage(_T("Oldest cache index is %d, delta t is %d"), iOldest, dt);
 
                         pce = (CacheEntry *)(pChartCache->Item(iOldest));
                         ChartBase *pDeleteCandidate =  (ChartBase *)(pce->pChart);
 
                         if(Current_Ch == pDeleteCandidate)
                         {
-//                            wxLogMessage(_T("...However, it is Current_Ch"));
+                            wxLogMessage(_T("...However, it is Current_Ch"));
                         }
                         else
                         {
-//                            wxLogMessage(_T("Deleting/Removing oldest chart from cache"));
+                            wxLogMessage(_T("Deleting/Removing oldest chart from cache"));
 //                            wxLogMessage(_T("oMem_Free before chart removal is %d"), omem_free);
 
                               //  If this chart should happen to be in the thumbnail window....
@@ -1442,12 +1446,12 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 
 #endif      //CACHE_MEM_LIMIT
 
-#ifdef CACHE_N_LIMIT
-#define N_CACHE CACHE_N_LIMIT
+#ifdef CACHE_N_LIMIT_DEFAULT
+//#define N_CACHE CACHE_N_LIMIT
 
 //      Limit cache to n charts, tossing out the oldest when space is needed
             unsigned int nCache = pChartCache->GetCount();
-            if(nCache >= N_CACHE)
+            if(nCache >= g_nCacheLimit)
             {
 ///                  wxLogMessage("Searching chart cache for oldest entry");
                   int LRUTime = now.GetTicks();
@@ -1470,7 +1474,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 
                   if(Current_Ch != pDeleteCandidate)
                   {
-///                      wxLogMessage("Deleting/Removing oldest chart from cache");
+ ///                     wxLogMessage("Deleting/Removing oldest chart from cache");
 ///                      wxLogMessage("oMem_Free before chart removal is %d", omem_free);
 
                     //  If this chart should happen to be in the thumbnail window....
@@ -1498,7 +1502,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 
 
 
-#endif      // ndef __WXMSW__
+//#endif      // ndef __WXMSW__
 
             if(GetCSChartType(pStack, StackEntry) == CHART_TYPE_KAP)
                   Ch = new ChartKAP();
