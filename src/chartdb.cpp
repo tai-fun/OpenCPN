@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.17 2009/06/30 03:02:03 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.18 2009/06/30 03:05:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.18  2009/06/30 03:05:29  bdbcat
+ * Fix compile bug.
+ *
  * Revision 1.17  2009/06/30 03:02:03  bdbcat
  * Add configurable chart cache limit.
  *
@@ -112,7 +115,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.17 2009/06/30 03:02:03 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.18 2009/06/30 03:05:29 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -1451,7 +1454,7 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 
 //      Limit cache to n charts, tossing out the oldest when space is needed
             unsigned int nCache = pChartCache->GetCount();
-            if(nCache >= g_nCacheLimit)
+            if(nCache >= (unsigned int)g_nCacheLimit)
             {
 ///                  wxLogMessage("Searching chart cache for oldest entry");
                   int LRUTime = now.GetTicks();
