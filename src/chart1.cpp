@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.43 2009/06/28 03:08:55 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.44 2009/06/30 03:01:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.44  2009/06/30 03:01:35  bdbcat
+ * Add configurable GDAL debug messages.
+ *
  * Revision 1.43  2009/06/28 03:08:55  bdbcat
  * Add MouseEvent to dummy TextCtrl.
  *
@@ -196,7 +199,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.43 2009/06/28 03:08:55 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.44 2009/06/30 03:01:35 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -381,6 +384,9 @@ wxArrayString    *pMessageOnceArray;
 FILE             *s_fpdebug;
 bool             bAutoOpen;
 bool             bFirstAuto;
+
+int              g_nCacheLimit;
+bool             g_bGDAL_Debug;
 
 //-----------------------------------------------------------------------------------------------------
 //      OCP_NMEA_Thread Static data store

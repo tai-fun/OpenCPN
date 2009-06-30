@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.33 2009/06/28 02:01:11 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.34 2009/06/30 03:00:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.34  2009/06/30 03:00:46  bdbcat
+ * Add configurable GDAL debug messages.
+ *
  * Revision 1.33  2009/06/28 02:01:11  bdbcat
  * Correct Feature Decsription Longitude.
  *
@@ -85,6 +88,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.34  2009/06/30 03:00:46  bdbcat
+ * Add configurable GDAL debug messages.
+ *
  * Revision 1.33  2009/06/28 02:01:11  bdbcat
  * Correct Feature Decsription Longitude.
  *
@@ -208,7 +214,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.33 2009/06/28 02:01:11 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.34 2009/06/30 03:00:46 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);      // found in s52cnsy
 
@@ -228,7 +234,7 @@ extern S57ClassRegistrar *g_poRegistrar;
 extern wxString          *g_pcsv_locn;
 extern wxString          *g_pSENCPrefix;
 extern FILE              *s_fpdebug;
-
+extern bool              g_bGDAL_Debug;
 
 static jmp_buf env_ogrf;                    // the context saved by setjmp();
 
@@ -3126,9 +3132,17 @@ int s57chart::GetUpdateFileArray(const wxFileName file000, wxArrayString *UpFile
       //    pr->Dump(stdout);
 
       //  Fetch ISDT(Issue Date)
-                                    char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0));
-                                    if(u)
-                                          sumdate = wxString(u, wxConvUTF8);
+                                    char *u = NULL;
+                                    if(pr)
+                                    {
+                                          u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0));
+
+                                          if(u)
+                                          {
+                                                if(strlen(u))
+                                                      sumdate = wxString(u, wxConvUTF8);
+                                          }
+                                   }
                                     else
                                     {
                                           wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:ISDT in update file "));
@@ -3142,16 +3156,23 @@ int s57chart::GetUpdateFileArray(const wxFileName file000, wxArrayString *UpFile
                                     umdate.ResetTime();
 
       //    Fetch the EDTN(Edition) field
-                                    u = (char *)(pr->GetStringSubfield("DSID", 0, "EDTN", 0));
-                                    if(u)
-                                          umedtn = wxString(u, wxConvUTF8);
+                                    if(pr)
+                                    {
+                                          u = NULL;
+                                          u = (char *)(pr->GetStringSubfield("DSID", 0, "EDTN", 0));
+                                          if(u)
+                                          {
+                                                if(strlen(u))
+                                                      umedtn = wxString(u, wxConvUTF8);
+                                          }
+                                    }
                                     else
                                     {
                                           wxString msg(_T("   s57chart::BuildS57File  DDFRecord 0 does not contain DSID:EDTN in update file "));
                                           msg.Append(FileToAdd);
-                                    wxLogMessage(msg);
+                                          wxLogMessage(msg);
 
-                                    umedtn = _T("1");                // backstop
+                                          umedtn = _T("1");                // backstop
                                     }
 
                                     delete poModule;
@@ -3291,9 +3312,23 @@ int s57chart::ValidateAndCountUpdates( const wxFileName file000, const wxString 
                 DDFRecord *pr = oUpdateModule.ReadRecord();                     // Record 0
 
                 int nSuccess;
-                char *u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0, &nSuccess));
+                char *u=NULL;
 
-                LastUpdateDate = wxString(u, wxConvUTF8);
+                if(pr)
+                   u = (char *)(pr->GetStringSubfield("DSID", 0, "ISDT", 0, &nSuccess));
+
+                if(u)
+                {
+                  if(strlen(u))
+                  {
+                      LastUpdateDate = wxString(u, wxConvUTF8);
+                  }
+                }
+                else
+                {
+                      wxDateTime now = wxDateTime::Now();
+                      LastUpdateDate = now.Format(_T("%Y%m%d"));
+                }
             }
         }
 
@@ -6181,8 +6216,11 @@ void OpenCPN_OGRErrorHandler( CPLErr eErrClass, int nError,
     else
         sprintf( buf, "   ERROR %d: %s\n", nError, pszErrorMsg );
 
-    wxString msg(buf, wxConvUTF8);
-    wxLogMessage(msg);
+    if(g_bGDAL_Debug)
+    {
+      wxString msg(buf, wxConvUTF8);
+      wxLogMessage(msg);
+    }
 
     //      Do not simply return on CE_Fatal errors, as we don't want to abort()
 
