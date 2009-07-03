@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.17 2009/07/03 02:59:41 bdbcat Exp $
+ * $Id: ais.cpp,v 1.18 2009/07/03 13:07:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.18  2009/07/03 13:07:35  bdbcat
+ * Typo.
+ *
  * Revision 1.17  2009/07/03 02:59:41  bdbcat
  * Improve AIS Dialogs.
  *
@@ -135,7 +138,7 @@ static      GenericPosDat     AISPositionMuxData;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.17 2009/07/03 02:59:41 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.18 2009/07/03 13:07:35 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -175,7 +178,7 @@ char ais_status[][40] = {
       "At Anchor",
       "Not Under Command",
       "Restricted Manoeuvrability",
-      "Constrained by draught,"
+      "Constrained by draught",
       "Moored",
       "Aground",
       "Engaged in Fishing",
