@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.22 2009/06/17 02:46:43 bdbcat Exp $
+ * $Id: options.cpp,v 1.23 2009/07/03 02:56:00 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.23  2009/07/03 02:56:00  bdbcat
+ * Allow fifo data source.
+ *
  * Revision 1.22  2009/06/17 02:46:43  bdbcat
  * Add AIS Alerts
  *
@@ -1425,6 +1428,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
         selais.Prepend(_T("Serial:"));
     else if(selais.Contains(_T("/dev")))
         selais.Prepend(_T("Serial:"));
+    else if(selais.Contains(_T("fifo")))
+          selais.Prepend(_T("Serial:"));
     *pAIS_Port = selais;
 
 #ifdef USE_WIFI_CLIENT
