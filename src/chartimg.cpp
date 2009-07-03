@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.23 2009/06/28 02:02:08 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.24 2009/07/03 02:58:10 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.24  2009/07/03 02:58:10  bdbcat
+ * Dorrect "WGS 84" spelling.
+ *
  * Revision 1.23  2009/06/28 02:02:08  bdbcat
  * Implement Datum transforms.
  *
@@ -60,6 +63,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.24  2009/07/03 02:58:10  bdbcat
+ * Dorrect "WGS 84" spelling.
+ *
  * Revision 1.23  2009/06/28 02:02:08  bdbcat
  * Implement Datum transforms.
  *
@@ -151,7 +157,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.23 2009/06/28 02:02:08 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.24 2009/07/03 02:58:10 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1584,7 +1590,8 @@ InitReturn ChartBaseBSB::PostInit(void)
       if(-1 != datum_index)
             m_datum_index = datum_index;
       else
-            m_datum_index = GetDatumIndex("WGS84");
+            m_datum_index = GetDatumIndex("WGS 84");
+
 
       bReadyToRender = true;
       return INIT_OK;
@@ -3945,7 +3952,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.23 2009/06/28 02:02:08 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.24 2009/07/03 02:58:10 bdbcat Exp $
 *
 */
 
