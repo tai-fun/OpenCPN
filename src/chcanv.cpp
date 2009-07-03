@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.47 2009/06/25 02:36:47 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.48 2009/07/03 02:59:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.48  2009/07/03 02:59:41  bdbcat
+ * Improve AIS Dialogs.
+ *
  * Revision 1.47  2009/06/25 02:36:47  bdbcat
  * Slow down mouse wheel, fix chart outlines near IDL.
  *
@@ -105,6 +108,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.48  2009/07/03 02:59:41  bdbcat
+ * Improve AIS Dialogs.
+ *
  * Revision 1.47  2009/06/25 02:36:47  bdbcat
  * Slow down mouse wheel, fix chart outlines near IDL.
  *
@@ -310,6 +316,7 @@ extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
 extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
 extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
 extern AISTargetAlertDialog    *g_pais_alert_dialog_active;
+extern AISTargetQueryDialog    *g_pais_query_dialog_active;
 
 
 
@@ -319,7 +326,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.47 2009/06/25 02:36:47 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.48 2009/07/03 02:59:41 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1629,6 +1636,10 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                 if((!g_bShowMoored) && (td->SOG < g_ShowMoored_Kts))
                       continue;
 
+                //      Target data position must be valid
+                if(!td->b_positionValid)
+                      continue;
+
                 int drawit = 0;
                 wxPoint TargetPoint, PredPoint;
 
@@ -1718,7 +1729,7 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                           dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "UBLCK" ) ) ) );
 
                          //and....
-                          if ( !strncmp ( td->ShipName, "UNKNOWN", 7 ) )
+                          if ( !strncmp ( td->ShipName, "Unknown", 7 ) )
                                  dc.SetBrush ( *p_yellow_brush );
 
 //    Check for alarms here, maintained by AIS class timer tick
@@ -2982,7 +2993,6 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
         wxPoint r;
         double zlat, zlon;
 
-        AISTargetQueryDialog *pAISdialog;
         wxString *QueryResult;
 
 #ifdef USE_S57
@@ -3109,17 +3119,18 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                 }
 #endif
                 case ID_DEF_MENU_AIS_QUERY:
-                        QueryResult = g_pAIS->BuildQueryResult ( m_pSnapshotAIS_Target_Data );
-                        delete m_pSnapshotAIS_Target_Data;                // no longer needed
 
-                        pAISdialog = new AISTargetQueryDialog();
-                        pAISdialog->SetText ( *QueryResult );
+                      if(NULL == g_pais_query_dialog_active)
+                      {
+                            g_pais_query_dialog_active = new AISTargetQueryDialog();
+                            g_pais_query_dialog_active->Create ( this, -1, wxT ( "AIS Target Query" ) );
+                      }
 
-                        pAISdialog->Create ( NULL, -1, wxT ( "AIS Target Query" ) );
-                        pAISdialog->ShowModal();
+                      g_pais_query_dialog_active->SetMMSI(m_pSnapshotAIS_Target_Data->MMSI);
+                      delete m_pSnapshotAIS_Target_Data;                // no longer needed
 
-                        delete pAISdialog;
-                        delete QueryResult;
+                      g_pais_query_dialog_active->UpdateText();
+                      g_pais_query_dialog_active->Show();
 
                         break;
 
@@ -5580,6 +5591,10 @@ IMPLEMENT_CLASS ( AISTargetQueryDialog, wxDialog )
 // AISTargetQueryDialog event table definition
 
             BEGIN_EVENT_TABLE ( AISTargetQueryDialog, wxDialog )
+            EVT_BUTTON( ID_AISDIALOGOK, AISTargetQueryDialog::OnIdOKClick )
+
+            EVT_CLOSE(AISTargetQueryDialog::OnClose)
+
             END_EVENT_TABLE()
 
 
@@ -5598,19 +5613,33 @@ AISTargetQueryDialog::AISTargetQueryDialog ( wxWindow* parent,
 
 AISTargetQueryDialog::~AISTargetQueryDialog( )
 {
-      delete pQueryResult;
+      delete m_pQueryTextCtl;
 }
 
 
 void AISTargetQueryDialog::Init( )
 {
-      pQueryResult = NULL;
+      m_MMSI = 0;
+      m_pQueryTextCtl = NULL;
+
+}
+void AISTargetQueryDialog::OnClose(wxCloseEvent& event)
+{
+      Destroy();
+      g_pais_query_dialog_active = NULL;
 }
 
-void AISTargetQueryDialog::SetText ( wxString &text_string )
+void AISTargetQueryDialog::OnIdOKClick( wxCommandEvent& event )
 {
-      pQueryResult = new wxString ( text_string );
+      Close();
 }
+
+
+void AISTargetQueryDialog::SetMMSI(int mmsi)
+{
+      m_MMSI = mmsi;
+}
+
 
 bool AISTargetQueryDialog::Create ( wxWindow* parent,
                                     wxWindowID id, const wxString& caption,
@@ -5671,26 +5700,23 @@ void AISTargetQueryDialog::CreateControls()
 
 // Here is the query result
 
-      wxTextCtrl *pQueryTextCtl = new wxTextCtrl ( this, -1, _T ( "" ),
+      m_pQueryTextCtl = new wxTextCtrl ( this, -1, _T ( "" ),
                   wxDefaultPosition, wxSize ( 500, 500 ), wxTE_MULTILINE /*| wxTE_DONTWRAP*/ | wxTE_READONLY );
 
       wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
-      pQueryTextCtl->SetBackgroundColour ( back_color );
+      m_pQueryTextCtl->SetBackgroundColour ( back_color );
 
-      wxColour text_color = GetGlobalColor ( _T ( "UINFF" ) );
-      pQueryTextCtl->SetForegroundColour ( text_color );
+      wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
+      m_pQueryTextCtl->SetForegroundColour ( text_color );
 
-      boxSizer->Add ( pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE, 5 );
+      boxSizer->Add ( m_pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE, 5 );
 
-      wxFont *qFont = wxTheFontList->FindOrCreateFont ( 14, wxFONTFAMILY_TELETYPE,
+      wxFont *qFont = wxTheFontList->FindOrCreateFont ( 12, wxFONTFAMILY_TELETYPE,
                   wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
-      pQueryTextCtl->SetFont ( *qFont );
+      m_pQueryTextCtl->SetFont ( *qFont );
 
-      if ( pQueryResult )
-            pQueryTextCtl->AppendText ( *pQueryResult );
-
-      pQueryTextCtl->SetSelection ( 0,0 );
-      pQueryTextCtl->SetInsertionPoint ( 0 );
+      m_pQueryTextCtl->SetSelection ( 0,0 );
+      m_pQueryTextCtl->SetInsertionPoint ( 0 );
 
 // A horizontal box sizer to contain Reset, OK, Cancel and Help
       wxBoxSizer* okCancelBox = new wxBoxSizer ( wxHORIZONTAL );
@@ -5706,6 +5732,7 @@ void AISTargetQueryDialog::CreateControls()
       okCancelBox->Add ( ok, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
       ok->SetBackgroundColour ( button_color );
 
+/*
 // The Cancel button
       wxButton* cancel = new wxButton ( this, wxID_CANCEL,
                                         wxT ( "&Cancel" ), wxDefaultPosition, wxDefaultSize, 0 );
@@ -5717,9 +5744,26 @@ void AISTargetQueryDialog::CreateControls()
                                       wxDefaultPosition, wxDefaultSize, 0 );
       okCancelBox->Add ( help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
       help->SetBackgroundColour ( button_color );
-
+*/
 }
 
+void AISTargetQueryDialog::UpdateText()
+{
+      wxString query_text;
+      if(m_MMSI)
+      {
+            AIS_Target_Data *td = g_pAIS->Get_Target_Data_From_MMSI(m_MMSI);
+            if(td)
+            {
+                  td->BuildQueryResult(&query_text);
+            }
+      }
+      if(m_pQueryTextCtl)
+      {
+            m_pQueryTextCtl->Clear();
+            m_pQueryTextCtl->AppendText ( query_text );
+      }
+}
 
 
 //---------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.15 2009/06/17 02:48:32 bdbcat Exp $
+ * $Id: ais.h,v 1.16 2009/07/03 03:00:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.16  2009/07/03 03:00:32  bdbcat
+ * Improve AIS Dialogs.
+ *
  * Revision 1.15  2009/06/17 02:48:32  bdbcat
  * Add AIS Alerts
  *
@@ -161,6 +164,9 @@ class AIS_Target_Data
 public:
 
     AIS_Target_Data();
+    void BuildQueryResult(wxString *result);
+    char *get_vessel_type_string(int type);
+
 
     int                       MID;
     int                       MMSI;
@@ -177,11 +183,28 @@ public:
     char                      CallSign[8];                // includes terminator
     char                      ShipName[21];
     unsigned char             ShipType;
+    int                       IMO;
+
+    int                       DimA;
+    int                       DimB;
+    int                       DimC;
+    int                       DimD;
+
+    int                       ETA_Mo;
+    int                       ETA_Day;
+    int                       ETA_Hr;
+    int                       ETA_Min;
+
+    double                    Draft;
+
+    char                      Destination[21];
+
     time_t                    ReportTicks;
     int                       RecentPeriod;
     bool                      b_active;
     ais_alarm_type            n_alarm_state;
     bool                      b_suppress_audio;
+    bool                      b_positionValid;
 
     double                    Range_NM;
     double                    Brg;
@@ -254,7 +277,6 @@ public:
     void UnPause(void);
     void GetSource(wxString& source);
     AIS_Target_Hash *GetTargetList(void) {return AISTargetList;}
-    wxString *BuildQueryResult(AIS_Target_Data *td);
     AIS_Target_Data *Get_Target_Data_From_MMSI(int mmsi);
 
 private:
@@ -273,7 +295,7 @@ private:
     void UpdateOneCPA(AIS_Target_Data *ptarget);
     void UpdateAllAlarms(void);
     void Parse_And_Send_Posn(wxString &str_temp_buf);
-
+    char *get_vessel_type_string(int type);
 
 
     AIS_Target_Hash *AISTargetList;

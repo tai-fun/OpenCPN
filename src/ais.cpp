@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.16 2009/06/17 02:44:38 bdbcat Exp $
+ * $Id: ais.cpp,v 1.17 2009/07/03 02:59:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.17  2009/07/03 02:59:41  bdbcat
+ * Improve AIS Dialogs.
+ *
  * Revision 1.16  2009/06/17 02:44:38  bdbcat
  * Alarms/Alerts
  *
@@ -132,7 +135,7 @@ static      GenericPosDat     AISPositionMuxData;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.16 2009/06/17 02:44:38 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.17 2009/07/03 02:59:41 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -166,6 +169,43 @@ char test_str[24][79] = {
 };
 
 
+char ais_status[][40] = {
+
+      "Underway",
+      "At Anchor",
+      "Not Under Command",
+      "Restricted Manoeuvrability",
+      "Constrained by draught,"
+      "Moored",
+      "Aground",
+      "Engaged in Fishing",
+      "Under way sailing"
+};
+
+char ais_type[][80] = {
+"Vessel Fishing",             //30        0
+"Vessel Towing",              //31        1
+"Vessel Towing, Long",        //32        2
+"Vessel Dredging",            //33        3
+"Vessel Diving",              //34        4
+"Military Vessel",            //35        5
+"Vessel Sailing",             //36        6
+"High Speed Craft",           //4x        7
+"Pilot Vessel",               //50        8
+"Search and Rescue Vessel",   //51        9
+"Tug",                        //52        10
+"Port Tender",                //53        11
+"Pollution Control Vessel",   //54        12
+"Law Enforcement Vessel",     //55        13
+"Medical Transport",          //58        14
+"Passenger Ship",             //6x        15
+"Cargo Ship",                 //7x        16
+"Tanker",                     //8x        17
+"Unknown"                     //          18
+};
+
+
+
 //---------------------------------------------------------------------------------
 //
 //  AIS_Target_Data Implementation
@@ -173,8 +213,9 @@ char test_str[24][79] = {
 //---------------------------------------------------------------------------------
 AIS_Target_Data::AIS_Target_Data()
 {
-    strncpy(ShipName, "UNKNOWN             ", 21);
-    strncpy(CallSign, "UnDef  ", 8);
+    strncpy(ShipName, "Unknown             ", 21);
+    strncpy(CallSign, "       ", 8);
+    strncpy(Destination, "Unknown             ", 21);
 
     SOG = 555.;
     COG = 666.;
@@ -195,13 +236,218 @@ AIS_Target_Data::AIS_Target_Data()
     Range_NM = 1.;
     Brg = 0;
 
+    DimA = DimB = DimC = DimD = 0;;
+
+    ETA_Mo = 0;
+    ETA_Day = 0;
+    ETA_Hr = 24;
+    ETA_Min = 60;
+
+    Draft = 0.;
+
     RecentPeriod = 0;
 
     Class = AIS_CLASS_A;      // default
     n_alarm_state = AIS_NO_ALARM;
     b_suppress_audio = false;
+    b_positionValid = false;
 
 }
+
+void AIS_Target_Data::BuildQueryResult(wxString *result)
+{
+      wxString line;
+
+
+    //  Clip any unused characters (@) from the name
+      wxString ts;
+      char *tp = ShipName;
+      while((*tp) && (*tp != '@'))
+            ts.Append(*tp++);
+
+      line.Printf(_T("ShipName:  "));
+      line.Append( ts );
+      line.Append(_T("\n\n"));
+      result->Append(line);
+
+      line.Printf(_T("MMSI:      %d\n"), MMSI);
+      result->Append(line);
+
+       //  Clip any unused characters (@) from the callsign
+      ts.Clear();
+      tp = CallSign;
+      while((*tp) && (*tp != '@'))
+            ts.Append(*tp++);
+
+      line.Printf(_T("CallSign:  "));
+      line.Append( ts );
+      line.Append(_T("\n"));
+      result->Append(line);
+
+      if(IMO > 0)
+            line.Printf(_T("IMO:        %8d\n\n"), IMO);
+      else
+            line.Printf(_T("IMO:\n\n"));
+
+      result->Append(line);
+
+    //      Nav Status
+      ts.Clear();
+      if((NavStatus <= 8) && (NavStatus >= 0))
+      {
+            tp = &ais_status[NavStatus][0];
+            while(*tp)
+                  ts.Append(*tp++);
+      }
+
+      line.Printf(_T("Navigational Status:  "));
+      line.Append( ts );
+      line.Append(_T("\n"));
+      result->Append(line);
+
+
+    //      Ship type
+      tp = get_vessel_type_string(ShipType);
+      ts.Clear();
+      while(*tp)
+            ts.Append(*tp++);
+
+      line.Printf(_T("Ship Type:            "));
+      line.Append( ts );
+      line.Append(_T("\n"));
+      result->Append(line);
+
+    //  Destination
+      ts.Clear();
+      tp = Destination;
+      while((*tp) && (*tp != '@'))
+            ts.Append(*tp++);
+
+      line.Printf(_T("Destination:          "));
+      line.Append( ts );
+      line.Append(_T("\n"));
+      result->Append(line);
+
+      wxDateTime now = wxDateTime::Now();
+
+    //  ETA
+      if((ETA_Mo) && (ETA_Hr < 24))
+      {
+            wxDateTime eta(ETA_Day, wxDateTime::Month(ETA_Mo), now.GetYear(), ETA_Hr, ETA_Min);
+            line.Printf(_T("ETA:                  "));
+            line.Append( eta.FormatISODate());
+            line.Append(_T("  "));
+            line.Append( eta.FormatISOTime());
+            line.Append(_T("\n"));
+      }
+      else
+      {
+            line.Printf(_T("ETA:                  Unknown"));
+            line.Append(_T("\n"));
+      }
+
+      result->Append(line);
+
+    //  Dimensions
+      if((DimA + DimB + DimC + DimD) == 0)
+            line.Printf(_T("Size:                ---m x ---m x %4.1fm\n\n"),  Draft);
+      else
+            line.Printf(_T("Size:                %5dm x %dm x %4.1fm\n\n"), (DimA + DimB), (DimC + DimD), Draft);
+
+      result->Append(line);
+
+      line.Printf(_T("Course:               %5.0f Deg.\n"), COG);
+      result->Append(line);
+
+      line.Printf(_T("Speed:                %5.2f Kts.\n"), SOG);
+      result->Append(line);
+
+      line.Printf(_T("Range:                %5.1f NM\n"), Range_NM);
+      result->Append(line);
+
+      line.Printf(_T("Bearing:              %5.0f Deg.\n"), Brg);
+      result->Append(line);
+
+      now.MakeGMT();
+      int target_age = now.GetTicks() - ReportTicks;
+
+      line.Printf(_T("Report Age:               %d Sec.\n"), target_age);
+      result->Append(line);
+
+      line.Printf(_T("Recent Report Period:     %d Sec.\n"), RecentPeriod);
+      result->Append(line);
+
+      double hours = floor(TCPA / 60.);
+      double mins = TCPA - (hours * 60);
+
+      if(bCPA_Valid)
+            line.Printf(_T("TCPA:                 %02d:%02d Hr:Min\n"), (int)hours, (int)mins);
+      else
+            line.Printf(_T("TCPA:  \n"));
+      result->Append(line);
+
+      if(bCPA_Valid)
+            line.Printf(_T("CPA:                 %6.1f NM"), CPA);
+      else
+            line.Printf(_T("CPA:       "));
+      result->Append(line);
+}
+
+
+char *AIS_Target_Data::get_vessel_type_string(int type)
+{
+      int i=18;
+      switch(type)
+      {
+            case 30:
+                  i=0; break;
+            case 31:
+                  i=1; break;
+            case 32:
+                  i=2; break;
+            case 33:
+                  i=3; break;
+            case 34:
+                  i=4; break;
+            case 35:
+                  i=5; break;
+            case 36:
+                  i=6; break;
+            case 50:
+                  i=8; break;
+            case 51:
+                  i=9; break;
+            case 52:
+                  i=10; break;
+            case 53:
+                  i=11; break;
+            case 54:
+                  i=12; break;
+            case 55:
+                  i=13; break;
+            case 58:
+                  i=14; break;
+            default:
+                  i=18; break;
+      }
+
+      if((type >= 40) && (type < 50))
+            i=7;
+
+      if((type >= 60) && (type < 70))
+            i=15;
+
+      if((type >= 70) && (type < 80))
+            i=16;
+
+      if((type >= 80) && (type < 90))
+            i=17;
+
+      return &ais_type[i][0];
+}
+
+
+
 
 //---------------------------------------------------------------------------------
 //
@@ -624,8 +870,25 @@ AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tth
      //  Name update
      if((tthis->MID == 5) || (tthis->MID == 24))
      {
-         *result = *tlast;
+         *result = *tlast;          // Pick up last lat/lon, etc
+
          strncpy(&result->ShipName[0], &tthis->ShipName[0], 21);
+         result->IMO = tthis->IMO;
+         strncpy(result->CallSign, tthis->CallSign, 8);
+         result->ShipType = tthis->ShipType;
+         result->DimA = tthis->DimA;
+         result->DimB = tthis->DimB;
+         result->DimC = tthis->DimC;
+         result->DimD = tthis->DimD;
+         result->ETA_Mo  = tthis->ETA_Mo;
+         result->ETA_Day = tthis->ETA_Day;
+         result->ETA_Hr =  tthis->ETA_Hr;
+         result->ETA_Min = tthis->ETA_Min;
+
+         result->Draft = tthis->Draft;
+
+         strncpy(result->Destination, tthis->Destination, 21);
+
          result->n_alarm_state = tlast->n_alarm_state;
      }
 
@@ -633,7 +896,24 @@ AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tth
      else if((tthis->MID == 1) || (tthis->MID == 2) || (tthis->MID == 3) || (tthis->MID == 18))
      {
          *result = *tthis;
+
          strncpy(&result->ShipName[0], &tlast->ShipName[0], 21);
+         result->IMO = tlast->IMO;
+         strncpy(result->CallSign, tlast->CallSign, 8);
+         result->ShipType = tlast->ShipType;
+         result->DimA = tlast->DimA;
+         result->DimB = tlast->DimB;
+         result->DimC = tlast->DimC;
+         result->DimD = tlast->DimD;
+         result->ETA_Mo  = tlast->ETA_Mo;
+         result->ETA_Day = tlast->ETA_Day;
+         result->ETA_Hr =  tlast->ETA_Hr;
+         result->ETA_Min = tlast->ETA_Min;
+
+         result->Draft = tlast->Draft;
+
+         strncpy(result->Destination, tlast->Destination, 21);
+
          result->n_alarm_state = tlast->n_alarm_state;
      }
 
@@ -748,6 +1028,8 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
             atd.COG = 0.1 * (bstr->GetInt(117, 12));
             atd.HDG = 1.0 * (bstr->GetInt(129, 9));
 
+            atd.b_positionValid = true;
+
             atd.ROTAIS = bstr->GetInt(43, 8);
             if(atd.ROTAIS == 128)
                 atd.ROTAIS = 0;                      // not available codes as zero
@@ -801,12 +1083,31 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
             atd.MID = message_ID;
             atd.MMSI = bstr->GetInt(9, 30);
 
+
             int DSI = bstr->GetInt(39, 2);
             if(0 == DSI)
             {
+                atd.IMO = bstr->GetInt(41, 30);
+
                 bstr->GetStr(71,42, &atd.CallSign[0], 7);
                 bstr->GetStr(113,120, &atd.ShipName[0], 20);
                 atd.ShipType = (unsigned char)bstr->GetInt(233,8);
+
+                atd.DimA = bstr->GetInt(241, 9);
+                atd.DimB = bstr->GetInt(250, 9);
+                atd.DimC = bstr->GetInt(259, 6);
+                atd.DimD = bstr->GetInt(265, 6);
+
+//                int epfd = bstr->GetInt(271, 4);
+
+                atd.ETA_Mo =  bstr->GetInt(275, 4);
+                atd.ETA_Day = bstr->GetInt(279, 5);
+                atd.ETA_Hr =  bstr->GetInt(284, 5);
+                atd.ETA_Min = bstr->GetInt(289, 6);
+
+                atd.Draft = (double)(bstr->GetInt(295, 8)) / 10.0;
+
+                bstr->GetStr(303,120, &atd.Destination[0], 20);
 
                 parse_result = true;
             }
@@ -1026,71 +1327,56 @@ void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
 //
 //------------------------------------------------------------------------------------
 
-//  Build a query response
-//  Resulting string to OWNED BY CALLER
-wxString *AIS_Decoder::BuildQueryResult(AIS_Target_Data *td)
+char *AIS_Decoder::get_vessel_type_string(int type)
 {
-    wxString *result = new wxString;
-    wxString line;
+      int i=18;
+      switch(type)
+      {
+            case 30:
+                  i=0; break;
+            case 31:
+                  i=1; break;
+            case 32:
+                  i=2; break;
+            case 33:
+                  i=3; break;
+            case 34:
+                  i=4; break;
+            case 35:
+                  i=5; break;
+            case 36:
+                  i=6; break;
+            case 50:
+                  i=8; break;
+            case 51:
+                  i=9; break;
+            case 52:
+                  i=10; break;
+            case 53:
+                  i=11; break;
+            case 54:
+                  i=12; break;
+            case 55:
+                  i=13; break;
+            case 58:
+                  i=14; break;
+            default:
+                  i=18; break;
+      }
 
-    line.Printf(_T("MMSI:  %d\n"), td->MMSI);
-    result->Append(line);
+      if((type >= 40) && (type < 50))
+            i=7;
 
-    //  Clip any unused characters (@) from the name
-    wxString ts;
-    char *tp = &td->ShipName[0];
-    while((*tp) && (*tp != '@'))
-       ts.Append(*tp++);
-//    ts.Append((wxChar)0);
+      if((type >= 60) && (type < 70))
+            i=15;
 
-    line.Printf(_T("ShipName:  "));
-    line.Append( ts );
-    line.Append(_T("\n\n"));
-    result->Append(line);
+      if((type >= 70) && (type < 80))
+            i=16;
 
-    line.Printf(_T("Course:   %5.0f Deg.\n"), td->COG);
-    result->Append(line);
+      if((type >= 80) && (type < 90))
+            i=17;
 
-    line.Printf(_T("Speed:    %5.2f Kts.\n"), td->SOG);
-    result->Append(line);
-
-    line.Printf(_T("Range:    %5.1f NM\n"), td->Range_NM);
-    result->Append(line);
-
-    line.Printf(_T("Bearing:  %5.0f Deg.\n"), td->Brg);
-    result->Append(line);
-
-
-
-    wxDateTime now = wxDateTime::Now();
-    now.MakeGMT();
-    int target_age = now.GetTicks() - td->ReportTicks;
-
-//    line.Printf("NavStatus: %d\n", td->NavStatus);
-//    res->Append(line);
-
-    line.Printf(_T("Report Age:           %d Sec.\n"), target_age);
-    result->Append(line);
-
-    line.Printf(_T("Recent Report Period: %d Sec.\n"), td->RecentPeriod);
-    result->Append(line);
-
-    double mins = floor(td->TCPA);
-    int secs = (int)((td->TCPA - mins) * 60);
-
-    if(td->bCPA_Valid)
-          line.Printf(_T("TCPA:  %d:%02d Min:Sec\n"), (int)mins, secs);
-    else
-          line.Printf(_T("TCPA:  \n"));
-    result->Append(line);
-
-    if(td->bCPA_Valid)
-          line.Printf(_T("CPA:   %6.1f NM"), td->CPA);
-    else
-          line.Printf(_T("CPA:       "));
-    result->Append(line);
-
-    return result;
+      return &ais_type[i][0];
 }
 
 
@@ -1726,22 +2012,33 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
 //    Entry Point
 void *OCP_AIS_Thread::Entry()
 {
+    // Open the requested port.
+    //   using O_NDELAY to force ignore of DCD (carrier detect) MODEM line
+    if ((m_ais_fd = open(m_pPortName->mb_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
+    {
+        wxString msg(_T("AIS input device open failed: "));
+        msg.Append(*m_pPortName);
+        wxLogMessage(msg);
+        return 0;
+    }
+
+    /*
+     A special test for a user defined FIFO
+     To use this method, do the following:
+     a.  Create a fifo            $mkfifo /tmp/aisfifo
+     b.  netcat into the fifo     $nc {ip} {port} > /tmp/aisfifo                   sample {ip} {port} could be  nc 82.182.117.51 6401 > /tmp/aisfifo
+     c.  hand edit opencpn.conf and make AIS data source like this:
+          [Settings/AISPort]
+          Port=Serial:/tmp/aisfifo
+    */
+    if(m_pPortName->MakeUpper().Contains(_T("FIFO")))
+          goto port_ready;
 
 
     // Allocate the termios data structures
 
     pttyset = (termios *)calloc(sizeof (termios), 1);
     pttyset_old = (termios *)malloc(sizeof (termios));
-
-    // Open the serial port.
-    //   using O_NDELAY to force ignore of DCD (carrier detect) MODEM line
-    if ((m_ais_fd = open(m_pPortName->mb_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
-    {
-        wxString msg(_T("AIS tty input device open failed: "));
-        msg.Append(*m_pPortName);
-        wxLogMessage(msg);
-        return 0;
-    }
 
 
 //    {
@@ -1856,6 +2153,7 @@ void *OCP_AIS_Thread::Entry()
     }
 
 
+port_ready:
 
     bool not_done = true;
     char next_byte = 0;
@@ -1863,6 +2161,7 @@ void *OCP_AIS_Thread::Entry()
 
 //    The main loop
 //    printf("starting\n");
+
 
     while(not_done)
     {

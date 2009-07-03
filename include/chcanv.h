@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.24 2009/06/25 02:37:04 bdbcat Exp $
+ * $Id: chcanv.h,v 1.25 2009/07/03 03:00:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.25  2009/07/03 03:00:32  bdbcat
+ * Improve AIS Dialogs.
+ *
  * Revision 1.24  2009/06/25 02:37:04  bdbcat
  * Slow down mouse wheel, fix chart outlines near IDL.
  *
@@ -149,7 +152,8 @@ typedef enum ownship_state_t
 }_ownship_state_t;
 
 enum {
-      ID_S57QUERYTREECTRL =            10000
+      ID_S57QUERYTREECTRL =            10000,
+      ID_AISDIALOGOK
 };
 
 //----------------------------------------------------------------------------
@@ -606,13 +610,19 @@ public:
             const wxSize& size = wxDefaultSize,
             long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
 
-      /// Creates the controls and sizers
+      void OnClose(wxCloseEvent& event);
+      void OnIdOKClick( wxCommandEvent& event );
       void CreateControls();
 
       void SetText(wxString &text_string);
 
+      void UpdateText(void);
+      void SetMMSI(int mmsi);
+
       //    Data
-      wxString    *pQueryResult;
+//      wxString    *pQueryResult;
+      int               m_MMSI;
+      wxTextCtrl        *m_pQueryTextCtl;
 };
 
 

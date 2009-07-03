@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.44 2009/06/30 03:01:35 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.45 2009/07/03 02:59:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.45  2009/07/03 02:59:41  bdbcat
+ * Improve AIS Dialogs.
+ *
  * Revision 1.44  2009/06/30 03:01:35  bdbcat
  * Add configurable GDAL debug messages.
  *
@@ -199,7 +202,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.44 2009/06/30 03:01:35 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.45 2009/07/03 02:59:41 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -361,6 +364,8 @@ bool             g_bGPSAISMux;
 bool             g_bAIS_CPA_Alert;
 bool             g_bAIS_CPA_Alert_Audio;
 AISTargetAlertDialog    *g_pais_alert_dialog_active;
+AISTargetQueryDialog    *g_pais_query_dialog_active;
+
 int               g_ais_alert_dialog_x, g_ais_alert_dialog_y;
 int               g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
 
@@ -2731,6 +2736,10 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
         cc1->UpdateShips();
 
         cc1->UpdateAIS();
+
+        if(g_pais_query_dialog_active)
+              g_pais_query_dialog_active->UpdateText();
+
 
         if(bnew_chart)
             cc1->Refresh(false);
