@@ -59,7 +59,7 @@ BEGIN_EVENT_TABLE( RouteProp, wxDialog )
     EVT_TEXT( ID_PLANSPEEDCTL, RouteProp::OnPlanSpeedCtlUpdated )
     EVT_BUTTON( ID_ROUTEPROP_CANCEL, RouteProp::OnRoutepropCancelClick )
     EVT_BUTTON( ID_ROUTEPROP_OK, RouteProp::OnRoutepropOkClick )
-
+    EVT_LIST_ITEM_SELECTED( ID_LISTCTRL, RouteProp::OnRoutepropListClick )
 
 END_EVENT_TABLE()
 
@@ -75,6 +75,30 @@ RouteProp::RouteProp( wxWindow* parent, wxWindowID id,
                      const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
 {
     Create(parent, id, caption, pos, size, style);
+}
+
+void RouteProp::OnRoutepropListClick( wxListEvent& event )
+{
+    long itemno = 0;
+    const wxListItem &i = event.GetItem();
+    i.GetText().ToLong(&itemno);
+    wxRoutePointListNode *node = m_pRoute->pRoutePointList->GetFirst();
+    while(node && itemno--)
+    {
+          node = node->GetNext();
+    }
+    if ( node )
+    {
+      extern double           vLat, vLon;
+      RoutePoint *prp = node->GetData();
+      if ( prp )
+      {
+          vLat = cc1->VPoint.clat = prp->m_lat;
+          vLon = cc1->VPoint.clon = prp->m_lon;
+          cc1->SetVPScale ( cc1->GetVPScale() );
+          cc1->Refresh();
+      }
+    }
 }
 
 RouteProp::~RouteProp( )
@@ -134,7 +158,7 @@ void RouteProp::CreateControls()
     wxStaticText* itemStaticText4 = new wxStaticText( itemDialog1, wxID_STATIC, _("Route Name"), wxDefaultPosition, wxDefaultSize, 0 );
     itemStaticBoxSizer3->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
-    m_RouteNameCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(600, -1), 0 );
+    m_RouteNameCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(680, -1), 0 );
     itemStaticBoxSizer3->Add(m_RouteNameCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
 
@@ -204,7 +228,7 @@ void RouteProp::CreateControls()
 
     itemCol.SetText(_T("Leg"));
     m_wpList->InsertColumn(0, itemCol);
-    m_wpList->SetColumnWidth( 0, 50 );
+    m_wpList->SetColumnWidth( 0, 35 );
 
     itemCol.SetText(_T("To Waypoint"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
@@ -224,13 +248,17 @@ void RouteProp::CreateControls()
     itemCol.SetText(_T("Latitude"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(4, itemCol);
-    m_wpList->SetColumnWidth( 4, 100 );
+    m_wpList->SetColumnWidth( 4, 95 );
 
     itemCol.SetText(_T("Longitude"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(5, itemCol);
-    m_wpList->SetColumnWidth( 5, 100 );
+    m_wpList->SetColumnWidth( 5, 95 );
 
+    itemCol.SetText(_T("ETE"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    m_wpList->InsertColumn(6, itemCol);
+    m_wpList->SetColumnWidth( 6, 80 );
 
 //  Fetch any config file values
     m_planspeed = g_PlanSpeed;
@@ -355,6 +383,7 @@ bool RouteProp::UpdateProperties()
 
         int i=0;
         double slat, slon;
+      double tdis;
 
         while(node)
         {
@@ -397,6 +426,31 @@ bool RouteProp::UpdateProperties()
 
                 wxString tlon = toSDMM(2, prp->m_lon);
                 m_wpList->SetItem(item_line_index, 5, tlon);
+
+    // Time
+            if ( i == 0 )
+            {
+                t.Printf(_T("00m00s"));
+                tdis = 0;
+            }
+            else
+            {
+                int h = 0,m = 0,s = 0;
+                tdis += leg_dist;
+                if (m_planspeed)
+                {
+                  s = (int)(tdis * 3600 / m_planspeed);
+                  m = s/60;
+                  s %= 60;
+                  h = m/60;
+                  m %= 60;
+                }
+                if ( h )
+                  t.Printf(_T("%dh%02dm%02ds"), h, m, s);
+                else
+                  t.Printf(_T("%02dm%02ds"), m, s);
+            }
+            m_wpList->SetItem(item_line_index, 6, t);
 
     //  Save for iterating distance/bearing calculation
                 slat = prp->m_lat;

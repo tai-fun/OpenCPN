@@ -121,6 +121,7 @@ public:
     void OnRoutepropCancelClick( wxCommandEvent& event );
     void OnRoutepropOkClick( wxCommandEvent& event );
     void OnPlanSpeedCtlUpdated( wxCommandEvent& event );
+    void OnRoutepropListClick( wxListEvent& event );
 
 
     /// Should we show tooltips?
