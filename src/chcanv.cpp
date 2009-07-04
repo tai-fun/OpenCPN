@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.48 2009/07/03 02:59:41 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.49 2009/07/04 01:57:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.49  2009/07/04 01:57:26  bdbcat
+ * Normalize Tide Icon display longitude.
+ *
  * Revision 1.48  2009/07/03 02:59:41  bdbcat
  * Improve AIS Dialogs.
  *
@@ -108,6 +111,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.49  2009/07/04 01:57:26  bdbcat
+ * Normalize Tide Icon display longitude.
+ *
  * Revision 1.48  2009/07/03 02:59:41  bdbcat
  * Improve AIS Dialogs.
  *
@@ -326,7 +332,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.48 2009/07/03 02:59:41 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.49 2009/07/04 01:57:26 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -4261,7 +4267,17 @@ void ChartCanvas::DrawAllTidesInBBox ( wxDC& dc, wxBoundingBox& BBox,
                         {
                                 float lon = pIDX->IDX_lon;
                                 float lat = pIDX->IDX_lat;
+                                bool b_inbox = false;
+                                float nlon;
+
                                 if ( BBox.PointInBox ( lon, lat, 0 ) )
+                                    {nlon = lon ; b_inbox = true;}
+                                else if ( BBox.PointInBox ( lon + 360., lat, 0 ) )
+                                    {nlon = lon + 360. ; b_inbox = true;}
+                                else if ( BBox.PointInBox ( lon - 360., lat, 0 ) )
+                                    {nlon = lon - 360. ; b_inbox = true;}
+
+                                if ( b_inbox )
                                 {
 
 //    Manage the point selection list
@@ -4269,31 +4285,13 @@ void ChartCanvas::DrawAllTidesInBBox ( wxDC& dc, wxBoundingBox& BBox,
                                                 pSelectTC->AddSelectablePoint ( lat, lon, pIDX, SELTYPE_TIDEPOINT );
 
                                         wxPoint r;
-                                        GetPointPix ( lat, lon, &r );
+                                        GetPointPix ( lat, nlon, &r );
 
                                         if(bdraw_mono_for_mask)
                                               dc.DrawRectangle(r.x - bmw/2, r.y - bmh/2, bmw, bmh);
                                         else
                                               dc.DrawBitmap(bm, r.x - bmw/2, r.y - bmh/2, true);
-/*
-                                        wxPoint d[4];
-                                        int dd = 6;
-                                        d[0].x = r.x; d[0].y = r.y+dd;
-                                        d[1].x = r.x+dd; d[1].y = r.y;
-                                        d[2].x = r.x; d[2].y = r.y-dd;
-                                        d[3].x = r.x-dd; d[3].y = r.y;
 
-                                        dc.DrawPolygon ( 4, d );
-
-                                        if ( type == 'T' )
-                                        {
-                                                dc.SetPen ( *pblack_pen );
-                                                dc.SetBrush ( *pblack_brush );
-                                                dc.DrawCircle ( r, 2 );
-                                                dc.SetPen ( *pblack_pen );
-                                                dc.SetBrush ( *pgreen_brush );
-                                        }
-*/
                                 }
                         }
                 }
