@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.17 2009/07/08 01:52:53 bdbcat Exp $
+ * $Id: ais.h,v 1.18 2009/07/08 03:39:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.18  2009/07/08 03:39:42  bdbcat
+ * Improve Alert dialog.
+ *
  * Revision 1.17  2009/07/08 01:52:53  bdbcat
  * Convert AISDecoder to wxEvtHandler.
  *
@@ -167,7 +170,7 @@ class AIS_Target_Data
 public:
 
     AIS_Target_Data();
-    void BuildQueryResult(wxString *result);
+    void BuildQueryResult(wxString *result, wxSize *psize);
     char *get_vessel_type_string(int type);
 
 
@@ -415,7 +418,7 @@ class AISTargetAlertDialog: public wxDialog
            void UpdateText();
 
       private:
-            bool GetAlertText(int mmsi, wxString *presult);
+            bool GetAlertText(int mmsi, wxString *presult, wxSize *psize);
             void OnClose(wxCloseEvent& event);
             void OnIdAckClick( wxCommandEvent& event );
             void OnMove( wxMoveEvent& event );

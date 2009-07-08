@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.19 2009/07/08 01:52:43 bdbcat Exp $
+ * $Id: ais.cpp,v 1.20 2009/07/08 03:39:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.20  2009/07/08 03:39:18  bdbcat
+ * Improve Alert dialog.
+ *
  * Revision 1.19  2009/07/08 01:52:43  bdbcat
  * Convert AISDecoder to wxEvtHandler.
  *
@@ -141,7 +144,7 @@ static      GenericPosDat     AISPositionMuxData;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.19 2009/07/08 01:52:43 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.20 2009/07/08 03:39:18 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -260,7 +263,7 @@ AIS_Target_Data::AIS_Target_Data()
 
 }
 
-void AIS_Target_Data::BuildQueryResult(wxString *result)
+void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
 {
       wxString line;
 
@@ -402,6 +405,12 @@ void AIS_Target_Data::BuildQueryResult(wxString *result)
       else
             line.Printf(_T("CPA:       "));
       result->Append(line);
+
+      if(psize)
+      {
+            psize->SetHeight(500);
+            psize->SetWidth(450);
+      }
 }
 
 
@@ -2356,7 +2365,16 @@ bool AISTargetAlertDialog::Create ( int target_mmsi,
       CreateControls();
 
       if(CanSetTransparent())
-            SetTransparent(128);
+            SetTransparent(192);
+
+      // This fits the dialog to the minimum size dictated by
+// the sizers
+      GetSizer()->Fit ( this );
+
+// This ensures that the dialog cannot be sized smaller
+// than the minimum size
+      GetSizer()->SetSizeHints ( this );
+
 
       return true;
 }
@@ -2369,11 +2387,11 @@ void AISTargetAlertDialog::CreateControls()
 
 // A top-level sizer
       wxBoxSizer* topSizer = new wxBoxSizer ( wxVERTICAL );
-      this->SetSizer ( topSizer );
+      SetSizer ( topSizer );
 
 // A second box sizer to give more space around the controls
       wxBoxSizer* boxSizer = new wxBoxSizer ( wxVERTICAL );
-      topSizer->Add ( boxSizer, 1, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5 );
+      topSizer->Add ( boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5 );
 
 // Here is the query result
 
@@ -2386,18 +2404,24 @@ void AISTargetAlertDialog::CreateControls()
       wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
       m_pAlertTextCtl->SetForegroundColour ( text_color );
 
-      boxSizer->Add ( m_pAlertTextCtl, 1, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE|wxEXPAND, 5 );
-
       wxFont *qFont = wxTheFontList->FindOrCreateFont ( 12, wxFONTFAMILY_TELETYPE,
                   wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
       m_pAlertTextCtl->SetFont ( *qFont );
 
       wxString alert_text;
-      if(GetAlertText(m_target_mmsi, &alert_text))
+      wxSize text_size;
+      if(GetAlertText(m_target_mmsi, &alert_text, &text_size))
+      {
             m_pAlertTextCtl->AppendText ( alert_text );
+            text_size.IncBy(10,10);
+            boxSizer->SetMinSize(text_size);
+      }
 
       m_pAlertTextCtl->SetSelection ( 0,0 );
       m_pAlertTextCtl->SetInsertionPoint ( 0 );
+
+      boxSizer->Add ( m_pAlertTextCtl, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5 );
+
 
 // A horizontal box sizer to contain Ack
       wxBoxSizer* AckBox = new wxBoxSizer ( wxHORIZONTAL );
@@ -2420,7 +2444,7 @@ void AISTargetAlertDialog::CreateControls()
 
 }
 
-bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult)
+bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult, wxSize *psize)
 {
       //    Search the parent AIS_Decoder's target list for specified mmsi
 
@@ -2430,7 +2454,7 @@ bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult)
 
             if(td_found)
             {
-                  td_found->BuildQueryResult(presult);
+                  td_found->BuildQueryResult(presult, psize);
                   return true;
             }
             else
@@ -2443,13 +2467,13 @@ bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult)
 void AISTargetAlertDialog::UpdateText()
 {
       wxString alert_text;
-      if(GetAlertText(m_target_mmsi, &alert_text))
+      if(GetAlertText(m_target_mmsi, &alert_text, NULL))
       {
             m_pAlertTextCtl->Clear();
             m_pAlertTextCtl->AppendText ( alert_text );
       }
       if(CanSetTransparent())
-            SetTransparent(10);
+            SetTransparent(192);
 }
 
 
