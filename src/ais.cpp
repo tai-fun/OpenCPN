@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.18 2009/07/03 13:07:35 bdbcat Exp $
+ * $Id: ais.cpp,v 1.19 2009/07/08 01:52:43 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.19  2009/07/08 01:52:43  bdbcat
+ * Convert AISDecoder to wxEvtHandler.
+ *
  * Revision 1.18  2009/07/03 13:07:35  bdbcat
  * Typo.
  *
@@ -138,7 +141,7 @@ static      GenericPosDat     AISPositionMuxData;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.18 2009/07/03 13:07:35 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.19 2009/07/08 01:52:43 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -353,7 +356,12 @@ void AIS_Target_Data::BuildQueryResult(wxString *result)
 
     //  Dimensions
       if((DimA + DimB + DimC + DimD) == 0)
-            line.Printf(_T("Size:                ---m x ---m x %4.1fm\n\n"),  Draft);
+      {
+            if(Draft > 0.01)
+                  line.Printf(_T("Size:                ---m x ---m x %4.1fm\n\n"),  Draft);
+            else
+                  line.Printf(_T("Size:                ---m x ---m x ---m\n\n"));
+      }
       else
             line.Printf(_T("Size:                %5dm x %dm x %4.1fm\n\n"), (DimA + DimB), (DimC + DimD), Draft);
 
@@ -563,8 +571,7 @@ bool AIS_Bitstring::GetStr(int sp, int len, char *dest, int max_len)
 //  AIS_Decoder Implementation
 //
 //---------------------------------------------------------------------------------
-BEGIN_EVENT_TABLE(AIS_Decoder, wxWindow)
-  EVT_CLOSE(AIS_Decoder::OnCloseWindow)
+BEGIN_EVENT_TABLE(AIS_Decoder, wxEvtHandler)
 
   EVT_SOCKET(AIS_SOCKET_ID, AIS_Decoder::OnSocketEvent)
   EVT_TIMER(TIMER_AIS1, AIS_Decoder::OnTimerAIS)
@@ -576,17 +583,15 @@ BEGIN_EVENT_TABLE(AIS_Decoder, wxWindow)
 
 
 
-AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource, wxMutex *pGPSMutex):
-      wxWindow(pParent, window_id, wxPoint(20,30), wxSize(5,5), wxSIMPLE_BORDER)
+AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource, wxMutex *pGPSMutex)//:
+//      wxWindow(pParent, window_id, wxPoint(20,30), wxSize(5,5), wxSIMPLE_BORDER)
 
 {
-      m_nsim = 0;
-
-      m_death_age_seconds = 300;
-
       AISTargetList = new AIS_Target_Hash;
 
       m_pShareGPSMutex = pGPSMutex;
+
+      m_parent_frame = pParent;
 
       m_pMainEventHandler = pParent->GetEventHandler();
 
@@ -594,12 +599,26 @@ AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDat
       m_bAIS_Audio_Alert_On = false;
 
       OpenDataSource(pParent, AISDataSource);
-
-      Hide();
 }
 
 AIS_Decoder::~AIS_Decoder(void)
 {
+
+ //    Kill off the  RX Thread if alive
+//      Todo Need to fix this by re-building the comm thread to not use blocking event structure
+//      Also affects the NMEA thread in nmea.cpp
+
+      if(pAIS_Thread)
+      {
+            pAIS_Thread->Delete();         //was kill();
+#ifdef __WXMSW__
+//          wxSleep(1);
+#else
+            sleep(2);
+#endif
+      }
+
+
     AIS_Target_Hash::iterator it;
     AIS_Target_Hash *current_targets = GetTargetList();
 
@@ -612,8 +631,13 @@ AIS_Decoder::~AIS_Decoder(void)
 
     delete current_targets;
 
-    delete m_pdata_source_string;
-
+    //    Kill off the TCP/IP Socket if alive
+    if(m_sock)
+    {
+          m_sock->Notify(FALSE);
+          m_sock->Destroy();
+          TimerAIS.Stop();
+    }
 }
 
 //----------------------------------------------------------------------------------
@@ -716,7 +740,7 @@ void AIS_Decoder::Parse_And_Send_Posn(wxString &str_temp_buf)
 
 
  //    Signal the main program thread
-                        wxCommandEvent event( EVT_NMEA,  GetId());
+                        wxCommandEvent event( EVT_NMEA );
                         event.SetEventObject( (wxObject *)this );
                         event.SetExtraLong(EVT_NMEA_DIRECT);
                         event.SetClientData(&AISPositionMuxData);
@@ -804,57 +828,56 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
         //  Create the bit accessible string
         AIS_Bitstring strbit(string_to_parse.mb_str());
 
-        //  And create a provisional target
-        AIS_Target_Data *pNewTargetData = Parse_VDMBitstring(&strbit);
-        AIS_Target_Data *pStaleTarget = NULL;
-        AIS_Target_Data *pUpdatedTarget = NULL;
+        //  Extract the MMSI
+        int mmsi = strbit.GetInt(9, 30);
 
-        if(pNewTargetData)
-        {
+        AIS_Target_Data *pTargetData;
+        AIS_Target_Data *pStaleTarget = NULL;
 
         //  Search the current AISTargetList for an MMSI match
-            AIS_Target_Hash::iterator it = AISTargetList->find( pNewTargetData->MMSI );
-            if(it == AISTargetList->end())                  // not found
-            {
-                (*AISTargetList)[pNewTargetData->MMSI] = pNewTargetData;            // so insert this entry
-                pUpdatedTarget = pNewTargetData;
-//   printf("Adding target MMSI %d\n",pNewTargetData->MMSI);
-
-            }
-            else
-            {
-                pStaleTarget = (*AISTargetList)[pNewTargetData->MMSI];          // find current entry
-                pUpdatedTarget = Merge(pStaleTarget, pNewTargetData);           // merge in new data
-                pUpdatedTarget->b_active = true;
-//   printf("Updating target MMSI %d\n",pNewTargetData->MMSI);
-
-                (*AISTargetList)[pNewTargetData->MMSI] = pUpdatedTarget;  // replace the current entry
-                delete pNewTargetData;
-
-            }
-
-        //  Update the AIS Target Selectable list
-
-            if(!pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget, SELTYPE_AISTARGET))
-                if(pStaleTarget != NULL)
-                    printf("Delete AIS Selectable point failed\n");
-
-            pSelectAIS->AddSelectablePoint(pUpdatedTarget->Lat, pUpdatedTarget->Lon,
-                                           (void *)pUpdatedTarget, SELTYPE_AISTARGET);
-
-            delete pStaleTarget;                            // kill old entry entirely
-
-            //    Calculate CPA info for this target immediately
-            UpdateOneCPA(pUpdatedTarget);
-
-            ret = AIS_NoError;
+        AIS_Target_Hash::iterator it = AISTargetList->find( mmsi );
+        if(it == AISTargetList->end())                  // not found
+        {
+              pTargetData = new AIS_Target_Data;
+              (*AISTargetList)[mmsi] = pTargetData;            // so insert this entry
+//   printf("Adding target MMSI %d\n",mmsi);
         }
         else
         {
-//              printf("Unrecognized AIS Message\n");
-              ret = AIS_NoError;              // unrecognized AIS Message ID is OK
+              pTargetData = (*AISTargetList)[mmsi];          // find current entry
+              pStaleTarget = pTargetData;                   // save a pointer to stale data
+//   printf("Updating target MMSI %d\n",mmsi);
         }
 
+        //  Grab the stale targets's last report time
+        int last_report_ticks;
+        if(pStaleTarget)
+              last_report_ticks = pStaleTarget->ReportTicks;
+        else
+        {
+              wxDateTime now = wxDateTime::Now();
+              now.MakeGMT();
+              last_report_ticks = now.GetTicks();
+        }
+
+
+
+        // Delete the stale AIS Target selectable point
+        pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget, SELTYPE_AISTARGET);
+
+        Parse_VDMBitstring(&strbit, pTargetData);            // Enter the new data
+
+        //  Update the AIS Target Selectable list
+        pSelectAIS->AddSelectablePoint(pTargetData->Lat, pTargetData->Lon,
+                                (void *)pTargetData, SELTYPE_AISTARGET);
+
+        //     Update the most recent report period
+        pTargetData->RecentPeriod = pTargetData->ReportTicks - last_report_ticks;
+
+            //    Calculate CPA info for this target immediately
+        UpdateOneCPA(pTargetData);
+
+        ret = AIS_NoError;
     }
     else
         ret = AIS_Partial;
@@ -863,130 +886,12 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
 }
 
 
-AIS_Target_Data *AIS_Decoder::Merge(AIS_Target_Data *tlast, AIS_Target_Data *tthis)
-{
-     AIS_Target_Data *result = new AIS_Target_Data;
-
-     //     Grab the most recent report time
-     int last_report_ticks = tlast->ReportTicks;
-
-     //  Name update
-     if((tthis->MID == 5) || (tthis->MID == 24))
-     {
-         *result = *tlast;          // Pick up last lat/lon, etc
-
-         strncpy(&result->ShipName[0], &tthis->ShipName[0], 21);
-         result->IMO = tthis->IMO;
-         strncpy(result->CallSign, tthis->CallSign, 8);
-         result->ShipType = tthis->ShipType;
-         result->DimA = tthis->DimA;
-         result->DimB = tthis->DimB;
-         result->DimC = tthis->DimC;
-         result->DimD = tthis->DimD;
-         result->ETA_Mo  = tthis->ETA_Mo;
-         result->ETA_Day = tthis->ETA_Day;
-         result->ETA_Hr =  tthis->ETA_Hr;
-         result->ETA_Min = tthis->ETA_Min;
-
-         result->Draft = tthis->Draft;
-
-         strncpy(result->Destination, tthis->Destination, 21);
-
-         result->n_alarm_state = tlast->n_alarm_state;
-     }
-
-     //     Position update
-     else if((tthis->MID == 1) || (tthis->MID == 2) || (tthis->MID == 3) || (tthis->MID == 18))
-     {
-         *result = *tthis;
-
-         strncpy(&result->ShipName[0], &tlast->ShipName[0], 21);
-         result->IMO = tlast->IMO;
-         strncpy(result->CallSign, tlast->CallSign, 8);
-         result->ShipType = tlast->ShipType;
-         result->DimA = tlast->DimA;
-         result->DimB = tlast->DimB;
-         result->DimC = tlast->DimC;
-         result->DimD = tlast->DimD;
-         result->ETA_Mo  = tlast->ETA_Mo;
-         result->ETA_Day = tlast->ETA_Day;
-         result->ETA_Hr =  tlast->ETA_Hr;
-         result->ETA_Min = tlast->ETA_Min;
-
-         result->Draft = tlast->Draft;
-
-         strncpy(result->Destination, tlast->Destination, 21);
-
-         result->n_alarm_state = tlast->n_alarm_state;
-     }
-
-     else
-     {
-         *result = *tlast;                  // default
-     }
-
-     result->ReportTicks = tthis->ReportTicks;
-
-     //     Save the most recent report period
-     result->RecentPeriod = result->ReportTicks - last_report_ticks;
-
-     return result;
-}
-
-//    Add/Update an AIS target to the Hashmap
-int AIS_Decoder::AddUpdateTarget(AIS_Target_Data *pNewTargetData)
-{
-      AIS_Target_Data *pStaleTarget = NULL;
-      AIS_Target_Data *pUpdatedTarget = NULL;
-
-      if(pNewTargetData)
-      {
-
-        //  Search the current AISTargetList for an MMSI match
-            AIS_Target_Hash::iterator it = AISTargetList->find( pNewTargetData->MMSI );
-            if(it == AISTargetList->end())                  // not found
-            {
-                  (*AISTargetList)[pNewTargetData->MMSI] = pNewTargetData;            // so insert this entry
-                  pUpdatedTarget = pNewTargetData;
-
-            }
-            else
-            {
-                  pStaleTarget = (*AISTargetList)[pNewTargetData->MMSI];          // find current entry
-                  pUpdatedTarget = Merge(pStaleTarget, pNewTargetData);           // merge in new data
-                  pUpdatedTarget->b_active = true;
-
-                  (*AISTargetList)[pNewTargetData->MMSI] = pUpdatedTarget;     // replace the current entry
-                  delete pNewTargetData;                                      // and kill the old one
-
-            }
-
-        //  Update the AIS Target Selectable list
-
-            if(!pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget, SELTYPE_AISTARGET))
-                  if(pStaleTarget != NULL)
-                        printf("Delete AIS Selectable point failed\n");
-
-            pSelectAIS->AddSelectablePoint(pUpdatedTarget->Lat, pUpdatedTarget->Lon,
-                                     (void *)pUpdatedTarget, SELTYPE_AISTARGET);
-
-            delete pStaleTarget;                            // kill old entry entirely
-
-      }
-
-      return (AIS_NoError);
-}
-
 
 //----------------------------------------------------------------------------
 //      Parse a NMEA VDM Bitstring
-//      Returns a pointer to a new AIS_Target_Data object,
-//      which is to be owned BY THE CALLER
 //----------------------------------------------------------------------------
-AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
+bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 {
-    AIS_Target_Data *res_ptr = NULL;
-    AIS_Target_Data atd;                    // temporary
     bool parse_result = false;
 
     wxDateTime now = wxDateTime::Now();
@@ -998,7 +903,7 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
  //   int utc_day = now.GetDay();
  //   wxDateTime::Month utc_month = now.GetMonth();
  //   int utc_year = now.GetYear();
-    atd.ReportTicks = now.GetTicks();       // Default is my idea of NOW
+    ptd->ReportTicks = now.GetTicks();       // Default is my idea of NOW
                                             // which amy disagee with target...
 
     int message_ID = bstr->GetInt(1, 6);        // Parse on message ID
@@ -1012,50 +917,50 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
     case 3:
     case 18:
         {
-            atd.MID = message_ID;
-            atd.MMSI = bstr->GetInt(9, 30);
+              ptd->MID = message_ID;
+              ptd->MMSI = bstr->GetInt(9, 30);
 
-            atd.NavStatus = bstr->GetInt(39, 4);
-            atd.SOG = 0.1 * (bstr->GetInt(51, 10));
+              ptd->NavStatus = bstr->GetInt(39, 4);
+              ptd->SOG = 0.1 * (bstr->GetInt(51, 10));
 
             int lon = bstr->GetInt(62, 28);
             if(lon & 0x08000000)                    // negative?
                 lon |= 0xf0000000;
-            atd.Lon = lon / 600000.;
+            ptd->Lon = lon / 600000.;
 
             int lat = bstr->GetInt(90, 27);
             if(lat & 0x04000000)                    // negative?
                 lat |= 0xf8000000;
-            atd.Lat = lat / 600000.;
+            ptd->Lat = lat / 600000.;
 
-            atd.COG = 0.1 * (bstr->GetInt(117, 12));
-            atd.HDG = 1.0 * (bstr->GetInt(129, 9));
+            ptd->COG = 0.1 * (bstr->GetInt(117, 12));
+            ptd->HDG = 1.0 * (bstr->GetInt(129, 9));
 
-            atd.b_positionValid = true;
+            ptd->b_positionValid = true;
 
-            atd.ROTAIS = bstr->GetInt(43, 8);
-            if(atd.ROTAIS == 128)
-                atd.ROTAIS = 0;                      // not available codes as zero
-            if((atd.ROTAIS & 0x80) == 0x80)
-                atd.ROTAIS = atd.ROTAIS - 256;       // convert to twos complement
+            ptd->ROTAIS = bstr->GetInt(43, 8);
+            if(ptd->ROTAIS == 128)
+                  ptd->ROTAIS = 0;                      // not available codes as zero
+            if((ptd->ROTAIS & 0x80) == 0x80)
+                  ptd->ROTAIS = ptd->ROTAIS - 256;       // convert to twos complement
 
             utc_sec = bstr->GetInt(138, 6);
 
             if((1 == message_ID) || (2 == message_ID))      // decode SOTDMA per 7.6.7.2.2
             {
-                atd.SyncState = bstr->GetInt(151,2);
-                atd.SlotTO = bstr->GetInt(153,2);
-                if((atd.SlotTO == 1) && (atd.SyncState == 0)) // UTCDirect follows
-                {
+                  ptd->SyncState = bstr->GetInt(151,2);
+                  ptd->SlotTO = bstr->GetInt(153,2);
+                  if((ptd->SlotTO == 1) && (ptd->SyncState == 0)) // UTCDirect follows
+                  {
                     utc_hour = bstr->GetInt(155, 5);
                     utc_min = bstr->GetInt(160,7);
-                }
+                  }
             }
             parse_result = true;                // so far so good
 
-            if((111111111 == atd.MMSI) || (181.0 == atd.Lon) || (91.0 == atd.Lat))      // bogus data
+            if((111111111 == ptd->MMSI) || (181.0 == ptd->Lon) || (91.0 == ptd->Lat))      // bogus data
                 parse_result = false;
-            if(0 == atd.MMSI)
+            if(0 == ptd->MMSI)
                 parse_result = false;
 
 #if 0
@@ -1073,44 +978,44 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
             }
 #endif
             if(message_ID == 18)
-                  atd.Class = AIS_CLASS_B;
+                  ptd->Class = AIS_CLASS_B;
             else
-                  atd.Class = AIS_CLASS_A;
+                  ptd->Class = AIS_CLASS_A;
 
             break;
         }
 
     case 5:
         {
-            atd.Class = AIS_CLASS_A;
-            atd.MID = message_ID;
-            atd.MMSI = bstr->GetInt(9, 30);
+              ptd->Class = AIS_CLASS_A;
+              ptd->MID = message_ID;
+              ptd->MMSI = bstr->GetInt(9, 30);
 
 
             int DSI = bstr->GetInt(39, 2);
             if(0 == DSI)
             {
-                atd.IMO = bstr->GetInt(41, 30);
+                  ptd->IMO = bstr->GetInt(41, 30);
 
-                bstr->GetStr(71,42, &atd.CallSign[0], 7);
-                bstr->GetStr(113,120, &atd.ShipName[0], 20);
-                atd.ShipType = (unsigned char)bstr->GetInt(233,8);
+                  bstr->GetStr(71,42, &ptd->CallSign[0], 7);
+                  bstr->GetStr(113,120, &ptd->ShipName[0], 20);
+                  ptd->ShipType = (unsigned char)bstr->GetInt(233,8);
 
-                atd.DimA = bstr->GetInt(241, 9);
-                atd.DimB = bstr->GetInt(250, 9);
-                atd.DimC = bstr->GetInt(259, 6);
-                atd.DimD = bstr->GetInt(265, 6);
+                  ptd->DimA = bstr->GetInt(241, 9);
+                  ptd->DimB = bstr->GetInt(250, 9);
+                  ptd->DimC = bstr->GetInt(259, 6);
+                  ptd->DimD = bstr->GetInt(265, 6);
 
 //                int epfd = bstr->GetInt(271, 4);
 
-                atd.ETA_Mo =  bstr->GetInt(275, 4);
-                atd.ETA_Day = bstr->GetInt(279, 5);
-                atd.ETA_Hr =  bstr->GetInt(284, 5);
-                atd.ETA_Min = bstr->GetInt(289, 6);
+                  ptd->ETA_Mo =  bstr->GetInt(275, 4);
+                  ptd->ETA_Day = bstr->GetInt(279, 5);
+                  ptd->ETA_Hr =  bstr->GetInt(284, 5);
+                  ptd->ETA_Min = bstr->GetInt(289, 6);
 
-                atd.Draft = (double)(bstr->GetInt(295, 8)) / 10.0;
+                  ptd->Draft = (double)(bstr->GetInt(295, 8)) / 10.0;
 
-                bstr->GetStr(303,120, &atd.Destination[0], 20);
+                  bstr->GetStr(303,120, &ptd->Destination[0], 20);
 
                 parse_result = true;
             }
@@ -1119,14 +1024,14 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
 
      case 24:
          {
-               atd.Class = AIS_CLASS_B;
-               atd.MID = message_ID;
-               atd.MMSI = bstr->GetInt(9, 30);
+               ptd->Class = AIS_CLASS_B;
+               ptd->MID = message_ID;
+               ptd->MMSI = bstr->GetInt(9, 30);
 
                int part_number = bstr->GetInt(39, 2);
                if(0 == part_number)
                {
-                     bstr->GetStr(41,120, &atd.ShipName[0], 20);
+                     bstr->GetStr(41,120, &ptd->ShipName[0], 20);
                      parse_result = true;
                }
 
@@ -1136,15 +1041,10 @@ AIS_Target_Data *AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr)
 
     }
 
-
     if(true == parse_result)
-    {
-        res_ptr = new AIS_Target_Data;
-        *res_ptr = atd;                                    // shallow copy is OK
-        res_ptr->b_active = true;
-    }
+        ptd->b_active = true;
 
-    return res_ptr;
+    return parse_result;
 }
 
 
@@ -1402,20 +1302,20 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
       TimerAIS.SetOwner(this, TIMER_AIS1);
       TimerAIS.Stop();
 
-      m_pdata_source_string = new wxString(AISDataSource);
+      m_data_source_string = AISDataSource;
 
 //      Create and manage AIS data stream source
 
 //    Decide upon source
       wxString msg(_T("AIS Data Source is...."));
-      msg.Append(*m_pdata_source_string);
+      msg.Append(m_data_source_string);
       wxLogMessage(msg);
 
 //      Data Source is private TCP/IP Server
-      if(m_pdata_source_string->Contains(_T("TCP/IP")))
+      if(m_data_source_string.Contains(_T("TCP/IP")))
       {
             wxString AIS_data_ip;
-            AIS_data_ip = m_pdata_source_string->Mid(7);         // extract the IP
+            AIS_data_ip = m_data_source_string.Mid(7);         // extract the IP
 
 // Create the socket
             m_sock = new wxSocketClient();
@@ -1464,7 +1364,7 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
                   wxString msg(AIS_data_ip);
                   msg.Prepend(_T("Could not resolve TCP/IP host '"));
                   msg.Append(_T("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation"));
-                  wxMessageDialog md(this, msg, _T("OpenCPN Message"), wxICON_ERROR );
+                  wxMessageDialog md(pParent, msg, _T("OpenCPN Message"), wxICON_ERROR );
                   md.ShowModal();
 
                   m_sock->Notify(FALSE);
@@ -1485,11 +1385,11 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
 
 //    AIS Data Source is specified serial port
 
-      else if(m_pdata_source_string->Contains(_T("Serial")))
+      else if(m_data_source_string.Contains(_T("Serial")))
       {
           wxString comx;
 //          comx =  m_pdata_source_string->Mid(7);        // either "COM1" style or "/dev/ttyS0" style
-          comx =  m_pdata_source_string->AfterFirst(':');      // strip "Serial:"
+          comx =  m_data_source_string.AfterFirst(':');      // strip "Serial:"
 
 #ifdef __WXMSW__
 
@@ -1507,7 +1407,7 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
                   wxString msg(comx);
                   msg.Prepend(_T("  Could not open AIS serial port '"));
                   msg.Append(_T("'\nSuggestion: Try closing other applications."));
-                  wxMessageDialog md(this, msg, _T("OpenCPN Message"), wxICON_ERROR );
+                  wxMessageDialog md(pParent, msg, _T("OpenCPN Message"), wxICON_ERROR );
                   md.ShowModal();
 
                   return AIS_NO_SERIAL;
@@ -1540,38 +1440,10 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
 
 
 
-void AIS_Decoder::OnCloseWindow(wxCloseEvent& event)
-{
-
-//    Kill off the TCP/IP Socket if alive
-      if(m_sock)
-      {
-            m_sock->Notify(FALSE);
-            m_sock->Destroy();
-            TimerAIS.Stop();
-      }
-
-
-//    Kill off the  RX Thread if alive
-//      Todo Need to fix this by re-building the comm thread to not use blocking event structure
-//      Also affects the NMEA thread in nmea.cpp
-
-      if(pAIS_Thread)
-      {
-          pAIS_Thread->Delete();         //was kill();
-#ifdef __WXMSW__
-//          wxSleep(1);
-#else
-          sleep(2);
-#endif
-      }
-
-}
-
 
 void AIS_Decoder::GetSource(wxString& source)
 {
-      source = *m_pdata_source_string;
+      source = m_data_source_string;
 }
 
 
@@ -1684,7 +1556,14 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 
       for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
       {
+
           AIS_Target_Data *td = it->second;
+
+          if(NULL == td)                        // This should never happen, but I saw it once....
+          {
+                current_targets->erase(it);
+                break;                          // leave the loop
+          }
 
           int target_age = now.GetTicks() - td->ReportTicks;
 //          printf("Current Target: MMSI: %d    target_age:%d\n", td->MMSI, target_age);
@@ -1708,10 +1587,6 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
                       break;        // kill only one per tick, since iterator becomes invalid...
                 }
           }
-
-
-
-
       }
 
 
@@ -1775,7 +1650,7 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
                   //    Show the alert
 
                         AISTargetAlertDialog *pAISAlertDialog = new AISTargetAlertDialog();
-                        pAISAlertDialog->Create ( palarm_target->MMSI, this, -1, _T("AIS Alert"),
+                        pAISAlertDialog->Create ( palarm_target->MMSI, m_parent_frame, this, -1, _T("AIS Alert"),
                                                 wxPoint( g_ais_alert_dialog_x, g_ais_alert_dialog_y),
                                                 wxSize( g_ais_alert_dialog_sx, g_ais_alert_dialog_sy));
 
@@ -1793,20 +1668,28 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
             {
                   AIS_Target_Data *palert_target = Get_Target_Data_From_MMSI(g_pais_alert_dialog_active->Get_Dialog_MMSI());
 
-                  if(AIS_ALARM_SET == palert_target->n_alarm_state)
+                  if(palert_target)
                   {
-                        g_pais_alert_dialog_active->UpdateText();
+                        if(AIS_ALARM_SET == palert_target->n_alarm_state)
+                        {
+                              g_pais_alert_dialog_active->UpdateText();
+                        }
+                        else
+                        {
+                              g_pais_alert_dialog_active->Close();
+                              m_bAIS_Audio_Alert_On = false;
+                        }
+
+                        if(true == palert_target->b_suppress_audio)
+                              m_bAIS_Audio_Alert_On = false;
+                        else
+                              m_bAIS_Audio_Alert_On = true;
                   }
                   else
-                  {
+                  {                                                     // this should not happen, however...
                         g_pais_alert_dialog_active->Close();
                         m_bAIS_Audio_Alert_On = false;
                   }
-
-                  if(true == palert_target->b_suppress_audio)
-                        m_bAIS_Audio_Alert_On = false;
-                  else
-                        m_bAIS_Audio_Alert_On = true;
 
             }
       }
@@ -1883,10 +1766,10 @@ DEFINE_EVENT_TYPE(EVT_AIS)
 
 //    ctor
 
-OCP_AIS_Thread::OCP_AIS_Thread(wxWindow *MainWindow, const wxString& PortName)
+OCP_AIS_Thread::OCP_AIS_Thread(wxEvtHandler *pParent, const wxString& PortName)
 {
 
-      m_pMainEventHandler = MainWindow->GetEventHandler();
+      m_pMainEventHandler = pParent;
 
       m_pPortName = new wxString(PortName);
 
@@ -1946,7 +1829,7 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
     {
         bool bmore_data = true;
 
-        while(bmore_data)
+        while((bmore_data) && (nl_count))
         {
             if(put_ptr != tak_ptr)
             {
@@ -1966,7 +1849,7 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
                         tptr = rx_buffer;
                 }
 
-                if(*tptr == 0x0a)                                // well formed sentence
+                if((*tptr == 0x0a) && (tptr != put_ptr))                // well formed sentence
                 {
                     *ptmpbuf++ = *tptr++;
                     if((tptr - rx_buffer) > RX_BUFFER_SIZE)
@@ -1984,23 +1867,26 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
                     event.SetString(wxString(temp_buf,  wxConvUTF8));
                     m_pMainEventHandler->AddPendingEvent(event);
 
-///     msg.Printf(_T("         removing: %d"), strlen(temp_buf));
+///     msg.Printf(_T("         removing: %d,   (put_ptr-tak_ptr): %d,   nl_count:%d"), strlen(temp_buf), (int)(put_ptr-tak_ptr), nl_count);
 ///     wxLogMessage(msg);
 
-                  //TODO  There is some problem with trying to sent multiple events.
-                  //          Under Windows, CPU utilization goes to 100%
-                  //          Workaround is to send only one event per character buffer call
-
-                  //          In Windows, we will use 40 chars per call, i.e. somewhat short of 1 message length.
-                  //          If we use 100 chars, then the buffer will fill and overflow
-                    bmore_data = false;
                     nl_count--;
                 }   // if good sentence
                 else                                 // partial sentence
+                {
                     bmore_data = false;
+///                    msg.Printf(_T("         partial...   nl_count:%d"), nl_count);
+///                    wxLogMessage(msg);
+                }
+
             }   // if data
             else
+            {
                 bmore_data = false;                  // no more data in buffer
+///                msg.Printf(_T("         no data...   nl_count:%d"), nl_count);
+///                wxLogMessage(msg);
+            }
+
         }       // while
     }       // if nl
 
@@ -2436,7 +2322,8 @@ void AISTargetAlertDialog::Init( )
 
 
 bool AISTargetAlertDialog::Create ( int target_mmsi,
-                                    wxWindow* parent, wxWindowID id, const wxString& caption,
+                                    wxWindow *parent, AIS_Decoder *pdecoder,
+                                    wxWindowID id, const wxString& caption,
                                     const wxPoint& pos, const wxSize& size, long style )
 {
 
@@ -2456,7 +2343,8 @@ bool AISTargetAlertDialog::Create ( int target_mmsi,
             return false;
 
       m_target_mmsi = target_mmsi;
-      m_pparent = (AIS_Decoder *)parent;
+      m_pparent = parent;
+      m_pdecoder = pdecoder;
 
       wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
       SetBackgroundColour ( back_color );
@@ -2495,12 +2383,12 @@ void AISTargetAlertDialog::CreateControls()
       wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
       m_pAlertTextCtl->SetBackgroundColour ( back_color );
 
-      wxColour text_color = GetGlobalColor ( _T ( "UINFF" ) );
+      wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
       m_pAlertTextCtl->SetForegroundColour ( text_color );
 
       boxSizer->Add ( m_pAlertTextCtl, 1, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE|wxEXPAND, 5 );
 
-      wxFont *qFont = wxTheFontList->FindOrCreateFont ( 14, wxFONTFAMILY_TELETYPE,
+      wxFont *qFont = wxTheFontList->FindOrCreateFont ( 12, wxFONTFAMILY_TELETYPE,
                   wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
       m_pAlertTextCtl->SetFont ( *qFont );
 
@@ -2532,63 +2420,17 @@ void AISTargetAlertDialog::CreateControls()
 
 }
 
- bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult)
+bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult)
 {
       //    Search the parent AIS_Decoder's target list for specified mmsi
 
-      if(m_pparent)
+      if(m_pdecoder)
       {
-            AIS_Target_Data *td_found = m_pparent->Get_Target_Data_From_MMSI(Get_Dialog_MMSI());
+            AIS_Target_Data *td_found = m_pdecoder->Get_Target_Data_From_MMSI(Get_Dialog_MMSI());
 
             if(td_found)
             {
-                  wxString line;
-
-                  line.Printf(_T("MMSI:  %d\n"), td_found->MMSI);
-                  presult->Append(line);
-
-      //  Clip any unused characters (@) from the name
-                  wxString ts;
-                  char *tp = &td_found->ShipName[0];
-                  while((*tp) && (*tp != '@'))
-                        ts.Append(*tp++);
-      //    ts.Append((wxChar)0);
-
-                  line.Printf(_T("ShipName:  "));
-                  line.Append( ts );
-                  line.Append(_T("\n\n"));
-                  presult->Append(line);
-
-                  line.Printf(_T("Course:   %5.0f Deg.\n"), td_found->COG);
-                  presult->Append(line);
-
-                  line.Printf(_T("Speed:    %5.2f Kts.\n"), td_found->SOG);
-                  presult->Append(line);
-
-                  line.Printf(_T("Range:    %5.1f NM\n"), td_found->Range_NM);
-                  presult->Append(line);
-
-                  line.Printf(_T("Bearing:  %5.0f Deg.\n"), td_found->Brg);
-                  presult->Append(line);
-
-                  wxDateTime now = wxDateTime::Now();
-                  now.MakeGMT();
-                  int target_age = now.GetTicks() - td_found->ReportTicks;
-
-                  line.Printf(_T("Report Age:           %d Sec.\n"), target_age);
-                  presult->Append(line);
-
-                  line.Printf(_T("Recent Report Period: %d Sec.\n"), td_found->RecentPeriod);
-                  presult->Append(line);
-
-                  double mins = floor(td_found->TCPA);
-                  int secs = (int)((td_found->TCPA - mins) * 60);
-                  line.Printf(_T("TCPA:  %d:%02d Min:Sec\n"), (int)mins, secs);
-                  presult->Append(line);
-
-                  line.Printf(_T("CPA: %6.1f NM"), td_found->CPA);
-                  presult->Append(line);
-
+                  td_found->BuildQueryResult(presult);
                   return true;
             }
             else
@@ -2596,7 +2438,6 @@ void AISTargetAlertDialog::CreateControls()
       }
       else
             return false;
-
 }
 
 void AISTargetAlertDialog::UpdateText()
@@ -2622,9 +2463,9 @@ void AISTargetAlertDialog::OnClose(wxCloseEvent& event)
 void AISTargetAlertDialog::OnIdAckClick( wxCommandEvent& event )
 {
       //    Acknowledge the Alert, and dismiss the dialog
-      if(m_pparent)
+      if(m_pdecoder)
       {
-            AIS_Target_Data *td = m_pparent->Get_Target_Data_From_MMSI(Get_Dialog_MMSI());
+            AIS_Target_Data *td = m_pdecoder->Get_Target_Data_From_MMSI(Get_Dialog_MMSI());
             if(td)
             {
                   if(AIS_ALARM_SET == td->n_alarm_state)
@@ -2638,9 +2479,9 @@ void AISTargetAlertDialog::OnIdAckClick( wxCommandEvent& event )
 void AISTargetAlertDialog::OnIdSilenceClick( wxCommandEvent& event )
 {
       //    Set the suppress audio flag
-      if(m_pparent)
+      if(m_pdecoder)
       {
-            AIS_Target_Data *td = m_pparent->Get_Target_Data_From_MMSI(Get_Dialog_MMSI());
+            AIS_Target_Data *td = m_pdecoder->Get_Target_Data_From_MMSI(Get_Dialog_MMSI());
             if(td)
                   td->b_suppress_audio = true;
       }

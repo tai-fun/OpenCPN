@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.16 2009/07/03 03:00:32 bdbcat Exp $
+ * $Id: ais.h,v 1.17 2009/07/08 01:52:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.17  2009/07/08 01:52:53  bdbcat
+ * Convert AISDecoder to wxEvtHandler.
+ *
  * Revision 1.16  2009/07/03 03:00:32  bdbcat
  * Improve AIS Dialogs.
  *
@@ -261,7 +264,7 @@ enum
 //
 //---------------------------------------------------------------------------------
 
-class AIS_Decoder : public wxWindow
+class AIS_Decoder : public wxEvtHandler
 {
 
 public:
@@ -284,13 +287,10 @@ private:
     void OnActivate(wxActivateEvent& event);
     void OnSocketEvent(wxSocketEvent& event);
     void OnTimerAIS(wxTimerEvent& event);
-    void OnCloseWindow(wxCloseEvent& event);
     void OnTimerAISAudio(wxTimerEvent& event);
 
     bool NMEACheckSumOK(const wxString& str);
-    AIS_Target_Data *Parse_VDMBitstring(AIS_Bitstring *bstr);
-    AIS_Target_Data *Merge(AIS_Target_Data *tlast, AIS_Target_Data *tthis);
-    int AddUpdateTarget(AIS_Target_Data *pNewTargetData);
+    bool Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd);
     void UpdateAllCPA(void);
     void UpdateOneCPA(AIS_Target_Data *ptarget);
     void UpdateAllAlarms(void);
@@ -305,19 +305,16 @@ private:
     wxSocketClient    *m_sock;
     bool              m_busy;
     wxTimer           TimerAIS;
-    MyFrame           *parent_frame;
+    wxFrame           *m_parent_frame;
 
-    wxString          *m_pdata_source_string;
-    wxString          *m_pdata_ap_port_string;
+    wxString          m_data_source_string;
     wxEvtHandler      *m_pParentEventHandler;
 
     int               nsentences;
     int               isentence;
     wxString          sentence_accumulator;
     bool              m_OK;
-    int               m_death_age_seconds;
 
-    int              m_nsim;
 
     NMEA0183         m_NMEA0183;
     wxMutex          *m_pShareGPSMutex;
@@ -356,7 +353,7 @@ class OCP_AIS_Thread: public wxThread
 
 public:
 
-      OCP_AIS_Thread(wxWindow *MainWindow, const wxString& PortName);
+      OCP_AIS_Thread(wxEvtHandler *pParent, const wxString& PortName);
       ~OCP_AIS_Thread(void);
       void *Entry();
 
@@ -404,7 +401,8 @@ class AISTargetAlertDialog: public wxDialog
             void Init();
 
             bool Create( int target_mmsi,
-                         wxWindow* parent,
+                         wxWindow *parent,
+                         AIS_Decoder *pdecoder,
                          wxWindowID id = wxID_ANY,
                          const wxString& caption = wxT("AIS Alert"),
                          const wxPoint& pos = wxDefaultPosition,
@@ -427,7 +425,8 @@ class AISTargetAlertDialog: public wxDialog
 
             wxTextCtrl        *m_pAlertTextCtl;
             int               m_target_mmsi;
-            AIS_Decoder       *m_pparent;
+            AIS_Decoder       *m_pdecoder;
+            wxWindow          *m_pparent;
 
 };
 

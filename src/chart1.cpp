@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.45 2009/07/03 02:59:41 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.46 2009/07/08 01:54:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.46  2009/07/08 01:54:46  bdbcat
+ * Convert AISDecoder to wxEvtHandler.
+ *
  * Revision 1.45  2009/07/03 02:59:41  bdbcat
  * Improve AIS Dialogs.
  *
@@ -202,7 +205,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.45 2009/07/03 02:59:41 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.46 2009/07/08 01:54:46 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -535,6 +538,12 @@ bool MyApp::OnInit()
 {
 //      CALLGRIND_STOP_INSTRUMENTATION
 
+//      Establish the locale
+//Fulup: force floating point to use dot as separation.
+#ifdef __POSIX__
+      setlocale(LC_NUMERIC,"C");
+#endif
+
       g_start_time = wxDateTime::Now();
 
 #ifdef __WXMSW__
@@ -605,13 +614,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         malloc_max = 0;
 
 //      wxHandleFatalExceptions(true);
-
-
-//      Establish the locale
-//Fulup: force floating point to use dot as separation.
-#ifdef __POSIX__
-        setlocale(LC_NUMERIC,"C");
-#endif
 
 //      Init the private environment handler
         pval = new wxString;
@@ -2027,7 +2029,7 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
 
     if(g_pAIS)
     {
-        g_pAIS->Close();
+        delete g_pAIS;        //g_pAIS->Close();
         g_pAIS = NULL;
     }
 
@@ -2534,8 +2536,8 @@ int MyFrame::DoOptionsDialog()
 
             if(*pAIS_Port != previous_AIS_Port)
             {
-                if(g_pAIS)
-                    g_pAIS->Close();
+//                if(g_pAIS)
+//                    g_pAIS->Close();
                 delete g_pAIS;
                 g_pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port, &m_mutexNMEAEvent );
             }
