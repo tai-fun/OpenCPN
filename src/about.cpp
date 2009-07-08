@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.21 2009/06/28 02:03:06 bdbcat Exp $
+ * $Id: about.cpp,v 1.22 2009/07/08 01:45:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.22  2009/07/08 01:45:45  bdbcat
+ * Update Authors.
+ *
  * Revision 1.21  2009/06/28 02:03:06  bdbcat
  * Implement "Tips" tab.
  *
@@ -100,7 +103,7 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.21 2009/06/28 02:03:06 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.22 2009/07/08 01:45:45 bdbcat Exp $");
 
 
 //    Some constants
@@ -125,10 +128,16 @@ char AuthorText[] =
    David Herring\n\
       dherring@dherring.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
+   Thomas Haller\n\
+      thomasmartin.haller@web.de\n\
+      GPX Import/Export Implementation\n\n\
    Philip Lange\n\
       philip.lange@albemarleweb.com\n\
       OpenCPN Documentation\n\n\
-   Julian Smart, Robert Roebling et al\n\
+   Ron Kuris\n\
+      swcafe@gmail.com\n\
+      wxWidgets Support\n\n\
+  Julian Smart, Robert Roebling et al\n\
       wxwidgets.org\n\
       wxWidgets Authors\n\n\
    Sylvain Duclos\n\
@@ -172,10 +181,7 @@ char AuthorText[] =
       CIE->RGB Color Conversion Matrix\n\n\
    Robert Lipe\n\
       robertlipe@usa.net\n\
-      Garmin USB GPS Interface\n\n\
-   Thomas Haller\n\
-      thomasmartin.haller@web.de\n\
-      GPX Import/Export Implementation\n"
+      Garmin USB GPS Interface\n"
 
 };
 
