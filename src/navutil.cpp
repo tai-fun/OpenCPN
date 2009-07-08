@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.35  2009/07/08 01:51:15  bdbcat
+ * Cleanup.
+ *
  * Revision 1.34  2009/06/30 03:02:16  bdbcat
  * Add configurable chart cache limit.
  *
@@ -100,6 +103,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.35  2009/07/08 01:51:15  bdbcat
+ * Cleanup.
+ *
  * Revision 1.34  2009/06/30 03:02:16  bdbcat
  * Add configurable chart cache limit.
  *
@@ -226,7 +232,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.34 2009/06/30 03:02:16 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.35 2009/07/08 01:51:15 bdbcat Exp $");
 
 //    Statics
 
@@ -578,24 +584,26 @@ bool Select::DeleteSelectablePoint(void *data, int SeltypeToDelete)
 {
       SelectItem *pFindSel;
 
-//    Iterate on the list
-      wxSelectableItemListNode *node = pSelectList->GetFirst();
-
-      while(node)
+      if(NULL != data)
       {
-            pFindSel = node->GetData();
-            if(pFindSel->m_seltype == SeltypeToDelete)
-            {
-                if(data == pFindSel->m_pData1)
-                {
-                  delete pFindSel;
-                  delete node;
-                  return true;
-                }
-            }
+//    Iterate on the list
+            wxSelectableItemListNode *node = pSelectList->GetFirst();
 
-            node = node->GetNext();
-       }
+            while(node)
+            {
+                  pFindSel = node->GetData();
+                  if(pFindSel->m_seltype == SeltypeToDelete)
+                  {
+                        if(data == pFindSel->m_pData1)
+                        {
+                              delete pFindSel;
+                              delete node;
+                              return true;
+                        }
+                  }
+                  node = node->GetNext();
+            }
+      }
       return false;
 }
 
