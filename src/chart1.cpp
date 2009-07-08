@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.46 2009/07/08 01:54:46 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.47 2009/07/08 03:38:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.47  2009/07/08 03:38:59  bdbcat
+ * Cleanup.
+ *
  * Revision 1.46  2009/07/08 01:54:46  bdbcat
  * Convert AISDecoder to wxEvtHandler.
  *
@@ -205,7 +208,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.46 2009/07/08 01:54:46 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.47 2009/07/08 03:38:59 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -2065,7 +2068,6 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
         delete pbm;
     }
 
-    //      Automatically drop an anchorage waypoint, if enabled
     this->Destroy();
 
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.50 2009/07/08 01:49:06 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.51 2009/07/08 03:38:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.51  2009/07/08 03:38:47  bdbcat
+ * Cleanup.
+ *
  * Revision 1.50  2009/07/08 01:49:06  bdbcat
  * Correct TrueScale calculation logic.
  *
@@ -114,6 +117,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.51  2009/07/08 03:38:47  bdbcat
+ * Cleanup.
+ *
  * Revision 1.50  2009/07/08 01:49:06  bdbcat
  * Correct TrueScale calculation logic.
  *
@@ -338,7 +344,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.50 2009/07/08 01:49:06 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.51 2009/07/08 03:38:47 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -5609,7 +5615,7 @@ void AISTargetQueryDialog::UpdateText()
             AIS_Target_Data *td = g_pAIS->Get_Target_Data_From_MMSI(m_MMSI);
             if(td)
             {
-                  td->BuildQueryResult(&query_text);
+                  td->BuildQueryResult(&query_text, NULL);
             }
       }
       if(m_pQueryTextCtl)
