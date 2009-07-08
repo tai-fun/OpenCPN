@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.10 2009/06/22 02:46:54 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.11 2009/07/08 01:47:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.11  2009/07/08 01:47:54  bdbcat
+ * Update CM93 chart naming logic.
+ *
  * Revision 1.10  2009/06/22 02:46:54  bdbcat
  * Optimize CM93 ATON displayed leabels.
  *
@@ -3621,7 +3624,7 @@ cm93compchart::cm93compchart()
       m_ChartType = CHART_TYPE_CM93COMP;
       m_pDict = NULL;
 
-      //    Supply a name for status bar field
+      //    Supply a default name for status bar field
       m_pFullPath = new wxString(_T("CM93"));
 
       for(int i = 0 ; i < 8 ; i++)
@@ -3644,6 +3647,10 @@ cm93compchart::~cm93compchart()
 
 InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, ColorScheme cs )
 {
+      //    Update the FullPath with the exact value
+      m_pFullPath->Clear();
+      m_pFullPath->Append(name);
+
       //    Get the cm93 cell database prefix
       //    Search for the directory called 00300000 all along the path of the passed parameter filename
 
