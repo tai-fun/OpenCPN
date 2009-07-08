@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.18 2009/06/25 02:32:03 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.19 2009/07/08 01:46:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.19  2009/07/08 01:46:55  bdbcat
+ * Correct Green sector light logic.
+ *
  * Revision 1.18  2009/06/25 02:32:03  bdbcat
  * Symbolize lights of undefined color as magenta.
  *
@@ -123,7 +126,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.18 2009/06/25 02:32:03 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.19 2009/07/08 01:46:55 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -1481,7 +1484,7 @@ static void *LIGHTS05 (void *param)
                     if (strpbrk(colist, "\001") && strpbrk(colist, "\003"))
                           strcat(sym, ",LITRD, 2");
                     else if (strpbrk(colist, "\001") && strpbrk(colist, "\004"))
-                          strcat(sym, " LITGN, 2");
+                          strcat(sym, ",LITGN, 2");
                     else
                           strcat(sym, ",CHMGD, 2");                 // default is magenta
             }
