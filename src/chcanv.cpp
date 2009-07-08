@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.49 2009/07/04 01:57:26 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.50 2009/07/08 01:49:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.50  2009/07/08 01:49:06  bdbcat
+ * Correct TrueScale calculation logic.
+ *
  * Revision 1.49  2009/07/04 01:57:26  bdbcat
  * Normalize Tide Icon display longitude.
  *
@@ -111,6 +114,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.50  2009/07/08 01:49:06  bdbcat
+ * Correct TrueScale calculation logic.
+ *
  * Revision 1.49  2009/07/04 01:57:26  bdbcat
  * Normalize Tide Icon display longitude.
  *
@@ -332,7 +338,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.49 2009/07/04 01:57:26 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.50 2009/07/08 01:49:06 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1040,177 +1046,11 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
                 }
         }
 
-//      Save present values for necessary corrections
-
- //       double last_lat = VPoint.clat;
-//        double last_lon = VPoint.clon;
-//        double last_scale = VPoint.view_scale_ppm;
-//        double prev_easting_c = VPoint.c_east;
-//        double prev_northing_c = VPoint.c_north;
-
 
 
         VPoint.clat = lat;
         VPoint.clon = lon;
         VPoint.view_scale_ppm = scale_ppm;
- //       VPoint.c_east =  0;
- //       VPoint.c_north = 0;
-
-#if 0
-        if ( Current_Ch )
-        {
-              if (Current_Ch->m_ChartFamily == CHART_FAMILY_VECTOR) //(( Current_Ch->m_ChartType == CHART_TYPE_S57 ) || ( Current_Ch->m_ChartType == CHART_TYPE_CM93 ))
-                {
-//                        Current_Ch->SetVPParms ( &VPoint );
-
-                        Current_Ch->AdjustVP(last_vp, VPoint);
-
-                        m_bNewVP = Current_Ch->IsRenderDelta(last_vp, VPoint);
-
-#ifdef USE_S57
-#if 0
-                        s57chart *Cur_S57_Ch = dynamic_cast<s57chart *> ( Current_Ch );
-                        double ref_lat = Cur_S57_Ch->ref_lat;
-                        double ref_lon = Cur_S57_Ch->ref_lon;
-
-                        //    Handle the first switch to an s57 chart
-                        //    After the first time, use exact previous SM coordinates of center point
-                        //    as stored in VPoint.c_north
-                        if ( ( prev_easting_c == 0 ) || ( prev_northing_c == 0 ) )
-                        {
-                                double prov_prev_easting_c, prov_prev_northing_c;
-                                toSM ( last_lat, last_lon, ref_lat, ref_lon, &prov_prev_easting_c, &prov_prev_northing_c );
-                                prev_easting_c = prov_prev_easting_c;
-                                prev_northing_c = prov_prev_northing_c;
-                        }
-
-                        double easting_c, northing_c;
-                        toSM ( lat, lon,  ref_lat, ref_lon, &easting_c, &northing_c );
-                        VPoint.c_east = easting_c;
-                        VPoint.c_north = northing_c;
-
-                        //      If this viewpoint is same scale as last...
-                        if ( last_scale == VPoint.view_scale_ppm )
-                        {
-
-                                //  then require this viewport to be exact integral pixel difference from last
-                                //  adjusting clat/clat and SM accordingly
-
-                                double delta_pix_x = ( easting_c - prev_easting_c ) * VPoint.view_scale_ppm;
-                                int dpix_x = ( int ) round ( delta_pix_x );
-                                double dpx = dpix_x;
-
-                                float delta_pix_y = ( northing_c - prev_northing_c ) * VPoint.view_scale_ppm;
-                                int dpix_y = ( int ) round ( delta_pix_y );
-                                double dpy = dpix_y;
-
-                                double c_east_d = ( dpx / VPoint.view_scale_ppm ) + prev_easting_c;
-                                double c_north_d = ( dpy / VPoint.view_scale_ppm ) + prev_northing_c;
-                                double xlat, xlon;
-                                fromSM ( c_east_d, c_north_d, ref_lat, ref_lon, &xlat, &xlon );
-                                VPoint.clon = xlon;
-                                VPoint.clat = xlat;
-                                VPoint.c_east = c_east_d;
-                                VPoint.c_north = c_north_d;
-                        }
-
-
-
-                        //    Ensure accuracy in case width or height are odd numbers
-                        /*
-                                    float pwidth = VPoint.pix_width;
-                                    float pheight = VPoint.pix_height;
-
-
-                                    VPoint.lat_top =   VPoint.clat + ((pheight/2) / ppd_lat);
-                                    VPoint.lon_left =  VPoint.clon - ((pwidth/2)  / ppd_lon);
-                                    VPoint.lat_bot =   VPoint.lat_top  - ((pheight) / ppd_lat);
-                                    VPoint.lon_right = VPoint.lon_left + ((pwidth)  / ppd_lon);
-                        */
-#endif
-#endif
-                }
-
-                else if ( ( Current_Ch->m_ChartType == CHART_TYPE_GEO ) || ( Current_Ch->m_ChartType == CHART_TYPE_KAP ) )
-                {
-//                        ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *> ( Current_Ch );
-
-                        //  Grab a copy of the current chart source rectangle for comparison later
- //                       wxRect old_source;
- //                       Cur_BSB_Ch->GetSourceRect ( &old_source );
-
-
-                        Current_Ch->AdjustVP(last_vp, VPoint);
-
-#if 0
-                        //  Calculate binary scale factor
-                        //  n.b.  parameter "scale_ppm" is always contrived to be binary multiple of native scale
-                        //        in pixels per meter when this method is called for raster charts.
-                        //        Phasing: (binary_scale_factor = 2.0) means zoom OUT.
-                        //                  (binary_scale_factor < 1) means overzoom
-
-                        binary_scale_factor = ( round ( 100 * Cur_BSB_Ch->GetPPM() / scale_ppm ) ) / 100.;
-
-                        chart_ppm = Cur_BSB_Ch->GetPPM();
-
-                        if ( !Cur_BSB_Ch->latlong_to_pix ( lat, lon, pixxd, pixyd ) )
-                        {
-                                //  If internal georeferencing on this chart is OK.......
-                                pixx = pixxd;
-                                pixy = pixyd;
-
-                                if ( mode == 1 )        // mod 4
-                                {
-                                        int xmod = ( pixx - ( int ) ( VPoint.pix_width  * binary_scale_factor / 2 ) ) /4;
-                                        xmod *= 4;
-                                        int newx = xmod;
-                                        int ymod = ( pixy - ( int ) ( VPoint.pix_height * binary_scale_factor / 2 ) ) /4;
-                                        ymod *= 4;
-                                        int newy = ymod;
-
-                                        Current_Ch->SetVPParms ( &VPoint );     // preset here for next adjustment
-
-                                        //    Possible adjustment to clat/clon
-                                        double alat, alon;
-                                        Cur_BSB_Ch->pix_to_latlong ( ( int ) ( ( ( VPoint.pix_width /2 ) * binary_scale_factor ) + newx ),
-                                                                     ( int ) ( ( ( VPoint.pix_height/2 ) * binary_scale_factor ) + newy ),
-                                                                     &alat, &alon );
-                                        VPoint.clat = alat;
-                                        VPoint.clon = alon;
-                                }
-                        }
-#endif
-                        //  Check to see if source rectangle has changed....
-                        //  If not, then override the m_bNewVP flag.  Don't need a full chart blit.
-                        //  If so, abort any background renderer.
-
-                        Current_Ch->SetVPParms ( &VPoint );
-
-                        m_bNewVP = Current_Ch->IsRenderDelta(last_vp, VPoint);
-
-                        if(m_bNewVP)
-                              FlushBackgroundRender();
-
-/*
-                        wxRect new_source;
-                        Cur_BSB_Ch->GetSourceRect ( &new_source );
-                        if ( ( old_source.x == new_source.x ) && ( old_source.y == new_source.y ) )
-                                m_bNewVP = false;
-                        else
-                        {
-                                FlushBackgroundRender();
-                                //                  printf("flush br due to new rect\n");
-                        }
-*/
-                }
-
-                else if ( Current_Ch->m_ChartType == CHART_TYPE_DUMMY )
-                        //  Set the ppm to some useful value???
-                {
-                        VPoint.view_scale_ppm = scale_ppm;
-                }
-        }
-#endif
 
 
         if ( Current_Ch )
@@ -1294,7 +1134,7 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
         if ( Current_Ch )
                 Current_Ch->SetVPParms ( &VPoint );
 
-
+/*
         //    Calculate the on-screen displayed actual scale
         //    by a simple 0.1 NM traverse northward from the center point
         double tlat, tlon;
@@ -1302,8 +1142,20 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
         ll_gc_ll ( VPoint.clat, VPoint.clon, 0, .1, &tlat, &tlon );
         GetPointPix ( tlat, tlon, &r1 );
         GetPointPix ( VPoint.clat, VPoint.clon, &r );
-
         m_true_scale_ppm = sqrt(pow((r.y - r1.y), 2) + pow((r.x - r1.x), 2)) / 185.2;
+*/
+        //    Calculate the on-screen displayed actual scale
+        //    by a simple traverse northward from the center point
+        //    of roughly 10 % of the Viewport extent
+        double tlat, tlon;
+        wxPoint r, r1;
+        double delta_y = (lat_max - lat_min) * 60.0 * .10;              // roughly 10 % of lat range, in NM
+        ll_gc_ll ( VPoint.clat, VPoint.clon, 0, delta_y, &tlat, &tlon );
+
+        GetPointPix ( tlat, tlon, &r1 );
+        GetPointPix ( VPoint.clat, VPoint.clon, &r );
+
+        m_true_scale_ppm = sqrt(pow((r.y - r1.y), 2) + pow((r.x - r1.x), 2)) / (delta_y * 1852.);
 
         //        A fall back in case of very high zoom-out, giving delta_y == 0
         //        which can probably only happen with vector charts
@@ -1322,13 +1174,14 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
 
         if ( parent_frame->m_pStatusBar )
         {
-                char buf[22];
-                snprintf ( buf, 21, "TrueScale: %8.0f", VPoint.chart_scale );
-                parent_frame->SetStatusText ( wxString ( buf, wxConvUTF8 ), 3 );
+              double true_scale_display = floor(VPoint.chart_scale / 100.) * 100.;
+              wxString text;
+              text.Printf(_T("TrueScale: %8.0f"), true_scale_display);
+              parent_frame->SetStatusText ( text, 3 );
 
-                double chart_native_scale = 1.0;
-                if(Current_Ch)
-                      chart_native_scale = Current_Ch->GetNativeScale();
+//                double chart_native_scale = 1.0;
+//                if(Current_Ch)
+//                      chart_native_scale = Current_Ch->GetNativeScale();
 
 //                double binary_scale_factor = 1;
 //                snprintf ( buf, 21, "CHScale: %8.0f %g", binary_scale_factor * chart_native_scale, binary_scale_factor );
@@ -1653,6 +1506,9 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                 if ( VPoint.vpBBox.PointInBox ( td->Lon, td->Lat, 0 ) )
                         drawit++;                                 // yep
 
+                //   Always draw alert targets, even if they are off the screen
+                if((td->n_alarm_state == AIS_ALARM_SET) || (td->n_alarm_state == AIS_ALARM_ACKNOWLEDGED))
+                      drawit++;
 
                 //    Calculate AIS target Position Predictor, using global static variable for length of vector
 
