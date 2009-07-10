@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.7 2009/06/03 03:21:24 bdbcat Exp $
+ * $Id: cm93.h,v 1.8 2009/07/10 03:43:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.8  2009/07/10 03:43:39  bdbcat
+ * Improve Scale logic.
+ *
  * Revision 1.7  2009/06/03 03:21:24  bdbcat
  * Correct 360 longitude logic.
  *
@@ -372,6 +375,8 @@ class cm93compchart : public s57chart
 
             double GetNormalScaleMin(double canvas_scale_factor);
             double GetNormalScaleMax(double canvas_scale_factor);
+            int GetNativeScale(void);
+
             wxString GetFullPath();
             wxString GetName();
             wxString GetPubDate();
@@ -408,12 +413,14 @@ class cm93compchart : public s57chart
             InitReturn CreateHeaderData();
             cm93_dictionary *FindAndLoadDict(const wxString &file);
             void SetVPPositive(ViewPort *pvp);
+            void FillScaleArray(double lat, double lon);
 
 
             //    Data members
             cm93_dictionary   *m_pDict;
 
             cm93chart         *m_pcm93chart_array[8];
+            bool              m_bScale_Array[8];
             cm93chart         *m_pcm93chart_current;
             int               m_cmscale;
 
