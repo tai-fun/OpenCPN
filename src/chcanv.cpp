@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.51 2009/07/08 03:38:47 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.52 2009/07/10 03:56:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.52  2009/07/10 03:56:13  bdbcat
+ * Improve ZoomIn and Overzoom logic.
+ *
  * Revision 1.51  2009/07/08 03:38:47  bdbcat
  * Cleanup.
  *
@@ -117,6 +120,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.52  2009/07/10 03:56:13  bdbcat
+ * Improve ZoomIn and Overzoom logic.
+ *
  * Revision 1.51  2009/07/08 03:38:47  bdbcat
  * Cleanup.
  *
@@ -344,7 +350,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.51 2009/07/08 03:38:47 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.52 2009/07/10 03:56:13 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -927,7 +933,12 @@ bool ChartCanvas::ZoomCanvasIn(void)
 
         //  Query the chart to determine the appropriate zoom range
        if(proposed_scale_onscreen < Current_Ch->GetNormalScaleMin(GetCanvasScaleFactor()))
-            return false;
+       {
+             if(Current_Ch->GetNormalScaleMin(GetCanvasScaleFactor()) == GetCanvasScaleFactor() / (GetVPScale()))
+                  return false;
+             else
+                   proposed_scale_onscreen = Current_Ch->GetNormalScaleMin(GetCanvasScaleFactor());
+       }
 
        SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
        Refresh(false);
@@ -1140,26 +1151,24 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
         if ( Current_Ch )
                 Current_Ch->SetVPParms ( &VPoint );
 
-/*
-        //    Calculate the on-screen displayed actual scale
-        //    by a simple 0.1 NM traverse northward from the center point
-        double tlat, tlon;
-        wxPoint r, r1;
-        ll_gc_ll ( VPoint.clat, VPoint.clon, 0, .1, &tlat, &tlon );
-        GetPointPix ( tlat, tlon, &r1 );
-        GetPointPix ( VPoint.clat, VPoint.clon, &r );
-        m_true_scale_ppm = sqrt(pow((r.y - r1.y), 2) + pow((r.x - r1.x), 2)) / 185.2;
-*/
         //    Calculate the on-screen displayed actual scale
         //    by a simple traverse northward from the center point
         //    of roughly 10 % of the Viewport extent
         double tlat, tlon;
         wxPoint r, r1;
         double delta_y = (lat_max - lat_min) * 60.0 * .10;              // roughly 10 % of lat range, in NM
-        ll_gc_ll ( VPoint.clat, VPoint.clon, 0, delta_y, &tlat, &tlon );
+
+        //  Make sure the two points are in phase longitudinally
+        double lon_norm = VPoint.clon;
+        if(lon_norm > 180.)
+              lon_norm -= 360;
+        else if(lon_norm < -180.)
+              lon_norm += 360.;
+
+        ll_gc_ll ( VPoint.clat, lon_norm, 0, delta_y, &tlat, &tlon );
 
         GetPointPix ( tlat, tlon, &r1 );
-        GetPointPix ( VPoint.clat, VPoint.clon, &r );
+        GetPointPix ( VPoint.clat, lon_norm, &r );
 
         m_true_scale_ppm = sqrt(pow((r.y - r1.y), 2) + pow((r.x - r1.x), 2)) / (delta_y * 1852.);
 
@@ -1173,25 +1182,25 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
         else
               VPoint.chart_scale = 1.0;
 
-//   add display of GetCanvasScaleFactor() / (GetVPScale()
-//               which is how zoomout range is bounded....
-//               why are they not equal????
-
 
         if ( parent_frame->m_pStatusBar )
         {
               double true_scale_display = floor(VPoint.chart_scale / 100.) * 100.;
               wxString text;
-              text.Printf(_T("TrueScale: %8.0f"), true_scale_display);
+
+              double chart_native_ppm;
+              if(Current_Ch)
+                    chart_native_ppm = m_canvas_scale_factor / Current_Ch->GetNativeScale();
+              else
+                    chart_native_ppm = m_true_scale_ppm;
+
+              double scale_factor = scale_ppm / chart_native_ppm;
+              if(scale_factor > 1.0)
+                    text.Printf(_T("TrueScale: %8.0f  Zoom %4.0fx"), true_scale_display, scale_factor);
+              else
+                    text.Printf(_T("TrueScale: %8.0f  Zoom %4.2fx"), true_scale_display, scale_factor);
+
               parent_frame->SetStatusText ( text, 3 );
-
-//                double chart_native_scale = 1.0;
-//                if(Current_Ch)
-//                      chart_native_scale = Current_Ch->GetNativeScale();
-
-//                double binary_scale_factor = 1;
-//                snprintf ( buf, 21, "CHScale: %8.0f %g", binary_scale_factor * chart_native_scale, binary_scale_factor );
-//                parent_frame->SetStatusText ( wxString ( buf, wxConvUTF8 ), 3 );
 
         }
 
