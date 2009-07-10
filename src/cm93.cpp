@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.11 2009/07/08 01:47:54 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.12 2009/07/10 04:03:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.12  2009/07/10 04:03:09  bdbcat
+ * Improve Scale logic.
+ *
  * Revision 1.11  2009/07/08 01:47:54  bdbcat
  * Update CM93 chart naming logic.
  *
@@ -3715,15 +3718,6 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
 }
 
 
-double cm93compchart::GetNormalScaleMin(double canvas_scale_factor)
-{
-      return 1.0;
-}
-
-double cm93compchart::GetNormalScaleMax(double canvas_scale_factor)
-{
-      return 1.0e8;
-}
 
 //-----------------------------------------------------------------------
 //              Calculate and Set ViewPoint Constants
@@ -3864,7 +3858,9 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 
             if(bin_mcovr)
             {
-//                  printf(" chart %c contains clat/clon\n", (char)('A' + cmscale -1));
+#ifdef CM93_DEBUG_PRINTF
+                  printf(" chart %c contains clat/clon\n", (char)('A' + cmscale -1));
+#endif
                   cellscale_is_useable = true;
                   break;
             }
@@ -3884,6 +3880,13 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
             }
 
       }
+}
+
+//    Populate the member bool array describing which chart scales are available at any location
+void cm93compchart::FillScaleArray(double lat, double lon)
+{
+      for(int cmscale = 0 ; cmscale < 7 ; cmscale++)
+            m_bScale_Array[cmscale] = Is_CM93Cell_Present(m_prefix, lat, lon, cmscale);
 }
 
 //    These methods simply pass the called parameters to the currently active cm93chart
@@ -3920,6 +3923,54 @@ wxString cm93compchart::GetPubDate()
             data = _T("????");
       return data;
 }
+
+int cm93compchart::GetNativeScale()
+{
+      if(m_pcm93chart_current)
+            return m_pcm93chart_current->GetNativeScale();
+      else
+            return 1;
+}
+
+double cm93compchart::GetNormalScaleMin(double canvas_scale_factor)
+{
+      if(m_pcm93chart_current)
+      {
+            if(m_pcm93chart_current->m_last_vp.IsValid())
+                  FillScaleArray(m_pcm93chart_current->m_last_vp.clat,m_pcm93chart_current-> m_last_vp.clon);
+
+            //    Find out what the smallest available scale is
+            int cmscale = 7;
+            while(cmscale > 0)
+            {
+                  if(m_bScale_Array[cmscale])
+                        break;
+                  cmscale--;
+            }
+
+            //    And return a sensible minimum scale, allowing 4x overzoom.
+            switch(cmscale)
+            {
+                  case  0: return 20000000. / 4.;            // Z
+                  case  1: return 3000000.  / 4.;            // A
+                  case  2: return 1000000.  / 4.;            // B
+                  case  3: return 200000.   / 4.;            // C
+                  case  4: return 100000.   / 4.;            // D
+                  case  5: return 50000.    / 4.;            // E
+                  case  6: return 20000.    / 4.;            // F
+                  case  7: return 7500.     / 4.;            // G
+                  default: return 10.;
+            }
+      }
+      else
+            return 10.0;
+}
+
+double cm93compchart::GetNormalScaleMax(double canvas_scale_factor)
+{
+      return 1.0e8;
+}
+
 
 void cm93compchart::SetVPPositive(ViewPort *pvp)
 {
