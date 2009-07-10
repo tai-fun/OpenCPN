@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.20 2009/07/08 03:39:18 bdbcat Exp $
+ * $Id: ais.cpp,v 1.21 2009/07/10 03:49:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.21  2009/07/10 03:49:42  bdbcat
+ * Improve Lost Target logic.
+ *
  * Revision 1.20  2009/07/08 03:39:18  bdbcat
  * Improve Alert dialog.
  *
@@ -144,7 +147,7 @@ static      GenericPosDat     AISPositionMuxData;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.20 2009/07/08 03:39:18 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.21 2009/07/10 03:49:42 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -1641,14 +1644,17 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
                   for( it = (*current_targets).begin(); it != (*current_targets).end(); ++it )
                   {
                         AIS_Target_Data *td = it->second;
-                        if(td->b_active)
+                        if(td)
                         {
-                              if(AIS_ALARM_SET == td->n_alarm_state)
+                              if(td->b_active)
                               {
-                                    if(td->TCPA < tcpa_min)
+                                    if(AIS_ALARM_SET == td->n_alarm_state)
                                     {
-                                          tcpa_min = td->TCPA;
-                                          palarm_target = td;
+                                          if(td->TCPA < tcpa_min)
+                                          {
+                                                tcpa_min = td->TCPA;
+                                                palarm_target = td;
+                                          }
                                     }
                               }
                         }
@@ -1732,7 +1738,10 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 
 AIS_Target_Data *AIS_Decoder::Get_Target_Data_From_MMSI(int mmsi)
 {
-      return (*AISTargetList)[mmsi];          // find current entry
+      if(AISTargetList->find( mmsi ) == AISTargetList->end())     // if entry does not exist....
+            return NULL;
+      else
+            return (*AISTargetList)[mmsi];          // find current entry
 
 /*
       //    Search the active target list for a matching MMSI
