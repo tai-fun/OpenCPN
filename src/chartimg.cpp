@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.24 2009/07/03 02:58:10 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.25 2009/07/10 03:51:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.25  2009/07/10 03:51:39  bdbcat
+ * Change MinScale factor for BSB charts.
+ *
  * Revision 1.24  2009/07/03 02:58:10  bdbcat
  * Dorrect "WGS 84" spelling.
  *
@@ -63,6 +66,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.25  2009/07/10 03:51:39  bdbcat
+ * Change MinScale factor for BSB charts.
+ *
  * Revision 1.24  2009/07/03 02:58:10  bdbcat
  * Dorrect "WGS 84" spelling.
  *
@@ -157,7 +163,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.24 2009/07/03 02:58:10 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.25 2009/07/10 03:51:39 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1331,7 +1337,7 @@ ChartBaseBSB::~ChartBaseBSB()
 
 double ChartBaseBSB::GetNormalScaleMin(double canvas_scale_factor)
 {
-      return (canvas_scale_factor / m_ppm_avg) / 2.1;         // don't suggest too much overscale
+      return (canvas_scale_factor / m_ppm_avg) / 2;         // don't suggest too much overscale
 }
 
 double ChartBaseBSB::GetNormalScaleMax(double canvas_scale_factor)
@@ -3952,7 +3958,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.24 2009/07/03 02:58:10 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.25 2009/07/10 03:51:39 bdbcat Exp $
 *
 */
 
