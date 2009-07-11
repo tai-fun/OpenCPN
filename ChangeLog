@@ -1,0 +1,55 @@
+1.3.2 ChangeLog
+
+1.  Update/correct xcode build project for Macintosh OS-X.
+2.  Correct scaling logic error in Radar Ring display.
+3.  Correct restoration of initial position for southern latitudes on program start.
+4.  Correct GPX file Export for proper latitude/longitude polarity.
+5.  Correct crashing on certain corrupt BSB chart data files.
+6.  Correct ENC update file search logic.
+7.  Correct restoration of initial position for invalid lat/lon on program start.
+8.  Correct CM93 longitudinal circumnavigation error.
+9.  Correct Route and Waypoint duplication on GPX Input function.
+10. Correct occasional linux crash due to unloaded thumbnail view chart.
+11. Correct some ENC Area Pattern symbolization algorithms.
+12. Implement staggered area pattern fill per S52 specification.
+13. Implement S57 ENC overzoom limiter.
+14. Implement arrow keys for chart panning, plus assorted other hotkeys.
+15. Implement mouse wheel zoom control.
+16. Correct formatting error on "SendToGPS" function.
+17. Implement AIS Alert Dialog and Audio alarm.
+18. Correct GPX-In route logic.
+19. Allow chart directory load/search for .kap files, lower case.
+20. Correct Mid-Pacific jump in BSB, CM93 and WVS charts.
+21. Improve ToolBar/ToolBox legends.
+22. Support sharing AIS and GPS on same comm port, as required for some AIS-B units.
+23. Improve error logging on corrupt charts.
+23. Implement More Hotkeys
+     Ctrl+'X' or -:    Zoom Out
+     Ctrl+'Z' or +:    Zoom In
+     F10:              Smaller Scale Chart (Scale In)
+     F11:              Larger Scale Chart (Scale Out)
+     Ctrl+'A' or F2:   Auto-Follow On/Off
+     Ctrl+’O' or F12:  Chart Outlines On/Off
+     Ctrl+'1':         Normal Brightness
+     Ctrl+'2':         Dusk Brightness
+     Ctrl+'3':         Night Brightness
+     F8:               Auto-Follow ON
+     F9:               Auto-Follow OFF
+     Ctrl+’M’:         Drop Marker at current cursor position.
+     Ctrl+space:       Man Over Board, sets MOB Marker at current GPS position.
+     Ctrl+'L Arrow':   Scale  In
+     Ctrl+'R Arrow':   Scale  Out
+     Ctrl+'Q':         Quit OpenCPN
+     Ctrl+’S' or F3    Toggle ENC Text Display
+24.  Improve gpsd support logic.
+25.  Correct southern hemisphere WVS chart logic.
+26.  Implement AIS target alert dialog, with optional sound alarm played on CPA/TCPA incursion.
+27.  Improve CM93 SIMPLIFIED object labels.
+28.  Improve S57 ENC decoding algorithms.
+29.  Improve rendering of dangerous AIS targets.
+30.  Correct some ENC memory allocation failures.
+31.  Added "Tips" tab to the Toolbar "?" tool.  Thanks, Philip!
+32.  Save and preload GPX_In and GPX_Out directory from config file.
+33.  Implement configurable chart cache limit for Windows platforms.
+34.  Improve AIS target information dialog.
+35.  Add ETE by leg to Route Properties dialog.
