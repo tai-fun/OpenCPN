@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.21 2009/07/10 03:49:42 bdbcat Exp $
+ * $Id: ais.cpp,v 1.22 2009/07/11 00:59:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.22  2009/07/11 00:59:59  bdbcat
+ * Correct buffer overrun on multi-part messages
+ *
  * Revision 1.21  2009/07/10 03:49:42  bdbcat
  * Improve Lost Target logic.
  *
@@ -92,6 +95,7 @@
 #include "wx/tokenzr.h"
 #include "wx/datetime.h"
 #include "wx/sound.h"
+#include <wx/wfstream.h>
 
 #include <stdlib.h>
 #include <math.h>
@@ -146,8 +150,7 @@ extern wxString         g_sAIS_Alert_Sound_File;
 static      GenericPosDat     AISPositionMuxData;
 
 
-
-CPL_CVSID("$Id: ais.cpp,v 1.21 2009/07/10 03:49:42 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.22 2009/07/11 00:59:59 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -577,7 +580,6 @@ bool AIS_Bitstring::GetStr(int sp, int len, char *dest, int max_len)
 
 
 
-
 //---------------------------------------------------------------------------------
 //
 //  AIS_Decoder Implementation
@@ -835,8 +837,9 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
      }
 
 
-    if(!string_to_parse.IsEmpty())
-    {
+     if(!string_to_parse.IsEmpty() && (string_to_parse.Len() < AIS_MAX_MESSAGE_LEN))
+     {
+
         //  Create the bit accessible string
         AIS_Bitstring strbit(string_to_parse.mb_str());
 
@@ -890,9 +893,10 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
         UpdateOneCPA(pTargetData);
 
         ret = AIS_NoError;
+
     }
     else
-        ret = AIS_Partial;
+        ret = AIS_Partial;                // accumulating parts of a multi-sentence message
 
     return ret;
 }
@@ -1050,6 +1054,34 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 
                break;
          }
+     case 4:                                    // base station
+          {
+                break;
+          }
+     case 9:                                    // Special Position Report
+          {
+                break;
+          }
+     case 21:                                    // Test Message
+          {
+                break;
+          }
+     case 8:                                    // Binary Broadcast
+          {
+                break;
+          }
+     case 6:                                    // Addressed Binary Message
+          {
+                break;
+          }
+     case 7:                                    // Binary Ack
+          {
+                break;
+          }
+     default:
+          {
+                break;
+          }
 
     }
 
@@ -2129,7 +2161,6 @@ port_ready:
     free (pttyset);
     free (pttyset_old);
 
-
     return 0;
 
 }
@@ -2142,6 +2173,7 @@ port_ready:
 //    Entry Point
 void *OCP_AIS_Thread::Entry()
 {
+
 
       bool not_done;
 
@@ -2156,6 +2188,25 @@ void *OCP_AIS_Thread::Entry()
 
       DWORD dwRes;
       DWORD dwError;
+
+#if 0                                     // testing direct file read of AIS data stream
+      wxFile f("C:\\SIITECH.TXT");
+      if(f.IsOpened())
+            int yyo = 5;
+
+      wxFileInputStream stream(f);
+
+      if(stream.IsOk())
+            int yyp = 5;
+
+      while(!stream.Eof())
+      {
+            stream.Read(buf, 40);
+            HandleRead(buf, 40);                   // Read completed successfully.
+      }
+
+      return 0;
+#endif
 
 //    Set up the serial port
 

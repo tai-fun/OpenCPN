@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.18 2009/07/08 03:39:42 bdbcat Exp $
+ * $Id: ais.h,v 1.19 2009/07/11 01:00:07 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.19  2009/07/11 01:00:07  bdbcat
+ * Correct buffer overrun on multi-part messages
+ *
  * Revision 1.18  2009/07/08 03:39:42  bdbcat
  * Improve Alert dialog.
  *
@@ -225,7 +228,7 @@ public:
 
 
 
-
+#define AIS_MAX_MESSAGE_LEN (10 * 82)           // AIS Spec allows up to 9 sentences per message, 82 bytes each
 class AIS_Bitstring
 {
 public:
@@ -238,7 +241,7 @@ public:
 
 private:
 
-    unsigned char bitbytes[82];
+    unsigned char bitbytes[AIS_MAX_MESSAGE_LEN];
     int byte_length;
 };
 
