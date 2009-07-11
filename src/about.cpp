@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.22 2009/07/08 01:45:45 bdbcat Exp $
+ * $Id: about.cpp,v 1.23 2009/07/11 00:59:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.23  2009/07/11 00:59:04  bdbcat
+ * 1.3.2
+ *
  * Revision 1.22  2009/07/08 01:45:45  bdbcat
  * Update Authors.
  *
@@ -103,12 +106,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.22 2009/07/08 01:45:45 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.23 2009/07/11 00:59:04 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.3.1"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.3.2"};
 
 
 char AboutText[] =
@@ -346,13 +349,13 @@ void about::CreateControls()
 
     //     Tips Panel
   wxPanel* itemPanelTips = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-  itemNotebook4->AddPage(itemPanelTips, _T("Tips"));
+  itemNotebook4->AddPage(itemPanelTips, _T("Help"));
 
   wxBoxSizer* itemBoxSizer9 = new wxBoxSizer(wxVERTICAL);
   itemPanelTips->SetSizer(itemBoxSizer9);
 
 
-  m_ptips_window = new  wxHtmlWindow(itemPanelTips, -1, wxDefaultPosition, wxSize(100,400), wxHW_DEFAULT_STYLE, _T("OpenCPN Tips"));
+  m_ptips_window = new  wxHtmlWindow(itemPanelTips, -1, wxDefaultPosition, wxSize(100,400), wxHW_DEFAULT_STYLE, _T("OpenCPN Help"));
   itemBoxSizer9->Add(m_ptips_window, 0, wxGROW);
 
 
