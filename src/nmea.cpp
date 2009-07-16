@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.36 2009/06/29 01:10:19 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.37 2009/07/16 02:38:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.36 2009/06/29 01:10:19 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.37 2009/07/16 02:38:12 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -109,18 +109,16 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
 //    NMEA Data Source is shared with AIS port, AIS does the muxing
 //    and we don't have anything else to do......
       if(m_data_source_string.Contains(_T("AIS")))
-      {
             g_bGPSAISMux = true;
-      }
-
 
 //    NMEA Data Source is specified serial port
       else if(m_data_source_string.Contains(_T("Serial")))
       {
           wxString comx;
-          comx =  m_data_source_string.Mid(7);        // either "COM1" style or "/dev/ttyS0" style
+          comx =  m_data_source_string.AfterFirst(':');      // strip "Serial:"
 
 #ifdef __WXMSW__
+          comx.Prepend(_T("\\\\.\\"));                  // Required for access to Serial Ports greater than COM9
 
 //  As a quick check, verify that the specified port is available
             HANDLE m_hSerialComm = CreateFile(comx.mb_str(),       // Port Name
@@ -1856,6 +1854,9 @@ int ComPortManager::OpenComPortPhysical(wxString &com_name, int baud_rate)
 {
 
 //    Set up the serial port
+      wxString xcom_name = com_name;
+      xcom_name.Prepend(_T("\\\\.\\"));                  // Required for access to Serial Ports greater than COM9
+
       HANDLE hSerialComm = CreateFile(com_name.mb_str(),      // Port Name
                                  GENERIC_READ | GENERIC_WRITE,     // Desired Access
                                  0,                               // Shared Mode
