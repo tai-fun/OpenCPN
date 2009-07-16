@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.25 2009/07/03 03:00:32 bdbcat Exp $
+ * $Id: chcanv.h,v 1.26 2009/07/16 02:41:10 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.26  2009/07/16 02:41:10  bdbcat
+ * Various
+ *
  * Revision 1.25  2009/07/03 03:00:32  bdbcat
  * Improve AIS Dialogs.
  *
@@ -220,6 +223,7 @@ public:
 
       void SetViewPoint(double lat, double lon, double scale_ppm, double skew, int sample_mode);
       void SetVPScale(double sc);
+      void SetViewPoint ( double lat, double lon);
 
       void GetPointPix(double rlat, double rlon, wxPoint *r);
       void GetPixPoint(int x, int y, double &lat, double &lon);
@@ -250,8 +254,8 @@ public:
 
       void SetOwnShipState(ownship_state_t state){ m_ownship_state = state;}
 
-      bool ZoomCanvasIn(void);
-      bool ZoomCanvasOut(void);
+      bool ZoomCanvasIn(double lat = 0., double lon = 0.);
+      bool ZoomCanvasOut(double lat = 0., double lon = 0.);
       bool PanCanvas(int dx, int dy);
 
       //Todo build more accessors
@@ -287,13 +291,13 @@ private:
       double      m_prev_rlon;
       RoutePoint  *m_prev_pMousePoint;
       Route       *m_pSelectedRoute;
-//      Route       *m_pEditRoute;
       wxArrayPtrVoid *m_pEditRouteArray;
       RoutePoint  *m_pFoundRoutePoint;
       RoutePoint  *m_pFoundRoutePointSecond;
 
-      AIS_Target_Data *m_pFoundAIS_Target_Data;
-      AIS_Target_Data *m_pSnapshotAIS_Target_Data;
+//      AIS_Target_Data *m_pFoundAIS_Target_Data;
+//      AIS_Target_Data *m_pSnapshotAIS_Target_Data;
+      int         m_FoundAIS_MMSI;
 
       wxCursor    *pCursorLeft;
       wxCursor    *pCursorRight;

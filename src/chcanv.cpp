@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.52 2009/07/10 03:56:13 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.53 2009/07/16 02:40:45 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.53  2009/07/16 02:40:45  bdbcat
+ * Various
+ *
  * Revision 1.52  2009/07/10 03:56:13  bdbcat
  * Improve ZoomIn and Overzoom logic.
  *
@@ -120,6 +123,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.53  2009/07/16 02:40:45  bdbcat
+ * Various
+ *
  * Revision 1.52  2009/07/10 03:56:13  bdbcat
  * Improve ZoomIn and Overzoom logic.
  *
@@ -350,7 +356,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.52 2009/07/10 03:56:13 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.53 2009/07/16 02:40:45 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -388,6 +394,7 @@ enum
         ID_RT_MENU_REMPOINT,
         ID_RT_MENU_PROPERTIES,
         ID_RT_MENU_SENDTOGPS,
+        ID_RT_MENU_EXPORT,
         ID_RC_MENU_SCALE_IN,
         ID_RC_MENU_SCALE_OUT,
         ID_RC_MENU_ZOOM_IN,
@@ -431,7 +438,8 @@ BEGIN_EVENT_TABLE ( ChartCanvas, wxWindow )
         EVT_MENU ( ID_RT_MENU_DEACTPOINT,   ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RT_MENU_ACTNXTPOINT,  ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RT_MENU_PROPERTIES,   ChartCanvas::PopupMenuHandler )
-        EVT_MENU ( ID_RT_MENU_SENDTOGPS ,   ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_RT_MENU_PROPERTIES,   ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_RT_MENU_EXPORT,       ChartCanvas::PopupMenuHandler )
 
         EVT_MENU ( ID_RC_MENU_SCALE_IN,     ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RC_MENU_SCALE_OUT,    ChartCanvas::PopupMenuHandler )
@@ -793,26 +801,31 @@ void ChartCanvas::OnCursorTrackTimerEvent ( wxTimerEvent& event )
                         double cursor_lat, cursor_lon;
                         GetPixPoint ( mouse_x, mouse_y, cursor_lat, cursor_lon );
 
-                        while(cursor_lon < -180.)
-                              cursor_lon += 360.;
-
-                        while(cursor_lon > 180.)
-                              cursor_lon -= 360.;
-
-                        if ( parent_frame->m_pStatusBar )
+                        //    Check the absolute range of the cursor position
+                        //    There could be a window wherein the chart geoereferencing is not valid....
+                        if((fabs(cursor_lat) < 90.) && (fabs(cursor_lon) < 360.))
                         {
-                              wxString s1 = _T("Cursor:   ");
-                              s1 += toSDMM(1, cursor_lat);
-                              s1 += _T("   ");
-                              s1 += toSDMM(2, cursor_lon);
-                              parent_frame->SetStatusText ( s1, 1 );
+                              while(cursor_lon < -180.)
+                                    cursor_lon += 360.;
 
-                              double brg, dist;
-                              DistanceBearing(cursor_lat, cursor_lon, gLat, gLon, &brg, &dist);
-                              wxString s;
-                              s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
-                              parent_frame->SetStatusText ( s, 2 );
-                        }
+                              while(cursor_lon > 180.)
+                                    cursor_lon -= 360.;
+
+                              if ( parent_frame->m_pStatusBar )
+                              {
+                                    wxString s1 = _T("Cursor:   ");
+                                    s1 += toSDMM(1, cursor_lat);
+                                    s1 += _T("   ");
+                                    s1 += toSDMM(2, cursor_lon);
+                                    parent_frame->SetStatusText ( s1, 1 );
+
+                                    double brg, dist;
+                                    DistanceBearing(cursor_lat, cursor_lon, gLat, gLon, &brg, &dist);
+                                    wxString s;
+                                    s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
+                                    parent_frame->SetStatusText ( s, 2 );
+                              }
+                       }
                 }
         }
 #endif
@@ -927,7 +940,7 @@ void ChartCanvas::FlushBackgroundRender ( void )
         }
 }
 
-bool ChartCanvas::ZoomCanvasIn(void)
+bool ChartCanvas::ZoomCanvasIn(double lat, double lon)
 {
        double proposed_scale_onscreen = GetCanvasScaleFactor() / (GetVPScale() * 2);
 
@@ -940,14 +953,18 @@ bool ChartCanvas::ZoomCanvasIn(void)
                    proposed_scale_onscreen = Current_Ch->GetNormalScaleMin(GetCanvasScaleFactor());
        }
 
-       SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
+       if((lat == 0.) && (lon == 0.))
+             SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
+       else
+             SetViewPoint ( lat, lon, GetCanvasScaleFactor() / proposed_scale_onscreen, VPoint.skew, CURRENT_RENDER );
+
        Refresh(false);
 
        return true;
 }
 
 
-bool ChartCanvas::ZoomCanvasOut(void)
+bool ChartCanvas::ZoomCanvasOut(double lat, double lon)
 {
       double proposed_scale_onscreen = GetCanvasScaleFactor() / (GetVPScale() / 2);
 
@@ -956,7 +973,14 @@ bool ChartCanvas::ZoomCanvasOut(void)
       if(proposed_scale_onscreen > zout_max)
             return false;
 
-      SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
+
+      if((lat == 0.) && (lon == 0.))
+            SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
+      else
+            SetViewPoint ( lat, lon, GetCanvasScaleFactor() / proposed_scale_onscreen, VPoint.skew, CURRENT_RENDER );
+
+//      SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
+
       Refresh(false);
       return true;
 }
@@ -990,6 +1014,11 @@ bool ChartCanvas::PanCanvas(int dx, int dy)
 void ChartCanvas::SetVPScale ( double scale )
 {
         SetViewPoint ( VPoint.clat, VPoint.clon, scale, VPoint.skew, CURRENT_RENDER );
+}
+
+void ChartCanvas::SetViewPoint ( double lat, double lon)
+{
+      SetViewPoint ( lat, lon, VPoint.view_scale_ppm, VPoint.skew, CURRENT_RENDER );
 }
 
 void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, double skew, int sample_mode )
@@ -1407,6 +1436,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       if (g_pNavAidRadarRingsStepUnits == 1)          // nautical miles
                             factor = 1 / 1.852;
 
+                      factor *= g_fNavAidRadarRingsStep;
 
                       double tlat, tlon;
                       wxPoint r;
@@ -2107,23 +2137,28 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                       double show_cursor_lon = m_cursor_lon;
                       double show_cursor_lat = m_cursor_lat;
 
-                      while(show_cursor_lon < -180.)
-                            show_cursor_lon += 360.;
+                      //    Check the absolute range of the cursor position
+                      //    There could be a window wherein the chart geoereferencing is not valid....
+                      if((fabs(show_cursor_lat) < 90.) && (fabs(show_cursor_lon) < 360.))
+                      {
+                        while(show_cursor_lon < -180.)
+                              show_cursor_lon += 360.;
 
-                      while(show_cursor_lon > 180.)
-                            show_cursor_lon -= 360.;
+                        while(show_cursor_lon > 180.)
+                              show_cursor_lon -= 360.;
 
-                      wxString s1 = _T("Cursor:   ");
-                      s1 += toSDMM(1, show_cursor_lat);
-                      s1 += _T("   ");
-                      s1 += toSDMM(2, show_cursor_lon);
-                      parent_frame->SetStatusText ( s1, 1 );
+                        wxString s1 = _T("Cursor:   ");
+                        s1 += toSDMM(1, show_cursor_lat);
+                        s1 += _T("   ");
+                        s1 += toSDMM(2, show_cursor_lon);
+                        parent_frame->SetStatusText ( s1, 1 );
 
-                      double brg, dist;
-                      DistanceBearing(m_cursor_lat, m_cursor_lon, gLat, gLon, &brg, &dist);
-                      wxString s;
-                      s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
-                      parent_frame->SetStatusText ( s, 2 );
+                        double brg, dist;
+                        DistanceBearing(m_cursor_lat, m_cursor_lon, gLat, gLon, &brg, &dist);
+                        wxString s;
+                        s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
+                        parent_frame->SetStatusText ( s, 2 );
+                      }
                 }
         }
 #endif
@@ -2148,9 +2183,9 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
         if(!m_MouseWheelTimer.IsRunning())
         {
            if(wheel_dir > 0)
-                    ZoomCanvasIn();
+                 ZoomCanvasIn( m_cursor_lat, m_cursor_lon );
             else if(wheel_dir < 0)
-                    ZoomCanvasOut();
+                  ZoomCanvasOut( m_cursor_lat, m_cursor_lon );
             m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // start timer
         }
 
@@ -2578,7 +2613,8 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         //    Try for AIS targets first
                         if ( ( pFind = pSelectAIS->FindSelection ( slat, slon, SELTYPE_AISTARGET, SelectRadius ) ) != NULL )
                         {
-                                m_pFoundAIS_Target_Data = ( AIS_Target_Data * ) pFind->m_pData1;
+
+//                                m_pFoundAIS_Target_Data = ( AIS_Target_Data * ) pFind->m_pData1;
 
                                 /*    Take a copy of the found target, for use by dialog later.
                                       This is important, since the event loop and all other threads run
@@ -2587,8 +2623,10 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                                       The copy will be deleted after use by the dialog.
                                 */
 
-                                m_pSnapshotAIS_Target_Data = new AIS_Target_Data();
-                                *m_pSnapshotAIS_Target_Data = *m_pFoundAIS_Target_Data;
+//                                m_pSnapshotAIS_Target_Data = new AIS_Target_Data();
+//                                *m_pSnapshotAIS_Target_Data = *m_pFoundAIS_Target_Data;
+
+                                m_FoundAIS_MMSI = ( int ) pFind->m_pData1;
 
                                 CanvasPopupMenu ( x,y, SELTYPE_AISTARGET );
 
@@ -2752,6 +2790,7 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                         pdef_menu->Append ( ID_RT_MENU_DELETE,            _T ( "Delete Route" ) );
                         pdef_menu->Append ( ID_RT_MENU_REVERSE,           _T ( "Reverse Route" ) );
                         pdef_menu->Append ( ID_RT_MENU_PROPERTIES,        _T ( "Route Properties" ) );
+                        pdef_menu->Append ( ID_RT_MENU_EXPORT,            _T ( "Export...." ) );
                         pdef_menu->Append ( ID_RT_MENU_SENDTOGPS,         _T ( "Send To GPS..." ) );
 
                         if ( m_pSelectedRoute )
@@ -2907,6 +2946,8 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                 case ID_DEF_MENU_DROP_WP:
                 {
                         RoutePoint *pWP = new RoutePoint ( zlat, zlon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "" ) ), NULL );
+                        pWP->m_bIsolatedMark = true;                      // This is an isolated mark
+
                         pSelect->AddSelectablePoint ( zlat, zlon, pWP );
                         pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                         Refresh ( false );      // Needed for MSW, why not GTK??
@@ -3003,8 +3044,8 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                             g_pais_query_dialog_active->Create ( this, -1, wxT ( "AIS Target Query" ) );
                       }
 
-                      g_pais_query_dialog_active->SetMMSI(m_pSnapshotAIS_Target_Data->MMSI);
-                      delete m_pSnapshotAIS_Target_Data;                // no longer needed
+                      g_pais_query_dialog_active->SetMMSI(m_FoundAIS_MMSI);
+//                      delete m_pSnapshotAIS_Target_Data;                // no longer needed
 
                       g_pais_query_dialog_active->UpdateText();
                       g_pais_query_dialog_active->Show();
@@ -3197,6 +3238,12 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                         break;
 
                 }
+                case ID_RT_MENU_EXPORT:
+                {
+                        pConfig->ExportGPXRoute(this, m_pSelectedRoute);
+                        break;
+                }
+
 
                 case ID_RC_MENU_SCALE_IN:
                         parent_frame-> DoStackDown();
