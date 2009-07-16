@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.47 2009/07/08 03:38:59 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.48 2009/07/16 02:44:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.48  2009/07/16 02:44:53  bdbcat
+ * Whell zoom to point.
+ *
  * Revision 1.47  2009/07/08 03:38:59  bdbcat
  * Cleanup.
  *
@@ -208,7 +211,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.47 2009/07/08 03:38:59 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.48 2009/07/16 02:44:53 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -1356,7 +1359,14 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
               *pNMEA_AP_Port = _T("NONE") ;
 #endif
 
-        g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, this, *pNMEADataSource, &m_mutexNMEAEvent);
+        //    If the selected port is the same as AIS port, override the name to force the
+       //    NMEA class to expect muxed data from AIS decoder
+        if(pNMEADataSource->IsSameAs(*pAIS_Port))
+           g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, this, _T("AIS Port (Shared)"), &m_mutexNMEAEvent );
+        else
+           g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, this, *pNMEADataSource, &m_mutexNMEAEvent );
+
+//        g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, this, *pNMEADataSource, &m_mutexNMEAEvent);
 
 
 //        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, wxString("TCP/IP:66.235.48.168"));  // a test
@@ -2319,7 +2329,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             is++;
             s = (ColorScheme)is;
             if(s == N_COLOR_SCHEMES)
-                s = GLOBAL_COLOR_SCHEME_DAY;
+                s = GLOBAL_COLOR_SCHEME_RGB;
 
             SetAndApplyColorScheme(s);
 
@@ -2524,7 +2534,14 @@ int MyFrame::DoOptionsDialog()
                   if(g_pnmea)
                         g_pnmea->Close();
                   delete g_pnmea;
-                  g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource, &m_mutexNMEAEvent );
+
+                  //    If the selected port is the same as AIS port, override the name to force the
+                  //    NMEA class to expect muxed data from AIS decoder
+                  if(pNMEADataSource->IsSameAs(*pAIS_Port))
+                     g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, _T("AIS Port (Shared)"), &m_mutexNMEAEvent );
+                  else
+                     g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource, &m_mutexNMEAEvent );
+
             }
 
 
@@ -2538,8 +2555,6 @@ int MyFrame::DoOptionsDialog()
 
             if(*pAIS_Port != previous_AIS_Port)
             {
-//                if(g_pAIS)
-//                    g_pAIS->Close();
                 delete g_pAIS;
                 g_pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port, &m_mutexNMEAEvent );
             }
@@ -4821,12 +4836,12 @@ void DummyTextCtrl::OnMouseEvent(wxMouseEvent &event)
             if(wheel_dir > 0)
             {
                   if(cc1)
-                        cc1->ZoomCanvasIn();
+                        cc1->ZoomCanvasIn(cc1->m_cursor_lat, cc1->m_cursor_lon);
             }
             else if(wheel_dir < 0)
             {
                   if(cc1)
-                        cc1->ZoomCanvasOut();
+                        cc1->ZoomCanvasOut(cc1->m_cursor_lat, cc1->m_cursor_lon);
             }
             m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // start timer
       }
