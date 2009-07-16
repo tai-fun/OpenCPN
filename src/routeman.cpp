@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.12 2009/03/26 22:30:27 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.13 2009/07/16 02:47:01 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.13  2009/07/16 02:47:01  bdbcat
+ * Various
+ *
  * Revision 1.12  2009/03/26 22:30:27  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -48,6 +51,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.13  2009/07/16 02:47:01  bdbcat
+ * Various
+ *
  * Revision 1.12  2009/03/26 22:30:27  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -202,7 +208,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.12 2009/03/26 22:30:27 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.13 2009/07/16 02:47:01 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -645,18 +651,16 @@ void Routeman::DeleteRoute(Route *pRoute)
             // check all other routes to see if this point appears in any other route
             Route *pcontainer_route = FindRouteContainingWaypoint(prp);
 
-            if(prp->m_bDynamicName)                // Mark is a "route only" type
+            if(pcontainer_route == NULL)
             {
-                  if(pcontainer_route == NULL)
+                  prp->m_bIsInRoute = false;          // Take this point out of this (and only) route
+                  if(!prp->m_bIsolatedMark)
                   {
                         pConfig->DeleteWayPoint(prp);
                         pSelect->DeleteSelectablePoint(prp, SELTYPE_ROUTEPOINT);
                         delete prp;
                   }
             }
-            else if (pcontainer_route == NULL)
-               prp->m_bIsInRoute = false;          // Take this point out of this (and only) route
-
             pnode = pnode->GetNext();
       }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.22 2009/07/11 00:59:59 bdbcat Exp $
+ * $Id: ais.cpp,v 1.23 2009/07/16 02:47:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.23  2009/07/16 02:47:54  bdbcat
+ * Various
+ *
  * Revision 1.22  2009/07/11 00:59:59  bdbcat
  * Correct buffer overrun on multi-part messages
  *
@@ -150,7 +153,7 @@ extern wxString         g_sAIS_Alert_Sound_File;
 static      GenericPosDat     AISPositionMuxData;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.22 2009/07/11 00:59:59 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.23 2009/07/16 02:47:54 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -878,19 +881,22 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
 
 
         // Delete the stale AIS Target selectable point
-        pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget, SELTYPE_AISTARGET);
+        if(pStaleTarget)
+            pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget->MMSI, SELTYPE_AISTARGET);
 
-        Parse_VDMBitstring(&strbit, pTargetData);            // Enter the new data
+        bool bdecode_result = Parse_VDMBitstring(&strbit, pTargetData);            // Enter the new data
 
-        //  Update the AIS Target Selectable list
-        pSelectAIS->AddSelectablePoint(pTargetData->Lat, pTargetData->Lon,
-                                (void *)pTargetData, SELTYPE_AISTARGET);
+        //  If the message was decoded correctly, Update the AIS Target in the Selectable list
+        if(bdecode_result)
+        {
+              pSelectAIS->AddSelectablePoint(pTargetData->Lat, pTargetData->Lon, (void *)pTargetData->MMSI, SELTYPE_AISTARGET);
 
         //     Update the most recent report period
-        pTargetData->RecentPeriod = pTargetData->ReportTicks - last_report_ticks;
+              pTargetData->RecentPeriod = pTargetData->ReportTicks - last_report_ticks;
 
             //    Calculate CPA info for this target immediately
-        UpdateOneCPA(pTargetData);
+              UpdateOneCPA(pTargetData);
+        }
 
         ret = AIS_NoError;
 
@@ -923,6 +929,9 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
                                             // which amy disagee with target...
 
     int message_ID = bstr->GetInt(1, 6);        // Parse on message ID
+    ptd->MID = message_ID;
+
+    ptd->MMSI = bstr->GetInt(9, 30);            // MMSI is always in the same spot in the bitstream
 
 
     ///
@@ -933,11 +942,9 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
     case 3:
     case 18:
         {
-              ptd->MID = message_ID;
-              ptd->MMSI = bstr->GetInt(9, 30);
 
-              ptd->NavStatus = bstr->GetInt(39, 4);
-              ptd->SOG = 0.1 * (bstr->GetInt(51, 10));
+            ptd->NavStatus = bstr->GetInt(39, 4);
+            ptd->SOG = 0.1 * (bstr->GetInt(51, 10));
 
             int lon = bstr->GetInt(62, 28);
             if(lon & 0x08000000)                    // negative?
@@ -1436,6 +1443,7 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
           comx =  m_data_source_string.AfterFirst(':');      // strip "Serial:"
 
 #ifdef __WXMSW__
+          comx.Prepend(_T("\\\\.\\"));                  // Required for access to Serial Ports greater than COM9
 
 //  As a quick check, verify that the specified port is available
             HANDLE m_hSerialComm = CreateFile(comx.mb_str(),       // Port Name
@@ -1588,6 +1596,31 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 {
       TimerAIS.Stop();
 
+#if 0
+      /// testing for orphans in the Select list
+      SelectItem *pFindSel;
+
+//    Iterate on the list
+      wxSelectableItemListNode *node = pSelectAIS->GetSelectList()->GetFirst();
+
+      while(node)
+      {
+            pFindSel = node->GetData();
+            if(pFindSel->m_seltype == SELTYPE_AISTARGET)
+            {
+                  int mmsi = (int) pFindSel->m_pData1;
+
+                  AIS_Target_Data *tdp = Get_Target_Data_From_MMSI(mmsi);
+                  if(tdp == NULL)
+                        int yyp = 6;
+            }
+
+            node = node->GetNext();
+      }
+
+      ///testing
+#endif
+
       //    Scrub the target hash list
       //    removing any targets older than stipulated age
 
@@ -1625,8 +1658,8 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
           {
                 if(target_age > removelost_Mins * 60)
                 {
+                      pSelectAIS->DeleteSelectablePoint((void *)td->MMSI, SELTYPE_AISTARGET);
                       current_targets->erase(it);
-                      pSelectAIS->DeleteSelectablePoint((void *)td, SELTYPE_AISTARGET);
                       delete td;
                       break;        // kill only one per tick, since iterator becomes invalid...
                 }
@@ -1951,6 +1984,11 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
 //    Entry Point
 void *OCP_AIS_Thread::Entry()
 {
+          // Allocate the termios data structures
+
+      pttyset = (termios *)calloc(sizeof (termios), 1);
+      pttyset_old = (termios *)malloc(sizeof (termios));
+
     // Open the requested port.
     //   using O_NDELAY to force ignore of DCD (carrier detect) MODEM line
     if ((m_ais_fd = open(m_pPortName->mb_str(), O_RDWR|O_NDELAY|O_NOCTTY)) < 0)
@@ -1972,12 +2010,6 @@ void *OCP_AIS_Thread::Entry()
     */
     if(m_pPortName->MakeUpper().Contains(_T("FIFO")))
           goto port_ready;
-
-
-    // Allocate the termios data structures
-
-    pttyset = (termios *)calloc(sizeof (termios), 1);
-    pttyset_old = (termios *)malloc(sizeof (termios));
 
 
 //    {

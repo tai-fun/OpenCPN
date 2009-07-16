@@ -82,6 +82,9 @@ void RouteProp::OnRoutepropListClick( wxListEvent& event )
     long itemno = 0;
     const wxListItem &i = event.GetItem();
     i.GetText().ToLong(&itemno);
+
+    m_pRoute->ClearHighlights();
+
     wxRoutePointListNode *node = m_pRoute->pRoutePointList->GetFirst();
     while(node && itemno--)
     {
@@ -89,14 +92,15 @@ void RouteProp::OnRoutepropListClick( wxListEvent& event )
     }
     if ( node )
     {
-      extern double           vLat, vLon;
       RoutePoint *prp = node->GetData();
       if ( prp )
       {
-          vLat = cc1->VPoint.clat = prp->m_lat;
-          vLon = cc1->VPoint.clon = prp->m_lon;
-          cc1->SetVPScale ( cc1->GetVPScale() );
-          cc1->Refresh();
+          prp->m_bPtIsSelected = true;                // highlight the routepoint
+//          vLat = cc1->VPoint.clat = prp->m_lat;
+//          vLon = cc1->VPoint.clon = prp->m_lon;
+//          cc1->SetVPScale ( cc1->GetVPScale() );
+//          cc1->Refresh();
+          cc1->SetViewPoint(prp->m_lat, prp->m_lon);
       }
     }
 }
@@ -196,7 +200,7 @@ void RouteProp::CreateControls()
     m_PlanSpeedCtl = new wxTextCtrl( itemDialog1, ID_PLANSPEEDCTL, _T(""), wxDefaultPosition, wxSize(100, -1), wxTE_PROCESS_ENTER );
     itemFlexGridSizer6a->Add(m_PlanSpeedCtl, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5);
 
-    m_TimeEnrouteCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL4, _T(""), wxDefaultPosition, wxSize(150, -1), wxTE_READONLY );
+    m_TimeEnrouteCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL4, _T(""), wxDefaultPosition, wxSize(200, -1), wxTE_READONLY );
     itemFlexGridSizer6a->Add(m_TimeEnrouteCtl, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5);
 
 
@@ -233,7 +237,7 @@ void RouteProp::CreateControls()
     itemCol.SetText(_T("To Waypoint"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(1, itemCol);
-    m_wpList->SetColumnWidth( 1, 200 );
+    m_wpList->SetColumnWidth( 1, 150 );
 
     itemCol.SetText(_T("Distance"));
     itemCol.SetAlign(wxLIST_FORMAT_RIGHT);
@@ -258,15 +262,12 @@ void RouteProp::CreateControls()
     itemCol.SetText(_T("ETE"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(6, itemCol);
-    m_wpList->SetColumnWidth( 6, 80 );
+    m_wpList->SetColumnWidth( 6, 120 );
 
 //  Fetch any config file values
     m_planspeed = g_PlanSpeed;
 
     SetColorScheme((ColorScheme)0);
-
-//  Set the dynamic fields
-//    UpdateProperties();
 
 ////@end RouteProp content construction
 }
@@ -368,22 +369,29 @@ bool RouteProp::UpdateProperties()
 
         m_TotalDistCtl->SetValue(slen);
 
-    //  Time
-        if((0.1 < m_planspeed) && (m_planspeed < 20.0))
-        {
-            double seconds = 3600 * m_pRoute->m_route_length / m_planspeed;     // in seconds
-            wxTimeSpan time(0,0, (int)seconds, 0);
-            wxString time_form = time.Format(_T("%H Hours %M Minutes"));
-            m_TimeEnrouteCtl->SetValue(time_form);
+        wxString time_form;
+        double total_seconds = 0.;
 
-        }
+        if((0.1 < m_planspeed) && (m_planspeed < 1000.0))
+              total_seconds= 3600 * m_pRoute->m_route_length / m_planspeed;     // in seconds
+
+    //  Time
+
+        wxTimeSpan time(0,0, (int)total_seconds, 0);
+        if(total_seconds > 3600. * 24.)
+              time_form = time.Format(_T(" %D Days  %H Hours  %M Minutes"));
+        else
+              time_form = time.Format(_T(" %H Hours  %M Minutes"));
+
+        m_TimeEnrouteCtl->SetValue(time_form);
+
 
     //  Iterate on Route Points
         wxRoutePointListNode *node = m_pRoute->pRoutePointList->GetFirst();
 
         int i=0;
         double slat, slon;
-      double tdis;
+        double tdis;
 
         while(node)
         {
@@ -427,30 +435,28 @@ bool RouteProp::UpdateProperties()
                 wxString tlon = toSDMM(2, prp->m_lon);
                 m_wpList->SetItem(item_line_index, 5, tlon);
 
-    // Time
-            if ( i == 0 )
-            {
-                t.Printf(_T("00m00s"));
-                tdis = 0;
-            }
-            else
-            {
-                int h = 0,m = 0,s = 0;
-                tdis += leg_dist;
-                if (m_planspeed)
+    // Time to each waypoint
+                if ( i == 0 )
                 {
-                  s = (int)(tdis * 3600 / m_planspeed);
-                  m = s/60;
-                  s %= 60;
-                  h = m/60;
-                  m %= 60;
+                      time_form.Printf(_T("Start"));
+                      tdis = 0;
                 }
-                if ( h )
-                  t.Printf(_T("%dh%02dm%02ds"), h, m, s);
                 else
-                  t.Printf(_T("%02dm%02ds"), m, s);
-            }
-            m_wpList->SetItem(item_line_index, 6, t);
+                {
+                  tdis += leg_dist;
+                  if (m_planspeed)
+                  {
+                      double seconds = 3600 * tdis / m_planspeed;     // in seconds
+                      wxTimeSpan time(0,0, (int)seconds, 0);
+
+                      if(total_seconds > 3600. * 24.)
+                            time_form = time.Format(_T(" %D D  %H H  %M M"));
+                      else
+                            time_form = time.Format(_T(" %H H  %M M"));
+                  }
+
+                }
+                m_wpList->SetItem(item_line_index, 6, time_form);
 
     //  Save for iterating distance/bearing calculation
                 slat = prp->m_lat;
@@ -488,7 +494,7 @@ void RouteProp::OnPlanSpeedCtlUpdated( wxCommandEvent& event )
     wxString spd = m_PlanSpeedCtl->GetValue();
     double s;
     spd.ToDouble(&s);
-    if((0.1 < s) && (s < 20.0))
+    if((0.1 < s) && (s < 1000.0))
     {
         m_planspeed = s;
 
@@ -1161,55 +1167,12 @@ bool MarkInfo::UpdateProperties()
 
 bool MarkInfo::SaveChanges(void)
 {
-/*
-//  Get User input Text Fields
-      m_pRoutePoint->m_MarkName = m_MarkNameCtl->GetValue();
-
-      //    Here is some logic....
-      //    If the Markname is completely numeric, and is part of a route,
-      //    Then declare it to be of attribute m_bDynamicName = true
-      //    This is later used for re-numbering points on actions like
-      //    Insert Point, Delete Point, Append Point, etc
-
-      if(m_pRoutePoint->m_bIsInRoute)
-      {
-      bool b_name_is_numeric = true;
-      for(unsigned int i=0 ; i<m_pRoutePoint->m_MarkName.Len() ; i++)
-      {
-      if(wxChar('0') > m_pRoutePoint->m_MarkName[i])
-      b_name_is_numeric = false;
-      if(wxChar('9') < m_pRoutePoint->m_MarkName[i])
-      b_name_is_numeric = false;
-}
-
-      m_pRoutePoint->m_bDynamicName = b_name_is_numeric;
-}
-      else
-      m_pRoutePoint->m_bDynamicName = false;
-
-
-      if(m_pRoutePoint->m_bIsInRoute)
-      {
-      Route *pRoute = pRouteMan->FindRouteContainingWaypoint(m_pRoutePoint);
-      pConfig->UpdateRoute(pRoute);
-}
-      else
-      pConfig->UpdateWayPoint(m_pRoutePoint);
-
-      pConfig->UpdateSettings();
-*/
       return true;
 }
 
 
 void MarkInfo::OnMarkinfoCancelClick( wxCommandEvent& event )
 {
-      //    Restore saved values for lat/lon and icon
-/*      m_pRoutePoint->m_lat = m_lat_save;
-      m_pRoutePoint->m_lon = m_lon_save;
-
-      m_pRoutePoint->m_pbmIcon = pWayPointMan->GetIconBitmap(m_IconName_save);
-*/
       Show(false);
       event.Skip();
 }
@@ -1217,8 +1180,6 @@ void MarkInfo::OnMarkinfoCancelClick( wxCommandEvent& event )
 
 void MarkInfo::OnMarkinfoOkClick( wxCommandEvent& event )
 {
-//    SaveChanges();              // write changes to globals and update config
-
       Show(false);
       event.Skip();
 }
