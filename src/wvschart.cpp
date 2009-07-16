@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.10 2009/06/21 03:19:43 bdbcat Exp $
+ * $Id: wvschart.cpp,v 1.11 2009/07/16 02:45:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.11  2009/07/16 02:45:44  bdbcat
+ * Cleanup.
+ *
  * Revision 1.10  2009/06/21 03:19:43  bdbcat
  * Update for southern latitudes.
  *
@@ -42,6 +45,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.11  2009/07/16 02:45:44  bdbcat
+ * Cleanup.
+ *
  * Revision 1.10  2009/06/21 03:19:43  bdbcat
  * Update for southern latitudes.
  *
@@ -117,7 +123,7 @@
 #include "cutil.h"
 #include "georef.h"
 
-CPL_CVSID("$Id: wvschart.cpp,v 1.10 2009/06/21 03:19:43 bdbcat Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.11 2009/07/16 02:45:44 bdbcat Exp $");
 
 //      Local Prototypes
 extern "C" int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray, int **segray);
@@ -247,7 +253,12 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                                 plon_ray[ix][iy] = plonray;
                                 pseg_ray[ix][iy] = psegray;
                                 nseg[ix][iy] = nsegments;
+//                                printf("load at %d %d \n", ix, iy);
+
                         }
+ //                       else
+ //                             printf("     from cache at %d %d \n", ix, iy);
+
                         if(nseg[ix][iy])
                         {
                                 float *plat_seg = plat_ray[ix][iy];
