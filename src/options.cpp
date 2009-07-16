@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.23 2009/07/03 02:56:00 bdbcat Exp $
+ * $Id: options.cpp,v 1.24 2009/07/16 02:39:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.24  2009/07/16 02:39:12  bdbcat
+ * Allow override of NMEA data source
+ *
  * Revision 1.23  2009/07/03 02:56:00  bdbcat
  * Allow fifo data source.
  *
@@ -1387,7 +1390,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
 //    NMEA Options
 
 // Source
-      wxString sel(m_itemNMEAListBox->GetStringSelection());
+//      wxString sel(m_itemNMEAListBox->GetStringSelection());
+      wxString sel(m_itemNMEAListBox->GetValue());
 
       if(sel.Contains(_T("COM")))
           sel.Prepend(_T("Serial:"));
