@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.25 2009/07/10 03:51:39 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.26 2009/07/16 02:41:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.26  2009/07/16 02:41:53  bdbcat
+ * Allow native RGB color scheme
+ *
  * Revision 1.25  2009/07/10 03:51:39  bdbcat
  * Change MinScale factor for BSB charts.
  *
@@ -66,6 +69,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.26  2009/07/16 02:41:53  bdbcat
+ * Allow native RGB color scheme
+ *
  * Revision 1.25  2009/07/10 03:51:39  bdbcat
  * Change MinScale factor for BSB charts.
  *
@@ -163,7 +169,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.25 2009/07/10 03:51:39 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.26 2009/07/16 02:41:53 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -354,7 +360,12 @@ bool ChartDummy::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
 
 bool ChartDummy::IsRenderDelta(ViewPort &vp_last, ViewPort &vp_proposed)
 {
-      return true;
+      if((vp_last.clat == vp_proposed.clat)  &&
+          (vp_last.clon == vp_proposed.clon) &&
+          (vp_last.view_scale_ppm == vp_proposed.view_scale_ppm))
+            return false;
+      else
+            return true;
 }
 
 
@@ -1784,6 +1795,9 @@ void ChartBaseBSB::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
 
     switch(cs)
     {
+        case GLOBAL_COLOR_SCHEME_RGB:
+            m_mapped_color_index = COLOR_RGB_DEFAULT;
+            break;
         case GLOBAL_COLOR_SCHEME_DAY:
             m_mapped_color_index = DAY;
             break;
@@ -3958,7 +3972,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.25 2009/07/10 03:51:39 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.26 2009/07/16 02:41:53 bdbcat Exp $
 *
 */
 

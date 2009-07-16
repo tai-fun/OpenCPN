@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.23 2009/06/28 03:08:14 bdbcat Exp $
+ * $Id: chart1.h,v 1.24 2009/07/16 02:42:13 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.24  2009/07/16 02:42:13  bdbcat
+ * Allow native RGB color scheme
+ *
  * Revision 1.23  2009/06/28 03:08:14  bdbcat
  * Add MouseEvent to dummy TextCtrl.
  *
@@ -178,6 +181,7 @@ enum
 
 typedef enum ColorScheme
 {
+      GLOBAL_COLOR_SCHEME_RGB,
       GLOBAL_COLOR_SCHEME_DAY,
       GLOBAL_COLOR_SCHEME_DUSK,
       GLOBAL_COLOR_SCHEME_NIGHT,
