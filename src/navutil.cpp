@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.36  2009/07/16 02:43:49  bdbcat
+ * Various, esp Export Route.
+ *
  * Revision 1.35  2009/07/08 01:51:15  bdbcat
  * Cleanup.
  *
@@ -103,6 +106,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.36  2009/07/16 02:43:49  bdbcat
+ * Various, esp Export Route.
+ *
  * Revision 1.35  2009/07/08 01:51:15  bdbcat
  * Cleanup.
  *
@@ -232,7 +238,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.35 2009/07/08 01:51:15 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.36 2009/07/16 02:43:49 bdbcat Exp $");
 
 //    Statics
 
@@ -742,6 +748,7 @@ RoutePoint::RoutePoint(double lat, double lon, const wxString& icon_ident, const
       m_bIsActive = false;
       m_bBlink = false;
       m_bIsInRoute = false;
+      m_bIsolatedMark = false;
       m_bShowName = true;
       m_ConfigWPNum = -1;
       CurrentRect_in_DC = wxRect(0,0,0,0);
@@ -999,6 +1006,7 @@ Route::~Route(void)
 void Route::AddPoint(RoutePoint *pNewPoint)
 {
       pNewPoint->m_bIsInRoute = true;
+      pNewPoint->m_bIsolatedMark = false;       // definitely no longer isolated
 
       pRoutePointList->Append(pNewPoint);
 
@@ -1165,6 +1173,20 @@ void Route::DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb, double scale
 
 }
 
+void Route::ClearHighlights(void)
+{
+      RoutePoint *prp = NULL;
+      wxRoutePointListNode *node = pRoutePointList->GetFirst();
+
+      while (node)
+      {
+            prp = node->GetData();
+            if(prp)
+                  prp->m_bPtIsSelected = false;
+            node = node->GetNext();
+      }
+}
+
 
 RoutePoint *Route::InsertPointBefore(RoutePoint *pRP, float rlat, float rlon, bool bRenamePoints)
 {
@@ -1247,13 +1269,12 @@ void Route::RemovePoint(RoutePoint *rp, bool bRenamePoints)
       // check all other routes to see if this point appears in any other route
       Route *pcontainer_route = pRouteMan->FindRouteContainingWaypoint(rp);
 
-      if(rp->m_bDynamicName)                // Mark is a "route only" type
+      if(pcontainer_route == NULL)
       {
-            if(pcontainer_route == NULL)
-                  rp->m_bDynamicName = false;
-      }
-      else if (pcontainer_route == NULL)
             rp->m_bIsInRoute = false;          // Take this point out of this (and only) route
+            rp->m_bDynamicName = false;
+            rp->m_bIsolatedMark = true;        // This has become an isolated mark
+      }
 
 
       if(bRenamePoints)
@@ -1861,13 +1882,16 @@ int MyConfig::LoadMyConfig(int iteration)
             sscanf(st.mb_str(wxConvUTF8), "%f,%f", &st_lat, &st_lon);
 
             //    Sanity check the lat/lon...both have to be reasonable.
-            while(st_lon < -180.)
-                  st_lon += 360.;
+            if(fabs(st_lon) < 360.)
+            {
+                  while(st_lon < -180.)
+                        st_lon += 360.;
 
-            while(st_lon > 180.)
-                  st_lon -= 360.;
+                  while(st_lon > 180.)
+                        st_lon -= 360.;
 
-            vLon = st_lon;
+                  vLon = st_lon;
+            }
 
             if(fabs(st_lat) < 90.0)
                   vLat = st_lat;
@@ -2231,6 +2255,8 @@ int MyConfig::LoadMyConfig(int iteration)
                             Read(sipb1, &str_GUID);                          // GUID
 
                             RoutePoint *pWP = new RoutePoint(rlat, rlon, icon_name, mark_name, &str_GUID);
+
+                            pWP->m_bIsolatedMark = true;                      // This is an isolated mark
 
  //        Get extended properties
                             long tmp_prop;
@@ -2862,6 +2888,33 @@ void MyConfig::UpdateSettings()
 
 }
 
+bool MyConfig::ExportGPXRoute(wxWindow* parent, Route *pRoute)
+{
+      wxFileDialog *saveDialog = new wxFileDialog(parent, wxT("Export GPX file"), m_gpx_path, wxT(""),
+                  wxT("GPX files (*.gpx)|*.gpx"), wxFD_SAVE);
+
+      int response = saveDialog->ShowModal();
+
+      wxString path = saveDialog->GetPath();
+      wxFileName fn(path);
+      m_gpx_path = fn.GetPath();
+
+      if (response == wxID_OK) {
+
+            fn.SetExt(_T("gpx"));
+
+            CreateGPXNavObj();
+            CreateGPXRoute(pRoute);
+            WriteXMLNavObj(fn.GetFullPath());
+            return true;
+      }
+      else
+            return false;
+}
+
+
+
+
 // toh, 2009.02.15
 void MyConfig::ExportGPX(wxWindow* parent)
 {
@@ -3052,6 +3105,8 @@ RoutePoint *MyConfig::GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool Loa
 
             if (!LoadRoute)
             {
+                  pWP->m_bIsolatedMark = true;                      // This is an isolated mark
+
                   pConfig->AddNewWayPoint ( pWP,m_NextWPNum);    // use auto next num
                   pSelect->AddSelectablePoint(rlat, rlon, pWP);
                   pWP->m_ConfigWPNum = m_NextWPNum;
@@ -3161,21 +3216,19 @@ void MyConfig::GPXLoadRoute(wxXmlNode* rtenode)
             // check all other routes to see if this point appears in any other route
                         Route *pcontainer_route = pRouteMan->FindRouteContainingWaypoint(prp);
 
-                        if(prp->m_bDynamicName)                // Mark is a "route only" type
+                        if(pcontainer_route == NULL)
                         {
-                              if(pcontainer_route == NULL)
+                              prp->m_bIsInRoute = false;          // Take this point out of this (and only) route
+                              if(!prp->m_bIsolatedMark)
                               {
                                     pConfig->DeleteWayPoint(prp);
                                     delete prp;
                               }
                         }
-                        else if (pcontainer_route == NULL)
-                              prp->m_bIsInRoute = false;          // Take this point out of this (and only) route
 
                         pnode = pnode->GetNext();
                   }
             }
-
       }
 }
 
@@ -3360,6 +3413,33 @@ void MyConfig::CreateGPXRoutePoints(void)
             }
             node1 = node1->GetNext();
       }
+}
+
+void MyConfig::CreateGPXRoute(Route *pRoute)
+{
+            RoutePointList *pRoutePointList = pRoute->pRoutePointList;
+
+            wxXmlNode *GPXWpt_node = new wxXmlNode(wxXML_ELEMENT_NODE, _T("rte"));
+            GPXWpt_node->AddProperty(_T("name"),pRoute->m_RouteNameString);
+            wxString strnum;
+            strnum.Printf(_T("%d"),pRoute->m_ConfigRouteNum);
+            GPXWpt_node->AddProperty(_T("number"),strnum);
+            m_XMLrootnode->AddChild(GPXWpt_node);
+
+            wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
+            RoutePoint *prp;
+
+            int i=1;
+            while(node2)
+            {
+                  prp = node2->GetData();
+
+                  wxXmlNode *rpt_node = CreateGPXRptNode(prp,i+1);
+                  GPXWpt_node->AddChild(rpt_node);
+
+                  node2=node2->GetNext();
+                  i++;
+            }
 }
 
 // toh, 2009.02.24

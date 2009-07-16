@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.11 2009/06/28 03:34:39 bdbcat Exp $
+ * $Id: navutil.h,v 1.12 2009/07/16 02:44:00 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.12  2009/07/16 02:44:00  bdbcat
+ * Various, esp Export Route.
+ *
  * Revision 1.11  2009/06/28 03:34:39  bdbcat
  * Save GPX_IO directory.
  *
@@ -152,6 +155,8 @@ public:
       bool              m_bPtIsSelected;
       bool              m_bIsBeingEdited;
       bool              m_bIsInRoute;
+      bool              m_bIsolatedMark;        // This is an isolated mark, created by drop mark, or GPX-In, or config file load
+
       bool              m_bIsActive;
       int               m_ConfigWPNum;
       wxString          m_MarkName;
@@ -204,6 +209,7 @@ public:
       wxString GetNewMarkSequenced(void);
       void AssembleRoute();
       bool IsEqualTo(Route *ptargetroute);
+      void ClearHighlights(void);
 
       bool SendToGPS(wxString& com_name, bool bsend_waypoints, wxGauge *pProgress);
 
@@ -282,6 +288,9 @@ public:
       // toh, 2009.02.17
       RoutePoint *GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool LoadRoute=false);
       void GPXLoadRoute(wxXmlNode* rtenode);
+
+      void CreateGPXRoute(Route *pRoute);
+      bool ExportGPXRoute(wxWindow* parent, Route *pRoute);
 
       wxXmlDocument     *m_pXMLNavObj;
       wxXmlNode         *m_XMLrootnode;
