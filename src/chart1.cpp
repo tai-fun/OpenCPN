@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.48 2009/07/16 02:44:53 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.49 2009/07/17 03:55:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.49  2009/07/17 03:55:15  bdbcat
+ * Move hotkey handler to ChartCanvas.
+ *
  * Revision 1.48  2009/07/16 02:44:53  bdbcat
  * Whell zoom to point.
  *
@@ -211,7 +214,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.48 2009/07/16 02:44:53 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.49 2009/07/17 03:55:15 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -465,6 +468,7 @@ double           g_ShowMoored_Kts;
 wxString         g_sAIS_Alert_Sound_File;
 
 DummyTextCtrl    *g_pDummyTextCtrl;
+bool             g_bEnableZoomToCursor;
 
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
@@ -1055,6 +1059,9 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
             cc1->VPoint.view_scale_ppm = initial_scale_ppm;
         }
 
+        cc1->SetFocus();
+
+
         console = new ConsoleCanvas(gFrame);                    // the console
 
         stats = new StatWin(gFrame);
@@ -1404,10 +1411,11 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
         SaveSystemColors();
 #endif
 
-        g_pDummyTextCtrl = new DummyTextCtrl(this, -1);
-        g_pDummyTextCtrl->Move(-100,-100);
-        g_pDummyTextCtrl->Show();
-        g_pDummyTextCtrl->SetFocus();
+        // Hotkey handler moved to ChartCanvas
+//        g_pDummyTextCtrl = new DummyTextCtrl(this, -1);
+//        g_pDummyTextCtrl->Move(-100,-100);
+//        g_pDummyTextCtrl->Show();
+//        g_pDummyTextCtrl->SetFocus();
 
 
 
@@ -4833,16 +4841,28 @@ void DummyTextCtrl::OnMouseEvent(wxMouseEvent &event)
 
       if(!m_MouseWheelTimer.IsRunning())
       {
-            if(wheel_dir > 0)
+            if(cc1)
             {
-                  if(cc1)
-                        cc1->ZoomCanvasIn(cc1->m_cursor_lat, cc1->m_cursor_lon);
+                  if(g_bEnableZoomToCursor)
+                  {
+                        if(wheel_dir > 0)
+                              cc1->ZoomCanvasIn(cc1->m_cursor_lat, cc1->m_cursor_lon);
+                        else if(wheel_dir < 0)
+                              cc1->ZoomCanvasOut(cc1->m_cursor_lat, cc1->m_cursor_lon);
+
+                        wxPoint r;                                                        // move the mouse pointer to zoomed location
+                        cc1->GetPointPix(cc1->m_cursor_lat, cc1->m_cursor_lon, &r);
+                        cc1->WarpPointer(r.x, r.y);
+                  }
+                  else
+                  {
+                        if(wheel_dir > 0)
+                              cc1->ZoomCanvasIn();
+                        else if(wheel_dir < 0)
+                              cc1->ZoomCanvasOut();
+                  }
             }
-            else if(wheel_dir < 0)
-            {
-                  if(cc1)
-                        cc1->ZoomCanvasOut(cc1->m_cursor_lat, cc1->m_cursor_lon);
-            }
+
             m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // start timer
       }
 #endif
