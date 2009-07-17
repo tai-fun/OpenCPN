@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.26 2009/07/16 02:41:10 bdbcat Exp $
+ * $Id: chcanv.h,v 1.27 2009/07/17 03:54:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.27  2009/07/17 03:54:16  bdbcat
+ * Add config option for Wheel Zoom to cursor.
+ *
  * Revision 1.26  2009/07/16 02:41:10  bdbcat
  * Various
  *
@@ -213,6 +216,7 @@ public:
       ~ChartCanvas();
 
       //    Methods
+      void OnChar(wxKeyEvent &event);
       void OnPaint(wxPaintEvent& event);
       void NowPaint();
       void Scroll(int dx, int dy);
@@ -295,8 +299,6 @@ private:
       RoutePoint  *m_pFoundRoutePoint;
       RoutePoint  *m_pFoundRoutePointSecond;
 
-//      AIS_Target_Data *m_pFoundAIS_Target_Data;
-//      AIS_Target_Data *m_pSnapshotAIS_Target_Data;
       int         m_FoundAIS_MMSI;
 
       wxCursor    *pCursorLeft;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.24 2009/07/16 02:39:12 bdbcat Exp $
+ * $Id: options.cpp,v 1.25 2009/07/17 03:54:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.25  2009/07/17 03:54:55  bdbcat
+ * Add config option for Wheel Zoom to cursor.
+ *
  * Revision 1.24  2009/07/16 02:39:12  bdbcat
  * Allow override of NMEA data source
  *
@@ -166,6 +169,8 @@ extern int              g_iNavAidRadarRingsNumberVisible;   // toh, 2009.02.24
 extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
 extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
 extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
+
+extern bool             g_bEnableZoomToCursor;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -921,7 +926,7 @@ void options::CreateControls()
     itemNotebook4->AddPage(itemPanelFont, _("Fonts"));
 
     //      Build Etc. Page
-       // toh, 2009.02.14
+
     itemPanelAdvanced = new wxPanel( itemNotebook4, ID_PANELADVANCED, wxDefaultPosition, wxDefaultSize,
                                      wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
     wxBoxSizer* itemBoxSizerAdvancedPanel = new wxBoxSizer(wxVERTICAL);
@@ -976,6 +981,15 @@ void options::CreateControls()
     pWayPointPreventDragging->SetValue(FALSE);
     itemStaticBoxSizerWptDragging->Add(pWayPointPreventDragging, 1, wxALIGN_LEFT|wxALL, 5);
 
+
+    //  Various GUI opetions
+    wxStaticBox* itemStaticBoxSizerGUIOptionsStatic = new wxStaticBox(itemPanelAdvanced, wxID_ANY, _("GUI Options"));
+    wxStaticBoxSizer* itemStaticBoxSizerGUIOption = new wxStaticBoxSizer(itemStaticBoxSizerGUIOptionsStatic, wxVERTICAL);
+    itemBoxSizerAdvancedPanel->Add(itemStaticBoxSizerGUIOption, 0, wxGROW|wxALL, 5);
+    pEnableZoomToCursor = new wxCheckBox( itemPanelAdvanced, ID_DRAGGINGCHECKBOX, _("Enable Wheel-Zoom-to-Cursor"),
+                                               wxDefaultPosition, wxSize(-1, -1), 0 );
+    pEnableZoomToCursor->SetValue(FALSE);
+    itemStaticBoxSizerGUIOption->Add(pEnableZoomToCursor, 1, wxALIGN_LEFT|wxALL, 5);
 
     //  Printing checkbox
 /*    wxStaticBox* itemStaticBoxSizerPrintStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Printing"));
@@ -1080,6 +1094,7 @@ void options::SetInitialSettings()
       m_itemNavAidRadarRingsStepUnitsRadioBox->SetSelection(g_pNavAidRadarRingsStepUnits);      // toh, 2009.02.24
       pWayPointPreventDragging->SetValue(g_bWayPointPreventDragging);   // toh, 2009.02.24
 
+      pEnableZoomToCursor->SetValue(g_bEnableZoomToCursor);
 
 //    AIS Parameters
 
@@ -1356,6 +1371,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
     g_fNavAidRadarRingsStep = atof(pNavAidRadarRingsStep->GetValue().mb_str());     // toh, 2009.02.24
     g_pNavAidRadarRingsStepUnits = m_itemNavAidRadarRingsStepUnitsRadioBox->GetSelection();     // toh, 2009.02.24
     g_bWayPointPreventDragging = pWayPointPreventDragging->GetValue();  // toh, 2009.02.24
+
+    g_bEnableZoomToCursor = pEnableZoomToCursor->GetValue();
 
     //    AIS Parameters
       //      CPA Box

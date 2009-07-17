@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.12 2009/06/14 01:51:58 bdbcat Exp $
+ * $Id: options.h,v 1.13 2009/07/17 03:54:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.13  2009/07/17 03:54:16  bdbcat
+ * Add config option for Wheel Zoom to cursor.
+ *
  * Revision 1.12  2009/06/14 01:51:58  bdbcat
  * AIS Alert Dialog
  *
@@ -287,7 +290,7 @@ public:
     wxTextCtrl              *pNavAidRadarRingsStep;
     wxRadioBox              *m_itemNavAidRadarRingsStepUnitsRadioBox;
     wxCheckBox              *pWayPointPreventDragging;
-
+    wxCheckBox              *pEnableZoomToCursor;
 
     wxCheckBox*             pSettingsCB1;
 

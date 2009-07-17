@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.37  2009/07/17 03:54:54  bdbcat
+ * Add config option for Wheel Zoom to cursor.
+ *
  * Revision 1.36  2009/07/16 02:43:49  bdbcat
  * Various, esp Export Route.
  *
@@ -106,6 +109,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.37  2009/07/17 03:54:54  bdbcat
+ * Add config option for Wheel Zoom to cursor.
+ *
  * Revision 1.36  2009/07/16 02:43:49  bdbcat
  * Various, esp Export Route.
  *
@@ -238,7 +244,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.36 2009/07/16 02:43:49 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.37 2009/07/17 03:54:54 bdbcat Exp $");
 
 //    Statics
 
@@ -321,6 +327,8 @@ extern int              g_iNavAidRadarRingsNumberVisible;   // toh, 2009.02.24
 extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
 extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
 extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
+
+extern bool             g_bEnableZoomToCursor;
 
 extern int              g_nCacheLimit;
 
@@ -2410,6 +2418,9 @@ int MyConfig::LoadMyConfig(int iteration)
       g_bWayPointPreventDragging = false;       // toh, 2009.02.24
       Read(_T("WaypointPreventDragging"), &g_bWayPointPreventDragging);
 
+      g_bEnableZoomToCursor = false;
+      Read(_T("EnableZoomToCursor"), &g_bEnableZoomToCursor);
+
 
       return(0);
 }
@@ -2882,6 +2893,8 @@ void MyConfig::UpdateSettings()
 
       // Waypoint dragging with mouse; toh, 2009.02.24
       Write(_T("WaypointPreventDragging"), g_bWayPointPreventDragging);
+
+      Write(_T("EnableZoomToCursor"), g_bEnableZoomToCursor);
 
 
       Flush();

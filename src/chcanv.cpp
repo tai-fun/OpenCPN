@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.53 2009/07/16 02:40:45 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.54 2009/07/17 03:54:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.54  2009/07/17 03:54:54  bdbcat
+ * Add config option for Wheel Zoom to cursor.
+ *
  * Revision 1.53  2009/07/16 02:40:45  bdbcat
  * Various
  *
@@ -123,6 +126,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.54  2009/07/17 03:54:54  bdbcat
+ * Add config option for Wheel Zoom to cursor.
+ *
  * Revision 1.53  2009/07/16 02:40:45  bdbcat
  * Various
  *
@@ -345,6 +351,8 @@ extern int              g_iNavAidRadarRingsNumberVisible;   // toh, 2009.02.24
 extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
 extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
 extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
+extern bool             g_bEnableZoomToCursor;
+
 extern AISTargetAlertDialog    *g_pais_alert_dialog_active;
 extern AISTargetQueryDialog    *g_pais_query_dialog_active;
 
@@ -356,7 +364,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.53 2009/07/16 02:40:45 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.54 2009/07/17 03:54:54 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -418,6 +426,8 @@ BEGIN_EVENT_TABLE ( ChartCanvas, wxWindow )
         EVT_TIMER ( PAN_TIMER, ChartCanvas::PanTimerEvent )
         EVT_TIMER ( CURTRACK_TIMER, ChartCanvas::OnCursorTrackTimerEvent )
         EVT_IDLE ( ChartCanvas::OnIdleEvent )
+        EVT_CHAR(ChartCanvas::OnChar)
+
 
         EVT_MENU ( ID_DEF_MENU_MAX_DETAIL,  ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_DEF_MENU_SCALE_IN,    ChartCanvas::PopupMenuHandler )
@@ -661,9 +671,139 @@ ChartCanvas::~ChartCanvas()
         free ( m_pEM_Feet );
         free ( m_pEM_Meters );
         free ( m_pEM_Fathoms );
-
-
 }
+
+void ChartCanvas::OnChar(wxKeyEvent &event)
+{
+      {
+            int key_code = event.GetKeyCode();
+
+            switch(key_code)
+            {
+                  case  WXK_LEFT:
+                        if ( event.GetModifiers() == wxMOD_CONTROL )
+                              parent_frame->DoStackDown();
+                        else
+                              PanCanvas(-100, 0);
+                        break;
+
+                  case  WXK_UP:
+                        PanCanvas(0, -100);
+                        break;
+
+                  case  WXK_RIGHT:
+                        if ( event.GetModifiers() == wxMOD_CONTROL )
+                              parent_frame->DoStackUp();
+                        else
+                              PanCanvas(100, 0);
+                        break;
+
+                  case  WXK_DOWN:
+                        PanCanvas(0, 100);
+                        break;
+
+                  case WXK_F10:
+                        parent_frame->DoStackDown();
+                        break;
+
+                  case WXK_F11:
+                        parent_frame->DoStackUp();
+                        break;
+
+                  case WXK_F2:
+                        parent_frame->TogglebFollow();
+                        break;
+
+                  case WXK_F12:
+                        parent_frame->ToggleChartOutlines();
+                        break;
+
+                  case WXK_F9:
+                        parent_frame->ClearbFollow();
+                        break;
+
+                  case WXK_F8:
+                        parent_frame->SetbFollow();
+                        break;
+
+                  case WXK_F3:
+                        parent_frame->ToggleENCText();
+                        break;
+
+                  default:
+                        break;
+
+            }
+
+            char key_char = (char)key_code;
+            switch(key_char)
+            {
+                  case '+':
+                  case 26:                     // Ctrl Z
+                              ZoomCanvasIn();
+                              break;
+
+                  case '-':
+                  case 24:                     // Ctrl X
+                              ZoomCanvasOut();
+                              break;
+
+                  case 19:                     // Ctrl S
+                              parent_frame->ToggleENCText();
+                              break;
+
+                  case 1:                      // Ctrl A
+                              parent_frame->TogglebFollow();
+                              break;
+
+                 case 15:                     // Ctrl O
+                              parent_frame->ToggleChartOutlines();
+                              break;
+
+                 case 49:                     // Ctrl 1
+                              parent_frame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_DAY);
+                              break;
+
+                 case 50:                     // Ctrl 2
+                              parent_frame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_DUSK);
+                              break;
+
+                 case 51:                     // Ctrl 3
+                              parent_frame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_NIGHT);
+                              break;
+
+                 case 13:                     // Ctrl M                      //    Drop Marker;
+                        {
+                              RoutePoint *pWP = new RoutePoint ( m_cursor_lat, m_cursor_lon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "New Mark" ) ), NULL );
+                              pSelect->AddSelectablePoint ( m_cursor_lat, m_cursor_lon, pWP );
+                              pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
+                              Refresh ( false );
+                              break;
+                        }
+
+                 case 32:                     // Ctrl Space            //    Drop MOB
+                       {
+                             if ( event.GetModifiers() == wxMOD_CONTROL )
+                             {
+                                     RoutePoint *pWP = new RoutePoint ( gLat, gLon, wxString ( _T ( "mob" ) ), wxString ( _T ( "MAN OVERBOARD" ) ), NULL );
+                                     pSelect->AddSelectablePoint ( gLat, gLon, pWP );
+                                     pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
+                                     Refresh ( false );
+                             }
+                             break;
+                      }
+
+                 case 17:                       // Ctrl Q
+                             parent_frame->Close();
+                             break;
+
+                  default:
+                        break;
+
+            }
+      }
+}
+
 void ChartCanvas::SetColorScheme(ColorScheme cs)
 {
       CreateDepthUnitEmbossMaps( cs );
@@ -1673,8 +1813,23 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                       ClipResult ores = cohen_sutherland_line_clip_i ( &tCPAPoint.x, &tCPAPoint.y, &oCPAPoint.x, &oCPAPoint.y,
                                                   0, VPoint.pix_width, 0, VPoint.pix_height );
                                       if ( ores != Invisible )
+                                      {
+                                            wxColour yellow = GetGlobalColor ( _T ( "YELO1" ));
+                                            wxColour yh(yellow.Red(), yellow.Green(), yellow.Blue(), 32);
+                                            dc.SetPen ( wxPen ( yh, 4) );
+
                                             dc.DrawLine (  tCPAPoint.x, tCPAPoint.y, oCPAPoint.x, oCPAPoint.y );
 
+                                            dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "URED" )), 2, wxSHORT_DASH) );
+                                            dc.DrawLine (  tCPAPoint.x, tCPAPoint.y, oCPAPoint.x, oCPAPoint.y );
+                                      }
+
+                                      //        Draw little circles at the ends of the CPA alert line
+                                      dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "YELO1" ) ) ) );
+                                      dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "UBLK" ))) );
+
+                                      dc.DrawCircle( tCPAPoint, 5);
+                                      dc.DrawCircle( oCPAPoint, 5);
 /*
                                       //  Draw a little cross at the end of the line
                                       double px =  ( double ) (-10 * sin ( theta )) + ( double ) (-0 * cos ( theta ));
@@ -1691,6 +1846,7 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                       dc.DrawLine ( intcrossx1 + CPAPoint.x, intcrossy1 + CPAPoint.y, intcrossx2 + CPAPoint.x, intcrossy2 + CPAPoint.y );
 */
                                       dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "UBLCK" ) ) ) );
+                                      dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "URED" ) ) ) );
                           }
 
                           //        Actually Draw the target ship
@@ -1729,27 +1885,33 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                       int pixx1 = PredPoint.x;
                                       int pixy1 = PredPoint.y;
 
-                                    ClipResult res = cohen_sutherland_line_clip_i ( &pixx, &pixy, &pixx1, &pixy1,
-                                                 0, VPoint.pix_width, 0, VPoint.pix_height );
-                                    if ( res != Invisible )
-                                          dc.DrawLine ( pixx, pixy, pixx1, pixy1 );
+                                      //  Don't draw the COG line  and predictor point if zoomed far out....
+                                      double l = pow(pow((PredPoint.x - TargetPoint.x), 2) + pow((PredPoint.y - TargetPoint.y), 2), 0.5);
 
-                                    dc.DrawCircle ( PredPoint.x, PredPoint.y, 5 );
+                                      if(l > 24)
+                                      {
+                                          ClipResult res = cohen_sutherland_line_clip_i ( &pixx, &pixy, &pixx1, &pixy1,
+                                                 0, VPoint.pix_width, 0, VPoint.pix_height );
+                                          if ( res != Invisible )
+                                                dc.DrawLine ( pixx, pixy, pixx1, pixy1 );
+
+                                          dc.DrawCircle ( PredPoint.x, PredPoint.y, 5 );
 
                                 //      Draw RateOfTurn Vector
-                                    if ( td->ROTAIS )
-                                    {
-                                        double nv = 10;
-                                        double theta2 = theta;
-                                        if ( td->ROTAIS > 0 )
-                                                theta2 += PI/2.;
-                                        else
-                                                theta2 -= PI/2.;
+                                          if ( td->ROTAIS )
+                                          {
+                                                double nv = 10;
+                                                double theta2 = theta;
+                                                if ( td->ROTAIS > 0 )
+                                                      theta2 += PI/2.;
+                                                else
+                                                      theta2 -= PI/2.;
 
-                                        int xrot = ( int ) round ( pixx1 + ( nv * cos ( theta2 ) ) );
-                                        int yrot = ( int ) round ( pixy1 + ( nv * sin ( theta2 ) ) );
-                                        dc.DrawLine ( pixx1, pixy1, xrot, yrot );
-                                    }
+                                                int xrot = ( int ) round ( pixx1 + ( nv * cos ( theta2 ) ) );
+                                                int yrot = ( int ) round ( pixy1 + ( nv * sin ( theta2 ) ) );
+                                                dc.DrawLine ( pixx1, pixy1, xrot, yrot );
+                                          }
+                                      }
                            }
 
                            //        If this is an AIS Class B target, so symbolize it
@@ -2180,13 +2342,28 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
 
         m_last_wheel_dir = wheel_dir;
 
-        if(!m_MouseWheelTimer.IsRunning())
+        if(wheel_dir)
         {
-           if(wheel_dir > 0)
-                 ZoomCanvasIn( m_cursor_lat, m_cursor_lon );
-            else if(wheel_dir < 0)
-                  ZoomCanvasOut( m_cursor_lat, m_cursor_lon );
-            m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // start timer
+            if(!m_MouseWheelTimer.IsRunning())
+            {
+                  if(g_bEnableZoomToCursor)
+                  {
+                        if(wheel_dir > 0)
+                              ZoomCanvasIn(m_cursor_lat, m_cursor_lon);
+                        else if(wheel_dir < 0)
+                              ZoomCanvasOut(m_cursor_lat, m_cursor_lon);
+                        WarpPointerDeferred(canvas_width/2, canvas_height/2);          // move the mouse pointer to zoomed location
+                  }
+                  else
+                  {
+                        if(wheel_dir > 0)
+                              ZoomCanvasIn();
+                        else if(wheel_dir < 0)
+                              ZoomCanvasOut();
+                  }
+
+                  m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // start timer
+            }
         }
 
 
