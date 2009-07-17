@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.23 2009/07/16 02:47:54 bdbcat Exp $
+ * $Id: ais.cpp,v 1.24 2009/07/17 03:56:02 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.24  2009/07/17 03:56:02  bdbcat
+ * Implement Class B Messages.
+ *
  * Revision 1.23  2009/07/16 02:47:54  bdbcat
  * Various
  *
@@ -153,7 +156,7 @@ extern wxString         g_sAIS_Alert_Sound_File;
 static      GenericPosDat     AISPositionMuxData;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.23 2009/07/16 02:47:54 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.24 2009/07/17 03:56:02 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -303,10 +306,15 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
       result->Append(line);
 
       if(IMO > 0)
-            line.Printf(_T("IMO:        %8d\n\n"), IMO);
+            line.Printf(_T("IMO:        %8d\n"), IMO);
       else
-            line.Printf(_T("IMO:\n\n"));
+            line.Printf(_T("IMO:\n"));
+      result->Append(line);
 
+      if(AIS_CLASS_A == Class)
+            line.Printf(_T("Class:     A\n\n"));
+      else
+            line.Printf(_T("Class:     B\n\n"));
       result->Append(line);
 
     //      Nav Status
@@ -374,8 +382,11 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
             else
                   line.Printf(_T("Size:                ---m x ---m x ---m\n\n"));
       }
+      else if(Draft < 0.01)
+            line.Printf(_T("Size:                %5dm x %dm x ---m\n\n"), (DimA + DimB), (DimC + DimD));
       else
             line.Printf(_T("Size:                %5dm x %dm x %4.1fm\n\n"), (DimA + DimB), (DimC + DimD), Draft);
+
 
       result->Append(line);
 
@@ -851,20 +862,19 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
 
         AIS_Target_Data *pTargetData;
         AIS_Target_Data *pStaleTarget = NULL;
+        bool bnewtarget = false;
 
         //  Search the current AISTargetList for an MMSI match
         AIS_Target_Hash::iterator it = AISTargetList->find( mmsi );
         if(it == AISTargetList->end())                  // not found
         {
               pTargetData = new AIS_Target_Data;
-              (*AISTargetList)[mmsi] = pTargetData;            // so insert this entry
-//   printf("Adding target MMSI %d\n",mmsi);
+              bnewtarget = true;
         }
         else
         {
               pTargetData = (*AISTargetList)[mmsi];          // find current entry
               pStaleTarget = pTargetData;                   // save a pointer to stale data
-//   printf("Updating target MMSI %d\n",mmsi);
         }
 
         //  Grab the stale targets's last report time
@@ -884,11 +894,13 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
         if(pStaleTarget)
             pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget->MMSI, SELTYPE_AISTARGET);
 
-        bool bdecode_result = Parse_VDMBitstring(&strbit, pTargetData);            // Enter the new data
+        bool bdecode_result = Parse_VDMBitstring(&strbit, pTargetData);            // Parse the new data
 
-        //  If the message was decoded correctly, Update the AIS Target in the Selectable list
+        //  If the message was decoded correctly, Update the AIS Target in the Selectable list, and update the TargetData
         if(bdecode_result)
         {
+              (*AISTargetList)[mmsi] = pTargetData;            // update the entry
+
               pSelectAIS->AddSelectablePoint(pTargetData->Lat, pTargetData->Lon, (void *)pTargetData->MMSI, SELTYPE_AISTARGET);
 
         //     Update the most recent report period
@@ -896,6 +908,12 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
 
             //    Calculate CPA info for this target immediately
               UpdateOneCPA(pTargetData);
+        }
+        else
+        {
+//             printf("Unrecognised AIS message ID: %d\n", pTargetData->MID);
+             if(bnewtarget)
+                    delete pTargetData;                                       // this target is not going to be used
         }
 
         ret = AIS_NoError;
@@ -929,18 +947,17 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
                                             // which amy disagee with target...
 
     int message_ID = bstr->GetInt(1, 6);        // Parse on message ID
+
     ptd->MID = message_ID;
 
     ptd->MMSI = bstr->GetInt(9, 30);            // MMSI is always in the same spot in the bitstream
 
 
-    ///
     switch (message_ID)
     {
     case 1:                                 // Position Report
     case 2:
     case 3:
-    case 18:
         {
 
             ptd->NavStatus = bstr->GetInt(39, 4);
@@ -981,38 +998,42 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
             }
             parse_result = true;                // so far so good
 
-            if((111111111 == ptd->MMSI) || (181.0 == ptd->Lon) || (91.0 == ptd->Lat))      // bogus data
-                parse_result = false;
-            if(0 == ptd->MMSI)
-                parse_result = false;
-
-#if 0
-            {
-                //  Todo there may be a bug here.  Sometimes get invalid utc_hour, utc_min
-                if((utc_hour < 24) && (utc_min < 60) && (utc_sec < 60))
-                {
-                      //      Cannot depend on target's idea of time
-//                      wxDateTime report_time(utc_day, utc_month, utc_year, utc_hour, utc_min, utc_sec, 0);
-//                      atd.ReportTicks = report_time.GetTicks();
-                      parse_result = true;
-                }
-                else
-                      parse_result = false;
-            }
-#endif
-            if(message_ID == 18)
-                  ptd->Class = AIS_CLASS_B;
-            else
-                  ptd->Class = AIS_CLASS_A;
+            ptd->Class = AIS_CLASS_A;
 
             break;
         }
 
+          case 18:
+          {
+                ptd->SOG = 0.1 * (bstr->GetInt(47, 10));
+
+                int lon = bstr->GetInt(58, 28);
+                if(lon & 0x08000000)                    // negative?
+                      lon |= 0xf0000000;
+                ptd->Lon = lon / 600000.;
+
+                int lat = bstr->GetInt(86, 27);
+                if(lat & 0x04000000)                    // negative?
+                      lat |= 0xf8000000;
+                ptd->Lat = lat / 600000.;
+
+                ptd->COG = 0.1 * (bstr->GetInt(113, 12));
+                ptd->HDG = 1.0 * (bstr->GetInt(125, 9));
+
+                ptd->b_positionValid = true;
+
+                utc_sec = bstr->GetInt(134, 6);
+
+                parse_result = true;                // so far so good
+
+                ptd->Class = AIS_CLASS_B;
+
+                break;
+          }
+
     case 5:
         {
-              ptd->Class = AIS_CLASS_A;
-              ptd->MID = message_ID;
-              ptd->MMSI = bstr->GetInt(9, 30);
+            ptd->Class = AIS_CLASS_A;
 
 
             int DSI = bstr->GetInt(39, 2);
@@ -1048,13 +1069,22 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
      case 24:
          {
                ptd->Class = AIS_CLASS_B;
-               ptd->MID = message_ID;
-               ptd->MMSI = bstr->GetInt(9, 30);
 
                int part_number = bstr->GetInt(39, 2);
                if(0 == part_number)
                {
                      bstr->GetStr(41,120, &ptd->ShipName[0], 20);
+                     parse_result = true;
+               }
+               else if(1 == part_number)
+               {
+                     ptd->ShipType = (unsigned char)bstr->GetInt(41,8);
+                     bstr->GetStr(91,42, &ptd->CallSign[0], 7);
+
+                     ptd->DimA = bstr->GetInt(133, 9);
+                     ptd->DimB = bstr->GetInt(142, 9);
+                     ptd->DimC = bstr->GetInt(151, 6);
+                     ptd->DimD = bstr->GetInt(157, 6);
                      parse_result = true;
                }
 
