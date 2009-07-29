@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.19 2009/07/11 01:00:07 bdbcat Exp $
+ * $Id: ais.h,v 1.20 2009/07/29 00:48:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.20  2009/07/29 00:48:47  bdbcat
+ * Add Debug messages
+ *
  * Revision 1.19  2009/07/11 01:00:07  bdbcat
  * Correct buffer overrun on multi-part messages
  *
@@ -214,6 +217,11 @@ public:
     ais_alarm_type            n_alarm_state;
     bool                      b_suppress_audio;
     bool                      b_positionValid;
+    bool                      b_nameValid;
+
+    int                       m_utc_hour;
+    int                       m_utc_min;
+    int                       m_utc_sec;
 
     double                    Range_NM;
     double                    Brg;

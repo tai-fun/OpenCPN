@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.24 2009/07/17 03:56:02 bdbcat Exp $
+ * $Id: ais.cpp,v 1.25 2009/07/29 00:48:14 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.25  2009/07/29 00:48:14  bdbcat
+ * Add Debug messages
+ *
  * Revision 1.24  2009/07/17 03:56:02  bdbcat
  * Implement Class B Messages.
  *
@@ -156,7 +159,7 @@ extern wxString         g_sAIS_Alert_Sound_File;
 static      GenericPosDat     AISPositionMuxData;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.24 2009/07/17 03:56:02 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.25 2009/07/29 00:48:14 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -225,7 +228,7 @@ char ais_type[][80] = {
 "Unknown"                     //          18
 };
 
-
+//#define AIS_DEBUG  1
 
 //---------------------------------------------------------------------------------
 //
@@ -268,10 +271,17 @@ AIS_Target_Data::AIS_Target_Data()
 
     RecentPeriod = 0;
 
+    m_utc_hour = 0;
+    m_utc_min = 0;
+    m_utc_sec = 0;
+
+
     Class = AIS_CLASS_A;      // default
     n_alarm_state = AIS_NO_ALARM;
     b_suppress_audio = false;
     b_positionValid = false;
+    b_nameValid = false;
+
 
 }
 
@@ -608,6 +618,15 @@ BEGIN_EVENT_TABLE(AIS_Decoder, wxEvtHandler)
 
   END_EVENT_TABLE()
 
+static int n_msgs;
+static int n_targets;
+static int n_msg1;
+static int n_msg5;
+static int n_msg24;
+static int n_newname;
+static bool b_firstrx;
+static int first_rx_ticks;
+static int rx_ticks;
 
 
 
@@ -666,6 +685,15 @@ AIS_Decoder::~AIS_Decoder(void)
           m_sock->Destroy();
           TimerAIS.Stop();
     }
+
+    wxDateTime now = wxDateTime::Now();
+    now.MakeGMT();
+
+#ifdef AIS_DEBUG
+    printf("First message[1, 2] ticks: %d  Last Message [1,2]ticks %d  Difference:  %d\n", first_rx_ticks, rx_ticks, rx_ticks - first_rx_ticks);
+#endif
+
+
 }
 
 //----------------------------------------------------------------------------------
@@ -789,14 +817,22 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
 
     //  Make some simple tests for validity
 
-    if(str.Len() > 82)
+//    int nlen = str.Len();
+
+    if(str.Len() > 100)
         return AIS_NMEAVDM_TOO_LONG;
 
     if(!NMEACheckSumOK(str))
-        return AIS_NMEAVDM_CHECKSUM_BAD;
+    {
+//          printf("Checksum error at n_msgs:%d\n", n_msgs);
+          return AIS_NMEAVDM_CHECKSUM_BAD;
+    }
 
     if(!str.Mid(3,3).IsSameAs(_T("VDM")))
-        return AIS_NMEAVDM_BAD;
+    {
+//          printf("Not VDM at n_msgs:%d\n", n_msgs);
+          return AIS_NMEAVDM_BAD;
+    }
 
     //  OK, looks like the sentence is OK
 
@@ -860,6 +896,8 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
         //  Extract the MMSI
         int mmsi = strbit.GetInt(9, 30);
 
+//        int message_ID = strbit.GetInt(1, 6);
+
         AIS_Target_Data *pTargetData;
         AIS_Target_Data *pStaleTarget = NULL;
         bool bnewtarget = false;
@@ -870,6 +908,7 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
         {
               pTargetData = new AIS_Target_Data;
               bnewtarget = true;
+              n_targets++;
         }
         else
         {
@@ -892,16 +931,26 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
 
         // Delete the stale AIS Target selectable point
         if(pStaleTarget)
-            pSelectAIS->DeleteSelectablePoint((void *)pStaleTarget->MMSI, SELTYPE_AISTARGET);
+            pSelectAIS->DeleteSelectablePoint((void *)mmsi, SELTYPE_AISTARGET);
+
+      bool bhad_name = false;
+      if(pStaleTarget)
+            bhad_name =  pStaleTarget->b_nameValid;
+
 
         bool bdecode_result = Parse_VDMBitstring(&strbit, pTargetData);            // Parse the new data
+
+        if((bdecode_result) && (pTargetData->b_nameValid) && (pStaleTarget))
+           if(!bhad_name)
+                    n_newname++;
 
         //  If the message was decoded correctly, Update the AIS Target in the Selectable list, and update the TargetData
         if(bdecode_result)
         {
               (*AISTargetList)[mmsi] = pTargetData;            // update the entry
 
-              pSelectAIS->AddSelectablePoint(pTargetData->Lat, pTargetData->Lon, (void *)pTargetData->MMSI, SELTYPE_AISTARGET);
+              if(pTargetData->b_positionValid)
+                    pSelectAIS->AddSelectablePoint(pTargetData->Lat, pTargetData->Lon, (void *)mmsi, SELTYPE_AISTARGET);
 
         //     Update the most recent report period
               pTargetData->RecentPeriod = pTargetData->ReportTicks - last_report_ticks;
@@ -913,7 +962,10 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
         {
 //             printf("Unrecognised AIS message ID: %d\n", pTargetData->MID);
              if(bnewtarget)
+             {
                     delete pTargetData;                                       // this target is not going to be used
+                    n_targets--;
+             }
         }
 
         ret = AIS_NoError;
@@ -921,6 +973,13 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
     }
     else
         ret = AIS_Partial;                // accumulating parts of a multi-sentence message
+
+    n_msgs++;
+
+#ifdef AIS_DEBUG
+    if((n_msgs % 10000) == 0)
+          printf("n_msgs %10d n_targets: %6d  n_msg1: %10d  n_msg5+24: %10d  n_new5: %10d \n", n_msgs, n_targets, n_msg1, n_msg5 + n_msg24, n_newname);
+#endif
 
     return ret;
 }
@@ -937,9 +996,9 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
     wxDateTime now = wxDateTime::Now();
     now.MakeGMT();
 
-    int utc_hour = now.GetHour();
-    int utc_min = now.GetMinute();
-    int utc_sec = now.GetSecond();
+//    int utc_hour = now.GetHour();
+//    int utc_min = now.GetMinute();
+//    int utc_sec = now.GetSecond();
  //   int utc_day = now.GetDay();
  //   wxDateTime::Month utc_month = now.GetMonth();
  //   int utc_year = now.GetYear();
@@ -959,6 +1018,7 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
     case 2:
     case 3:
         {
+            n_msg1++;
 
             ptd->NavStatus = bstr->GetInt(39, 4);
             ptd->SOG = 0.1 * (bstr->GetInt(51, 10));
@@ -984,7 +1044,7 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
             if((ptd->ROTAIS & 0x80) == 0x80)
                   ptd->ROTAIS = ptd->ROTAIS - 256;       // convert to twos complement
 
-            utc_sec = bstr->GetInt(138, 6);
+            ptd->m_utc_sec = bstr->GetInt(138, 6);
 
             if((1 == message_ID) || (2 == message_ID))      // decode SOTDMA per 7.6.7.2.2
             {
@@ -992,11 +1052,27 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
                   ptd->SlotTO = bstr->GetInt(153,2);
                   if((ptd->SlotTO == 1) && (ptd->SyncState == 0)) // UTCDirect follows
                   {
-                    utc_hour = bstr->GetInt(155, 5);
-                    utc_min = bstr->GetInt(160,7);
+                        ptd->m_utc_hour = bstr->GetInt(155, 5);
+
+                        ptd->m_utc_min = bstr->GetInt(160,7);
+
+                        if((ptd->m_utc_hour < 24) && (ptd->m_utc_min <60) && (ptd->m_utc_sec < 60))
+                        {
+                              wxDateTime rx_time(ptd->m_utc_hour, ptd->m_utc_min, ptd->m_utc_sec);
+                              rx_ticks = rx_time.GetTicks();
+                              if(!b_firstrx)
+                              {
+                                    first_rx_ticks = rx_ticks;
+                                    b_firstrx = true;
+                                    }
+                        }
+//                    else
+//                          printf("hr:min:sec:   %d:%d:%d\n", ptd->m_utc_hour, ptd->m_utc_min, ptd->m_utc_sec);
+
                   }
             }
             parse_result = true;                // so far so good
+
 
             ptd->Class = AIS_CLASS_A;
 
@@ -1022,7 +1098,7 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 
                 ptd->b_positionValid = true;
 
-                utc_sec = bstr->GetInt(134, 6);
+                ptd->m_utc_sec = bstr->GetInt(134, 6);
 
                 parse_result = true;                // so far so good
 
@@ -1033,7 +1109,8 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 
     case 5:
         {
-            ptd->Class = AIS_CLASS_A;
+              n_msg5++;
+              ptd->Class = AIS_CLASS_A;
 
 
             int DSI = bstr->GetInt(39, 2);
@@ -1043,6 +1120,9 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 
                   bstr->GetStr(71,42, &ptd->CallSign[0], 7);
                   bstr->GetStr(113,120, &ptd->ShipName[0], 20);
+                  ptd->b_nameValid = true;
+//                  printf("%d %d %s\n", n_msgs, ptd->MMSI, ptd->ShipName);
+
                   ptd->ShipType = (unsigned char)bstr->GetInt(233,8);
 
                   ptd->DimA = bstr->GetInt(241, 9);
@@ -1061,8 +1141,9 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 
                   bstr->GetStr(303,120, &ptd->Destination[0], 20);
 
-                parse_result = true;
+                  parse_result = true;
             }
+
             break;
         }
 
@@ -1074,7 +1155,10 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
                if(0 == part_number)
                {
                      bstr->GetStr(41,120, &ptd->ShipName[0], 20);
+//                     printf("%d %d %s\n", n_msgs, ptd->MMSI, ptd->ShipName);
+                     ptd->b_nameValid = true;
                      parse_result = true;
+                     n_msg24++;
                }
                else if(1 == part_number)
                {
@@ -1643,6 +1727,9 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
                   AIS_Target_Data *tdp = Get_Target_Data_From_MMSI(mmsi);
                   if(tdp == NULL)
                         int yyp = 6;
+
+                  if(tdp->SOG > 100.)
+                        int yyu = 4;
             }
 
             node = node->GetNext();
@@ -2014,6 +2101,26 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
 //    Entry Point
 void *OCP_AIS_Thread::Entry()
 {
+#if 0
+                                     // testing direct file read of AIS data stream
+      char buf[100];
+      wxFile f("/home/dsr/Desktop/Downloads/SIITECHBIG.TXT");
+                           if(f.IsOpened())
+                           int yyo = 5;
+
+                           wxFileInputStream stream(f);
+
+                           if(stream.IsOk())
+                           int yyp = 5;
+
+                           while(!stream.Eof())
+               {
+                           stream.Read(buf, 40);
+                           HandleRead(buf, 40);                   // Read completed successfully.
+}
+
+                           return 0;
+#endif
           // Allocate the termios data structures
 
       pttyset = (termios *)calloc(sizeof (termios), 1);
@@ -2253,8 +2360,6 @@ void *OCP_AIS_Thread::Entry()
 
 #if 0                                     // testing direct file read of AIS data stream
       wxFile f("C:\\SIITECH.TXT");
-      if(f.IsOpened())
-            int yyo = 5;
 
       wxFileInputStream stream(f);
 
