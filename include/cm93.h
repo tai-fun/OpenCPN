@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.8 2009/07/10 03:43:39 bdbcat Exp $
+ * $Id: cm93.h,v 1.9 2009/07/29 00:56:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.9  2009/07/29 00:56:39  bdbcat
+ * Update dictionary and chart search algorithms
+ *
  * Revision 1.8  2009/07/10 03:43:39  bdbcat
  * Improve Scale logic.
  *
@@ -235,6 +238,7 @@ class cm93_dictionary
 
             bool LoadDictionary(wxString dictionary_dir);
             bool IsOk(void){ return m_ok; }
+            wxString GetDictDir(void){ return m_dict_dir; }
 
             wxString GetClassName(int iclass);
             wxString GetAttrName(int iattr);
@@ -248,6 +252,7 @@ class cm93_dictionary
             int               *m_GeomTypeArray;
             char              *m_ValTypeArray;
             bool              m_ok;
+            wxString          m_dict_dir;
 
 };
 
@@ -333,6 +338,7 @@ class cm93chart : public s57chart
             void translate_colmar(wxString &sclass, S57attVal *pattValTmp);
 
             int loadcell(int);
+            int loadsubcell(int, wxChar);
             int CreateObjChain(void);
 
             void Unload_CM93_Cell(void);
@@ -411,7 +417,7 @@ class cm93compchart : public s57chart
 
       private:
             InitReturn CreateHeaderData();
-            cm93_dictionary *FindAndLoadDict(const wxString &file);
+            cm93_dictionary *FindAndLoadDictFromDir(const wxString &dir);
             void SetVPPositive(ViewPort *pvp);
             void FillScaleArray(double lat, double lon);
 

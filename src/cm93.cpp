@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.12 2009/07/10 04:03:09 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.13 2009/07/29 00:56:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.13  2009/07/29 00:56:18  bdbcat
+ * Update dictionary and chart search algorithms
+ *
  * Revision 1.12  2009/07/10 04:03:09  bdbcat
  * Improve Scale logic.
  *
@@ -96,7 +99,8 @@
 extern wxString         *g_pSENCPrefix;
 extern s52plib          *ps52plib;
 extern cm93manager      *s_pcm93mgr;
-
+extern MyConfig         *pConfig;
+extern wxString         g_CM93DictDir;
 
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY(Array_Of_M_COVR_Desc);
@@ -154,6 +158,8 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
       wxChar sep = wxFileName::GetPathSeparator();
       if (dir.Last() != sep)
             dir.Append(sep);
+
+      m_dict_dir = dir;
 
 
       //    Build some array strings for Feature decoding
@@ -778,23 +784,39 @@ bool Is_CM93Cell_Present(wxString &fileprefix, double lat, double lon, int scale
       int jlat = (((ilat - 30) / dval) * dval) + 30;              // normalize
       int jlon = (ilon / dval) * dval;
 
-      file.Printf(_T("/%04d%04d."), jlat, jlon);
-      file += scale_char;
-      file.Prepend(scale_char);
-
-
       int ilatroot = (((ilat - 30) / 60) * 60) + 30;
       int ilonroot = (ilon / 60) * 60;
 
       wxString fileroot;
       fileroot.Printf(_T("%04d%04d/"), ilatroot, ilonroot);
 
+/*
+      file.Printf(_T("/%04d%04d."), jlat, jlon);
+      file += scale_char;
+      file.Prepend(scale_char);
       file.Prepend(fileroot);
       file.Prepend(fileprefix);
 
-
       if(::wxFileExists(file))
             return true;
+*/
+      /// here
+      wxString sdir(fileprefix);
+      sdir += fileroot;
+      sdir += scale_char;
+
+      wxString tfile;
+      tfile.Printf(_T("?%03d%04d."), jlat, jlon);
+      tfile += scale_char;
+
+      wxDir dir(sdir);
+
+      wxArrayString file_array;
+      int n_files = dir.GetAllFiles(sdir, &file_array, tfile, wxDIR_FILES);
+
+      if(n_files)
+            return true;
+
       else
       {
 
@@ -802,6 +824,7 @@ bool Is_CM93Cell_Present(wxString &fileprefix, double lat, double lon, int scale
             wxString old_scalechar(scale_char);
             wxString new_scalechar = old_scalechar.Lower();
 
+/*
             wxString file1;
             file1.Printf(_T("/%04d%04d."), jlat, jlon);
             file1 += new_scalechar;
@@ -811,6 +834,15 @@ bool Is_CM93Cell_Present(wxString &fileprefix, double lat, double lon, int scale
             file1.Prepend(fileprefix);
 
             return(::wxFileExists(file1));
+*/
+            wxString tfile1;
+            tfile1.Printf(_T("?%03d%04d."), jlat, jlon);
+            tfile1 += new_scalechar;
+
+            int n_files1 = dir.GetAllFiles(sdir, &file_array, tfile1, wxDIR_FILES);
+
+            return (n_files1 > 0);
+
       }
 
 }
@@ -1664,6 +1696,81 @@ void cm93chart::SetVPParms(ViewPort *vpt)
       }
 }
 
+
+int cm93chart::loadcell(int cellindex)
+{
+      //    Try to load the simple case, where sub_char is '0'
+
+      int rv = loadsubcell(cellindex, '0');
+
+      //    Some error, maybe there are alpha subcells....
+      if(!rv)
+      {
+            //Create file name in pieces
+
+            int ilat = cellindex / 10000;
+            int ilon = cellindex % 10000;
+
+            int dval;
+            switch (GetNativeScale())
+            {
+                  case 20000000: dval = 120; break;         // Z
+                  case  3000000: dval =  60; break;         // A
+                  case  1000000: dval =  30; break;         // B
+                  case   200000: dval =  12; break;         // C
+                  case   100000: dval =   3; break;         // D
+                  case    50000: dval =   1; break;         // E
+                  case    20000: dval =   1; break;         // F
+                  case     7500: dval =   1; break;         // G
+                  default: dval =   1; break;
+            }
+
+
+            int jlat = (((ilat - 30) / dval) * dval) + 30;              // normalize
+            int jlon = (ilon / dval) * dval;
+
+            int ilatroot = (((ilat - 30) / 60) * 60) + 30;
+            int ilonroot = (ilon / 60) * 60;
+
+            wxString file;
+            file.Printf(_T("%04d%04d."), jlat, jlon);
+            file += m_scalechar;
+
+            wxString fileroot;
+            fileroot.Printf(_T("%04d%04d/"), ilatroot, ilonroot);
+            fileroot += m_scalechar;
+            fileroot += _T("/");
+            fileroot.Prepend( m_prefix );
+
+            wxChar sub_char = 'A';
+
+            file[0] = sub_char;
+            bool b_keep_looking = true;
+
+            while(b_keep_looking)
+            {
+                  file[0] = sub_char;
+                  wxString lfile = file;
+                  lfile.Prepend(fileroot);
+
+                  if(::wxFileExists(lfile))
+                  {
+                        rv = loadsubcell(cellindex, sub_char);
+                        sub_char ++;
+                  }
+                  else
+                  {
+                        b_keep_looking = false;
+                  }
+            }
+      }
+
+      return rv;
+}
+
+
+
+
 wxStopWatch *s_stw;
 extern wxStopWatch *s_stwt;
 wxStopWatch *s_stwl;
@@ -1671,7 +1778,7 @@ wxStopWatch *s_stwg;
 wxStopWatch *s_stwp;
 
 
-int cm93chart::loadcell(int cellindex)
+int cm93chart::loadsubcell(int cellindex, wxChar sub_char)
 {
       wxBusyCursor wait;                        // This may take awhile....
 
@@ -1732,16 +1839,19 @@ int cm93chart::loadcell(int cellindex)
       int ilonroot = (ilon / 60) * 60;
 
       wxString file;
-      file.Printf(_T("/%04d%04d."), jlat, jlon);
+      file.Printf(_T("%04d%04d."), jlat, jlon);
       file += m_scalechar;
-      file.Prepend(m_scalechar);
+
 
 
       wxString fileroot;
       fileroot.Printf(_T("%04d%04d/"), ilatroot, ilonroot);
+      fileroot += m_scalechar;
+      fileroot += _T("/");
+      fileroot.Prepend(m_prefix);
 
+      file[0] = sub_char;
       file.Prepend(fileroot);
-      file.Prepend(m_prefix);
 
       if(!::wxFileExists(file))
       {
@@ -1749,12 +1859,13 @@ int cm93chart::loadcell(int cellindex)
             wxString new_scalechar = m_scalechar.Lower();
 
             wxString file1;
-            file1.Printf(_T("/%04d%04d."), jlat, jlon);
+            file1.Printf(_T("%04d%04d."), jlat, jlon);
             file1 += new_scalechar;
-            file1.Prepend(new_scalechar);
+
+            file1[0] = sub_char;
 
             file1.Prepend(fileroot);
-            file1.Prepend(m_prefix);
+
 
             if(!::wxFileExists(file1))
             {
@@ -3654,10 +3765,19 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
       m_pFullPath->Clear();
       m_pFullPath->Append(name);
 
+      wxFileName fn(name);
+
+      //    Verify that the passed file name exists
+      if(!fn.FileExists())
+      {
+            wxString msg(_T("   CM93Composite Chart Init cannot find "));
+            msg.Append(name);
+            wxLogMessage(msg);
+            return INIT_FAIL_REMOVE;
+      }
+
       //    Get the cm93 cell database prefix
       //    Search for the directory called 00300000 all along the path of the passed parameter filename
-
-      wxFileName fn(name);
       wxString path = fn.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME));
       wxString target;
       unsigned int i = 0;
@@ -3693,12 +3813,30 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
       //    Load the cm93 dictionary if necessary
       if(!m_pDict)
       {
-            m_pDict = FindAndLoadDict(name);
+            if(g_CM93DictDir.Len())                 // a hint...
+                  m_pDict = FindAndLoadDictFromDir(g_CM93DictDir);
+
+            if(!m_pDict)                              // second try from the file
+                  m_pDict = FindAndLoadDictFromDir(path);
+
             if(!m_pDict)
             {
                   wxLogMessage(_T("   CM93Composite Chart Init cannot locate CM93 dictionary."));
                   return INIT_FAIL_REMOVE;
             }
+
+            else
+            {
+                  if(pConfig)                                           // update the hint
+                  {
+                        if(!m_pDict->GetDictDir().IsSameAs(g_CM93DictDir))
+                        {
+                              g_CM93DictDir = m_pDict->GetDictDir();
+                              pConfig->UpdateSettings();
+                        }
+                  }
+            }
+
       }
 
 
@@ -3838,7 +3976,6 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 #ifdef CM93_DEBUG_PRINTF
                   printf(" chart %c has no M_COVR\n", (char)('A' + cmscale -1));
 #endif
-
             }
 
 
@@ -3855,6 +3992,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
                         break;
                   }
             }
+
 
             if(bin_mcovr)
             {
@@ -3885,7 +4023,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 //    Populate the member bool array describing which chart scales are available at any location
 void cm93compchart::FillScaleArray(double lat, double lon)
 {
-      for(int cmscale = 0 ; cmscale < 7 ; cmscale++)
+      for(int cmscale = 0 ; cmscale < 8 ; cmscale++)
             m_bScale_Array[cmscale] = Is_CM93Cell_Present(m_prefix, lat, lon, cmscale);
 }
 
@@ -4141,32 +4279,28 @@ InitReturn cm93compchart::CreateHeaderData()
       return INIT_OK;
 }
 
-cm93_dictionary *cm93compchart::FindAndLoadDict(const wxString &file)
+cm93_dictionary *cm93compchart::FindAndLoadDictFromDir(const wxString &dir)
 {
       cm93_dictionary *retval = NULL;
       cm93_dictionary *pdict = new cm93_dictionary();
 
-      //    Search for the dictionary files all along the path of the passed parameter filename
+      //    Quick look at the supplied directory...
+      if(pdict->LoadDictionary(dir))
+            return pdict;
 
-      wxFileName fn(file);
-      wxString path = fn.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME));
+
+      //    Otherwise, search for the dictionary files all along the path of the passed parameter
+
+      wxString path = dir;
       wxString target;
       unsigned int i = 0;
-
-//      if(path[0] == fn.GetPathSeparator())      // path starts with sep
-//            target.Append(path[i++]);
 
       while(i < path.Len())
       {
             target.Append(path[i]);
-            if(path[i] == fn.GetPathSeparator())
+            if(path[i] == wxFileName::GetPathSeparator())
             {
                   if(pdict->LoadDictionary(target))
-                  {
-                        retval = pdict;
-                        break;
-                  }
-                  if(pdict->LoadDictionary(target + _T("CM93ATTR")))
                   {
                         retval = pdict;
                         break;
@@ -4175,8 +4309,68 @@ cm93_dictionary *cm93compchart::FindAndLoadDict(const wxString &file)
             i++;
       }
 
+      if(NULL != retval)                              // Found it....
+            return retval;
 
-      if(retval == NULL)
+
+
+
+      //    Dictionary was not found in linear path of supplied dir.
+      //    Could be on branch, so, look at entire tree the hard way.
+
+      wxFileName fnc(dir);
+      wxString found_dict_file_name;
+
+      bool bdone = false;
+      while (!bdone)
+      {
+            path = fnc.GetPath(wxPATH_GET_VOLUME);        // get path without sep
+
+
+            if((path.Len() == 0) || path.IsSameAs(fnc.GetPathSeparator()))
+            {
+                  bdone = true;
+                  break;
+            }
+
+            //    Abort the search loop if the directory tree does not contain some indication of CM93
+            if((wxNOT_FOUND == path.Find("cm93")) && (wxNOT_FOUND == path.Find("CM93")))
+            {
+                  bdone = true;
+                  break;
+            }
+
+//    Search here
+//    This takeas a while to search a fully populated cm93 tree....
+            wxDir dir(path);
+            if(dir.IsOpened())
+            {
+                  found_dict_file_name = dir.FindFirst(path, _T("CM93OBJ.dic"));
+                  if(found_dict_file_name.Len())
+                        bdone = true;
+
+                  else
+                  {
+                        found_dict_file_name = dir.FindFirst(path, _T("CM93OBJ.DIC"));
+                        if(found_dict_file_name.Len())
+                               bdone = true;
+                  }
+            }
+
+            fnc.Assign(path);                                 // convert the path to a filename for next loop
+      }
+
+      if(found_dict_file_name.Len())
+      {
+            wxFileName fnd(found_dict_file_name);
+            wxString dpath = fnd.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME));
+
+            if(pdict->LoadDictionary(dpath))
+                  retval = pdict;
+      }
+
+
+      if(NULL == retval)
             delete pdict;
 
       return retval;
