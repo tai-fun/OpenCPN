@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.27 2009/07/17 03:54:16 bdbcat Exp $
+ * $Id: chcanv.h,v 1.28 2009/07/29 01:08:32 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.28  2009/07/29 01:08:32  bdbcat
+ * Implement Measure tool.
+ *
  * Revision 1.27  2009/07/17 03:54:16  bdbcat
  * Add config option for Wheel Zoom to cursor.
  *
@@ -356,7 +359,7 @@ private:
       void ScaleBarDraw( wxDC& dc, int x_origin, int y_origin );
 
       void EmbossDepthScale(wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, int emboss_ident);
-      int *CreateEmbossMap(wxFont &font, int width, int height, char *str, ColorScheme cs);
+      int *CreateEmbossMap(wxFont &font, int width, int height, const char *str, ColorScheme cs);
       void CreateDepthUnitEmbossMaps(ColorScheme cs);
       wxBitmap CreateDimBitmap(wxBitmap &Bitmap, double factor);
 
@@ -413,7 +416,7 @@ private:
       bool        m_bbr_paused;
       ChartBaseBSB *br_Ch;
 
-      wxBitmap    *proute_bm;       // a bitmap and dc used to calculate route bounding box
+      wxBitmap    *proute_bm;          // a bitmap and dc used to calculate route bounding box
       wxMemoryDC  m_dc_route;         // seen in mouse->edit->route
 
       double   m_ownship_predictor_minutes;      // Minutes shown on ownship position predictor graphic
@@ -431,6 +434,9 @@ private:
       ownship_state_t   m_ownship_state;
 
       ColorScheme m_cs;
+      bool        m_bMeasure_Active;
+      int         m_nMeasureState;
+      Route       *m_pMeasureRoute;
 
       wxBitmap    m_bmTideDay;
       wxBitmap    m_bmTideDusk;
@@ -521,7 +527,7 @@ class ocpCursor : public wxCursor
       public:
 
             ocpCursor(const wxString& cursorName, long type, int hotSpotX=0, int hotSpotY=0);
-            ocpCursor(char **xpm_data, long type, int hotSpotX=0, int hotSpotY=0);
+            ocpCursor(const char **xpm_data, long type, int hotSpotX=0, int hotSpotY=0);
 };
 
 
