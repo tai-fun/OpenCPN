@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.49 2009/07/17 03:55:15 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.50 2009/07/29 00:54:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.50  2009/07/29 00:54:59  bdbcat
+ * Update for gcc 4.2.4, improve linux port detection
+ *
  * Revision 1.49  2009/07/17 03:55:15  bdbcat
  * Move hotkey handler to ChartCanvas.
  *
@@ -214,7 +217,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.49 2009/07/17 03:55:15 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.50 2009/07/29 00:54:59 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -470,6 +473,8 @@ wxString         g_sAIS_Alert_Sound_File;
 DummyTextCtrl    *g_pDummyTextCtrl;
 bool             g_bEnableZoomToCursor;
 
+wxString         g_CM93DictDir;
+
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
 
@@ -689,7 +694,7 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         if(wxFileName::GetSize(log) > 1000000)
               ::wxRemoveFile(log);
 
-        char *mode = "a";
+        const char *mode = "a";
         flog = fopen(log.mb_str(), mode);
         logger=new wxLogStderr(flog);
 
@@ -4083,8 +4088,54 @@ wxArrayString *EnumerateSerialPorts(void)
 
 #ifdef __WXGTK__
 
+      //    Looking for user privelege openable devices in /dev
+
+      for(int idev=0 ; idev < 8 ; idev++)
+      {
+            wxString sdev;
+            sdev.Printf(_T("/dev/ttyS%1d"), idev);
+
+            int fd = open(sdev.mb_str(), O_RDWR|O_NDELAY|O_NOCTTY);
+            if(fd > 0)
+            {
+                  /*  add to the output array  */
+                  preturn->Add(wxString(sdev));
+                  close(fd);
+            }
+      }
+
+      for(int idev=0 ; idev < 8 ; idev++)
+      {
+            wxString sdev;
+            sdev.Printf(_T("/dev/ttyUSB%1d"), idev);
+
+            int fd = open(sdev.mb_str(), O_RDWR|O_NDELAY|O_NOCTTY);
+            if(fd > 0)
+            {
+                  /*  add to the output array  */
+                  preturn->Add(wxString(sdev));
+                  close(fd);
+            }
+      }
+
+      //    A Fallback position, in case udev has failed or something.....
+      if(preturn->IsEmpty())
+      {
+            preturn->Add( _T("/dev/ttyS0"));
+            preturn->Add( _T("/dev/ttyS1"));
+            preturn->Add( _T("/dev/ttyUSB0"));
+            preturn->Add( _T("/dev/ttyUSB1"));
+      }
+
+
+#endif
+
+
+
+#ifdef PROBE_PORTS__WITH_HELPER
+
 /*
-*     For modern Linux/(Posix??) systems, we will use
+*     For modern Linux/(Posix??) systems, we may use
 *     the system files /proc/tty/driver/serial
 *     and /proc/tty/driver/usbserial to identify
 *     available serial ports.
@@ -4414,7 +4465,7 @@ wxColour GetGlobalColor(wxString colorName)
 }
 
 
-static char *usercolors[] = {
+static const char *usercolors[] = {
 "Table:DAY",
 "GREEN1;120;255;120;",
 "GREEN2; 45;150; 45;",
@@ -4485,7 +4536,7 @@ static char *usercolors[] = {
 };
 
 
-int get_static_line(char *d, char **p, int index, int n)
+int get_static_line(char *d, const char **p, int index, int n)
 {
       if(!strcmp(p[index], "*****"))
             return 0;
@@ -4496,7 +4547,7 @@ int get_static_line(char *d, char **p, int index, int n)
 
 void InitializeUserColors(void)
 {
-      char **p = usercolors;
+      const char **p = usercolors;
       char buf[80];
       int index = 0;
       char TableName[20];
