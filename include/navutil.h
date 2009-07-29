@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.12 2009/07/16 02:44:00 bdbcat Exp $
+ * $Id: navutil.h,v 1.13 2009/07/29 00:50:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.13  2009/07/29 00:50:09  bdbcat
+ * Update Route Draw logic
+ *
  * Revision 1.12  2009/07/16 02:44:00  bdbcat
  * Various, esp Export Route.
  *
@@ -186,7 +189,7 @@ public:
       Route(void);
       ~Route(void);
 
-      void AddPoint(RoutePoint *pNewPoint);
+      void AddPoint(RoutePoint *pNewPoint, bool b_rename_in_sequence = true);
       void AddTentativePoint(const wxString& GUID);
       RoutePoint *GetPoint(int nPoint);
       int GetIndexOf(RoutePoint *prp);
@@ -239,7 +242,6 @@ private:
 };
 
 WX_DECLARE_LIST(Route, RouteList);                    // establish class Route as list member
-
 
 
 //----------------------------------------------------------------------------

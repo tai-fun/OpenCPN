@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.38  2009/07/29 00:49:54  bdbcat
+ * Update Route Draw logic
+ *
  * Revision 1.37  2009/07/17 03:54:54  bdbcat
  * Add config option for Wheel Zoom to cursor.
  *
@@ -109,6 +112,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.38  2009/07/29 00:49:54  bdbcat
+ * Update Route Draw logic
+ *
  * Revision 1.37  2009/07/17 03:54:54  bdbcat
  * Add config option for Wheel Zoom to cursor.
  *
@@ -244,7 +250,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.37 2009/07/17 03:54:54 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.38 2009/07/29 00:49:54 bdbcat Exp $");
 
 //    Statics
 
@@ -337,6 +343,8 @@ extern bool             g_bGDAL_Debug;
 #ifdef USE_S57
 extern s52plib          *ps52plib;
 #endif
+
+extern wxString         g_CM93DictDir;
 
 //------------------------------------------------------------------------------
 // Some wxWidgets macros for useful classes
@@ -1011,7 +1019,7 @@ Route::~Route(void)
 }
 
 
-void Route::AddPoint(RoutePoint *pNewPoint)
+void Route::AddPoint(RoutePoint *pNewPoint, bool b_rename_in_sequence)
 {
       pNewPoint->m_bIsInRoute = true;
       pNewPoint->m_bIsolatedMark = false;       // definitely no longer isolated
@@ -1023,7 +1031,7 @@ void Route::AddPoint(RoutePoint *pNewPoint)
       CalculateBBox();
       UpdateSegmentDistances();
 
-      if(pNewPoint->m_MarkName.IsEmpty())
+      if(b_rename_in_sequence && pNewPoint->m_MarkName.IsEmpty())
       {
             pNewPoint->m_MarkName.Printf(_T("%03d"), m_nPoints);
             pNewPoint->m_bDynamicName = true;
@@ -1147,6 +1155,7 @@ void Route::DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb, double scale
       if(Visible == cohen_sutherland_line_clip_i (&x0, &y0, &x1, &y1, 0, sx, 0, sy))
             dc.DrawLine(x0, y0, x1, y1);
 
+
       if(bdraw_arrow)
       {
       //    Draw a direction arrow
@@ -1157,8 +1166,19 @@ void Route::DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb, double scale
 
             wxPoint icon[10];
             double icon_scale_factor = 100 * scale_ppm;
-            icon_scale_factor = fmin(icon_scale_factor, 1.5);
-            icon_scale_factor = fmax(icon_scale_factor, 1.0);
+            icon_scale_factor = fmin(icon_scale_factor, 1.5);                 // Sets the max size
+            icon_scale_factor = fmax(icon_scale_factor, .10);
+
+            //    Get the absolute line length
+            //    and constrain the arrow to be no mor than xx% of the line length
+            double nom_arrow_size = 20.;
+            double max_arrow_to_leg = .20;
+            double lpp = sqrt(pow((xa - xb), 2) + pow((ya - yb), 2));
+
+            double icon_size = icon_scale_factor * nom_arrow_size;
+            if(icon_size > (lpp * max_arrow_to_leg))
+                  icon_scale_factor = (lpp * max_arrow_to_leg) / nom_arrow_size;
+
 
             for ( int i=0; i<7; i++ )
             {
@@ -1612,6 +1632,10 @@ bool Route::IsEqualTo(Route *ptargetroute)
 {
       wxRoutePointListNode *pthisnode = (this->pRoutePointList)->GetFirst();
       wxRoutePointListNode *pthatnode = (ptargetroute->pRoutePointList)->GetFirst();
+
+      if(NULL == pthisnode)
+            return false;
+
       while(pthisnode)
       {
             RoutePoint *pthisrp = pthisnode->GetData();
@@ -1840,9 +1864,12 @@ int MyConfig::LoadMyConfig(int iteration)
 
 #endif
 
+    SetPath(_T("/Directories"));
+    Read(_T("CM93DictionaryLocation"), &g_CM93DictDir);
+
+
      SetPath(_T("/Directories"));
      wxString vald;
-
      Read(_T("InitChartDir"), &vald);                 // Get the Directory name
 
      wxString dirnamed(vald);
@@ -2816,7 +2843,7 @@ void MyConfig::UpdateSettings()
       Write(_T("S57DataLocation"), *g_pcsv_locn);
       Write(_T("SENCFileLocation"), *g_pSENCPrefix);
       Write(_T("PresentationLibraryData"), *g_pPresLibData);
-
+      Write(_T("CM93DictionaryLocation"), g_CM93DictDir);
 
 #endif
 
@@ -3000,13 +3027,13 @@ void MyConfig::ImportGPX(wxWindow* parent)
 }
 
 // toh, 2009.02.17
-RoutePoint *MyConfig::GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool LoadRoute)
+RoutePoint *MyConfig::GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists, bool LoadRoute)
 {
       wxString LatString = wptnode->GetPropVal(_T("lat"),_T("0.0"));
       wxString LonString = wptnode->GetPropVal(_T("lon"),_T("0.0"));
 
-      wxString SymString  = _T("");
-      wxString NameString = _T("null");
+      wxString SymString  = _T("circle");                   // default icon
+      wxString NameString = _T("");
       wxString DescString = _T("");
       wxString TypeString = _T("");
       wxString ChildName  = _T("");
@@ -3153,10 +3180,11 @@ void MyConfig::GPXLoadRoute(wxXmlNode* rtenode)
                   if (ChildName == _T("rtept"))
                   {
                         bool WpExists;
-                        RoutePoint *pWp = GPXLoadWaypoint(child,WpExists,true);
-                        pTentRoute->AddPoint(pWp);
+                        RoutePoint *pWp = GPXLoadWaypoint(child, WpExists, true);
+
+                        pTentRoute->AddPoint(pWp, false);                         // don't auto-rename numerically
                         if(!WpExists)
-                              pWp->m_ConfigWPNum = 1000 + (routenum * 100) + ip;          // dummy mark number
+                              pWp->m_ConfigWPNum = 1000 + (routenum * 100) + ip;  // dummy mark number
                         ip++;
                   }
                   child = child->GetNext();
