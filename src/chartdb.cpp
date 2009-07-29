@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.18 2009/06/30 03:05:29 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.19 2009/07/29 00:52:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.19  2009/07/29 00:52:03  bdbcat
+ * Correct stack index logic.
+ *
  * Revision 1.18  2009/06/30 03:05:29  bdbcat
  * Fix compile bug.
  *
@@ -115,7 +118,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.18 2009/06/30 03:05:29 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.19 2009/07/29 00:52:03 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -1301,7 +1304,7 @@ int ChartDB::GetStackEntry(ChartStack *ps, wxString *pfp)
 //-------------------------------------------------------------------
 int ChartDB::GetCSChartType(ChartStack *ps, int stackindex)
 {
-      if(bValid)
+      if((bValid) && (stackindex < nEntry))
       {
             int dbIndex = ps->DBIndex[stackindex];
             return pChartTable[dbIndex].ChartType;
