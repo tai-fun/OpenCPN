@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tcmgr.h,v 1.5 2008/08/09 23:36:46 bdbcat Exp $
+ * $Id: tcmgr.h,v 1.6 2009/07/29 20:05:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tide and Current Manager
@@ -27,6 +27,9 @@
  ***************************************************************************
  *
  * $Log: tcmgr.h,v $
+ * Revision 1.6  2009/07/29 20:05:06  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.5  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -34,6 +37,9 @@
  * *** empty log message ***
  *
  * $Log: tcmgr.h,v $
+ * Revision 1.6  2009/07/29 20:05:06  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.5  2008/08/09 23:36:46  bdbcat
  * *** empty log message ***
  *
@@ -286,7 +292,7 @@ private:
       void allocate_nodes ();
       void allocate_cst ();
       void fudge_constituents (Station_Data *psd, IDX_entry *pIDX);
-      int findunit (char *unit);
+      int findunit (const char *unit);
       void figure_amplitude ();
       void figure_multipliers ();
       void happy_new_year (int new_year);

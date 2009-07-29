@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.35 2009/07/29 00:53:13 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.36 2009/07/29 20:06:33 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.36  2009/07/29 20:06:33  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.35  2009/07/29 00:53:13  bdbcat
  * Update for gcc 4.2.4
  *
@@ -91,6 +94,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.36  2009/07/29 20:06:33  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.35  2009/07/29 00:53:13  bdbcat
  * Update for gcc 4.2.4
  *
@@ -220,7 +226,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.35 2009/07/29 00:53:13 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.36 2009/07/29 20:06:33 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -5707,10 +5713,10 @@ S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
     wxString file(*m_pcsv_locn);
     file.Append(_T("/s57attributes.csv"));
 
-    if(!wxFile::Exists(file.mb_str()))
+    if(!wxFileName::FileExists(file))
     {
           wxString msg(_T("   Could not open "));
-          msg.Append( file.mb_str() );
+          msg.Append( file );
           wxLogMessage(msg);
 
           return ret_val;
@@ -5731,10 +5737,10 @@ S57ObjectDesc *s57chart::CreateObjDescription(const S57Obj *obj)
     wxString ei_file(*m_pcsv_locn);
     ei_file.Append(_T("/s57expectedinput.csv"));
 
-    if(!wxFile::Exists(ei_file.mb_str()))
+    if(!wxFileName::FileExists(ei_file))
     {
           wxString msg(_T("   Could not open "));
-          msg.Append( ei_file.mb_str() );
+          msg.Append( ei_file );
           wxLogMessage(msg);
 
           return ret_val;

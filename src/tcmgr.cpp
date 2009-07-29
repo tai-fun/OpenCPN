@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.8  2009/07/29 20:05:29  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.7  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -36,6 +39,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.8  2009/07/29 20:05:29  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.7  2008/08/09 23:58:40  bdbcat
  * Numerous revampings....
  *
@@ -88,7 +94,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.7 2008/08/09 23:58:40 bdbcat Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.8 2009/07/29 20:05:29 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters
@@ -1219,8 +1225,8 @@ void TCMgr::allocate_cst ()
 }
 
 
-/* Find a unit; returs -1 if not found. */
-int TCMgr::findunit (char *unit) {
+/* Find a unit; returns -1 if not found. */
+int TCMgr::findunit (const char *unit) {
   int a;
   for (a=0; a<NUMUNITS; a++) {
     if (!strcmp (unit, known_units[a].name) ||

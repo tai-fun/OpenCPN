@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.13 2009/07/29 00:56:18 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.14 2009/07/29 20:07:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.14  2009/07/29 20:07:18  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.13  2009/07/29 00:56:18  bdbcat
  * Update dictionary and chart search algorithms
  *
@@ -4334,7 +4337,7 @@ cm93_dictionary *cm93compchart::FindAndLoadDictFromDir(const wxString &dir)
             }
 
             //    Abort the search loop if the directory tree does not contain some indication of CM93
-            if((wxNOT_FOUND == path.Find("cm93")) && (wxNOT_FOUND == path.Find("CM93")))
+            if((wxNOT_FOUND == path.Find((const wxChar *)"cm93")) && (wxNOT_FOUND == path.Find((const wxChar *)"CM93")))
             {
                   bdone = true;
                   break;

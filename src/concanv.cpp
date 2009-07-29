@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.11 2009/06/28 03:09:05 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.12 2009/07/29 20:05:37 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.12  2009/07/29 20:05:37  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.11  2009/06/28 03:09:05  bdbcat
  * Set minimum size for Console.
  *
@@ -42,6 +45,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.12  2009/07/29 20:05:37  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.11  2009/06/28 03:09:05  bdbcat
  * Set minimum size for Console.
  *
@@ -123,7 +129,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.11 2009/06/28 03:09:05 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.12 2009/07/29 20:05:37 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -366,7 +372,7 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
       }
 #endif
 
-      if(event.IsButton())
+//      if(event.IsButton())
 //            wxLogMessage(_T("concanv::MouseEvent Button"));
 //    Check the regions
 
