@@ -55,7 +55,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #define snprintf mysnprintf
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.11 2009/06/28 01:59:31 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.12 2009/07/29 00:51:00 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -231,7 +231,7 @@ void datumParams(short datum, double *a, double *es)
     *a = gEllipsoid[gDatum[datum].ellipsoid].a;       // semimajor axis
 }
 
-int GetDatumIndex(char *str)
+int GetDatumIndex(const char *str)
 {
       int i = 0;
       while (i < 102)

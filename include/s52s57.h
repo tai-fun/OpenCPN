@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.18 2009/06/18 01:35:57 bdbcat Exp $
+ * $Id: s52s57.h,v 1.19 2009/07/29 00:53:29 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.19  2009/07/29 00:53:29  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.18  2009/06/18 01:35:57  bdbcat
  * Cleanup.
  *
@@ -248,7 +251,7 @@ public:
 
 // Conditional Symbology
 typedef struct _Cond{
-   char *name;
+   const char *name;
    void *(*condInst)(void *param);
 }Cond;
 

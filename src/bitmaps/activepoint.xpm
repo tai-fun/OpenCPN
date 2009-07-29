@@ -1,5 +1,5 @@
 /* XPM */
-static char *activepoint[]={
+static const char *activepoint[]={
 "23 23 3 1",
 ". c None",
 "A c #ff0000",

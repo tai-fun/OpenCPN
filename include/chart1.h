@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.24 2009/07/16 02:42:13 bdbcat Exp $
+ * $Id: chart1.h,v 1.25 2009/07/29 00:55:24 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.25  2009/07/29 00:55:24  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.24  2009/07/16 02:42:13  bdbcat
  * Allow native RGB color scheme
  *
@@ -206,7 +209,7 @@ class wxSocketEvent;
 //----------------------------------------------------------------------------
 //   Classes
 //----------------------------------------------------------------------------
-WX_DECLARE_STRING_HASH_MAP(char*, string_to_pchar_hash);
+WX_DECLARE_STRING_HASH_MAP( char*, string_to_pchar_hash);
 WX_DECLARE_STRING_HASH_MAP(wxBitmap*, string_to_pbitmap_hash);
 WX_DECLARE_STRING_HASH_MAP(wxString*, string_to_string_hash);
 
@@ -332,7 +335,7 @@ void *x_malloc(size_t t);
 class MyPrintout: public wxPrintout
 {
  public:
-  MyPrintout(wxChar *title = _T("My printout")):wxPrintout(title) {}
+  MyPrintout(const wxChar *title = _T("My printout")):wxPrintout(title) {}
   bool OnPrintPage(int page);
   bool HasPage(int page);
   bool OnBeginDocument(int startPage, int endPage);

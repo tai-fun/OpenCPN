@@ -1,5 +1,5 @@
 /* XPM */
-static char *up[]={
+static const char *up[]={
 "32 32 3 1",
 ". c None",
 "a c #000000",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *tidesml[]={
+static const char *tidesml[]={
 "16 16 9 1",
 "f c #018001",
 "g c #008000",

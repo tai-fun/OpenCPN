@@ -1,5 +1,5 @@
 /* XPM */
-static char *sand[]={
+static const char *sand[]={
 "16 16 2 1",
 ". c None",
 "# c #ffc800",

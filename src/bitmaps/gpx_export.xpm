@@ -1,5 +1,5 @@
 /* XPM */
-static char *gpx_export[]={
+static const char *gpx_export[]={
 "32 32 93 2",
 "Qt c None",
 ".f c #000000",

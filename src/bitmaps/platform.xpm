@@ -1,5 +1,5 @@
 /* XPM */
-static char *platform[]={
+static const char *platform[]={
 "16 16 4 1",
 ". c None",
 "a c #000000",

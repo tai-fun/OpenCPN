@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.33 2009/06/22 02:45:49 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.34 2009/07/29 00:53:59 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.34  2009/07/29 00:53:59  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.33  2009/06/22 02:45:49  bdbcat
  * Remove extraneous printfs.
  *
@@ -87,6 +90,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.34  2009/07/29 00:53:59  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.33  2009/06/22 02:45:49  bdbcat
  * Remove extraneous printfs.
  *
@@ -211,9 +217,9 @@
 extern s52plib          *ps52plib;
 
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
-extern bool GetDoubleAttr ( S57Obj *obj, char *AttrName, double &val );
+extern bool GetDoubleAttr ( S57Obj *obj, const char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.33 2009/06/22 02:45:49 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.34 2009/07/29 00:53:59 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -1181,7 +1187,7 @@ return top;
 #define ENDLN   "%1024[^\037]"
 #define NEWLN  "%1024[^\n]"
 
-int s52plib::ReadS52Line ( char *pBuffer, char *delim, int nCount, FILE *fp )
+int s52plib::ReadS52Line ( char *pBuffer, const char *delim, int nCount, FILE *fp )
 {
       int ret;
 
@@ -1744,7 +1750,6 @@ int s52plib::S52_load_Plib ( const wxString& PLib )
       }
 
 
-
       _CIE2RGB();
       FindUnusedColor();
       CreateColourHash();
@@ -2144,7 +2149,7 @@ void s52plib::SetPLIBColorScheme ( wxString scheme )
 }
 
 
-S52color *s52plib::S52_getColor ( char *colorName )
+S52color *s52plib::S52_getColor ( const char *colorName )
 {
       S52color *c;
 

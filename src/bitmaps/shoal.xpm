@@ -1,5 +1,5 @@
 /* XPM */
-static char *shoal[]={
+static const char *shoal[]={
 "16 16 4 1",
 ". c None",
 "a c #0000ef",

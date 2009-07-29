@@ -1,5 +1,5 @@
 /* XPM */
-static char *xmblue[]={
+static const char *xmblue[]={
 "16 16 2 1",
 ". c None",
 "# c #0000ff",

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.19 2009/07/08 01:46:55 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.20 2009/07/29 00:54:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.20  2009/07/29 00:54:17  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.19  2009/07/08 01:46:55  bdbcat
  * Correct Green sector light logic.
  *
@@ -116,7 +119,7 @@
 #include "s52plib.h"
 #include "s52utils.h"
 
-bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
+bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);
 
 #define UNKNOWN 1e6 //HUGE_VAL   // INFINITY/NAN
 
@@ -126,7 +129,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.19 2009/07/08 01:46:55 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.20 2009/07/29 00:54:17 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -227,7 +230,7 @@ static void *DATCVR01(void *param)
 
 }
 
-bool GetIntAttr(S57Obj *obj, char *AttrName, int &val)
+bool GetIntAttr(S57Obj *obj, const char *AttrName, int &val)
 {
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
     strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
@@ -302,7 +305,7 @@ bool GetFloatAttr(S57Obj *obj, char *AttrName, float &val)
 }
 
 */
-bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val)
+bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val)
 {
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
     strncpy(attList, obj->attList->mb_str(), obj->attList->Len());
@@ -340,7 +343,7 @@ bool GetDoubleAttr(S57Obj *obj, char *AttrName, double &val)
 }
 
 
-bool GetStringAttr(S57Obj *obj, char *AttrName, char *pval, int nc)
+bool GetStringAttr(S57Obj *obj, const char *AttrName, char *pval, int nc)
 {
     *pval = 0;
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
@@ -382,7 +385,7 @@ bool GetStringAttr(S57Obj *obj, char *AttrName, char *pval, int nc)
         return true;
 }
 
-wxString *GetStringAttrWXS(S57Obj *obj, char *AttrName)
+wxString *GetStringAttrWXS(S57Obj *obj, const char *AttrName)
 {
 
     char *attList = (char *)calloc(obj->attList->Len()+1, 1);
@@ -2016,7 +2019,7 @@ wxString *CSQUALIN01(S57Obj *obj)
     wxString qualino1;
     int quapos = 0;
     bool bquapos = GetIntAttr(obj, "QUAPOS", quapos);
-    char    *line      = NULL;
+    const char *line = NULL;
 
     if (bquapos) {
         if ( 2 <= quapos && quapos < 10)
@@ -2134,7 +2137,7 @@ static void *SLCONS03(void *param)
     bool bvalstr;
     int ival;
 
-    char    *cmdw      = NULL;   // command word
+    const char    *cmdw      = NULL;   // command word
 
     int quapos;
     bool bquapos = GetIntAttr(obj, "QUAPOS", quapos);

@@ -1,5 +1,5 @@
 /* XPM */
-static char *xmgreen[]={
+static const char *xmgreen[]={
 "16 16 2 1",
 ". c None",
 "# c #00ff00",

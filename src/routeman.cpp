@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.13 2009/07/16 02:47:01 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.14 2009/07/29 00:52:37 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.14  2009/07/29 00:52:37  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.13  2009/07/16 02:47:01  bdbcat
  * Various
  *
@@ -51,6 +54,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.14  2009/07/29 00:52:37  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.13  2009/07/16 02:47:01  bdbcat
  * Various
  *
@@ -208,7 +214,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.13 2009/07/16 02:47:01 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.14 2009/07/29 00:52:37 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -676,40 +682,16 @@ void Routeman::AssembleAllRoutes(void)
             Route *proute = node->GetData();
 
             proute->AssembleRoute();
-            pSelect->AddAllSelectableRouteSegments(proute);
-
- /*
-            //    And the RoutePointGUIDs
-            for(unsigned int ip = 0 ; ip < proute->RoutePointGUIDList.GetCount() ; ip++)
+            if(proute->GetnPoints())
             {
-                  wxString GUID = proute->RoutePointGUIDList[ip];
-
-                  //    And on the RoutePoints themselves
-                  double prev_rlat;
-                  double prev_rlon;
-                  RoutePoint *prev_pRoutePoint;
-
-                  wxRoutePointListNode *prpnode = pWayPointMan->m_pWayPointList->GetFirst();
-                  while(prpnode)
-                  {
-                        RoutePoint *pr = prpnode->GetData();
-
-                        if(pr->m_GUID == GUID)
-                        {
-                              proute->AddPoint(pr);
-                              if(ip)
-                                    pSelect->AddSelectableRouteSegment(prev_rlat, prev_rlon, pr->m_lat, pr->m_lon,
-                                          prev_pRoutePoint, pr);
-
-                              prev_rlat = pr->m_lat;
-                              prev_rlon = pr->m_lon;
-                              prev_pRoutePoint = pr;
-                              break;
-                        }
-                        prpnode = prpnode->GetNext(); //RoutePoint
-                  }
+                  pSelect->AddAllSelectableRouteSegments(proute);
             }
- */
+            else                                // this route has no points
+            {
+                  pConfig->DeleteConfigRoute(proute);
+                  DeleteRoute(proute);
+            }
+
             node = node->GetNext();                   // Route
       }
 }
@@ -1028,7 +1010,7 @@ void SendToGpsDlg::OnCancelClick( wxCommandEvent& event )
        NightIconArray.Add((void *)pmi);\
 */
 #define MAKEICONARRAYS(key, xpm_ptr, description)\
- pmarkiconImage = new wxImage((char **)xpm_ptr);\
+ pmarkiconImage = new wxImage(( const char **)xpm_ptr);\
  ProcessIcon(pmarkiconImage, _T(key), _T(description));\
  delete pmarkiconImage;
 

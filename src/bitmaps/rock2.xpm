@@ -1,5 +1,5 @@
 /* XPM */
-static char *rock2[]={
+static const char *rock2[]={
 "16 16 2 1",
 ". c None",
 "# c #000000",

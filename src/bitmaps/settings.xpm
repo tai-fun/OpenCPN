@@ -1,5 +1,5 @@
 /* XPM */
-static char *settings[]={
+static const char *settings[]={
 "32 32 111 2",
 "Qt c None",
 "#z c #393110",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *bouy2[]={
+static const char *bouy2[]={
 "16 16 2 1",
 ". c None",
 "# c #000000",

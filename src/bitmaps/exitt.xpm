@@ -1,5 +1,5 @@
 /* XPM */
-static char *exitt[]={
+static const char *exitt[]={
 "32 32 199 2",
 "Qt c None",
 ".d c #000000",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *redgreenlite[]={
+static const char *redgreenlite[]={
 "16 16 4 1",
 ". c None",
 "# c #000000",

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.17 2009/06/18 01:35:57 bdbcat Exp $
+ * $Id: s52plib.h,v 1.18 2009/07/29 00:54:09 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.18  2009/07/29 00:54:09  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.17  2009/06/18 01:35:57  bdbcat
  * Cleanup.
  *
@@ -60,6 +63,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.18  2009/07/29 00:54:09  bdbcat
+ * Update for gcc 4.2.4
+ *
  * Revision 1.17  2009/06/18 01:35:57  bdbcat
  * Cleanup.
  *
@@ -159,7 +165,7 @@ public:
       void  SetPPMM(float ppmm){ canvas_pix_per_mm = ppmm;}
       LUPrec  *S52_LUPLookup(LUPname LUP_name, const char * objectName, S57Obj *pObj, bool bStrict = 0);
       int   _LUP2rules(LUPrec *LUP, S57Obj *pObj);
-      S52color *S52_getColor(char *colorName);
+      S52color *S52_getColor(const char *colorName);
       wxColour S52_getwxColour(const wxString &colorName);
 
       void UpdateMarinerParams(void);
@@ -262,7 +268,7 @@ public:
       Rules *StringToRules(const wxString& str_in);
       void GetAndAddCSRules(ObjRazRules *rzRules, Rules *rules);
 
-      int ReadS52Line( char *pBuffer, char *delim, int nCount, FILE *fp );
+      int ReadS52Line( char *pBuffer, const char *delim, int nCount, FILE *fp );
       int ChopS52Line(char *pBuffer, char c);
       int ParsePos(position *pos, char *buf, bool patt);
       int ParseLBID(FILE *fp);

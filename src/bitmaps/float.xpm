@@ -1,5 +1,5 @@
 /* XPM */
-static char *floating[]={
+static const char *floating[]={
 "16 16 3 1",
 ". c None",
 "# c #000000",

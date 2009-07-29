@@ -1,5 +1,5 @@
 /* XPM */
-static char *light[]={
+static const char *light[]={
 "16 16 3 1",
 ". c None",
 "a c #7f007f",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *follow[]={
+static const char *follow[]={
 "32 32 4 1",
 ". c None",
 "a c #00ff00",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *campfire[]={
+static const char *campfire[]={
 "16 16 4 1",
 ". c None",
 "a c #90672f",

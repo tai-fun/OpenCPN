@@ -1,5 +1,5 @@
 /* XPM */
-static char *boundary[]={
+static const char *boundary[]={
 "16 16 4 1",
 ". c None",
 "b c #000000",
