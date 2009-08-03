@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.50 2009/07/29 00:54:59 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.51 2009/08/03 03:26:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.51  2009/08/03 03:26:16  bdbcat
+ * Improve data dir finder for MSW
+ *
  * Revision 1.50  2009/07/29 00:54:59  bdbcat
  * Update for gcc 4.2.4, improve linux port detection
  *
@@ -217,7 +220,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.50 2009/07/29 00:54:59 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.51 2009/08/03 03:26:16 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -483,7 +486,7 @@ static int tick_idx;
 DEFINE_GUID(GARMIN_DETECT_GUID, 0x2c9c45c2L, 0x8e7d, 0x4c08, 0xa1, 0x2d, 0x81, 0x6b, 0xba, 0xe7, 0x22, 0xc0);
 #endif
 
-#ifdef __MSVC__
+#ifdef __MSVC__66
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -577,7 +580,7 @@ bool MyApp::OnInit()
 
  //     _CrtSetBreakAlloc(120244);
 
-#ifdef __MSVC__
+#ifdef __MSVC__66
 _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
 _CrtSetReportFile( _CRT_WARN, _CRTDBG_FILE_STDOUT );
 _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_DEBUG );
@@ -827,6 +830,55 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
         MyConfig *pCF = new MyConfig(wxString(_T("")), wxString(_T("")), Config_File);
         pConfig = (MyConfig *)pCF;
         pConfig->LoadMyConfig(0);
+
+
+        //        A special case for windows, which has some trouble finding the data files....
+#ifdef __WXMSW__
+        wxString sfd(*g_pSData_Locn);
+        appendOSDirSlash(&sfd);
+        sfd.Append(_T("s57data"));
+
+        if(!wxDir::Exists(sfd))                 // not found
+        {
+              wxString s_exe = std_path.GetExecutablePath();
+              wxFileName fn_look(s_exe);
+              while(fn_look.GetDirCount())
+              {
+                          wxString cpath = fn_look.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
+
+                          // look for  path/s57data/S52RAZDS.RLE
+                          wxString cp1 = cpath;
+                          wxString cp1d = cp1;
+                          cp1 += _T("s57data");
+                          appendOSDirSlash(&cp1);
+                          cp1 += _T("S52RAZDS.RLE");
+                          if(wxFileName::FileExists(cp1))
+                          {
+                                g_pSData_Locn->Clear();
+                                g_pSData_Locn->Append(cp1d);
+                                break;
+                          }
+
+                          // look for  path/data/s57data/S52RAZDS.RLE
+                          cp1 = cpath;
+                          cp1 += _T("data");
+                          appendOSDirSlash(&cp1);
+                          cp1d = cp1;
+                          cp1 += _T("s57data");
+                          appendOSDirSlash(&cp1);
+                          cp1 += _T("S52RAZDS.RLE");
+                          if(wxFileName::FileExists(cp1))
+                          {
+                                g_pSData_Locn->Clear();
+                                g_pSData_Locn->Append(cp1d);
+                                break;
+                          }
+
+                          fn_look.RemoveLastDir();
+              }
+        }
+
+#endif
 
 
 #ifdef USE_S57
@@ -2242,7 +2294,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     case ID_SETTINGS:
         {
 
-            bool bnewtoolbar = DoOptionsDialog();
+            bool bnewtoolbar = !(DoOptionsDialog() == 0);
 
 //              Apply various system settings
             ApplyGlobalSettings(true, bnewtoolbar);                 // flying update
