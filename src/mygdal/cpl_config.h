@@ -48,7 +48,7 @@
 #undef HAVE_LIBDBMALLOC
 #undef WORDS_BIGENDIAN
 
-/* #define CPL_DISABLE_DLL */
+#define CPL_DISABLE_DLL
 
 
 #endif

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.19 2009/07/29 00:52:03 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.20 2009/08/03 03:26:48 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.20  2009/08/03 03:26:48  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.19  2009/07/29 00:52:03  bdbcat
  * Correct stack index logic.
  *
@@ -118,7 +121,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.19 2009/07/29 00:52:03 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.20 2009/08/03 03:26:48 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -1660,7 +1663,7 @@ int ChartDB::DisableChart(wxString& PathToDisable)
 //          How?  By setting the chart bounding box to an absurd value
 //          Todo... Fix this heinous hack
                   pChartTable[i].LatMax = 0;
-                  pChartTable[i].LatMin = .0001;
+                  pChartTable[i].LatMin = (float).0001;
 
                   return 1;
             }

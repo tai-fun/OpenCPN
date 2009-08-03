@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayer.cpp,v 1.2 2008/03/30 23:01:34 bdbcat Exp $
+ * $Id: ogrlayer.cpp,v 1.3 2009/08/03 03:31:37 bdbcat Exp $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRSFLayer class.
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: ogrlayer.cpp,v $
+ * Revision 1.3  2009/08/03 03:31:37  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.2  2008/03/30 23:01:34  bdbcat
  * Cleanup
  *
@@ -101,7 +104,7 @@
 #include "ogr_p.h"
 #include "ogr_attrind.h"
 
-CPL_CVSID("$Id: ogrlayer.cpp,v 1.2 2008/03/30 23:01:34 bdbcat Exp $");
+CPL_CVSID("$Id: ogrlayer.cpp,v 1.3 2009/08/03 03:31:37 bdbcat Exp $");
 
 /************************************************************************/
 /*                              OGRLayer()                              */
@@ -324,6 +327,7 @@ OGRErr OGRLayer::SetAttributeFilter( const char *pszQuery )
 
     ResetReading();
 
+	eErr = OGRERR_NONE;
     return eErr;
 }
 

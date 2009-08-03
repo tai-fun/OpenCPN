@@ -124,8 +124,8 @@ extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
 //------------------------------------------------------------------------------
 
 
-
-#ifdef __MSVC__
+/*
+#ifdef __MSVC__66
         #ifdef _DEBUG
             #define _CRTDBG_MAP_ALLOC
             #include <crtdbg.h>
@@ -133,6 +133,7 @@ extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
             #define new DEBUG_NEW
         #endif
 #endif
+*/
 
 //----------------------------------------------------------------------------
 //          Environment Access functions
@@ -172,6 +173,7 @@ extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
  * being unused.
  */
 
+
 #ifndef DISABLE_CVSID
 #  define CPL_CVSID(string)     static char cpl_cvsid[] = string; \
 static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
@@ -180,6 +182,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 #endif
+
 
 /***********************************************************************
  * Define __POSIX__ to imply posix thread model compatibility
