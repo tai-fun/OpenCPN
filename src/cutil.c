@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.9 2008/08/09 23:56:08 bdbcat Exp $
+ * $Id: cutil.c,v 1.10 2009/08/03 03:37:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Extern C Linked Utilities
@@ -27,6 +27,9 @@
  *
  *
  * $Log: cutil.c,v $
+ * Revision 1.10  2009/08/03 03:37:06  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.9  2008/08/09 23:56:08  bdbcat
  * Cleanup
  *
@@ -55,6 +58,7 @@
  *
  */
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
@@ -87,7 +91,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: cutil.c,v 1.9 2008/08/09 23:56:08 bdbcat Exp $");
+CPL_CVSID("$Id: cutil.c,v 1.10 2009/08/03 03:37:06 bdbcat Exp $");
 
 /*************************************************************************
 
