@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.25 2009/07/29 00:48:14 bdbcat Exp $
+ * $Id: ais.cpp,v 1.26 2009/08/03 03:10:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.26  2009/08/03 03:10:27  bdbcat
+ * Cleanup
+ *
  * Revision 1.25  2009/07/29 00:48:14  bdbcat
  * Add Debug messages
  *
@@ -159,7 +162,7 @@ extern wxString         g_sAIS_Alert_Sound_File;
 static      GenericPosDat     AISPositionMuxData;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.25 2009/07/29 00:48:14 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.26 2009/08/03 03:10:27 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -2145,16 +2148,11 @@ void *OCP_AIS_Thread::Entry()
           [Settings/AISPort]
           Port=Serial:/tmp/aisfifo
     */
-    if(m_pPortName->MakeUpper().Contains(_T("FIFO")))
+    if(m_pPortName->Contains(_T("fifo")))
           goto port_ready;
 
 
-//    {
-//      (void)cfsetispeed(pttyset, B38400);
-//      (void)cfsetospeed(pttyset, (speed_t)B38400);
       tcsetattr(m_ais_fd, TCSANOW, pttyset);
-//      (void)tcflush(m_ais_fd, TCIOFLUSH);
-//    }
 
     if (isatty(m_ais_fd) == 0)
     {
