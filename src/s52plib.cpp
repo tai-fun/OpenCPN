@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.34 2009/07/29 00:53:59 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.35 2009/08/03 03:15:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.35  2009/08/03 03:15:26  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.34  2009/07/29 00:53:59  bdbcat
  * Update for gcc 4.2.4
  *
@@ -90,6 +93,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.35  2009/08/03 03:15:26  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.34  2009/07/29 00:53:59  bdbcat
  * Update for gcc 4.2.4
  *
@@ -219,7 +225,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, const char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.34 2009/07/29 00:53:59 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.35 2009/08/03 03:15:26 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -267,7 +273,7 @@ s52plib::s52plib ( const wxString& PLib )
       pointPaperLUPArray = NULL;      // points: PAPER_CHART
       condSymbolLUPArray = NULL;      // Dynamic Conditional Symbology
 
-      m_bOK = S52_load_Plib ( PLib );
+      m_bOK = !(S52_load_Plib ( PLib ) == 0);
 
       m_bShowS57Text = false;
       m_bShowS57ImportantTextOnly = false;
@@ -6682,7 +6688,7 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
       bool bdraw = true;
 
       //    calculate the length of the line
-      double len = sqrt ( pow ( ( X0-X1 ), 2 ) + pow ( ( Y0-Y1 ), 2 ) );
+      double len = sqrt ( pow ( (double)( X0-X1 ), 2 ) + pow ( (double)( Y0-Y1 ), 2 ) );
 
       int dot_cnt = dash;
       if ( space == 0 )

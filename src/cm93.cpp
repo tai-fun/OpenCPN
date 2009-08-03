@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.14 2009/07/29 20:07:18 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.15 2009/08/03 03:19:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.15  2009/08/03 03:19:52  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.14  2009/07/29 20:07:18  bdbcat
  * Update for gcc 4.2.4
  *
@@ -952,7 +955,7 @@ bool read_header_and_populate_cib(FILE *stream, Cell_Info_Block *pCIB)
 
 bool read_vector_record_table(FILE *stream, int count, Cell_Info_Block *pCIB)
 {
-      bool rv;
+      bool brv;
 
       geometry_descriptor *p = pCIB->edge_vector_descriptor_block;
       cm93_point *q = pCIB->pvector_record_block_top;
@@ -963,15 +966,15 @@ bool read_vector_record_table(FILE *stream, int count, Cell_Info_Block *pCIB)
             p->index = iedge;
 
             unsigned short npoints;
-            rv = read_and_decode_ushort(stream, &npoints);
-            if(!rv)
+            brv = !(read_and_decode_ushort(stream, &npoints));
+            if(!brv)
                   return false;
 
             p->n_points = npoints;
             p->p_points = q;
 
-//           rv = read_and_decode_bytes(stream, q, p->n_points * sizeof(cm93_point));
-//            if(!rv)
+//           brv = read_and_decode_bytes(stream, q, p->n_points * sizeof(cm93_point));
+//            if(!brv)
 //                  return false;
 
             unsigned short x, y;

@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.9  2009/08/03 03:12:49  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.8  2009/07/29 20:05:29  bdbcat
  * Update for gcc 4.2.4
  *
@@ -39,6 +42,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.9  2009/08/03 03:12:49  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.8  2009/07/29 20:05:29  bdbcat
  * Update for gcc 4.2.4
  *
@@ -94,7 +100,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.8 2009/07/29 20:05:29 bdbcat Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.9 2009/08/03 03:12:49 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters
@@ -574,10 +580,10 @@ bool TCMgr::GetTideOrCurrent15(time_t t, int idx, float &tcvalue, float& dir, bo
                   pIDX->Valid15 = tref;
                   pIDX->Value15 = tcvalue;
                   pIDX->Dir15 = dir;
-                  pIDX->Ret15 = ret;
+                  pIDX->Ret15 = !(ret == 0);
                   bnew_val = true;
 
-                  return ret;
+                  return !(ret == 0);
             }
       }
 
@@ -591,12 +597,12 @@ bool TCMgr::GetTideOrCurrent15(time_t t, int idx, float &tcvalue, float& dir, bo
             pIDX->Valid15 = tref;
             pIDX->Value15 = tcvalue;
             pIDX->Dir15 = dir;
-            pIDX->Ret15 = ret;
+            pIDX->Ret15 = !(ret == 0);
             bnew_val = true;
 
       }
 
-      return ret;
+      return !(ret == 0);
 
 }
 

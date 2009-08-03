@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.26 2009/07/16 02:41:53 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.27 2009/08/03 03:21:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.27  2009/08/03 03:21:38  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.26  2009/07/16 02:41:53  bdbcat
  * Allow native RGB color scheme
  *
@@ -69,6 +72,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.27  2009/08/03 03:21:38  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.26  2009/07/16 02:41:53  bdbcat
  * Allow native RGB color scheme
  *
@@ -169,7 +175,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.26 2009/07/16 02:41:53 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.27 2009/08/03 03:21:38 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -3465,7 +3471,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 
       //    Search for and find the reference point which is nearest the chart centroid
 
-      double d_current_min = pow(360, 2);
+      double d_current_min = pow(360.0, 2);
       for(n=0 ; n<nRefpoint ; n++)
       {
           double cx = (lonmin +lonmax)/2.;
@@ -3621,7 +3627,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 
             // And so the pixel rates, and pixels per meter.
             // Note that this type of polar length calculation works nicely on all chart skew angles
-              m_ppm_avg = sqrt(((x_test - xref) * (x_test - xref)) + ((y_test - yref) * (y_test - yref))) /
+              m_ppm_avg = sqrt((double)((x_test - xref) * (x_test - xref)) + (double)((y_test - yref) * (y_test - yref))) /
                           sqrt((easting * easting) + (northing * northing));
 
         }
@@ -3972,7 +3978,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.26 2009/07/16 02:41:53 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.27 2009/08/03 03:21:38 bdbcat Exp $
 *
 */
 

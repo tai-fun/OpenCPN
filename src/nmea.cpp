@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.37 2009/07/16 02:38:12 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.38 2009/08/03 03:17:48 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.37 2009/07/16 02:38:12 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.38 2009/08/03 03:17:48 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -1169,7 +1169,8 @@ thread_retry:
 
             devinterface.cbSize = sizeof(devinterface);
 
-            bgarmin_unit_found = SetupDiEnumDeviceInterfaces(hdevinfo, NULL,(GUID *) &GARMIN_GUID, 0, &devinterface);
+            bgarmin_unit_found = (SetupDiEnumDeviceInterfaces(hdevinfo,
+				NULL,(GUID *) &GARMIN_GUID, 0, &devinterface) != 0);
 
             if((!bgarmin_unit_found) && (nmsg > 0))
             {

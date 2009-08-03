@@ -105,8 +105,14 @@ static int alloc_mem(int, int[]);
 
 static int nrecurse;
 
-CPL_CVSID("$Id: tri.c,v 1.8 2009/06/24 04:04:19 bdbcat Exp $");
+CPL_CVSID("$Id: tri.c,v 1.9 2009/08/03 03:11:48 bdbcat Exp $");
 
+/*
+* \brief MSVC needs "__inline" instead of "inline" in C-source files.
+*/
+#if defined( _MSC_VER ) && !defined( __cplusplus )
+# define inline __inline
+#endif // defined( _MSC_VER ) && !defined( __cplusplus )
 
 
 #ifdef STANDALONE
@@ -4258,8 +4264,8 @@ int int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itra
             last = first + npoints - 1;
             for (j = 0; j < npoints; j++, i++, iv++)
             {
-                  iseg[i].v0.x = vertices[iv][0];
-                  iseg[i].v0.y = vertices[iv][1];
+                  iseg[i].v0.x = (int)vertices[iv][0];
+                  iseg[i].v0.y = (int)vertices[iv][1];
 
                   if (i == last)
                   {

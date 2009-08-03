@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.15 2009/06/24 02:11:31 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.16 2009/08/03 03:17:55 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.16  2009/08/03 03:17:55  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.15  2009/06/24 02:11:31  bdbcat
  * Correct static memory allocation in SENC read/decode.
  *
@@ -92,7 +95,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.15 2009/06/24 02:11:31 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.16 2009/08/03 03:17:55 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -485,7 +488,7 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_SM, double ref_lat,
     ppt++;                                            // vertex 0 is unused
 
 //  Check and account for winding direction of ring
-    bool cw = poly->getExteriorRing()->isClockwise();
+    bool cw = !(poly->getExteriorRing()->isClockwise() == 0);
 
     double x0, y0, x, y;
     OGRPoint p;
@@ -542,7 +545,7 @@ int PolyTessGeo::PolyTessGeoTri(OGRPolygon *poly, bool bSENC_SM, double ref_lat,
 
 
       //  Check and account for winding direction of ring
-        bool cw = poly->getInteriorRing(iir)->isClockwise();
+        bool cw = !(poly->getInteriorRing(iir)->isClockwise() == 0);
 
         if(!cw)
         {

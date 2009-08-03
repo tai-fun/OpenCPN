@@ -53,9 +53,10 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 
 #ifdef __MSVC__
 #define snprintf mysnprintf
+extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.12 2009/07/29 00:51:00 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.13 2009/08/03 03:18:13 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -778,7 +779,7 @@ float DistGreatCircle(double slat, double slon, double dlat, double dlon)
       double x = sin((lat1 - lat2)/2.0);
       double d4 = 2.0 * asin(sqrt(x*x + w));
 
-      float d5 = (180. * 60. / PI) * d4;
+      float d5 = (float)((180. * 60. / PI) * d4);
       return d5;
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.25 2009/07/17 03:54:55 bdbcat Exp $
+ * $Id: options.cpp,v 1.26 2009/08/03 03:16:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.26  2009/08/03 03:16:39  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.25  2009/07/17 03:54:55  bdbcat
  * Add config option for Wheel Zoom to cursor.
  *
@@ -1158,7 +1161,7 @@ void options::SetInitialSettings()
             OBJLElement *pOLE = (OBJLElement *)(ps52plib->pOBJLArray->Item(iPtr));
 
             ps57CtlListBox->Append(wxString(pOLE->OBJLName, wxConvUTF8));
-            ps57CtlListBox->Check(ps57CtlListBox->GetCount()-1, pOLE->nViz);
+            ps57CtlListBox->Check(ps57CtlListBox->GetCount()-1, !(pOLE->nViz == 0));
       }
 
 //    Diplay Category

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.36 2009/07/29 20:06:33 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.37 2009/08/03 03:14:10 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.37  2009/08/03 03:14:10  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.36  2009/07/29 20:06:33  bdbcat
  * Update for gcc 4.2.4
  *
@@ -94,6 +97,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.37  2009/08/03 03:14:10  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.36  2009/07/29 20:06:33  bdbcat
  * Update for gcc 4.2.4
  *
@@ -226,7 +232,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.36 2009/07/29 20:06:33 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.37 2009/08/03 03:14:10 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -1464,6 +1470,7 @@ bool s57chart::IsRenderDelta(ViewPort &vp_last, ViewPort &vp_proposed)
 {
       double last_center_easting, last_center_northing, this_center_easting, this_center_northing;
       toSM ( vp_proposed.clat, vp_proposed.clon, ref_lat, ref_lon, &this_center_easting, &this_center_northing );
+      toSM ( vp_last.clat,     vp_last.clon,     ref_lat, ref_lon, &last_center_easting, &last_center_northing );
 
       int dx = (int)round((last_center_easting  - this_center_easting)  * vp_proposed.view_scale_ppm);
       int dy = (int)round((last_center_northing - this_center_northing) * vp_proposed.view_scale_ppm);
@@ -3293,7 +3300,7 @@ int s57chart::ValidateAndCountUpdates( const wxFileName file000, const wxString 
                         bool bstat;
                         DDFModule *dupdate = new DDFModule;
                         dupdate->Initialize( '3','L','E','1','0',"!!!",3,4,4 );
-                        bstat = (bool)dupdate->Create(cp_ufile.mb_str());
+                        bstat = !(dupdate->Create(cp_ufile.mb_str()) == 0);
                         dupdate->Close();
 
                         if(!bstat)
@@ -3315,7 +3322,7 @@ int s57chart::ValidateAndCountUpdates( const wxFileName file000, const wxString 
             bool bSuccess;
             DDFModule oUpdateModule;
 
-            bSuccess = (bool)oUpdateModule.Open( m_tmpup_array->Last().mb_str(), TRUE );
+            bSuccess = !(oUpdateModule.Open( m_tmpup_array->Last().mb_str(), TRUE ) == 0);
 
             if( bSuccess )
             {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52utils.cpp,v 1.6 2008/10/24 16:18:43 bdbcat Exp $
+ * $Id: s52utils.cpp,v 1.7 2009/08/03 03:14:38 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Utility Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52utils.cpp,v $
+ * Revision 1.7  2009/08/03 03:14:38  bdbcat
+ * Cleanup for MSVC
+ *
  * Revision 1.6  2008/10/24 16:18:43  bdbcat
  * Remove/inline  isblank()
  *
@@ -70,7 +73,7 @@
  */
 
 #include "dychart.h"
-CPL_CVSID("$Id: s52utils.cpp,v 1.6 2008/10/24 16:18:43 bdbcat Exp $");
+//CPL_CVSID("$Id: s52utils.cpp,v 1.7 2009/08/03 03:14:38 bdbcat Exp $");
 
 #include "s52utils.h"
 #include <stdio.h>        // FILE
@@ -81,7 +84,7 @@ CPL_CVSID("$Id: s52utils.cpp,v 1.6 2008/10/24 16:18:43 bdbcat Exp $");
 // configuration file
 #define CONF_NAME   "./s52test.conf"
 
-#ifdef __WXMSW__
+#ifdef __WXMSW__66
     #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
     #define new DEBUG_NEW
 #endif
