@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.h,v 1.6 2009/03/26 22:35:35 bdbcat Exp $
+ * $Id: routeman.h,v 1.7 2009/08/03 03:08:51 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.h,v $
+ * Revision 1.7  2009/08/03 03:08:51  bdbcat
+ * Improve Waypoint logic
+ *
  * Revision 1.6  2009/03/26 22:35:35  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -128,7 +131,6 @@ public:
       void AssembleAllRoutes(void);
       void DeleteRoute(Route *pRoute);
       Route *FindRouteContainingWaypoint(RoutePoint *pWP);
-      Route *FindRouteContainingTwoWaypoints(RoutePoint *pWP1, RoutePoint *pWP2);
       wxArrayPtrVoid *GetRouteArrayContaining(RoutePoint *pWP);
 
       bool ActivateRoute(Route *pActivate);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.13 2009/07/29 00:50:09 bdbcat Exp $
+ * $Id: navutil.h,v 1.14 2009/08/03 03:06:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.14  2009/08/03 03:06:15  bdbcat
+ * Improve Waypoint logic
+ *
  * Revision 1.13  2009/07/29 00:50:09  bdbcat
  * Update Route Draw logic
  *
@@ -158,7 +161,10 @@ public:
       bool              m_bPtIsSelected;
       bool              m_bIsBeingEdited;
       bool              m_bIsInRoute;
-      bool              m_bIsolatedMark;        // This is an isolated mark, created by drop mark, or GPX-In, or config file load
+      bool              m_bIsolatedMark;        // This is an isolated mark,
+                                                // created by drop mark, or GPX-In, or config file load
+      bool              m_bKeepXRoute;          // This is a mark
+                                                // created by drop mark, or GPX-In, or config file load
 
       bool              m_bIsActive;
       int               m_ConfigWPNum;
@@ -341,6 +347,7 @@ public:
       bool  m_bIsSelected;
       void  *m_pData1;
       void  *m_pData2;
+      void  *m_pData3;
 };
 
 
@@ -359,7 +366,8 @@ public:
       bool AddSelectablePoint(float slat, float slon, RoutePoint *pRoutePointAdd);
       bool AddSelectableRouteSegment(float slat1, float slon1, float slat2, float slon2,
                                                          RoutePoint *pRoutePointAdd1,
-                                                         RoutePoint *pRoutePointAdd2);
+                                                         RoutePoint *pRoutePointAdd2,
+                                                         Route *pRoute);
 
       SelectItem *FindSelection(float slat, float slon, int fseltype, float SelectRadius);
 
