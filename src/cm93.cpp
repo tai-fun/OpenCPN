@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.15 2009/08/03 03:19:52 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.16 2009/08/03 04:23:28 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.16  2009/08/03 04:23:28  bdbcat
+ * Correct Logic
+ *
  * Revision 1.15  2009/08/03 03:19:52  bdbcat
  * Cleanup for MSVC
  *
@@ -966,7 +969,7 @@ bool read_vector_record_table(FILE *stream, int count, Cell_Info_Block *pCIB)
             p->index = iedge;
 
             unsigned short npoints;
-            brv = !(read_and_decode_ushort(stream, &npoints));
+            brv = !(read_and_decode_ushort(stream, &npoints) == 0);
             if(!brv)
                   return false;
 
