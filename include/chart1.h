@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.25 2009/07/29 00:55:24 bdbcat Exp $
+ * $Id: chart1.h,v 1.26 2009/08/03 03:04:47 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.26  2009/08/03 03:04:47  bdbcat
+ * GPS Timeout set to 6 secs
+ *
  * Revision 1.25  2009/07/29 00:55:24  bdbcat
  * Update for gcc 4.2.4
  *
@@ -194,7 +197,7 @@ typedef enum ColorScheme
 #define N_STATUS_BAR_FIELDS_MAX     20
 
 //      Define a constant GPS signal watchdog timeout value
-#define GPS_TIMEOUT_SECONDS  5
+#define GPS_TIMEOUT_SECONDS  6
 
 //    Define a timer value for Tide/Current updates
 //    Note that the underlying data algorithms produce fresh data only every 15 minutes
