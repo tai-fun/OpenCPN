@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.55 2009/07/29 01:08:23 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.56 2009/08/03 03:20:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.56  2009/08/03 03:20:53  bdbcat
+ * Improve Waypoint logic
+ *
  * Revision 1.55  2009/07/29 01:08:23  bdbcat
  * Implement Measure tool.
  *
@@ -129,6 +132,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.56  2009/08/03 03:20:53  bdbcat
+ * Improve Waypoint logic
+ *
  * Revision 1.55  2009/07/29 01:08:23  bdbcat
  * Implement Measure tool.
  *
@@ -370,7 +376,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.55 2009/07/29 01:08:23 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.56 2009/08/03 03:20:53 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1362,7 +1368,7 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
         GetPointPix ( tlat, tlon, &r1 );
         GetPointPix ( VPoint.clat, lon_norm, &r );
 
-        m_true_scale_ppm = sqrt(pow((r.y - r1.y), 2) + pow((r.x - r1.x), 2)) / (delta_y * 1852.);
+        m_true_scale_ppm = sqrt(pow((double)(r.y - r1.y), 2) + pow((double)(r.x - r1.x), 2)) / (delta_y * 1852.);
 
         //        A fall back in case of very high zoom-out, giving delta_y == 0
         //        which can probably only happen with vector charts
@@ -1464,7 +1470,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
         GetPointPix ( gLat, gLon, &lShipPoint );
         GetPointPix ( pred_lat, pred_lon, &lPredPoint );
 
-        double theta = atan2 ( ( lPredPoint.y - lShipPoint.y ), ( lPredPoint.x - lShipPoint.x ) );
+        double theta = atan2 ( (double)( lPredPoint.y - lShipPoint.y ), (double)( lPredPoint.x - lShipPoint.x ) );
         theta += PI;
 
 //    Is predicted point in the VPoint?
@@ -1500,7 +1506,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                 double x_mm = wxGetDisplaySizeMM().GetWidth();         // gives client width in mm
                 double pix_per_mm = canvas_width / x_mm;
 
-                double lpp = sqrt(pow((lPredPoint.x - lShipPoint.x), 2) + pow((lPredPoint.y - lShipPoint.y), 2));
+                double lpp = sqrt(pow((double)(lPredPoint.x - lShipPoint.x), 2) + pow((double)(lPredPoint.y - lShipPoint.y), 2));
                 double llmm = lpp / pix_per_mm;
 
                 double pred_icon_scale_factor = 1.25;
@@ -1758,7 +1764,7 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                         {
                               if(td->SOG > g_ShowMoored_Kts)
                               {
-                                    theta = atan2 ( ( PredPointAngleCalc.y - TargetPoint.y ), ( PredPointAngleCalc.x - TargetPoint.x ) );
+                                    theta = atan2 ( (double)( PredPointAngleCalc.y - TargetPoint.y ), (double)( PredPointAngleCalc.x - TargetPoint.x ) );
                               }
                               else
                               {
@@ -1909,7 +1915,7 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                       int pixy1 = PredPoint.y;
 
                                       //  Don't draw the COG line  and predictor point if zoomed far out....
-                                      double l = pow(pow((PredPoint.x - TargetPoint.x), 2) + pow((PredPoint.y - TargetPoint.y), 2), 0.5);
+                                      double l = pow(pow((double)(PredPoint.x - TargetPoint.x), 2) + pow((double)(PredPoint.y - TargetPoint.y), 2), 0.5);
 
                                       if(l > 24)
                                       {
@@ -2475,7 +2481,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         m_pMouseRoute->AddPoint ( pMousePoint );
                         if ( parent_frame->nRoute_State > 1 )
                                 pSelect->AddSelectableRouteSegment ( m_prev_rlat, m_prev_rlon, rlat, rlon,
-                                                                     m_prev_pMousePoint, pMousePoint );
+                                                                     m_prev_pMousePoint, pMousePoint, m_pMouseRoute );
 
                         m_prev_rlat = rlat;
                         m_prev_rlon = rlon;
@@ -2844,23 +2850,8 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         //    Try for AIS targets first
                         if ( ( pFind = pSelectAIS->FindSelection ( slat, slon, SELTYPE_AISTARGET, SelectRadius ) ) != NULL )
                         {
-
-//                                m_pFoundAIS_Target_Data = ( AIS_Target_Data * ) pFind->m_pData1;
-
-                                /*    Take a copy of the found target, for use by dialog later.
-                                      This is important, since the event loop and all other threads run
-                                      while the popup menu is displayed, and the found pointer could be
-                                      stale due to an AIS packet reception event before the dialog is created.
-                                      The copy will be deleted after use by the dialog.
-                                */
-
-//                                m_pSnapshotAIS_Target_Data = new AIS_Target_Data();
-//                                *m_pSnapshotAIS_Target_Data = *m_pFoundAIS_Target_Data;
-
                                 m_FoundAIS_MMSI = ( int ) pFind->m_pData1;
-
                                 CanvasPopupMenu ( x,y, SELTYPE_AISTARGET );
-
                                 Refresh ( false );
                         }
 
@@ -2919,10 +2910,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
 
                         else if ( ( pFind = pSelect->FindSelection ( slat, slon,SELTYPE_ROUTESEGMENT,SelectRadius ) ) != NULL )
                         {
-                                m_pFoundRoutePoint = ( RoutePoint * ) pFind->m_pData1;
-                                m_pFoundRoutePointSecond = ( RoutePoint * ) pFind->m_pData2;
-
-                                m_pSelectedRoute = pRouteMan->FindRouteContainingTwoWaypoints ( m_pFoundRoutePoint, m_pFoundRoutePointSecond );
+                                m_pSelectedRoute = (Route *)pFind->m_pData3;
                                 if ( m_pSelectedRoute )
                                 {
                                         m_pSelectedRoute->m_bRtIsSelected = true;
@@ -3185,7 +3173,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                 {
                         RoutePoint *pWP = new RoutePoint ( zlat, zlon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "" ) ), NULL );
                         pWP->m_bIsolatedMark = true;                      // This is an isolated mark
-
+                        pWP->m_bKeepXRoute = true;                        // This mark should be kept
                         pSelect->AddSelectablePoint ( zlat, zlon, pWP );
                         pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                         Refresh ( false );      // Needed for MSW, why not GTK??

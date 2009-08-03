@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.14 2009/07/29 00:52:37 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.15 2009/08/03 03:15:57 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.15  2009/08/03 03:15:57  bdbcat
+ * Improve Waypoint logic
+ *
  * Revision 1.14  2009/07/29 00:52:37  bdbcat
  * Update for gcc 4.2.4
  *
@@ -54,6 +57,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.15  2009/08/03 03:15:57  bdbcat
+ * Improve Waypoint logic
+ *
  * Revision 1.14  2009/07/29 00:52:37  bdbcat
  * Update for gcc 4.2.4
  *
@@ -214,7 +220,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.14 2009/07/29 00:52:37 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.15 2009/08/03 03:15:57 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -252,36 +258,6 @@ Route *Routeman::FindRouteContainingWaypoint(RoutePoint *pWP)
             }
 
             node = node->GetNext();
-      }
-
-      return NULL;                              // not found
-}
-
-//    Make a 2-D search to find the route containing both of two given waypoints
-Route *Routeman::FindRouteContainingTwoWaypoints(RoutePoint *pWP1, RoutePoint *pWP2)
-{
-      wxRouteListNode *route_node = pRouteList->GetFirst();
-      while(route_node)
-      {
-            Route *proute = route_node->GetData();
-
-            wxRoutePointListNode *waypoint_node = (proute->pRoutePointList)->GetFirst();
-            int match_count = 0;
-            while(waypoint_node)
-            {
-                  RoutePoint *prp = waypoint_node->GetData();
-                  if(prp == pWP1)                // success
-                        match_count++;
-                  if(prp == pWP2)                // success
-                        match_count++;
-
-                  if(match_count == 2)
-                        return proute;
-
-                  waypoint_node = waypoint_node->GetNext();           // next waypoint
-            }
-
-            route_node = route_node->GetNext();                         // next route
       }
 
       return NULL;                              // not found
@@ -521,7 +497,7 @@ bool Routeman::UpdateProgress()
 
 
 //      Determine Arrival
-                float ArrivalRadius = .05;
+                double ArrivalRadius = .05;
 
                 bool bDidArrival = false;
 
@@ -660,7 +636,7 @@ void Routeman::DeleteRoute(Route *pRoute)
             if(pcontainer_route == NULL)
             {
                   prp->m_bIsInRoute = false;          // Take this point out of this (and only) route
-                  if(!prp->m_bIsolatedMark)
+                  if(!prp->m_bKeepXRoute)
                   {
                         pConfig->DeleteWayPoint(prp);
                         pSelect->DeleteSelectablePoint(prp, SELTYPE_ROUTEPOINT);
