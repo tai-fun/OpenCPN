@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-VERSION=1.3.2
+VERSION=1.3.4
 COPYRIGHT_YEAR=2009
 WX_LIB_DIR=$(WX_HOME)/lib
 
@@ -47,7 +47,7 @@ opencpn_LDADD += $(GL_LIBS)
 endif
 
 
-bin_PROGRAMS = opencpn ocpnhelper
+bin_PROGRAMS = opencpn
 
 opencpn_SOURCES = 	src/bbox.cpp \
  			src/ocpn_pixel.cpp \
@@ -144,8 +144,6 @@ AM_CXXFLAGS += -DUSE_WIFI_CLIENT
 opencpn_SOURCES += src/wificlient.cpp 
 endif
 
-
-ocpnhelper_SOURCES = src/ocpnhelper.c
 
 noinst_HEADERS = \
  	include/about.h \
@@ -325,9 +323,6 @@ uninstall-local:
 	rmdir $(DESTDIR)$(pkgdatadir)/tcdata 
 	rmdir $(DESTDIR)$(pkgdatadir)
 
-##  Make the ocpnhelper application SUID to root.
-install-exec-hook:
-	chmod +s $(DESTDIR)$(bindir)/ocpnhelper
 
 
 
