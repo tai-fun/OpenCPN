@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wvschart.cpp,v 1.11 2009/07/16 02:45:44 bdbcat Exp $
+ * $Id: wvschart.cpp,v 1.12 2009/08/22 01:24:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  World Vector Shoreline (WVS) Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.12  2009/08/22 01:24:41  bdbcat
+ * Improve render calculations
+ *
  * Revision 1.11  2009/07/16 02:45:44  bdbcat
  * Cleanup.
  *
@@ -45,6 +48,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: wvschart.cpp,v $
+ * Revision 1.12  2009/08/22 01:24:41  bdbcat
+ * Improve render calculations
+ *
  * Revision 1.11  2009/07/16 02:45:44  bdbcat
  * Cleanup.
  *
@@ -123,7 +129,7 @@
 #include "cutil.h"
 #include "georef.h"
 
-CPL_CVSID("$Id: wvschart.cpp,v 1.11 2009/07/16 02:45:44 bdbcat Exp $");
+CPL_CVSID("$Id: wvschart.cpp,v 1.12 2009/08/22 01:24:41 bdbcat Exp $");
 
 //      Local Prototypes
 extern "C" int wvsrtv (const wxString& sfile, int latd, int lond, float **latray, float **lonray, int **segray);
@@ -204,6 +210,7 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
         int lon_min = (int)floor(VPoint.vpBBox.GetMinX());
         int lon_max = (int)ceil(VPoint.vpBBox.GetMaxX());
 
+/*  Dont need today
         if(lon_min > 180)
         {
               lon_min -= 360;
@@ -215,14 +222,14 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
               lon_min += 360;
               lon_max += 360;
         }
-
+*/
 //        printf("%d %d\n", lon_min, lon_max);
 
-        //  Make positive definite longitude for easier math
+        //  Make positive definite longitude for easier integer math
         lon_min += 720;
         lon_max += 720;
 
-//        debug a seg fault caused by this stuff....
+        double ref_lon = VPoint.clon;
 
 //      Loop around the lat/lon spec to get and draw the vector segments
         for(y = lat_min ; y < lat_max ; y++)
@@ -264,7 +271,6 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                                 float *plat_seg = plat_ray[ix][iy];
                                 float *plon_seg = plon_ray[ix][iy];
                                 int *pseg_cnt = pseg_ray[ix][iy];
-                                float *plon_seg_save;
                                 for(int iseg = 0 ; iseg < nseg[ix][iy] ; iseg++)
                                 {
                                         int seg_cnt = *pseg_cnt++;
@@ -277,29 +283,23 @@ void WVSChart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint)
                                         wxPoint p;
 
 
-                                        //      Keep all points in one segment in the same "phase"
-                                        bool badj = false;
-                                        plon_seg_save = plon_seg;
-
-                                        for(int ip = 0 ; ip < seg_cnt ; ip++)
-                                        {
-                                              float plon = *plon_seg++;
-                                              if(plon - VPoint.clon > 180.)
-                                                   badj = true;
-                                        }
-
-                                        plon_seg = plon_seg_save;
 
                                         for(int ip = 0 ; ip < seg_cnt ; ip++)
                                         {
                                                 float plat = *plat_seg++;
                                                 float plon = *plon_seg++;
 
-                                                if(badj)                                  // possibly adjust from 0-360 to retain proper phase
-                                                      plon -= 360.;
+                                                if(fabs(plon - ref_lon) > 180.)
+                                                {
+                                                      if(plon > ref_lon)
+                                                            plon -= 360.;
+                                                      else
+                                                            plon += 360.;
+                                                }
+
 
                                                 double easting, northing;
-                                                toSM(plat, plon, VPoint.clat, VPoint.clon, &easting, &northing);
+                                                toSM(plat, plon + 360., VPoint.clat, ref_lon + 360., &easting, &northing);
                                                 double epix = easting  * VPoint.view_scale_ppm;
                                                 double npix = northing * VPoint.view_scale_ppm;
 
