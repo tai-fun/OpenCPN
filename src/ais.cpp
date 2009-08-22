@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.26 2009/08/03 03:10:27 bdbcat Exp $
+ * $Id: ais.cpp,v 1.27 2009/08/22 01:16:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.27  2009/08/22 01:16:22  bdbcat
+ * Expand Query
+ *
  * Revision 1.26  2009/08/03 03:10:27  bdbcat
  * Cleanup
  *
@@ -151,6 +154,7 @@ extern ColorScheme      global_color_scheme;
 
 extern bool             g_bAIS_CPA_Alert;
 extern bool             g_bAIS_CPA_Alert_Audio;
+extern bool             g_bAIS_CPA_Alert_Suppress_Moored;
 
 extern AISTargetAlertDialog    *g_pais_alert_dialog_active;
 extern int              g_ais_alert_dialog_x, g_ais_alert_dialog_y;
@@ -162,7 +166,7 @@ extern wxString         g_sAIS_Alert_Sound_File;
 static      GenericPosDat     AISPositionMuxData;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.26 2009/08/03 03:10:27 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.27 2009/08/22 01:16:22 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -415,13 +419,32 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
       line.Printf(_T("Bearing:              %5.0f Deg.\n"), Brg);
       result->Append(line);
 
+      line.Printf(_T("Position:              "));
+
+      wxString pos_st;
+      pos_st += toSDMM(1, Lat);
+      pos_st <<_T("\n                       ");
+      pos_st += toSDMM(2, Lon);
+      pos_st << _T("\n\n");
+      line << pos_st;
+      result->Append(line);
+
+
+      wxDateTime rt(ReportTicks);
+      line.Printf(_T("Latest Report Time:       "));
+      line << rt.FormatISOTime();
+      line << _(" UTC\n");
+      result->Append(line);
+
+
       now.MakeGMT();
       int target_age = now.GetTicks() - ReportTicks;
 
-      line.Printf(_T("Report Age:               %d Sec.\n"), target_age);
+
+      line.Printf(_T("Report Age:               %3d Sec.\n"), target_age);
       result->Append(line);
 
-      line.Printf(_T("Recent Report Period:     %d Sec.\n"), RecentPeriod);
+      line.Printf(_T("Recent Report Period:     %3d Sec.\n\n"), RecentPeriod);
       result->Append(line);
 
       double hours = floor(TCPA / 60.);
@@ -1284,6 +1307,14 @@ void AIS_Decoder::UpdateAllAlarms(void)
                               td->n_alarm_state = AIS_NO_ALARM;
                               continue;
                         }
+
+                        //    No Alert on moored targets if so requested
+                        if(g_bAIS_CPA_Alert_Suppress_Moored && ((td->NavStatus == MOORED) || (td->NavStatus == AT_ANCHOR)))
+                        {
+                              td->n_alarm_state = AIS_NO_ALARM;
+                              continue;
+                        }
+
 
                         //    Skip distant targets if requested
                         if(g_bCPAMax)

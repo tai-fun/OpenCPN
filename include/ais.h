@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.20 2009/07/29 00:48:47 bdbcat Exp $
+ * $Id: ais.h,v 1.21 2009/08/22 01:16:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.21  2009/08/22 01:16:35  bdbcat
+ * Expand Query
+ *
  * Revision 1.20  2009/07/29 00:48:47  bdbcat
  * Add Debug messages
  *
@@ -137,16 +140,17 @@ typedef enum AIS_Error
 typedef enum ais_nav_status
 {
     UNDERWAY_USING_ENGINE = 0,
-    A1,
-    A2,
-    A3,
-    A4,
-    A5,
-    A6,
-    A7,
+    AT_ANCHOR,
+    NOT_UNDER_COMMAND,
+    RESTRICTED_MANOEUVRABILITY,
+    CONSTRAINED_BY_DRAFT,
+    MOORED,
+    AGROUND,
+    FISHING,
     UNDERWAY_SAILING
 
 }_ais_nav_status;
+
 
 //      Describe Transponder Class
 typedef enum ais_transponder_class
