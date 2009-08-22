@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.14 2009/06/28 02:02:35 bdbcat Exp $
+ * $Id: chartbase.h,v 1.15 2009/08/22 01:23:24 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.15  2009/08/22 01:23:24  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.14  2009/06/28 02:02:35  bdbcat
  * Implement Datum transforms.
  *
@@ -104,7 +107,8 @@ typedef enum ChartTypeEnum
       CHART_TYPE_S57,
       CHART_TYPE_CM93,
       CHART_TYPE_CM93COMP,
-      CHART_TYPE_DUMMY
+      CHART_TYPE_DUMMY,
+      CHART_TYPE_UNKNOWN
 }_ChartTypeEnum;
 
 //    ChartFamily constants
