@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.16 2009/08/03 04:23:28 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.17 2009/08/22 01:18:23 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.17  2009/08/22 01:18:23  bdbcat
+ * Improved rendering logic
+ *
  * Revision 1.16  2009/08/03 04:23:28  bdbcat
  * Correct Logic
  *
@@ -1454,12 +1457,15 @@ cm93chart::cm93chart()
           s_pcm93mgr = new cm93manager();
 
       m_pDict = NULL;
-      m_bref_is_set = false;
 
       m_current_cell_vearray_offset = 0;
 
       m_ncontour_alloc = 100;                   // allocate inital vertex count container array
       m_pcontour_array = (int *)malloc(m_ncontour_alloc * sizeof(int));
+
+    //  Establish a common reference point for the cell
+      ref_lat = 0.;
+      ref_lon = 0.;
 
 }
 
@@ -1469,6 +1475,7 @@ cm93chart::~cm93chart()
       {
             M_COVR_Desc mcd = m_covr_array.Item(im);
             free(mcd.pvertices);
+            free(mcd.pPoints);
       }
 
       free(m_pcontour_array);
@@ -1598,12 +1605,6 @@ void cm93chart::SetVPParms(ViewPort *vpt)
 
       m_vp_current = *vpt;
 
-      if(!m_bref_is_set)
-      {
-            ref_lat = 0.;//vpt->clat;
-            ref_lon = 0.;//vpt->clon;
-            m_bref_is_set = true;
-      }
 
 
      //  Set up local SM rendering constants
@@ -1639,23 +1640,9 @@ void cm93chart::SetVPParms(ViewPort *vpt)
       double rlat, rlon;
       Get_CM93_Cell_Origin(lower_left_cell, GetNativeScale(), &rlat, &rlon);
 
-      double dval;
-      switch (GetNativeScale())
-      {
-            case 20000000: dval = 120; break;         // Z
-            case  3000000: dval =  60; break;         // A
-            case  1000000: dval =  30; break;         // B
-            case   200000: dval =  12; break;         // C
-            case   100000: dval =   3; break;         // D
-            case    50000: dval =   1; break;         // E
-            case    20000: dval =   1; break;         // F
-            case     7500: dval =   1; break;         // G
-            default: dval =   1; break;
-      }
 
-
-      double dlat = dval / 3.;
-      double dlon = dval / 3.;
+      double dlat = m_dval / 3.;
+      double dlon = m_dval / 3.;
 
 
       double loni = rlon + dlon;
@@ -1693,227 +1680,28 @@ void cm93chart::SetVPParms(ViewPort *vpt)
             //    The cell is not in place, so go load it
             if(!bcell_is_in)
             {
-                  int rv = loadcell(vpcells.Item(i));
+                  m_loadcell_key = '0';               // starting
 
-                  //    On successful load, add it to the member list
-                  if(rv)
+                  //    Load the subcells in sequence
+                  //    On successful load, add it to the member list and process the cell
+                  while(loadcell_in_sequence(vpcells.Item(i)))
                   {
-                        m_cells_loaded_array.Add(vpcells.Item(i));
+                        ProcessVectorEdges();
+                        CreateObjChain();
+
                         ForceEdgePriorityEvaluate();              // need to re-evaluate priorities
+                        m_cells_loaded_array.Add(vpcells.Item(i));
+
+                        Unload_CM93_Cell();
                   }
             }
       }
 }
 
 
-int cm93chart::loadcell(int cellindex)
+
+void cm93chart::ProcessVectorEdges(void)
 {
-      //    Try to load the simple case, where sub_char is '0'
-
-      int rv = loadsubcell(cellindex, '0');
-
-      //    Some error, maybe there are alpha subcells....
-      if(!rv)
-      {
-            //Create file name in pieces
-
-            int ilat = cellindex / 10000;
-            int ilon = cellindex % 10000;
-
-            int dval;
-            switch (GetNativeScale())
-            {
-                  case 20000000: dval = 120; break;         // Z
-                  case  3000000: dval =  60; break;         // A
-                  case  1000000: dval =  30; break;         // B
-                  case   200000: dval =  12; break;         // C
-                  case   100000: dval =   3; break;         // D
-                  case    50000: dval =   1; break;         // E
-                  case    20000: dval =   1; break;         // F
-                  case     7500: dval =   1; break;         // G
-                  default: dval =   1; break;
-            }
-
-
-            int jlat = (((ilat - 30) / dval) * dval) + 30;              // normalize
-            int jlon = (ilon / dval) * dval;
-
-            int ilatroot = (((ilat - 30) / 60) * 60) + 30;
-            int ilonroot = (ilon / 60) * 60;
-
-            wxString file;
-            file.Printf(_T("%04d%04d."), jlat, jlon);
-            file += m_scalechar;
-
-            wxString fileroot;
-            fileroot.Printf(_T("%04d%04d/"), ilatroot, ilonroot);
-            fileroot += m_scalechar;
-            fileroot += _T("/");
-            fileroot.Prepend( m_prefix );
-
-            wxChar sub_char = 'A';
-
-            file[0] = sub_char;
-            bool b_keep_looking = true;
-
-            while(b_keep_looking)
-            {
-                  file[0] = sub_char;
-                  wxString lfile = file;
-                  lfile.Prepend(fileroot);
-
-                  if(::wxFileExists(lfile))
-                  {
-                        rv = loadsubcell(cellindex, sub_char);
-                        sub_char ++;
-                  }
-                  else
-                  {
-                        b_keep_looking = false;
-                  }
-            }
-      }
-
-      return rv;
-}
-
-
-
-
-wxStopWatch *s_stw;
-extern wxStopWatch *s_stwt;
-wxStopWatch *s_stwl;
-wxStopWatch *s_stwg;
-wxStopWatch *s_stwp;
-
-
-int cm93chart::loadsubcell(int cellindex, wxChar sub_char)
-{
-      wxBusyCursor wait;                        // This may take awhile....
-
-      delete s_stw;
-      s_stw = new wxStopWatch;
-      s_stw->Pause();
-
-      delete s_stwt;
-      s_stwt = new wxStopWatch;
-      s_stwt->Pause();
-
-      delete s_stwl;
-      s_stwl = new wxStopWatch;
-      s_stwl->Pause();
-
-      delete s_stwg;
-      s_stwg = new wxStopWatch;
-      s_stwg->Pause();
-
-      delete s_stwp;
-      s_stwp = new wxStopWatch;
-      s_stwp->Pause();
-
-
-      //    Create the file name
-
-      int ilat = cellindex / 10000;
-      int ilon = cellindex % 10000;
-
-      int dval;
-      switch (GetNativeScale())
-      {
-            case 20000000: dval = 120; break;         // Z
-            case  3000000: dval =  60; break;         // A
-            case  1000000: dval =  30; break;         // B
-            case   200000: dval =  12; break;         // C
-            case   100000: dval =   3; break;         // D
-            case    50000: dval =   1; break;         // E
-            case    20000: dval =   1; break;         // F
-            case     7500: dval =   1; break;         // G
-            default: dval =   1; break;
-      }
-
-#ifdef CM93_DEBUG_PRINTF
-      double dlat = dval / 3.;
-      double dlon = dval / 3.;
-      double lat, lon;
-      Get_CM93_Cell_Origin(cellindex, GetNativeScale(), &lat, &lon);
-      printf(" loadcell %d at lat: %g/%g lon:%g/%g\n", cellindex, lat, lat + dlat, lon, lon+dlon);
-#endif
-
-
-
-      int jlat = (((ilat - 30) / dval) * dval) + 30;              // normalize
-      int jlon = (ilon / dval) * dval;
-
-      int ilatroot = (((ilat - 30) / 60) * 60) + 30;
-      int ilonroot = (ilon / 60) * 60;
-
-      wxString file;
-      file.Printf(_T("%04d%04d."), jlat, jlon);
-      file += m_scalechar;
-
-
-
-      wxString fileroot;
-      fileroot.Printf(_T("%04d%04d/"), ilatroot, ilonroot);
-      fileroot += m_scalechar;
-      fileroot += _T("/");
-      fileroot.Prepend(m_prefix);
-
-      file[0] = sub_char;
-      file.Prepend(fileroot);
-
-      if(!::wxFileExists(file))
-      {
-            //    Try with alternate case of m_scalechar
-            wxString new_scalechar = m_scalechar.Lower();
-
-            wxString file1;
-            file1.Printf(_T("%04d%04d."), jlat, jlon);
-            file1 += new_scalechar;
-
-            file1[0] = sub_char;
-
-            file1.Prepend(fileroot);
-
-
-            if(!::wxFileExists(file1))
-            {
-
-            //    This is not really an error....
-//            wxString msg(_T("   Tried to load non-existent CM93 cell "));
-//            msg += file;
-//            wxLogMessage(msg);
-
-                  return 0;
-            }
-            else
-                  file = file1;                       // found the file as lowercase, substitute the name
-      }
-
-      //    File is known to exist
-
-      wxString msg(_T("Loading CM93 cell "));
-      msg += file;
-      wxLogMessage(msg);
-
-#ifdef CM93_DEBUG_PRINTF
-      {
-            char str[256];
-            strncpy(str, msg.mb_str(), 255);
-            printf("%s\n", str);
-      }
-#endif
-
-
-      //    Ingest it
-      if(!Ingest_CM93_Cell((const char *)file.mb_str(), &m_CIB))
-      {
-            wxString msg(_T("   cm93chart  Error ingesting "));
-            msg.Append(file);
-            wxLogMessage(msg);
-            return 0;
-      }
-
       //    Create the vector(edge) table for this cell, appending to the existing member table
 
       m_current_cell_vearray_offset = m_nve_elements;              // add to the table at this offset
@@ -1952,30 +1740,10 @@ int cm93chart::loadsubcell(int cellindex, wxChar sub_char)
 
             pgd++;                              // next geometry descriptor
       }
-
-
-    //  Establish a common reference point for the cell
-      ref_lat = 0.;
-      ref_lon = 0.;
-
-
-
-
-      //    Convert directly to s57chart obj structures
- s_stw->Resume();
-
-      CreateObjChain();
-
-s_stw->Pause();
-
- wxString msgs;
- msgs.Printf(_T("ObjChain:%ld  Tess Subroutine: %ld  CreateObj: %ld Geom: %ld LUP+ %ld"), s_stw->Time(), s_stwt->Time(), s_stwl->Time(), s_stwg->Time(), s_stwp->Time());
- //wxLogMessage(msgs);
-
-      Unload_CM93_Cell();
-
-      return 1;
 }
+
+
+
 
 int cm93chart::CreateObjChain()
 {
@@ -1993,41 +1761,20 @@ int cm93chart::CreateObjChain()
       int iObj = 0;
       S57Obj *obj;
 
-      while(iObj < m_CIB.m_nfeature_records/*m_header.usn_feature_records*/)
+      while(iObj < m_CIB.m_nfeature_records)
       {
-//            printf("%d...%d\n", iObj, m_header.n_feature_records);
 
             if((pobjectDef != NULL) /*&& (iObj <= 1390)*/)  // no run at 391, ok at 390
             {
 
-//                  if(iObj == 390)
-//                        int ggl = 5;
-
-//                  if(iObj < 10000)
-                  {
-//                        if(iObj == 494)
-//                              int yyp = 5;
-
-  s_stwg->Resume();
-                        Extended_Geometry *xgeom = BuildGeom(pobjectDef, NULL, iObj);
-  s_stwg->Pause();
-
-
+                  Extended_Geometry *xgeom = BuildGeom(pobjectDef, NULL, iObj);
 
                   obj = NULL;
                   if(NULL != xgeom)
-                  {
+                         obj = CreateS57Obj( iObj,  pobjectDef, m_pDict, xgeom, ref_lat, ref_lon, GetNativeScale(), true );
 
-                        obj = CreateS57Obj( iObj,  pobjectDef, m_pDict, xgeom, ref_lat, ref_lon, GetNativeScale(), true );
-
-                  }
-
-//                  if(NULL == obj)
-//                        int ggs = 4;
-
-
-                  if(obj)
-                  {
+                   if(obj)
+                   {
 
                         //    Set the per-object transform coefficients
                         obj->x_rate   = m_CIB.transform_x_rate * (mercator_k0 * WGS84_semimajor_axis_meters / CM93_semimajor_axis_meters);
@@ -2050,9 +1797,7 @@ int cm93chart::CreateObjChain()
 
                         // set rigid platform
                               if (!strncmp(obj->FeatureName, "BCN",    3))
-                              {
-                                    pRigidATONArray->Add(obj);
-                              }
+                                     pRigidATONArray->Add(obj);
                         }
 
                         //    Mark the object as an ATON
@@ -2105,9 +1850,7 @@ int cm93chart::CreateObjChain()
 //    if(obj->Index == 2173)
 //        int rrt = 5;
 
- s_stwp->Resume();
                          LUP = ps52plib->S52_LUPLookup(LUP_Name, obj->FeatureName, obj);
-  s_stwp->Pause();
 
                          if(NULL == LUP)
                          {
@@ -2125,7 +1868,6 @@ int cm93chart::CreateObjChain()
                             _insertRules(obj,LUP, this);
                          }
                     }
-                  } //iObj == 390
 
 
             }
@@ -2142,10 +1884,6 @@ int cm93chart::CreateObjChain()
 
  //     CALLGRIND_STOP_INSTRUMENTATION
 
-            stop.Pause();
-//            printf("ObjChain: %ld\n", stop.Time());
-
-
       return 1;
 }
 
@@ -2153,8 +1891,6 @@ int cm93chart::CreateObjChain()
 
 InitReturn cm93chart::Init( const wxString& name, ChartInitFlag flags, ColorScheme cs )
 {
-//      InitReturn ret_value;
-
 
       m_pFullPath = new wxString(name);
 
@@ -2181,41 +1917,24 @@ InitReturn cm93chart::Init( const wxString& name, ChartInitFlag flags, ColorSche
       m_Chart_Scale = scale;
 
 
+      switch (GetNativeScale())
+      {
+            case 20000000: m_dval = 120; break;         // Z
+            case  3000000: m_dval =  60; break;         // A
+            case  1000000: m_dval =  30; break;         // B
+            case   200000: m_dval =  12; break;         // C
+            case   100000: m_dval =   3; break;         // D
+            case    50000: m_dval =   1; break;         // E
+            case    20000: m_dval =   1; break;         // F
+            case     7500: m_dval =   1; break;         // G
+            default: m_dval =   1; break;
+      }
 
 
-        //  Establish a common reference point for the chart
-      ref_lat = 0;
-      ref_lon = 0;
 
 
       if(flags == THUMB_ONLY)
       {
-/*
-    // Look for Thumbnail
-    // Set the proper directory for the SENC/BMP files
-            wxString SENCdir = *g_pSENCPrefix;
-
-            if(SENCdir.Last() != fn.GetPathSeparator())
-                  SENCdir.Append(fn.GetPathSeparator());
-
-            wxFileName tsfn(SENCdir);
-            tsfn.SetFullName(fn.GetFullName());
-
-            wxFileName ThumbFileNameLook(tsfn);
-            ThumbFileNameLook.SetExt(_T("BMP"));
-
-            wxBitmap *pBMP;
-            if(ThumbFileNameLook.FileExists())
-            {
-//#ifdef ocpnUSE_ocpnBitmap
-//                pBMP =  new ocpnBitmap;
-//#else
-                  pBMP =  new wxBitmap;
-//#endif
-                  pBMP->LoadFile(ThumbFileNameLook.GetFullPath(), wxBITMAP_TYPE_BMP );
-                  m_pDIBThumbDay = pBMP;
-            }
-*/
             SetColorScheme(cs, false);
 
             return INIT_OK;
@@ -2276,7 +1995,7 @@ Extended_Geometry *cm93chart::BuildGeom(Object *pobject, wxFileOutputStream *pos
 
       int iseg;
 
-      Extended_Geometry *ret_ptr = new Extended_Geometry; //(Extended_Geometry *)malloc(sizeof(Extended_Geometry));
+      Extended_Geometry *ret_ptr = new Extended_Geometry;
 
       int lon_max, lat_max, lon_min, lat_min;
       lon_max = 0; lon_min = 65536; lat_max = 0; lat_min = 65536;
@@ -2879,7 +2598,6 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
                                      double ref_lat, double ref_lon, double scale,
                                      bool bDeleteGeomInline)
 {
- s_stwl->Resume();
 
 #define MAX_HDR_LINE    4000
 
@@ -3123,7 +2841,7 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
                   if(!strcmp((char *)pattValTmp->value, "II25"))
                   {
                         free (pattValTmp->value);
-                        pattValTmp->value   = (char *) malloc (strlen("BACKGROUND"));
+                        pattValTmp->value   = (char *) malloc (strlen("BACKGROUND") + 1);
                         strcpy((char *)pattValTmp->value, "BACKGROUND");
                   }
             }
@@ -3312,6 +3030,8 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
                         }
                         pmcd->m_nvertices = npta;
                         pmcd->pvertices = (double *)geoPt;
+                        pmcd->pPoints = (wxPoint *)malloc(npta * sizeof(wxPoint));         // pre-allocate storage for later use in
+                                                                                          // region calculations
 
                        //     Add this geometry to the M_COVR array
                         m_covr_array.Add(pmcd);
@@ -3515,8 +3235,6 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
       }
 
 
-s_stwl->Pause();
-
 
       // Everything in Xgeom that is needed later has been given to the object
       // So, the xgeom object can be deleted
@@ -3633,6 +3351,279 @@ InitReturn cm93chart::CreateHeaderDataFromCM93Cell(void)
 
       return INIT_OK;
 }
+
+
+bool cm93chart::LoadM_COVRSet(ViewPort *vpt)
+{
+      //    Fetch the lat/lon of the screen corner points
+      double ll_lon = vpt->vpBBox.GetMinX();
+      double ll_lat = vpt->vpBBox.GetMinY();
+
+      double ur_lon = vpt->vpBBox.GetMaxX();
+      double ur_lat = vpt->vpBBox.GetMaxY();
+
+
+      //    Adjust to always positive for easier cell calculations
+      if(ll_lon < 0)
+      {
+            ll_lon += 360;
+            ur_lon += 360;
+      }
+
+      //    Create an array of CellIndexes covering the current viewport
+      ArrayOfInts vpcells;
+
+      vpcells.Clear();
+
+      int lower_left_cell = Get_CM93_CellIndex(ll_lat, ll_lon, GetNativeScale());
+      vpcells.Add(lower_left_cell);                   // always add the lower left cell
+
+      double rlat, rlon;
+      Get_CM93_Cell_Origin(lower_left_cell, GetNativeScale(), &rlat, &rlon);
+
+
+      double dlat = m_dval / 3.;
+      double dlon = m_dval / 3.;
+
+
+      double loni = rlon + dlon;
+      double lati = rlat;
+
+      while(lati < ur_lat)
+      {
+            while(loni < ur_lon)
+            {
+                  int next_cell = Get_CM93_CellIndex(lati, loni, GetNativeScale());
+                  vpcells.Add(next_cell);
+
+                  loni += dlon;
+            }
+            lati += dlat;
+            loni = rlon;
+      }
+
+
+      //    Check the member array to see if all these viewport cells have had their m_covr loaded
+      bool bcell_is_in;
+
+      for(unsigned int i=0 ; i < vpcells.GetCount() ; i++)
+      {
+            bcell_is_in = false;
+            for(unsigned int j=0 ; j < m_covr_loaded_cell_array.GetCount() ; j++)
+            {
+                  if(vpcells.Item(i) == m_covr_loaded_cell_array.Item(j))
+                  {
+                        bcell_is_in = true;
+                        break;
+                  }
+            }
+
+            //    The cell is not in place, so go load it
+            if(!bcell_is_in)
+            {
+                  m_loadcell_key = '0';               // starting
+
+                  //    Load the subcells in sequence
+                  //    On successful load, add it to the member list and process the cell
+                  while(loadcell_in_sequence(vpcells.Item(i)))
+                  {
+                        m_covr_loaded_cell_array.Add(vpcells.Item(i));
+
+                  // Cell is loaded for the first time, so extract the m_covr structures inline
+
+                        Object *pobjectDef = m_CIB.pobject_block;           // head of object array
+
+                        int iObj = 0;
+                        while(iObj < m_CIB.m_nfeature_records)
+                        {
+                              if((pobjectDef != NULL) )
+                              {
+                                    //    Look for and process m_covr object(s)
+                                    int iclass = pobjectDef->otype;
+
+                                    wxString sclass = m_pDict->GetClassName(iclass);
+
+                                    if(sclass.IsSameAs(_T("_m_sor")))
+                                    {
+                                          Extended_Geometry *xgeom = BuildGeom(pobjectDef, NULL, iObj);
+
+                                          if(NULL != xgeom)
+                                          {
+                                                      double lat, lon;
+
+                                                      M_COVR_Desc *pmcd = new M_COVR_Desc;
+
+                              //      Get number of exterior ring points(vertices)
+                                                      int npta  = xgeom->contour_array[0];
+                                                      pt *geoPt = (pt*)malloc((npta + 2) * sizeof(pt));     // vertex array
+                                                      pt *ppt = geoPt;
+
+                              //  Transcribe exterior ring points to vertex array, in Lat/Lon coordinates
+                                                      for(int ip = 0 ; ip < npta ; ip++)
+                                                      {
+                                                            cm93_point p;
+                                                            p.x = (int)xgeom->vertex_array[ip + 1].m_x;
+                                                            p.y = (int)xgeom->vertex_array[ip + 1].m_y;
+                                                            Transform(&p, &lat, &lon);
+                                                            ppt->x = lon;
+                                                            ppt->y = lat;
+
+                                                            ppt++;
+                                                      }
+                                                      pmcd->m_nvertices = npta;
+                                                      pmcd->pvertices = (double *)geoPt;
+                                                      // pre-allocate storage for later use in drawing
+                                                      pmcd->pPoints = (wxPoint *)malloc(npta * sizeof(wxPoint));
+
+
+                              //     Add this geometry to the M_COVR array m_covr_array_outlines
+                                                      m_covr_array_outlines.Add(pmcd);
+
+                                                      free(xgeom);
+                                          }
+                                     }
+                              }
+
+                              else                    // objectdef == NULL
+                                    break;
+
+                              pobjectDef++;
+
+                              iObj++;
+                        }
+
+                        Unload_CM93_Cell();           // all done
+                  }                       // whilei
+            }                             // !bcell_is_in
+      }                                   //     for(unsigned int i=0 ; i < vpcells.GetCount() ; i++)
+
+      return true;
+}
+
+
+
+
+
+int cm93chart::loadcell_in_sequence(int cellindex)
+{
+      int rv = 0;
+
+      if(m_loadcell_key == '0')
+      {
+            //    Try to load the simple case, where sub_char is '0'
+            rv = loadsubcell(cellindex, '0');
+            m_loadcell_key = 'A';
+
+            if(rv)
+                  return rv;
+      }
+
+      rv = loadsubcell(cellindex, m_loadcell_key);
+      m_loadcell_key ++;
+
+      return rv;
+}
+
+
+
+int cm93chart::loadsubcell(int cellindex, wxChar sub_char)
+{
+
+      //    Create the file name
+
+      int ilat = cellindex / 10000;
+      int ilon = cellindex % 10000;
+
+
+#ifdef CM93_DEBUG_PRINTF
+      double dlat = dval / 3.;
+      double dlon = dval / 3.;
+      double lat, lon;
+      Get_CM93_Cell_Origin(cellindex, GetNativeScale(), &lat, &lon);
+      printf(" Attempting loadcell %d at lat: %g/%g lon:%g/%g\n", cellindex, lat, lat + dlat, lon, lon+dlon);
+#endif
+
+
+
+      int jlat = (((ilat - 30) / m_dval) * m_dval) + 30;              // normalize
+      int jlon = (ilon / m_dval) * m_dval;
+
+      int ilatroot = (((ilat - 30) / 60) * 60) + 30;
+      int ilonroot = (ilon / 60) * 60;
+
+      wxString file;
+      file.Printf(_T("%04d%04d."), jlat, jlon);
+      file += m_scalechar;
+
+
+
+      wxString fileroot;
+      fileroot.Printf(_T("%04d%04d/"), ilatroot, ilonroot);
+      fileroot += m_scalechar;
+      fileroot += _T("/");
+      fileroot.Prepend(m_prefix);
+
+      file[0] = sub_char;
+      file.Prepend(fileroot);
+
+      if(!::wxFileExists(file))
+      {
+            //    Try with alternate case of m_scalechar
+            wxString new_scalechar = m_scalechar.Lower();
+
+            wxString file1;
+            file1.Printf(_T("%04d%04d."), jlat, jlon);
+            file1 += new_scalechar;
+
+            file1[0] = sub_char;
+
+            file1.Prepend(fileroot);
+
+
+            if(!::wxFileExists(file1))
+            {
+
+            //    This is not really an error....
+#ifdef CM93_DEBUG_PRINTF
+                  printf("   Tried to load non-existent CM93 cell ");
+#endif
+                  return 0;
+
+                  return 0;
+            }
+            else
+                  file = file1;                       // found the file as lowercase, substitute the name
+      }
+
+      //    File is known to exist
+
+      wxString msg(_T("Loading CM93 cell "));
+      msg += file;
+      wxLogMessage(msg);
+
+#ifdef CM93_DEBUG_PRINTF
+      {
+            char str[256];
+            strncpy(str, msg.mb_str(), 255);
+            printf("%s\n", str);
+      }
+#endif
+
+
+      //    Ingest it
+      if(!Ingest_CM93_Cell((const char *)file.mb_str(), &m_CIB))
+      {
+            wxString msg(_T("   cm93chart  Error ingesting "));
+            msg.Append(file);
+            wxLogMessage(msg);
+            return 0;
+      }
+
+
+      return 1;
+}
+
+
 
 
 //-----------------------------------------------------------------------------------------------
@@ -3757,6 +3748,7 @@ cm93compchart::cm93compchart()
 
       m_cmscale = -1;
 
+      m_pDummyBM = NULL;
 }
 
 cm93compchart::~cm93compchart()
@@ -3765,6 +3757,8 @@ cm93compchart::~cm93compchart()
             delete m_pcm93chart_array[i];
 
       delete m_pDict;
+      delete m_pDummyBM;
+
 }
 
 
@@ -3786,8 +3780,18 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
       }
 
       //    Get the cm93 cell database prefix
-      //    Search for the directory called 00300000 all along the path of the passed parameter filename
       wxString path = fn.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME));
+
+      //    Remove two subdirectories from the passed file name
+      //    This will give a normal CM93 root
+      wxFileName file_path(path);
+      file_path.RemoveLastDir();
+      file_path.RemoveLastDir();
+
+      wxString target = file_path.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
+
+/*
+      //    Search for the directory called 00300000 all along the path of the passed parameter filename
       wxString target;
       unsigned int i = 0;
 
@@ -3803,8 +3807,13 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
             }
             i++;
       }
+
+*/
       m_prefix = target;
 
+      wxString msg(_T("CM93Composite Chart Root is "));
+      msg.Append(m_prefix);
+      wxLogMessage(msg);
 
 
       if(flags == THUMB_ONLY)
@@ -3916,6 +3925,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 
       wxChar ext;
       bool cellscale_is_useable = false;
+      bool b_nochart = false;
 
       while(!cellscale_is_useable)
       {
@@ -3950,6 +3960,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 #ifdef CM93_DEBUG_PRINTF
                         printf("   CM93 finds no chart of any scale present at Lat/Lon  %g %g\n", vpt->clat, vpt->clon);
 #endif
+                        b_nochart = true;
                         break;
                   }
 
@@ -3963,69 +3974,92 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 
             }
 
+
+
             m_pcm93chart_current = m_pcm93chart_array[cmscale];
 
-            //    Pass the parameters to the proper scale chart
-            //    Which will also load the needed cell(s)
-            m_pcm93chart_current->SetVPParms(vpt);
-
-            //    Check to see if the viewpoint center is actually on the selected chart
-            float yc = vpt->clat;
-            float xc = vpt->clon;
-
-
-            while(xc < 0)
-            {
-                  xc += 360.;
-            }
-
-            bool bin_mcovr = false;
-            if(!m_pcm93chart_current->m_covr_array.GetCount())
+            if(b_nochart)
             {
 #ifdef CM93_DEBUG_PRINTF
-                  printf(" chart %c has no M_COVR\n", (char)('A' + cmscale -1));
+                  printf(" b_nochart return\n");
 #endif
+                  m_pcm93chart_current = NULL;
+                  for(int i = 0 ; i < 8 ; i++)
+                         m_pcm93chart_array[i] = NULL;
+
+                  return;
             }
 
-
-            for(unsigned int im=0 ; im < m_pcm93chart_current->m_covr_array.GetCount() ; im++)
+            if(m_pcm93chart_current)
             {
-                  M_COVR_Desc mcd = m_pcm93chart_current->m_covr_array.Item(im);
 
-                  if(G_PtInPolygon((MyPoint *)mcd.pvertices, mcd.m_nvertices, xc, yc))
+                  //    Pass the parameters to the proper scale chart
+                  //    Which will also load the needed cell(s)
+                  m_pcm93chart_current->SetVPParms(vpt);
+
+                  //    Check to see if the viewpoint center is actually on the selected chart
+                  float yc = vpt->clat;
+                  float xc = vpt->clon;
+
+
+                  while(xc < 0)
                   {
-                        bin_mcovr = true;
+                        xc += 360.;
+                  }
 
-                        //    As an assist for later, record the publish date of the cell at the ViewPort clat/clon
-                        m_current_cell_pub_date = mcd.m_npub_year;
+                  bool bin_mcovr = false;
+                  if(!m_pcm93chart_current->m_covr_array.GetCount())
+                  {
+      #ifdef CM93_DEBUG_PRINTF
+                        printf(" chart %c has no M_COVR\n", (char)('A' + cmscale -1));
+      #endif
+                  }
+
+
+                  for(unsigned int im=0 ; im < m_pcm93chart_current->m_covr_array.GetCount() ; im++)
+                  {
+                        M_COVR_Desc mcd = m_pcm93chart_current->m_covr_array.Item(im);
+
+                        if(G_PtInPolygon((MyPoint *)mcd.pvertices, mcd.m_nvertices, xc, yc))
+                        {
+                              bin_mcovr = true;
+
+                              //    As an assist for later, record the publish date of the cell at the ViewPort clat/clon
+                              m_current_cell_pub_date = mcd.m_npub_year;
+                              break;
+                        }
+                  }
+
+
+                  if(bin_mcovr)
+                  {
+      #ifdef CM93_DEBUG_PRINTF
+                        printf(" chart %c contains clat/clon\n", (char)('A' + cmscale -1));
+      #endif
+                        cellscale_is_useable = true;
                         break;
                   }
+
+//    This commented bloack assumed that scale 0 coverage is available worlwide.....
+//    Might not be so with partial CM93 sets
+/*
+                  else if(cmscale == 0)
+                  {
+                        cellscale_is_useable = true;
+                        break;
+                  }
+*/
+                  else
+                  {
+                        if(cmscale > 0)
+                              cmscale--;        // revert to larger scale if the current scale cells do not contain VP
+                        else
+                              b_nochart = true;    // we have retired to scale 0, and still no chart coverage, so stop already...
+      #ifdef CM93_DEBUG_PRINTF
+                        printf(" VP is not in M_COVR, adjusting cmscale to %c\n", (char)('A' + cmscale -1));
+      #endif
+                  }
             }
-
-
-            if(bin_mcovr)
-            {
-#ifdef CM93_DEBUG_PRINTF
-                  printf(" chart %c contains clat/clon\n", (char)('A' + cmscale -1));
-#endif
-                  cellscale_is_useable = true;
-                  break;
-            }
-
-            else if(cmscale == 0)
-            {
-                  cellscale_is_useable = true;
-                  break;
-            }
-
-            else
-            {
-                  cmscale--;        // revert to larger scale if the current scale cells do not contain VP
-#ifdef CM93_DEBUG_PRINTF
-                  printf(" VP is not in M_COVR, adjusting cmscale to %c\n", (char)('A' + cmscale -1));
-#endif
-            }
-
       }
 }
 
@@ -4118,6 +4152,46 @@ double cm93compchart::GetNormalScaleMax(double canvas_scale_factor)
       return 1.0e8;
 }
 
+void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion)
+{
+      pValidRegion->Clear();
+
+      //    Create a (complicated) region from the covr description of the current cell
+      //    This could be expensive.....
+      if(m_pcm93chart_current)
+      {
+            for(unsigned int im=0 ; im < m_pcm93chart_current->m_covr_array.GetCount() ; im++)
+            {
+                  M_COVR_Desc mcd = m_pcm93chart_current->m_covr_array.Item(im);
+
+                  MyPoint *p = (MyPoint *)mcd.pvertices;
+                  wxPoint *pwp = mcd.pPoints;
+
+                  for(int ip =0 ; ip < mcd.m_nvertices ; ip++)
+                  {
+                        double easting, northing, epix, npix;
+                        toSM(p->y, p->x, VPoint.clat, VPoint.clon, &easting, &northing);
+                        epix = easting  * VPoint.view_scale_ppm;
+                        npix = northing * VPoint.view_scale_ppm;
+
+                        pwp[ip].x = (int)round((VPoint.pix_width  / 2) + epix);
+                        pwp[ip].y = (int)round((VPoint.pix_height / 2) - npix);
+
+                        p++;
+                  }
+
+                  wxRegion rgn_covr(mcd.m_nvertices, pwp);
+
+                  pValidRegion->Union(rgn_covr);
+            }
+
+
+//            pValidRegion->Union(0, 0, VPoint.pix_width, VPoint.pix_height);
+      }
+      else
+            pValidRegion->Union(0, 0, 1,1);
+}
+
 
 void cm93compchart::SetVPPositive(ViewPort *pvp)
 {
@@ -4135,13 +4209,192 @@ bool cm93compchart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEn
       *pvp_positive = VPoint;
 
       SetVPPositive(pvp_positive);
-      m_pcm93chart_current->SetVPParms(pvp_positive);
+      bool render_return = true;
+      if(m_pcm93chart_current)
+      {
+            m_pcm93chart_current->SetVPParms(pvp_positive);
 
-      bool render_return = m_pcm93chart_current->RenderViewOnDC(dc, *pvp_positive, scale_type);
+            render_return = m_pcm93chart_current->RenderViewOnDC(dc, *pvp_positive, scale_type);
+
+
+#if 0
+            if(1)
+            {
+                  if(m_cmscale < 7)
+                  {
+                        int nss = m_cmscale +1;
+                        //    Load the m_covr objects for the chart scale one smaller than this
+                        cm93chart *psc = m_pcm93chart_array[nss];
+
+                        if(!psc)
+                        {
+                              m_pcm93chart_array[nss] = new cm93chart();
+                              psc = m_pcm93chart_array[nss];
+
+                              wxChar ext = (wxChar)('A' + nss - 1);
+                              if(nss == 0)
+                                    ext = 'Z';
+
+                              wxString file_dummy = _T("CM93.");
+                              file_dummy << ext;
+
+                              psc->SetCM93Dict(m_pDict);
+                              psc->SetCM93Prefix(m_prefix);
+
+                              psc->Init( file_dummy, FULL_INIT, m_global_color_scheme );
+                        }
+
+                        if(psc)
+                        {
+                              bool mcr = psc->LoadM_COVRSet(&VPoint);
+
+                        //    Render the chart outlines
+                              if(mcr)
+                              {
+                                    wxPen outpen(*wxRED_PEN);
+                                    dc.SetPen(outpen);
+
+                                    for(unsigned int im=0 ; im < psc->m_covr_array_outlines.GetCount() ; im++)
+                                    {
+                                          M_COVR_Desc mcd = psc->m_covr_array_outlines.Item(im);
+
+                                          MyPoint *p = (MyPoint *)mcd.pvertices;
+                                          wxPoint *pwp = mcd.pPoints;
+
+                                          for(int ip =0 ; ip < mcd.m_nvertices ; ip++)
+                                          {
+                                                double easting, northing, epix, npix;
+                                                toSM(p->y, p->x, VPoint.clat, VPoint.clon, &easting, &northing);
+                                                epix = easting  * VPoint.view_scale_ppm;
+                                                npix = northing * VPoint.view_scale_ppm;
+
+                                                pwp[ip].x = (int)round((VPoint.pix_width  / 2) + epix);
+                                                pwp[ip].y = (int)round((VPoint.pix_height / 2) - npix);
+
+                                                p++;
+                                          }
+
+                                          dc.DrawLines(mcd.m_nvertices, pwp);
+                                    }
+                              }
+                        }
+                  }
+            }
+#endif
+      }
+      else
+      {
+            //    one must always return a valid bitmap selected into the specified DC
+            //    Since the CM93 cell is not available at this location, select a dummy placeholder
+            if(m_pDummyBM)
+            {
+                  if((m_pDummyBM->GetWidth() != VPoint.pix_width) || (m_pDummyBM->GetHeight() != VPoint.pix_height))
+                  {
+                        delete m_pDummyBM;
+                        m_pDummyBM = NULL;
+                  }
+            }
+
+            if(NULL == m_pDummyBM)
+                  m_pDummyBM = new wxBitmap(VPoint.pix_width, VPoint.pix_height,-1);
+
+
+            // Clear the bitmap
+            wxMemoryDC mdc;
+            mdc.SelectObject(*m_pDummyBM);
+            mdc.SetBackground(*wxBLACK_BRUSH);
+            mdc.Clear();
+            mdc.SelectObject(wxNullBitmap);
+
+
+            dc.SelectObject(*m_pDummyBM);
+      }
 
       delete pvp_positive;
       return render_return;
 }
+
+
+bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool bdraw_mono)
+{
+      if(1)
+      {
+            if(m_cmscale < 7)
+            {
+                  int nss = m_cmscale +1;
+                        //    Load the m_covr objects for the chart scale one smaller than this
+                  cm93chart *psc = m_pcm93chart_array[nss];
+
+                  if(!psc)
+                  {
+                        m_pcm93chart_array[nss] = new cm93chart();
+                        psc = m_pcm93chart_array[nss];
+
+                        wxChar ext = (wxChar)('A' + nss - 1);
+                        if(nss == 0)
+                              ext = 'Z';
+
+                        wxString file_dummy = _T("CM93.");
+                        file_dummy << ext;
+
+                        psc->SetCM93Dict(m_pDict);
+                        psc->SetCM93Prefix(m_prefix);
+
+                        psc->Init( file_dummy, FULL_INIT, m_global_color_scheme );
+                  }
+
+                  if(psc)
+                  {
+                        bool mcr = psc->LoadM_COVRSet(&vp);
+
+                        //    Render the chart outlines
+                        if(mcr)
+                        {
+ //                             wxPen outpen(*wxRED_PEN);
+ //                             pdc->SetPen(outpen);
+
+                              for(unsigned int im=0 ; im < psc->m_covr_array_outlines.GetCount() ; im++)
+                              {
+                                    M_COVR_Desc mcd = psc->m_covr_array_outlines.Item(im);
+
+                                    MyPoint *p = (MyPoint *)mcd.pvertices;
+                                    wxPoint *pwp = mcd.pPoints;
+
+                                    for(int ip =0 ; ip < mcd.m_nvertices ; ip++)
+                                    {
+
+                                          double plon = p->x;
+                                          if(fabs(plon - vp.clon) > 180.)
+                                          {
+                                                if(plon > ref_lon)
+                                                      plon -= 360.;
+                                                else
+                                                      plon += 360.;
+                                          }
+
+
+                                          double easting, northing, epix, npix;
+                                          toSM(p->y, plon + 360., vp.clat, vp.clon + 360, &easting, &northing);
+                                          epix = easting  * vp.view_scale_ppm;
+                                          npix = northing * vp.view_scale_ppm;
+
+                                          pwp[ip].x = (int)round((vp.pix_width  / 2) + epix);
+                                          pwp[ip].y = (int)round((vp.pix_height / 2) - npix);
+
+                                          p++;
+                                    }
+
+                                    pdc->DrawLines(mcd.m_nvertices, pwp);
+                              }
+                        }
+                  }
+            }
+      }
+
+
+      return true;
+}
+
 
 void cm93compchart::GetPointPix(ObjRazRules *rzRules, float rlat, float rlon, wxPoint *r)
 {

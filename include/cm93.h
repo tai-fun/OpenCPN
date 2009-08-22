@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.9 2009/07/29 00:56:39 bdbcat Exp $
+ * $Id: cm93.h,v 1.10 2009/08/22 01:18:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.10  2009/08/22 01:18:11  bdbcat
+ * Improved rendering logic
+ *
  * Revision 1.9  2009/07/29 00:56:39  bdbcat
  * Update dictionary and chart search algorithms
  *
@@ -70,6 +73,7 @@ class M_COVR_Desc
    public:
       int         m_nvertices;
       double      *pvertices;
+      wxPoint     *pPoints;
       int         m_npub_year;
 };
 
@@ -323,8 +327,13 @@ class cm93chart : public s57chart
 
             void SetCM93Dict(cm93_dictionary *pDict){m_pDict = pDict;}
             void SetCM93Prefix(wxString &prefix){m_prefix = prefix;}
+            bool LoadM_COVRSet(ViewPort *vpt);
 
             Array_Of_M_COVR_Desc    m_covr_array;
+
+            Array_Of_M_COVR_Desc    m_covr_array_outlines;              // another array, used to precalculate covr for
+                                                                        // chart outline rendering
+            ArrayOfInts       m_covr_loaded_cell_array;                 // catalog for which cells the m_covr_array_outlines has been loaded
 
       private:
             InitReturn CreateHeaderDataFromCM93Cell(void);
@@ -337,8 +346,8 @@ class cm93chart : public s57chart
 
             void translate_colmar(wxString &sclass, S57attVal *pattValTmp);
 
-            int loadcell(int);
-            int loadsubcell(int, wxChar);
+//            int loadcell(int);
+//            int loadsubcell(int, wxChar);
             int CreateObjChain(void);
 
             void Unload_CM93_Cell(void);
@@ -346,11 +355,17 @@ class cm93chart : public s57chart
             //    cm93 point manipulation methods
             void Transform(cm93_point *s, double *lat, double *lon);
 
+            int loadcell_in_sequence(int);
+            int loadsubcell(int, wxChar);
+            void ProcessVectorEdges(void);
+
 
             Cell_Info_Block   m_CIB;
 
 
             cm93_dictionary   *m_pDict;
+            int               m_cmscale;
+
             wxString          m_prefix;
 
             double            m_sfactor;
@@ -358,12 +373,14 @@ class cm93chart : public s57chart
             wxString          m_scalechar;
             ArrayOfInts       m_cells_loaded_array;
 
-            bool              m_bref_is_set;
-
             int               m_current_cell_vearray_offset;
             int               *m_pcontour_array;
             int               m_ncontour_alloc;
             ViewPort          m_vp_current;
+            wxChar            m_loadcell_key;
+            double            m_dval;
+
+
 
 };
 
@@ -388,6 +405,8 @@ class cm93compchart : public s57chart
             wxString GetPubDate();
 
             void SetVPParms(ViewPort *vpt);
+            void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion);
+
 
             ThumbData *GetThumbData(int tnx, int tny, float lat, float lon);
             ThumbData *GetThumbData() {return (ThumbData *)NULL;}
@@ -396,6 +415,7 @@ class cm93compchart : public s57chart
             bool IsRenderDelta(ViewPort &vp_last, ViewPort &vp_proposed);
 
             bool RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
+            bool RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool bdraw_mono);
 
             void GetPointPix(ObjRazRules *rzRules, float rlat, float rlon, wxPoint *r);
             void GetPixPoint(int pixx, int pixy, double *plat, double *plon, ViewPort *vpt);
@@ -433,6 +453,8 @@ class cm93compchart : public s57chart
             wxString          m_prefix;
 
             int               m_current_cell_pub_date;      // the (integer) publish date of the cell at the current VP
+
+            wxBitmap          *m_pDummyBM;
 };
 
 
