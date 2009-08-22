@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.26 2009/07/29 01:08:07 bdbcat Exp $
+ * $Id: about.cpp,v 1.27 2009/08/22 01:15:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.27  2009/08/22 01:15:58  bdbcat
+ * Build 821
+ *
  * Revision 1.26  2009/07/29 01:08:07  bdbcat
  * Build 728.
  *
@@ -115,12 +118,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.26 2009/07/29 01:08:07 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.27 2009/08/22 01:15:58 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.3.3 Build 728"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.3.3 Build 821"};
 
 
 char AboutText[] =
@@ -134,15 +137,18 @@ char AuthorText[] =
 "   David S Register\n\
       bdbcat@yahoo.com\n\
       OpenCPN Lead Developer\n\n\
+    Thomas Haller\n\
+      thomasmartin.haller@web.de\n\
+      GPX Import/Export Implementation\n\n\
+    Will Kamp\n\
+      will@matrixmariner.com\n\
+      Toolbar Icon design\n\n\
    Richard Smith\n\
       smithstrawler@hotmail.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
    David Herring\n\
       dherring@dherring.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
-   Thomas Haller\n\
-      thomasmartin.haller@web.de\n\
-      GPX Import/Export Implementation\n\n\
    Philip Lange\n\
       philip.lange@albemarleweb.com\n\
       OpenCPN Documentation\n\n\
@@ -364,8 +370,8 @@ void about::CreateControls()
   itemPanelTips->SetSizer(itemBoxSizer9);
 
 
-  m_ptips_window = new  wxHtmlWindow(itemPanelTips, -1, wxDefaultPosition, wxSize(100,400), wxHW_DEFAULT_STYLE, _T("OpenCPN Help"));
-  itemBoxSizer9->Add(m_ptips_window, 0, wxGROW);
+//  m_ptips_window = new  wxHtmlWindow(itemPanelTips, -1, wxDefaultPosition, wxSize(100,400), wxHW_DEFAULT_STYLE, _T("OpenCPN Help"));
+//  itemBoxSizer9->Add(m_ptips_window, 0, wxGROW);
 
 
   //    Close Button
@@ -390,6 +396,10 @@ void about::OnPageChange(wxNotebookEvent& event)
 
       if(3 == i)                        // 3 is the index of "Tips" page
       {
+            wxString tips_locn = _T("tips.html");
+            tips_locn.Prepend(*m_pDataLocn);
+            wxLaunchDefaultBrowser(tips_locn);
+/*
             if(NULL != m_ptips_window)
             {
                   if(!m_btips_loaded)
@@ -400,6 +410,7 @@ void about::OnPageChange(wxNotebookEvent& event)
                         m_btips_loaded = true;
                   }
             }
+*/
       }
 }
 
