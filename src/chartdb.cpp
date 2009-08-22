@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.21 2009/08/22 01:17:39 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.22 2009/08/22 14:04:19 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.22  2009/08/22 14:04:19  bdbcat
+ * Correct dir scan logic
+ *
  * Revision 1.21  2009/08/22 01:17:39  bdbcat
  * Better CM93 detect
  *
@@ -124,7 +127,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.21 2009/08/22 01:17:39 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.22 2009/08/22 14:04:19 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -578,23 +581,18 @@ this logic is busted.... We need a true update method, and some good struct to h
 
     int nAdd = 0;
 
-    wxLogMessage(_T("  searching for .geo"));
     nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), bshow_prog, bupdate);
 
-    wxLogMessage(_T("  searching for .KAP"));
-    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), bshow_prog, bupdate, true);
+   nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), bshow_prog, bupdate, true);
 
 #ifdef USE_S57
-    wxLogMessage(_T("  searching for .000"));
     nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.000")), bshow_prog, bupdate);
 
-    wxLogMessage(_T("  searching for .S57"));
     nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.S57")), bshow_prog, bupdate);
 
 #endif
 
 #ifdef USE_CM93
-    wxLogMessage(_T("  searching for .CM93"));
     nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("00300000.A")), bshow_prog, bupdate);     // for cm93
 #endif
 
@@ -664,6 +662,12 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
                                                       bool bshow_prog, bool bupdate,
                                                       bool bCheckBothCases)
 {
+      wxString msg(_T("Search directory: "));
+      msg += dir_name_base;
+      msg += _T(" for ");
+      msg += filespec_base;
+      wxLogMessage(msg);
+
       wxString dir_name = dir_name_base;
       wxString filespec = filespec_base;
 
@@ -705,7 +709,7 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
 
       while(b_cont)
       {
-            if(test.Matches(candidate))
+            if(test.Matches(candidate)&& (candidate.Len() == 8))
             {
                   b_maybe_found_cm93 = true;
                   break;
@@ -725,13 +729,12 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
                   wxDir dir_n(dir_next);
                   wxString candidate_n;
 
-                  wxRegEx test_n(_T("[A-G]"));
-
+                  wxRegEx test_n(_T("^[A-G]"));
                   bool b_probably_found_cm93 = false;
                   bool b_cont_n = dir_n.GetFirst(&candidate_n);
                   while(b_cont_n)
                   {
-                        if(test_n.Matches(candidate_n))
+                        if(test_n.Matches(candidate_n) && (candidate_n.Len() == 1))
                         {
                               b_probably_found_cm93 = true;
                               break;
@@ -740,11 +743,18 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
                   }
 
                   if(b_probably_found_cm93)           // found a directory that looks like {dir_name}/12345678/A   probably cm93
-                  {
-                        dir_name = dir_next;
-                        dir_name += _T("/");
-                        dir_name += candidate_n;      // be very specific about the dir_name, to shorten GatAllFiles()
-                        gaf_flags =  wxDIR_FILES;                 // dont recurse
+                  {                                   // and we want to try and shorten the recursive search
+                        // make sure the dir exists
+                        wxString dir_luk = dir_next;
+                        dir_luk += _T("/");
+                        dir_luk += candidate_n;
+                        if(wxDir::Exists(dir_luk))
+                        {
+                              dir_name = dir_luk;                 // be very specific about the dir_name, to shorten GatAllFiles()
+                              gaf_flags =  wxDIR_FILES;                 // dont recurse
+
+                              wxLogMessage(_T("Found probable CM93 database"));
+                        }
 
                         if(filespec.IsSameAs(_T("00300000.A")))         // I am actually looking for cm93
                         {
