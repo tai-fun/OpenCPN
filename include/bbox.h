@@ -22,6 +22,7 @@ public:
     wxBoundingBox(const wxBoundingBox&);
     wxBoundingBox(const wxPoint2DDouble&);
     wxBoundingBox(double xmin, double ymin, double xmax, double ymax);
+    virtual ~wxBoundingBox();
 
     bool And(wxBoundingBox*, double Marge = 0);
 
@@ -36,7 +37,7 @@ public:
     OVERLAP Intersect( wxBoundingBox &, double Marge = 0);
     bool LineIntersect(const wxPoint2DDouble& begin, const wxPoint2DDouble& end );
     bool PointInBox( const wxPoint2DDouble&, double Marge = 0);
-    bool PointInBox( double, double, double Marge = 0);
+    virtual bool PointInBox( double, double, double Marge = 0);
 
     void Reset();
 
@@ -70,5 +71,18 @@ protected:
     double        m_maxy;
     bool          m_validbbox;
 };
+
+//    A class derived from wxBoundingBox
+//    that is assummed to be a geographic area, with coordinates
+//    expressed in Lat/Lon.
+//    This class understands the International Date Line (E/W Longitude)
+
+class LLBBox : public wxBoundingBox
+{
+      public:
+            bool PointInBox(double Lon, double Lat, double Marge);
+};
+
+
 
 #endif

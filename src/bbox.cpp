@@ -47,6 +47,10 @@ wxBoundingBox::wxBoundingBox(double xmin, double ymin, double xmax, double ymax)
     m_validbbox = TRUE;
 }
 
+wxBoundingBox::~wxBoundingBox()
+{
+}
+
 // This function checks if two bboxes intersect
 bool wxBoundingBox::And(wxBoundingBox *_bbox, double Marge)
 {
@@ -358,4 +362,48 @@ void wxBoundingBox::MapBbox( const wxTransformMatrix& matrix)
     m_miny = ymin;
     m_maxx = xmax;
     m_maxy = ymax;
+}
+
+//----------------------------------------------------------------
+//    LLBBox Implementation
+//----------------------------------------------------------------
+
+
+// Is the given LL point in the boundingbox ??
+bool LLBBox::PointInBox(double Lon, double Lat, double Marge)
+{
+      double x = Lon;
+      double y = Lat;
+
+      //    Box is centered in East lon, crossing IDL
+      if(m_maxx > 180.)
+      {
+            if( x < m_maxx - 360.)
+                  x +=  360.;
+
+            if (  x >= (m_minx - Marge) && x <= (m_maxx + Marge) &&
+                  y >= (m_miny - Marge) && y <= (m_maxy + Marge) )
+                  return TRUE;
+            return FALSE;
+      }
+
+      //    Box is centered in Wlon, crossing IDL
+      else if(m_minx < -180.)
+      {
+            if(x > m_minx + 360.)
+                  x -= 360.;
+
+            if (  x >= (m_minx - Marge) && x <= (m_maxx + Marge) &&
+                  y >= (m_miny - Marge) && y <= (m_maxy + Marge) )
+                  return TRUE;
+            return FALSE;
+      }
+
+      else
+      {
+            if (  x >= (m_minx - Marge) && x <= (m_maxx + Marge) &&
+                  y >= (m_miny - Marge) && y <= (m_maxy + Marge) )
+                  return TRUE;
+            return FALSE;
+      }
 }
