@@ -56,7 +56,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.13 2009/08/03 03:18:13 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.14 2009/08/22 01:19:39 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -386,23 +386,36 @@ static const double k0 = 0.9996;
 /****************************************************************************/
 /* Convert Lat/Lon <-> Simple Mercator                                      */
 /****************************************************************************/
-void
-toSM(double lat, double lon, double lat0, double lon0, double *x, double *y)
+void toSM(double lat, double lon, double lat0, double lon0, double *x, double *y)
 {
-      double z = s_z * k0; // 6378137.0 * PI / 2.;
+    double xlon, z, x1, s, y3, s0, y30, y4;
+
+	xlon = lon;
+
+/*  Make sure lon and lon0 are same phase */
+
+      if(lon * lon0 < 0.)
+      {
+            if(lon < 0.)
+                  xlon += 360.;
+            else
+                  xlon -= 360.;
+      }
+
+    z = s_z * k0;
 
     //  x = lambda - lambda0
 
-    double x1 = (lon - lon0) * DEGREE * z;
+    x1 = (xlon - lon0) * DEGREE * z;
 
      // y =.5 ln( (1 + sin t) / (1 - sin t) )
-    double s = sin(lat * DEGREE);
-    double y3 = (.5 * log((1 + s) / (1 - s))) * z;
+    s = sin(lat * DEGREE);
+    y3 = (.5 * log((1 + s) / (1 - s))) * z;
 
 
-    double s0 = sin(lat0 * DEGREE);
-    double y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
-    double y4 = y3 - y30;
+    s0 = sin(lat0 * DEGREE);
+    y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
+    y4 = y3 - y30;
 
     *x = x1;
     *y = y4;
