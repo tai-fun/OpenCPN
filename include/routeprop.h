@@ -117,6 +117,7 @@ public:
     void CreateControls();
 
     void SetColorScheme(ColorScheme cs);
+    void SetDialogTitle(wxString title);
 
     void OnRoutepropCancelClick( wxCommandEvent& event );
     void OnRoutepropOkClick( wxCommandEvent& event );

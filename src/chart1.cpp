@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.51 2009/08/03 03:26:16 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.52 2009/08/22 01:26:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.52  2009/08/22 01:26:18  bdbcat
+ * Tracks
+ *
  * Revision 1.51  2009/08/03 03:26:16  bdbcat
  * Improve data dir finder for MSW
  *
@@ -220,7 +223,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.51 2009/08/03 03:26:16 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.52 2009/08/22 01:26:18 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -472,11 +475,22 @@ double           g_ShowTracks_Mins;
 bool             g_bShowMoored;
 double           g_ShowMoored_Kts;
 wxString         g_sAIS_Alert_Sound_File;
+bool             g_bAIS_CPA_Alert_Suppress_Moored;
+
 
 DummyTextCtrl    *g_pDummyTextCtrl;
 bool             g_bEnableZoomToCursor;
 
 wxString         g_CM93DictDir;
+
+bool             g_bShowTrackIcon;
+bool             g_bTrackActive;
+Track            *g_pActiveTrack;
+double           g_TrackIntervalSeconds;
+double           g_TrackDeltaDistance;
+bool             g_bTrackTime;
+bool             g_bTrackDistance;
+
 
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
@@ -522,6 +536,7 @@ void SetSystemColors(ColorScheme cs);
 #include "bitmaps/colscheme.xpm"
 #include "bitmaps/gpx_import.xpm"   // toh, 2009.02.14
 #include "bitmaps/gpx_export.xpm"   // toh, 2009.02.14
+#include "bitmaps/track.xpm"
 
 //------------------------------------------------------------------------------
 //              Fwd Refs
@@ -541,6 +556,8 @@ catch_sig_usr1(int signo)
         quitflag++;                             // signal to the timer loop
 }
 #endif
+
+
 
 
 // `Main program' equivalent, creating windows and returning main app frame
@@ -577,19 +594,8 @@ bool MyApp::OnInit()
 #endif
 #endif
 
-
- //     _CrtSetBreakAlloc(120244);
-
-#ifdef __MSVC__66
-_CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_FILE );
-_CrtSetReportFile( _CRT_WARN, _CRTDBG_FILE_STDOUT );
-_CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_DEBUG );
-_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_FILE );
-_CrtSetReportFile( _CRT_ERROR, _CRTDBG_FILE_STDOUT );
-_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_DEBUG );
-_CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_FILE );
-_CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDOUT );
-_CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
+#ifdef __WXMSW__
+//      _CrtSetBreakAlloc(161121);
 #endif
 
 
@@ -705,8 +711,6 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 //        wxLog::AddTraceMask("timer");               // verbose message traces to log output
 
-
-
 //      Send init message
         wxLogMessage(_T("\n\n"));
         wxString imsg(_T(" -------Starting opencpn-------"));
@@ -761,12 +765,10 @@ _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
 
 
 #ifndef __WXMSW__
+#ifdef PROBE_PORTS__WITH_HELPER
         user_user_id = getuid ();
-#if 1
         file_user_id = geteuid ();
-    #else
-        file_user_id = user_user_id;
-    #endif
+#endif
 #endif
 
 
@@ -1765,6 +1767,14 @@ wxToolBar *MyFrame::CreateAToolbar()
           x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
 
+    if (g_bShowTrackIcon)
+    {
+          tb->AddTool( ID_TRACK, _T(""), *(*phash)[wxString(_T("track"))], *(*phash)[wxString(_T("track"))],
+                       wxITEM_CHECK,_T("Toggle Tracking"));
+          x += pitch_tool;
+          x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
+    }
+
     tb->AddTool( ID_COLSCHEME, _T(""), *(*phash)[wxString(_T("colorscheme"))], _T("Change Color Scheme"), wxITEM_NORMAL);
     x += pitch_tool;
     tb->AddTool( ID_HELP, _T(""), *(*phash)[wxString(_T("help"))], _T("About OpenCPN"), wxITEM_NORMAL);
@@ -1820,6 +1830,10 @@ wxToolBar *MyFrame::CreateAToolbar()
             tb->ToggleTool(ID_TEXT, ps52plib->GetShowS57Text());
 #endif
 
+    if (g_bShowTrackIcon)
+          tb->ToggleTool(ID_TRACK, g_bTrackActive);
+
+
         SetStatusBarPane(-1);                   // don't show help on status bar
 
         return tb;
@@ -1847,6 +1861,8 @@ void MyFrame::PrepareToolbarBitmaps(void)
     tool_xpm_hash[_T("colorscheme")]  = (char *)colscheme;
     tool_xpm_hash[_T("gpx_import")]   = (char *)gpx_import; // toh, 2009.02.14
     tool_xpm_hash[_T("gpx_export")]   = (char *)gpx_export; // toh, 2009.02.14
+    tool_xpm_hash[_T("track")]        = (char *)track;
+
 
     //  Process all members of the XPM hashmap
 
@@ -2185,15 +2201,8 @@ void MyFrame::OnSize(wxSizeEvent& event)
         }
 
         if(console)
-        {
-                wxSize smin = console->GetMiniSize();
-                console->Size_X = 160;
-                console->Size_Y = wxMax(y/2, smin.y);
-                console->Pos_X = cccw - console->Size_X;
-                console->Pos_Y = 0;
-                console->SetSize(console->Pos_X,console->Pos_Y,console->Size_X, console->Size_Y);
+              PositionConsole();
 
-        }
 
         if(stats)
         {
@@ -2224,6 +2233,27 @@ void MyFrame::OnSize(wxSizeEvent& event)
 
 }
 
+void MyFrame::PositionConsole(void)
+{
+      //    Reposition console based on its size and chartcanvas size
+      int ccx, ccy, consx, consy;
+      cc1->GetSize(&ccx, &ccy);
+      console->GetSize(&consx, &consy);
+      console->SetSize(ccx - consx, 0, -1, -1);
+}
+
+
+void MyFrame::UpdateAllFonts()
+{
+      if(console)
+      {
+            console->UpdateFonts();
+
+            //    Reposition console
+            PositionConsole();
+            cc1->Refresh();
+      }
+}
 
 void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 {
@@ -2418,6 +2448,40 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
              break;
        }
 
+    case ID_TRACK:
+    {
+          if(!g_bTrackActive)
+          {
+                g_bTrackActive = true;
+                g_pActiveTrack = new Track();
+
+                g_pActiveTrack->SetTrackTimer(g_TrackIntervalSeconds);
+                g_pActiveTrack->SetTrackDeltaDistance(g_TrackDeltaDistance);
+                g_pActiveTrack->SetTPTime(g_bTrackTime);
+                g_pActiveTrack->SetTPDist(g_bTrackDistance);
+
+                pRouteList->Append ( g_pActiveTrack );
+                g_pActiveTrack->Start();
+
+
+          }
+          else
+          {
+                g_pActiveTrack->Stop();
+                g_bTrackActive = false;
+
+                if ( g_pActiveTrack->GetnPoints() < 2 )
+                      pRouteMan->DeleteRoute ( g_pActiveTrack );
+
+                g_pActiveTrack = NULL;
+
+          }
+
+          toolBar->ToggleTool(ID_TRACK, g_bTrackActive);
+
+          break;
+    }
+
   }         // switch
 }
 
@@ -2490,7 +2554,7 @@ void MyFrame::ToggleChartOutlines(void)
 void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 {
  //             ShowDebugWindow as a wxStatusBar
-        m_StatusBarFieldCount = 4;
+        m_StatusBarFieldCount = 5;
 
 #ifdef __WXMSW__
         UseNativeStatusBar(false);              // better for MSW, undocumented in frame.cpp
@@ -2522,11 +2586,6 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
           UpdateToolbar(global_color_scheme);
 
 
-//      if(bFlyingUpdate)
-//      {
-//           wxSizeEvent sevt;
-//           OnSize(sevt);
-//      }
 
 }
 
@@ -2555,6 +2614,8 @@ int MyFrame::DoOptionsDialog()
       bool bPrevPrintIcon = g_bShowPrintIcon;
 
       bool bPrevGPXIcon = g_bShowGPXIcons;      // toh, 2009.02.14
+
+      bool bPrevTrackIcon = g_bShowTrackIcon;
 
 //    Pause all of the async classes
 #ifdef USE_WIFI_CLIENT
@@ -2647,6 +2708,14 @@ int MyFrame::DoOptionsDialog()
 #endif
 
             pConfig->UpdateSettings();
+
+            if(g_pActiveTrack)
+            {
+                  g_pActiveTrack->SetTrackTimer(g_TrackIntervalSeconds);
+                  g_pActiveTrack->SetTrackDeltaDistance(g_TrackDeltaDistance);
+                  g_pActiveTrack->SetTPTime(g_bTrackTime);
+                  g_pActiveTrack->SetTPDist(g_bTrackDistance);
+            }
       }
 
 //    Restart the async classes
@@ -2666,7 +2735,13 @@ int MyFrame::DoOptionsDialog()
 
       delete pSetDlg;
 
-      return((bPrevPrintIcon != g_bShowPrintIcon) || (bPrevGPXIcon != g_bShowGPXIcons));    // indicate a refresh is necessary; toh,
+      if((bPrevPrintIcon       != g_bShowPrintIcon)     ||
+         (bPrevGPXIcon         != g_bShowGPXIcons)      ||
+         (bPrevTrackIcon       != g_bShowTrackIcon)
+        )
+            return true;    // indicate a refresh is necessary;
+
+      return false;
 }
 
 
@@ -2786,7 +2861,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
             char buf[40];
             sprintf(buf, "%3d/%3d/%3d", mem_initial/1024, mem_current/1024, mem_total/1024);
 
-            SetStatusText(wxString(buf,  wxConvUTF8), 5);
+            SetStatusText(wxString(buf,  wxConvUTF8), STAT_FIELD_MEM5);
       }
 //      printf("%d\n", mem_current);
 #endif
@@ -3284,6 +3359,19 @@ bool MyFrame::DoChartUpdate(int bSelectType)
         bool bNewChart = false;
         bool bNewPiano = false;
         ChartBase *pLast_Ch = Current_Ch;
+        ChartTypeEnum new_open_type;
+        ChartFamilyEnum new_open_family;
+        if(pLast_Ch)
+        {
+              new_open_type = pLast_Ch->m_ChartType;
+              new_open_family = pLast_Ch->m_ChartFamily;
+        }
+        else
+        {
+              new_open_type = CHART_TYPE_KAP;
+              new_open_family = CHART_FAMILY_RASTER;
+        }
+
 
         bool bOpenSmallest =  bFirstAuto;
         bFirstAuto = false;                           // Auto open smallest once, on program start
@@ -3389,17 +3477,18 @@ bool MyFrame::DoChartUpdate(int bSelectType)
                         if(bOpenSmallest)
                               search_direction = false;
 
-                        ChartBase *ptc = ChartData->OpenStackChartConditional(pCurrentStack, search_direction, false);
-                        Current_Ch = ptc;
-                        bNewChart = true;
+                        Current_Ch = ChartData->OpenStackChartConditional(pCurrentStack, search_direction, new_open_type, new_open_family);
+
+//    Try to open other types/families of chart in some priority
+                        if(NULL == Current_Ch)
+                              Current_Ch = ChartData->OpenStackChartConditional(pCurrentStack, search_direction,
+                                    CHART_TYPE_CM93COMP, CHART_FAMILY_VECTOR);
 
                         if(NULL == Current_Ch)
-                        {
-//  Try to open an S57 chart
-//  Find the smallest scale chart that opens OK
-                              ptc = ChartData->OpenStackChartConditional(pCurrentStack, search_direction, true);
-                              Current_Ch = ptc;
-                        }
+                              Current_Ch = ChartData->OpenStackChartConditional(pCurrentStack, search_direction,
+                                    CHART_TYPE_CM93COMP, CHART_FAMILY_RASTER);
+
+                        bNewChart = true;
 
                   }     // bAutoOpen
 
@@ -3901,8 +3990,12 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
             s1 += toSDMM(1, gLat);
             s1 += _T("   ");
             s1 += toSDMM(2, gLon);
-            SetStatusText ( s1, 0 );
+            SetStatusText ( s1, STAT_FIELD_TICK );
       }
+
+      wxString sogcog;
+      sogcog.Printf(_T("SOG: %5.2f kts  COG: %5.0f Deg"), gSog, gCog);
+      SetStatusText ( sogcog, STAT_FIELD_SOGCOG );
 
 #ifdef ocpnUPDATE_SYSTEM_TIME
 //      Use the fix time to update the local system clock, only once per session
@@ -4140,11 +4233,12 @@ wxArrayString *EnumerateSerialPorts(void)
 
 #ifdef __WXGTK__
 
-      //    Looking for user privelege openable devices in /dev
+      //    Looking for user privilege openable devices in /dev
+
+      wxString sdev;
 
       for(int idev=0 ; idev < 8 ; idev++)
       {
-            wxString sdev;
             sdev.Printf(_T("/dev/ttyS%1d"), idev);
 
             int fd = open(sdev.mb_str(), O_RDWR|O_NDELAY|O_NOCTTY);
@@ -4158,7 +4252,6 @@ wxArrayString *EnumerateSerialPorts(void)
 
       for(int idev=0 ; idev < 8 ; idev++)
       {
-            wxString sdev;
             sdev.Printf(_T("/dev/ttyUSB%1d"), idev);
 
             int fd = open(sdev.mb_str(), O_RDWR|O_NDELAY|O_NOCTTY);
@@ -4169,6 +4262,22 @@ wxArrayString *EnumerateSerialPorts(void)
                   close(fd);
             }
       }
+
+      //    Looking for BlueTooth GPS devices
+      for(int idev=0 ; idev < 8 ; idev++)
+      {
+             sdev.Printf(_T("/dev/rfcomm%1d"), idev);
+
+             int fd = open(sdev.mb_str(), O_RDWR|O_NDELAY|O_NOCTTY);
+             if(fd > 0)
+             {
+                    /*  add to the output array  */
+                    preturn->Add(wxString(sdev));
+                    close(fd);
+             }
+      }
+
+
 
       //    A Fallback position, in case udev has failed or something.....
       if(preturn->IsEmpty())

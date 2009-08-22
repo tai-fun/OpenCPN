@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.26 2009/08/03 03:04:47 bdbcat Exp $
+ * $Id: chart1.h,v 1.27 2009/08/22 01:22:32 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.27  2009/08/22 01:22:32  bdbcat
+ * Tracks
+ *
  * Revision 1.26  2009/08/03 03:04:47  bdbcat
  * GPS Timeout set to 6 secs
  *
@@ -158,7 +161,8 @@ enum
       ID_PRINT,
       ID_COLSCHEME,
       ID_GPXIMPORT,     // toh, 2009.02.14
-      ID_GPXEXPORT      // toh, 2009.02.14
+      ID_GPXEXPORT,     // toh, 2009.02.14
+      ID_TRACK
 };
 
 
@@ -195,6 +199,12 @@ typedef enum ColorScheme
 }_ColorScheme;
 
 #define N_STATUS_BAR_FIELDS_MAX     20
+
+#define STAT_FIELD_TICK             0
+#define STAT_FIELD_SOGCOG           1
+#define STAT_FIELD_CURSOR_LL        2
+#define STAT_FIELD_CURSOR_BRGRNG    3
+#define STAT_FIELD_SCALE            4
 
 //      Define a constant GPS signal watchdog timeout value
 #define GPS_TIMEOUT_SECONDS  6
@@ -245,6 +255,8 @@ class MyFrame: public wxFrame
     void OnEvtNMEA(wxCommandEvent& event);
     void OnEvtTHREADMSG(wxCommandEvent& event);
 
+    void UpdateAllFonts(void);
+    void PositionConsole(void);
     void OnToolLeftClick(wxCommandEvent& event);
     void ClearRouteTool();
     void DoStackUp(void);

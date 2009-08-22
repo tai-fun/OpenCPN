@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.h,v 1.7 2009/08/03 03:08:51 bdbcat Exp $
+ * $Id: routeman.h,v 1.8 2009/08/22 01:22:04 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.h,v $
+ * Revision 1.8  2009/08/22 01:22:04  bdbcat
+ * Tracks
+ *
  * Revision 1.7  2009/08/03 03:08:51  bdbcat
  * Improve Waypoint logic
  *
@@ -130,6 +133,8 @@ public:
 
       void AssembleAllRoutes(void);
       void DeleteRoute(Route *pRoute);
+      void DeleteAllRoutes(void);
+
       Route *FindRouteContainingWaypoint(RoutePoint *pWP);
       wxArrayPtrVoid *GetRouteArrayContaining(RoutePoint *pWP);
 
@@ -246,6 +251,7 @@ public:
       wxString CreateGUID(RoutePoint *pRP);
       RoutePoint *GetNearbyWaypoint(double lat, double lon, double radius_meters);
       void SetColorScheme(ColorScheme cs);
+      void DeleteAllWaypoints(bool b_delete_used);
 
       wxBitmap *GetIconBitmap(int index);
       wxString *GetIconDescription(int index);

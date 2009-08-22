@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.15 2009/08/03 03:15:57 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.16 2009/08/22 01:21:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.16  2009/08/22 01:21:17  bdbcat
+ * Tracks
+ *
  * Revision 1.15  2009/08/03 03:15:57  bdbcat
  * Improve Waypoint logic
  *
@@ -57,6 +60,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.16  2009/08/22 01:21:17  bdbcat
+ * Tracks
+ *
  * Revision 1.15  2009/08/03 03:15:57  bdbcat
  * Improve Waypoint logic
  *
@@ -220,7 +226,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.15 2009/08/03 03:15:57 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.16 2009/08/22 01:21:17 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -648,6 +654,22 @@ void Routeman::DeleteRoute(Route *pRoute)
 
       delete pRoute;
 }
+
+void Routeman::DeleteAllRoutes(void)
+{
+            //    Iterate on the RouteList
+      wxRouteListNode *node = pRouteList->GetFirst();
+      while(node)
+      {
+            Route *proute = node->GetData();
+
+            DeleteRoute(proute);
+
+            node = pRouteList->GetFirst();                   // Route
+      }
+
+}
+
 
 void Routeman::AssembleAllRoutes(void)
 {
@@ -1349,5 +1371,28 @@ RoutePoint *WayPointman::GetNearbyWaypoint(double lat, double lon, double radius
 
 }
 
+void WayPointman::DeleteAllWaypoints(bool b_delete_used)
+{
+      //    Iterate on the RoutePoint list, deleting all
+
+      wxRoutePointListNode *node = m_pWayPointList->GetFirst();
+      while(node)
+      {
+            RoutePoint *prp = node->GetData();
+
+            if(b_delete_used || !prp->m_bIsInRoute)          // if argument is false, then only delete non-route waypoints
+            {
+                  pConfig->DeleteWayPoint ( prp );
+                  pSelect->DeleteSelectablePoint ( prp, SELTYPE_ROUTEPOINT );
+                  delete prp;
+                  node = m_pWayPointList->GetFirst();
+
+            }
+            else
+                  node = node->GetNext();
+      }
+      return;
+
+}
 
 

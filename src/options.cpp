@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.26 2009/08/03 03:16:39 bdbcat Exp $
+ * $Id: options.cpp,v 1.27 2009/08/22 01:21:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.27  2009/08/22 01:21:17  bdbcat
+ * Tracks
+ *
  * Revision 1.26  2009/08/03 03:16:39  bdbcat
  * Cleanup for MSVC
  *
@@ -145,6 +148,7 @@ extern ColorScheme      global_color_scheme;
 extern bool             g_bGarminPersistance;
 extern wxString         *g_pSData_Locn;
 
+
 //    AIS Global configuration
 extern bool             g_bCPAMax;
 extern double           g_CPAMax_NM;
@@ -165,6 +169,7 @@ extern double           g_ShowMoored_Kts;
 extern bool             g_bAIS_CPA_Alert;
 extern bool             g_bAIS_CPA_Alert_Audio;
 extern wxString         g_sAIS_Alert_Sound_File;
+extern bool             g_bAIS_CPA_Alert_Suppress_Moored;
 
 extern bool             g_bShowGPXIcons;                     // toh, 2009.02.14
 extern bool             g_bNavAidShowRadarRings;            // toh, 2009.02.24
@@ -174,6 +179,12 @@ extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
 extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
 
 extern bool             g_bEnableZoomToCursor;
+extern bool             g_bShowTrackIcon;
+extern double           g_TrackIntervalSeconds;
+extern double           g_TrackDeltaDistance;
+extern double           g_TrackDeltaDistance;
+extern bool             g_bTrackTime;
+extern bool             g_bTrackDistance;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -219,7 +230,7 @@ options::options( )
 {
 }
 
-options::options( wxWindow* parent, wxWindowID id, const wxString& caption, const wxString& Initial_Chart_Dir,
+options::options( MyFrame* parent, wxWindowID id, const wxString& caption, const wxString& Initial_Chart_Dir,
               const wxPoint& pos, const wxSize& size, long style)
 {
       pDirCtl = NULL;
@@ -243,7 +254,7 @@ options::options( wxWindow* parent, wxWindowID id, const wxString& caption, cons
 }
 
 
-bool options::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos,
+bool options::Create( MyFrame* parent, wxWindowID id, const wxString& caption, const wxPoint& pos,
                      const wxSize& size, long style, const wxString& Initial_Chart_Dir)
 {
     pDebugShowStat = NULL;
@@ -333,14 +344,15 @@ void options::CreateControls()
     pPrintShowIcon->SetValue(FALSE);
     itemStaticBoxSizerPrint->Add(pPrintShowIcon, 1, wxALIGN_LEFT|wxALL, 2);
 
-    // Chart Display Options Box
+///
+        // Chart Display Options Box
     wxStaticBox* itemStaticBoxSizerCDOStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Chart Display Options"));
     wxStaticBoxSizer* itemStaticBoxSizerCDO = new wxStaticBoxSizer(itemStaticBoxSizerCDOStatic, wxVERTICAL);
     itemBoxSizer6->Add(itemStaticBoxSizerCDO, 0, wxEXPAND|wxALL, 5);
 
     //  Chart Outlines checkbox
     pCDOOutlines = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Chart Outlines"), wxDefaultPosition,
-                             wxSize(-1, -1), 0 );
+                                   wxSize(-1, -1), 0 );
     pCDOOutlines->SetValue(FALSE);
     itemStaticBoxSizerCDO->Add(pCDOOutlines, 1, wxALIGN_LEFT|wxALL, 2);
 
@@ -354,10 +366,10 @@ void options::CreateControls()
 
     //  Auto Anchor Mark
     pAutoAnchorMark = new wxCheckBox( itemPanel5, ID_AUTOANCHORMARKBOX1, _("Automatic Anchor Mark"), wxDefaultPosition,
-                                   wxSize(-1, -1), 0 );
+                                      wxSize(-1, -1), 0 );
     pAutoAnchorMark->SetValue(FALSE);
     itemStaticBoxSizerCDO->Add(pAutoAnchorMark, 1, wxALIGN_LEFT|wxALL, 2);
-
+///
 
 //    Add NMEA Options Box
     wxStaticBox* itemNMEAStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("NMEA Options"));
@@ -893,6 +905,12 @@ void options::CreateControls()
     wxButton *m_pPlay_Sound = new wxButton( itemPanelAIS, ID_AISALERTTESTSOUND, _T("Test Alert Sound"));
     pAlertGrid->Add(m_pPlay_Sound, 0, wxALIGN_RIGHT|wxALL, 2);
 
+    m_pCheck_Alert_Moored = new wxCheckBox( itemPanelAIS, -1, _T("Supress Alerts for anchored/moored targets"));
+    pAlertGrid->Add(m_pCheck_Alert_Moored, 1, wxALIGN_LEFT|wxALL, 2);
+
+
+
+
     //      Build Fonts panel
     itemPanelFont = new wxPanel( itemNotebook4, ID_PANELFONT, wxDefaultPosition, wxDefaultSize,
                                           wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
@@ -945,6 +963,40 @@ void options::CreateControls()
                                     wxSize(-1, -1), 0 );
     pGPXShowIcons->SetValue(FALSE);
     itemStaticBoxSizerGPX->Add(pGPXShowIcons, 1, wxALIGN_LEFT|wxALL, 5);
+
+    //  Tracks
+    wxStaticBox* itemStaticBoxSizerTrackStatic = new wxStaticBox(itemPanelAdvanced, wxID_ANY, _("Tracks"));
+    wxStaticBoxSizer* itemStaticBoxSizerTrack = new wxStaticBoxSizer(itemStaticBoxSizerTrackStatic, wxVERTICAL);
+    itemBoxSizerAdvancedPanel->Add(itemStaticBoxSizerTrack, 0, wxGROW|wxALL, 5);
+    pTrackShowIcon = new wxCheckBox( itemPanelAdvanced, ID_TRACKCHECKBOX, _("Show Track icon"), wxDefaultPosition,
+                                    wxSize(-1, -1), 0 );
+    itemStaticBoxSizerTrack->Add(pTrackShowIcon, 1, wxALIGN_LEFT|wxALL, 5);
+
+
+///////////////
+    wxFlexGridSizer *pTrackGrid = new wxFlexGridSizer(2);
+    pTrackGrid->AddGrowableCol(1);
+    itemStaticBoxSizerTrack->Add(pTrackGrid, 0, wxALL|wxEXPAND, 5);
+
+    m_pCheck_Trackpoint_time = new wxCheckBox( itemPanelAdvanced, -1, _T("Place Trackpoints at time interval (Seconds):"));
+    pTrackGrid->Add(m_pCheck_Trackpoint_time, 0, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_TP_Secs = new wxTextCtrl(itemPanelAdvanced, -1);
+    pTrackGrid->Add(m_pText_TP_Secs, 0, wxALIGN_RIGHT, 2);
+
+    m_pCheck_Trackpoint_distance = new wxCheckBox( itemPanelAdvanced, -1, _T("Place Trackpoints at distance interval (NMi):"));
+    pTrackGrid->Add(m_pCheck_Trackpoint_distance, 0, wxALIGN_LEFT|wxALL, 2);
+
+    m_pText_TP_Dist = new wxTextCtrl(itemPanelAdvanced, -1, _T(""), wxDefaultPosition, wxSize(-1, -1));
+    pTrackGrid->Add(m_pText_TP_Dist, 0, wxALIGN_RIGHT, 2);
+
+
+///////
+//    wxStaticText* itemStaticTextTrackInterval = new wxStaticText( itemPanelAdvanced, wxID_STATIC, _("Track Time Interval, Seconds"), wxDefaultPosition, wxDefaultSize, 0 );
+//    itemStaticBoxSizerTrack->Add(itemStaticTextTrackInterval, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
+//    m_pTrackIntervalCtl = new wxTextCtrl( itemPanelAdvanced, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
+//    itemStaticBoxSizerTrack->Add(m_pTrackIntervalCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
+
 
     // Radar rings
     wxStaticBox* itemStaticBoxSizerRadarRingsStatic = new wxStaticBox(itemPanelAdvanced, wxID_ANY, _("Radar rings"));
@@ -1057,6 +1109,7 @@ void options::SetColorScheme(ColorScheme cs)
 
 void options::SetInitialSettings()
 {
+      wxString s;
       wxString dirname;
 
       if(m_pCurrentDirList)
@@ -1099,10 +1152,20 @@ void options::SetInitialSettings()
 
       pEnableZoomToCursor->SetValue(g_bEnableZoomToCursor);
 
+      pTrackShowIcon->SetValue(g_bShowTrackIcon);
+
+      s.Printf(_T("%4.0f"),g_TrackIntervalSeconds);
+      m_pText_TP_Secs->SetValue(s);
+      s.Printf(_T("%5.2f"),g_TrackDeltaDistance);
+      m_pText_TP_Dist->SetValue(s);
+
+      m_pCheck_Trackpoint_time->SetValue(g_bTrackTime);
+      m_pCheck_Trackpoint_distance->SetValue(g_bTrackDistance);
+
+
 //    AIS Parameters
 
-      wxString s;
-          //      CPA Box
+      //      CPA Box
       m_pCheck_CPA_Max->SetValue(g_bCPAMax);
 
       s.Printf(_T("%4.1f"),g_CPAMax_NM);
@@ -1150,6 +1213,7 @@ void options::SetInitialSettings()
          //      Alerts
       m_pCheck_AlertDialog->SetValue(g_bAIS_CPA_Alert);
       m_pCheck_AlertAudio->SetValue(g_bAIS_CPA_Alert_Audio);
+      m_pCheck_Alert_Moored->SetValue(g_bAIS_CPA_Alert_Suppress_Moored);
 
 
 #ifdef USE_S57
@@ -1375,6 +1439,14 @@ void options::OnXidOkClick( wxCommandEvent& event )
     g_pNavAidRadarRingsStepUnits = m_itemNavAidRadarRingsStepUnitsRadioBox->GetSelection();     // toh, 2009.02.24
     g_bWayPointPreventDragging = pWayPointPreventDragging->GetValue();  // toh, 2009.02.24
 
+    g_bShowTrackIcon = pTrackShowIcon->GetValue();
+    m_pText_TP_Secs->GetValue().ToDouble(&g_TrackIntervalSeconds);
+    m_pText_TP_Dist->GetValue().ToDouble(&g_TrackDeltaDistance);
+    g_bTrackTime = m_pCheck_Trackpoint_time->GetValue();
+    g_bTrackDistance = m_pCheck_Trackpoint_distance->GetValue();
+
+
+
     g_bEnableZoomToCursor = pEnableZoomToCursor->GetValue();
 
     //    AIS Parameters
@@ -1405,6 +1477,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
     //      Alert
     g_bAIS_CPA_Alert = m_pCheck_AlertDialog->GetValue();
     g_bAIS_CPA_Alert_Audio = m_pCheck_AlertAudio->GetValue();
+    g_bAIS_CPA_Alert_Suppress_Moored = m_pCheck_Alert_Moored->GetValue();
 
 
 //    NMEA Options
@@ -1637,6 +1710,8 @@ void options::OnChooseFont( wxCommandEvent& event )
             wxFont font = font_data.GetChosenFont();
             psfont = new wxFont(font);
             pFontMgr->SetFont(sel_text_element, psfont);
+
+            pParent->UpdateAllFonts();
       }
 
       event.Skip();

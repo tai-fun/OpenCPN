@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.28 2009/07/29 01:08:32 bdbcat Exp $
+ * $Id: chcanv.h,v 1.29 2009/08/22 01:22:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.29  2009/08/22 01:22:04  bdbcat
+ * Tracks
+ *
  * Revision 1.28  2009/07/29 01:08:32  bdbcat
  * Implement Measure tool.
  *
@@ -184,7 +187,7 @@ class ViewPort
     double   skew;
 
 
-    wxBoundingBox vpBBox;           // An un-skewed rectangular lat/lon bounding box
+    LLBBox   vpBBox;                // An un-skewed rectangular lat/lon bounding box
                                     // which contains the entire vieport
 
     float    chart_scale;            // conventional chart displayed scale

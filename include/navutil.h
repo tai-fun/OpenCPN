@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.14 2009/08/03 03:06:15 bdbcat Exp $
+ * $Id: navutil.h,v 1.15 2009/08/22 01:22:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.15  2009/08/22 01:22:04  bdbcat
+ * Tracks
+ *
  * Revision 1.14  2009/08/03 03:06:15  bdbcat
  * Improve Waypoint logic
  *
@@ -117,10 +120,11 @@ extern wxString toSDMM(int NEflag, double a);
 
 
 //----------------------------------------------------------------------------
-//   constants
+//   Fwd Declarations
 //----------------------------------------------------------------------------
 
 class Route;
+class NavObjectCollection;
 
 //    class declarations
 
@@ -166,6 +170,7 @@ public:
       bool              m_bKeepXRoute;          // This is a mark
                                                 // created by drop mark, or GPX-In, or config file load
 
+      bool              m_bIsVisible;           // true if should be drawn, false if invisible
       bool              m_bIsActive;
       int               m_ConfigWPNum;
       wxString          m_MarkName;
@@ -179,6 +184,7 @@ public:
       wxRect            CurrentRect_in_DC;
       int               m_NameLocationOffsetX;
       int               m_NameLocationOffsetY;
+      wxDateTime        m_CreateTime;
 
       HyperlinkList     *m_HyperlinkList; // toh, 2009.02.14
 
@@ -202,7 +208,7 @@ public:
       RoutePoint *InsertPointBefore(RoutePoint *pRP, float rlat, float rlon, bool bRenamePoints = false);
       void DrawPointWhich(wxDC& dc, int iPoint, wxPoint *rpn);
       void DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, double scale_ppm, bool bdraw_arrow);
-      void DrawRoute(wxDC& dc, double scale_ppm);
+      virtual void Draw(wxDC& dc, double scale_ppm);
       RoutePoint *GetLastPoint();
       void DeletePoint(RoutePoint *rp, bool bRenamePoints = false);
       void RemovePoint(RoutePoint *rp, bool bRenamePoints = false);
@@ -219,6 +225,7 @@ public:
       void AssembleRoute();
       bool IsEqualTo(Route *ptargetroute);
       void ClearHighlights(void);
+      void RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, double scale_ppm, bool bdraw_arrow, int hilite_width = 0);
 
       bool SendToGPS(wxString& com_name, bool bsend_waypoints, wxGauge *pProgress);
 
@@ -232,6 +239,8 @@ public:
       wxString    m_RouteNameString;
       wxString    m_RouteStartString;
       wxString    m_RouteEndString;
+      bool        m_bIsTrack;             //TODO should use class type instead
+
 
       wxArrayString      RoutePointGUIDList;
       RoutePointList     *pRoutePointList;
@@ -240,7 +249,6 @@ public:
       wxRect      active_pt_rect;
 
 private:
-      void DrawRouteLine(wxDC& dc, int xa, int ya, int xb, int yb, double scale_ppm, bool bdraw_arrow);
       int         m_nPoints;
       int         m_nm_sequence;
 
@@ -248,6 +256,58 @@ private:
 };
 
 WX_DECLARE_LIST(Route, RouteList);                    // establish class Route as list member
+
+
+#define TIMER_TRACK1           778
+
+//----------------------------------------------------------------------------
+//    Track
+//----------------------------------------------------------------------------
+class Track : public wxEvtHandler, public Route
+{
+      public:
+            Track(void);
+            ~Track(void);
+
+            void SetTrackTimer(double sec){ m_TrackTimerSec = sec; }
+            void SetTrackDeltaDistance( double distance){ m_DeltaDistance = distance; }
+            void SetTPTime(bool bTrackTime){ m_bTrackTime = bTrackTime; }
+            void SetTPDist(bool bTrackDistance){ m_bTrackDistance = bTrackDistance; }
+
+            void Start(void);
+            void Stop(void);
+
+            void Draw(wxDC& dc, double scale_ppm);
+
+
+
+      private:
+            void OnTimerTrack(wxTimerEvent& event);
+            void AddPointNow();
+
+            bool              m_bRunning;
+            wxTimer           m_TimerTrack;
+
+            double            m_TrackTimerSec;
+            double            m_DeltaDistance;
+            bool              m_bTrackTime;
+            bool              m_bTrackDistance;
+
+            double            m_prev_glat, m_prev_glon;
+            RoutePoint        *m_prev_pTrackPoint;
+            int               m_track_run;
+
+
+DECLARE_EVENT_TABLE()
+};
+
+//----------------------------------------------------------------------------
+//    Static XML Helpers
+//----------------------------------------------------------------------------
+
+
+RoutePoint *LoadGPXTrackpoint(wxXmlNode* wptnode);
+
 
 
 //----------------------------------------------------------------------------
@@ -273,31 +333,28 @@ public:
       virtual bool UpdateChartDirs(wxArrayString *pdirlist);
       virtual void UpdateSettings();
 
-/*
-      void CreateXMLNavObj(void);
-      void CreateXMLRoutePoints(void);
-      wxXmlNode *CreateMarkNode(RoutePoint *pr);
-      void WriteXMLNavObj(const wxString& file);
-
-      wxXmlDocument     *m_pXMLNavObj;
-      wxXmlNode         *m_XMLrootnode;
-*/
       void ExportGPX(wxWindow* parent);   // toh, 2009.02.15
       void ImportGPX(wxWindow* parent);   // toh, 2009.02.15
 
 //    toh, 2009.02.10
       void CreateGPXNavObj(void);
-      void CreateGPXRoutePoints(void);
+      void CreateGPXWayPoints(void);
+      void CreateGPXRoutes(void);
+      void CreateGPXTracks(void);
+
+      void CreateGPXRoute(Route *pRoute);
+      void CreateGPXTrack(Route *pRoute);
+
       wxXmlNode *CreateGPXWptNode(RoutePoint *pr);
       wxXmlNode *CreateGPXRptNode(RoutePoint *pr,int nbr);
+      wxXmlNode *CreateGPXTptNode(RoutePoint *pr,int nbr);
       void WriteXMLNavObj(const wxString& file);
       bool WptIsInRouteList(RoutePoint *pr);
 
-      // toh, 2009.02.17
       RoutePoint *GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool LoadRoute=false);
       void GPXLoadRoute(wxXmlNode* rtenode);
+      void GPXLoadTrack(wxXmlNode* trknode);
 
-      void CreateGPXRoute(Route *pRoute);
       bool ExportGPXRoute(wxWindow* parent, Route *pRoute);
 
       wxXmlDocument     *m_pXMLNavObj;
@@ -311,6 +368,10 @@ public:
       bool  st_bFollow;
 
       wxString    m_gpx_path;
+
+      wxString                m_sNavObjSetFile;
+      NavObjectCollection     *m_pNavObjectOutputSet;
+      NavObjectCollection     *m_pNavObjectInputSet;
 
 //    These members are set/reset in Options dialog
       bool  m_bShowDebugWindows;
@@ -329,6 +390,7 @@ enum
       SELTYPE_UNKNOWN,
       SELTYPE_AISTARGET,
       SELTYPE_MARKPOINT,
+      SELTYPE_TRACKSEGMENT,
 
 };
 
@@ -396,6 +458,44 @@ private:
       SelectableItemList      *pSelectList;
 
 };
+
+
+//---------------------------------------------------------------------------------
+//          XML Based NavObjectSet
+//---------------------------------------------------------------------------------
+
+class NavObjectCollection : public wxXmlDocument
+{
+      public:
+            NavObjectCollection();
+            NavObjectCollection(wxString RootName, wxString Version, wxString Creator);
+            ~NavObjectCollection();
+
+            bool Create(wxString RootName, wxString Version, wxString Creator);
+
+            bool CreateGPXPoints(void);
+            bool CreateGPXRoutes(void);
+            bool CreateGPXTracks(void);
+
+            bool LoadAllGPXTracks(void);
+            void LoadGPXTrack(wxXmlNode *trknode);
+
+      private:
+
+            wxXmlNode   *CreateMarkNode(RoutePoint *pr);
+
+            wxXmlNode   *m_pXMLrootnode;
+
+
+};
+
+
+
+
+
+
+
+
 
 //---------------------------------------------------------------------------------
 //          Private Font Manager

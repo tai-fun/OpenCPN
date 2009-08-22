@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.13 2009/07/17 03:54:16 bdbcat Exp $
+ * $Id: options.h,v 1.14 2009/08/22 01:20:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.14  2009/08/22 01:20:27  bdbcat
+ * Tracks
+ *
  * Revision 1.13  2009/07/17 03:54:16  bdbcat
  * Add config option for Wheel Zoom to cursor.
  *
@@ -133,7 +136,8 @@ enum {
         ID_AISALERTDIALOG,
         ID_AISALERTAUDIO,
         ID_AISALERTSELECTSOUND,
-        ID_AISALERTTESTSOUND
+        ID_AISALERTTESTSOUND,
+        ID_TRACKCHECKBOX
 
 };
 
@@ -159,11 +163,11 @@ class options: public wxDialog
 
 public:
     options( );
-    options( wxWindow* parent, wxWindowID id = SYMBOL_OPTIONS_IDNAME, const wxString& caption = SYMBOL_OPTIONS_TITLE,
+    options( MyFrame* parent, wxWindowID id = SYMBOL_OPTIONS_IDNAME, const wxString& caption = SYMBOL_OPTIONS_TITLE,
            const wxString& Initial_Chart_Dir = _(""), const wxPoint& pos = SYMBOL_OPTIONS_POSITION,
            const wxSize& size = SYMBOL_OPTIONS_SIZE, long style = SYMBOL_OPTIONS_STYLE);
 
-    bool Create( wxWindow* parent, wxWindowID id = SYMBOL_OPTIONS_IDNAME, const wxString& caption = SYMBOL_OPTIONS_TITLE,
+    bool Create( MyFrame* parent, wxWindowID id = SYMBOL_OPTIONS_IDNAME, const wxString& caption = SYMBOL_OPTIONS_TITLE,
              const wxPoint& pos = SYMBOL_OPTIONS_POSITION, const wxSize& size = SYMBOL_OPTIONS_SIZE,
              long style = SYMBOL_OPTIONS_STYLE, const wxString& init_chart_dir = _(""));
 
@@ -274,6 +278,7 @@ public:
     wxTextCtrl                *m_pText_Moored_Speed;
     wxCheckBox                *m_pCheck_AlertDialog;
     wxCheckBox                *m_pCheck_AlertAudio;
+    wxCheckBox                *m_pCheck_Alert_Moored;
 
 //    For Fonts page
     wxPanel*                itemPanelFont;
@@ -292,6 +297,13 @@ public:
     wxCheckBox              *pWayPointPreventDragging;
     wxCheckBox              *pEnableZoomToCursor;
 
+    wxCheckBox              *pTrackShowIcon;
+//    wxTextCtrl              *m_pTrackIntervalCtl;
+    wxCheckBox              *m_pCheck_Trackpoint_time;
+    wxCheckBox              *m_pCheck_Trackpoint_distance;
+    wxTextCtrl              *m_pText_TP_Secs;
+    wxTextCtrl              *m_pText_TP_Dist;
+
     wxCheckBox*             pSettingsCB1;
 
     wxArrayString           *m_pCurrentDirList;
@@ -301,7 +313,7 @@ public:
 
     wxArrayPtrVoid          OBJLBoxArray;
     wxString                *m_pinit_chart_dir;
-    wxWindow                *pParent;
+    MyFrame                 *pParent;
 
     wxArrayString           *m_pSerialArray;
 };

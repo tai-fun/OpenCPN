@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.56 2009/08/03 03:20:53 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.57 2009/08/22 01:21:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.57  2009/08/22 01:21:17  bdbcat
+ * Tracks
+ *
  * Revision 1.56  2009/08/03 03:20:53  bdbcat
  * Improve Waypoint logic
  *
@@ -132,6 +135,9 @@
  * Correct stack smashing of char buffers
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.57  2009/08/22 01:21:17  bdbcat
+ * Tracks
+ *
  * Revision 1.56  2009/08/03 03:20:53  bdbcat
  * Improve Waypoint logic
  *
@@ -289,6 +295,7 @@
 #include "cutil.h"
 #include "routeprop.h"
 #include "tcmgr.h"
+#include "cm93.h"                   // for chart outline draw
 
 #ifdef USE_S57
 #include "s57chart.h"               // for ArrayOfS57Obj
@@ -376,7 +383,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.56 2009/08/03 03:20:53 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.57 2009/08/22 01:21:17 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -399,8 +406,10 @@ enum
         ID_DEF_MENU_SCALE_OUT,
         ID_DEF_MENU_DROP_WP,
         ID_DEF_MENU_QUERY,
+        ID_DEF_MENU_MOVE_BOAT_HERE,
         ID_WP_MENU_DELPOINT,
         ID_WP_MENU_PROPERTIES,
+        ID_WP_MENU_DELETEALL,
         ID_RT_MENU_ACTIVATE,
         ID_RT_MENU_DEACTIVATE,
         ID_RT_MENU_INSERT,
@@ -415,6 +424,7 @@ enum
         ID_RT_MENU_PROPERTIES,
         ID_RT_MENU_SENDTOGPS,
         ID_RT_MENU_EXPORT,
+        ID_RT_MENU_DELETEALL,
         ID_RC_MENU_SCALE_IN,
         ID_RC_MENU_SCALE_OUT,
         ID_RC_MENU_ZOOM_IN,
@@ -423,6 +433,9 @@ enum
         ID_DEF_MENU_AIS_QUERY,
         ID_DEF_MENU_ACTIVATE_MEASURE,
         ID_DEF_MENU_DEACTIVATE_MEASURE,
+        ID_TK_MENU_PROPERTIES,
+        ID_TK_MENU_EXPORT,
+        ID_TK_MENU_DELETE,
         ID_WP_MENU_ADDITIONAL_INFO                  // toh, 2009.02.08
 
 };
@@ -443,11 +456,12 @@ BEGIN_EVENT_TABLE ( ChartCanvas, wxWindow )
         EVT_CHAR(ChartCanvas::OnChar)
 
 
-        EVT_MENU ( ID_DEF_MENU_MAX_DETAIL,  ChartCanvas::PopupMenuHandler )
-        EVT_MENU ( ID_DEF_MENU_SCALE_IN,    ChartCanvas::PopupMenuHandler )
-        EVT_MENU ( ID_DEF_MENU_SCALE_OUT,   ChartCanvas::PopupMenuHandler )
-        EVT_MENU ( ID_DEF_MENU_QUERY,       ChartCanvas::PopupMenuHandler )
-        EVT_MENU ( ID_DEF_MENU_DROP_WP,     ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_MAX_DETAIL,         ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_SCALE_IN,           ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_SCALE_OUT,          ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_QUERY,              ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_DROP_WP,            ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_MOVE_BOAT_HERE,     ChartCanvas::PopupMenuHandler )
 
         EVT_MENU ( ID_RT_MENU_ACTIVATE,     ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RT_MENU_DEACTIVATE,   ChartCanvas::PopupMenuHandler )
@@ -462,8 +476,8 @@ BEGIN_EVENT_TABLE ( ChartCanvas, wxWindow )
         EVT_MENU ( ID_RT_MENU_DEACTPOINT,   ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RT_MENU_ACTNXTPOINT,  ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RT_MENU_PROPERTIES,   ChartCanvas::PopupMenuHandler )
-        EVT_MENU ( ID_RT_MENU_PROPERTIES,   ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RT_MENU_EXPORT,       ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_RT_MENU_DELETEALL,    ChartCanvas::PopupMenuHandler )
 
         EVT_MENU ( ID_RC_MENU_SCALE_IN,     ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RC_MENU_SCALE_OUT,    ChartCanvas::PopupMenuHandler )
@@ -477,7 +491,12 @@ BEGIN_EVENT_TABLE ( ChartCanvas, wxWindow )
 
         EVT_MENU ( ID_WP_MENU_DELPOINT,           ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_WP_MENU_PROPERTIES,         ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_WP_MENU_DELETEALL,          ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_WP_MENU_ADDITIONAL_INFO,    ChartCanvas::PopupMenuHandler )   // toh, 2009.02.08
+
+        EVT_MENU ( ID_TK_MENU_EXPORT,           ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_TK_MENU_PROPERTIES,       ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_TK_MENU_DELETE,           ChartCanvas::PopupMenuHandler )
 
 END_EVENT_TABLE()
 
@@ -509,6 +528,8 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         m_bbr_paused = false;
         m_bChartDragging = false;
         m_bMeasure_Active = false;
+        m_pMeasureRoute = NULL;
+
 
 
 
@@ -821,6 +842,7 @@ void ChartCanvas::OnChar(wxKeyEvent &event)
                       {
                             m_bMeasure_Active = false;
                             pRouteMan->DeleteRoute ( m_pMeasureRoute );
+                            m_pMeasureRoute = NULL;
                             Refresh ( false );
                       }
                       break;
@@ -985,13 +1007,13 @@ void ChartCanvas::OnCursorTrackTimerEvent ( wxTimerEvent& event )
                                     s1 += toSDMM(1, cursor_lat);
                                     s1 += _T("   ");
                                     s1 += toSDMM(2, cursor_lon);
-                                    parent_frame->SetStatusText ( s1, 1 );
+                                    parent_frame->SetStatusText ( s1, STAT_FIELD_CURSOR_LL );
 
                                     double brg, dist;
                                     DistanceBearing(cursor_lat, cursor_lon, gLat, gLon, &brg, &dist);
                                     wxString s;
                                     s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
-                                    parent_frame->SetStatusText ( s, 2 );
+                                    parent_frame->SetStatusText ( s, STAT_FIELD_CURSOR_BRGRNG );
                               }
                        }
                 }
@@ -1398,7 +1420,7 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
               else
                     text.Printf(_T("TrueScale: %8.0f  Zoom %4.2fx"), true_scale_display, scale_factor);
 
-              parent_frame->SetStatusText ( text, 3 );
+              parent_frame->SetStatusText ( text, STAT_FIELD_SCALE );
 
         }
 
@@ -1612,6 +1634,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       ll_gc_ll ( gLat, gLon, 0, factor, &tlat, &tlon );
                       GetPointPix ( tlat, tlon, &r );
                       int pix_radius = abs(lShipPoint.y - r.y);
+
+                      dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "URED" ) ) , 2 ) );
 
                       wxBrush CurrentBrush = dc.GetBrush();
                       wxBrush RingBrush(CurrentBrush.GetColour(),wxTRANSPARENT);
@@ -2342,13 +2366,13 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         s1 += toSDMM(1, show_cursor_lat);
                         s1 += _T("   ");
                         s1 += toSDMM(2, show_cursor_lon);
-                        parent_frame->SetStatusText ( s1, 1 );
+                        parent_frame->SetStatusText ( s1, STAT_FIELD_CURSOR_LL );
 
                         double brg, dist;
                         DistanceBearing(m_cursor_lat, m_cursor_lon, gLat, gLon, &brg, &dist);
                         wxString s;
                         s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
-                        parent_frame->SetStatusText ( s, 2 );
+                        parent_frame->SetStatusText ( s, STAT_FIELD_CURSOR_BRGRNG );
                       }
                 }
         }
@@ -2496,20 +2520,20 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                 {
                       SetMyCursor ( pCursorPencil );
 
-                      if ( m_nMeasureState == 1 )
-                      {
-                            m_pMeasureRoute = new Route();
-                            r_rband.x = x;
-                            r_rband.y = y;
+                      if(NULL != m_pMeasureRoute)
+                           pRouteMan->DeleteRoute ( m_pMeasureRoute );
 
-                            RoutePoint *pMousePoint = new RoutePoint ( m_cursor_lat, m_cursor_lon, wxString ( _T ( "circle" ) ), wxString ( _T ( "" ) ), NULL );
-                            pMousePoint->m_bShowName = false;
+                      m_pMeasureRoute = new Route();
+                      r_rband.x = x;
+                      r_rband.y = y;
 
-                            m_pMeasureRoute->AddPoint ( pMousePoint );
+                      RoutePoint *pMousePoint = new RoutePoint ( m_cursor_lat, m_cursor_lon, wxString ( _T ( "circle" ) ), wxString ( _T ( "" ) ), NULL );
+                      pMousePoint->m_bShowName = false;
 
-                            m_prev_rlat = m_cursor_lat;
-                            m_prev_rlon = m_cursor_lon;
-                      }
+                      m_pMeasureRoute->AddPoint ( pMousePoint );
+
+                      m_prev_rlat = m_cursor_lat;
+                      m_prev_rlon = m_cursor_lon;
 
                       m_nMeasureState++;
 
@@ -2837,7 +2861,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         {
                                 m_pSelectedRoute->m_bRtIsSelected = false;        // Only one selection at a time
                                 m_pSelectedRoute->DeSelectRoute();
-                                m_pSelectedRoute->DrawRoute ( dc, VPoint.view_scale_ppm );
+                                m_pSelectedRoute->Draw ( dc, VPoint.view_scale_ppm );
                         }
 
                         if ( m_pFoundRoutePoint )
@@ -2908,14 +2932,26 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         }
 
 
+                        // Note here that we use SELTYPE_ROUTESEGMENT to select tracks as well as routes
+                        // But call the popup handler with identifier appropriate to the type
                         else if ( ( pFind = pSelect->FindSelection ( slat, slon,SELTYPE_ROUTESEGMENT,SelectRadius ) ) != NULL )
                         {
                                 m_pSelectedRoute = (Route *)pFind->m_pData3;
                                 if ( m_pSelectedRoute )
                                 {
+                                      if(!m_pSelectedRoute->m_bIsTrack)
+                                      {
                                         m_pSelectedRoute->m_bRtIsSelected = true;
-                                        m_pSelectedRoute->DrawRoute ( dc, VPoint.view_scale_ppm );
+                                        m_pSelectedRoute->Draw ( dc, VPoint.view_scale_ppm );
                                         CanvasPopupMenu ( x,y, SELTYPE_ROUTESEGMENT );
+                                      }
+                                      else
+                                      {
+//                                            m_pSelectedRoute->m_bRtIsSelected = true;
+//                                            m_pSelectedRoute->DrawRoute ( dc, VPoint.view_scale_ppm );
+                                            CanvasPopupMenu ( x,y, SELTYPE_TRACKSEGMENT );
+                                      }
+
                                 }
                                 Refresh ( false );            // needed for MSW, not GTK  Why??
                         }
@@ -2999,7 +3035,19 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
 
         switch ( seltype )
         {
-                case SELTYPE_ROUTESEGMENT:
+              case SELTYPE_TRACKSEGMENT:
+                    pdef_menu = new wxMenu();
+
+                    pdef_menu->Append ( ID_TK_MENU_PROPERTIES,        _T ( "Track Properties" ) );
+                    pdef_menu->Append ( ID_TK_MENU_DELETE,            _T ( "Delete Track" ) );
+                    pdef_menu->Append ( ID_TK_MENU_EXPORT,            _T ( "Export...." ) );
+
+                    PopupMenu ( pdef_menu, x, y );
+
+                    delete pdef_menu;
+
+                    break;
+              case SELTYPE_ROUTESEGMENT:
                         pdef_menu = new wxMenu();
 
                         pdef_menu->Append ( ID_RT_MENU_ACTIVATE,          _T ( "Activate Route" ) );
@@ -3010,6 +3058,7 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                         pdef_menu->Append ( ID_RT_MENU_REVERSE,           _T ( "Reverse Route" ) );
                         pdef_menu->Append ( ID_RT_MENU_PROPERTIES,        _T ( "Route Properties" ) );
                         pdef_menu->Append ( ID_RT_MENU_EXPORT,            _T ( "Export...." ) );
+                        pdef_menu->Append ( ID_RT_MENU_DELETEALL,         _T ( "Delete All Routes..." ) );
                         pdef_menu->Append ( ID_RT_MENU_SENDTOGPS,         _T ( "Send To GPS..." ) );
 
                         if ( m_pSelectedRoute )
@@ -3064,6 +3113,8 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
 
                         pdef_menu->Append ( ID_WP_MENU_DELPOINT,    _T ( "Delete Mark" ) );
                         pdef_menu->Append ( ID_WP_MENU_PROPERTIES,  _T ( "Mark/WP Properties" ) );
+                        pdef_menu->Append ( ID_WP_MENU_DELETEALL,   _T ( "Delete All Waypoints..." ) );
+
                         if (m_pFoundRoutePoint->m_HyperlinkList->GetCount() > 0)
                         {
                               pdef_menu->Append ( ID_WP_MENU_ADDITIONAL_INFO,   _T ( "Additional information" ) );      // toh, 2009.02.08
@@ -3082,6 +3133,7 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                         pdef_menu->Append ( ID_DEF_MENU_SCALE_IN,   _T ( "Scale In" ) );
                         pdef_menu->Append ( ID_DEF_MENU_SCALE_OUT,  _T ( "Scale Out" ) );
                         pdef_menu->Append ( ID_DEF_MENU_DROP_WP,    _T ( "Drop Mark Here" ) );
+                        pdef_menu->Append ( ID_DEF_MENU_MOVE_BOAT_HERE, _T ( "Move Boat Here" ) );
 
                         if(!m_bMeasure_Active)
                               pdef_menu->Append ( ID_DEF_MENU_ACTIVATE_MEASURE,    _T ( "Measure....." ) );
@@ -3093,7 +3145,11 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                         if (( Current_Ch->m_ChartFamily == CHART_FAMILY_VECTOR ))
                                 pdef_menu->Append ( ID_DEF_MENU_QUERY,  _T ( "Object Query" ) );
 
-                        PopupMenu ( pdef_menu, x, y );
+                        if(m_bMeasure_Active)
+                              PopupMenu ( pdef_menu, 10,10 );           // if measure tool is on, position the menu statically
+                        else
+                              PopupMenu ( pdef_menu, x, y );
+
 
                         delete pdef_menu;
                         break;
@@ -3169,6 +3225,11 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                         parent_frame-> DoStackUp();
                         break;
 
+                case ID_DEF_MENU_MOVE_BOAT_HERE:
+                        gLat = zlat;
+                        gLon = zlon;
+                        break;
+
                 case ID_DEF_MENU_DROP_WP:
                 {
                         RoutePoint *pWP = new RoutePoint ( zlat, zlon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "" ) ), NULL );
@@ -3197,6 +3258,17 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                         pMarkPropDialog->Show();
                         break;
 
+                case ID_WP_MENU_DELETEALL:
+                {
+                        wxMessageDialog mdlg(this, _("Are you sure you want to delete <ALL> waypoints?"), wxString(_T("OpenCPN Alert")),wxYES_NO  );
+                        if(mdlg.ShowModal() == wxID_YES)
+                        {
+                            pWayPointMan->DeleteAllWaypoints(false);          // only delete unused waypoints
+                            m_pFoundRoutePoint = NULL;
+                        }
+
+                        break;
+                }
                 case ID_WP_MENU_ADDITIONAL_INFO:             // toh, 2009.02.08
                         if ( NULL == pMarkInfoDialog )          // There is one global instance of the MarkInfo Dialog
                               pMarkInfoDialog = new MarkInfo ( this );
@@ -3216,6 +3288,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                 case ID_DEF_MENU_DEACTIVATE_MEASURE:
                         m_bMeasure_Active = false;
                         pRouteMan->DeleteRoute ( m_pMeasureRoute );
+                        m_pMeasureRoute = NULL;
                         Refresh ( false );
                         break;
 
@@ -3459,11 +3532,24 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
                         pRoutePropDialog->SetRouteAndUpdate ( m_pSelectedRoute );
                         pRoutePropDialog->UpdateProperties();
+                        pRoutePropDialog->SetDialogTitle(_T("Route Properties"));
+
                         pRoutePropDialog->Show();
 
                         break;
                 }
 
+                case ID_RT_MENU_DELETEALL:
+                {
+                       wxMessageDialog mdlg(this, _("Are you sure you want to delete <ALL> routes?"), wxString(_T("OpenCPN Alert")),wxYES_NO  );
+                       if(mdlg.ShowModal() == wxID_YES)
+                       {
+                            pRouteMan->DeleteAllRoutes();
+                            m_pSelectedRoute = NULL;
+                       }
+
+                        break;
+                }
                 case ID_RT_MENU_SENDTOGPS:
                 {
                         SendToGpsDlg *pdlg = new SendToGpsDlg();
@@ -3482,6 +3568,37 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                         pConfig->ExportGPXRoute(this, m_pSelectedRoute);
                         break;
                 }
+
+
+              case ID_TK_MENU_PROPERTIES:
+              {
+                    if ( NULL == pRoutePropDialog )          // There is one global instance of the RouteProp Dialog
+                          pRoutePropDialog  = new RouteProp ( this );
+
+                    pRoutePropDialog->SetRouteAndUpdate ( m_pSelectedRoute );
+                    pRoutePropDialog->UpdateProperties();
+                    pRoutePropDialog->SetDialogTitle(_T("Track Properties"));
+
+                    pRoutePropDialog->Show();
+
+                    break;
+              }
+
+             case ID_TK_MENU_EXPORT:
+              {
+                    pConfig->ExportGPXRoute(this, m_pSelectedRoute);
+                    break;
+              }
+
+              case ID_TK_MENU_DELETE:
+              {
+                    pRouteMan->DeleteRoute ( m_pSelectedRoute );
+                    m_pSelectedRoute = NULL;
+                    m_pFoundRoutePoint = NULL;
+                    m_pFoundRoutePointSecond = NULL;
+
+                    break;
+              }
 
 
                 case ID_RC_MENU_SCALE_IN:
@@ -3558,6 +3675,19 @@ void ChartCanvas::RenderAllChartOutlines ( wxDC *pdc, ViewPort& vp, bool bdraw_m
 //    if(NULL !=  pthumbwin->pThumbChart)
 //        int ggl = 4;
 
+
+ //        On CM93 Composite Charts, draw the outlines of the next smaller scale cell
+        if(Current_Ch->m_ChartType == CHART_TYPE_CM93COMP)
+        {
+//              cm93compchart *pch = wxDynamicCast(Current_Ch, cm93compchart);
+              cm93compchart *pch = (cm93compchart *)Current_Ch;
+              if(pch)
+              {
+                    wxPen mPen(GetGlobalColor(_T("UINFM")), 2, wxSOLID);
+                    pdc->SetPen(mPen);
+                    pch->RenderNextSmallerCellOutlines(pdc,vp, bdraw_mono);
+              }
+        }
 }
 
 
@@ -3668,7 +3798,7 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
         if ( res != Invisible )
                 pdc->DrawLine ( pixx, pixy, pixx1, pixy1 );
 
-        //       Draw Aux Ply Points
+        //       On CM93 indiviual charts, draw Aux Ply Points
 
         if(ChartData->GetDBChartType(dbIndex) == CHART_TYPE_CM93)
         {
@@ -3718,6 +3848,14 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
                       }
         }
 
+        //        On CM93 Composite Charts, draw the outlines of the next smaller scale cell
+        if(ChartData->GetDBChartType(dbIndex) == CHART_TYPE_CM93COMP)
+        {
+
+//              wxPen mPen(GetGlobalColor(_T("UINFM")), 2, wxSOLID);
+//              pdc->SetPen(mPen);
+        }
+
 }
 
 void ChartCanvas::WarpPointerDeferred ( int x, int y )
@@ -3764,9 +3902,10 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
 //    In case Console is shown, set up dc clipper and blt iterator regions
 
         wxRegion rgn_chart ( 0,0,VPoint.pix_width, VPoint.pix_height );
-        int conx, cony;
+        int conx, cony, consx, consy;
         console->GetPosition ( &conx, &cony );
-        wxRegion rgn_console ( conx, cony, console->Size_X - 1, console->Size_Y - 1 );
+        console->GetSize ( &consx, &consy );
+        wxRegion rgn_console ( conx, cony, consx - 1, consy - 1 );
 
         if ( console->IsShown() )
         {
@@ -3916,7 +4055,7 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
                 m_pMouseRoute->DrawSegment ( scratch_dc, &rpt, &r_rband, VPoint.view_scale_ppm, false );
         }
 
-        if ( m_bMeasure_Active && ( m_nMeasureState > 1) )
+        if ( m_pMeasureRoute && m_bMeasure_Active && ( m_nMeasureState > 1) )
         {
               wxPoint rpt;
               m_pMeasureRoute->DrawPointWhich ( scratch_dc, 1,  &rpt );
@@ -4075,6 +4214,7 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
                 WarpPointer ( warp_x, warp_y );
                 warp_flag = false;
         }
+
 }
 
 
@@ -4380,15 +4520,15 @@ void ChartCanvas::DrawAllRoutesInBBox ( wxDC& dc, wxBoundingBox& BltBBox )
                                 if ( BltBBox.GetValid() )
                                 {
                                         if ( BltBBox.Intersect ( pRouteDraw->BBox, 0 ) != _OUT )
-                                              pRouteDraw->DrawRoute ( dc, VPoint.view_scale_ppm );
+                                              pRouteDraw->Draw ( dc, VPoint.view_scale_ppm );
                                         else
                                         {
                                                 if ( pRouteDraw->m_bIsBeingEdited )
-                                                      pRouteDraw->DrawRoute ( dc, VPoint.view_scale_ppm );
+                                                      pRouteDraw->Draw ( dc, VPoint.view_scale_ppm );
                                         }
                                 }
                                 else
-                                      pRouteDraw->DrawRoute ( dc, VPoint.view_scale_ppm );
+                                      pRouteDraw->Draw ( dc, VPoint.view_scale_ppm );
                         }
                 }
                 else
@@ -5965,19 +6105,6 @@ void AISTargetQueryDialog::CreateControls()
       okCancelBox->Add ( ok, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
       ok->SetBackgroundColour ( button_color );
 
-/*
-// The Cancel button
-      wxButton* cancel = new wxButton ( this, wxID_CANCEL,
-                                        wxT ( "&Cancel" ), wxDefaultPosition, wxDefaultSize, 0 );
-      okCancelBox->Add ( cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-      cancel->SetBackgroundColour ( button_color );
-
-// The Help button
-      wxButton* help = new wxButton ( this, wxID_HELP, _T ( "&Help" ),
-                                      wxDefaultPosition, wxDefaultSize, 0 );
-      okCancelBox->Add ( help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-      help->SetBackgroundColour ( button_color );
-*/
 }
 
 void AISTargetQueryDialog::UpdateText()
@@ -5996,6 +6123,9 @@ void AISTargetQueryDialog::UpdateText()
             m_pQueryTextCtl->Clear();
             m_pQueryTextCtl->AppendText ( query_text );
       }
+
+      //    Grow/Shrink "this" to fit the contents
+      Fit();
 }
 
 
