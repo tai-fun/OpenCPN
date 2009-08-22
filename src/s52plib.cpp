@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.35 2009/08/03 03:15:26 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.36 2009/08/22 01:25:57 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.36  2009/08/22 01:25:57  bdbcat
+ * Correct linked list traversal logic
+ *
  * Revision 1.35  2009/08/03 03:15:26  bdbcat
  * Cleanup for MSVC
  *
@@ -93,6 +96,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.36  2009/08/22 01:25:57  bdbcat
+ * Correct linked list traversal logic
+ *
  * Revision 1.35  2009/08/03 03:15:26  bdbcat
  * Cleanup for MSVC
  *
@@ -225,7 +231,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, const char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.35 2009/08/03 03:15:26 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.36 2009/08/22 01:25:57 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -6651,6 +6657,7 @@ void s52plib::AdjustTextList ( int dx, int dy, int screenw, int screenh )
       //        1.  Apply the specified offset to the list elements
       //        2.. Remove any list elements that are off screen after applied offset
 
+/*
       for ( ObjList::Node *node = m_textObjList.GetFirst(); node; node = node->GetNext() )
       {
 //            S57Obj *oc = node->GetData();
@@ -6666,6 +6673,22 @@ void s52plib::AdjustTextList ( int dx, int dy, int screenw, int screenh )
 
                   m_textObjList.DeleteNode ( node );
             }
+      }
+*/
+      ObjList::Node *node = m_textObjList.GetFirst();
+      while(node)
+      {
+            wxRect *pcurrent = & ( node->GetData()->rText );
+            pcurrent->Offset ( dx, dy );
+
+            if ( !pcurrent->Intersects ( rScreen ) )
+            {
+                  m_textObjList.DeleteNode ( node );
+
+                  node = m_textObjList.GetFirst();
+            }
+            else
+                  node = node->GetNext();
       }
 }
 
