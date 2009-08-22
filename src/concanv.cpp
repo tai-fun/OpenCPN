@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.12 2009/07/29 20:05:37 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.13 2009/08/22 01:18:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.13  2009/08/22 01:18:44  bdbcat
+ * Improved font support
+ *
  * Revision 1.12  2009/07/29 20:05:37  bdbcat
  * Update for gcc 4.2.4
  *
@@ -45,6 +48,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.13  2009/08/22 01:18:44  bdbcat
+ * Improved font support
+ *
  * Revision 1.12  2009/07/29 20:05:37  bdbcat
  * Update for gcc 4.2.4
  *
@@ -129,51 +135,75 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.12 2009/07/29 20:05:37 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.13 2009/08/22 01:18:44 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
 //    ConsoleCanvas Implementation
 //------------------------------------------------------------------------------
 BEGIN_EVENT_TABLE(ConsoleCanvas, wxWindow)
-      EVT_PAINT(ConsoleCanvas::OnPaint)
-      EVT_SIZE(ConsoleCanvas::OnSize)
-      EVT_MOUSE_EVENTS(ConsoleCanvas::MouseEvent)
+            EVT_PAINT(ConsoleCanvas::OnPaint)
+            EVT_BUTTON(ID_LEGROUTE, ConsoleCanvas::OnLegRouteButton)
+            EVT_MOUSE_EVENTS(ConsoleCanvas::MouseEvent)
+            EVT_MOUSE_CAPTURE_LOST(ConsoleCanvas::MouseLostCaptureEvent)
+
 END_EVENT_TABLE()
 
 // Define a constructor for my canvas
 ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
             wxWindow(frame, wxID_ANY,   wxPoint(20,20), wxSize(5,5),wxNO_BORDER/*wxSUNKEN_BORDER | wxCLIP_CHILDREN*/ )
 {
+      m_pParent = frame;
 
       pThisLegBox = new wxStaticBox(this, -1, _T("This Leg"), wxPoint(1,1),
                                     wxSize(170,200), 0, _T("staticBox"));
 
-      pSBoxRgn = new wxRegion(pThisLegBox->GetRect() );
+      m_pitemStaticBoxSizerLeg = new wxStaticBoxSizer(pThisLegBox, wxVERTICAL);
+
+ //     pSBoxRgn = new wxRegion(pThisLegBox->GetRect() );
 
       pThisLegFont = wxTheFontList->FindOrCreateFont(12, wxDEFAULT,wxNORMAL, wxBOLD, FALSE,
               wxString(_T("Eurostile Extended")));
 
       pThisLegBox->SetFont(*pThisLegFont);
 
-      pXTE = new AnnunText(this, -1,wxPoint(10,20), wxSize(140,50), _T("Console Legend"), _T("Console Value"));
+
+      m_pLegRouteButton = new wxButton( this, ID_LEGROUTE, _("Leg/Route"), wxDefaultPosition, wxSize(-1, -1), 0 );
+      m_pLegRouteButton->SetMinSize(wxSize(-1, 25));
+      m_pitemStaticBoxSizerLeg->Add(m_pLegRouteButton, 0, wxALIGN_LEFT|wxALL|wxEXPAND, 2);
+
+
+      pXTE = new AnnunText(this, -1,  _T("Console Legend"), _T("Console Value"));
       pXTE->SetALabel(_T("XTE"));
+      m_pitemStaticBoxSizerLeg->Add(pXTE, 1, wxALIGN_LEFT|wxALL, 2);
 
-      pBRG = new AnnunText(this, -1,wxPoint(10,75), wxSize(140,50), _T("Console Legend"), _T("Console Value"));
+      pBRG = new AnnunText(this, -1, _T("Console Legend"), _T("Console Value"));
       pBRG->SetALabel(_T("BRG"));
+      m_pitemStaticBoxSizerLeg->Add(pBRG, 1, wxALIGN_LEFT|wxALL, 2);
 
-      pRNG = new AnnunText(this, -1,wxPoint(10,130), wxSize(140,50), _T("Console Legend"), _T("Console Value"));
+      pRNG = new AnnunText(this, -1, _T("Console Legend"), _T("Console Value"));
       pRNG->SetALabel(_T("RNG"));
+      m_pitemStaticBoxSizerLeg->Add(pRNG, 1, wxALIGN_LEFT|wxALL, 2);
 
-      pTTG = new AnnunText(this, -1,wxPoint(10,185), wxSize(140,50), _T("Console Legend"), _T("Console Value"));
+      pTTG = new AnnunText(this, -1,  _T("Console Legend"), _T("Console Value"));
       pTTG->SetALabel(_T("TTG"));
+      m_pitemStaticBoxSizerLeg->Add(pTTG, 1, wxALIGN_LEFT|wxALL, 2);
 
 
 //    Create CDI Display Window
 
-      pCDI = new CDI(this, -1, wxPoint(0,200), wxSize(100, 200), wxSIMPLE_BORDER, _T("CDI"));
+
+      pCDI = new CDI(this, -1, wxSIMPLE_BORDER, _T("CDI"));
+      m_pitemStaticBoxSizerLeg->AddSpacer(10);
+      m_pitemStaticBoxSizerLeg->Add(pCDI, 0, wxALIGN_LEFT|wxALL|wxEXPAND, 2);
+
 
       m_bShowRouteTotal = false;
+
+      SetSizer( m_pitemStaticBoxSizerLeg );      // use the sizer for layout
+      m_pitemStaticBoxSizerLeg->SetSizeHints(this);
+      Layout();
+      Fit();
 
       Hide();
 }
@@ -182,29 +212,9 @@ ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
  ConsoleCanvas::~ConsoleCanvas()
 {
       delete pCDI;
-      delete pSBoxRgn;
-}
-
-wxSize ConsoleCanvas::GetMiniSize(void)
-{
-      //TODO Really need to switch to a sizer here.
-      int sx = 140;
-      int sy = 330;
-
-      return wxSize(sx, sy);
-}
-
-void ConsoleCanvas::OnSize(wxSizeEvent& event)
-{
-      int canvas_width, canvas_height;
-      GetClientSize(&canvas_width, &canvas_height);
-
-      pThisLegBox->SetSize(1,1,canvas_width-2,240);
-
-      int CDIHeight = canvas_width /2;
-      pCDI->SetSize(2, canvas_height - CDIHeight - 12, canvas_width-4, CDIHeight);
 
 }
+
 
 void ConsoleCanvas::SetColorScheme(ColorScheme cs)
 {
@@ -281,9 +291,16 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                       pXTE->SetALabel(wxString(_T("XTE         R")));
 
 //    TTG
-                  float ttg_sec = (rng / gSog) * 3600.;
-                  wxTimeSpan ttg_span(0, 0, long(ttg_sec), 0);
-                  wxString ttg_s = ttg_span.Format();
+                  wxString ttg_s;
+                  if(gSog > 0.)
+                  {
+                        float ttg_sec = (rng / gSog) * 3600.;
+                        wxTimeSpan ttg_span(0, 0, long(ttg_sec), 0);
+                        ttg_s = ttg_span.Format();
+                  }
+                  else
+                        ttg_s = _T("---");
+
                   if(!m_bShowRouteTotal)
                         pTTG->SetAValue(ttg_s);
 
@@ -318,20 +335,36 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                         pRNG->SetAValue(strng);
 
 //                total ttg
-                  float tttg_sec = (trng / gSog) * 3600.;
-                  wxTimeSpan tttg_span(0, 0, long(tttg_sec), 0);
-                  wxString tttg_s = tttg_span.Format();
+                  wxString tttg_s;
+                  wxTimeSpan tttg_span;
+                  if(gSog > 0.)
+                  {
+                        float tttg_sec = (trng / gSog) * 3600.;
+                        tttg_span = wxTimeSpan::Seconds(tttg_sec);
+                        tttg_s = tttg_span.Format();
+                  }
+                  else
+                  {
+                        tttg_span = wxTimeSpan::Seconds(0);
+                        tttg_s = _T("---");
+                  }
+
                   if(m_bShowRouteTotal)
                         pTTG->SetAValue(tttg_s);
 
 //                total ETA to be shown on XTE panel
-                  wxDateTime dtnow, eta;
-                  dtnow.SetToCurrent();
-                  eta = dtnow.Add(tttg_span);
-                  wxString seta = eta.FormatTime();
-
                   if(m_bShowRouteTotal)
                   {
+                        wxDateTime dtnow, eta;
+                        dtnow.SetToCurrent();
+                        eta = dtnow.Add(tttg_span);
+                        wxString seta;
+
+                        if(gSog > 0.)
+                              seta = eta.FormatTime();
+                        else
+                              seta = _("---");
+
                         pXTE->SetAValue(seta);
                         pXTE->SetALabel(wxString(_T("ETA          ")));
                   }
@@ -354,32 +387,31 @@ void ConsoleCanvas::UpdateRouteData()
 }
 
 
+
+void ConsoleCanvas::OnLegRouteButton(wxCommandEvent& event)
+{
+      m_bShowRouteTotal = !m_bShowRouteTotal;
+      if(m_bShowRouteTotal)
+            pThisLegBox->SetLabel(_("Route"));
+      else
+            pThisLegBox->SetLabel(_("This Leg"));
+
+      pThisLegBox->Refresh(true);
+}
+
 void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
 {
 
       int x,y;
       event.GetPosition(&x, &y);
 
-      ///TODO  Why is this necessary???
-#ifndef __WXGTK__
-      {
-        if(!HasCapture())
-            CaptureMouse();
 
-        if(event.Leaving())
-            if(HasCapture())
-                  ReleaseMouse();
-      }
-#endif
-
-//      if(event.IsButton())
-//            wxLogMessage(_T("concanv::MouseEvent Button"));
 //    Check the regions
-
+/*
       if(event.LeftDown())
       {
-            wxRect br = pSBoxRgn->GetBox();
-            if(pSBoxRgn->Contains(x,y)  == wxInRegion)
+            wxRegion rg(m_pLegRouteButton->GetRect());
+            if(rg.Contains(x,y)  == wxInRegion)
             {
                   m_bShowRouteTotal = !m_bShowRouteTotal;
                   if(m_bShowRouteTotal)
@@ -390,31 +422,40 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
                   pThisLegBox->Refresh(true);
             }
       }
-
-      else
-      {
-            wxRegion rr(GetRect());
+*/
+      ///TODO  Why is this necessary???
 #ifdef __WXMSW__
-            if(rr.Contains(x,y)  != wxInRegion)
-            {
-//                  wxLogMessage(_T("concanv::MouseEvent releasing mouse"));
-                  ReleaseMouse();
-            }
+      wxRegion rr(GetRect());
+      if(rr.Contains(x,y)  != wxInRegion)
+            ReleaseMouse();
 #endif
-      }
+
 
 }
 
+void ConsoleCanvas::MouseLostCaptureEvent(wxMouseCaptureLostEvent& event)
+{
+}
+
 void ConsoleCanvas::ShowWithFreshFonts(void)
+{
+      UpdateFonts();
+      Show();
+}
+
+void ConsoleCanvas::UpdateFonts(void)
 {
       pBRG->RefreshFonts();
       pXTE->RefreshFonts();
       pTTG->RefreshFonts();
       pRNG->RefreshFonts();
 
-      Show();
-}
+      m_pitemStaticBoxSizerLeg->SetSizeHints(this);
+      Layout();
+      Fit();
 
+      Refresh();
+}
 
 
 
@@ -426,111 +467,62 @@ BEGIN_EVENT_TABLE(AnnunText, wxWindow)
 END_EVENT_TABLE()
 
 
-AnnunText::AnnunText(wxWindow *parent, wxWindowID id,
-                               const wxPoint& pos, const wxSize& size, const wxString& LegendElement, const wxString& ValueElement):
-        wxWindow(parent, id, pos, size, wxSIMPLE_BORDER/*wxSUNKEN_BORDER*/, wxString(_T("")))
+AnnunText::AnnunText(wxWindow *parent, wxWindowID id, const wxString& LegendElement, const wxString& ValueElement):
+            wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER/*wxSUNKEN_BORDER*/)
 {
-      label = new wxString(_T("Label"));
-      value = new wxString(_T("-----"));
+      m_label = _T("Label");
+      m_value = _T("-----");
 
-      plabelFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_SWISS,wxNORMAL, wxBOLD, FALSE,
+      m_plabelFont = wxTheFontList->FindOrCreateFont(14, wxFONTFAMILY_SWISS,wxNORMAL, wxBOLD, FALSE,
               wxString(_T("Arial Bold")));
-      pvalueFont = wxTheFontList->FindOrCreateFont(24, wxFONTFAMILY_DEFAULT,wxNORMAL, wxBOLD, FALSE,
+      m_pvalueFont = wxTheFontList->FindOrCreateFont(24, wxFONTFAMILY_DEFAULT,wxNORMAL, wxBOLD, FALSE,
               wxString(_T("helvetica")), wxFONTENCODING_ISO8859_1);
 
 
-      pLegendTextElement = new wxString( LegendElement );
-      pValueTextElement = new wxString( ValueElement );
+      m_LegendTextElement = LegendElement;
+      m_ValueTextElement =  ValueElement;
 
-      plabelFont = pFontMgr->GetFont(*pLegendTextElement);
-      pvalueFont = pFontMgr->GetFont(*pValueTextElement);
-
-/*
-      // Calculate font sizes
-      int mmx, mmy;
-      wxDisplaySizeMM(&mmx, &mmy);
-      int sx, sy;
-      wxDisplaySize(&sx, &sy);
-
-      float mm_per_pixel = ((float)mmy)/((float)sy);
-
-      int sixe_x, size_y;
-      GetSize(&sixe_x, &size_y);
-
-      float font_twips = size_y * 0.6;
-      font_twips = font_twips * mm_per_pixel /25.4;         // inches
-      font_twips = font_twips * 720;
-
-      int itwips = (int)font_twips;
-
-      wxString xFontName;
-      */
-#if 0
-      if(MyBuildXFontSpec(-1, itwips,  wxFONTFAMILY_DEFAULT, wxNORMAL, wxFONTWEIGHT_BOLD, 0,
-         wxString("nimbus sans l"), wxString("iso8859"), wxString("1"), &xFontName))
-      {
-            wxLogMessage(_T("Found Font, itwips = %d"), itwips);
-            xFontName.Prepend("0;");
-            wxFont *ptf = new wxFont;
-            pvalueFont = ptf->New(xFontName);
-// Doesn't work??
-//          pvalueFont = ptf->New(wxSize(-1, 44), wxFONTFAMILY_DEFAULT, wxNORMAL, wxFONTWEIGHT_BOLD, false,
-//                                  wxString("nimbus sans l"), wxFONTENCODING_ISO8859_1);
-      }
-#endif
-
-
-      /*
-      wxString pattern;
-//      pattern.Printf(wxT("-*-%s-*-*-*-*-*-*-*-*-*-*-*-*"),
-//                     "utopia");
-
-//      pattern.Printf(wxT("-*-*-*-*-*-*-*-*-*-*-*-*-*-*"));
-      pattern.Printf(wxT("-*-%s-*-r-normal-*-*-*-*-*-*-*-%s-%s"),  ///CANNOT Printf %s
-                        "utopia",
-                     info.xregistry.mb_str(),
-                     info.xencoding.mb_str());
-
-    // get the list of all fonts
-      int nFonts;
-      char ** list = XListFonts((Display *)wxGetDisplay(), pattern.mb_str(), 32767, &nFonts);
-
-      for(int i=0 ; i < nFonts ; i++)
-      {
-            char *pname = list[i];
-            printf("%s\n", pname);
-      }
-
-      MyFontEnumerator fe;
-      fe.EnumerateFacenames(wxFONTENCODING_ISO8859_1 );
-
-
-      wxArrayString Names = fe.GetFacenames();
-      int nNames = Names.GetCount();
-
-      for(int i=0 ; i < nNames ; i++)
-      {
-            wxString name = Names.Item(i);
-            printf("%s\n", name.mb_str());
-      }
-
-//      wxString fd = pvalueFont->GetNativeFontInfoDesc();
-    wxFontDialog dg(this, NULL);
-//      dg.ShowModal();
-*/
+      RefreshFonts();
 }
 
 AnnunText::~AnnunText()
 {
-      delete label;
-      delete value;
-      delete pLegendTextElement;
-      delete pValueTextElement;
-
 }
+
+
+void AnnunText::CalculateMinSize(void)
+{
+            //    Calculate the minimum required size of the window based on text size
+
+      int wl, hl, wv, hv;
+
+      wxMemoryDC mdc;
+
+      wxBitmap m_bitmap(800,200, -1);           // plenty big
+      mdc.SelectObject(m_bitmap);
+
+      if(m_plabelFont)
+      {
+            mdc.SetFont(*m_plabelFont);
+            mdc.GetTextExtent(_T("1234"), &wl, &hl);
+      }
+
+      if(m_pvalueFont)
+      {
+            mdc.SetFont(*m_pvalueFont);
+            mdc.GetTextExtent(_T("123.45"), &wv, &hv);
+      }
+
+      wxSize min;
+      min.x = wl + wv;
+      min.y = wxMax(hl,hv) * 1.5;
+
+      SetMinSize(min);
+}
+
 void AnnunText::SetColorScheme(ColorScheme cs)
 {
-      pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UBLCK"/*"UIBCK"*/)), wxSOLID);
+      m_pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UBLCK"/*"UIBCK"*/)), wxSOLID);
 
       m_text_color = GetGlobalColor(_T("GREEN4"/*"UINFD"*/));
 }
@@ -539,21 +531,20 @@ void AnnunText::SetColorScheme(ColorScheme cs)
 
 void AnnunText::RefreshFonts()
 {
-      plabelFont = pFontMgr->GetFont(*pLegendTextElement);
-      pvalueFont = pFontMgr->GetFont(*pValueTextElement);
+      m_plabelFont = pFontMgr->GetFont(m_LegendTextElement);
+      m_pvalueFont = pFontMgr->GetFont(m_ValueTextElement);
 
+      CalculateMinSize();
 }
 
 void AnnunText::SetLegendElement(const wxString &element)
 {
-      delete pLegendTextElement;
-      pLegendTextElement = new wxString( element );
+      m_LegendTextElement =  element ;
 }
 
 void AnnunText::SetValueElement(const wxString &element)
 {
-      delete pValueTextElement;
-      pValueTextElement = new wxString( element );
+      m_ValueTextElement = element;
 }
 
 
@@ -561,12 +552,12 @@ void AnnunText::SetValueElement(const wxString &element)
 
 void AnnunText::SetALabel(const wxString &l)
 {
-      *label = l;
+      m_label = l;
 }
 
 void AnnunText::SetAValue(const wxString &v)
 {
-      *value = v;
+      m_value = v;
 }
 
 void AnnunText::OnPaint(wxPaintEvent& event)
@@ -580,28 +571,27 @@ void AnnunText::OnPaint(wxPaintEvent& event)
 
       wxBitmap m_bitmap(sx, sy, -1);
       mdc.SelectObject(m_bitmap);
-      mdc.SetBackground(*pbackBrush);
+      mdc.SetBackground(*m_pbackBrush);
       mdc.Clear();
 
       mdc.SetTextForeground(m_text_color);
 
-      if(plabelFont)
+      if(m_plabelFont)
       {
-          wxString nfi = plabelFont->GetNativeFontInfoDesc();
-            mdc.SetFont(*plabelFont);
-            mdc.DrawText(*label, 5, 2);
+            mdc.SetFont(*m_plabelFont);
+            mdc.DrawText(m_label, 5, 2);
       }
 
-      if(pvalueFont)
+      if(m_pvalueFont)
       {
-            mdc.SetFont(*pvalueFont);
+            mdc.SetFont(*m_pvalueFont);
 
             int w, h;
-            mdc.GetTextExtent(*value, &w, &h);
+            mdc.GetTextExtent(m_value, &w, &h);
             int cw, ch;
             mdc.GetSize(&cw, &ch);
 
-            mdc.DrawText(*value, cw - w - 2, ch - h - 2);
+            mdc.DrawText(m_value, cw - w - 2, ch - h - 2);
       }
 
       wxPaintDC dc(this);
@@ -621,11 +611,11 @@ BEGIN_EVENT_TABLE(CDI, wxWindow)
 END_EVENT_TABLE()
 
 
-CDI::CDI(wxWindow *parent, wxWindowID id,
-             const wxPoint& pos, const wxSize& size, long style, const wxString& name):
-            wxWindow(parent, id, pos, size, style, name)
+CDI::CDI(wxWindow *parent, wxWindowID id, long style, const wxString& name):
+            wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, style, name)
 
 {
+      SetMinSize(wxSize(-1,150));
 }
 
 void CDI::SetColorScheme(ColorScheme cs)

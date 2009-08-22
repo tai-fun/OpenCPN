@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.h,v 1.6 2009/06/28 03:08:41 bdbcat Exp $
+ * $Id: concanv.h,v 1.7 2009/08/22 01:21:44 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Console Canvas
@@ -26,16 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.h,v $
- * Revision 1.6  2009/06/28 03:08:41  bdbcat
- * Set minimum size for Console.
+ * Revision 1.7  2009/08/22 01:21:44  bdbcat
+ * Improved font support
  *
- * Revision 1.5  2008/08/26 13:49:53  bdbcat
- * Better color scheme support
- *
- * Revision 1.4  2008/03/30 23:22:08  bdbcat
- * *** empty log message ***
- *
- * $Log: concanv.h,v $
  * Revision 1.6  2009/06/28 03:08:41  bdbcat
  * Set minimum size for Console.
  *
@@ -56,18 +49,6 @@
  *
  * Revision 1.1.1.1  2006/04/19 03:23:28  dsr
  * Rename/Import to OpenCPN
- *
- * Revision 1.5  2006/04/19 00:57:20  dsr
- * Use FontMgr
- *
- * Revision 1.4  2006/03/16 03:28:12  dsr
- * Cleanup tabs
- *
- * Revision 1.3  2006/02/23 01:20:29  dsr
- * Cleanup
- *
- *
- *
  */
 
 #ifndef __concanv_H__
@@ -81,6 +62,8 @@
 #include "chart1.h"             // for ColorScheme
 
 
+#define ID_LEGROUTE 1000
+
 // Class declarations
 class Routeman;
 
@@ -91,8 +74,7 @@ class Routeman;
 class CDI:public wxWindow
 {
 public:
-      CDI(wxWindow* parent, wxWindowID id,
-             const wxPoint& pos, const wxSize& size, long style, const wxString& name);
+      CDI(wxWindow* parent, wxWindowID id, long style, const wxString& name);
 
       void OnPaint(wxPaintEvent& event);
       void SetColorScheme(ColorScheme cs);
@@ -111,8 +93,7 @@ DECLARE_EVENT_TABLE()
 class AnnunText : public wxWindow
 {
 public:
-      AnnunText(wxWindow *parent, wxWindowID id,
-                const wxPoint& pos, const wxSize& size, const wxString& LegendElement, const wxString& ValueElement);
+      AnnunText(wxWindow *parent, wxWindowID id, const wxString& LegendElement, const wxString& ValueElement);
 
       ~AnnunText();
 
@@ -124,22 +105,23 @@ public:
       void SetValueElement(const wxString &element);
       void SetColorScheme(ColorScheme cs);
 
-      wxBrush     *pbackBrush;
+private:
+      void CalculateMinSize(void);
+
+      wxBrush     *m_pbackBrush;
       wxColour    m_text_color;
 
-      wxString    *label;
-      wxString    *value;
-      wxFont      *plabelFont;
-      wxFont      *pvalueFont;
+      wxString    m_label;
+      wxString    m_value;
+      wxFont      *m_plabelFont;
+      wxFont      *m_pvalueFont;
 
-      wxString    *pLegendTextElement;
-      wxString    *pValueTextElement;
+      wxString    m_LegendTextElement;
+      wxString    m_ValueTextElement;
 
 DECLARE_EVENT_TABLE()
 
 };
-
-
 
 
 
@@ -152,28 +134,32 @@ class ConsoleCanvas: public wxWindow
 public:
       ConsoleCanvas(wxFrame *frame);
       ~ConsoleCanvas();
-      void OnSize(wxSizeEvent& event);
       void UpdateRouteData();
-      void MouseEvent(wxMouseEvent& event);
       void ShowWithFreshFonts(void);
+      void UpdateFonts(void);
       void SetColorScheme(ColorScheme cs);
-      wxSize GetMiniSize(void);
+      void OnLegRouteButton(wxCommandEvent& event);
+      void MouseEvent(wxMouseEvent& event);
+      void MouseLostCaptureEvent(wxMouseCaptureLostEvent& event);
 
+      wxFrame           *m_pParent;
       wxStaticBox       *pThisLegBox;
+      wxStaticBoxSizer  *m_pitemStaticBoxSizerLeg;
+
       AnnunText         *pXTE;
       AnnunText         *pBRG;
       AnnunText         *pRNG;
       AnnunText         *pTTG;
       CDI               *pCDI;
+      wxButton          *m_pLegRouteButton;
+
       wxFont            *pThisLegFont;
 
-      int               Size_X, Size_Y, Pos_X, Pos_Y;
       bool              m_bRouteDataStale;
       bool              m_bNeedClear;
       bool              m_bShowRouteTotal;
 
-      wxRegion          *pSBoxRgn;
-      wxBrush *pbackBrush;
+      wxBrush           *pbackBrush;
 
 private:
       void OnPaint(wxPaintEvent& event);
