@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.20 2009/08/03 03:26:48 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.21 2009/08/22 01:17:39 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.21  2009/08/22 01:17:39  bdbcat
+ * Better CM93 detect
+ *
  * Revision 1.20  2009/08/03 03:26:48  bdbcat
  * Cleanup for MSVC
  *
@@ -121,7 +124,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.20 2009/08/03 03:26:48 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.21 2009/08/22 01:17:39 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -649,6 +652,7 @@ bool ChartDB::DetectDirChange(wxString dir_path, wxString magic, wxString &new_m
 }
 
 #include <wx/encconv.h>
+#include <wx/regex.h>
 
 // ----------------------------------------------------------------------------
 // Populate Chart Table by directory search for specified file type
@@ -656,13 +660,12 @@ bool ChartDB::DetectDirChange(wxString dir_path, wxString magic, wxString &new_m
 //  if target chart is already in table, mark it valid and skip chart processing
 // ----------------------------------------------------------------------------
 
-int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& filespec,
+int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& filespec_base,
                                                       bool bshow_prog, bool bupdate,
                                                       bool bCheckBothCases)
 {
       wxString dir_name = dir_name_base;
-//      wxString dir_name(dir_name_base.fn_str(), wxConvFileName);
-
+      wxString filespec = filespec_base;
 
       wxString filename;
 
@@ -680,6 +683,7 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
       //    Very slow on MSW, and clearly unproductive.
       //    If the target filespec is the CM93 reference file, search only its directory
 
+/*
       wxString cm93_test = dir_name;
       cm93_test += _T("/00300000/A/00300000.A");
       if(wxFile::Exists(cm93_test))                   // The target dir probably is cm93
@@ -689,6 +693,71 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
             if(filespec.IsSameAs(_T("00300000.A")))
                 dir_name += _T("/00300000/A");              // Manage the directory search
       }
+*/
+
+      wxRegEx test(_T("[0-9]+"));
+
+      wxDir dirt(dir_name);
+      wxString candidate;
+
+      bool b_maybe_found_cm93 = false;
+      bool b_cont = dirt.GetFirst(&candidate);
+
+      while(b_cont)
+      {
+            if(test.Matches(candidate))
+            {
+                  b_maybe_found_cm93 = true;
+                  break;
+            }
+
+            b_cont = dirt.GetNext(&candidate);
+
+      }
+
+      if(b_maybe_found_cm93)
+      {
+            wxString dir_next = dir_name;
+            dir_next += _T("/");
+            dir_next += candidate;
+            if(wxDir::Exists(dir_next))
+            {
+                  wxDir dir_n(dir_next);
+                  wxString candidate_n;
+
+                  wxRegEx test_n(_T("[A-G]"));
+
+                  bool b_probably_found_cm93 = false;
+                  bool b_cont_n = dir_n.GetFirst(&candidate_n);
+                  while(b_cont_n)
+                  {
+                        if(test_n.Matches(candidate_n))
+                        {
+                              b_probably_found_cm93 = true;
+                              break;
+                        }
+                         b_cont_n = dir_n.GetNext(&candidate_n);
+                  }
+
+                  if(b_probably_found_cm93)           // found a directory that looks like {dir_name}/12345678/A   probably cm93
+                  {
+                        dir_name = dir_next;
+                        dir_name += _T("/");
+                        dir_name += candidate_n;      // be very specific about the dir_name, to shorten GatAllFiles()
+                        gaf_flags =  wxDIR_FILES;                 // dont recurse
+
+                        if(filespec.IsSameAs(_T("00300000.A")))         // I am actually looking for cm93
+                        {
+                              wxDir dir_get(dir_name);
+                              wxString one_file;
+                              dir_get.GetFirst(&one_file);
+                              filespec = one_file;                       // so adjust the filespec
+                        }
+
+                  }
+            }
+      }
+
 
 
       wxDir dir(dir_name);
@@ -907,18 +976,15 @@ InitReturn ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *p
 
 
 #ifdef USE_CM93
-/*
-      else if(charttype.Len() == 1)                   // speculative, assuming the file will be found to be a cm93 cell...
+      else
       {
-            pch = new cm93chart;
-            pEntry->ChartType = CHART_TYPE_CM93;
-      }
-*/
-      else if(fn.GetFullName().IsSameAs(_T("00300000.A")))
-      {
-            pch = new cm93compchart;
-            pEntry->ChartType = CHART_TYPE_CM93COMP;
-
+            wxRegEx t("[0-9]+");
+            wxRegEx te("[A-G]");
+            if(t.Matches(fn.GetName()) && te.Matches(fn.GetExt()))
+            {
+                  pch = new cm93compchart;
+                  pEntry->ChartType = CHART_TYPE_CM93COMP;
+            }
       }
 #endif
 
@@ -1310,11 +1376,41 @@ int ChartDB::GetCSChartType(ChartStack *ps, int stackindex)
       if((bValid) && (stackindex < nEntry))
       {
             int dbIndex = ps->DBIndex[stackindex];
-            return pChartTable[dbIndex].ChartType;
+            ChartTableEntry *pct = &pChartTable[dbIndex];
+
+            return pct->ChartType;
       }
       else
             return 0;
 }
+
+
+//-------------------------------------------------------------------
+//    Get CSChart Family
+//-------------------------------------------------------------------
+ChartFamilyEnum ChartDB::GetCSChartFamily(ChartStack *ps, int stackindex)
+{
+      if((bValid) && (stackindex < nEntry))
+      {
+            int dbIndex = ps->DBIndex[stackindex];
+            ChartTableEntry *pct = &pChartTable[dbIndex];
+
+            ChartTypeEnum type = (ChartTypeEnum)pct->ChartType;
+            switch(type)
+            {
+                  case  CHART_TYPE_KAP:          return CHART_FAMILY_RASTER;
+                  case  CHART_TYPE_GEO:          return CHART_FAMILY_RASTER;
+                  case  CHART_TYPE_S57:          return CHART_FAMILY_VECTOR;
+                  case  CHART_TYPE_CM93:         return CHART_FAMILY_VECTOR;
+                  case  CHART_TYPE_CM93COMP:     return CHART_FAMILY_VECTOR;
+                  case  CHART_TYPE_DUMMY:        return CHART_FAMILY_RASTER;
+                  default:                       return CHART_FAMILY_UNKNOWN;
+            }
+      }
+      else
+            return CHART_FAMILY_UNKNOWN;
+}
+
 
 
 //-------------------------------------------------------------------
@@ -1323,7 +1419,10 @@ int ChartDB::GetCSChartType(ChartStack *ps, int stackindex)
 int ChartDB::GetDBChartType(int dbIndex)
 {
       if(bValid)
-            return pChartTable[dbIndex].ChartType;
+      {
+            ChartTableEntry *pct = &pChartTable[dbIndex];
+            return pct->ChartType;
+      }
       else
             return 0;
 }
@@ -1691,41 +1790,54 @@ void ChartDB::ApplyColorSchemeToCachedCharts(ColorScheme cs)
 
 //-------------------------------------------------------------------
 //    Open a chart from the stack with conditions
-//      a) Smallest or Largest scale
-//      b) Raster or Vector
+//      a) Search Direction Start
+//      b) Requested Chart Type
 //-------------------------------------------------------------------
 
-ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, bool bLargest, bool bVector)
+ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, bool bSearchDir, ChartTypeEnum New_Type, ChartFamilyEnum New_Family_Fallback)
 {
       int index;
+      int delta_index;
+      int index_start;
       ChartBase *ptc = NULL;
 
-      if(bLargest)
+      if(bSearchDir)
       {
-            index = ps->nEntry - 1;
-
-            while(index >= 0)
-            {
-                  bool bis_vector = (GetCSChartType(ps, index) == CHART_TYPE_S57) | (GetCSChartType(ps, index) == CHART_TYPE_CM93);
-                  if((!bis_vector && !bVector) || (bis_vector && bVector))
-                  {
-                        ptc = OpenChartFromStack(ps, index);
-
-                        if (NULL != ptc)
-                            break;
-
-                  }
-                  index--;
-            }
+            index_start = ps->nEntry - 1;
+            delta_index = -1;
       }
       else
       {
-            index = 0;
+            index_start = 0;
+            delta_index = 1;
+      }
 
-            while(index < ps->nEntry)
+
+
+
+      index = index_start;
+
+      while((index >= 0) && (index < ps->nEntry))
+      {
+            ChartTypeEnum chart_type = (ChartTypeEnum)GetCSChartType(ps, index);
+            if(chart_type == New_Type)
             {
-                  bool bis_vector = (GetCSChartType(ps, index) == CHART_TYPE_S57) | (GetCSChartType(ps, index) == CHART_TYPE_CM93);
-                  if((!bis_vector && !bVector) || (bis_vector && bVector))
+                  ptc = OpenChartFromStack(ps, index);
+                  if (NULL != ptc)
+                       break;
+            }
+                  index += delta_index;
+      }
+
+      //    Fallback, no useable chart of specified type found, so try for family match
+      if(NULL == ptc)
+      {
+            index = index_start;
+
+            while((index >= 0) && (index < ps->nEntry))
+            {
+                  ChartFamilyEnum chart_family = GetCSChartFamily(ps, index);
+                  if(chart_family == New_Family_Fallback)
                   {
                         ptc = OpenChartFromStack(ps, index);
 
@@ -1733,9 +1845,10 @@ ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, bool bLargest, boo
                               break;
 
                   }
-                  index++;
+                  index += delta_index;
             }
       }
+
 
       ps->CurrentStackEntry = index;
       return ptc;

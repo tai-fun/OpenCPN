@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.13 2009/06/18 01:33:35 bdbcat Exp $
+ * $Id: chartdb.h,v 1.14 2009/08/22 01:17:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.14  2009/08/22 01:17:52  bdbcat
+ * Better CM93 detect
+ *
  * Revision 1.13  2009/06/18 01:33:35  bdbcat
  * Allow u/l case dir search.
  *
@@ -45,6 +48,9 @@
  * *** empty log message ***
  *
  * $Log: chartdb.h,v $
+ * Revision 1.14  2009/08/22 01:17:52  bdbcat
+ * Better CM93 detect
+ *
  * Revision 1.13  2009/06/18 01:33:35  bdbcat
  * Allow u/l case dir search.
  *
@@ -198,11 +204,12 @@ public:
       int  GetStackChartScale(ChartStack *ps, int stackindex, char *buf, int nbuf);
       int  GetCSPlyPoint(ChartStack *ps, int stackindex, int plyindex, float *lat, float *lon);
       int  GetCSChartType(ChartStack *ps, int stackindex);
+      ChartFamilyEnum GetCSChartFamily(ChartStack *ps, int stackindex);
       int  GetDBChartType(int dbIndex);
       bool GetDBFullPath(int dbIndex, char *buf);
       bool GetDBBoundingBox(int dbindex, wxBoundingBox *box);
       bool SearchForChartDir(wxString &dir);
-      ChartBase *OpenStackChartConditional(ChartStack *ps, bool bLargest, bool bVector);
+      ChartBase *OpenStackChartConditional(ChartStack *ps, bool bLargest, ChartTypeEnum New_Type, ChartFamilyEnum New_Family_Fallback);
 
       int  GetnAuxPlyEntries(int dbIndex){ return pChartTable[dbIndex].nAuxPlyEntries; }
       int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);
