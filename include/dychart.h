@@ -124,16 +124,16 @@ extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
 //------------------------------------------------------------------------------
 
 
-/*
+
 #ifdef __MSVC__66
         #ifdef _DEBUG
             #define _CRTDBG_MAP_ALLOC
-            #include <crtdbg.h>
-            #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
-            #define new DEBUG_NEW
+//            #include <crtdbg.h>
+//            #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
+//            #define new DEBUG_NEW
         #endif
 #endif
-*/
+
 
 //----------------------------------------------------------------------------
 //          Environment Access functions

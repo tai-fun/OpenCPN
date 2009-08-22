@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mygeom.cpp,v 1.16 2009/08/03 03:17:55 bdbcat Exp $
+ * $Id: mygeom.cpp,v 1.17 2009/08/22 01:24:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Tesselated Polygon Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: mygeom.cpp,v $
+ * Revision 1.17  2009/08/22 01:24:21  bdbcat
+ * MSVC Tweaks
+ *
  * Revision 1.16  2009/08/03 03:17:55  bdbcat
  * Cleanup for MSVC
  *
@@ -95,7 +98,7 @@
 
 #endif
 
-CPL_CVSID("$Id: mygeom.cpp,v 1.16 2009/08/03 03:17:55 bdbcat Exp $");
+CPL_CVSID("$Id: mygeom.cpp,v 1.17 2009/08/22 01:24:21 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //          Some local definitions for opengl/glu types,
@@ -1240,7 +1243,7 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_SM, double ref_lat, 
 
 
 //  Check and account for winding direction of ring
-    bool cw = poly->getExteriorRing()->isClockwise();
+    bool cw = !(poly->getExteriorRing()->isClockwise() == 0);
 
     double x0, y0, x, y;
     OGRPoint p;
@@ -1316,7 +1319,7 @@ int PolyTessGeo::PolyTessGeoGL(OGRPolygon *poly, bool bSENC_SM, double ref_lat, 
         int npti = poly->getInteriorRing(iir)->getNumPoints();
 
       //  Check and account for winding direction of ring
-        bool cw = poly->getInteriorRing(iir)->isClockwise();
+        bool cw = !(poly->getInteriorRing(iir)->isClockwise() == 0);
 
         if(!cw)
         {
@@ -1656,9 +1659,7 @@ PolyTessGeoTrap::PolyTessGeoTrap(Extended_Geometry *pxGeom, double ref_lat, doub
       isegment_t *iseg;
       int n_traps;
 
- s_stwt->Resume();
       int trap_err = int_trapezate_polygon(pxGeom->n_contours, pxGeom->contour_array, (double (*)[2])pxGeom->vertex_array, &itr, &iseg, &n_traps);
-s_stwt->Pause();
 
 
         //  Create the data structures
