@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.23 2009/06/03 03:22:50 bdbcat Exp $
+ * $Id: s57chart.h,v 1.24 2009/08/22 01:23:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.24  2009/08/22 01:23:49  bdbcat
+ * More virtual methods
+ *
  * Revision 1.23  2009/06/03 03:22:50  bdbcat
  * Set Overzoom limits
  *
@@ -190,7 +193,7 @@ public:
       virtual void InvalidateCache();
 
       virtual bool RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEnum scale_type);
-      void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion);
+      virtual void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion);
 
       virtual bool IsCacheValid(){ return (pDIB != NULL); }
 
