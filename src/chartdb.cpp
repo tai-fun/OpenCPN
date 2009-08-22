@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.22 2009/08/22 14:04:19 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.23 2009/08/22 15:50:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.23  2009/08/22 15:50:44  bdbcat
+ * Unicode fixup
+ *
  * Revision 1.22  2009/08/22 14:04:19  bdbcat
  * Correct dir scan logic
  *
@@ -127,7 +130,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.22 2009/08/22 14:04:19 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.23 2009/08/22 15:50:44 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -988,8 +991,8 @@ InitReturn ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *p
 #ifdef USE_CM93
       else
       {
-            wxRegEx t("[0-9]+");
-            wxRegEx te("[A-G]");
+            wxRegEx t(_T("[0-9]+"));
+            wxRegEx te(_T("[A-G]"));
             if(t.Matches(fn.GetName()) && te.Matches(fn.GetExt()))
             {
                   pch = new cm93compchart;
