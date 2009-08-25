@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.16 2009/08/22 01:21:17 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.17 2009/08/25 21:28:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.17  2009/08/25 21:28:04  bdbcat
+ * Correct delete duplicate waypoints in route
+ *
  * Revision 1.16  2009/08/22 01:21:17  bdbcat
  * Tracks
  *
@@ -60,6 +63,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.17  2009/08/25 21:28:04  bdbcat
+ * Correct delete duplicate waypoints in route
+ *
  * Revision 1.16  2009/08/22 01:21:17  bdbcat
  * Tracks
  *
@@ -226,7 +232,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.16 2009/08/22 01:21:17 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.17 2009/08/25 21:28:04 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -630,7 +636,7 @@ void Routeman::DeleteRoute(Route *pRoute)
       pSelect->DeleteAllSelectableRouteSegments(pRoute);
       pRouteList->DeleteObject(pRoute);
 
-      // walk the route, deleting points used only by this route
+      // walk the route, tentatively deleting/marking points used only by this route
       wxRoutePointListNode *pnode = (pRoute->pRoutePointList)->GetFirst();
       while(pnode)
       {
@@ -646,11 +652,30 @@ void Routeman::DeleteRoute(Route *pRoute)
                   {
                         pConfig->DeleteWayPoint(prp);
                         pSelect->DeleteSelectablePoint(prp, SELTYPE_ROUTEPOINT);
+                        pRoute->pRoutePointList->DeleteNode(pnode);
+                        pnode = NULL;
                         delete prp;
+
+                        //    Remove any duplicates in the list
+                        bool done = false;
+                        while(!done)
+                        {
+                              wxRoutePointListNode *pdnode = pRoute->pRoutePointList->Find(prp);
+                              if(pdnode)
+                                    pRoute->pRoutePointList->DeleteNode(pdnode);
+                              else
+                                    done = true;
+                        }
+
                   }
+
             }
-            pnode = pnode->GetNext();
+            if(pnode)
+                  pnode = pnode->GetNext();
+            else
+                  pnode = pRoute->pRoutePointList->GetFirst();                // restart the list
       }
+
 
       delete pRoute;
 }
