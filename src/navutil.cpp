@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.41  2009/08/25 21:32:13  bdbcat
+ * Various, including GDK SIGSEGV workaround
+ *
  * Revision 1.40  2009/08/22 01:21:17  bdbcat
  * Tracks
  *
@@ -118,6 +121,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.41  2009/08/25 21:32:13  bdbcat
+ * Various, including GDK SIGSEGV workaround
+ *
  * Revision 1.40  2009/08/22 01:21:17  bdbcat
  * Tracks
  *
@@ -265,7 +271,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.40 2009/08/22 01:21:17 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.41 2009/08/25 21:32:13 bdbcat Exp $");
 
 //    Statics
 
@@ -750,19 +756,42 @@ SelectItem *Select::FindSelection(float slat, float slon, int fseltype, float Se
                                           goto find_ok;
                                     break;
                               case SELTYPE_ROUTESEGMENT:
+                              {
                                     a = pFindSel->m_slat;
                                     b = pFindSel->m_slat2;
                                     c = pFindSel->m_slon;
                                     d = pFindSel->m_slon2;
 
+                                    double adder = 0.;
+
+                                    if((c * d) < 0.)
+                                    {
+                                          //    Arrange for points to be increasing longitude, c to d
+                                          double dist, brg;
+                                          DistanceBearing(a, c, b, d, &brg, &dist);
+                                          if(brg < 180.)                // swap points?
+                                          {
+                                                double tmp;
+                                                tmp = c; c=d; d=tmp;
+                                                tmp = a; a=b; b=tmp;
+                                          }
+                                          if(d < 0.)        // idl?
+                                          {
+                                                d += 360.;
+                                                if(slon < 0.)
+                                                      adder = 360.;
+                                          }
+                                    }
+
+
 //    As a course test, use segment bounding box test
                                     if( (slat >= (fmin(a,b) - SelectRadius)) && (slat <= (fmax(a,b) + SelectRadius)) &&
-                                         (slon >= (fmin(c,d) - SelectRadius)) && (slon <= (fmax(c,d) + SelectRadius))  )
+                                         ((slon + adder) >= (fmin(c,d) - SelectRadius)) && ((slon + adder) <= (fmax(c,d) + SelectRadius))  )
                                     {
 //    Use vectors to do hit test....
                                           VECTOR2D va, vb, vn;
 
-                                          va.x = slon - c;
+                                          va.x = (slon + adder) - c;
                                           va.y = slat - a;
                                           vb.x = d - c;
                                           vb.y = b - a;
@@ -773,6 +802,7 @@ SelectItem *Select::FindSelection(float slat, float slon, int fseltype, float Se
                                     }
 
                                     break;
+                              }
                               default:
                                     break;
                               }
@@ -796,6 +826,13 @@ RoutePoint::RoutePoint(double lat, double lon, const wxString& icon_ident, const
       //  Establish points
       m_lat = lat;
       m_lon = lon;
+
+      //      Normalize the longitude, to fix any old poorly formed points
+      if(m_lon < -180.)
+            m_lon += 360.;
+      else if(m_lon > 180.)
+            m_lon -= 360.;
+
 
       //  Nice defaults
       m_seg_len = 0.0;
@@ -856,13 +893,13 @@ void RoutePoint::ReLoadIcon(void)
 }
 
 
-void RoutePoint::DrawPoint(wxDC& dc, wxPoint *rpn)
+void RoutePoint::Draw(wxDC& dc, wxPoint *rpn)
 {
       wxPoint r;
       wxRect            hilitebox;
       unsigned char transparency = 200;
 
-      cc1->GetPointPix(m_lat, m_lon, &r);
+      cc1->GetCanvasPointPix(m_lat, m_lon, &r);
 
       //  return the home point in this dc to allow "connect the dots"
       if(NULL != rpn)
@@ -1013,7 +1050,7 @@ void RoutePoint::CalculateDCRect(wxDC& dc, wxRect *prect)
       dc.DestroyClippingRegion();
 
     // Draw the mark on the dc
-      DrawPoint(dc, NULL);
+      Draw(dc, NULL);
 
     //  Retrieve the drawing extents
       prect->x = dc.MinX() - 1;
@@ -1056,7 +1093,7 @@ Route::Route(void)
 
       pRoutePointList = new RoutePointList;
 
-      BBox.Reset();
+      RBBox.Reset();
 }
 
 
@@ -1120,12 +1157,12 @@ RoutePoint *Route::GetPoint(int nWhichPoint)
 
 void Route::DrawPointWhich(wxDC& dc, int iPoint, wxPoint *rpn)
 {
-      GetPoint(iPoint)->DrawPoint(dc, rpn);
+      GetPoint(iPoint)->Draw(dc, rpn);
 }
 
 
 
-void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, double scale_ppm, bool bdraw_arrow)
+void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, ViewPort &VP, bool bdraw_arrow)
 {
       if(m_bRtIsSelected)
             dc.SetPen(*pRouteMan->GetSelectedRoutePen());
@@ -1134,13 +1171,13 @@ void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, double scale_ppm, 
       else
             dc.SetPen(*pRouteMan->GetRoutePen());
 
-      RenderSegment(dc, rp1->x, rp1->y, rp2->x, rp2->y, scale_ppm, bdraw_arrow);
+      RenderSegment(dc, rp1->x, rp1->y, rp2->x, rp2->y, VP, bdraw_arrow);
 }
 
 
 
 
-void Route::Draw(wxDC& dc, double scale_ppm)
+void Route::Draw(wxDC& dc, ViewPort &VP)
 {
 
       if(m_bRtIsSelected)
@@ -1165,15 +1202,69 @@ void Route::Draw(wxDC& dc, double scale_ppm)
       DrawPointWhich(dc, 1, &rpt);
 
       wxRoutePointListNode *node = pRoutePointList->GetFirst();
+      RoutePoint *prpp = node->GetData();
       node = node->GetNext();
 
       while (node)
       {
 
             RoutePoint *prp = node->GetData();
-            prp->DrawPoint(dc, &rptn);
-            RenderSegment(dc, rpt.x, rpt.y, rptn.x, rptn.y, scale_ppm, true);            // with arrows
+//            printf(" \nprp lat, lon:  %g %g\n", prp->m_lat, prp->m_lon);
+            prp->Draw(dc, &rptn);
+//           printf("    results in rptn.x, rptn.y:  %d, %d\n", rptn.x, rptn.y);
+
+            //    Handle offscreen points
+            bool b_2_on = VP.vpBBox.PointInBox(prp->m_lon, prp->m_lat, 0);
+            bool b_1_on = VP.vpBBox.PointInBox(prpp->m_lon, prpp->m_lat, 0);
+
+            //Simple case
+            if(b_1_on && b_2_on)
+                  RenderSegment(dc, rpt.x, rpt.y, rptn.x, rptn.y, VP, true);            // with arrows
+
+            //    In the cases where one point is on, and one off
+            //    we must decide which way to go in longitude
+            //     Arbitrarily, we will go the shortest way
+
+            double pix_full_circle =  WGS84_semimajor_axis_meters * mercator_k0 * 2 * PI * VP.view_scale_ppm;
+            double dp = pow((double)(rpt.x - rptn.x), 2) + pow((double)(rpt.y - rptn.y), 2);
+            double dtest;
+            int adder;
+            if(b_1_on && !b_2_on)
+            {
+                  if(rptn.x < rpt.x)
+                        adder = (int)pix_full_circle;
+                  else
+                        adder = -(int)pix_full_circle;
+
+                  dtest = pow((double)(rpt.x - (rptn.x + adder)), 2) + pow((double)(rpt.y - rptn.y), 2);
+
+                  if(dp < dtest)
+                        adder = 0;
+
+                  RenderSegment(dc, rpt.x, rpt.y, rptn.x + adder, rptn.y, VP, true);
+            }
+            else if(!b_1_on && b_2_on)
+            {
+                  if(rpt.x < rptn.x)
+                        adder = (int)pix_full_circle;
+                  else
+                        adder = -(int)pix_full_circle;
+
+                  dtest = pow((double)(rptn.x - (rpt.x + adder)), 2) + pow((double)(rpt.y - rptn.y), 2);
+
+                  if(dp < dtest)
+                        adder = 0;
+
+                  RenderSegment(dc, rpt.x + adder, rpt.y, rptn.x, rptn.y, VP, true);
+            }
+
+
+
+
+
+
             rpt = rptn;
+            prpp = prp;
 
             node = node->GetNext();
       }
@@ -1190,7 +1281,7 @@ static int s_arrow_icon[] = {
 };
 
 
-void Route::RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, double scale_ppm, bool bdraw_arrow, int hilite_width)
+void Route::RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, ViewPort &VP, bool bdraw_arrow, int hilite_width)
 {
       //    Get the dc boundary
       int sx, sy;
@@ -1248,7 +1339,7 @@ void Route::RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, double scale
 
 
             wxPoint icon[10];
-            double icon_scale_factor = 100 * scale_ppm;
+            double icon_scale_factor = 100 * VP.view_scale_ppm;
             icon_scale_factor = fmin(icon_scale_factor, 1.5);                 // Sets the max size
             icon_scale_factor = fmax(icon_scale_factor, .10);
 
@@ -1437,7 +1528,7 @@ void Route::CalculateBBox()
       double bbox_ymax = -90.;
 
 
-      BBox.Reset();
+      RBBox.Reset();
 
       wxRoutePointListNode *node = pRoutePointList->GetFirst();
 
@@ -1459,20 +1550,20 @@ void Route::CalculateBBox()
       }
 
 
-      BBox.Expand(bbox_xmin, bbox_ymin);
-      BBox.Expand(bbox_xmax, bbox_ymax);
+      RBBox.Expand(bbox_xmin, bbox_ymin);
+      RBBox.Expand(bbox_xmax, bbox_ymax);
 
 
 }
 
-void Route::CalculateDCRect(wxDC& dc_route, wxRect *prect, double scale_ppm)
+void Route::CalculateDCRect(wxDC& dc_route, wxRect *prect, ViewPort &VP)
 {
 
     dc_route.ResetBoundingBox();
     dc_route.DestroyClippingRegion();
 
     // Draw the route on the dc
-    Draw(dc_route, scale_ppm);
+    Draw(dc_route, VP);
 
     //  Retrieve the drawing extents
     prect->x = dc_route.MinX() - 1;
@@ -1830,14 +1921,14 @@ void Track::AddPointNow()
 }
 
 
-void Track::Draw(wxDC& dc, double scale_ppm)
+void Track::Draw(wxDC& dc, ViewPort &VP)
 {
 
       dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "CHMGD" ) ) ) );
       dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "CHMGD" ) ), 3 ) );
 
       double radius_meters = Current_Ch->GetNativeScale() * .0015;         // 1.5 mm at original scale
-      double radius = radius_meters * scale_ppm;
+      double radius = radius_meters * VP.view_scale_ppm;
 
       wxPoint rpt, rptn;
       DrawPointWhich(dc, 1, &rpt);
@@ -1849,8 +1940,8 @@ void Track::Draw(wxDC& dc, double scale_ppm)
       {
 
             RoutePoint *prp = node->GetData();
-            prp->DrawPoint(dc, &rptn);
-            RenderSegment(dc, rpt.x, rpt.y, rptn.x, rptn.y, scale_ppm, false, (int)radius);            // no arrows, with hilite
+            prp->Draw(dc, &rptn);
+            RenderSegment(dc, rpt.x, rpt.y, rptn.x, rptn.y, VP, false, (int)radius);            // no arrows, with hilite
             rpt = rptn;
 
             node = node->GetNext();
@@ -1861,8 +1952,8 @@ void Track::Draw(wxDC& dc, double scale_ppm)
       if(m_bRunning)
       {
             wxPoint r;
-            cc1->GetPointPix(gLat, gLon, &r);
-            RenderSegment(dc, rpt.x, rpt.y, r.x, r.y, scale_ppm, false, (int)radius);
+            cc1->GetCanvasPointPix(gLat, gLon, &r);
+            RenderSegment(dc, rpt.x, rpt.y, r.x, r.y, VP, false, (int)radius);
       }
 
 }
@@ -2458,6 +2549,12 @@ int MyConfig::LoadMyConfig(int iteration)
                             sipb1.Append(_T("GUID"));
                             wxString str_GUID;
                             Read(sipb1, &str_GUID);                          // GUID
+
+                            //      Normalize the longitude, to fix any old poorly formed points
+                            if(rlon < -180.)
+                                  rlon += 360.;
+                            else if(rlon > 180.)
+                                  rlon -= 360.;
 
                             RoutePoint *pWP = new RoutePoint(rlat, rlon, icon_name, mark_name, &str_GUID);
 
