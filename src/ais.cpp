@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.27 2009/08/22 01:16:22 bdbcat Exp $
+ * $Id: ais.cpp,v 1.28 2009/08/25 21:26:23 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.28  2009/08/25 21:26:23  bdbcat
+ * GMT/DST Fix
+ *
  * Revision 1.27  2009/08/22 01:16:22  bdbcat
  * Expand Query
  *
@@ -166,7 +169,7 @@ extern wxString         g_sAIS_Alert_Sound_File;
 static      GenericPosDat     AISPositionMuxData;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.27 2009/08/22 01:16:22 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.28 2009/08/25 21:26:23 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -1020,7 +1023,11 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
     bool parse_result = false;
 
     wxDateTime now = wxDateTime::Now();
-    now.MakeGMT();
+    now.MakeGMT(true);                    // no DST
+    if(now.IsDST())
+          now.Subtract(wxTimeSpan(1,0,0,0));
+
+
 
 //    int utc_hour = now.GetHour();
 //    int utc_min = now.GetMinute();
@@ -1029,7 +1036,7 @@ bool AIS_Decoder::Parse_VDMBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
  //   wxDateTime::Month utc_month = now.GetMonth();
  //   int utc_year = now.GetYear();
     ptd->ReportTicks = now.GetTicks();       // Default is my idea of NOW
-                                            // which amy disagee with target...
+                                            // which may disagee with target...
 
     int message_ID = bstr->GetInt(1, 6);        // Parse on message ID
 
