@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.10  2009/08/25 21:27:17  bdbcat
+ * Cleanup/study
+ *
  * Revision 1.9  2009/08/03 03:12:49  bdbcat
  * Cleanup for MSVC
  *
@@ -42,6 +45,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.10  2009/08/25 21:27:17  bdbcat
+ * Cleanup/study
+ *
  * Revision 1.9  2009/08/03 03:12:49  bdbcat
  * Cleanup for MSVC
  *
@@ -100,7 +106,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.9 2009/08/03 03:12:49 bdbcat Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.10 2009/08/25 21:27:17 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters
@@ -1703,6 +1709,12 @@ char stz[80];
 
       if (strchr("tcUu",index_line[0])) { // Substation so get second line of info
                   IndexFileIO(IFF_READ, 0);
+
+                  /*
+                  cNAA:XX:XX: -122.5500  47.7167 -8:0 Agate Passage, north end
+                  ^-88   0.80 0 -18   0.70 0   1301 230 32 1 ADMIRALTY INLET (off Bush Point), WASH.
+                  */
+
             if(index_line[0] == '^')                  // Opencpn special
             {
                   if (11 != sscanf(index_line, "%*c%d %f %f %d %f %f %d %d %d %d%*c%[^\r\n]",
@@ -1722,6 +1734,11 @@ char stz[80];
                         pIDX->IDX_lt_mpy = 1.0;
 
             }
+            /*
+            cNAP:US:CA: -123.3667 48.3167 -08:00 045 235 Trial Island, 5.2 miles SSW of
+            & 0:39 *0.7  0:55 *0.5 0 0 Admiralty Inlet
+            */
+
             else
             {
                         if (9 != sscanf(index_line, "%*c%d %f %f %d %f %f %d %d%*c%[^\r\n]",
