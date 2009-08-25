@@ -56,7 +56,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.14 2009/08/22 01:19:39 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.15 2009/08/25 21:30:40 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -220,7 +220,6 @@ struct ELLIPSOID const gEllipsoid[] = {
 /* define constants */
 static const double WGSa     = 6378137.0;           /* WGS84 semimajor axis */
 static const double WGSinvf  = 298.257223563;                  /* WGS84 1/f */
-static const short  WGS84ID  = 100;                    /* ID of WGS84 datum */
 
 void datumParams(short datum, double *a, double *es)
 {
@@ -371,18 +370,6 @@ double fromDMM(char *dms)
 
 
 /* --------------------------------------------------------------------------------- */
-
-static double M(double phi, double a, double es);
-
-
-// DSR Shortcut, constants for WGS-84
-static const double a = 6378137.0;
-static const double s_z = 6378137.0;// * PI / 2.;
-static const double f = 1.0 / 298.257223563; // flattening
-static const double es = 6.69437999014e-3;  // eccentricity^2
-static const double e = 0.081819190842613;  // eccentricity
-static const double k0 = 0.9996;
-
 /****************************************************************************/
 /* Convert Lat/Lon <-> Simple Mercator                                      */
 /****************************************************************************/
@@ -402,7 +389,7 @@ void toSM(double lat, double lon, double lat0, double lon0, double *x, double *y
                   xlon -= 360.;
       }
 
-    z = s_z * k0;
+      z = WGS84_semimajor_axis_meters * mercator_k0;
 
     //  x = lambda - lambda0
 
@@ -433,7 +420,7 @@ void
 fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon)
 {
       double z, s0, y0, lat3, lon1;
-      z = s_z * k0; // 6378137.0 * PI / 2.;
+      z = WGS84_semimajor_axis_meters * mercator_k0;
 
 // lat = arcsin((e^2(y+y0) - 1)/(e^2(y+y0) + 1))
 /*
@@ -545,105 +532,6 @@ void MolodenskyTransform (double lat, double lon, double *to_lat, double *to_lon
 }
 
 
-
-/****************************************************************************/
-/* Convert Lat/Lon <-> Transverse Mercator                                                                  */
-/****************************************************************************/
-
-
-void
-toTM(float lat, float lon, float lat0, float lon0, double *x, double *y)
-{
-      double m, et2, n, t, c, A, a, m0, es, lambda, phi, lambda0, phi0;
-      double f;
-
-//    datumParams(mapdata.mapdatum, &a, &es);
-//
-//    datumParams(100, &a, &es);                      // = WGS84
-
-// DSR Shortcut, constants for WGS-84
-      a = 6378137.0;
-
-      f = 1.0 / 298.257223563;                              // flattening
-      es = 2 * f - f * f;                                   // eccentricity^2
-
-      lambda = lon * DEGREE;
-      phi = lat * DEGREE;
-
-      phi0 = lat0 * DEGREE;
-      lambda0 = lon0 * DEGREE;
-
-      m0 = M(phi0, a, es);
-      m = M(phi, a, es);
-
-      et2 = es / (1 - es);
-      n = a / sqrt(1 - es * pow(sin(phi), 2.0));
-      t = pow(tan(phi), 2.0);
-      c = et2 * pow(cos(phi), 2.0);
-      A = (lambda - lambda0) * cos(phi);
-      *x = k0*n*(A + (1.0 - t + c)*A*A*A/6.0
-                  + (5.0 - 18.0*t + t*t + 72.0*c - 58.0*et2)*pow(A, 5.0) / 120.0);
-      *y = k0*(m - m0 + n*tan(phi)*(A*A/2.0
-                  + (5.0 - t + 9.0*c + 4*c*c)*pow(A, 4.0)/24.0
-                  + (61.0 - 58.0*t + t*t + 600.0*c - 330.0*et2)*pow(A, 6.0)/720.0) );
-
-
-}
-
-/* --------------------------------------------------------------------------------- */
-
-
-void
-fromTM(double x, double y, double lat0, double lon0, double *lat, double *lon)
-{
-
-      double a, m0, es, et2, m, e1, mu, phi1, c1, t1, n1, r1, d, phi0, lambda0;
-
-      phi0 = lat0 * DEGREE;
-      lambda0 = lon0 * DEGREE;
-
-//    datumParams(mapdata.mapdatum, &a, &es);
-      datumParams(100, &a, &es);
-
-      m0 = M(phi0, a, es);
-
-      et2 = es / (1.0 - es);
-      m = m0 + y / k0;
-      e1 = (1.0 - sqrt(1.0 - es)) / (1.0 + sqrt(1.0 - es));
-      mu = m / (a * (1.0 - es/4.0 - 3.0 * es*es/64.0 - 5.0 * es*es*es/256.0));
-      phi1 = mu + (3.0 * e1/2.0 - 27.0 * pow(e1, 3.0)/32.0) * sin(2.0 * mu)
-                  + (21.0 * e1*e1/16.0 - 55.0 * pow(e1, 4.0)/32.0)
-                  * sin(4.0 * mu) + 151.0 * pow(e1, 3.0)/96.0 * sin(6.0 * mu)
-                  + 1097.0 * pow(e1, 4.0)/512.0 * sin(8.0 * mu);
-      c1 = et2 * pow(cos(phi1), 2.0);
-      t1 = pow(tan(phi1), 2.0);
-      n1 = a / sqrt(1 - es * pow(sin(phi1), 2.0));
-      r1 = a * (1.0 - es) / pow(1.0 - es * pow(sin(phi1), 2.0), 1.5);
-      d = x / (n1 * k0);
-      *lat = (phi1 - n1 * tan(phi1) / r1
-                  * (d*d / 2.0 - (5.0 + 3.0 * t1 + 10.0 * c1 - 4.0 * c1*c1 - 9.0 * et2)
-                  * pow(d, 4.0) / 24.0 + (61.0 + 90.0 * t1 + 298.0 * c1 + 45.0 * t1*t1
-                  - 252.0 * et2 - 3.0 * c1*c1) * pow(d, 6.0) / 720.0 )) / DEGREE;
-      *lon = (lambda0 + (d - (1.0 + 2.0 * t1 + c1) * pow(d, 3.0)/6.0
-                  + (5.0 -2.0 * c1 + 28.0 * t1 - 3.0 * c1*c1 + 8.0 * et2 + 24.0 * t1*t1)
-                  * pow(d, 5.0)/120.0) / cos(phi1)) / DEGREE;
-
-}
-
-/* --------------------------------------------------------------------------------- */
-
-static double M(double phi, double a, double es)
-{
-      if (phi == 0.0)
-            return 0.0;
-      else {
-            return a * (
-                  ( 1.0 - es/4.0 - 3.0*es*es/64.0 - 5.0*es*es*es/256.0 ) * phi -
-                  ( 3.0*es/8.0 + 3.0*es*es/32.0 + 45.0*es*es*es/1024.0 ) * sin(2.0 * phi) +
-                  ( 15.0*es*es/256.0 + 45.0*es*es*es/1024.0 ) * sin(4.0 * phi) -
-                  ( 35.0*es*es*es/3072.0 ) * sin(6.0 * phi) );
-      }
-}
 
 
 /* --------------------------------------------------------------------------------- */
@@ -801,12 +689,38 @@ float DistGreatCircle(double slat, double slon, double dlat, double dlon)
 void DistanceBearing(double lat0, double lon0, double lat1, double lon1, double *brg, double *dist)
 {
       double east, north, brgt;
+      double lon0x, lon1x;
 
       *dist = DistGreatCircle(lat0, lon0, lat1, lon1);
 
       //    Calculate bearing by conversion to SM (Mercator) coordinates, then simple trigonometry
 
-      toSM(lat1, lon1, lat0, lon0, &east, &north);
+      lon0x = lon0;
+      lon1x = lon1;
+
+      //    Make lon points the same phase
+      if((lon0x * lon1x) < 0.)
+      {
+            if(lon0x < 0.)
+                  lon0x += 360.;
+            else
+                  lon1x += 360.;
+
+            //    Choose the shortest distance
+            if(fabs(lon0x - lon1x) > 180.)
+            {
+                  if(lon0x > lon1x)
+                        lon0x -= 360.;
+                  else
+                        lon1x -= 360.;
+            }
+
+            //    Make always positive
+            lon1x += 360.;
+            lon0x += 360.;
+      }
+
+      toSM(lat1, lon1x, lat0, lon0x, &east, &north);
 
       brgt = 270. - (atan2(north, east) * 180. / PI);
       if (brgt < 0)
