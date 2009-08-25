@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.29 2009/08/22 01:22:04 bdbcat Exp $
+ * $Id: chcanv.h,v 1.30 2009/08/25 21:38:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.30  2009/08/25 21:38:25  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.29  2009/08/22 01:22:04  bdbcat
  * Tracks
  *
@@ -235,8 +238,8 @@ public:
       void SetVPScale(double sc);
       void SetViewPoint ( double lat, double lon);
 
-      void GetPointPix(double rlat, double rlon, wxPoint *r);
-      void GetPixPoint(int x, int y, double &lat, double &lon);
+      void GetCanvasPointPix(double rlat, double rlon, wxPoint *r);
+      void GetCanvasPixPoint(int x, int y, double &lat, double &lon);
       void WarpPointerDeferred(int x, int y);
       void UpdateShips();
       void UpdateAIS();

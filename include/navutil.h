@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.15 2009/08/22 01:22:04 bdbcat Exp $
+ * $Id: navutil.h,v 1.16 2009/08/25 21:38:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.16  2009/08/25 21:38:25  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.15  2009/08/22 01:22:04  bdbcat
  * Tracks
  *
@@ -107,6 +110,7 @@
 
 #include "bbox.h"
 #include "s52s57.h"
+#include "chcanv.h"
 
 
 
@@ -148,7 +152,7 @@ class RoutePoint
 public:
       RoutePoint(double lat, double lon, const wxString& icon_ident, const wxString& name, wxString *pGUID = NULL);
       ~RoutePoint(void);
-      void DrawPoint(wxDC& dc, wxPoint *rpn = NULL);
+      void Draw(wxDC& dc, wxPoint *rpn = NULL);
       void DrawTransparentBox(wxDC& dc, int x, int y, int size_x, int size_y,
                                           unsigned char rval, unsigned char gval, unsigned char bval, unsigned char transparency);
       void ReLoadIcon(void);
@@ -207,15 +211,15 @@ public:
       int GetIndexOf(RoutePoint *prp);
       RoutePoint *InsertPointBefore(RoutePoint *pRP, float rlat, float rlon, bool bRenamePoints = false);
       void DrawPointWhich(wxDC& dc, int iPoint, wxPoint *rpn);
-      void DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, double scale_ppm, bool bdraw_arrow);
-      virtual void Draw(wxDC& dc, double scale_ppm);
+      void DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, ViewPort &VP, bool bdraw_arrow);
+      virtual void Draw(wxDC& dc, ViewPort &pVP);
       RoutePoint *GetLastPoint();
       void DeletePoint(RoutePoint *rp, bool bRenamePoints = false);
       void RemovePoint(RoutePoint *rp, bool bRenamePoints = false);
       void DeSelectRoute();
       void CalculateBBox();
       void UpdateSegmentDistances();
-      void CalculateDCRect(wxDC& dc_route, wxRect *prect, double scale_ppm);
+      void CalculateDCRect(wxDC& dc_route, wxRect *prect, ViewPort &VP);
       int GetnPoints(void){ return m_nPoints; }
       void Reverse(bool bRenamePoints = false);
       void RebuildGUIDList(void);
@@ -225,7 +229,7 @@ public:
       void AssembleRoute();
       bool IsEqualTo(Route *ptargetroute);
       void ClearHighlights(void);
-      void RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, double scale_ppm, bool bdraw_arrow, int hilite_width = 0);
+      void RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, ViewPort &VP, bool bdraw_arrow, int hilite_width = 0);
 
       bool SendToGPS(wxString& com_name, bool bsend_waypoints, wxGauge *pProgress);
 
@@ -245,7 +249,7 @@ public:
       wxArrayString      RoutePointGUIDList;
       RoutePointList     *pRoutePointList;
 
-      wxBoundingBox     BBox;
+      wxBoundingBox     RBBox;
       wxRect      active_pt_rect;
 
 private:
@@ -277,7 +281,7 @@ class Track : public wxEvtHandler, public Route
             void Start(void);
             void Stop(void);
 
-            void Draw(wxDC& dc, double scale_ppm);
+            void Draw(wxDC& dc, ViewPort &VP);
 
 
 

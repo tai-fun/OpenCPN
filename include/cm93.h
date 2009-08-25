@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.10 2009/08/22 01:18:11 bdbcat Exp $
+ * $Id: cm93.h,v 1.11 2009/08/25 21:38:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.11  2009/08/25 21:38:25  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.10  2009/08/22 01:18:11  bdbcat
  * Improved rendering logic
  *
@@ -88,8 +91,8 @@ WX_DECLARE_OBJARRAY(M_COVR_Desc, Array_Of_M_COVR_Desc);
       //    For WGS84, it should be 6378137.0......
 
 static const double CM93_semimajor_axis_meters        = 6378388.0; //6375586.0; //6378388.0;           // CM93 semimajor axis
-static const double WGS84_semimajor_axis_meters       = 6378137.0;           // WGS84 semimajor axis
-static const double mercator_k0                       = 0.9996;
+//static const double WGS84_semimajor_axis_meters       = 6378137.0;           // WGS84 semimajor axis
+//static const double mercator_k0                       = 0.9996;
 
 //    CM93 Data structures
 
