@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.17 2009/08/22 01:18:23 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.18 2009/08/25 21:31:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.18  2009/08/25 21:31:12  bdbcat
+ * Improve Show Outline algorithm
+ *
  * Revision 1.17  2009/08/22 01:18:23  bdbcat
  * Improved rendering logic
  *
@@ -106,6 +109,12 @@
 
 #include <stdio.h>
 
+#ifndef __WXMSW__
+ #include <signal.h>
+ #include <setjmp.h>
+#endif
+
+
 
 
 extern wxString         *g_pSENCPrefix;
@@ -113,6 +122,13 @@ extern s52plib          *ps52plib;
 extern cm93manager      *s_pcm93mgr;
 extern MyConfig         *pConfig;
 extern wxString         g_CM93DictDir;
+
+#ifndef __WXMSW__
+extern struct sigaction sa_all;
+extern struct sigaction sa_all_old;
+
+extern jmp_buf           env;                    // the context saved by setjmp();
+#endif
 
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY(Array_Of_M_COVR_Desc);
@@ -3536,11 +3552,11 @@ int cm93chart::loadsubcell(int cellindex, wxChar sub_char)
 
 
 #ifdef CM93_DEBUG_PRINTF
-      double dlat = dval / 3.;
-      double dlon = dval / 3.;
+      double dlat = m_dval / 3.;
+      double dlon = m_dval / 3.;
       double lat, lon;
       Get_CM93_Cell_Origin(cellindex, GetNativeScale(), &lat, &lon);
-      printf(" Attempting loadcell %d at lat: %g/%g lon:%g/%g\n", cellindex, lat, lat + dlat, lon, lon+dlon);
+      printf("\n   Attempting loadcell %d scale %c at lat: %g/%g lon:%g/%g\n", cellindex, wxChar(m_scalechar[0]), lat, lat + dlat, lon, lon+dlon);
 #endif
 
 
@@ -3585,7 +3601,7 @@ int cm93chart::loadsubcell(int cellindex, wxChar sub_char)
 
             //    This is not really an error....
 #ifdef CM93_DEBUG_PRINTF
-                  printf("   Tried to load non-existent CM93 cell ");
+                  printf("   Tried to load non-existent CM93 cell\n");
 #endif
                   return 0;
 
@@ -3605,7 +3621,7 @@ int cm93chart::loadsubcell(int cellindex, wxChar sub_char)
       {
             char str[256];
             strncpy(str, msg.mb_str(), 255);
-            printf("%s\n", str);
+            printf("   %s\n", str);
       }
 #endif
 
@@ -3862,10 +3878,6 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
       m_global_color_scheme = cs;
       SetColorScheme(cs, false);
 
-
-//      ps52plib->SetTextOverlapAvoid(true);
-//      ps52plib->SetShowAtonText(false);
-
       bReadyToRender = true;
 
       return INIT_OK;
@@ -3918,7 +3930,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 
 #ifdef CM93_DEBUG_PRINTF
 //      if(cmscale != m_cmscale)
-            printf("on SetVPParms, scale_mpp %g...resulting in cmscale:%d, %c\n", scale_mpp, cmscale, (char)('A' + cmscale -1));
+            printf("\n\non SetVPParms, scale_mpp %g...resulting in cmscale:%d, %c\n", scale_mpp, cmscale, (char)('A' + cmscale -1));
 #endif
 
       m_cmscale = cmscale;
@@ -4061,6 +4073,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
                   }
             }
       }
+      m_cmscale = cmscale;
 }
 
 //    Populate the member bool array describing which chart scales are available at any location
@@ -4152,12 +4165,84 @@ double cm93compchart::GetNormalScaleMax(double canvas_scale_factor)
       return 1.0e8;
 }
 
+
+wxPoint GetPixFromLLVP(double lat, double lon, const ViewPort& VPoint)
+{
+//      Inline the Simple Mercator Transform for performance reasons
+      double easting, northing;
+
+      double s, y3, s0, y30;
+      double z = WGS84_semimajor_axis_meters * mercator_k0;
+
+      double xlon = lon;
+
+      /*  Make sure lon and lon0 are same phase */
+      if(lon * VPoint.clon < 0.)
+      {
+            if(lon < 0.)
+                  xlon += 360.;
+            else
+                  xlon -= 360.;
+      }
+
+      //    And choose the closest direction
+      if(fabs(xlon - VPoint.clon) > 180.)
+      {
+            if(xlon > VPoint.clon)
+                  xlon -= 360.;
+            else
+                  xlon += 360.;
+      }
+      easting = (xlon - VPoint.clon) * DEGREE * z;
+
+      s = sin(lat * DEGREE);
+      y3 = (.5 * log((1 + s) / (1 - s))) * z;
+
+      s0 = sin(VPoint.clat * DEGREE);
+      y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
+      northing = y3 - y30;
+
+
+      wxPoint r;
+
+      double epix = easting  * VPoint.view_scale_ppm;
+      double npix = northing * VPoint.view_scale_ppm;
+      r.x = (int)round((VPoint.pix_width  / 2) + epix);
+      r.y = (int)round((VPoint.pix_height / 2) - npix);
+
+      return r;
+}
+
+
+
+
 void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion)
 {
       pValidRegion->Clear();
 
       //    Create a (complicated) region from the covr description of the current cell
       //    This could be expensive.....
+
+#ifdef __WXGTK__
+      //    the gdk library may fault for unknown reasons....
+      //    catch this by setjmp/longjmp method, maybe....
+
+      sigaction(SIGSEGV, &sa_all, &sa_all_old);             // save existing action for this signal
+
+      if(sigsetjmp(env, 1))             //  Something in the below code block faulted....
+      {
+//#ifdef CM93_DEBUG_PRINTF
+//            printf("  Handled SIGSEGV in GetValidCanvasRegion() by siglongjmp()\n");
+//#endif
+            pValidRegion->Union(0, 0, 1,1);
+
+            sigaction(SIGSEGV, &sa_all_old, NULL);        // reset signal handler
+
+            return;
+      }
+      sigaction(SIGSEGV, &sa_all_old, NULL);        // reset signal handler
+#endif
+
       if(m_pcm93chart_current)
       {
             for(unsigned int im=0 ; im < m_pcm93chart_current->m_covr_array.GetCount() ; im++)
@@ -4169,6 +4254,7 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
 
                   for(int ip =0 ; ip < mcd.m_nvertices ; ip++)
                   {
+/*
                         double easting, northing, epix, npix;
                         toSM(p->y, p->x, VPoint.clat, VPoint.clon, &easting, &northing);
                         epix = easting  * VPoint.view_scale_ppm;
@@ -4176,6 +4262,10 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
 
                         pwp[ip].x = (int)round((VPoint.pix_width  / 2) + epix);
                         pwp[ip].y = (int)round((VPoint.pix_height / 2) - npix);
+*/
+                        wxPoint r = GetPixFromLLVP(p->y, p->x, VPoint);
+                        pwp[ip].x = r.x;
+                        pwp[ip].y = r.y;
 
                         p++;
                   }
@@ -4191,6 +4281,9 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
       else
             pValidRegion->Union(0, 0, 1,1);
 }
+
+
+
 
 
 void cm93compchart::SetVPPositive(ViewPort *pvp)
@@ -4317,11 +4410,49 @@ bool cm93compchart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEn
 
 bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool bdraw_mono)
 {
-      if(1)
+      if(m_cmscale < 7)
       {
-            if(m_cmscale < 7)
+
+            //    Something like an effective true_scale
+            double top_scale = vp.chart_scale * 0.25;
+
+            int nss_max = m_cmscale;
+            while(nss_max < 7)
             {
-                  int nss = m_cmscale +1;
+                  double candidate_cell_scale;
+                  switch(nss_max)
+                  {
+                        case  0: candidate_cell_scale = 20000000.; break;            // Z
+                        case  1: candidate_cell_scale =  3000000.; break;           // A
+                        case  2: candidate_cell_scale =  1000000.; break;            // B
+                        case  3: candidate_cell_scale =  200000. ; break;            // C
+                        case  4: candidate_cell_scale =  100000. ; break;            // D
+                        case  5: candidate_cell_scale =  50000.  ; break;            // E
+                        case  6: candidate_cell_scale =  20000.  ; break;            // F
+                        case  7: candidate_cell_scale =  7500.   ; break;           // G
+                        default: candidate_cell_scale =  10.;break;
+                  }
+
+                  if(candidate_cell_scale < top_scale)
+                        break;
+                  nss_max ++;
+            }
+
+            nss_max = wxMax(nss_max, m_cmscale+1);
+
+#ifdef CM93_DEBUG_PRINTF
+            printf(" RenderNextSmallerCellOutline, base chart scale is %c\n", (char)('A' +m_cmscale - 1));
+            printf("    top_scale: %8.0f   VP.chart_scale: %8.0f\n", top_scale, vp.chart_scale);
+            printf("    nss_max is %c\n", (char)('A' +nss_max - 1));
+#endif
+
+
+            int nss = m_cmscale +1;
+
+            while(nss <= nss_max)
+            {
+
+
                         //    Load the m_covr objects for the chart scale one smaller than this
                   cm93chart *psc = m_pcm93chart_array[nss];
 
@@ -4350,9 +4481,6 @@ bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool
                         //    Render the chart outlines
                         if(mcr)
                         {
- //                             wxPen outpen(*wxRED_PEN);
- //                             pdc->SetPen(outpen);
-
                               for(unsigned int im=0 ; im < psc->m_covr_array_outlines.GetCount() ; im++)
                               {
                                     M_COVR_Desc mcd = psc->m_covr_array_outlines.Item(im);
@@ -4388,6 +4516,7 @@ bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool
                               }
                         }
                   }
+                  nss ++;
             }
       }
 
