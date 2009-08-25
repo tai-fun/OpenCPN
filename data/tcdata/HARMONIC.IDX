@@ -429,7 +429,7 @@ TAuA:Aus:: 115.55 -20.8167 8:0 Barrow Island - Tkr Mrg, Australia
 TAuA:Aus:: 115.4667 -20.7167 8:0 Barrow Island, Australia
 TAuA:PNGu:: 151.05 -10.6167 10:0 Basilaki, Pitt Bay, Papua New Guinea
 TNAA:Can:Qbc: -70.0833 59.9833 -5:0 Basking Island, Quebec
-TNAA:Can:Qbc: -71.2 46.8167 -5:0 Bassin De La Rivière St-Charles, Quebec
+TNAA:Can:Qbc: -71.2 46.8167 -5:0 Bassin De La Riviï¿½re St-Charles, Quebec
 TAuA:Aus:: 150.2167 -35.7167 10:0 Batemans Bay, Australia
 TAsi:Jpn:: 127.783 26.1833 9:0 Baten, Okinawa, Japan
 TNAA:US:ME: -69.8133 43.9183 -5:0 Bath, Kennebec River, Maine
@@ -1209,7 +1209,7 @@ TNAG:US:LA: -89.9567 29.2633 -6:0 Grand Isle, USCG Station, East Point, Louisian
 CNAA:Can:NovS: -66.9317 44.7533 -4:0 Grand Manan Channel (Bay of Fundy Entrance), New Brunswick Current
 TNAA:Can:NovS: -61.55 47.55 -4:0 Grande Entree, Nova Scotia
 TNAA:Can:Qbc: -69.8667 47.6167 -5:0 Grande ï¿½e, Quebec
-TNAA:Can:Qbc: -64.5 48.4 -5:0 Grande-Rivière, Quebec
+TNAA:Can:Qbc: -64.5 48.4 -5:0 Grande-Riviï¿½re, Quebec
 TNAA:Can:Qbc: -65.1333 49.2333 -5:0 Grande-Vallï¿½, Quebec
 TNAG:US:FL: -80.9333 24.7667 -5:0 Grassy Key (North), Florida
 TNAG:US:FL: -80.9583 24.755 -5:0 Grassy Key, south side, Hawk Channel, Florida
@@ -1744,7 +1744,7 @@ TNAP:Can:BC: -127.5667 50.5167 -8:0 Kwokwesta Creek, British Columbia (2)
 TNAP:Can:BC: -127.3667 50.0333 -8:0 Kyuquot, British Columbia
 TNAP:Can:BC: -127.3667 50.0333 -8:0 Kyuquot, British Columbia (2)
 TAtl:Icel:: -16.28 66.18 0:0 Kï¿½asker, Iceland
-TNAA:Can:Qbc: -78.9167 53.8167 -5:0 La Grande Rivière, Quebec
+TNAA:Can:Qbc: -78.9167 53.8167 -5:0 La Grande Riviï¿½re, Quebec
 TNAA:Can:NovS: -64.2333 42.9 -4:0 La Have Bank, Nova Scotia
 TNAP:US:CA: -117.2567 32.8667 -8:0 La Jolla, Scripps Pier, California
 TNAP:US:CA: -117.2567 32.8667 -8:0 La Jolla, Scripps Pier, California (2)
@@ -2424,7 +2424,7 @@ TAuA:Aus:: 141.7833 -12.2167 10:0 Pennefather River, Australia
 TAuA:Aus:: 149.9 -21 10:0 Penrith Island, Australia
 TNAG:US:FL: -87.2133 30.4033 -6:0 Pensacola, Florida
 TNAA:Can:NovS: -60.9667 45.5 -4:0 Petit De Grat, Nova Scotia
-TNAA:Can:Qbc: -64.4131 48.4106 -5:0 Petite Rivière, Quebec
+TNAA:Can:Qbc: -64.4131 48.4106 -5:0 Petite Riviï¿½re, Quebec
 TEur:Neth:: 4.65 52.7667 1:0 Petten zuid, Netherlands
 TNAA:US:DE: -75.1417 39.9333 -5:0 Philadelphia, Delaware River
 TNAA:US:PA: -75.135 39.9517 -5:0 Philadelphia, Municipal Pier 11, Pennsylvania
@@ -2712,9 +2712,9 @@ TNAA:Can:Qbc: -68.55 48.4333 -5:0 Rimouski, Quebec
 TNAP:US:CA: -119.4433 34.3483 -8:0 Rincon Island, California
 TNAP:US:CA: -121.6917 38.145 -8:0 Rio Vista, Sacramento River, California
 TSAA:Brz:: -43.2 -22.9 -3:0 Rio de Janeiro, Brazil
-TNAA:Can:Qbc: -64.7833 50.2833 -5:0 Rivière Au Tonnerre, Quebec
-TNAA:Can:Qbc: -64.3833 49 -5:0 Rivière-Au-Renard, Quebec
-TNAA:Can:Qbc: -69.5667 47.85 -5:0 Rivière-Du-Loup, Quebec
+TNAA:Can:Qbc: -64.7833 50.2833 -5:0 Riviï¿½re Au Tonnerre, Quebec
+TNAA:Can:Qbc: -64.3833 49 -5:0 Riviï¿½re-Au-Renard, Quebec
+TNAA:Can:Qbc: -69.5667 47.85 -5:0 Riviï¿½re-Du-Loup, Quebec
 TAuA:Aus:: 139.5167 -37.2 9:30 Robe (offshore), Australia
 TNAP:Can:BC: -123.6333 49.4167 -8:0 Roberts Creek, British Columbia
 TNAP:Can:BC: -123.6333 49.4167 -8:0 Roberts Creek, British Columbia (2)
@@ -3305,7 +3305,7 @@ TNAA:US:FL: -80.5933 28.415 -5:0 Trident Pier, Port Canaveral, Florida
 TAuA:Aus:: 115.55 -20.3833 8:0 Trimouille Island, Australia
 TNAA:Can:Newf: -53.35 48.3667 -3:30 Trinity, Newfoundland
 TNAA:Can:Qbc: -69.1833 48.1333 -5:0 Trois-Pistoles, Quebec
-TNAA:Can:Qbc: -72.55 46.35 -5:0 Trois-Rivières, Quebec
+TNAA:Can:Qbc: -72.55 46.35 -5:0 Trois-Riviï¿½res, Quebec
 TAuA:Aus:: 126.1333 -13.75 8:0 Troughton Island, Australia
 TNAP:Can:BC: -132.3167 53.15 -8:0 Trounce Inlet, British Columbia
 TNAP:Can:BC: -132.3167 53.15 -8:0 Trounce Inlet, British Columbia (2)
@@ -7872,58 +7872,58 @@ cNAA:XX:XX: -73.7667  40.9000 -5:0 Echo Bay entrance
 ^-32767 -327.67 0 -32767 -327.67 0   3316 -32767 -32767 1 The Race, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7667  40.8833 -5:0 Davids Island, channel 0.1 mile east of
-^-32767 -327.67 0 -32767 -327.67 0   3321 -32767 -32767 1 Throgs Neck,  Long Island Sound, New York Current
+^-32767 -327.67 0 -32767 -327.67 0   3321 -32767 -32767 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7572  40.8905 -5:0 Huckleberry Island, 0.2 mile NW of
-^-174   0.20 0 -149   0.40 0   3326 69 234 1 Throgs Neck,  Long Island Sound, New York Current
+^-174   0.20 0 -149   0.40 0   3326 69 234 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7458  40.8800 -5:0 Huckleberry Island, 0.6 mile SE of
-^-124   0.40 0 -61   0.40 0   3331 25 226 1 Throgs Neck,  Long Island Sound, New York Current
+^-124   0.40 0 -61   0.40 0   3331 25 226 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7333  40.8733 -5:0 Execution Rocks, 0.4 mile southwest of
-^-137   0.60 0 -95   0.70 0   3336 58 246 1 Throgs Neck,  Long Island Sound, New York Current
+^-137   0.60 0 -95   0.70 0   3336 58 246 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7297  40.8292 -5:0 Manhasset Bay entrance
-^199   0.40 0 220   0.50 0   3341 115 307 1 Throgs Neck,  Long Island Sound, New York Current
+^199   0.40 0 220   0.50 0   3341 115 307 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7712  40.8637 -5:0 Hart Island, 0.2 mile north of
-^-122   0.20 0 -184   0.40 0   3346 98 264 1 Throgs Neck,  Long Island Sound, New York Current
+^-122   0.20 0 -184   0.40 0   3346 98 264 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7628  40.8437 -5:0 Hart Island, southeast of
-^-83   0.60 0 -19   0.60 0   3351 32 216 1 Throgs Neck,  Long Island Sound, New York Current
+^-83   0.60 0 -19   0.60 0   3351 32 216 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7657  40.8405 -5:0 Hart Island, 0.3 n.mi. SSE of
-^-66   0.50 0 -54   0.80 0   3356 40 201 1 Throgs Neck,  Long Island Sound, New York Current
+^-66   0.50 0 -54   0.80 0   3356 40 201 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7788  40.8562 -5:0 Hart Island and City Island, between
-^-87   0.20 0 -66   0.30 0   3361 349 143 1 Throgs Neck,  Long Island Sound, New York Current
+^-87   0.20 0 -66   0.30 0   3361 349 143 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7933  40.8578 -5:0 City Island Bridge
-^-158   0.20 0 -194   0.70 0   3366 352 198 1 Throgs Neck,  Long Island Sound, New York Current
+^-158   0.20 0 -194   0.70 0   3366 352 198 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7953  40.8367 -5:0 Eastchester Bay, near Big Tom
-^-164   0.40 0 -174   0.60 0   3371 97 294 1 Throgs Neck,  Long Island Sound, New York Current
+^-164   0.40 0 -174   0.60 0   3371 97 294 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.8167  40.8617 -5:0 Hutchinson R., Pelham Highway Bridge
-^182   0.90 0 184   0.70 0   3376 305 78 1 Throgs Neck,  Long Island Sound, New York Current
+^182   0.90 0 184   0.70 0   3376 305 78 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7745  40.8287 -5:0 City Island, 0.6 mile southeast of
-^-56   0.50 0 -106   0.70 0   3381 38 251 1 Throgs Neck,  Long Island Sound, New York Current
+^-56   0.50 0 -106   0.70 0   3381 38 251 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7670  40.8153 -5:0 Elm Point, 0.2 mile west of
-^-72   0.20 0 -35   0.90 0   3386 26 213 1 Throgs Neck,  Long Island Sound, New York Current
+^-72   0.20 0 -35   0.90 0   3386 26 213 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7855  40.8107 -5:0 THROGS NECK, 0.3 n.mi. NE of
-^0   0.00 0 0   0.00 0   3391 15 193 1 Throgs Neck,  Long Island Sound, New York Current
+^0   0.00 0 0   0.00 0   3391 15 193 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7908  40.7983 -5:0 Throgs Neck, 0.4 mile south of
-^57   0.80 0 93   1.00 0   3396 90 278 1 Throgs Neck,  Long Island Sound, New York Current
+^57   0.80 0 93   1.00 0   3396 90 278 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7913  40.8020 -5:0 Throgs Neck, 0.2 mile south of
-^21   0.70 0 73   1.20 0   3401 90 289 1 Throgs Neck,  Long Island Sound, New York Current
+^21   0.70 0 73   1.20 0   3401 90 289 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7933  40.8017 -5:0 Throgs Neck Bridge
-^-24   1.60 0 50   1.50 0   3406 122 276 1 Throgs Neck,  Long Island Sound, New York Current
+^-24   1.60 0 50   1.50 0   3406 122 276 1 Throg's Neck, Long Island Sound, New York Current
 
 Hell Gate (East River), New York Current
 cNAA:XX:XX: -73.7987  40.8003 -5:0 Cryders Point, 0.4 mile NNW of
@@ -9787,31 +9787,31 @@ cNAA:XX:XX: -75.8600  39.5533 -5:0 Hendersons Point
 ^125   0.60 0 125   0.90 0   6226 30 210 1 BALTIMORE HARBOR APPROACH, Maryland Current
 
 cNAA:XX:XX: -75.8662  39.5278 -5:0 Back Creek, 0.3 n.mi. W of Sandy Pt
-^-8   0.60 0 -2   0.70 0   6231 57 244 1 Chesapeake & Delaware Canal, Chesapeake City bridg
+^-8   0.60 0 -2   0.70 0   6231 57 244 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
 
 cNAA:XX:XX: -75.8662  39.5278 -5:0 Back Creek, 0.3 n.mi. W of Sandy Pt
-^-6   0.60 0 8   0.60 0   6231 52 240 1 Chesapeake & Delaware Canal, Chesapeake City bridg
+^-6   0.60 0 8   0.60 0   6231 52 240 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
 
-cNAA:XX:XX: -75.8117  39.5283 -5:0 Chesapeake & Delaware CANAL, Chesapeake City bridg
-^0   0.00 0 0   0.00 0   6236 110 290 1 Chesapeake & Delaware Canal, Chesapeake City bridg
-
-cNAA:XX:XX: -75.8072  39.5278 -5:0 Chesapeake City Bridge, 0.45 n.mi. E of
-^-29   1.00 0 16   0.80 0   6241 92 273 1 Chesapeake & Delaware Canal, Chesapeake City bridg
+cNAA:XX:XX: -75.8117  39.5283 -5:0 Chesapeake and Delaware Canal, Maryland/Delaware Current
+^0   0.00 0 0   0.00 0   6236 110 290 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
 
 cNAA:XX:XX: -75.8072  39.5278 -5:0 Chesapeake City Bridge, 0.45 n.mi. E of
-^-33   0.70 0 19   0.50 0   6241 83 275 1 Chesapeake & Delaware Canal, Chesapeake City bridg
+^-29   1.00 0 16   0.80 0   6241 92 273 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
+
+cNAA:XX:XX: -75.8072  39.5278 -5:0 Chesapeake City Bridge, 0.45 n.mi. E of
+^-33   0.70 0 19   0.50 0   6241 83 275 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
 
 cNAA:XX:XX: -75.7025  39.5425 -5:0 Conrail Bridge, east of
-^-37   1.00 0 10   0.70 0   6246 99 278 1 Chesapeake & Delaware Canal, Chesapeake City bridg
+^-37   1.00 0 10   0.70 0   6246 99 278 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
 
 cNAA:XX:XX: -75.7025  39.5425 -5:0 Conrail Bridge, east of
-^-42   0.70 0 7   0.50 0   6246 96 281 1 Chesapeake & Delaware Canal, Chesapeake City bridg
+^-42   0.70 0 7   0.50 0   6246 96 281 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
 
 cNAA:XX:XX: -75.6500  39.5528 -5:0 St. George Bridge, 0.1 n.mi. ENE of
-^-59   0.90 0 -40   0.70 0   6251 64 247 1 Chesapeake & Delaware Canal, Chesapeake City bridg
+^-59   0.90 0 -40   0.70 0   6251 64 247 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
 
 cNAA:XX:XX: -75.5700  39.5603 -5:0 Reedy Point Radio Tower, south of
-^-67   1.00 0 -2   0.70 0   6256 78 263 1 Chesapeake & Delaware Canal, Chesapeake City bridg
+^-67   1.00 0 -2   0.70 0   6256 78 263 1 Chesapeake and Delaware Canal, Maryland/Delaware Current
 
 cNAA:XX:XX: -75.9933  36.9283 -5:0 Cape Henry Light, 0.7 mile east of
 ^-1   1.20 0 -27   1.50 0   6261 320 105 1 Chesapeake Bay Entrance, Virginia Current
@@ -11113,58 +11113,58 @@ cNAA:XX:XX: -80.1167  25.5833 -5:0 Fowey Rocks Light, 1.5 miles SW of
 ^-32767 -327.67 0 -32767 -327.67 0   8141 -32767 -32767 1 Miami Harbor Entrance, Florida Current
 
 cNAA:XX:XX: -80.2267  25.3867 -5:0 Caesar Creek, Biscayne Bay
-^7   1.20 0 -14   1.00 0   8146 316 123 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^7   1.20 0 -14   1.00 0   8146 316 123 1 Key West, Florida Current
 
 cNAA:XX:XX: -80.7700  24.8400 -5:0 Long Key, drawbridge east of
-^58   1.10 0 141   0.70 0   8151 0 202 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^58   1.10 0 141   0.70 0   8151 0 202 1 Key West, Florida Current
 
 cNAA:XX:XX: -80.8650  24.8017 -5:0 Long Key Viaduct
-^94   0.90 0 122   0.70 0   8156 349 170 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^94   0.90 0 122   0.70 0   8156 349 170 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.1700  24.7000 -5:0 Moser Channel, swingbridge
-^67   1.40 0 110   1.00 0   8161 339 166 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^67   1.40 0 110   1.00 0   8161 339 166 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.2883  24.6567 -5:0 Bahia Honda Harbor, bridge
-^61   1.40 0 113   1.20 0   8166 4 182 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^61   1.40 0 113   1.20 0   8166 4 182 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.3133  24.7050 -5:0 No Name Key, northeast of
-^55   0.70 0 80   0.50 0   8171 312 142 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^55   0.70 0 80   0.50 0   8171 312 142 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.8017  24.4733 -5:0 Key West, Main Ship Channel entrance
-^-44   0.20 0 10   0.30 0   8176 40 178 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^-44   0.20 0 10   0.30 0   8176 40 178 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.8050  24.5083 -5:0 Key West, Main Ship Channel
-^-32767 -327.67 0 -32767   0.20 0   8181 64 133 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^-32767 -327.67 0 -32767   0.20 0   8181 64 133 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.8167  24.5483 -5:0 Key West, KEY WEST, 0.3 mi. W of Ft. Taylor
-^0   0.00 0 0   0.00 0   8186 22 194 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^0   0.00 0 0   0.00 0   8186 22 194 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.8100  24.5583 -5:0 Key West, Ft. Taylor, 0.6 mile N of
-^20   0.60 0 -11   0.70 0   8191 42 202 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^20   0.60 0 -11   0.70 0   8191 42 202 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.8042  24.5667 -5:0 Key West, Turning Basin
-^43   0.80 0 29   0.60 0   8196 48 216 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^43   0.80 0 29   0.60 0   8196 48 216 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.8483  24.5833 -5:0 Key West, Northwest Channel
-^-8   1.20 0 -9   0.80 0   8201 353 162 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^-8   1.20 0 -9   0.80 0   8201 353 162 1 Key West, Florida Current
 
 cNAA:XX:XX: -81.8800  24.6217 -5:0 Key West, Northwest Channel
-^-28   0.60 0 -20   0.40 0   8206 346 168 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^-28   0.60 0 -20   0.40 0   8206 346 168 1 Key West, Florida Current
 
 cNAA:XX:XX: -82.0667  24.5667 -5:0 Boca Grande Channel
-^-40   1.10 0 -1   0.80 0   8211 353 194 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^-40   1.10 0 -1   0.80 0   8211 353 194 1 Key West, Florida Current
 
 cNAA:XX:XX: -82.4167  24.6500 -5:0 New Ground
-^96   0.70 0 88   0.40 0   8216 68 244 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^96   0.70 0 88   0.40 0   8216 68 244 1 Key West, Florida Current
 
 cNAA:XX:XX: -82.5367  24.5583 -5:0 Isaac Shoal
-^60   1.00 0 112   0.50 0   8221 2 181 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^60   1.00 0 112   0.50 0   8221 2 181 1 Key West, Florida Current
 
 cNAA:XX:XX: -82.8512  24.6270 -5:0 Southeast Channel
-^-27   0.60 0 37   0.40 0   8226 4 172 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^-27   0.60 0 37   0.40 0   8226 4 172 1 Key West, Florida Current
 
 cNAA:XX:XX: -82.9117  24.6153 -5:0 Southwest Channel
-^45   0.40 0 85   0.40 0   8231 1 209 1 KEY WEST, 0.3 mi. W of Ft. Taylor, Florida
+^45   0.40 0 85   0.40 0   8231 1 209 1 Key West, Florida Current
 
 cNAA:XX:XX: -82.0187  26.4567 -5:0 Point Ybel, 0.4 mile northwest of
 ^-25   0.80 0 17   0.70 0   8236 255 80 1 Tampa Bay Entrance (Egmont Channel), Florida
@@ -11389,103 +11389,103 @@ cNAA:XX:XX: -84.2017  30.1550 -5:0 St. Marks, St. Marks River
 ^98   0.20 0 -23   0.30 0   8601 67 247 1 Tampa Bay Entrance (Egmont Channel), Florida
 
 cNAA:XX:XX: -87.3000  30.3350 -6:0 Pensacola Bay entrance, midchannel
-^-48   1.10 0 18   1.20 0   8606 74 256 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^-48   1.10 0 18   1.20 0   8606 74 256 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -88.0533  30.1533 -6:0 Main Ship Channel entrance
-^-32767   0.50 0 -32767   0.70 0   8611 344 182 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^-32767   0.50 0 -32767   0.70 0   8611 344 182 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -88.0350  30.2267 -6:0 MOBILE BAY ENTRANCE (off Mobile Point)
-^0   0.00 0 0   0.00 0   8616 27 190 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^0   0.00 0 0   0.00 0   8616 27 190 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -88.0283  30.3300 -6:0 Channel, 6 miles N of Mobile Point
-^15   0.40 0 86   0.30 0   8621 32 208 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^15   0.40 0 86   0.30 0   8621 32 208 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -88.0183  30.4900 -6:0 Great Point Clear, channel west of
-^-32767 -327.67 0 -32767 -327.67 0   8626 -32767 -32767 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^-32767 -327.67 0 -32767 -327.67 0   8626 -32767 -32767 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -88.0333  30.6700 -6:0 Mobile River entrance
-^336   0.20 0 164   0.50 0   8631 333 151 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^336   0.20 0 164   0.50 0   8631 333 151 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -88.0117  30.6817 -6:0 Tensaw River entrance (bridge)
-^124   0.30 0 -60   0.70 0   8636 29 222 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^124   0.30 0 -60   0.70 0   8636 29 222 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -88.1300  30.2883 -6:0 Pass Aux Herons, Entrance to Mississippi Sound
-^9   0.90 0 22   0.90 0   8641 68 245 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^9   0.90 0 22   0.90 0   8641 68 245 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -88.5633  30.3717 -6:0 Pascagoula River highway bridge
-^-32767   0.90 0 -32767   0.80 0   8646 16 201 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^-32767   0.90 0 -32767   0.80 0   8646 16 201 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -89.8517  29.3100 -6:0 Quatre Bayoux Pass, Barataria Bay
-^97   0.90 0 43   0.90 0   8651 288 103 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^97   0.90 0 43   0.90 0   8651 288 103 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -89.9033  29.2950 -6:0 Pass Abel, Barataria Bay
-^53   0.60 0 13   1.10 0   8656 317 143 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^53   0.60 0 13   1.10 0   8656 317 143 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -89.9483  29.2717 -6:0 Barataria Pass, Barataria Bay
-^149   1.10 0 61   0.90 0   8661 315 120 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^149   1.10 0 61   0.90 0   8661 315 120 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -89.9600  29.4367 -6:0 Barataria Bay, 1.1 mi. NE of Manilla
-^281   0.30 0 190   0.30 0   8666 356 160 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^281   0.30 0 190   0.30 0   8666 356 160 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -90.0467  29.1983 -6:0 Caminada Pass, Barataria Bay
-^104   1.10 0 56   1.00 0   8671 297 118 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^104   1.10 0 56   1.00 0   8671 297 118 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -90.0350  30.0317 -6:0 Seabrook Bridge, New Orleans
-^-32767   0.90 0 -32767   0.60 0   8676 350 170 1 MOBILE BAY ENTRANCE (off Mobile Point), Alabama
+^-32767   0.90 0 -32767   0.60 0   8676 350 170 1 Mobile Bay Entrance, Alabama Current
 
 cNAA:XX:XX: -90.5733  29.0800 -6:0 Cat Island Pass, Terrebonne Bay
-^-165   0.60 0 -160   0.60 0   8681 13 195 1 GALVESTON BAY ENT. (between jetties), Texas
+^-165   0.60 0 -160   0.60 0   8681 13 195 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -90.6333  29.0700 -6:0 Wine Island Pass
-^-286   1.00 0 -313   0.80 0   8686 325 160 1 GALVESTON BAY ENT. (between jetties), Texas
+^-286   1.00 0 -313   0.80 0   8686 325 160 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -90.8083  29.0583 -6:0 Caillou Boca, Caillou Bay
-^-46   0.80 0 84   0.30 0   8691 95 264 1 GALVESTON BAY ENT. (between jetties), Texas
+^-46   0.80 0 84   0.30 0   8691 95 264 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -93.3450  29.7733 -6:0 Calcasieu Pass
-^-18   1.00 0 132   1.00 0   8696 20 205 1 GALVESTON BAY ENT. (between jetties), Texas
+^-18   1.00 0 132   1.00 0   8696 20 205 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -93.3205  29.1692 -6:0 Calcasieu Pass, 35 miles south of
-^-32767 -327.67 0 -32767 -327.67 0   8701 -32767 -32767 1 GALVESTON BAY ENT. (between jetties), Texas
+^-32767 -327.67 0 -32767 -327.67 0   8701 -32767 -32767 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -93.3325  28.6633 -6:0 Calcasieu Pass, 67 miles south of
-^-32767 -327.67 0 -32767 -327.67 0   8706 -32767 -32767 1 GALVESTON BAY ENT. (between jetties), Texas
+^-32767 -327.67 0 -32767 -327.67 0   8706 -32767 -32767 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -93.8267  29.6500 -6:0 Sabine Pass, Texas Point, 1.7 miles SSE of
-^-14   0.60 0 -15   0.70 0   8711 335 145 1 GALVESTON BAY ENT. (between jetties), Texas
+^-14   0.60 0 -15   0.70 0   8711 335 145 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -93.8617  29.7217 -6:0 Sabine Pass, Sabine, channel east of
-^-15   0.90 0 -15   0.70 0   8716 335 140 1 GALVESTON BAY ENT. (between jetties), Texas
+^-15   0.90 0 -15   0.70 0   8716 335 140 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -93.9017  29.7600 -6:0 Sabine Pass, Port Arthur Canal entrance
-^53   0.50 0 55   0.60 0   8721 310 110 1 GALVESTON BAY ENT. (between jetties), Texas
+^53   0.50 0 55   0.60 0   8721 310 110 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -93.8950  29.7658 -6:0 Sabine Pass, Mesquite Pt., La. Causeway bridge
-^-21   0.90 0 -20   1.00 0   8726 330 150 1 GALVESTON BAY ENT. (between jetties), Texas
+^-21   0.90 0 -20   1.00 0   8726 330 150 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -94.7050  29.3467 -6:0 GALVESTON BAY ENT. (between jetties)
-^0   0.00 0 0   0.00 0   8731 299 102 1 GALVESTON BAY ENT. (between jetties), Texas
+^0   0.00 0 0   0.00 0   8731 299 102 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -94.7683  29.3467 -6:0 Bolivar Roads, 0.5 mi. N of Ft. Point
-^25   1.00 0 75   0.80 0   8736 287 111 1 GALVESTON BAY ENT. (between jetties), Texas
+^25   1.00 0 75   0.80 0   8736 287 111 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -94.7783  29.3300 -6:0 Quarantine Station, 0.3 mile S of
-^-32767   0.60 0 -32767   0.40 0   8741 196 9 1 GALVESTON BAY ENT. (between jetties), Texas
+^-32767   0.60 0 -32767   0.40 0   8741 196 9 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -94.8200  29.3100 -6:0 Galveston Channel, west end
-^-32767   1.00 0 -32767   0.60 0   8746 272 103 1 GALVESTON BAY ENT. (between jetties), Texas
+^-32767   1.00 0 -32767   0.60 0   8746 272 103 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -94.8855  29.2967 -6:0 Galveston Causeway RR. bridge
-^-24   0.40 0 -32767   0.40 0   8751 210 25 1 GALVESTON BAY ENT. (between jetties), Texas
+^-24   0.40 0 -32767   0.40 0   8751 210 25 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -94.7967  29.3633 -6:0 Houston Channel, W of Port Bolivar
-^18   0.80 0 78   0.60 0   8756 330 166 1 GALVESTON BAY ENT. (between jetties), Texas
+^18   0.80 0 78   0.60 0   8756 330 166 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -94.8750  29.5033 -6:0 Houston Ship Channel (Red Fish Bar)
-^191   0.80 0 12   0.80 0   8761 321 146 1 GALVESTON BAY ENT. (between jetties), Texas
+^191   0.80 0 12   0.80 0   8761 321 146 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -96.3233  28.4217 -6:0 Matagorda Channel (entrance jetty)
-^-56   1.20 0 -18   0.80 0   8766 317 142 1 GALVESTON BAY ENT. (between jetties), Texas
+^-56   1.20 0 -18   0.80 0   8766 317 142 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -97.0442  27.8338 -6:0 Aransas Pass
 ^0   1.10 0 0   1.50 0   8771 300 118 1 Aransas Pass, Texas
@@ -11500,10 +11500,10 @@ cNAA:XX:XX: -97.2300  27.8150 -6:0 Port Ingleside
 ^24   0.70 0 131   0.50 0   8776 286 102 1 Aransas Pass, Texas
 
 cNAA:XX:XX: -94.0033  29.3033 -6:0 Sabine Bank
-^-32767 -327.67 0 -32767 -327.67 0   8781 -32767 -32767 1 GALVESTON BAY ENT. (between jetties), Texas
+^-32767 -327.67 0 -32767 -327.67 0   8781 -32767 -32767 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -93.9933  28.6695 -6:0 Heald Bank, 28 miles SSE of
-^-32767 -327.67 0 -32767 -327.67 0   8786 -32767 -32767 1 GALVESTON BAY ENT. (between jetties), Texas
+^-32767 -327.67 0 -32767 -327.67 0   8786 -32767 -32767 1 Galveston Bay Entrance, Texas Current
 
 cNAA:XX:XX: -67.2267  18.0867 -4:0 Punta Ostiones, 1.5 miles west of
 ^-26   1.70 0 -4   1.30 0   8791 187 1 1 Vieques Passage, Puerto Rico
@@ -13111,16 +13111,16 @@ cNAA:XX:XX: -168.6500  65.7000 -9:0 Fairway Rock, 4.8 miles NNE of
 ^-32767 -327.67 0 -32767 -327.67 0   4157 20 20 1 Unimak Pass (off Scotch Cap), Alaska
 
 cNAA:XX:XX: -123.1500  48.4500 -8:0 Discovery Island, 3.3 miles northeast of
-^76   0.80 0 59   0.60 0   1797 345 170 1 ADMIRALTY INLET (off Bush Point), WASH.
+^76   0.80 0 59   0.60 0   1797 345 170 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.2333  48.5833 -8:0 Kellett Bluff, west of
-^1   1.00 0 36   0.80 0   1801 0 170 1 ADMIRALTY INLET (off Bush Point), WASH.
+^1   1.00 0 36   0.80 0   1801 0 170 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.2500  48.6833 -8:0 Turn Point, Boundary Pass
-^26   0.40 0 78   0.60 0   1805 80 260 1 ADMIRALTY INLET (off Bush Point), WASH.
+^26   0.40 0 78   0.60 0   1805 80 260 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.0167  48.7667 -8:0 Skipjack Island, 2 miles NNE of
-^-32767 -327.67 0 -32767 -327.67 0   1809 40 205 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1809 40 205 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.1500  48.6833 -8:0 Johns Island, 0.8 mile north of
 ^-15   0.20 0 6   0.20 0   1813 90 350 1 SAN JUAN CHANNEL (south entrance), WASHINGTON
@@ -13144,7 +13144,7 @@ cNAA:XX:XX: -122.9333  48.7833 -8:0 Toe Point, Patos Island, 0.5 mile S of
 ^-151   1.40 0 51   0.80 0   1837 45 270 1 ROSARIO STRAIT, WASHINGTON
 
 cNAA:XX:XX: -122.7667  48.9833 -8:0 Drayton Harbor Entrance
-^-27   0.60 0 48   0.40 0   1841 133 313 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-27   0.60 0 48   0.40 0   1841 133 313 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.9333  48.7667 -8:0 Sucia I., 0.5 mile WNW of Lawson Bluff
 ^54   0.20 0 53   0.40 0   1845 25 205 1 ACTIVE PASS
@@ -13537,364 +13537,364 @@ cNAA:XX:XX: -124.1000  46.9167 -8:0 Westport, channel 0.4 mile NE of
 ^-41   1.00 0 -19   0.70 0   1045 113 310 1 Grays Harbor Entrance, Washington
 
 cNAA:XX:XX: -124.6333  47.9167 -8:0 Quillayute River entrance
-^-10   0.10 0 -26   0.40 0   1049 15 345 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-10   0.10 0 -26   0.40 0   1049 15 345 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.8333  48.1667 -8:0 Cape Alava, 4.4 miles west of
-^-32767 -327.67 0 -32767 -327.67 0   1053 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   1053 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -125.0000  48.5500 -8:0 Swiftsure Bank
-^-32767 -327.67 0 -32767 -327.67 0   1057 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   1057 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.5833  48.4500 -8:0 STRAIT OF JUAN DE FUCA ENTRANCE
-^0   0.00 0 0   0.00 0   1065 115 290 1 STRAIT OF JUAN DE FUCA ENTRANCE.
+^0   0.00 0 0   0.00 0   1065 115 290 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -124.0667  48.2667 -8:0 Pillar Point
-^-35   1.20 0 87   1.20 0   1069 100 280 1 STRAIT OF JUAN DE FUCA ENTRANCE.
+^-35   1.20 0 87   1.20 0   1069 100 280 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -123.5500  48.2000 -8:0 Angeles Point, 2.3 miles north of
-^82   0.80 0 -32   1.10 0   1073 78 260 1 JUAN DE FUCA-EAST
+^82   0.80 0 -32   1.10 0   1073 78 260 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -123.5333  48.2333 -8:0 RACE ROCKS, 4 miles south of
-^0   0.00 0 0   0.00 0   1077 91 271 1 JUAN DE FUCA-EAST
+^0   0.00 0 0   0.00 0   1077 91 271 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -123.5167  48.2833 -8:0 Race Rocks, 0.5 mile southeast of
-^-70 -327.67 0 -83 -327.67 0   1081 -32767 -32767 1 JUAN DE FUCA-EAST
+^-70 -327.67 0 -83 -327.67 0   1081 -32767 -32767 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -123.5333  48.3000 -8:0 Race Passage
-^-81 -327.67 0 -113 -327.67 0   1085 -32767 -32767 1 JUAN DE FUCA-EAST
+^-81 -327.67 0 -113 -327.67 0   1085 -32767 -32767 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -123.4167  48.1333 -8:0 Port Angeles
-^-32767 -327.67 0 -32767 -327.67 0   1089 -32767 -32767 1 JUAN DE FUCA-EAST
+^-32767 -327.67 0 -32767 -327.67 0   1089 -32767 -32767 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -123.4000  48.1167 -8:0 Ediz Hook Light, 1.4 miles southeast of
-^-32767 -327.67 0 -32767 -327.67 0   1093 -32767 -32767 1 JUAN DE FUCA-EAST
+^-32767 -327.67 0 -32767 -327.67 0   1093 -32767 -32767 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -123.4167  48.1667 -8:0 Ediz Hook Light, 1.2 miles north of
-^-32   0.50 0 -5   0.40 0   1097 80 295 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32   0.50 0 -5   0.40 0   1097 80 295 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.2833  48.1833 -8:0 Ediz Hook Light, 5.3 miles ENE of
-^39   0.60 0 -7   0.80 0   1101 55 215 1 ADMIRALTY INLET (off Bush Point), WASH.
+^39   0.60 0 -7   0.80 0   1101 55 215 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.3667  48.3167 -8:0 Trial Island, 5.2 miles SSW of
-^-8   0.70 0 82   0.50 0   1105 45 235 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-8   0.70 0 82   0.50 0   1105 45 235 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.1333  48.2333 -8:0 New Dungeness Light, 2.8 miles NNW of
-^57   0.30 0 -13   0.50 0   1109 75 255 1 ADMIRALTY INLET (off Bush Point), WASH.
+^57   0.30 0 -13   0.50 0   1109 75 255 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.0500  48.2667 -8:0 New Dungeness Light, 6 miles NNE of
-^51   0.30 0 27   0.40 0   1113 50 255 1 ADMIRALTY INLET (off Bush Point), WASH.
+^51   0.30 0 27   0.40 0   1113 50 255 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.1667  48.3000 -8:0 Discovery Island, 7.6 miles SSE of
-^27   0.40 0 51   0.40 0   1117 35 260 1 ADMIRALTY INLET (off Bush Point), WASH.
+^27   0.40 0 51   0.40 0   1117 35 260 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.2000  48.3833 -8:0 Discovery Island, 3 miles SSE of
-^23   0.60 0 2   0.90 0   1121 25 250 1 ADMIRALTY INLET (off Bush Point), WASH.
+^23   0.60 0 2   0.90 0   1121 25 250 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.0000  48.4000 -8:0 Cattle Point, 2.8 miles SSW of
-^-77   0.40 0 64   0.20 0   1125 46 187 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-77   0.40 0 64   0.20 0   1125 46 187 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.0167  48.3833 -8:0 Cattle Point, 5 miles SSW of
-^74   0.60 0 80   0.30 0   1129 120 210 1 ADMIRALTY INLET (off Bush Point), WASH.
+^74   0.60 0 80   0.30 0   1129 120 210 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.9167  48.1833 -8:0 Violet Point, 3.7 miles north of
-^-32767   0.20 0 -36   0.50 0   1133 100 270 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.20 0 -36   0.50 0   1133 100 270 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.9667  48.1667 -8:0 Violet Point, 3.2 miles northwest of
-^-5   0.30 0 -8   0.40 0   1137 120 325 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-5   0.30 0 -8   0.40 0   1137 120 325 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.9667  48.1000 -8:0 Kamen Point, 1.3 miles southwest of
-^-70   0.20 0 -66   0.40 0   1141 125 265 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-70   0.20 0 -66   0.40 0   1141 125 265 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.9000  48.1000 -8:0 Discovery Bay entrance
-^-32767 -327.67 0 -32767 -327.67 0   1145 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1145 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.8000  48.3167 -8:0 Smith Island, 2 miles east of
-^82   0.20 0 -32767   0.20 0   1149 -32767 220 1 ADMIRALTY INLET (off Bush Point), WASH.
+^82   0.20 0 -32767   0.20 0   1149 -32767 220 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.8500  48.3000 -8:0 Smith Island, 1.4 miles SSW of
-^-6   0.40 0 29   0.40 0   1153 90 280 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-6   0.40 0 29   0.40 0   1153 90 280 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7500  48.3000 -8:0 Smith Island, 3.7 miles ESE of
-^-32767 -327.67 0 -32767   0.30 0   1157 -32767 225 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767   0.30 0   1157 -32767 225 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.8000  48.2500 -8:0 Point Partridge, 1.6 miles NW of
-^-32767 -327.67 0 -32767   0.40 0   1161 -32767 175 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767   0.40 0   1161 -32767 175 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.8667  48.2333 -8:0 Point Partridge, 3.7 miles west of
-^87   0.20 0 -24   0.80 0   1165 140 250 1 ADMIRALTY INLET (off Bush Point), WASH.
+^87   0.20 0 -24   0.80 0   1165 140 250 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7667  48.1667 -8:0 Point Wilson, 1.1 miles NW of
-^-113   1.50 0 -8   1.10 0   1169 85 285 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-113   1.50 0 -8   1.10 0   1169 85 285 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7500  48.1500 -8:0 Point Wilson, 0.5 mi., northeast of
-^-68   1.40 0 -47   1.00 0   1173 114 298 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-68   1.40 0 -47   1.00 0   1173 114 298 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7333  48.1667 -8:0 Point Wilson, 1.4 miles northeast of
-^-28   2.00 0 41   1.30 0   1177 112 297 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-28   2.00 0 41   1.30 0   1177 112 297 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7000  48.1667 -8:0 Point Wilson, 2.3 miles NE of
-^-89   1.00 0 33   1.00 0   1181 143 323 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-89   1.00 0 33   1.00 0   1181 143 323 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7000  48.1500 -8:0 Admiralty Head, 0.5 mile west of
-^-31   1.30 0 1   1.20 0   1185 145 25 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-31   1.30 0 1   1.20 0   1185 145 25 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7333  48.1500 -8:0 Point Wilson, 0.8 mile east of
-^-53   1.50 0 27   1.00 0   1189 165 280 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-53   1.50 0 27   1.00 0   1189 165 280 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7500  48.1167 -8:0 Port Townsend, 0.5 mile S of Pt. Hudson
-^-32767 -327.67 0 -32767 -327.67 0   1193 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1193 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7333  48.1167 -8:0 Point Hudson, 0.5 mile east of
-^-201   0.80 0 -162   0.20 0   1197 115 10 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-201   0.80 0 -162   0.20 0   1197 115 10 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7000  48.1167 -8:0 Marrowstone Point, 1.1 miles northwest of
-^-211   0.80 0 -62   0.50 0   1201 100 275 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-211   0.80 0 -62   0.50 0   1201 100 275 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6833  48.1000 -8:0 Marrowstone Point, 0.4 mile northeast of
-^-80   1.10 0 -4   1.10 0   1205 122 338 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-80   1.10 0 -4   1.10 0   1205 122 338 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6833  48.1000 -8:0 Marrowstone Point, 0.3 mile northeast of
-^-53   1.20 0 -73   1.10 0   1209 170 15 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-53   1.20 0 -73   1.10 0   1209 170 15 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6667  48.1167 -8:0 Marrowstone Point, 1.6 miles northeast of
-^-16   1.20 0 -3   1.20 0   1213 152 344 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-16   1.20 0 -3   1.20 0   1213 152 344 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6333  48.1333 -8:0 Marrowstone Point, 2.5 miles northeast of
-^-32767 -327.67 0 -32767 -327.67 0   1217 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1217 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6667  48.0333 -8:0 Nodule Point, 0.5 mile southeast of
-^-87   1.20 0 -59   1.00 0   1221 160 339 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-87   1.20 0 -59   1.00 0   1221 160 339 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6333  48.0333 -8:0 ADMIRALTY INLET (off Bush Point)
-^0   0.00 0 0   0.00 0   1225 179 3 1 ADMIRALTY INLET (off Bush Point), WASH.
+^0   0.00 0 0   0.00 0   1225 179 3 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6167  48.0333 -8:0 Bush Point Light, 0.5 mile NW of
-^-32   1.10 0 -9   1.10 0   1229 141 309 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32   1.10 0 -9   1.10 0   1229 141 309 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5500  47.9833 -8:0 Mutiny Bay, 3.3 miles SE of Bush Point
-^-32767   0.60 0 -32767   0.40 0   1233 133 354 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.60 0 -32767   0.40 0   1233 133 354 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6333  47.9833 -8:0 Olele Point, 1.8 miles ENE of
-^-34   0.50 0 -34   0.50 0   1237 167 352 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-34   0.50 0 -34   0.50 0   1237 167 352 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7333  48.0333 -8:0 Port Townsend Canal
-^6   0.50 0 -46   0.40 0   1241 150 330 1 DECEPTION PASS, (Narrows), WASHINGTON
+^6   0.50 0 -46   0.40 0   1241 150 330 1 Deception Pass, Washington Current
 
 cNAA:XX:XX: -122.6333  47.9333 -8:0 Foulweather Bluff
-^0   0.40 0 -15   0.40 0   1245 140 325 1 ADMIRALTY INLET (off Bush Point), WASH.
+^0   0.40 0 -15   0.40 0   1245 140 325 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5833  47.8667 -8:0 Port Gamble Bay, 0.5 mile N of entrance
-^-32767 -327.67 0 -32767 -327.67 0   1249 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1249 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5833  47.8500 -8:0 Port Gamble Bay entrance
-^-63   0.60 0 4   0.30 0   1253 185 0 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-63   0.60 0 4   0.30 0   1253 185 0 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5667  47.8333 -8:0 Port Gamble Bay
-^-32767 -327.67 0 -32767 -327.67 0   1257 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1257 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6833  47.8167 -8:0 South Point
-^-32767   0.40 0 -32767   0.40 0   1261 218 40 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.40 0 -32767   0.40 0   1261 218 40 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.7667  47.7000 -8:0 Hazel Point
-^-32767   0.30 0 -32767   0.30 0   1265 183 5 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.30 0 -32767   0.30 0   1265 183 5 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.0333  47.5333 -8:0 Chinom Point
-^-32767 -327.67 0 -32767 -327.67 0   1269 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1269 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.0333  47.3500 -8:0 The Great Bend
-^-32767   0.30 0 -32767   0.20 0   1273 49 251 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.30 0 -32767   0.20 0   1273 49 251 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5000  47.9833 -8:0 Useless Bay
-^-32767 -327.67 0 -32767 -327.67 0   1277 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1277 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5833  47.9500 -8:0 Foulweather Bluff
-^9   0.90 0 14   0.70 0   1281 115 335 1 ADMIRALTY INLET (off Bush Point), WASH.
+^9   0.90 0 14   0.70 0   1281 115 335 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4500  47.8000 -8:0 Edmonds, 2.7 miles WSW of
-^44   0.10 0 13   0.20 0   1285 170 0 1 ADMIRALTY INLET (off Bush Point), WASH.
+^44   0.10 0 13   0.20 0   1285 170 0 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4667  47.8167 -8:0 Apple Cove Point, 0.5 mile east of
-^-32767   0.30 0 -32767   0.30 0   1289 168 8 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.30 0 -32767   0.30 0   1289 168 8 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4333  47.7667 -8:0 President Point, 1.5 miles east of
-^-32767   0.20 0 -32767   0.20 0   1293 203 24 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.20 0 -32767   0.20 0   1293 203 24 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5000  47.7333 -8:0 Port Madison entrance
-^-32767 -327.67 0 -32767 -327.67 0   1297 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1297 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5500  47.7167 -8:0 Agate Passage, north end
-^-88   0.80 0 -18   0.70 0   1301 230 32 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-88   0.80 0 -18   0.70 0   1301 230 32 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5667  47.7167 -8:0 Agate Passage, south end
-^-85   2.00 0 0   1.40 0   1305 216 37 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-85   2.00 0 0   1.40 0   1305 216 37 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5833  47.6333 -8:0 Port Orchard
-^-32767 -327.67 0 -32767 -327.67 0   1309 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1309 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6000  47.7000 -8:0 Port Orchard, off Keyport
-^-32767 -327.67 0 -32767 -327.67 0   1313 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1313 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6333  47.7000 -8:0 Liberty  Bay entrance, Port Orchard
-^-32767   0.40 0 -32767   0.30 0   1317 280 113 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.40 0 -32767   0.30 0   1317 280 113 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4167  47.6833 -8:0 Shilshole Bay
-^-32767 -327.67 0 -32767 -327.67 0   1321 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1321 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4333  47.6667 -8:0 West Point, 0.3 mile west of
-^-44   0.40 0 -16   0.30 0   1325 225 15 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-44   0.40 0 -16   0.30 0   1325 225 15 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4667  47.6667 -8:0 West Point, 1.2 miles west of
-^-32767 -327.67 0 -32767 -327.67 0   1329 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1329 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4000  47.6167 -8:0 Elliott Bay entrance
-^-32767 -327.67 0 -32767 -327.67 0   1333 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1333 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4333  47.5833 -8:0 Alki Point, 0.3 mile west of
-^-36   0.30 0 -13   0.20 0   1337 160 330 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-36   0.30 0 -13   0.20 0   1337 160 330 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4667  47.5833 -8:0 Restoration Point, 0.6 mile ESE of
-^-32767   0.30 0 -32767   0.30 0   1341 135 34 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.30 0 -32767   0.30 0   1341 135 34 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5000  47.5667 -8:0 Rich Passage, Approach, north of Blake Island
-^-32767   0.10 0 -32767   0.30 0   1345 301 71 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.10 0 -32767   0.30 0   1345 301 71 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5333  47.5667 -8:0 Rich Passage, East end
-^-32767   0.50 0 -32767   0.40 0   1349 321 143 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.50 0 -32767   0.40 0   1349 321 143 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5333  47.5833 -8:0 Rich Passage, Off Pleasant Beach
-^-14   0.80 0 36   1.10 0   1353 330 132 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-14   0.80 0 36   1.10 0   1353 330 132 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5667  47.5833 -8:0 Rich Passage, West end
-^-44   1.50 0 46   1.20 0   1357 238 55 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-44   1.50 0 46   1.20 0   1357 238 55 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6000  47.5667 -8:0 Port Orchard, southwest of Waterman
-^-32767 -327.67 0 -32767 -327.67 0   1361 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1361 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6167  47.5667 -8:0 Port Washington Narrows, south ent
-^-9   0.60 0 55   0.70 0   1369 326 154 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-9   0.60 0 55   0.70 0   1369 326 154 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.6667  47.6000 -8:0 Port Washington Narrows, north ent
-^-25   1.40 0 68   0.80 0   1373 330 156 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-25   1.40 0 68   0.80 0   1373 330 156 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5000  47.5333 -8:0 Blake Island, southwest of
-^-178   0.20 0 -66   0.20 0   1377 131 326 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-178   0.20 0 -66   0.20 0   1377 131 326 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.4833  47.3500 -8:0 Quartermaster Harbor entrance
-^-32767   0.10 0 -32767   0.10 0   1389 349 167 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767   0.10 0 -32767   0.10 0   1389 349 167 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5167  47.3333 -8:0 Dalco Passage
-^-32767   0.40 0 -32767 -327.67 0   1397 290 -32767 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767   0.40 0 -32767 -327.67 0   1397 290 -32767 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5667  47.3333 -8:0 Gig Harbor entrance
-^-39   0.30 0 -46   0.40 0   1401 16 176 1 THE NARROWS, north end (midstream), WASHINGTON
+^-39   0.30 0 -46   0.40 0   1401 16 176 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5500  47.3000 -8:0 The Narrows, THE NARROWS, north end (midstream)
-^0   0.00 0 0   0.00 0   1405 136 334 1 THE NARROWS, north end (midstream), WASHINGTON
+^0   0.00 0 0   0.00 0   1405 136 334 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5333  47.3000 -8:0 The Narrows, North End (east side)
-^-32767 -327.67 0 -32767   1.40 0   1409 -32767 340 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767   1.40 0   1409 -32767 340 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5500  47.3000 -8:0 The Narrows, North End (west side)
-^-32767   0.90 0 5   0.40 0   1413 143 324 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767   0.90 0 5   0.40 0   1413 143 324 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5500  47.2833 -8:0 The Narrows, 0.1 mile east of Point Evans
-^-6   1.30 0 -28   1.20 0   1417 201 23 1 THE NARROWS, north end (midstream), WASHINGTON
+^-6   1.30 0 -28   1.20 0   1417 201 23 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5500  47.2667 -8:0 The Narrows, South end (midstream)
-^-5   1.20 0 -16   1.10 0   1421 218 22 1 THE NARROWS, north end (midstream), WASHINGTON
+^-5   1.20 0 -16   1.10 0   1421 218 22 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5833  47.2500 -8:0 Hale Passage, east end
-^-32767 -327.67 0 -32767   0.30 0   1425 -32767 93 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767   0.30 0   1425 -32767 93 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.6500  47.2833 -8:0 Hale Passage, west end
-^0   0.40 0 -140   0.60 0   1429 299 119 1 THE NARROWS, north end (midstream), WASHINGTON
+^0   0.40 0 -140   0.60 0   1429 299 119 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.5833  47.2167 -8:0 Gibson Point, 0.8 mile east of
-^28   0.70 0 8   0.60 0   1437 203 29 1 THE NARROWS, north end (midstream), WASHINGTON
+^28   0.70 0 8   0.60 0   1437 203 29 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.6167  47.1500 -8:0 Cormorant Passage
-^-32767 -327.67 0 -32767   0.30 0   1441 -32767 26 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767   0.30 0   1441 -32767 26 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.6500  47.1500 -8:0 Nisqually Reach, E of Sandy Point
-^-32767 -327.67 0 -32767   0.30 0   1445 -32767 36 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767   0.30 0   1445 -32767 36 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.7000  47.1167 -8:0 Nisqually Reach
-^26   0.30 0 20   0.40 0   1449 259 44 1 THE NARROWS, north end (midstream), WASHINGTON
+^26   0.30 0 20   0.40 0   1449 259 44 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.6833  47.1833 -8:0 Balch Passage
-^-9   0.40 0 -40   0.80 0   1453 296 107 1 THE NARROWS, north end (midstream), WASHINGTON
+^-9   0.40 0 -40   0.80 0   1453 296 107 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.7167  47.2167 -8:0 Pitt Passage, east of Pitt Island
-^-55   0.30 0 -103   0.50 0   1457 204 28 1 THE NARROWS, north end (midstream), WASHINGTON
+^-55   0.30 0 -103   0.50 0   1457 204 28 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.7333  47.1667 -8:0 Drayton Passage
-^-32767 -327.67 0 -32767   0.10 0   1461 -32767 30 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767   0.10 0   1461 -32767 30 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.7833  47.1667 -8:0 Devils Head, west of
-^-32767 -327.67 0 -32767   0.20 0   1465 -32767 158 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767   0.20 0   1465 -32767 158 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.8667  47.1667 -8:0 Dana Passage
-^17   0.50 0 -6   0.80 0   1469 249 76 1 THE NARROWS, north end (midstream), WASHINGTON
+^17   0.50 0 -6   0.80 0   1469 249 76 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9167  47.1333 -8:0 Budd Inlet entrance
-^-32767   0.20 0 -32767   0.10 0   1473 236 31 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767   0.20 0 -32767   0.10 0   1473 236 31 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9167  47.0833 -8:0 Olympia, Budd Inlet
-^-32767 -327.67 0 -32767 -327.67 0   1477 -32767 -32767 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767 -327.67 0   1477 -32767 -32767 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9333  47.1500 -8:0 Eld Inlet entrance
-^-4   0.30 0 -36   0.20 0   1481 224 28 1 THE NARROWS, north end (midstream), WASHINGTON
+^-4   0.30 0 -36   0.20 0   1481 224 28 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9000  47.1667 -8:0 Unsal Point, 0.3 mile south of
-^-32767 -327.67 0 -32767   0.40 0   1485 -32767 137 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767   0.40 0   1485 -32767 137 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.8833  47.1833 -8:0 Peale Passage, south end
-^-32767   0.10 0 -32767   0.10 0   1489 341 173 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767   0.10 0 -32767   0.10 0   1489 341 173 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9167  47.2167 -8:0 Peale Passage, north end
-^-14   0.20 0 -56   0.40 0   1493 319 145 1 THE NARROWS, north end (midstream), WASHINGTON
+^-14   0.20 0 -56   0.40 0   1493 319 145 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9167  47.1833 -8:0 Squaxin Passage, north of Hunter Point
-^-42   0.40 0 -33   0.40 0   1497 286 121 1 THE NARROWS, north end (midstream), WASHINGTON
+^-42   0.40 0 -33   0.40 0   1497 286 121 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9500  47.1833 -8:0 Totten Inlet entrance
-^-19   0.50 0 -25   0.40 0   1501 243 54 1 THE NARROWS, north end (midstream), WASHINGTON
+^-19   0.50 0 -25   0.40 0   1501 243 54 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9667  47.2000 -8:0 Hammersley Inlet, 0.8 mile east of Libby Point
-^60   0.70 0 5   0.90 0   1505 283 102 1 THE NARROWS, north end (midstream), WASHINGTON
+^60   0.70 0 5   0.90 0   1505 283 102 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -123.0333  47.2000 -8:0 Hammersley Inlet, west of Skookum Point
-^74   0.50 0 57   0.60 0   1509 287 101 1 THE NARROWS, north end (midstream), WASHINGTON
+^74   0.50 0 57   0.60 0   1509 287 101 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9333  47.2167 -8:0 Pickering Passage, south end
-^65   0.40 0 21   0.50 0   1513 190 13 1 THE NARROWS, north end (midstream), WASHINGTON
+^65   0.40 0 21   0.50 0   1513 190 13 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.9333  47.2500 -8:0 Pickering Passage, off Graham Point
-^77   0.30 0 24   0.50 0   1517 199 34 1 THE NARROWS, north end (midstream), WASHINGTON
+^77   0.30 0 24   0.50 0   1517 199 34 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.8500  47.3000 -8:0 Pickering Passage, north end
-^84   0.20 0 71   0.20 0   1521 250 67 1 THE NARROWS, north end (midstream), WASHINGTON
+^84   0.20 0 71   0.20 0   1521 250 67 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.8500  47.2333 -8:0 Case Inlet, 1 mile SE of McMicken Island
-^-32767 -327.67 0 -32767 -327.67 0   1525 -32767 -32767 1 THE NARROWS, north end (midstream), WASHINGTON
+^-32767 -327.67 0 -32767 -327.67 0   1525 -32767 -32767 1 The Narrows (North End), Puget Sound, Washington Current
 
 cNAA:XX:XX: -122.3667  48.1000 -8:0 Port Susan
-^-32767 -327.67 0 -32767 -327.67 0   1533 -32767 -32767 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1533 -32767 -32767 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5333  48.2667 -8:0 Skagit Bay, 1 mile north of Rocky Point
-^-32767   0.40 0 -32767   0.40 0   1541 60 236 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767   0.40 0 -32767   0.40 0   1541 60 236 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -122.5333  48.3500 -8:0 Skagit Bay, 1 mi. S of Goat Island
-^-67   0.30 0 -53   0.20 0   1545 139 312 1 DECEPTION PASS, (Narrows), WASHINGTON
+^-67   0.30 0 -53   0.20 0   1545 139 312 1 Deception Pass, Washington Current
 
 cNAA:XX:XX: -122.5833  48.4000 -8:0 Skagit Bay,  channel SW of Hope Island
-^-20   0.40 0 -8   0.30 0   1549 165 344 1 DECEPTION PASS, (Narrows), WASHINGTON
+^-20   0.40 0 -8   0.30 0   1549 165 344 1 Deception Pass, Washington Current
 
 cNAA:XX:XX: -122.6167  48.4167 -8:0 Yokeko Point, Deception Pass
-^4   0.40 0 -25   0.40 0   1553 64 222 1 DECEPTION PASS, (Narrows), WASHINGTON
+^4   0.40 0 -25   0.40 0   1553 64 222 1 Deception Pass, Washington Current
 
 cNAA:XX:XX: -122.6333  48.4000 -8:0 DECEPTION PASS, (Narrows)
-^0   0.00 0 0   0.00 0   1557 90 270 1 DECEPTION PASS, (Narrows), WASHINGTON
+^0   0.00 0 0   0.00 0   1557 90 270 1 Deception Pass, Washington Current
 
 cNAA:XX:XX: -122.7000  48.4000 -8:0 Deception Island, 1.0 mile west of
 ^-32767   0.60 0 -32767   0.50 0   1561 35 210 1 ROSARIO STRAIT, WASHINGTON
@@ -14074,16 +14074,16 @@ cNAA:XX:XX: -122.8833  48.6500 -8:0 East Sound, 0.2 mile SW of Rosario Point
 ^-32767 -327.67 0 -32767 -327.67 0   1793 -32767 -32767 1 SAN JUAN CHANNEL (south entrance), WASHINGTON
 
 cNAA:XX:XX: -123.1500  48.4500 -8:0 Discovery Island, 3.3 miles northeast of
-^76   0.80 0 59   0.60 0   1797 345 170 1 ADMIRALTY INLET (off Bush Point), WASH.
+^76   0.80 0 59   0.60 0   1797 345 170 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.2333  48.5833 -8:0 Kellett Bluff, west of
-^1   1.00 0 36   0.80 0   1801 0 170 1 ADMIRALTY INLET (off Bush Point), WASH.
+^1   1.00 0 36   0.80 0   1801 0 170 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.2500  48.6833 -8:0 Turn Point, Boundary Pass
-^26   0.40 0 78   0.60 0   1805 80 260 1 ADMIRALTY INLET (off Bush Point), WASH.
+^26   0.40 0 78   0.60 0   1805 80 260 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.0167  48.7667 -8:0 Skipjack Island, 2 miles NNE of
-^-32767 -327.67 0 -32767 -327.67 0   1809 40 205 1 ADMIRALTY INLET (off Bush Point), WASH.
+^-32767 -327.67 0 -32767 -327.67 0   1809 40 205 1 Admiralty Inlet, Washington Current
 
 cNAA:XX:XX: -123.1500  48.6833 -8:0 Johns Island, 0.8 mile north of
 ^-15   0.20 0 6   0.20 0   1813 90 350 1 SAN JUAN CHANNEL (south entrance), WASHINGTON
@@ -14107,10 +14107,10 @@ cNAA:XX:XX: -122.9333  48.7833 -8:0 Toe Point, Patos Island, 0.5 mile S of
 ^-151   1.40 0 51   0.80 0   1837 45 270 1 ROSARIO STRAIT, WASHINGTON
 
 cNAA:XX:XX: -124.4333  42.3333 -8:0 Cape Sebastian
-^-26   0.30 0 -26   0.30 0   0825 355 175 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-26   0.30 0 -26   0.30 0   0825 355 175 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.5833  42.8333 -8:0 Cape Blanco
-^-10   0.30 0 -10   0.30 0   0829 10 190 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-10   0.30 0 -10   0.30 0   0829 10 190 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.4167  43.1167 -8:0 Coquille River entrance
 ^-31   0.40 0 -40   0.40 0   0833 91 290 1 Wrangell Narrows (off Petersburg), Alaska
@@ -14245,7 +14245,7 @@ cNAA:XX:XX: -122.8513  46.0028 -8:0 Kalma Upper Range
 ^-32767 -327.67 0 -32767   0.30 0   1005 -32767 343 1 Grays Harbor Entrance, Washington
 
 cNAA:XX:XX: -112.0333  24.5333 -7:0 Magdalena Bay entrance
-^-283   0.40 0 -226   0.30 0   0013 35 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-283   0.40 0 -226   0.30 0   0013 35 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -118.5333  32.4833 -8:0 China Point Light, 20 miles SSW of
 ^-32767   0.30 0 -32767   0.10 0   0017 315 115 1 San Diego Bay Entrance, California
@@ -14326,487 +14326,487 @@ cNAA:XX:XX: -117.1228  32.6450 -8:0 Sweetwater Channel, southwest of
 ^29   0.10 0 -5   0.20 0   0093 203 348 1 San Diego Bay Entrance, California
 
 cNAA:XX:XX: -118.2667  33.6000 -8:0 San Pedro Channel
-^-32767 -327.67 0 -32767 -327.67 0   0097 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   0097 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -118.4333  33.9000 -8:0 El Segundo, Santa Monica Bay
-^-32767 -327.67 0 -32767 -327.67 0   0105 330 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   0105 330 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -120.6667  34.5667 -8:0 Point Arguello
-^-141   0.20 0 -141   0.20 0   0109 5 185 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-141   0.20 0 -141   0.20 0   0109 5 185 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -120.7667  35.1500 -8:0 Point San Luis
-^-121   0.20 0 -121   0.20 0   0113 305 125 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-121   0.20 0 -121   0.20 0   0113 305 125 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -121.3000  35.6667 -8:0 Point Piedras Blancas
-^-89   0.20 0 -89   0.20 0   0117 315 135 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-89   0.20 0 -89   0.20 0   0117 315 135 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -121.9167  36.3000 -8:0 Point Sur
-^-71   0.20 0 -71   0.20 0   0121 325 145 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-71   0.20 0 -71   0.20 0   0121 325 145 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -121.9500  36.6333 -8:0 Point Pinos
-^-61   0.20 0 -61   0.20 0   0125 35 215 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-61   0.20 0 -61   0.20 0   0125 35 215 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.0167  36.9167 -8:0 Point Santa Cruz, 2 miles south of
-^-32767 -327.67 0 -32767 -327.67 0   0129 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   0129 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3667  37.0833 -8:0 Ano Nuevo Island, 2 miles SW of
-^-32767 -327.67 0 -32767 -327.67 0   0133 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   0133 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5667  37.5333 -8:0 Point Montara, 2 miles west of
-^-32767 -327.67 0 -32767 -327.67 0   0137 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   0137 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.7000  37.7500 -8:0 Point Lobos, 8.7 miles WSW of
-^-30   0.10 0 -30   0.10 0   0141 135 315 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-30   0.10 0 -30   0.10 0   0141 135 315 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.6388  37.8045 -8:0 Point Bonita Lt., 5.27 nmi. WSW of
-^-112   0.20 0 -101   0.20 0   0145 95 266 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-112   0.20 0 -101   0.20 0   0145 95 266 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.6167  37.7833 -8:0 Point Lobos, 5 miles west of
-^-32767   0.20 0 -32767   0.20 0   0149 20 236 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767   0.20 0 -32767   0.20 0   0149 20 236 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5887  37.7875 -8:0 Point Lobos, 3.73 nmi. W of
-^-134   0.30 0 -70   0.20 0   0153 92 241 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-134   0.30 0 -70   0.20 0   0153 92 241 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5667  37.7667 -8:0 Point Lobos, 2.5 miles west of
-^-32767   0.30 0 -32767   0.50 0   0157 80 269 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767   0.30 0 -32767   0.50 0   0157 80 269 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5355  37.7717 -8:0 Point Lobos, 1.3 nmi. SW of
-^-84   0.40 0 -23   0.30 0   0161 8 182 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-84   0.40 0 -23   0.30 0   0161 8 182 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5333  37.7500 -8:0 South Channel
-^-89   0.40 0 -64   0.40 0   0165 23 180 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-89   0.40 0 -64   0.40 0   0165 23 180 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5978  37.7205 -8:0 Point Lobos, 5.47 nmi. SW of
-^-119   0.20 0 -101   0.20 0   0169 48 211 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-119   0.20 0 -101   0.20 0   0169 48 211 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.6167  37.8333 -8:0 Bonita Channel approach
-^-32767   0.20 0 -32767   0.20 0   0173 61 290 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767   0.20 0 -32767   0.20 0   0173 61 290 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5667  37.8333 -8:0 Bonita Channel, off Tennessee Cove
-^-32767   0.40 0 -32767   0.20 0   0177 112 325 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767   0.40 0 -32767   0.20 0   0177 112 325 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5333  37.8167 -8:0 Bonita Channel, off Point Bonita
-^-32767   0.40 0 -32767   0.10 0   0181 115 355 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767   0.40 0 -32767   0.10 0   0181 115 355 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5162  37.8208 -8:0 Point Bonita, 0.8 nmi. NE of
-^-289   0.30 0 -311   0.30 0   0185 64 267 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-289   0.30 0 -311   0.30 0   0185 64 267 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5162  37.8208 -8:0 Point Bonita, 0.8 nmi. NE of
-^-310   0.20 0 -335   0.20 0   0185 111 247 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-310   0.20 0 -335   0.20 0   0185 111 247 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5212  37.8120 -8:0 Point Bonita Lt., 0.4 nmi. SSE of
-^-46   0.10 0 -190   0.40 0   0189 104 229 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-46   0.10 0 -190   0.40 0   0189 104 229 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5212  37.8120 -8:0 Point Bonita Lt., 0.4 nmi. SSE of
-^-45   0.20 0 -152   0.40 0   0189 86 222 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-45   0.20 0 -152   0.40 0   0189 86 222 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5212  37.8120 -8:0 Point Bonita Lt., 0.4 nmi. SSE of
-^-66   0.20 0 -138   0.40 0   0189 60 220 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-66   0.20 0 -138   0.40 0   0189 60 220 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5188  37.8012 -8:0 Point Bonita, 0.95 nmi. SSE of
-^-28   0.70 0 -28   0.80 0   0193 72 239 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-28   0.70 0 -28   0.80 0   0193 72 239 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5188  37.8012 -8:0 Point Bonita, 0.95 nmi. SSE of
-^-32   0.70 0 -17   0.60 0   0193 72 243 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32   0.70 0 -17   0.60 0   0193 72 243 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5188  37.8012 -8:0 Point Bonita, 0.95 nmi. SSE of
-^-69   0.60 0 -20   0.40 0   0193 69 232 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-69   0.60 0 -20   0.40 0   0193 69 232 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5113  37.7953 -8:0 Mile Rock Lt., 0.2 nmi. NW of
-^-33   0.80 0 -32   0.80 0   0197 63 230 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-33   0.80 0 -32   0.80 0   0197 63 230 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5113  37.7953 -8:0 Mile Rock Lt., 0.2 nmi. NW of
-^-46   0.90 0 -27   0.70 0   0197 54 231 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-46   0.90 0 -27   0.70 0   0197 54 231 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5113  37.7953 -8:0 Mile Rock Lt., 0.2 nmi. NW of
-^-79   0.50 0 -4   0.40 0   0197 35 247 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-79   0.50 0 -4   0.40 0   0197 35 247 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5000  37.8167 -8:0 Point Diablo, 0.2 mile SE of
-^-7   0.60 0 -97   0.90 0   0201 82 263 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-7   0.60 0 -97   0.90 0   0201 82 263 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4885  37.7978 -8:0 Baker Beach (South Bay), 0.3 nmi. NW of
-^-304   0.40 0 -169   0.30 0   0205 38 208 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-304   0.40 0 -169   0.30 0   0205 38 208 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4885  37.7978 -8:0 Baker Beach (South Bay), 0.3 nmi. NW of
-^-309   0.30 0 -143   0.20 0   0205 43 215 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-309   0.30 0 -143   0.20 0   0205 43 215 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4828  37.8092 -8:0 Fort Point, 0.3 nmi. west of
-^-128   0.50 0 12   0.20 0   0209 44 335 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-128   0.50 0 12   0.20 0   0209 44 335 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.5022  37.8105 -8:0 SAN FRANCISCO BAY ENT. (S of Pt. Diablo)
-^0   0.00 0 0   0.00 0   0213 65 245 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^0   0.00 0 0   0.00 0   0213 65 245 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4728  37.8200 -8:0 Golden Gate Bridge 0.46 nmi. east of
-^-20   0.90 0 -28   0.70 0   0217 60 250 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-20   0.90 0 -28   0.70 0   0217 60 250 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4728  37.8200 -8:0 Golden Gate Bridge 0.46 nmi. east of
-^-42   0.90 0 -34   0.60 0   0217 74 251 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-42   0.90 0 -34   0.60 0   0217 74 251 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4728  37.8200 -8:0 Golden Gate Bridge 0.46 nmi. east of
-^-42   0.90 0 -32   0.60 0   0217 75 257 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-42   0.90 0 -32   0.60 0   0217 75 257 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4728  37.8200 -8:0 Golden Gate Bridge 0.46 nmi. east of
-^-83   0.70 0 -35   0.40 0   0217 79 258 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-83   0.70 0 -35   0.40 0   0217 79 258 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4617  37.8217 -8:0 Golden Gate Bridge, 0.8 mile east of
-^-2   0.90 0 -5   0.70 0   0221 70 256 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-2   0.90 0 -5   0.70 0   0221 70 256 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4663  37.8117 -8:0 Fort Point, 0.5 nmi. east of
-^-87   0.20 0 -62   0.40 0   0225 99 287 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-87   0.20 0 -62   0.40 0   0225 99 287 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4417  37.8083 -8:0 St. Francis Yacht Club breakwater
-^-10 -327.67 0 -110 -327.67 0   0226 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-10 -327.67 0 -110 -327.67 0   0226 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4283  37.8100 -8:0 Aquatic Park, 0.2 mile west of
-^-35 -327.67 0 -125 -327.67 0   0227 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-35 -327.67 0 -125 -327.67 0   0227 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4083  37.8100 -8:0 San Francisco Bay Pier 37
-^-95 -327.67 0 -140 -327.67 0   0228 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-95 -327.67 0 -140 -327.67 0   0228 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4000  37.8067 -8:0 San Francisco Bay Pier 29
-^-70 -327.67 0 -140 -327.67 0   0229 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-70 -327.67 0 -140 -327.67 0   0229 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3933  37.8000 -8:0 San Francisco Bay Pier 7
-^-55 -327.67 0 -125 -327.67 0   0230 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-55 -327.67 0 -125 -327.67 0   0230 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3883  37.7950 -8:0 San Francisco Bay Pier 14
-^-55 -327.67 0 -180 -327.67 0   0231 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-55 -327.67 0 -180 -327.67 0   0231 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3833  37.7900 -8:0 San Francisco Bay Pier 26
-^-100 -327.67 0 -110 -327.67 0   0232 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-100 -327.67 0 -110 -327.67 0   0232 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3833  37.7833 -8:0 San Francisco Bay Pier 38
-^-25 -327.67 0 -145 -327.67 0   0233 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-25 -327.67 0 -145 -327.67 0   0233 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3800  37.7733 -8:0 San Francisco Bay Pier 50
-^-100 -327.67 0 -140 -327.67 0   0234 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-100 -327.67 0 -140 -327.67 0   0234 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3783  37.7600 -8:0 San Francisco Bay Bethlehem Pier No  8
-^-80 -327.67 0 -115 -327.67 0   0235 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-80 -327.67 0 -115 -327.67 0   0235 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3733  37.7417 -8:0 San Francisco Bay Pier 90, .05 mile south of
-^-110 -327.67 0 -125 -327.67 0   0236 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-110 -327.67 0 -125 -327.67 0   0236 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3550  37.7283 -8:0 Point Avisadero
-^-85 -327.67 0 -40 -327.67 0   0237 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-85 -327.67 0 -40 -327.67 0   0237 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3583  37.7167 -8:0 Point Avisadero, 0.8 mile south of
-^-90 -327.67 0 -205 -327.67 0   0238 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-90 -327.67 0 -205 -327.67 0   0238 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4333  37.8333 -8:0 Alcatraz Island, 0.2 mile west of
-^-30   0.80 0 -8   0.60 0   0239 70 266 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-30   0.80 0 -8   0.60 0   0239 70 266 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4320  37.8145 -8:0 Alcatraz Island, southwest of
-^-50   0.50 0 -75   0.50 0   0240 80 260 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-50   0.50 0 -75   0.50 0   0240 80 260 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4320  37.8145 -8:0 Alcatraz Island, southwest of
-^-59   0.40 0 -54   0.40 0   0240 82 251 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-59   0.40 0 -54   0.40 0   0240 82 251 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4320  37.8145 -8:0 Alcatraz Island, southwest of
-^-81   0.30 0 -55   0.30 0   0240 80 252 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-81   0.30 0 -55   0.30 0   0240 80 252 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4167  37.8167 -8:0 Alcatraz Island, south of
-^-29   0.50 0 -25   0.60 0   0241 93 286 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-29   0.50 0 -25   0.60 0   0241 93 286 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4005  37.8183 -8:0 Alcatraz Island, 0.8 mile east of
-^-57   0.40 0 -73   0.60 0   0245 134 314 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-57   0.40 0 -73   0.60 0   0245 134 314 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3897  37.8375 -8:0 Treasure Island, 0.78 NW of
-^-99   0.40 0 -60   0.30 0   0249 122 292 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-99   0.40 0 -60   0.30 0   0249 122 292 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3897  37.8375 -8:0 Treasure Island, 0.78 NW of
-^-113   0.30 0 -61   0.20 0   0249 122 299 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-113   0.30 0 -61   0.20 0   0249 122 299 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3917  37.8217 -8:0 Treasure Island, 0.8 mile west of
-^-45   0.40 0 -71   0.70 0   0253 148 334 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-45   0.40 0 -71   0.70 0   0253 148 334 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3783  37.8217 -8:0 Treasure Island, 0.2 mile west of
-^-98   0.50 0 -64   0.60 0   0257 172 343 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-98   0.50 0 -64   0.60 0   0257 172 343 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3833  37.8100 -8:0 Yerba Buena Island, W of (midchannel)
-^-32   0.50 0 -66   0.70 0   0261 168 316 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32   0.50 0 -66   0.70 0   0261 168 316 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3667  37.8333 -8:0 Treasure Island, 0.5 mile north of
-^-72   0.40 0 -45   0.40 0   0269 118 304 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-72   0.40 0 -45   0.40 0   0269 118 304 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3463  37.8250 -8:0 Treasure Island, 0.85 nmi. east of
-^-117   0.30 0 -43   0.20 0   0273 161 340 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-117   0.30 0 -43   0.20 0   0273 161 340 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3550  37.8267 -8:0 Treasure Island, 0.3 mile east of
-^-31   0.50 0 -67   0.40 0   0277 140 327 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-31   0.50 0 -67   0.40 0   0277 140 327 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3572  37.8042 -8:0 Yerba Buena Island, 0.3 nmi. SE of
-^-72   0.20 0 -60   0.30 0   0281 159 316 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-72   0.20 0 -60   0.30 0   0281 159 316 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3450  37.8067 -8:0 Oakland Outer Harbor entrance
-^-107   0.60 0 -45   0.50 0   0289 172 336 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-107   0.60 0 -45   0.50 0   0289 172 336 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3400  37.8017 -8:0 Oakland Inner Harbor entrance
-^-114   0.30 0 -68   0.40 0   0293 178 338 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-114   0.30 0 -68   0.40 0   0293 178 338 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3183  37.7950 -8:0 Oakland Inner Harbor channel
-^-78   0.20 0 -62   0.20 0   0297 122 318 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-78   0.20 0 -62   0.20 0   0297 122 318 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2858  37.7945 -8:0 Oakland Inner Harbor Reach
-^-158   0.10 0 -72   0.10 0   0301 82 255 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-158   0.10 0 -72   0.10 0   0301 82 255 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2667  37.8000 -8:0 Oakland Harbor, Webster Street
-^-95   0.30 0 -85   0.30 0   0305 120 300 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-95   0.30 0 -85   0.30 0   0305 120 300 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2167  37.7667 -8:0 Oakland Harbor, High Street Bridge
-^-81   0.50 0 -85   0.40 0   0309 150 330 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-81   0.50 0 -85   0.40 0   0309 150 330 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3442  37.7945 -8:0 Oakland 7th St. Marine, 0.6 nmi. SSW of
-^-104   0.40 0 -69   0.20 0   0313 154 342 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-104   0.40 0 -69   0.20 0   0313 154 342 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3733  37.7903 -8:0 Rincon Point, 0.57 nmi. east of
-^-50   0.70 0 -52   0.60 0   0317 141 332 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-50   0.70 0 -52   0.60 0   0317 141 332 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3733  37.7903 -8:0 Rincon Point, 0.57 nmi. east of
-^-62   0.60 0 -47   0.50 0   0317 130 314 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-62   0.60 0 -47   0.50 0   0317 130 314 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3733  37.7903 -8:0 Rincon Point, 0.57 nmi. east of
-^-69   0.90 0 -52   0.60 0   0317 151 333 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-69   0.90 0 -52   0.60 0   0317 151 333 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3500  37.7833 -8:0 Rincon Point, midbay
-^-66   0.70 0 -70   0.60 0   0321 166 322 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-66   0.70 0 -70   0.60 0   0321 166 322 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3683  37.7733 -8:0 Mission Rock, 0.6 mile east of
-^-53   0.90 0 -40   0.70 0   0325 160 320 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-53   0.90 0 -40   0.70 0   0325 160 320 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3533  37.7750 -8:0 Mission Rock, 1.3 mile east of
-^-43   0.70 0 -34   0.60 0   0329 182 344 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-43   0.70 0 -34   0.60 0   0329 182 344 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3383  37.7767 -8:0 Mission Rock, 2.0 miles east of
-^-93   0.60 0 -50   0.70 0   0333 142 330 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-93   0.60 0 -50   0.70 0   0333 142 330 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3578  37.7575 -8:0 Potrero Point, 1.08 nmi. east of
-^-52   0.60 0 -38   0.50 0   0337 169 342 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-52   0.60 0 -38   0.50 0   0337 169 342 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3578  37.7575 -8:0 Potrero Point, 1.08 nmi. east of
-^-49   0.40 0 -37   0.30 0   0337 139 327 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-49   0.40 0 -37   0.30 0   0337 139 327 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3333  37.7500 -8:0 Potrero Point, 2 miles  east of
-^-52   0.60 0 -29   0.50 0   0341 159 328 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-52   0.60 0 -29   0.50 0   0341 159 328 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2830  37.7455 -8:0 Alameda Radar Tower, 0.9 nmi. SSW of
-^-99   0.20 0 -110   0.20 0   0345 132 309 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-99   0.20 0 -110   0.20 0   0345 132 309 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3483  37.7300 -8:0 Point Avisadero, 0.3 mile east of
-^-45   0.60 0 -35   0.60 0   0349 156 337 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-45   0.60 0 -35   0.60 0   0349 156 337 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3367  37.7300 -8:0 Point Avisadero, 1 mile east of
-^-47   0.60 0 3   0.40 0   0353 154 352 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-47   0.60 0 3   0.40 0   0353 154 352 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3133  37.7317 -8:0 Point Avisadero, 2 miles east of
-^-47   0.50 0 -32   0.50 0   0357 148 335 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-47   0.50 0 -32   0.50 0   0357 148 335 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3238  37.7230 -8:0 Point Avisadero, 0.6 nmi. ESE of
-^-47   0.50 0 -36   0.40 0   0361 140 335 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-47   0.50 0 -36   0.40 0   0361 140 335 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3238  37.7230 -8:0 Point Avisadero, 0.6 nmi. ESE of
-^-52   0.40 0 -32   0.30 0   0361 132 327 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-52   0.40 0 -32   0.30 0   0361 132 327 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3495  37.7078 -8:0 Point Avisadero, 1.25 nmi. SSE of
-^-60   0.40 0 -51   0.30 0   0365 175 4 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-60   0.40 0 -51   0.30 0   0365 175 4 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3495  37.7078 -8:0 Point Avisadero, 1.25 nmi. SSE of
-^-58   0.30 0 -55   0.20 0   0365 186 8 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-58   0.30 0 -55   0.20 0   0365 186 8 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2308  37.6822 -8:0 Oakland Airport, southwest of
-^-80   0.20 0 -61   0.20 0   0369 125 304 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-80   0.20 0 -61   0.20 0   0369 125 304 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3667  37.6833 -8:0 Sierra Point, 1.3 miles ENE of
-^-62   0.30 0 -47   0.30 0   0373 180 3 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-62   0.30 0 -47   0.30 0   0373 180 3 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3175  37.6780 -8:0 Sierra Point, 1.2 nmi. east of
-^-57   0.30 0 -48   0.20 0   0377 210 358 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-57   0.30 0 -48   0.20 0   0377 210 358 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3233  37.6650 -8:0 Oyster Point, 2.8 miles east of
-^-44   0.30 0 -35   0.40 0   0381 172 345 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-44   0.30 0 -35   0.40 0   0381 172 345 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2950  37.6733 -8:0 Sierra Point, 4.4 miles east of
-^-63   0.30 0 -31   0.20 0   0385 152 329 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-63   0.30 0 -31   0.20 0   0385 152 329 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3638  37.6542 -8:0 Point San Bruno, 0.51 nmi. east  of
-^-91   0.20 0 -43   0.10 0   0389 174 359 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-91   0.20 0 -43   0.10 0   0389 174 359 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2272  37.6505 -8:0 Mulford Gardens Chan. "Buoy 2", SSW of
-^-90   0.30 0 -72   0.20 0   0393 125 315 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-90   0.30 0 -72   0.20 0   0393 125 315 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2313  37.6238 -8:0 Little Coyote Pt., 3.4 nmi. NNE of
-^-81   0.20 0 -72   0.20 0   0397 128 310 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-81   0.20 0 -72   0.20 0   0397 128 310 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2055  37.5980 -8:0 Little Coyote Pt., 3.1 nmi. ENE of
-^-127   0.20 0 -80   0.20 0   0401 135 317 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-127   0.20 0 -80   0.20 0   0401 135 317 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2487  37.5903 -8:0 Little Coyote Pt., 1.2 nmi. NE of
-^-24   0.50 0 -33   0.40 0   0405 121 303 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-24   0.50 0 -33   0.40 0   0405 121 303 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2487  37.5903 -8:0 Little Coyote Pt., 1.2 nmi. NE of
-^-32   0.40 0 -29   0.40 0   0405 122 307 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32   0.40 0 -29   0.40 0   0405 122 307 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2487  37.5903 -8:0 Little Coyote Pt., 1.2 nmi. NE of
-^-39   0.30 0 -34   0.30 0   0405 138 310 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-39   0.30 0 -34   0.30 0   0405 138 310 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.2533  37.5867 -8:0 San Mateo Bridge
-^-5   0.50 0 3   0.40 0   0409 142 312 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-5   0.50 0 3   0.40 0   0409 142 312 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.1988  37.5580 -8:0 Redwood Pt., Blair I., 1.15 nmi. NNE of
-^-19   0.50 0 -24   0.40 0   0413 120 310 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-19   0.50 0 -24   0.40 0   0413 120 310 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.1988  37.5580 -8:0 Redwood Pt., Blair I., 1.15 nmi. NNE of
-^-32   0.40 0 -32   0.30 0   0413 107 300 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32   0.40 0 -32   0.30 0   0413 107 300 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.1200  37.5100 -8:0 Dumbarton Highway Bridge
-^-12   0.50 0 -10   0.30 0   0417 151 338 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-12   0.50 0 -10   0.30 0   0417 151 338 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.1155  37.5013 -8:0 Dumbarton Hwy. Bridge, 0.28 nmi. SE of
-^-36   0.50 0 -20   0.40 0   0421 141 319 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-36   0.50 0 -20   0.40 0   0421 141 319 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.1155  37.5013 -8:0 Dumbarton Hwy. Bridge, 0.28 nmi. SE of
-^-51   0.40 0 -21   0.30 0   0421 137 322 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-51   0.40 0 -21   0.30 0   0421 137 322 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.0813  37.4875 -8:0 Dumbarton Point, 1.15 nmi. SE  of
-^-27   0.40 0 -10   0.30 0   0425 131 320 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-27   0.40 0 -10   0.30 0   0425 131 320 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.0700  37.4750 -8:0 Dumbarton Point, 2.25 miles SE of
-^-7   0.40 0 -22   0.30 0   0429 127 302 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-7   0.40 0 -22   0.30 0   0429 127 302 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4572  37.8455 -8:0 Yellow Bluff, 0.8 nmi. NE of
-^-42   0.60 0 -59   0.50 0   0433 13 211 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-42   0.60 0 -59   0.50 0   0433 13 211 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4572  37.8455 -8:0 Yellow Bluff, 0.8 nmi. NE of
-^-57   0.40 0 -28   0.30 0   0433 12 226 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-57   0.40 0 -28   0.30 0   0433 12 226 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4550  37.8350 -8:0 Yellow Bluff, 0.8 mile east of
-^-20   1.00 0 -10   0.70 0   0437 22 257 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-20   1.00 0 -10   0.70 0   0437 22 257 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4433  37.8317 -8:0 Point Cavallo, 1.3 miles east of
-^-13   0.80 0 10   0.80 0   0441 87 256 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-13   0.80 0 10   0.80 0   0441 87 256 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4200  37.8350 -8:0 Alcatraz Island, 0.5 mile north of
-^29   0.60 0 -41   0.70 0   0445 66 284 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^29   0.60 0 -41   0.70 0   0445 66 284 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4230  37.8455 -8:0 Point Blunt, Angel I., 0.5 nmi. SW of
-^12   0.40 0 -29   0.50 0   0449 77 258 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^12   0.40 0 -29   0.50 0   0449 77 258 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4230  37.8455 -8:0 Point Blunt, Angel I., 0.5 nmi. SW of
-^-42   0.40 0 -5   0.40 0   0449 82 258 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-42   0.40 0 -5   0.40 0   0449 82 258 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4230  37.8455 -8:0 Point Blunt, Angel I., 0.5 nmi. SW of
-^-70   0.30 0 -8   0.20 0   0449 88 265 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-70   0.30 0 -8   0.20 0   0449 88 265 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4230  37.8455 -8:0 Point Blunt, Angel I., 0.5 nmi. SW of
-^-107   0.30 0 -5   0.20 0   0449 91 260 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-107   0.30 0 -5   0.20 0   0449 91 260 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4167  37.8467 -8:0 Point Blunt, Angel I., 0.25 mile S of
-^-32   0.60 0 -8   0.70 0   0453 103 258 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32   0.60 0 -8   0.70 0   0453 103 258 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4050  37.8450 -8:0 Pt. Blunt, Angel I., 0.8 mi. SE of
-^-32767   0.30 0 -11   0.40 0   0457 86 297 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767   0.30 0 -11   0.40 0   0457 86 297 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4122  37.8528 -8:0 Pt. Blunt, Angel I., 0.25 nmi. east of
-^61   0.30 0 -15   0.50 0   0461 49 185 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^61   0.30 0 -15   0.50 0   0461 49 185 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4122  37.8528 -8:0 Pt. Blunt, Angel I., 0.25 nmi. east of
-^11   0.20 0 2   0.40 0   0461 37 194 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^11   0.20 0 2   0.40 0   0461 37 194 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4122  37.8528 -8:0 Pt. Blunt, Angel I., 0.25 nmi. east of
-^-32   0.30 0 17   0.50 0   0461 10 176 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32   0.30 0 17   0.50 0   0461 10 176 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4122  37.8528 -8:0 Pt. Blunt, Angel I., 0.25 nmi. east of
-^122   0.30 0 18   0.50 0   0461 4 168 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^122   0.30 0 18   0.50 0   0461 4 168 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4133  37.8633 -8:0 Angel Island, off Quarry Point
-^87   0.20 0 -102   0.60 0   0465 27 130 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^87   0.20 0 -102   0.60 0   0465 27 130 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4017  37.8633 -8:0 Angel Island, 0.75 mile east of
-^46   0.40 0 63   0.30 0   0469 351 192 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^46   0.40 0 63   0.30 0   0469 351 192 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4028  37.8738 -8:0 Point Simpson, Angel I., 1.05 nmi. E of
-^9   0.50 0 31   0.20 0   0473 332 177 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^9   0.50 0 31   0.20 0   0473 332 177 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4028  37.8738 -8:0 Point Simpson, Angel I., 1.05 nmi. E of
-^-15   0.30 0 29   0.10 0   0473 336 169 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-15   0.30 0 29   0.10 0   0473 336 169 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4700  37.8567 -8:0 Richardson Bay entrance
-^-225   0.30 0 -239   0.20 0   0477 74 225 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-225   0.30 0 -239   0.20 0   0477 74 225 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4500  37.8667 -8:0 Raccoon Strait, off Point Stuart
-^-33   0.40 0 -34   0.60 0   0481 14 226 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-33   0.40 0 -34   0.60 0   0481 14 226 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4420  37.8717 -8:0 Raccoon Strait
-^-33   0.60 0 -50   0.50 0   0485 47 237 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-33   0.60 0 -50   0.50 0   0485 47 237 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4420  37.8717 -8:0 Raccoon Strait
-^-51   0.60 0 -40   0.50 0   0485 46 238 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-51   0.60 0 -40   0.50 0   0485 46 238 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4420  37.8717 -8:0 Raccoon Strait
-^-88   0.50 0 -24   0.40 0   0485 65 245 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-88   0.50 0 -24   0.40 0   0485 65 245 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4383  37.8717 -8:0 Raccoon Strait, off Hospital Cove
-^-32767   0.50 0 -38   0.50 0   0489 37 223 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767   0.50 0 -38   0.50 0   0489 37 223 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4350  37.8833 -8:0 Bluff Point, 0.1 mile east of
-^20   0.60 0 -14   0.60 0   0493 9 147 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^20   0.60 0 -14   0.60 0   0493 9 147 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4130  37.8872 -8:0 Bluff Point, 1.15 nmi. east of
-^11   0.40 0 26   0.30 0   0497 336 167 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^11   0.40 0 26   0.30 0   0497 336 167 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4000  37.8833 -8:0 Southampton Shoal Light, 0.2 mile E of
-^20   0.30 0 21   0.30 0   0501 19 188 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^20   0.30 0 21   0.30 0   0501 19 188 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4183  37.8917 -8:0 Point Chauncey, 1.3 miles east of
-^-3   0.40 0 45   0.40 0   0505 340 162 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-3   0.40 0 45   0.40 0   0505 340 162 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4588  37.9030 -8:0 Point Chauncey, 0.75 nmi. NW of
-^-1   0.40 0 13   0.30 0   0509 317 131 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-1   0.40 0 13   0.30 0   0509 317 131 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4478  37.9150 -8:0 Point Chauncey, 1.25 nmi. north of
-^16   0.60 0 20   0.50 0   0513 336 159 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^16   0.60 0 20   0.50 0   0513 336 159 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4478  37.9150 -8:0 Point Chauncey, 1.25 nmi. north of
-^-43   0.40 0 25   0.30 0   0513 355 144 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-43   0.40 0 25   0.30 0   0513 355 144 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3112  37.8522 -8:0 Berkley Yacht Harbor, 0.9 nmi. south of
-^-120   0.10 0 -40   0.10 0   0517 152 304 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-120   0.10 0 -40   0.10 0   0517 152 304 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3588  37.8770 -8:0 Fleming Point, 1.72 nmi. SW of
-^-108   0.20 0 -56   0.10 0   0521 82 259 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-108   0.20 0 -56   0.10 0   0521 82 259 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3725  37.9030 -8:0 Point Potrero Reach (buoy "10")
-^-32767 -327.67 0 -32767 -327.67 0   0525 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   0525 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4000  37.9050 -8:0 Point Richmond, 0.5 mile west of
-^-25   0.30 0 13   0.30 0   0529 332 142 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-25   0.30 0 13   0.30 0   0529 332 142 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.3967  37.9208 -8:0 Point Richmond, 0.8 nmi. NNW of
-^-117   0.10 0 -71   0.10 0   0533 325 147 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-117   0.10 0 -71   0.10 0   0533 325 147 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4333  37.9333 -8:0 Red Rock, east of
-^-3   0.40 0 31   0.40 0   0537 318 175 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-3   0.40 0 31   0.40 0   0537 318 175 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4267  37.9400 -8:0 Red Rock, 0.60 nmi. NNE of
-^-27   0.60 0 13   0.40 0   0541 337 155 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-27   0.60 0 13   0.40 0   0541 337 155 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4267  37.9400 -8:0 Red Rock, 0.60 nmi. NNE of
-^-42   0.50 0 7   0.40 0   0541 334 145 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-42   0.50 0 7   0.40 0   0541 334 145 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4267  37.9400 -8:0 Red Rock, 0.60 nmi. NNE of
-^-54   0.50 0 19   0.30 0   0541 335 145 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-54   0.50 0 19   0.30 0   0541 335 145 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4617  37.9412 -8:0 Point San Quentin, 0.82 nmi. east  of
-^-18   0.20 0 5   0.20 0   0545 13 182 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-18   0.20 0 5   0.20 0   0545 13 182 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4527  37.9422 -8:0 Point San Quentin, 1.3 nmi. east of
-^11   0.40 0 38   0.40 0   0549 5 181 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^11   0.40 0 38   0.40 0   0549 5 181 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4527  37.9422 -8:0 Point San Quentin, 1.3 nmi. east of
-^-14   0.30 0 29   0.30 0   0549 10 186 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-14   0.30 0 29   0.30 0   0549 10 186 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4400  37.9500 -8:0 Point San Quentin, 1.9 miles east of
-^43   0.50 0 31   0.60 0   0553 14 168 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^43   0.50 0 31   0.60 0   0553 14 168 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -122.4333  37.9667 -8:0 Point San Pablo, midchannel
 ^-81   0.90 0 -72   1.00 0   0557 14 180 1 Carquinez Strait (west end, bridge), California
@@ -14983,64 +14983,64 @@ cNAA:XX:XX: -121.3167  37.8667 -8:0 Brandt Bridge
 ^343   0.30 0 301   0.40 0   0753 135 315 1 Carquinez Strait (west end, bridge), California
 
 cNAA:XX:XX: -123.0333  38.0000 -8:0 Point Reyes
-^-72   0.30 0 -72   0.30 0   0757 320 140 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-72   0.30 0 -72   0.30 0   0757 320 140 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -123.3500  38.5667 -8:0 Salt Point
-^-80   0.30 0 -80   0.30 0   0761 325 145 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-80   0.30 0 -80   0.30 0   0761 325 145 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -123.7500  38.9500 -8:0 Point Arena
-^-89   0.30 0 -89   0.30 0   0765 330 150 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-89   0.30 0 -89   0.30 0   0765 330 150 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -123.8333  39.3500 -8:0 Point Cabrillo
-^-98   0.30 0 -98   0.30 0   0769 345 165 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-98   0.30 0 -98   0.30 0   0769 345 165 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -123.8333  39.7333 -8:0 Cape Vizcaino
-^-108   0.30 0 -108   0.30 0   0773 325 145 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-108   0.30 0 -108   0.30 0   0773 325 145 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.0667  40.0000 -8:0 Point Delgada
-^-97   0.30 0 -97   0.30 0   0777 325 145 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-97   0.30 0 -97   0.30 0   0777 325 145 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.3667  40.2500 -8:0 Punta Gorda
-^-96   0.30 0 -96   0.30 0   0781 335 155 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-96   0.30 0 -96   0.30 0   0781 335 155 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.5000  40.4333 -8:0 Cape Mendocino Light, 4.6 mi. W of
-^-32767 -327.67 0 -32767 -327.67 0   0785 -32767 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-32767 -327.67 0 -32767 -327.67 0   0785 -32767 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.2833  40.7000 -8:0 Table Bluff Light
-^-71   0.30 0 -71   0.30 0   0789 10 190 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-71   0.30 0 -71   0.30 0   0789 10 190 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.2333  40.7500 -8:0 Humboldt Bay entrance
-^-52   0.60 0 -69   0.60 0   0793 124 312 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-52   0.60 0 -69   0.60 0   0793 124 312 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.2333  40.7500 -8:0 Point Humboldt, channel west of
-^-71   0.50 0 -72   0.30 0   0797 197 25 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-71   0.50 0 -72   0.30 0   0797 197 25 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.1833  40.8000 -8:0 Eureka, channel west of
-^-74   0.60 0 -54   0.50 0   0801 16 211 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-74   0.60 0 -54   0.50 0   0801 16 211 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.1667  40.8000 -8:0 Eureka, channel north of
-^-77   0.20 0 -78   0.20 0   0805 105 255 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-77   0.20 0 -78   0.20 0   0805 105 255 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.1833  40.8167 -8:0 Samoa channel
-^-59   0.40 0 -66   0.30 0   0809 45 204 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-59   0.40 0 -66   0.30 0   0809 45 204 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.1667  41.0500 -8:0 Trinidad Head
-^-57   0.30 0 -57   0.30 0   0813 5 185 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-57   0.30 0 -57   0.30 0   0813 5 185 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.1833  41.3500 -8:0 Redding Rock Light
-^-52   0.30 0 -52   0.30 0   0817 10 190 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-52   0.30 0 -52   0.30 0   0817 10 190 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -124.3333  41.8167 -8:0 St. George Reef
-^-41   0.30 0 -41   0.30 0   0821 5 185 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^-41   0.30 0 -41   0.30 0   0821 5 185 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -79.0833  8.5000 -5:0 Bayoneta I., 1.5 miles W of, Perlas Is
-^67   0.60 0 141   0.40 0   0001 5 200 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^67   0.60 0 141   0.40 0   0001 5 200 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -79.7167  8.6500 -5:0 Chame Bay Entrance, near Chame Point
-^130   0.60 0 130   0.40 0   0005 210 65 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^130   0.60 0 130   0.40 0   0005 210 65 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -84.8167  9.9667 -6:0 Puntarenas, Gulf of Nicoya
-^1 -327.67 0 44 -327.67 0   0009 300 -32767 1 San Francisco Bay Ent. (S of Pt. Diablo), Calif.
+^1 -327.67 0 44 -327.67 0   0009 300 -32767 1 San Francisco Bay Entrance (Golden Gate), California Current
 
 cNAA:XX:XX: -123.5833  49.0167 -8:0 PORLIER PASS
 ^0   0.00 0 0   0.00 0   12001 -32767 -32767 1 PORLIER PASS
@@ -15063,8 +15063,8 @@ cNAA:XX:XX: -126.1333  50.4667 -8:0 JOHNSTONE STR. CEN.
 cNAA:XX:XX: -127.5000  51.1000 -8:0 NAKWAKTO RAPIDS
 ^0   0.00 0 0   0.00 0   12007 -32767 -32767 1 NAKWAKTO RAPIDS
 
-cNAA:XX:XX: -123.5333  48.2333 -8:0 JUAN DE FUCA-EAST
-^0   0.00 0 0   0.00 0   12008 -32767 -32767 1 JUAN DE FUCA-EAST
+cNAA:XX:XX: -123.5333  48.2333 -8:0 JUAN DE FUCA
+^0   0.00 0 0   0.00 0   12008 -32767 -32767 1 Strait of Juan de Fuca Entrance, Washington Current
 
 cNAA:XX:XX: -126.8167  50.6000 -8:0 WEYNTON PASSAGE
 ^0   0.00 0 0   0.00 0   12009 -32767 -32767 1 WEYNTON PASSAGE
@@ -15095,12 +15095,6 @@ cNAA:XX:XX: -128.5000  52.8833 -8:0 HIEKISH NARROWS
 
 cNAA:XX:XX: -66.9333  44.7500 -4:0 Grand Manan Channel (Bay of Fundy Entrance), New Brunswick Current
 ^0   0.00 0 0   0.00 0   12018 -32767 -32767 1 Grand Manan Channel (Bay of Fundy Entrance), New Brunswick Current
-
-cNAA:XX:XX: -60.4167  46.3000 -4:0 GREAT BRAS D'OR
-^0   0.00 0 0   0.00 0   12019 -32767 -32767 1 GREAT BRAS D'OR
-
-cNAA:XX:XX: -63.7333  46.1667 -4:0 ABEGWEIT PASSAGE
-^0   0.00 0 0   0.00 0   12020 -32767 -32767 1 ABEGWEIT PASSAGE
 
 cNAA:XX:XX: -65.3000  43.3667 -4:0 Brazil Rock, 6 miles east of
 ^-122   0.40 0 -116   0.40 0   0001 275 50 1 Grand Manan Channel (Bay of Fundy Entrance), New Brunswick Current
@@ -17386,58 +17380,58 @@ cNAA:XX:XX: -73.7667  40.9000 -5:0 Echo Bay entrance
 ^-32767 -327.67 0 -32767 -327.67 0   3316 -32767 -32767 1 The Race, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7667  40.8833 -5:0 Davids Island, channel 0.1 mile east of
-^-32767 -327.67 0 -32767 -327.67 0   3321 -32767 -32767 1 Throgs Neck,  Long Island Sound, New York Current
+^-32767 -327.67 0 -32767 -327.67 0   3321 -32767 -32767 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7572  40.8905 -5:0 Huckleberry Island, 0.2 mile NW of
-^-174   0.20 0 -149   0.40 0   3326 69 234 1 Throgs Neck,  Long Island Sound, New York Current
+^-174   0.20 0 -149   0.40 0   3326 69 234 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7458  40.8800 -5:0 Huckleberry Island, 0.6 mile SE of
-^-124   0.40 0 -61   0.40 0   3331 25 226 1 Throgs Neck,  Long Island Sound, New York Current
+^-124   0.40 0 -61   0.40 0   3331 25 226 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7333  40.8733 -5:0 Execution Rocks, 0.4 mile southwest of
-^-137   0.60 0 -95   0.70 0   3336 58 246 1 Throgs Neck,  Long Island Sound, New York Current
+^-137   0.60 0 -95   0.70 0   3336 58 246 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7297  40.8292 -5:0 Manhasset Bay entrance
-^199   0.40 0 220   0.50 0   3341 115 307 1 Throgs Neck,  Long Island Sound, New York Current
+^199   0.40 0 220   0.50 0   3341 115 307 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7712  40.8637 -5:0 Hart Island, 0.2 mile north of
-^-122   0.20 0 -184   0.40 0   3346 98 264 1 Throgs Neck,  Long Island Sound, New York Current
+^-122   0.20 0 -184   0.40 0   3346 98 264 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7628  40.8437 -5:0 Hart Island, southeast of
-^-83   0.60 0 -19   0.60 0   3351 32 216 1 Throgs Neck,  Long Island Sound, New York Current
+^-83   0.60 0 -19   0.60 0   3351 32 216 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7657  40.8405 -5:0 Hart Island, 0.3 n.mi. SSE of
-^-66   0.50 0 -54   0.80 0   3356 40 201 1 Throgs Neck,  Long Island Sound, New York Current
+^-66   0.50 0 -54   0.80 0   3356 40 201 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7788  40.8562 -5:0 Hart Island and City Island, between
-^-87   0.20 0 -66   0.30 0   3361 349 143 1 Throgs Neck,  Long Island Sound, New York Current
+^-87   0.20 0 -66   0.30 0   3361 349 143 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7933  40.8578 -5:0 City Island Bridge
-^-158   0.20 0 -194   0.70 0   3366 352 198 1 Throgs Neck,  Long Island Sound, New York Current
+^-158   0.20 0 -194   0.70 0   3366 352 198 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7953  40.8367 -5:0 Eastchester Bay, near Big Tom
-^-164   0.40 0 -174   0.60 0   3371 97 294 1 Throgs Neck,  Long Island Sound, New York Current
+^-164   0.40 0 -174   0.60 0   3371 97 294 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.8167  40.8617 -5:0 Hutchinson R., Pelham Highway Bridge
-^182   0.90 0 184   0.70 0   3376 305 78 1 Throgs Neck,  Long Island Sound, New York Current
+^182   0.90 0 184   0.70 0   3376 305 78 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7745  40.8287 -5:0 City Island, 0.6 mile southeast of
-^-56   0.50 0 -106   0.70 0   3381 38 251 1 Throgs Neck,  Long Island Sound, New York Current
+^-56   0.50 0 -106   0.70 0   3381 38 251 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7670  40.8153 -5:0 Elm Point, 0.2 mile west of
-^-72   0.20 0 -35   0.90 0   3386 26 213 1 Throgs Neck,  Long Island Sound, New York Current
+^-72   0.20 0 -35   0.90 0   3386 26 213 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7855  40.8107 -5:0 THROGS NECK, 0.3 n.mi. NE of
-^0   0.00 0 0   0.00 0   3391 15 193 1 Throgs Neck,  Long Island Sound, New York Current
+^0   0.00 0 0   0.00 0   3391 15 193 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7908  40.7983 -5:0 Throgs Neck, 0.4 mile south of
-^57   0.80 0 93   1.00 0   3396 90 278 1 Throgs Neck,  Long Island Sound, New York Current
+^57   0.80 0 93   1.00 0   3396 90 278 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7913  40.8020 -5:0 Throgs Neck, 0.2 mile south of
-^21   0.70 0 73   1.20 0   3401 90 289 1 Throgs Neck,  Long Island Sound, New York Current
+^21   0.70 0 73   1.20 0   3401 90 289 1 Throg's Neck, Long Island Sound, New York Current
 
 cNAA:XX:XX: -73.7933  40.8017 -5:0 Throgs Neck Bridge
-^-24   1.60 0 50   1.50 0   3406 122 276 1 Throgs Neck,  Long Island Sound, New York Current
+^-24   1.60 0 50   1.50 0   3406 122 276 1 Throg's Neck, Long Island Sound, New York Current
 
 
 
