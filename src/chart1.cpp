@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.52 2009/08/22 01:26:18 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.53 2009/08/25 21:38:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.53  2009/08/25 21:38:03  bdbcat
+ * Various, including GDK SIGSEGV workaround
+ *
  * Revision 1.52  2009/08/22 01:26:18  bdbcat
  * Tracks
  *
@@ -177,6 +180,7 @@
 
 #ifndef __WXMSW__
 #include <signal.h>
+#include <setjmp.h>
 #endif
 
 #include "chart1.h"
@@ -223,7 +227,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.52 2009/08/22 01:26:18 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.53 2009/08/25 21:38:03 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -423,8 +427,8 @@ ENUM_BUFFER_STATE               rx_share_buffer_state;
 
 
 #ifndef __WXMSW__
-struct sigaction sa_usr1;
-struct sigaction sa_usr1_old;
+struct sigaction sa_all;
+struct sigaction sa_all_old;
 #endif
 
 
@@ -495,6 +499,10 @@ bool             g_bTrackDistance;
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
 
+#ifndef __WXMSW__
+jmp_buf           env;                    // the context saved by setjmp();
+#endif
+
 // {2C9C45C2-8E7D-4C08-A12D-816BBAE722C0}
 #ifdef  __WXMSW__
 DEFINE_GUID(GARMIN_DETECT_GUID, 0x2c9c45c2L, 0x8e7d, 0x4c08, 0xa1, 0x2d, 0x81, 0x6b, 0xba, 0xe7, 0x22, 0xc0);
@@ -546,14 +554,32 @@ void SetSystemColors(ColorScheme cs);
 //      Signal Handlers
 //-----------------------------------------------------------------------
 #ifndef __WXMSW__
+
+//These are the signals possibly expected
 //      SIGUSR1
 //      Raised externally to cause orderly termination of application
 //      Intended to act just like pushing the "EXIT" button
 
+//      SIGSEGV
+//      Some undefined segfault......
+
 static void
-catch_sig_usr1(int signo)
+catch_signals(int signo)
 {
-        quitflag++;                             // signal to the timer loop
+      switch(signo)
+      {
+            case SIGUSR1:
+                  quitflag++;                             // signal to the timer loop
+                  break;
+
+            case SIGSEGV:
+                  siglongjmp(env, 1);                       // jump back to the setjmp() point
+                  break;
+
+            default:
+                  break;
+      }
+
 }
 #endif
 
@@ -603,15 +629,15 @@ bool MyApp::OnInit()
 //      Setup Linux SIGNAL handling, for external program control
 
 //      Build the sigaction structure
-        sa_usr1.sa_handler = catch_sig_usr1;            // point to my handler
-        sigemptyset(&sa_usr1.sa_mask);                  // make the blocking set
+        sa_all.sa_handler = catch_signals ;             // point to my handler
+        sigemptyset(&sa_all.sa_mask);                  // make the blocking set
                                                         // empty, so that all
                                                         // other signals will be
                                                         // unblocked during my handler
-        sa_usr1.sa_flags = 0;
+        sa_all.sa_flags = 0;
 
-//      Register my request for this signal
-        sigaction(SIGUSR1, &sa_usr1, &sa_usr1_old);
+//      Register my request for some signals
+        sigaction(SIGUSR1, &sa_all, NULL);
 #endif
 
 //      Initialize memory tracer
@@ -713,9 +739,15 @@ bool MyApp::OnInit()
 
 //      Send init message
         wxLogMessage(_T("\n\n"));
-        wxString imsg(_T(" -------Starting opencpn-------"));
+
         wxDateTime now = wxDateTime::Now();
-        imsg.Prepend(now.FormatISODate());
+        now.MakeGMT(true);                    // no DST
+
+        wxString imsg = now.FormatISODate();
+        imsg += _T("  ");
+        imsg += now.FormatISOTime();
+
+        imsg += _T(" -------Starting opencpn-------");
         wxLogMessage(imsg);
 
 #ifdef USE_CPL
@@ -2169,13 +2201,27 @@ void MyFrame::OnSize(wxSizeEvent& event)
         GetClientSize(&x, &y);
 
 //      Resize the children
-        int stat_height = 0;
 
+        if(m_pStatusBar)
+        {
+              //  Maybe resize the font
+              wxRect stat_box;
+              m_pStatusBar->GetFieldRect(0, stat_box);
+              int font_size = stat_box.width / 30;
+              wxFont *pstat_font = wxTheFontList->FindOrCreateFont(font_size,
+                                    wxFONTFAMILY_MODERN,
+                                    wxFONTSTYLE_NORMAL,
+                                    wxFONTWEIGHT_NORMAL);
+              m_pStatusBar->SetFont(*pstat_font);
+        }
+
+        int stat_height = 0;
         if(stats)
         {
-                int yt = stats->GetFontHeight();
-                stat_height = (yt + 6) * stats->GetRows();
+              int yt = stats->GetFontHeight();
+              stat_height = (yt + 6) * stats->GetRows();
         }
+
 
         int cccw, ccch;
         if(cc1)
@@ -3769,7 +3815,10 @@ void MyFrame::DoExportGPX(void)
 void MyFrame::DoImportGPX(void)
 {
       if (pConfig)
+      {
             pConfig->ImportGPX(this);
+            Refresh();
+      }
 }
 
 
@@ -5063,7 +5112,7 @@ void DummyTextCtrl::OnMouseEvent(wxMouseEvent &event)
                               cc1->ZoomCanvasOut(cc1->m_cursor_lat, cc1->m_cursor_lon);
 
                         wxPoint r;                                                        // move the mouse pointer to zoomed location
-                        cc1->GetPointPix(cc1->m_cursor_lat, cc1->m_cursor_lon, &r);
+                        cc1->GetCanvasPointPix(cc1->m_cursor_lat, cc1->m_cursor_lon, &r);
                         cc1->WarpPointer(r.x, r.y);
                   }
                   else
