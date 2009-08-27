@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.18 2009/08/25 21:31:12 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.19 2009/08/27 02:17:30 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.19  2009/08/27 02:17:30  bdbcat
+ * Remove GTK call to wxRegion(), it faults.
+ *
  * Revision 1.18  2009/08/25 21:31:12  bdbcat
  * Improve Show Outline algorithm
  *
@@ -4223,7 +4226,7 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
       //    Create a (complicated) region from the covr description of the current cell
       //    This could be expensive.....
 
-#ifdef __WXGTK__
+#if 0
       //    the gdk library may fault for unknown reasons....
       //    catch this by setjmp/longjmp method, maybe....
 
@@ -4245,6 +4248,7 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
 
       if(m_pcm93chart_current)
       {
+#ifndef __WXGTK__      //    the gdk library may fault for unknown reasons....
             for(unsigned int im=0 ; im < m_pcm93chart_current->m_covr_array.GetCount() ; im++)
             {
                   M_COVR_Desc mcd = m_pcm93chart_current->m_covr_array.Item(im);
@@ -4254,15 +4258,6 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
 
                   for(int ip =0 ; ip < mcd.m_nvertices ; ip++)
                   {
-/*
-                        double easting, northing, epix, npix;
-                        toSM(p->y, p->x, VPoint.clat, VPoint.clon, &easting, &northing);
-                        epix = easting  * VPoint.view_scale_ppm;
-                        npix = northing * VPoint.view_scale_ppm;
-
-                        pwp[ip].x = (int)round((VPoint.pix_width  / 2) + epix);
-                        pwp[ip].y = (int)round((VPoint.pix_height / 2) - npix);
-*/
                         wxPoint r = GetPixFromLLVP(p->y, p->x, VPoint);
                         pwp[ip].x = r.x;
                         pwp[ip].y = r.y;
@@ -4274,10 +4269,11 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
 
                   pValidRegion->Union(rgn_covr);
             }
+#else
+            pValidRegion->Union(0, 0, VPoint.pix_width, VPoint.pix_height);         // select entire window
+#endif
 
-
-//            pValidRegion->Union(0, 0, VPoint.pix_width, VPoint.pix_height);
-      }
+     }
       else
             pValidRegion->Union(0, 0, 1,1);
 }
@@ -4308,72 +4304,6 @@ bool cm93compchart::RenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, ScaleTypeEn
             m_pcm93chart_current->SetVPParms(pvp_positive);
 
             render_return = m_pcm93chart_current->RenderViewOnDC(dc, *pvp_positive, scale_type);
-
-
-#if 0
-            if(1)
-            {
-                  if(m_cmscale < 7)
-                  {
-                        int nss = m_cmscale +1;
-                        //    Load the m_covr objects for the chart scale one smaller than this
-                        cm93chart *psc = m_pcm93chart_array[nss];
-
-                        if(!psc)
-                        {
-                              m_pcm93chart_array[nss] = new cm93chart();
-                              psc = m_pcm93chart_array[nss];
-
-                              wxChar ext = (wxChar)('A' + nss - 1);
-                              if(nss == 0)
-                                    ext = 'Z';
-
-                              wxString file_dummy = _T("CM93.");
-                              file_dummy << ext;
-
-                              psc->SetCM93Dict(m_pDict);
-                              psc->SetCM93Prefix(m_prefix);
-
-                              psc->Init( file_dummy, FULL_INIT, m_global_color_scheme );
-                        }
-
-                        if(psc)
-                        {
-                              bool mcr = psc->LoadM_COVRSet(&VPoint);
-
-                        //    Render the chart outlines
-                              if(mcr)
-                              {
-                                    wxPen outpen(*wxRED_PEN);
-                                    dc.SetPen(outpen);
-
-                                    for(unsigned int im=0 ; im < psc->m_covr_array_outlines.GetCount() ; im++)
-                                    {
-                                          M_COVR_Desc mcd = psc->m_covr_array_outlines.Item(im);
-
-                                          MyPoint *p = (MyPoint *)mcd.pvertices;
-                                          wxPoint *pwp = mcd.pPoints;
-
-                                          for(int ip =0 ; ip < mcd.m_nvertices ; ip++)
-                                          {
-                                                double easting, northing, epix, npix;
-                                                toSM(p->y, p->x, VPoint.clat, VPoint.clon, &easting, &northing);
-                                                epix = easting  * VPoint.view_scale_ppm;
-                                                npix = northing * VPoint.view_scale_ppm;
-
-                                                pwp[ip].x = (int)round((VPoint.pix_width  / 2) + epix);
-                                                pwp[ip].y = (int)round((VPoint.pix_height / 2) - npix);
-
-                                                p++;
-                                          }
-
-                                          dc.DrawLines(mcd.m_nvertices, pwp);
-                                    }
-                              }
-                        }
-                  }
-            }
-#endif
       }
       else
       {
@@ -4451,9 +4381,6 @@ bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool
 
             while(nss <= nss_max)
             {
-
-
-                        //    Load the m_covr objects for the chart scale one smaller than this
                   cm93chart *psc = m_pcm93chart_array[nss];
 
                   if(!psc)
@@ -4474,7 +4401,7 @@ bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool
                         psc->Init( file_dummy, FULL_INIT, m_global_color_scheme );
                   }
 
-                  if(psc)
+                  if((psc) && (nss != 1))       // skip rendering the A scale outlines
                   {
                         bool mcr = psc->LoadM_COVRSet(&vp);
 
