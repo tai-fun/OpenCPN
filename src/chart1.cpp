@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.53 2009/08/25 21:38:03 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.54 2009/08/29 23:29:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.54  2009/08/29 23:29:11  bdbcat
+ * Implement HDT, HDG, and HDM messages
+ *
  * Revision 1.53  2009/08/25 21:38:03  bdbcat
  * Various, including GDK SIGSEGV workaround
  *
@@ -227,7 +230,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.53 2009/08/25 21:38:03 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.54 2009/08/29 23:29:11 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -266,8 +269,8 @@ RouteProp       *pRoutePropDialog;
 MarkInfo        *pMarkInfoDialog;         // toh, 2009.02.08
 
 
-double           gLat, gLon, gCog, gSog, gHdg;
-double           vLat, vLon;
+double          gLat, gLon, gCog, gSog, gHdt, gHDg, gVar;
+double          vLat, vLon;
 double          initial_scale_ppm;
 
 wxArrayString   *pChartDirArray;
@@ -278,7 +281,7 @@ TCMgr           *ptcmgr;
 
 bool            bDrawCurrentValues;
 
-wxString        *g_pSData_Locn;
+wxString        g_SData_Locn;
 wxString        *pChartListFileName;
 wxString        *pTC_Dir;
 wxString        *pHome_Locn;
@@ -345,6 +348,9 @@ ColourHash      *pcurrent_user_color_hash;
 int             gsp_watchdog_timeout_ticks;
 int             gGPS_Watchdog;
 bool            bGPSValid;
+
+int             gHDx_Watchdog;
+bool            g_bHDxValid;
 
 #ifdef USE_S57
 s52plib           *ps52plib;
@@ -815,9 +821,8 @@ bool MyApp::OnInit()
             * Mac: appname.app/Contents/SharedSupport bundle subdirectory
 */
 
-        g_pSData_Locn= new wxString;
-        g_pSData_Locn->Append(std_path.GetDataDir());         // where the application is located
-        appendOSDirSlash(g_pSData_Locn) ;
+        g_SData_Locn = std_path.GetDataDir();         // where the application is located
+        appendOSDirSlash(&g_SData_Locn) ;
 
 
 //      Establish the location of the config file
@@ -868,7 +873,7 @@ bool MyApp::OnInit()
 
         //        A special case for windows, which has some trouble finding the data files....
 #ifdef __WXMSW__
-        wxString sfd(*g_pSData_Locn);
+        wxString sfd(g_SData_Locn);
         appendOSDirSlash(&sfd);
         sfd.Append(_T("s57data"));
 
@@ -888,8 +893,7 @@ bool MyApp::OnInit()
                           cp1 += _T("S52RAZDS.RLE");
                           if(wxFileName::FileExists(cp1))
                           {
-                                g_pSData_Locn->Clear();
-                                g_pSData_Locn->Append(cp1d);
+                                g_SData_Locn = cp1d;
                                 break;
                           }
 
@@ -903,8 +907,7 @@ bool MyApp::OnInit()
                           cp1 += _T("S52RAZDS.RLE");
                           if(wxFileName::FileExists(cp1))
                           {
-                                g_pSData_Locn->Clear();
-                                g_pSData_Locn->Append(cp1d);
+                                g_SData_Locn = cp1d;
                                 break;
                           }
 
@@ -940,14 +943,14 @@ bool MyApp::OnInit()
               if(!tflag)
               {
                     g_pcsv_locn->Clear();
-                    g_pcsv_locn->Append(*g_pSData_Locn);
+                    g_pcsv_locn->Append(g_SData_Locn);
                     g_pcsv_locn->Append(_T("s57data"));
               }
 
         }
         else
         {
-              g_pcsv_locn->Append(*g_pSData_Locn);
+              g_pcsv_locn->Append(g_SData_Locn);
               g_pcsv_locn->Append(_T("s57data"));
         }
 
@@ -1014,7 +1017,7 @@ bool MyApp::OnInit()
             if(ps52plib->m_bOK)
             {
                   *g_pcsv_locn = look_data_dir;
-                  *g_pSData_Locn = tentative_SData_Locn;
+                  g_SData_Locn = tentative_SData_Locn;
             }
         }
 
@@ -1026,7 +1029,7 @@ bool MyApp::OnInit()
               delete ps52plib;
 
               wxString look_data_dir;
-              look_data_dir = *g_pSData_Locn;
+              look_data_dir = g_SData_Locn;
               look_data_dir.Append(_T("s57data"));
 
               plib_data = look_data_dir;
@@ -1077,7 +1080,7 @@ bool MyApp::OnInit()
 
 //      Establish location of Tide and Current data
         pTC_Dir = new wxString(_T("tcdata"));
-        pTC_Dir->Prepend(*g_pSData_Locn);
+        pTC_Dir->Prepend(g_SData_Locn);
         pTC_Dir->Append(wxFileName::GetPathSeparator());
 
         wxLogMessage(_T("Using Tide/Current data from:  ") + *pTC_Dir);
@@ -1089,13 +1092,13 @@ bool MyApp::OnInit()
         if(pInit_Chart_Dir->IsEmpty())
         {
             pInit_Chart_Dir->Append(_T("charts"));
-            pInit_Chart_Dir->Prepend(*g_pSData_Locn);
+            pInit_Chart_Dir->Prepend(g_SData_Locn);
         }
 
 
 //      Establish the WorldVectorShoreline Dataset location
         pWVS_Locn = new wxString(_T("wvsdata"));
-        pWVS_Locn->Prepend(*g_pSData_Locn);
+        pWVS_Locn->Prepend(g_SData_Locn);
         pWVS_Locn->Append(wxFileName::GetPathSeparator());
 
 //      Reload the config data, to pick up any missing data class configuration info
@@ -1284,7 +1287,6 @@ int MyApp::OnExit()
 
         delete pChartListFileName;
         delete pHome_Locn;
-        delete g_pSData_Locn;
         delete g_pcsv_locn;
         delete g_pSENCPrefix;
         delete pTC_Dir;
@@ -1748,9 +1750,9 @@ wxToolBar *MyFrame::CreateAToolbar()
     tb->AddSeparator();
     x += pitch_sep;
 
-    tb->AddTool( ID_STKDN, _T(""), *(*phash)[wxString(_T("scin"))], _T("Shift to Smaller Scale Chart"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKDN, _T(""), *(*phash)[wxString(_T("scin"))], _T("Shift to Larger Scale Chart"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_STKUP, _T(""),*(*phash)[wxString(_T("scout"))], _T("Shift to Larger Scale Chart"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKUP, _T(""),*(*phash)[wxString(_T("scout"))], _T("Shift to Smaller Scale Chart"), wxITEM_NORMAL);
     x += pitch_tool;
 
     tb->AddSeparator();
@@ -2451,7 +2453,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_HELP:
       {
-            about *pAboutDlg = new about(this, g_pSData_Locn);
+            about *pAboutDlg = new about(this, &g_SData_Locn);
             pAboutDlg->Show();
 
             break;
@@ -2859,9 +2861,13 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 
 //  Update and check watchdog timer for GPS data source
       gGPS_Watchdog--;
-
       if(gGPS_Watchdog <= 0)
           bGPSValid = false;
+
+//  Update and check watchdog timer for Heading data source
+      gHDx_Watchdog--;
+      if(gHDx_Watchdog <= 0)
+            g_bHDxValid = false;
 
 //      Update the Toolbar Status window the first time watchdog times out
       if(gGPS_Watchdog == 0)
@@ -3935,40 +3941,86 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 
             wxString str_buf(buf, wxConvUTF8);
             m_NMEA0183 << str_buf;
-            m_NMEA0183.Parse();
-
-            if(m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
+            if(m_NMEA0183.PreParse())
             {
-                if(m_NMEA0183.Rmc.IsDataValid == NTrue)
-                {
-                    float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
-                    int lat_deg_int = (int)(llt / 100);
-                    float lat_deg = lat_deg_int;
-                    float lat_min = llt - (lat_deg * 100);
-                    gLat = lat_deg + (lat_min/60.);
+                  if(m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
+                  {
+                        if(m_NMEA0183.Parse())
+                        {
+                              if(m_NMEA0183.Rmc.IsDataValid == NTrue)
+                              {
+                                    float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
+                                    int lat_deg_int = (int)(llt / 100);
+                                    float lat_deg = lat_deg_int;
+                                    float lat_min = llt - (lat_deg * 100);
+                                    gLat = lat_deg + (lat_min/60.);
 
-                    float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
-                    int lon_deg_int = (int)(lln / 100);
-                    float lon_deg = lon_deg_int;
-                    float lon_min = lln - (lon_deg * 100);
-                    float tgLon = lon_deg + (lon_min/60.);
-                    gLon = -tgLon;
+                                    float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
+                                    int lon_deg_int = (int)(lln / 100);
+                                    float lon_deg = lon_deg_int;
+                                    float lon_min = lln - (lon_deg * 100);
+                                    float tgLon = lon_deg + (lon_min/60.);
+                                    gLon = -tgLon;
 
-                    gSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
-                    gCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
+                                    gSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                                    gCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
 
-                    fixtime = 0;
+                                    gVar = m_NMEA0183.Rmc.MagneticVariation;
+                                    if(m_NMEA0183.Rmc.MagneticVariationDirection == West)
+                                          gVar = -gVar;
 
-                    bool last_bGPSValid = bGPSValid;
-                    bGPSValid = true;
-                    if(!last_bGPSValid)
-                        UpdateToolbarStatusWindow(Current_Ch, false);
+                                    fixtime = 0;
 
-                    gGPS_Watchdog = gsp_watchdog_timeout_ticks;
+                                    bool last_bGPSValid = bGPSValid;
+                                    bGPSValid = true;
+                                    if(!last_bGPSValid)
+                                          UpdateToolbarStatusWindow(Current_Ch, false);
 
-                    bshow_tick = true;
-                }
+                                    gGPS_Watchdog = gsp_watchdog_timeout_ticks;
+
+                                    bshow_tick = true;
+                              }
+                        }
+                  }
+                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDT"))
+                  {
+                        if(m_NMEA0183.Parse())
+                        {
+                              gHdt = m_NMEA0183.Hdt.DegreesTrue;
+                              g_bHDxValid = true;
+                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                        }
+                  }
+
+                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDG"))
+                  {
+                        if(m_NMEA0183.Parse())
+                        {
+                              gHdt = m_NMEA0183.Hdg.MagneticSensorHeadingDegrees;
+                              if(m_NMEA0183.Hdg.MagneticVariationDirection == East)
+                                    gHdt += m_NMEA0183.Hdg.MagneticVariationDegrees;
+                              else
+                                    gHdt -= m_NMEA0183.Hdg.MagneticVariationDegrees;
+
+                              g_bHDxValid = true;
+                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                        }
+                  }
+
+                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDM"))
+                  {
+                       if(m_NMEA0183.Parse())
+                       {
+                              gHdt = m_NMEA0183.Hdm.DegreesMagnetic;
+                              gHdt += gVar;
+
+                              g_bHDxValid = true;
+                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                        }
+                  }
+
             }
+
             break;
         }       //case
 
@@ -3981,6 +4033,7 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                 gLon = pGPSData->kLon;
                 gCog = pGPSData->kCog;
                 gSog = pGPSData->kSog;
+                gVar = pGPSData->kVar;
 
                 fixtime = pGPSData->FixTime;
 
@@ -5231,7 +5284,7 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
             case 13:                     // Ctrl M                      //    Drop Marker;
             {
                   RoutePoint *pWP = new RoutePoint ( cc1->m_cursor_lat, cc1->m_cursor_lon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "New Mark" ) ), NULL );
-                  pSelect->AddSelectablePoint ( cc1->m_cursor_lat, cc1->m_cursor_lon, pWP );
+                  pSelect->AddSelectableRoutePoint ( cc1->m_cursor_lat, cc1->m_cursor_lon, pWP );
                   pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                   cc1->Refresh ( false );
                   break;
@@ -5242,7 +5295,7 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
                   if ( event.GetModifiers() == wxMOD_CONTROL )
                   {
                         RoutePoint *pWP = new RoutePoint ( gLat, gLon, wxString ( _T ( "mob" ) ), wxString ( _T ( "MAN OVERBOARD" ) ), NULL );
-                        pSelect->AddSelectablePoint ( gLat, gLon, pWP );
+                        pSelect->AddSelectableRoutePoint ( gLat, gLon, pWP );
                         pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                         cc1->Refresh ( false );
                   }

@@ -84,7 +84,10 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/nmea0183/lat.cpp \
 			src/nmea0183/expid.cpp \
 			src/nmea0183/wpl.cpp \
-			src/nmea0183/rte.cpp
+			src/nmea0183/rte.cpp \
+			src/nmea0183/hdt.cpp \
+			src/nmea0183/hdg.cpp \
+			src/nmea0183/hdm.cpp
 
 if BUILD_WITH_S57
 opencpn_SOURCES +=	src/s52cnsy.cpp \
@@ -195,6 +198,9 @@ noinst_HEADERS = \
  	src/nmea0183/RMB.hpp \
  	src/nmea0183/RMC.HPP \
  	src/nmea0183/Sentence.hpp \
+ 	src/nmea0183/hdt.hpp \
+ 	src/nmea0183/hdg.hpp \
+ 	src/nmea0183/hdm.hpp \
  	src/mygdal/iso8211.h \
  	src/mygdal/ogr_s57.h \
  	src/mygdal/s57.h \

@@ -47,8 +47,6 @@
 #include "GLC.hpp"
 #include "GLL.hpp"
 #include "GXA.hpp"
-#include "HDG.hpp"
-#include "HDT.hpp"
 #include "HSC.hpp"
 #include "LCD.hpp"
 #include "MTW.hpp"
@@ -58,6 +56,9 @@
 #include "P.hpp"
 #include "RMA.hpp"
 */
+#include "hdm.hpp"
+#include "hdg.hpp"
+#include "hdt.hpp"
 #include "RMB.hpp"
 #include "RMC.HPP"
 #include "wpl.hpp"
@@ -132,8 +133,6 @@ class NMEA0183
       GLC Glc;
       GLL Gll;
       GXA Gxa;
-      HDG Hdg;
-      HDT Hdt;
       HSC Hsc;
       LCD Lcd;
       MTW Mtw;
@@ -143,6 +142,9 @@ class NMEA0183
       P   Proprietary;
       RMA Rma;
 */
+       HDM Hdm;
+       HDG Hdg;
+       HDT Hdt;
        RMB Rmb;
        RMC Rmc;
        WPL Wpl;
@@ -182,6 +184,7 @@ class NMEA0183
 
       virtual bool IsGood( void ) const;
       virtual bool Parse( void );
+      virtual bool PreParse( void );
 
       NMEA0183& operator << ( wxString& source );
       NMEA0183& operator >> ( wxString& destination );

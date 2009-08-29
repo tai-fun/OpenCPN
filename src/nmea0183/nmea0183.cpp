@@ -34,8 +34,6 @@ NMEA0183::NMEA0183()
    response_table.Add( (RESPONSE *) &Glc );
    response_table.Add( (RESPONSE *) &Gll );
    response_table.Add( (RESPONSE *) &Gxa );
-   response_table.Add( (RESPONSE *) &Hdg );
-   response_table.Add( (RESPONSE *) &Hdt );
    response_table.Add( (RESPONSE *) &Hsc );
    response_table.Add( (RESPONSE *) &Lcd );
    response_table.Add( (RESPONSE *) &Mtw );
@@ -45,6 +43,9 @@ NMEA0183::NMEA0183()
    response_table.Add( (RESPONSE *) &Proprietary );
    response_table.Add( (RESPONSE *) &Rma );
 */
+   response_table.Append( (RESPONSE *) &Hdm );
+   response_table.Append( (RESPONSE *) &Hdg );
+   response_table.Append( (RESPONSE *) &Hdt );
    response_table.Append( (RESPONSE *) &Rmb );
    response_table.Append( (RESPONSE *) &Rmc );
    response_table.Append( (RESPONSE *) &Wpl );
@@ -182,26 +183,41 @@ bool NMEA0183::IsGood( void ) const
    return( TRUE );
 }
 
+
+bool NMEA0183::PreParse( void )
+{
+      if ( IsGood() )
+      {
+            wxString mnemonic = sentence.Field( 0 );
+
+      /*
+            ** See if this is a proprietary field
+      */
+
+            if ( mnemonic.Left( 1 ) == 'P' )
+                  mnemonic = _T("P");
+
+            else
+                  mnemonic = mnemonic.Right( 3 );
+
+
+            LastSentenceIDReceived = mnemonic;
+
+            return true;
+      }
+      else
+            return false;
+}
+
+
 bool NMEA0183::Parse( void )
 {
-//   ASSERT_VALID( this );
-
    bool return_value = FALSE;
 
-   if ( IsGood() )
+   if(PreParse())
    {
-//      int index       = 0;
-      int comparison  = 0;
-//      int drop_dead   = 0;
-//      int exit_loop   = 0;
-//      int lower_limit = 0;
-//      int upper_limit = 0;
 
-      wxString mnemonic;
-
-      RESPONSE *response_p = (RESPONSE *) NULL;
-
-      mnemonic = sentence.Field( 0 );
+      wxString mnemonic = sentence.Field( 0 );
 
       /*
       ** See if this is a proprietary field
@@ -225,19 +241,23 @@ bool NMEA0183::Parse( void )
 
       LastSentenceIDReceived = mnemonic;
 
+      RESPONSE *response_p = (RESPONSE *) NULL;
+
 
 //          Traverse the response list to find a mnemonic match
 
-            wxMRLNode *node = response_table.GetFirst();
+       wxMRLNode *node = response_table.GetFirst();
+
+       int comparison  = 0;
 
         while(node)
         {
-              RESPONSE *resp = node->GetData();
+           RESPONSE *resp = node->GetData();
 
             comparison = mnemonic.Cmp( resp->Mnemonic );
 
-                   if ( comparison == 0 )
-                   {
+            if ( comparison == 0 )
+            {
                         response_p = (RESPONSE *) resp;
                         return_value = response_p->Parse( sentence );
 
@@ -247,7 +267,7 @@ bool NMEA0183::Parse( void )
 
                         if ( return_value == TRUE )
                         {
-        ErrorMessage = _T("No Error");
+                           ErrorMessage = _T("No Error");
                            LastSentenceIDParsed = response_p->Mnemonic;
                            TalkerID = talker_id( sentence );
                            ExpandedTalkerID = expand_talker_id( TalkerID );
