@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.38 2009/08/03 03:17:48 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.39 2009/08/29 23:25:23 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.38 2009/08/03 03:17:48 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.39 2009/08/29 23:25:23 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -97,6 +97,11 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
       TimerNMEA.Stop();
 
       m_data_source_string = NMEADataSource;
+
+      m_gpsd_major = 0;
+      m_gpsd_minor = 0;
+      m_bgot_version = false;
+
 
 
 //      Create and manage NMEA data stream source
@@ -381,7 +386,15 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
 
                     token = tkz.GetNextToken();
                     if(token.ToDouble(&dgsog))
-                          ThreadPositionData.kSog = dgsog;
+                    {
+                          ThreadPositionData.kSog = dgsog;                                // default is knots
+
+                          if(m_bgot_version)
+                          {
+                                if((m_gpsd_major >= 2) && (m_gpsd_minor > 23))            // Speed data will be in meters/sec.
+                                      ThreadPositionData.kSog = dgsog * 3600. / 1852.;      // convert from m/s to knots
+                          }
+                    }
 
 
 //    Signal the main program
@@ -393,6 +406,33 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                     m_pParentEventHandler->AddPendingEvent(event);
                 }
             }
+
+            else if(str_buf.StartsWith(_T("GPSD,L")))           // version report?
+            {
+                  //    Need to see if there are 3 or 4 fields
+                 wxStringTokenizer tkz(str_buf, _T(" "));
+
+                 wxString token1 = tkz.GetNextToken();
+                 wxString token2 = tkz.GetNextToken();
+                 wxString token3 = tkz.GetNextToken();
+                 wxString token4 = tkz.GetNextToken();
+
+                 double gpsd_ver;
+                 wxString ver_token;
+                 if(token4.Len() == 0)                      // 3 fields
+                       ver_token = token2;
+                 else
+                       ver_token = token3;
+
+                 if(ver_token.ToDouble(&gpsd_ver))
+                 {
+                      m_gpsd_major = (int)floor(gpsd_ver);
+                      m_gpsd_minor = (int)rint((gpsd_ver - m_gpsd_major) * 100);
+                 }
+
+                 m_bgot_version = true;
+            }
+
 
                      // Enable input events again.
  //           m_sock->SetNotify(wxSOCKET_LOST_FLAG | wxSOCKET_INPUT_FLAG);
@@ -428,11 +468,24 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 {
       TimerNMEA.Stop();
 
+      if(!m_bgot_version)                             // Get the gpsd version number
+      {
+            if(m_sock)
+            {
+                  if(m_sock->IsConnected())
+                  {
+                        unsigned char c = 'l';
+                        m_sock->Write(&c, 1);
+                  }
+            }
+      }
+
+
       if(m_sock)
       {
         if(m_sock->IsConnected())
         {
-            unsigned char c = 'O';                  // Don't need this in watcher mode
+            unsigned char c = 'O';                    // request data
             m_sock->Write(&c, 1);
         }
         else                                    // try to connect
@@ -444,47 +497,6 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
             m_sock->Connect(m_addr, FALSE);       // Non-blocking connect
         }
       }
-
-
-
-//--------------Simulator
-#if(0)
-      {
-            if(m_pShareMutex)
-                  wxMutexLocker stateLocker(*m_pShareMutex) ;
-            float kCog = 090.;
-            float kSog = 6.0;
-
-            //    Kludge the startup case
-            if(ThreadPositionData.kLat < 1.0)
-                  ThreadPositionData.kLat = START_LAT;
-            if(fabs(ThreadPositionData.kLon) < 1.0)
-                  ThreadPositionData.kLon = START_LON;
-
-            double pred_lat;
-            double pred_lon;
-
-            double dist = kSog / 3600.;
-            ll_gc_ll(ThreadPositionData.kLat, ThreadPositionData.kLon, kCog, dist, &pred_lat, &pred_lon);
-
-
-            ThreadPositionData.kCog = kCog;
-            ThreadPositionData.kSog = kSog;
-            ThreadPositionData.kLat = pred_lat;
-            ThreadPositionData.kLon = pred_lon;
-            ThreadPositionData.FixTime = 0;
-
-    //    Signal the main program thread
-
-            wxCommandEvent event( EVT_NMEA,  GetId() );
-            event.SetEventObject( (wxObject *)this );
-            event.SetExtraLong(EVT_NMEA_DIRECT);
-            event.SetClientData(&ThreadPositionData);
-            parent_frame->GetEventHandler()->AddPendingEvent(event);
-
-      }
-#endif
-
 
       TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
 }
@@ -540,10 +552,10 @@ DEFINE_EVENT_TYPE(EVT_THREADMSG)
 //    OCP_NMEA_Thread Static data store
 //-------------------------------------------------------------------------------------------------------------
 
-extern char                         rx_share_buffer[MAX_RX_MESSSAGE_SIZE];
+extern char                         rx_share_buffer[];
 extern unsigned int                 rx_share_buffer_length;
 extern ENUM_BUFFER_STATE            rx_share_buffer_state;
-extern wxMutex                      *ps_mutexProtectingTheRXBuffer;
+
 
 //-------------------------------------------------------------------------------------------------------------
 //    OCP_NMEA_Thread Implementation
@@ -559,17 +571,17 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, 
 
       m_pMainEventHandler = MessageTarget->GetEventHandler();
 
-      rx_share_buffer_state = RX_BUFFER_EMPTY;
-
       m_pPortName = new wxString(PortName);
 
       rx_buffer = new char[RX_BUFFER_SIZE + 1];
-      put_ptr = rx_buffer;
+
+      put_ptr = rx_buffer;                            // local circular queue
       tak_ptr = rx_buffer;
 
-      m_pShareMutex = pMutex;
+      m_pShareMutex = pMutex;                         // IPC buffer
+      rx_share_buffer_state = RX_BUFFER_EMPTY;
 
-      m_pCommMan = pComMan;                           // store a lcal copy of the ComPortManager pointer
+      m_pCommMan = pComMan;                           // store a local copy of the ComPortManager pointer
 
       Create();
 
@@ -938,7 +950,6 @@ HandleASuccessfulRead:
                           tak_ptr = tptr;
 
     // parse and send the message
-
                          wxString str_temp_buf(temp_buf, wxConvUTF8);
                          Parse_And_Send_Posn(str_temp_buf);
 
@@ -971,7 +982,7 @@ thread_exit:
 
 void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
 {
-      if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+      if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
       {
             m_total_error_messages++;
             wxString msg(_T("NMEA Sentence received..."));
@@ -984,76 +995,109 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
 
    // we must check the return from parse, as some usb to serial adaptors on the MAC spew
    // junk if there is not a serial data cable connected.
-      if (true == m_NMEA0183.Parse())
+      if (true == m_NMEA0183.PreParse())
       {
             if(m_NMEA0183.LastSentenceIDReceived == wxString(_T("RMC")))
             {
-                  if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                  if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
                   {
                         m_total_error_messages++;
                         wxString msg(_T("NMEA RMC received..."));
                         ThreadMessage(msg);
                   }
 
-              if(m_NMEA0183.Rmc.IsDataValid == NTrue)
-              {
-
-                  if(m_pShareMutex)
-                        m_pShareMutex->Lock();
-
-                  float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
-                  int lat_deg_int = (int)(llt / 100);
-                  float lat_deg = lat_deg_int;
-                  float lat_min = llt - (lat_deg * 100);
-                  ThreadPositionData.kLat = lat_deg + (lat_min/60.);
-                  if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
-                        ThreadPositionData.kLat = -ThreadPositionData.kLat;
-
-                  float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
-                  int lon_deg_int = (int)(lln / 100);
-                  float lon_deg = lon_deg_int;
-                  float lon_min = lln - (lon_deg * 100);
-                  ThreadPositionData.kLon = lon_deg + (lon_min/60.);
-                  if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
-                        ThreadPositionData.kLon = -ThreadPositionData.kLon;
-
-                  ThreadPositionData.kSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
-                  ThreadPositionData.kCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
-                  ThreadPositionData.FixTime = 0;
-
-                  if(m_pShareMutex)
-                        m_pShareMutex->Unlock();
-
-                  if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                  if(true == m_NMEA0183.Parse())
                   {
-                        m_total_error_messages++;
-                        wxString msg1(_T("EVT_NMEA_DIRECT sent"));
-                        ThreadMessage(msg1);
-                  }
+                        if(m_NMEA0183.Rmc.IsDataValid == NTrue)
+                        {
+                              if(m_pShareMutex)
+                                    m_pShareMutex->Lock();
 
- //    Signal the main program thread
+                              float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
+                              int lat_deg_int = (int)(llt / 100);
+                              float lat_deg = lat_deg_int;
+                              float lat_min = llt - (lat_deg * 100);
+                              ThreadPositionData.kLat = lat_deg + (lat_min/60.);
+                              if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
+                                    ThreadPositionData.kLat = -ThreadPositionData.kLat;
+
+                              float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
+                              int lon_deg_int = (int)(lln / 100);
+                              float lon_deg = lon_deg_int;
+                              float lon_min = lln - (lon_deg * 100);
+                              ThreadPositionData.kLon = lon_deg + (lon_min/60.);
+                              if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
+                                    ThreadPositionData.kLon = -ThreadPositionData.kLon;
+
+                              ThreadPositionData.kSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                              ThreadPositionData.kCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
+                              ThreadPositionData.FixTime = 0;
+
+                              ThreadPositionData.kVar = m_NMEA0183.Rmc.MagneticVariation;
+                              if(m_NMEA0183.Rmc.MagneticVariationDirection == West)
+                                    ThreadPositionData.kVar = -ThreadPositionData.kVar;
+
+
+                              if(m_pShareMutex)
+                                    m_pShareMutex->Unlock();
+
+                              if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
+                              {
+                                    m_total_error_messages++;
+                                    wxString msg1(_T("EVT_NMEA_DIRECT sent"));
+                                    ThreadMessage(msg1);
+                              }
+
+            //    Signal the main program thread
+                              wxCommandEvent event( EVT_NMEA,  GetId());
+                              event.SetEventObject( (wxObject *)this );
+                              event.SetExtraLong(EVT_NMEA_DIRECT);
+                              event.SetClientData(&ThreadPositionData);
+                              m_pMainEventHandler->AddPendingEvent(event);
+                        }
+                        else
+                        {
+                              if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
+                              {
+                                    m_total_error_messages++;
+                                    wxString msg(_T("   NMEA RMC Sentence is invalid..."));
+                                    msg.Append(str_temp_buf);
+                                    ThreadMessage(msg);
+                              }
+                        }
+                  }
+            }
+
+            else
+            {
+//    Signal the main program thread with raw sentence
                   wxCommandEvent event( EVT_NMEA,  GetId());
                   event.SetEventObject( (wxObject *)this );
-                  event.SetExtraLong(EVT_NMEA_DIRECT);
-                  event.SetClientData(&ThreadPositionData);
-                  m_pMainEventHandler->AddPendingEvent(event);
-              }
-              else
-              {
-                    if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
-                    {
-                          m_total_error_messages++;
-                          wxString msg(_T("   NMEA RMC Sentence is invalid..."));
-                          msg.Append(str_temp_buf);
-                          ThreadMessage(msg);
-                    }
-              }
+                  event.SetExtraLong(EVT_NMEA_PARSE_RX);
 
+                  wxMutexLocker stateLocker(*m_pShareMutex);          // scope is right here
+                  if(stateLocker.IsOk() )
+                  {
+                        if(RX_BUFFER_EMPTY == rx_share_buffer_state)
+                        {
+                              strcpy(rx_share_buffer, str_temp_buf.mb_str());
+                              rx_share_buffer_state = RX_BUFFER_FULL;
+                              rx_share_buffer_length = str_temp_buf.Len();
+
+                              event.SetClientData(&ThreadPositionData);
+                              m_pMainEventHandler->AddPendingEvent(event);
+                        }
+                  }
+                  else
+                  {
+                        // Cant get mutex, so punt
+                  }
             }
+
       }
       else
       {
-            if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+            if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
             {
                   m_total_error_messages++;
                   wxString msg(_T("   Unrecognized NMEA Sentence..."));
