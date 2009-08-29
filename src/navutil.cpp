@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.42  2009/08/29 23:25:59  bdbcat
+ * Correct leak in Route::Draw()
+ *
  * Revision 1.41  2009/08/25 21:32:13  bdbcat
  * Various, including GDK SIGSEGV workaround
  *
@@ -121,6 +124,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.42  2009/08/29 23:25:59  bdbcat
+ * Correct leak in Route::Draw()
+ *
  * Revision 1.41  2009/08/25 21:32:13  bdbcat
  * Various, including GDK SIGSEGV workaround
  *
@@ -271,7 +277,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.41 2009/08/25 21:32:13 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.42 2009/08/29 23:25:59 bdbcat Exp $");
 
 //    Statics
 
@@ -302,7 +308,7 @@ extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
 extern wxString         *pAIS_Port;
 extern AIS_Decoder      *g_pAIS;
-extern wxString         *g_pSData_Locn;
+extern wxString         g_SData_Locn;
 extern wxString         *pInit_Chart_Dir;
 extern WayPointman      *pWayPointMan;
 extern Routeman         *pRouteMan;
@@ -383,6 +389,32 @@ WX_DEFINE_LIST(RoutePointList);
 WX_DEFINE_LIST(HyperlinkList);            // toh, 2009.02.22
 
 //-----------------------------------------------------------------------------
+//          Selectable Item
+//-----------------------------------------------------------------------------
+
+SelectItem::SelectItem()
+{
+}
+
+SelectItem::~SelectItem()
+{
+}
+
+
+int  SelectItem::GetUserData(void)
+{
+      return m_Data4;
+}
+
+void  SelectItem::SetUserData(int data)
+{
+      m_Data4 = data;
+}
+
+
+
+
+//-----------------------------------------------------------------------------
 //          Select
 //-----------------------------------------------------------------------------
 
@@ -400,7 +432,7 @@ Select::~Select()
 
 }
 
-bool Select::AddSelectablePoint(float slat, float slon, RoutePoint *pRoutePointAdd)
+bool Select::AddSelectableRoutePoint(float slat, float slon, RoutePoint *pRoutePointAdd)
 {
       SelectItem *pSelItem = new SelectItem;
       pSelItem->m_slat = slat;
@@ -459,28 +491,7 @@ bool Select::DeleteAllSelectableRouteSegments(Route *pr)
 
                         goto got_next_outer_node;
                   }
-
-/*
-                  //    inner loop iterates on the route's point list
-                  wxRoutePointListNode *pnode = (pr->pRoutePointList)->GetFirst();
-                  while (pnode)
-                  {
-                        RoutePoint *prp = pnode->GetData();
-                        RoutePoint *ps = (RoutePoint *)pFindSel->m_pData1;
-
-                        if(prp == ps)
-                        {
-                              delete pFindSel;
-                              pSelectList->DeleteNode(node);      //delete node;
-                              node = pSelectList->GetFirst();
-
-                              goto got_next_outer_node;
-                        }
-                        pnode = pnode->GetNext();
-                  }
-*/
             }
-
 
             node = node->GetNext();
 got_next_outer_node:
@@ -541,7 +552,7 @@ bool Select::AddAllSelectableRoutePoints(Route *pr)
             while (node)
             {
                   RoutePoint *prp = node->GetData();
-                  AddSelectablePoint(prp->m_lat, prp->m_lon, prp);
+                  AddSelectableRoutePoint(prp->m_lat, prp->m_lon, prp);
                   node = node->GetNext();
             }
             return true;
@@ -627,18 +638,21 @@ bool Select::UpdateSelectableRouteSegments(RoutePoint *prp)
 //          Selectable Point Object Support
 //-----------------------------------------------------------------------------------
 
-bool Select::AddSelectablePoint(float slat, float slon, void *data, int fseltype)
+SelectItem *Select::AddSelectablePoint(float slat, float slon, void *pdata, int fseltype)
 {
       SelectItem *pSelItem = new SelectItem;
-      pSelItem->m_slat = slat;
-      pSelItem->m_slon = slon;
-      pSelItem->m_seltype = fseltype;
-      pSelItem->m_bIsSelected = false;
-      pSelItem->m_pData1 = data;
+      if(pSelItem)
+      {
+            pSelItem->m_slat = slat;
+            pSelItem->m_slon = slon;
+            pSelItem->m_seltype = fseltype;
+            pSelItem->m_bIsSelected = false;
+            pSelItem->m_pData1 = pdata;
 
-      pSelectList->Append(pSelItem);
+            pSelectList->Append(pSelItem);
+      }
 
-      return true;
+      return pSelItem;
 }
 
 bool Select::DeleteAllPoints(void)
@@ -649,11 +663,11 @@ bool Select::DeleteAllPoints(void)
 }
 
 
-bool Select::DeleteSelectablePoint(void *data, int SeltypeToDelete)
+bool Select::DeleteSelectablePoint(void *pdata, int SeltypeToDelete)
 {
       SelectItem *pFindSel;
 
-      if(NULL != data)
+      if(NULL != pdata)
       {
 //    Iterate on the list
             wxSelectableItemListNode *node = pSelectList->GetFirst();
@@ -663,7 +677,7 @@ bool Select::DeleteSelectablePoint(void *data, int SeltypeToDelete)
                   pFindSel = node->GetData();
                   if(pFindSel->m_seltype == SeltypeToDelete)
                   {
-                        if(data == pFindSel->m_pData1)
+                        if(pdata == pFindSel->m_pData1)
                         {
                               delete pFindSel;
                               delete node;
@@ -1198,64 +1212,79 @@ void Route::Draw(wxDC& dc, ViewPort &VP)
 
 
 
-      wxPoint rpt, rptn;
-      DrawPointWhich(dc, 1, &rpt);
+      wxPoint rpt1, rpt2;
+      DrawPointWhich(dc, 1, &rpt1);
 
       wxRoutePointListNode *node = pRoutePointList->GetFirst();
-      RoutePoint *prpp = node->GetData();
+      RoutePoint *prp1 = node->GetData();
       node = node->GetNext();
 
       while (node)
       {
 
-            RoutePoint *prp = node->GetData();
-//            printf(" \nprp lat, lon:  %g %g\n", prp->m_lat, prp->m_lon);
-            prp->Draw(dc, &rptn);
-//           printf("    results in rptn.x, rptn.y:  %d, %d\n", rptn.x, rptn.y);
+            RoutePoint *prp2 = node->GetData();
+            prp2->Draw(dc, &rpt2);
 
             //    Handle offscreen points
-            bool b_2_on = VP.vpBBox.PointInBox(prp->m_lon, prp->m_lat, 0);
-            bool b_1_on = VP.vpBBox.PointInBox(prpp->m_lon, prpp->m_lat, 0);
+            bool b_2_on = VP.vpBBox.PointInBox(prp2->m_lon, prp2->m_lat, 0);
+            bool b_1_on = VP.vpBBox.PointInBox(prp1->m_lon, prp1->m_lat, 0);
 
+            //TODO This logic could be simpliifed
             //Simple case
             if(b_1_on && b_2_on)
-                  RenderSegment(dc, rpt.x, rpt.y, rptn.x, rptn.y, VP, true);            // with arrows
+                  RenderSegment(dc, rpt1.x, rpt1.y, rpt2.x, rpt2.y, VP, true);            // with arrows
 
             //    In the cases where one point is on, and one off
             //    we must decide which way to go in longitude
             //     Arbitrarily, we will go the shortest way
 
             double pix_full_circle =  WGS84_semimajor_axis_meters * mercator_k0 * 2 * PI * VP.view_scale_ppm;
-            double dp = pow((double)(rpt.x - rptn.x), 2) + pow((double)(rpt.y - rptn.y), 2);
+            double dp = pow((double)(rpt1.x - rpt2.x), 2) + pow((double)(rpt1.y - rpt2.y), 2);
             double dtest;
             int adder;
             if(b_1_on && !b_2_on)
             {
-                  if(rptn.x < rpt.x)
+                  if(rpt2.x < rpt1.x)
                         adder = (int)pix_full_circle;
                   else
                         adder = -(int)pix_full_circle;
 
-                  dtest = pow((double)(rpt.x - (rptn.x + adder)), 2) + pow((double)(rpt.y - rptn.y), 2);
+                  dtest = pow((double)(rpt1.x - (rpt2.x + adder)), 2) + pow((double)(rpt1.y - rpt2.y), 2);
 
                   if(dp < dtest)
                         adder = 0;
 
-                  RenderSegment(dc, rpt.x, rpt.y, rptn.x + adder, rptn.y, VP, true);
+                  RenderSegment(dc, rpt1.x, rpt1.y, rpt2.x + adder, rpt2.y, VP, true);
             }
             else if(!b_1_on && b_2_on)
             {
-                  if(rpt.x < rptn.x)
+                  if(rpt1.x < rpt2.x)
                         adder = (int)pix_full_circle;
                   else
                         adder = -(int)pix_full_circle;
 
-                  dtest = pow((double)(rptn.x - (rpt.x + adder)), 2) + pow((double)(rpt.y - rptn.y), 2);
+                  dtest = pow((double)(rpt2.x - (rpt1.x + adder)), 2) + pow((double)(rpt1.y - rpt2.y), 2);
 
                   if(dp < dtest)
                         adder = 0;
 
-                  RenderSegment(dc, rpt.x + adder, rpt.y, rptn.x, rptn.y, VP, true);
+                  RenderSegment(dc, rpt1.x + adder, rpt1.y, rpt2.x, rpt2.y, VP, true);
+            }
+
+            //Both off, need to check shortest distance
+            else if(!b_1_on && !b_2_on)
+            {
+                  if(rpt1.x < rpt2.x)
+                        adder = (int)pix_full_circle;
+                  else
+                        adder = -(int)pix_full_circle;
+
+                  dtest = pow((double)(rpt2.x - (rpt1.x + adder)), 2) + pow((double)(rpt1.y - rpt2.y), 2);
+
+                  if(dp < dtest)
+                        adder = 0;
+
+                  RenderSegment(dc, rpt1.x + adder, rpt1.y, rpt2.x, rpt2.y, VP, true);
             }
 
 
@@ -1263,8 +1292,8 @@ void Route::Draw(wxDC& dc, ViewPort &VP)
 
 
 
-            rpt = rptn;
-            prpp = prp;
+            rpt1 = rpt2;
+            prp1 = prp2;
 
             node = node->GetNext();
       }
@@ -1300,27 +1329,41 @@ void Route::RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, ViewPort &VP
 #if wxUSE_GRAPHICS_CONTEXT
       if(hilite_width)
       {
+            wxGraphicsContext *pgc;
+
             wxMemoryDC *pmdc = wxDynamicCast(&dc, wxMemoryDC);
-            wxGraphicsContext *pgc = wxGraphicsContext::Create(*pmdc);
-
-            if(pgc)
+            if(pmdc)
             {
-                   if(Visible == cohen_sutherland_line_clip_i (&x0, &y0, &x1, &y1, 0, sx, 0, sy))
-                  {
-                        wxPen psave = dc.GetPen();
-
-                        wxColour y = GetGlobalColor ( _T ( "YELO1" ) );
-                        wxColour hilt(y.Red(), y.Green(), y.Blue(), 128);
-
-                        wxPen HiPen ( hilt, hilite_width, wxSOLID );
-
-                        pgc->SetPen(HiPen);
-                        pgc->StrokeLine(x0, y0, x1, y1);
-
-                        pgc->SetPen(psave);
-                        pgc->StrokeLine(x0, y0, x1, y1);
-                  }
+                  pgc = wxGraphicsContext::Create(*pmdc);
             }
+            else
+            {
+                  wxClientDC *pcdc = wxDynamicCast(&dc, wxClientDC);
+                  if(pcdc)
+                        pgc = wxGraphicsContext::Create(*pcdc);
+            }
+
+
+                  if(pgc)
+                  {
+                        if(Visible == cohen_sutherland_line_clip_i (&x0, &y0, &x1, &y1, 0, sx, 0, sy))
+                        {
+                              wxPen psave = dc.GetPen();
+
+                              wxColour y = GetGlobalColor ( _T ( "YELO1" ) );
+                              wxColour hilt(y.Red(), y.Green(), y.Blue(), 128);
+
+                              wxPen HiPen ( hilt, hilite_width, wxSOLID );
+
+                              pgc->SetPen(HiPen);
+                              pgc->StrokeLine(x0, y0, x1, y1);
+
+                              pgc->SetPen(psave);
+                              pgc->StrokeLine(x0, y0, x1, y1);
+                        }
+
+                        delete pgc;
+                  }
       }
 
      else
@@ -2365,7 +2408,7 @@ int MyConfig::LoadMyConfig(int iteration)
 
                         pConfig->DeleteEntry(str);
                         wxString new_dir = dirname.Mid(dirname.Find(_T("SampleCharts")));
-                        new_dir.Prepend(*g_pSData_Locn);
+                        new_dir.Prepend(g_SData_Locn);
                         dirname=new_dir;
                     }
 
@@ -2655,7 +2698,7 @@ int MyConfig::LoadMyConfig(int iteration)
                             }
 
 
-                            pSelect->AddSelectablePoint(rlat, rlon, pWP);
+                            pSelect->AddSelectableRoutePoint(rlat, rlon, pWP);
                             pWP->m_ConfigWPNum = MarkNum;
 
                             SetPath(_T(".."));
@@ -3468,7 +3511,7 @@ RoutePoint *MyConfig::GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists, bool Lo
                   pWP->m_bIsolatedMark = true;                      // This is an isolated mark
 
                   pConfig->AddNewWayPoint ( pWP,m_NextWPNum);    // use auto next num
-                  pSelect->AddSelectablePoint(rlat, rlon, pWP);
+                  pSelect->AddSelectableRoutePoint(rlat, rlon, pWP);
                   pWP->m_ConfigWPNum = m_NextWPNum;
                   m_NextWPNum++;
             }
@@ -3549,7 +3592,7 @@ void MyConfig::GPXLoadRoute(wxXmlNode* rtenode)
 
                         RoutePoint *prp = node->GetData();
 
-                        pSelect->AddSelectablePoint(prp->m_lat,prp->m_lon, prp);
+                        pSelect->AddSelectableRoutePoint(prp->m_lat,prp->m_lon, prp);
 
                         if (ip)
                               pSelect->AddSelectableRouteSegment(prev_rlat, prev_rlon, prp->m_lat, prp->m_lon,prev_pConfPoint, prp, pTentRoute);
