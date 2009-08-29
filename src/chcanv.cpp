@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.58 2009/08/25 21:29:55 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.59 2009/08/29 23:28:01 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.59  2009/08/29 23:28:01  bdbcat
+ * Implement AIS target rollover
+ *
  * Revision 1.58  2009/08/25 21:29:55  bdbcat
  * Move PixPoint conversion inline for speed
  *
@@ -137,115 +140,6 @@
  * Revision 1.22  2008/03/30 21:59:33  bdbcat
  * Correct stack smashing of char buffers
  *
- * $Log: chcanv.cpp,v $
- * Revision 1.58  2009/08/25 21:29:55  bdbcat
- * Move PixPoint conversion inline for speed
- *
- * Revision 1.57  2009/08/22 01:21:17  bdbcat
- * Tracks
- *
- * Revision 1.56  2009/08/03 03:20:53  bdbcat
- * Improve Waypoint logic
- *
- * Revision 1.55  2009/07/29 01:08:23  bdbcat
- * Implement Measure tool.
- *
- * Revision 1.54  2009/07/17 03:54:54  bdbcat
- * Add config option for Wheel Zoom to cursor.
- *
- * Revision 1.53  2009/07/16 02:40:45  bdbcat
- * Various
- *
- * Revision 1.52  2009/07/10 03:56:13  bdbcat
- * Improve ZoomIn and Overzoom logic.
- *
- * Revision 1.51  2009/07/08 03:38:47  bdbcat
- * Cleanup.
- *
- * Revision 1.50  2009/07/08 01:49:06  bdbcat
- * Correct TrueScale calculation logic.
- *
- * Revision 1.49  2009/07/04 01:57:26  bdbcat
- * Normalize Tide Icon display longitude.
- *
- * Revision 1.48  2009/07/03 02:59:41  bdbcat
- * Improve AIS Dialogs.
- *
- * Revision 1.47  2009/06/25 02:36:47  bdbcat
- * Slow down mouse wheel, fix chart outlines near IDL.
- *
- * Revision 1.46  2009/06/22 02:44:35  bdbcat
- * Implement AIS Target highlight.
- *
- * Revision 1.45  2009/06/21 03:16:57  bdbcat
- * Optimize Mouse Pan logic.
- *
- * Revision 1.44  2009/06/17 02:45:36  bdbcat
- * Update AIS
- *
- * Revision 1.43  2009/06/14 03:33:41  bdbcat
- * Cleanup.
- *
- * Revision 1.42  2009/06/14 01:51:45  bdbcat
- * Update AIS Symbolization
- *
- * Revision 1.41  2009/06/03 03:16:32  bdbcat
- * Implement canvas panning, wheel zoom, etc.
- *
- * Revision 1.40  2009/05/10 03:40:50  bdbcat
- * Correct Radar Ring logic
- *
- * Revision 1.39  2009/05/09 01:29:38  bdbcat
- * Ensure wxMac compatible.
- *
- * Revision 1.38  2009/04/07 16:52:25  bdbcat
- * New Tide station icon
- *
- * Revision 1.37  2009/03/31 13:34:13  bdbcat
- * Correct waypoint dragging logic
- *
- * Revision 1.36  2009/03/30 19:06:17  bdbcat
- * Opencpn 1.3.0 Update
- *
- * Revision 1.35  2009/03/27 01:02:46  bdbcat
- * *** empty log message ***
- *
- * Revision 1.34  2009/03/26 22:29:10  bdbcat
- * Opencpn 1.3.0 Update
- *
- * Revision 1.33  2008/12/19 04:11:31  bdbcat
- * Add selectable depth unit conversion for S57 charts
- *
- * Revision 1.32  2008/12/05 22:57:03  bdbcat
- * Correct AIS Graphics
- *
- * Revision 1.31  2008/11/15 03:12:07  bdbcat
- * Correct AIS COG display
- *
- * Revision 1.30  2008/10/31 01:07:00  bdbcat
- * Cleanup
- *
- * Revision 1.29  2008/10/27 03:05:37  bdbcat
- * Correct chart scale logic at high zoom-out.
- *
- * Revision 1.28  2008/10/23 23:32:35  bdbcat
- * Improve skewed chart scale calculation, add CEP
- *
- * Revision 1.27  2008/08/29 02:27:21  bdbcat
- * Improve update region support in OnPaint()
- *
- * Revision 1.26  2008/08/26 13:47:36  bdbcat
- * Improved ownship symbology
- *
- * Revision 1.25  2008/08/09 23:58:40  bdbcat
- * Numerous revampings....
- *
- * Revision 1.23  2008/04/10 01:06:26  bdbcat
- * Cleanup
- *
- * Revision 1.22  2008/03/30 21:59:33  bdbcat
- * Correct stack smashing of char buffers
- *
  * Revision 1.21  2008/01/12 06:23:35  bdbcat
  * Update for Mac OSX/Unicode
  *
@@ -317,11 +211,12 @@ extern bool G_FloatPtInPolygon ( MyFlPoint *rgpts, int wnumpts, float x, float y
 
 extern ChartBase        *Current_Vector_Ch;
 extern ChartBase        *Current_Ch;
-extern double           gLat, gLon, gCog, gSog;
+extern double           gLat, gLon, gCog, gSog, gHdt;
 extern double           vLat, vLon;
 extern ChartDB          *ChartData;
 extern bool             bDBUpdateInProgress;
 extern ColorScheme      global_color_scheme;
+extern bool             g_bHDxValid;
 
 
 extern ConsoleCanvas    *console;
@@ -389,7 +284,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.58 2009/08/25 21:29:55 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.59 2009/08/29 23:28:01 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -821,7 +716,7 @@ void ChartCanvas::OnChar(wxKeyEvent &event)
                  case 13:                     // Ctrl M                      //    Drop Marker;
                         {
                               RoutePoint *pWP = new RoutePoint ( m_cursor_lat, m_cursor_lon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "New Mark" ) ), NULL );
-                              pSelect->AddSelectablePoint ( m_cursor_lat, m_cursor_lon, pWP );
+                              pSelect->AddSelectableRoutePoint ( m_cursor_lat, m_cursor_lon, pWP );
                               pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                               Refresh ( false );
                               break;
@@ -832,7 +727,7 @@ void ChartCanvas::OnChar(wxKeyEvent &event)
                              if ( event.GetModifiers() == wxMOD_CONTROL )
                              {
                                      RoutePoint *pWP = new RoutePoint ( gLat, gLon, wxString ( _T ( "mob" ) ), wxString ( _T ( "MAN OVERBOARD" ) ), NULL );
-                                     pSelect->AddSelectablePoint ( gLat, gLon, pWP );
+                                     pSelect->AddSelectableRoutePoint ( gLat, gLon, pWP );
                                      pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                                      Refresh ( false );
                              }
@@ -1138,6 +1033,7 @@ void ChartCanvas::GetCanvasPixPoint ( int x, int y, double &lat, double &lon )
                                 }
                         }
                 }
+                bUseMercator = true;
 
                 //    if needed, use the Mercator scaling estimator
                 if ( bUseMercator )
@@ -1621,6 +1517,12 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                 {
 
                         //  Draw the icon rotated to the COG
+                        //  or to the Hdt if available
+
+                        double icon_theta = theta;
+                        if(g_bHDxValid)
+                              icon_theta = (gHdt + 90.) * PI / 180.;
+
                         wxPoint ownship_icon[10];
                         for ( int i=0; i<10 ; i++ )
                         {
@@ -1630,8 +1532,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                                 pya /= 1.5;
                                 pxa /= 1.5;
 
-                                double px = ( pxa * sin ( theta ) ) + ( pya * cos ( theta ) );
-                                double py = ( pya * sin ( theta ) ) - ( pxa * cos ( theta ) );
+                                double px = ( pxa * sin ( icon_theta ) ) + ( pya * cos ( icon_theta ) );
+                                double py = ( pya * sin ( icon_theta ) ) - ( pxa * cos ( icon_theta ) );
 
                                 ownship_icon[i].x = ( int ) ( px ) + lShipPoint.x;
                                 ownship_icon[i].y = ( int ) ( py ) + lShipPoint.y;
@@ -2447,11 +2349,22 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
             {
                   if(g_bEnableZoomToCursor)
                   {
+                        bool b_zoom_moved = false;
                         if(wheel_dir > 0)
-                              ZoomCanvasIn(m_cursor_lat, m_cursor_lon);
+                              b_zoom_moved = ZoomCanvasIn(m_cursor_lat, m_cursor_lon);
                         else if(wheel_dir < 0)
-                              ZoomCanvasOut(m_cursor_lat, m_cursor_lon);
-                        WarpPointerDeferred(canvas_width/2, canvas_height/2);          // move the mouse pointer to zoomed location
+                              b_zoom_moved = ZoomCanvasOut(m_cursor_lat, m_cursor_lon);
+
+                        if(b_zoom_moved)
+                        {
+                              WarpPointerDeferred(canvas_width/2, canvas_height/2);          // move the mouse pointer to zoomed location
+                              vLat = m_cursor_lat;
+                              vLon = m_cursor_lon;
+                        }
+
+                        m_bFollow = false;      // update the follow flag
+                        toolBar->ToggleTool ( ID_FOLLOW, false );
+
                   }
                   else
                   {
@@ -2488,6 +2401,63 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
               Refresh ( false );
         }
 
+
+
+//    AIS Target Rollover
+        if(g_pAIS && g_pAIS->GetNumTargets())
+        {
+              SelectItem *pFind = pSelectAIS->FindSelection ( m_cursor_lat, m_cursor_lon, SELTYPE_AISTARGET, SelectRadius );
+              if ( pFind )
+              {
+                    int FoundAIS_MMSI = ( int ) pFind->m_pData1;
+                    AIS_Target_Data *ptarget = g_pAIS->Get_Target_Data_From_MMSI(FoundAIS_MMSI);
+
+                    if(ptarget)
+                    {
+                        if(NULL == m_pPopUpWin)
+                        {
+                              m_pPopUpWin = new wxWindow(this, -1, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+                              m_pPopUpText  = new wxStaticText(m_pPopUpWin, -1, _T(""), wxPoint(2,2), wxDefaultSize, wxSIMPLE_BORDER);
+                        }
+
+                        wxFont *plabelFont = pFontMgr->GetFont(_T("AISRollover"));
+                        m_pPopUpText->SetFont(*plabelFont);
+
+                        wxString s;
+                        char *tp = ptarget->ShipName;
+                        while((*tp) && (*tp != '@'))
+                              s.Append(*tp++);
+                        s.Trim();
+
+
+                        wxString t(ptarget->Get_vessel_type_string(true), wxConvUTF8);
+                        if(t.Len())
+                        {
+                              s.Prepend(_T(" "));
+                              s.Prepend(t);
+                        }
+
+                        s.Prepend(_T("  "));
+                        s.Append(_T("  "));
+
+                        m_pPopUpText->SetLabel(s);
+
+                        int w,h;
+                        m_pPopUpText->GetSize(&w, &h);
+                        m_pPopUpWin->SetSize(x+16, y+16, w + 4, h + 4);           // Assumes a nominal 32 x 32 cursor
+                        m_pPopUpWin->Show();
+                    }
+              }
+              else
+              {
+                    if(m_pPopUpWin)
+                    {
+                          m_pPopUpWin->Hide();
+                          RefreshRect(m_pPopUpWin->GetRect());
+
+                    }
+              }
+        }
 
 //          Mouse Clicks
 
@@ -2545,7 +2515,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         {
                               pMousePoint = new RoutePoint ( rlat, rlon, wxString ( _T ( "diamond" ) ), wxString ( _T ( "" ) ), NULL );
                               pConfig->AddNewWayPoint ( pMousePoint, -1 );    // use auto next num
-                              pSelect->AddSelectablePoint ( rlat, rlon, pMousePoint );
+                              pSelect->AddSelectableRoutePoint ( rlat, rlon, pMousePoint );
                         }
 
                         m_pMouseRoute->AddPoint ( pMousePoint );
@@ -2920,7 +2890,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         //    Try for AIS targets first
                         if ( ( pFind = pSelectAIS->FindSelection ( slat, slon, SELTYPE_AISTARGET, SelectRadius ) ) != NULL )
                         {
-                                m_FoundAIS_MMSI = ( int ) pFind->m_pData1;
+                                m_FoundAIS_MMSI = pFind->GetUserData();
                                 CanvasPopupMenu ( x,y, SELTYPE_AISTARGET );
                                 Refresh ( false );
                         }
@@ -3284,7 +3254,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                         RoutePoint *pWP = new RoutePoint ( zlat, zlon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "" ) ), NULL );
                         pWP->m_bIsolatedMark = true;                      // This is an isolated mark
                         pWP->m_bKeepXRoute = true;                        // This mark should be kept
-                        pSelect->AddSelectablePoint ( zlat, zlon, pWP );
+                        pSelect->AddSelectableRoutePoint ( zlat, zlon, pWP );
                         pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                         Refresh ( false );      // Needed for MSW, why not GTK??
                         break;
@@ -3548,7 +3518,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                                 m_pSelectedRoute = NULL;
                           }
                           //  Add this point back into the selectables
-                          pSelect->AddSelectablePoint(m_pFoundRoutePoint->m_lat, m_pFoundRoutePoint->m_lon, m_pFoundRoutePoint);
+                          pSelect->AddSelectableRoutePoint(m_pFoundRoutePoint->m_lat, m_pFoundRoutePoint->m_lon, m_pFoundRoutePoint);
 
                     }
                     break;
