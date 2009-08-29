@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.28 2009/08/25 21:26:23 bdbcat Exp $
+ * $Id: ais.cpp,v 1.29 2009/08/29 23:24:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.29  2009/08/29 23:24:06  bdbcat
+ * Various, including alert suppression logic
+ *
  * Revision 1.28  2009/08/25 21:26:23  bdbcat
  * GMT/DST Fix
  *
@@ -169,7 +172,7 @@ extern wxString         g_sAIS_Alert_Sound_File;
 static      GenericPosDat     AISPositionMuxData;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.28 2009/08/25 21:26:23 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.29 2009/08/29 23:24:06 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -237,6 +240,30 @@ char ais_type[][80] = {
 "Tanker",                     //8x        17
 "Unknown"                     //          18
 };
+
+char short_ais_type[][80] = {
+      "F/V",                  //30        0
+      "Tow",                  //31        1
+      "Long Tow",             //32        2
+      "Dredge",               //33        3
+      "D/V",                  //34        4
+      "Mil/V",                //35        5
+      "S/V",                  //36        6
+      "HSC",                  //4x        7
+      "P/V",                  //50        8
+      "SAR/V",                //51        9
+      "Tug",                  //52        10
+      "Tender",               //53        11
+      "PC/V",                 //54        12
+      "LE/V",                 //55        13
+      "Med/V",                //58        14
+      "Pass/V",               //6x        15
+      "M/V",                  //7x        16
+      "M/T",                  //8x        17
+      ""                      //          18
+};
+
+
 
 //#define AIS_DEBUG  1
 
@@ -353,7 +380,7 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
 
 
     //      Ship type
-      tp = get_vessel_type_string(ShipType);
+      tp = Get_vessel_type_string();
       ts.Clear();
       while(*tp)
             ts.Append(*tp++);
@@ -473,10 +500,10 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
 }
 
 
-char *AIS_Target_Data::get_vessel_type_string(int type)
+char *AIS_Target_Data::Get_vessel_type_string(bool b_short)
 {
       int i=18;
-      switch(type)
+      switch(ShipType)
       {
             case 30:
                   i=0; break;
@@ -510,20 +537,24 @@ char *AIS_Target_Data::get_vessel_type_string(int type)
                   i=18; break;
       }
 
-      if((type >= 40) && (type < 50))
+      if((ShipType >= 40) && (ShipType < 50))
             i=7;
 
-      if((type >= 60) && (type < 70))
+      if((ShipType >= 60) && (ShipType < 70))
             i=15;
 
-      if((type >= 70) && (type < 80))
+      if((ShipType >= 70) && (ShipType < 80))
             i=16;
 
-      if((type >= 80) && (type < 90))
+      if((ShipType >= 80) && (ShipType < 90))
             i=17;
 
-      return &ais_type[i][0];
+      if(!b_short)
+            return &ais_type[i][0];
+      else
+            return &short_ais_type[i][0];
 }
+
 
 
 
@@ -648,7 +679,6 @@ BEGIN_EVENT_TABLE(AIS_Decoder, wxEvtHandler)
   END_EVENT_TABLE()
 
 static int n_msgs;
-static int n_targets;
 static int n_msg1;
 static int n_msg5;
 static int n_msg24;
@@ -659,8 +689,7 @@ static int rx_ticks;
 
 
 
-AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource, wxMutex *pGPSMutex)//:
-//      wxWindow(pParent, window_id, wxPoint(20,30), wxSize(5,5), wxSIMPLE_BORDER)
+AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDataSource, wxMutex *pGPSMutex)
 
 {
       AISTargetList = new AIS_Target_Hash;
@@ -673,6 +702,8 @@ AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDat
 
       g_pais_alert_dialog_active = NULL;
       m_bAIS_Audio_Alert_On = false;
+
+      m_n_targets = 0;
 
       OpenDataSource(pParent, AISDataSource);
 }
@@ -937,7 +968,7 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
         {
               pTargetData = new AIS_Target_Data;
               bnewtarget = true;
-              n_targets++;
+              m_n_targets++;
         }
         else
         {
@@ -979,7 +1010,10 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
               (*AISTargetList)[mmsi] = pTargetData;            // update the entry
 
               if(pTargetData->b_positionValid)
-                    pSelectAIS->AddSelectablePoint(pTargetData->Lat, pTargetData->Lon, (void *)mmsi, SELTYPE_AISTARGET);
+              {
+                    SelectItem *pSel = pSelectAIS->AddSelectablePoint(pTargetData->Lat, pTargetData->Lon, (void *)mmsi, SELTYPE_AISTARGET);
+                    pSel->SetUserData(mmsi);
+              }
 
         //     Update the most recent report period
               pTargetData->RecentPeriod = pTargetData->ReportTicks - last_report_ticks;
@@ -993,7 +1027,7 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
              if(bnewtarget)
              {
                     delete pTargetData;                                       // this target is not going to be used
-                    n_targets--;
+                    m_n_targets--;
              }
         }
 
@@ -1007,7 +1041,7 @@ AIS_Error AIS_Decoder::Decode(const wxString& str)
 
 #ifdef AIS_DEBUG
     if((n_msgs % 10000) == 0)
-          printf("n_msgs %10d n_targets: %6d  n_msg1: %10d  n_msg5+24: %10d  n_new5: %10d \n", n_msgs, n_targets, n_msg1, n_msg5 + n_msg24, n_newname);
+          printf("n_msgs %10d m_n_targets: %6d  n_msg1: %10d  n_msg5+24: %10d  n_new5: %10d \n", n_msgs, n_targets, n_msg1, n_msg5 + n_msg24, n_newname);
 #endif
 
     return ret;
@@ -1316,7 +1350,8 @@ void AIS_Decoder::UpdateAllAlarms(void)
                         }
 
                         //    No Alert on moored targets if so requested
-                        if(g_bAIS_CPA_Alert_Suppress_Moored && ((td->NavStatus == MOORED) || (td->NavStatus == AT_ANCHOR)))
+                        if(g_bAIS_CPA_Alert_Suppress_Moored &&
+                           ((td->NavStatus == MOORED) || (td->NavStatus == AT_ANCHOR) || (td->SOG <= g_ShowMoored_Kts)))
                         {
                               td->n_alarm_state = AIS_NO_ALARM;
                               continue;
@@ -1435,59 +1470,6 @@ void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
 //  AIS Target Query Support
 //
 //------------------------------------------------------------------------------------
-
-char *AIS_Decoder::get_vessel_type_string(int type)
-{
-      int i=18;
-      switch(type)
-      {
-            case 30:
-                  i=0; break;
-            case 31:
-                  i=1; break;
-            case 32:
-                  i=2; break;
-            case 33:
-                  i=3; break;
-            case 34:
-                  i=4; break;
-            case 35:
-                  i=5; break;
-            case 36:
-                  i=6; break;
-            case 50:
-                  i=8; break;
-            case 51:
-                  i=9; break;
-            case 52:
-                  i=10; break;
-            case 53:
-                  i=11; break;
-            case 54:
-                  i=12; break;
-            case 55:
-                  i=13; break;
-            case 58:
-                  i=14; break;
-            default:
-                  i=18; break;
-      }
-
-      if((type >= 40) && (type < 50))
-            i=7;
-
-      if((type >= 60) && (type < 70))
-            i=15;
-
-      if((type >= 70) && (type < 80))
-            i=16;
-
-      if((type >= 80) && (type < 90))
-            i=17;
-
-      return &ais_type[i][0];
-}
-
 
 
 //------------------------------------------------------------------------------------

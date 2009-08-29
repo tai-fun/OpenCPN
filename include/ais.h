@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.21 2009/08/22 01:16:35 bdbcat Exp $
+ * $Id: ais.h,v 1.22 2009/08/29 23:24:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.22  2009/08/29 23:24:44  bdbcat
+ * Various, including alert suppression logic
+ *
  * Revision 1.21  2009/08/22 01:16:35  bdbcat
  * Expand Query
  *
@@ -181,7 +184,7 @@ public:
 
     AIS_Target_Data();
     void BuildQueryResult(wxString *result, wxSize *psize);
-    char *get_vessel_type_string(int type);
+    char *Get_vessel_type_string(bool b_short = false);
 
 
     int                       MID;
@@ -299,6 +302,7 @@ public:
     void GetSource(wxString& source);
     AIS_Target_Hash *GetTargetList(void) {return AISTargetList;}
     AIS_Target_Data *Get_Target_Data_From_MMSI(int mmsi);
+    int GetNumTargets(void){ return m_n_targets;}
 
 private:
     AIS_Error OpenDataSource(wxFrame *pParent, const wxString& AISDataSource);
@@ -313,7 +317,6 @@ private:
     void UpdateOneCPA(AIS_Target_Data *ptarget);
     void UpdateAllAlarms(void);
     void Parse_And_Send_Posn(wxString &str_temp_buf);
-    char *get_vessel_type_string(int type);
 
 
     AIS_Target_Hash *AISTargetList;
@@ -341,6 +344,7 @@ private:
     bool             m_bAIS_Audio_Alert_On;
     wxTimer          m_AIS_Audio_Alert_Timer;
     wxSound          m_AIS_Sound;
+    int              m_n_targets;
 
 DECLARE_EVENT_TABLE()
 

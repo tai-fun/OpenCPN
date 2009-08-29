@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.14 2009/08/22 01:20:27 bdbcat Exp $
+ * $Id: options.h,v 1.15 2009/08/29 23:24:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.15  2009/08/29 23:24:44  bdbcat
+ * Various, including alert suppression logic
+ *
  * Revision 1.14  2009/08/22 01:20:27  bdbcat
  * Tracks
  *
@@ -298,9 +301,8 @@ public:
     wxCheckBox              *pEnableZoomToCursor;
 
     wxCheckBox              *pTrackShowIcon;
-//    wxTextCtrl              *m_pTrackIntervalCtl;
-    wxCheckBox              *m_pCheck_Trackpoint_time;
-    wxCheckBox              *m_pCheck_Trackpoint_distance;
+    wxRadioButton           *m_pCheck_Trackpoint_time;
+    wxRadioButton           *m_pCheck_Trackpoint_distance;
     wxTextCtrl              *m_pText_TP_Secs;
     wxTextCtrl              *m_pText_TP_Dist;
 

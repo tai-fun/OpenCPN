@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.30 2009/08/25 21:38:25 bdbcat Exp $
+ * $Id: chcanv.h,v 1.31 2009/08/29 23:24:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.31  2009/08/29 23:24:44  bdbcat
+ * Various, including alert suppression logic
+ *
  * Revision 1.30  2009/08/25 21:38:25  bdbcat
  * *** empty log message ***
  *
@@ -450,6 +453,9 @@ private:
       wxBitmap    m_bmCurrentDay;
       wxBitmap    m_bmCurrentDusk;
       wxBitmap    m_bmCurrentNight;
+
+      wxStaticText      *m_pPopUpText;
+      wxWindow          *m_pPopUpWin;
 
 
 DECLARE_EVENT_TABLE()

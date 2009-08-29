@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.16 2009/08/25 21:38:25 bdbcat Exp $
+ * $Id: navutil.h,v 1.17 2009/08/29 23:24:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.17  2009/08/29 23:24:44  bdbcat
+ * Various, including alert suppression logic
+ *
  * Revision 1.16  2009/08/25 21:38:25  bdbcat
  * *** empty log message ***
  *
@@ -405,6 +408,12 @@ enum
 class SelectItem
 {
 public:
+      SelectItem();
+      ~SelectItem();
+
+      int   GetUserData(void);
+      void  SetUserData(int data);
+
       float m_slat;
       float m_slon;
       float m_slat2;
@@ -414,6 +423,7 @@ public:
       void  *m_pData1;
       void  *m_pData2;
       void  *m_pData3;
+      int   m_Data4;
 };
 
 
@@ -429,7 +439,7 @@ public:
       Select();
       ~Select();
 
-      bool AddSelectablePoint(float slat, float slon, RoutePoint *pRoutePointAdd);
+      bool AddSelectableRoutePoint(float slat, float slon, RoutePoint *pRoutePointAdd);
       bool AddSelectableRouteSegment(float slat1, float slon1, float slat2, float slon2,
                                                          RoutePoint *pRoutePointAdd1,
                                                          RoutePoint *pRoutePointAdd2,
@@ -445,7 +455,7 @@ public:
 
 //    Generic Point Support
 //      e.g. Tides/Currents and AIS Targets
-      bool AddSelectablePoint(float slat, float slon, void *data, int fseltype);
+      SelectItem *AddSelectablePoint(float slat, float slon, void *data, int fseltype);
       bool DeleteAllPoints(void);
       bool DeleteSelectablePoint(void *data, int SeltypeToDelete);
       bool ModifySelectablePoint(float slat, float slon, void *data, int fseltype);
