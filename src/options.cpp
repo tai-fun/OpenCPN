@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.27 2009/08/22 01:21:17 bdbcat Exp $
+ * $Id: options.cpp,v 1.28 2009/08/29 23:30:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.28  2009/08/29 23:30:46  bdbcat
+ * Track options now radio buttons
+ *
  * Revision 1.27  2009/08/22 01:21:17  bdbcat
  * Tracks
  *
@@ -146,7 +149,7 @@ extern wxString         *pInit_Chart_Dir;
 extern bool             g_bAutoAnchorMark;
 extern ColorScheme      global_color_scheme;
 extern bool             g_bGarminPersistance;
-extern wxString         *g_pSData_Locn;
+extern wxString         g_SData_Locn;
 
 
 //    AIS Global configuration
@@ -506,30 +509,6 @@ void options::CreateControls()
 
       itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxEXPAND|wxALL, 5);
 
-#if 0
-//    Add AIS Data Input controls
-      wxStaticBox* itemAISStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _T("AIS Data Port"));
-      wxStaticBoxSizer* itemAISStaticBoxSizer = new wxStaticBoxSizer(itemAISStaticBox, wxVERTICAL);
-      itemNMEAStaticBoxSizer->Add(itemAISStaticBoxSizer, 0, wxEXPAND|wxALL, 4);
-
-      m_itemAISListBox = new wxComboBox(itemPanel5, ID_CHOICE_AIS);
-      m_itemAISListBox->Append( _T("None"));
-
-      //    Fill in the listbox with all detected serial ports
-      for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
-            m_itemAISListBox->Append( m_pSerialArray->Item(iPortIndex) );
-
-
-      wxString ais_com;
-      if(pAIS_Port->Contains(_T("Serial")))
-          ais_com = pAIS_Port->Mid(7);
-      else
-          ais_com = _T("None");
-
-      m_itemAISListBox->SetStringSelection(ais_com);
-
-      itemAISStaticBoxSizer->Add(m_itemAISListBox, 0, wxEXPAND|wxALL, 5);
-#endif
 
 #ifdef USE_WIFI_CLIENT
 //    Add WiFi Options Box
@@ -635,11 +614,6 @@ void options::CreateControls()
     pCheck_META->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_META, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing);
 
-//    pCheck_SHOWTEXT = new wxCheckBox( ps57Ctl, ID_TEXTCHECKBOX, _T("Show Text"), wxDefaultPosition,
-//            wxSize(-1, -1), 0 );
-//    pCheck_SHOWTEXT->SetValue(FALSE);
-//    itemBoxSizer75->Add(pCheck_SHOWTEXT, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
-
     pCheck_SHOWIMPTEXT = new wxCheckBox( ps57Ctl, ID_IMPTEXTCHECKBOX, _T("Show Important Text Only"), wxDefaultPosition,
                                       wxSize(-1, -1), 0 );
     pCheck_SHOWIMPTEXT->SetValue(FALSE);
@@ -721,10 +695,6 @@ void options::CreateControls()
     itemStaticBoxSizer27->Add(m_DeepCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 2);
 
 
-
-//    wxStaticBox* pdepthunit_static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Units"));
-//    wxStaticBoxSizer* pdepthunit_sizer = new wxStaticBoxSizer(pdepthunit_static, wxVERTICAL);
-//    pdepth_sizer/*itemBoxSizer25*/->Add(pdepthunit_sizer, 0, wxTOP|wxALL|wxEXPAND, 5);
 
     wxString pDepthUnitStrings[] = {
              _T("&Feet"),
@@ -978,25 +948,18 @@ void options::CreateControls()
     pTrackGrid->AddGrowableCol(1);
     itemStaticBoxSizerTrack->Add(pTrackGrid, 0, wxALL|wxEXPAND, 5);
 
-    m_pCheck_Trackpoint_time = new wxCheckBox( itemPanelAdvanced, -1, _T("Place Trackpoints at time interval (Seconds):"));
+    m_pCheck_Trackpoint_time = new wxRadioButton( itemPanelAdvanced, -1, _T("Place Trackpoints at time interval (Seconds):"),
+                wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
     pTrackGrid->Add(m_pCheck_Trackpoint_time, 0, wxALIGN_LEFT|wxALL, 2);
 
     m_pText_TP_Secs = new wxTextCtrl(itemPanelAdvanced, -1);
     pTrackGrid->Add(m_pText_TP_Secs, 0, wxALIGN_RIGHT, 2);
 
-    m_pCheck_Trackpoint_distance = new wxCheckBox( itemPanelAdvanced, -1, _T("Place Trackpoints at distance interval (NMi):"));
+    m_pCheck_Trackpoint_distance = new wxRadioButton( itemPanelAdvanced, -1, _T("Place Trackpoints at distance interval (NMi):"));
     pTrackGrid->Add(m_pCheck_Trackpoint_distance, 0, wxALIGN_LEFT|wxALL, 2);
 
     m_pText_TP_Dist = new wxTextCtrl(itemPanelAdvanced, -1, _T(""), wxDefaultPosition, wxSize(-1, -1));
     pTrackGrid->Add(m_pText_TP_Dist, 0, wxALIGN_RIGHT, 2);
-
-
-///////
-//    wxStaticText* itemStaticTextTrackInterval = new wxStaticText( itemPanelAdvanced, wxID_STATIC, _("Track Time Interval, Seconds"), wxDefaultPosition, wxDefaultSize, 0 );
-//    itemStaticBoxSizerTrack->Add(itemStaticTextTrackInterval, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
-//    m_pTrackIntervalCtl = new wxTextCtrl( itemPanelAdvanced, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
-//    itemStaticBoxSizerTrack->Add(m_pTrackIntervalCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
-
 
     // Radar rings
     wxStaticBox* itemStaticBoxSizerRadarRingsStatic = new wxStaticBox(itemPanelAdvanced, wxID_ANY, _("Radar rings"));
@@ -1007,13 +970,13 @@ void options::CreateControls()
     pNavAidShowRadarRings->SetValue(FALSE);
     itemStaticBoxSizerRadarRings->Add(pNavAidShowRadarRings, 1, wxALIGN_LEFT|wxALL, 5);
 
-    wxStaticText* itemStaticTextNumberRadarRings = new wxStaticText( itemPanelAdvanced, wxID_STATIC, _("Number of radar rings shown"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText* itemStaticTextNumberRadarRings = new wxStaticText( itemPanelAdvanced, wxID_STATIC, _("Number of radar rings shown"));
     itemStaticBoxSizerRadarRings->Add(itemStaticTextNumberRadarRings, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     pNavAidRadarRingsNumberVisible = new wxTextCtrl( itemPanelAdvanced, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
     itemStaticBoxSizerRadarRings->Add(pNavAidRadarRingsNumberVisible, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, 5);
 
-    wxStaticText* itemStaticTextStepRadarRings = new wxStaticText( itemPanelAdvanced, wxID_STATIC, _("Distance between rings"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText* itemStaticTextStepRadarRings = new wxStaticText( itemPanelAdvanced, wxID_STATIC, _("Distance between rings"));
     itemStaticBoxSizerRadarRings->Add(itemStaticTextStepRadarRings, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     pNavAidRadarRingsStep = new wxTextCtrl( itemPanelAdvanced, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(100, -1), 0 );
@@ -1885,7 +1848,7 @@ void options::SetControlColors(wxWindow *ctrl, ColorScheme cs)
 
 void options::OnButtonSelectSound(wxCommandEvent& event)
 {
-      wxString sound_dir = *g_pSData_Locn;
+      wxString sound_dir = g_SData_Locn;
       sound_dir.Append(_T("sounds"));
 
       wxFileDialog *openDialog = new wxFileDialog(this, wxT("Select Sound File"), sound_dir, wxT(""),
