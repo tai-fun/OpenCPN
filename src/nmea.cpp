@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.39 2009/08/29 23:25:23 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.40 2009/08/30 03:31:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.39 2009/08/29 23:25:23 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.40 2009/08/30 03:31:20 bdbcat Exp $");
 
 extern bool             g_bNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -427,7 +427,7 @@ void NMEAWindow::OnSocketEvent(wxSocketEvent& event)
                  if(ver_token.ToDouble(&gpsd_ver))
                  {
                       m_gpsd_major = (int)floor(gpsd_ver);
-                      m_gpsd_minor = (int)rint((gpsd_ver - m_gpsd_major) * 100);
+                      m_gpsd_minor = (int)floor(((gpsd_ver - m_gpsd_major) * 100) + 0.5);       // substitue for rint
                  }
 
                  m_bgot_version = true;
