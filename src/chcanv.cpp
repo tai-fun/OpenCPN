@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.59 2009/08/29 23:28:01 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.60 2009/08/30 03:33:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.60  2009/08/30 03:33:31  bdbcat
+ * Cleanup
+ *
  * Revision 1.59  2009/08/29 23:28:01  bdbcat
  * Implement AIS target rollover
  *
@@ -284,7 +287,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.59 2009/08/29 23:28:01 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.60 2009/08/30 03:33:31 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -4046,7 +4049,6 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
         {
               int depth_display_ident = Current_Ch->GetDepthUnitType();
 
-//              if((Current_Ch->m_ChartType == CHART_TYPE_S57) || (Current_Ch->m_ChartType == CHART_TYPE_CM93))
               if(Current_Ch->m_ChartFamily == CHART_FAMILY_VECTOR)
                     depth_display_ident =  ps52plib->m_nDepthUnitDisplay + 1;
 
