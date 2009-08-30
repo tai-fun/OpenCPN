@@ -41,7 +41,7 @@ include_directories(${wxWidgets_INCLUDE_DIRS})
 add_definitions(${wxWidgets_DEFINITIONS})
 
 # add opencpn definitions
-add_definitions(-DUSE_S57 -D__MSVC__)
+add_definitions(-DUSE_S57 -D__MSVC__ -DUSE_GLU_TESS)
 
 # Add some definitions to satisfy MS
 add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE)
@@ -89,6 +89,9 @@ set(SRCS
 			${OPENCPN_DIR}/src/nmea0183/expid.cpp 
 			${OPENCPN_DIR}/src/nmea0183/wpl.cpp 
 			${OPENCPN_DIR}/src/nmea0183/rte.cpp
+			${OPENCPN_DIR}/src/nmea0183/hdt.cpp
+ 			${OPENCPN_DIR}/src/nmea0183/hdg.cpp
+ 			${OPENCPN_DIR}/src/nmea0183/hdm.cpp
                         ${OPENCPN_DIR}/src/s52cnsy.cpp 
 			${OPENCPN_DIR}/src/s52plib.cpp 
 			${OPENCPN_DIR}/src/s52utils.cpp 
@@ -155,10 +158,15 @@ add_executable(opencpn WIN32 ${SRCS})
 #                        )
 
 
+set_target_properties(opencpn
+                        PROPERTIES LINK_FLAGS /MANIFEST:NO
+                        )
+
+
 # We add to our target 'opencpn' the wxWidgets libraries. These are
 # set for us by the find script. If you need other libraries, you
 # can add them here as well. 
-target_link_libraries(opencpn ${wxWidgets_LIBRARIES} setupapi.lib)
+target_link_libraries(opencpn ${wxWidgets_LIBRARIES} setupapi.lib gdiplus.lib glu32.lib)
 
 
 #  Fix up time_t definition
