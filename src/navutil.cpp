@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.43  2009/08/30 03:31:56  bdbcat
+ * Optimize wxGraphicsContext calls
+ *
  * Revision 1.42  2009/08/29 23:25:59  bdbcat
  * Correct leak in Route::Draw()
  *
@@ -124,6 +127,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.43  2009/08/30 03:31:56  bdbcat
+ * Optimize wxGraphicsContext calls
+ *
  * Revision 1.42  2009/08/29 23:25:59  bdbcat
  * Correct leak in Route::Draw()
  *
@@ -277,7 +283,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.42 2009/08/29 23:25:59 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.43 2009/08/30 03:31:56 bdbcat Exp $");
 
 //    Statics
 
@@ -1416,6 +1422,40 @@ void Route::RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, ViewPort &VP
       }
 }
 
+void Route::RenderSegmentGC(void *gc, int xa, int ya, int xb, int yb, ViewPort &VP, wxPen &dPen, int hilite_width)
+{
+
+      //    If hilite is desired, use a Native Graphics context to render alpha colours
+      //    That is, if wxGraphicsContext is available.....
+
+#if wxUSE_GRAPHICS_CONTEXT
+      if(hilite_width)
+      {
+            wxGraphicsContext *pgc = (wxGraphicsContext *)gc;
+
+            if(pgc)
+            {
+                        wxColour y = GetGlobalColor ( _T ( "YELO1" ) );
+                        wxColour hilt(y.Red(), y.Green(), y.Blue(), 128);
+
+                        wxPen HiPen ( hilt, hilite_width, wxSOLID );
+
+                        pgc->SetPen(HiPen);
+                        pgc->StrokeLine(xa, ya, xb, yb);
+
+                        pgc->SetPen(dPen);
+                        pgc->StrokeLine(xa, ya, xb, yb);
+
+            }
+      }
+
+#endif
+}
+
+
+
+
+
 void Route::ClearHighlights(void)
 {
       RoutePoint *prp = NULL;
@@ -1968,10 +2008,27 @@ void Track::Draw(wxDC& dc, ViewPort &VP)
 {
 
       dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "CHMGD" ) ) ) );
-      dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "CHMGD" ) ), 3 ) );
+      wxPen dPen( GetGlobalColor ( _T ( "CHMGD" ) ), 3 ) ;
+      dc.SetPen ( dPen );
 
       double radius_meters = Current_Ch->GetNativeScale() * .0015;         // 1.5 mm at original scale
       double radius = radius_meters * VP.view_scale_ppm;
+
+#if wxUSE_GRAPHICS_CONTEXT
+      wxGraphicsContext *pgc;
+
+      wxMemoryDC *pmdc = wxDynamicCast(&dc, wxMemoryDC);
+      if(pmdc)
+      {
+            pgc = wxGraphicsContext::Create(*pmdc);
+      }
+      else
+      {
+            wxClientDC *pcdc = wxDynamicCast(&dc, wxClientDC);
+            if(pcdc)
+                  pgc = wxGraphicsContext::Create(*pcdc);
+      }
+#endif
 
       wxPoint rpt, rptn;
       DrawPointWhich(dc, 1, &rpt);
@@ -1984,7 +2041,12 @@ void Track::Draw(wxDC& dc, ViewPort &VP)
 
             RoutePoint *prp = node->GetData();
             prp->Draw(dc, &rptn);
+
+#if wxUSE_GRAPHICS_CONTEXT
+            RenderSegmentGC((void *)pgc, rpt.x, rpt.y, rptn.x, rptn.y, VP, dPen, (int)radius);            // no arrows, with hilite
+#else
             RenderSegment(dc, rpt.x, rpt.y, rptn.x, rptn.y, VP, false, (int)radius);            // no arrows, with hilite
+#endif
             rpt = rptn;
 
             node = node->GetNext();
@@ -1996,8 +2058,16 @@ void Track::Draw(wxDC& dc, ViewPort &VP)
       {
             wxPoint r;
             cc1->GetCanvasPointPix(gLat, gLon, &r);
-            RenderSegment(dc, rpt.x, rpt.y, r.x, r.y, VP, false, (int)radius);
+#if wxUSE_GRAPHICS_CONTEXT
+            RenderSegmentGC((void *)pgc, rpt.x, rpt.y, rptn.x, rptn.y, VP, dPen, (int)radius);            // no arrows, with hilite
+#else
+            RenderSegment(dc, rpt.x, rpt.y, rptn.x, rptn.y, VP, false, (int)radius);            // no arrows, with hilite
+#endif
       }
+
+#if wxUSE_GRAPHICS_CONTEXT
+      delete pgc;
+#endif
 
 }
 
