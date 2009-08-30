@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.44  2009/08/30 14:19:40  bdbcat
+ * Correct Track last point coordinates
+ *
  * Revision 1.43  2009/08/30 03:31:56  bdbcat
  * Optimize wxGraphicsContext calls
  *
@@ -127,6 +130,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.44  2009/08/30 14:19:40  bdbcat
+ * Correct Track last point coordinates
+ *
  * Revision 1.43  2009/08/30 03:31:56  bdbcat
  * Optimize wxGraphicsContext calls
  *
@@ -283,7 +289,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.43 2009/08/30 03:31:56 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.44 2009/08/30 14:19:40 bdbcat Exp $");
 
 //    Statics
 
@@ -2059,9 +2065,9 @@ void Track::Draw(wxDC& dc, ViewPort &VP)
             wxPoint r;
             cc1->GetCanvasPointPix(gLat, gLon, &r);
 #if wxUSE_GRAPHICS_CONTEXT
-            RenderSegmentGC((void *)pgc, rpt.x, rpt.y, rptn.x, rptn.y, VP, dPen, (int)radius);            // no arrows, with hilite
+            RenderSegmentGC((void *)pgc, rpt.x, rpt.y, r.x, r.y, VP, dPen, (int)radius);            // no arrows, with hilite
 #else
-            RenderSegment(dc, rpt.x, rpt.y, rptn.x, rptn.y, VP, false, (int)radius);            // no arrows, with hilite
+            RenderSegment(dc, rpt.x, rpt.y, r.x, r.y, VP, false, (int)radius);            // no arrows, with hilite
 #endif
       }
 
@@ -2070,10 +2076,6 @@ void Track::Draw(wxDC& dc, ViewPort &VP)
 #endif
 
 }
-
-
-
-
 
 
 
