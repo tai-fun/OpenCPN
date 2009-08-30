@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.54 2009/08/29 23:29:11 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.55 2009/08/30 03:34:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.55  2009/08/30 03:34:58  bdbcat
+ * Optimize for first time use, correct ENC preview logic
+ *
  * Revision 1.54  2009/08/29 23:29:11  bdbcat
  * Implement HDT, HDG, and HDM messages
  *
@@ -230,7 +233,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.54 2009/08/29 23:29:11 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.55 2009/08/30 03:34:58 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -840,6 +843,8 @@ bool MyApp::OnInit()
         Config_File.Append(_T("opencpn.conf"));
 #endif
 
+        bool b_novicemode = false;
+
         wxFileName config_test_file_name(Config_File);
         if(config_test_file_name.FileExists())
             wxLogMessage(_T("Using existing Config_File: ") + Config_File);
@@ -853,6 +858,9 @@ bool MyApp::OnInit()
               if(mdlg.ShowModal() == wxID_YES)
               {
                   wxLogMessage(_T("Creating new Config_File: ") + Config_File);
+
+                  //    Flag to preset some options for initial config file creation
+                  b_novicemode = true;
 
                   if(true != config_test_file_name.DirExists(config_test_file_name.GetPath()))
                        if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
@@ -1106,6 +1114,12 @@ bool MyApp::OnInit()
 //      Think catch-22
         pConfig->LoadMyConfig(1);
 
+        //  Override some config options for inital user startup with empty config file
+        if(b_novicemode)
+        {
+              g_bShowOutlines = true;
+        }
+
 
 //  Set up the frame initial visual parameters
 //      Default size, resized later
@@ -1219,16 +1233,35 @@ bool MyApp::OnInit()
 
                 else                                            // No chart database, no config hints, so bail....
                 {
-                    wxLogMessage(_T("Chartlist file not found, config chart dir array is empty.  Chartlist target file is:") +
+                  wxLogMessage(_T("Chartlist file not found, config chart dir array is empty.  Chartlist target file is:") +
                               *pChartListFileName);
 
-                    wxString msg1(_T("           No Charts Installed.\nPlease select chart folders in OPTIONS dialog."));
+                  wxString msg1(_T("           No Charts Installed.\nPlease select chart folders in ToolBox->Charts."));
 
-                    wxMessageDialog mdlg(gFrame, msg1, wxString(_T("OpenCPN")),wxICON_ERROR | wxOK );
+                  wxMessageDialog mdlg(gFrame, msg1, wxString(_T("OpenCPN")),wxICON_INFORMATION | wxOK );
                   int dlg_ret;
                   dlg_ret = mdlg.ShowModal();
 
                   gFrame->DoOptionsDialog();
+
+                  //    As a favor to new users, poll the database and move the inital viewport so that a chart will come up.
+                  double clat, clon;
+                  if(ChartData->GetCentroidOfLargestScaleChart(&clat, &clon, CHART_FAMILY_RASTER))
+                  {
+                        gFrame->ClearbFollow();
+                        vLat = clat;
+                        vLon = clon;
+                  }
+                  else
+                  {
+                        if(ChartData->GetCentroidOfLargestScaleChart(&clat, &clon, CHART_FAMILY_VECTOR))
+                        {
+                              gFrame->ClearbFollow();
+                              vLat = clat;
+                              vLon = clon;
+                        }
+                  }
+
                 }
 
                 bDBUpdateInProgress = false;
@@ -3382,7 +3415,7 @@ void MyFrame::SetChartThumbnail(int index)
                             {
                                 pthumbwin->Resize();
                                 pthumbwin->Show(true);
-                                pthumbwin->Refresh(FALSE);
+                                pthumbwin->Refresh(true);
                             }
                             else
                                 pthumbwin->Show(false);
