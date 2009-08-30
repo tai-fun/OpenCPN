@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.14 2009/08/22 01:17:52 bdbcat Exp $
+ * $Id: chartdb.h,v 1.15 2009/08/30 03:30:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,28 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
- * Revision 1.14  2009/08/22 01:17:52  bdbcat
- * Better CM93 detect
+ * Revision 1.15  2009/08/30 03:30:27  bdbcat
+ * New Methods
  *
- * Revision 1.13  2009/06/18 01:33:35  bdbcat
- * Allow u/l case dir search.
- *
- * Revision 1.12  2009/05/05 04:02:49  bdbcat
- * *** empty log message ***
- *
- * Revision 1.11  2009/03/26 22:35:35  bdbcat
- * Opencpn 1.3.0 Update
- *
- * Revision 1.10  2008/10/27 03:06:13  bdbcat
- * Fix Chartstack ctor
- *
- * Revision 1.9  2008/08/09 23:36:46  bdbcat
- * *** empty log message ***
- *
- * Revision 1.8  2008/03/30 23:21:45  bdbcat
- * *** empty log message ***
- *
- * $Log: chartdb.h,v $
  * Revision 1.14  2009/08/22 01:17:52  bdbcat
  * Better CM93 detect
  *
@@ -222,6 +203,8 @@ public:
       void ApplyColorSchemeToCachedCharts(ColorScheme cs);
 
       bool DetectDirChange(wxString dir_path, wxString magic, wxString &new_magic);
+      bool GetCentroidOfLargestScaleChart(double *clat, double *clon, ChartFamilyEnum family);
+
 
       // Public data
       //Todo build accessors
@@ -237,6 +220,8 @@ private:
 
       int SearchDirAndAddSENC(wxString& dir, bool bshow_prog, bool bupdate);
       bool CreateS57SENCChartTableEntry(wxString full_name, ChartTableEntry *pEntry, Extent *pext);
+
+      ChartFamilyEnum GetChartFamily(int charttype);
 
       MyFrame           *pParent;
       wxFileInputStream *ifs;

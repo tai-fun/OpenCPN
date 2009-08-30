@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.17 2009/08/29 23:24:44 bdbcat Exp $
+ * $Id: navutil.h,v 1.18 2009/08/30 03:30:34 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.18  2009/08/30 03:30:34  bdbcat
+ * New Methods
+ *
  * Revision 1.17  2009/08/29 23:24:44  bdbcat
  * Various, including alert suppression logic
  *
@@ -233,6 +236,8 @@ public:
       bool IsEqualTo(Route *ptargetroute);
       void ClearHighlights(void);
       void RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, ViewPort &VP, bool bdraw_arrow, int hilite_width = 0);
+      void RenderSegmentGC(void *gc, int xa, int ya, int xb, int yb, ViewPort &VP, wxPen &dPen, int hilite_width = 0);
+
 
       bool SendToGPS(wxString& com_name, bool bsend_waypoints, wxGauge *pProgress);
 

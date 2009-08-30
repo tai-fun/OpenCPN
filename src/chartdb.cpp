@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.23 2009/08/22 15:50:44 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.24 2009/08/30 03:34:07 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.24  2009/08/30 03:34:07  bdbcat
+ * New Methods
+ *
  * Revision 1.23  2009/08/22 15:50:44  bdbcat
  * Unicode fixup
  *
@@ -130,7 +133,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.23 2009/08/22 15:50:44 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.24 2009/08/30 03:34:07 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -1117,6 +1120,51 @@ InitReturn ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *p
 //
 //-------------------------------------------------------------------------------------------------------
 
+bool ChartDB::GetCentroidOfLargestScaleChart(double *clat, double *clon, ChartFamilyEnum family)
+{
+      int cur_max_i = -1;
+      int cur_max_scale = 0;
+
+      for(int i=0 ; i<nEntry ; i++)
+      {
+            if(GetChartFamily(pChartTable[i].ChartType) == family)
+            {
+                  if(pChartTable[i].Scale > cur_max_scale)
+                  {
+                        cur_max_scale = pChartTable[i].Scale;
+                        cur_max_i = i;
+                  }
+            }
+      }
+
+      if(cur_max_i == -1)
+            return false;                             // nothing found
+      else
+      {
+            *clat = (pChartTable[cur_max_i].LatMax + pChartTable[cur_max_i].LatMin) / 2.;
+            *clon = (pChartTable[cur_max_i].LonMin + pChartTable[cur_max_i].LonMax) /2.;
+      }
+      return true;
+}
+
+
+ChartFamilyEnum ChartDB::GetChartFamily(int charttype)
+{
+      ChartFamilyEnum cf;
+
+      switch( charttype)
+      {
+            case        CHART_TYPE_KAP:      cf = CHART_FAMILY_RASTER; break;
+            case        CHART_TYPE_GEO:      cf = CHART_FAMILY_RASTER; break;
+            case        CHART_TYPE_S57:      cf = CHART_FAMILY_VECTOR; break;
+            case        CHART_TYPE_CM93:     cf = CHART_FAMILY_VECTOR; break;
+            case        CHART_TYPE_CM93COMP: cf = CHART_FAMILY_VECTOR; break;
+            case        CHART_TYPE_DUMMY:    cf = CHART_FAMILY_RASTER; break;
+            case        CHART_TYPE_UNKNOWN:  cf = CHART_FAMILY_UNKNOWN; break;
+            default:                         cf = CHART_FAMILY_UNKNOWN; break;
+      }
+      return cf;
+}
 
 //-------------------------------------------------------------------------------------------------------
 //    Search database for any chart entries pointing to specified directory
