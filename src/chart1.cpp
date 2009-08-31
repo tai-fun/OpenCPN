@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.55 2009/08/30 03:34:58 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.56 2009/08/31 02:37:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.56  2009/08/31 02:37:11  bdbcat
+ * Improve Status Bar
+ *
  * Revision 1.55  2009/08/30 03:34:58  bdbcat
  * Optimize for first time use, correct ENC preview logic
  *
@@ -233,7 +236,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.55 2009/08/30 03:34:58 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.56 2009/08/31 02:37:11 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -1669,35 +1672,43 @@ void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
             pMarkInfoDialog->SetColorScheme(cs);
 
 
+      ApplyGlobalColorSchemetoStatusBar();
+
+      UpdateToolbar(cs);
+      UpdateToolbarStatusWindow(Current_Ch, true);
+}
+
+
+void MyFrame::ApplyGlobalColorSchemetoStatusBar(void)
+{
       if(m_pStatusBar != NULL)
       {
-          m_pStatusBar->SetBackgroundColour(GetGlobalColor(_T("UINFF")));
-          m_pStatusBar->ClearBackground();
+            m_pStatusBar->SetBackgroundColour(GetGlobalColor(_T("UINFF")));
+            m_pStatusBar->ClearBackground();
 
           //    As an optimization, if color scheme is anything other than GLOBAL_COLOR_SCHEME_DAY,
           //    adjust the status bar field styles to be simple flat fields, with no unmanageable 3-D
           //    effects.
 
-          int sb_style;
-          if(cs == GLOBAL_COLOR_SCHEME_DAY)
-              sb_style = wxSB_NORMAL;
-          else
-              sb_style = wxSB_FLAT;
+            int sb_style;
+            if((global_color_scheme == GLOBAL_COLOR_SCHEME_DAY) ||
+                (global_color_scheme == GLOBAL_COLOR_SCHEME_RGB))
+                  sb_style = wxSB_NORMAL;
+            else
+                  sb_style = wxSB_FLAT;
 
-          int sb_styles[N_STATUS_BAR_FIELDS_MAX];
-          for(int i=0 ; i<m_StatusBarFieldCount ; i++)
-          {
-              if(i < N_STATUS_BAR_FIELDS_MAX)
-                  sb_styles[i] = sb_style;
-          }
+            int sb_styles[N_STATUS_BAR_FIELDS_MAX];
+            for(int i=0 ; i<m_StatusBarFieldCount ; i++)
+            {
+                  if(i < N_STATUS_BAR_FIELDS_MAX)
+                        sb_styles[i] = sb_style;
+            }
 
-          m_pStatusBar->SetStatusStyles(m_StatusBarFieldCount, (const int *)&sb_styles[0]);
+            m_pStatusBar->SetStatusStyles(m_StatusBarFieldCount, (const int *)&sb_styles[0]);
 
 //          m_pStatusBar->Refresh(false);
       }
 
-      UpdateToolbar(cs);
-      UpdateToolbarStatusWindow(Current_Ch, true);
 }
 
 void MyFrame::DestroyMyToolbar()
@@ -2242,11 +2253,11 @@ void MyFrame::OnSize(wxSizeEvent& event)
               //  Maybe resize the font
               wxRect stat_box;
               m_pStatusBar->GetFieldRect(0, stat_box);
-              int font_size = stat_box.width / 30;
+              int font_size = stat_box.width / 28;                // 30 for linux
               wxFont *pstat_font = wxTheFontList->FindOrCreateFont(font_size,
-                                    wxFONTFAMILY_MODERN,
+                                    wxFONTFAMILY_DEFAULT,
                                     wxFONTSTYLE_NORMAL,
-                                    wxFONTWEIGHT_NORMAL);
+                                    wxFONTWEIGHT_BOLD);
               m_pStatusBar->SetFont(*pstat_font);
         }
 
@@ -2646,6 +2657,7 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
                 if(!m_pStatusBar)
                 {
                     m_pStatusBar = CreateStatusBar(m_StatusBarFieldCount, 0);       // No wxST_SIZEGRIP needed
+                    ApplyGlobalColorSchemetoStatusBar();
                 }
 
         }
@@ -2662,6 +2674,8 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
                     Refresh();
                 }
         }
+
+        SendSizeEvent();
 
       if(bnewtoolbar)
           UpdateToolbar(global_color_scheme);
