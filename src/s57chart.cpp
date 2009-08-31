@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.37 2009/08/03 03:14:10 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.38 2009/08/31 02:38:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.38  2009/08/31 02:38:05  bdbcat
+ * Remove tmp file on SENC create
+ *
  * Revision 1.37  2009/08/03 03:14:10  bdbcat
  * Cleanup for MSVC
  *
@@ -97,6 +100,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.38  2009/08/31 02:38:05  bdbcat
+ * Remove tmp file on SENC create
+ *
  * Revision 1.37  2009/08/03 03:14:10  bdbcat
  * Cleanup for MSVC
  *
@@ -232,7 +238,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.37 2009/08/03 03:14:10 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.38 2009/08/31 02:38:05 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -3561,6 +3567,9 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
     const char *pp = "wb";
     fps57 = fopen(tmp_file.mb_str(), pp);
 
+    char t[200];
+    strcpy(t,tmp_file.mb_str());
+
     if(fps57 == NULL)
     {
         wxString msg(_T("   s57chart::BuildS57File  Unable to create temp SENC file "));
@@ -3873,7 +3882,7 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
 
     if(!bcont)
     {
-          unlink(tmp_file.mb_str());               //      Delete the temp file....
+          wxRemoveFile(tmp_file);                     // kill the temp file
           ret_code = 0;
     }
 
@@ -3883,11 +3892,11 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
           unlink(SENCfile.GetFullPath().mb_str());       //  Delete any existing SENC file....
 
           bool cpok = wxCopyFile(tmp_file, SENCfile.GetFullPath());           // Delete temp file too?
+          wxRemoveFile(tmp_file);
 
-//          int err = rename(tmp_file.mb_str(), SENCfile.GetFullPath().mb_str()); //   mv temp file to target
           if(!cpok)
           {
-             wxString msg(_T("   Cannot rename temporary SENC file "));
+             wxString msg(_T("   Cannot copy temporary SENC file "));
              msg.Append(tmp_file);
              msg.Append(_T(" to "));
              msg.Append(SENCfile.GetFullPath());
