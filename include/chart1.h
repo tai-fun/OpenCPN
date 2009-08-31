@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.27 2009/08/22 01:22:32 bdbcat Exp $
+ * $Id: chart1.h,v 1.28 2009/08/31 02:36:46 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.28  2009/08/31 02:36:46  bdbcat
+ * New Methods
+ *
  * Revision 1.27  2009/08/22 01:22:32  bdbcat
  * Tracks
  *
@@ -307,7 +310,9 @@ class MyFrame: public wxFrame
     void UpdateToolbar(ColorScheme cs);
     void ReSizeToolbar(void);
     void PrepareToolbarBitmaps(void);
-    void BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index, string_to_pbitmap_hash &hash);
+    void BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index,
+                         string_to_pbitmap_hash &hash);
+    void ApplyGlobalColorSchemetoStatusBar(void);
 
     int  toolbar_width_without_static;
 
