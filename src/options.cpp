@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.28 2009/08/29 23:30:46 bdbcat Exp $
+ * $Id: options.cpp,v 1.29 2009/08/31 02:37:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.29  2009/08/31 02:37:36  bdbcat
+ * Improve option legends
+ *
  * Revision 1.28  2009/08/29 23:30:46  bdbcat
  * Track options now radio buttons
  *
@@ -330,7 +333,7 @@ void options::CreateControls()
 
 
     //  Debug checkbox
-    wxStaticBox* itemStaticBoxSizerDebugStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Debug"));
+    wxStaticBox* itemStaticBoxSizerDebugStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Navigation Data"));
     wxStaticBoxSizer* itemStaticBoxSizerDebug = new wxStaticBoxSizer(itemStaticBoxSizerDebugStatic, wxVERTICAL);
     itemBoxSizer6->Add(itemStaticBoxSizerDebug, 0, wxEXPAND|wxALL, 5);
     pDebugShowStat = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Status Bar"), wxDefaultPosition,
