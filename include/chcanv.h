@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.31 2009/08/29 23:24:44 bdbcat Exp $
+ * $Id: chcanv.h,v 1.32 2009/09/01 22:17:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.32  2009/09/01 22:17:15  bdbcat
+ * New Methods
+ *
  * Revision 1.31  2009/08/29 23:24:44  bdbcat
  * Various, including alert suppression logic
  *
@@ -131,6 +134,7 @@
       class IDX_entry;
       class S57ObjectTree;
       class S57ObjectDesc;
+      class AISroWin;
 
 //----------------------------------------------------------------------------
 //   constants
@@ -454,8 +458,7 @@ private:
       wxBitmap    m_bmCurrentDusk;
       wxBitmap    m_bmCurrentNight;
 
-      wxStaticText      *m_pPopUpText;
-      wxWindow          *m_pPopUpWin;
+      AISroWin    *m_pPopUpWin;
 
 
 DECLARE_EVENT_TABLE()
@@ -644,7 +647,6 @@ public:
       void SetMMSI(int mmsi);
 
       //    Data
-//      wxString    *pQueryResult;
       int               m_MMSI;
       wxTextCtrl        *m_pQueryTextCtl;
 };
@@ -685,6 +687,35 @@ public:
       MyTreeItemData(S57ObjectDesc *pOD){ m_pOD = pOD; }
 
       S57ObjectDesc     *m_pOD;
+};
+
+
+
+//----------------------------------------------------------------------------
+// AIS Rollover Window
+//----------------------------------------------------------------------------
+class AISroWin: public wxWindow
+{
+      public:
+            AISroWin(wxWindow *parent);
+            ~AISroWin();
+
+            void OnPaint(wxPaintEvent& event);
+
+            void SetColorScheme(ColorScheme cs);
+            void SetString(wxString &s){ m_string = s; }
+            void SetPosition(wxPoint pt){ m_position = pt; }
+            void SetBitmap(void);
+
+
+      private:
+
+            wxString          m_string;
+            wxSize            m_size;
+            wxPoint           m_position;
+            wxBitmap          *m_pbm;
+
+            DECLARE_EVENT_TABLE()
 };
 
 #endif
