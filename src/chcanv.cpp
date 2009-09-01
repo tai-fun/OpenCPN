@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.60 2009/08/30 03:33:31 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.61 2009/09/01 22:20:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.61  2009/09/01 22:20:15  bdbcat
+ * Improve AIS target rollover
+ *
  * Revision 1.60  2009/08/30 03:33:31  bdbcat
  * Cleanup
  *
@@ -287,7 +290,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.60 2009/08/30 03:33:31 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.61 2009/09/01 22:20:15 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -433,7 +436,7 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         m_bChartDragging = false;
         m_bMeasure_Active = false;
         m_pMeasureRoute = NULL;
-
+        m_pPopUpWin = NULL;
 
 
 
@@ -600,6 +603,7 @@ ChartCanvas::~ChartCanvas()
         delete pRescaleTimer;
         delete pPanTimer;
         delete pCurTrackTimer;
+        delete m_pPopUpWin;
 
         delete pBM;
 
@@ -672,6 +676,13 @@ void ChartCanvas::OnChar(wxKeyEvent &event)
 
                   case WXK_F3:
                         parent_frame->ToggleENCText();
+                        break;
+
+                  case WXK_F4:
+                        m_bMeasure_Active = true;
+                        m_nMeasureState = 1;
+                        SetMyCursor ( pCursorPencil );
+                        Refresh();
                         break;
 
                   default:
@@ -2419,46 +2430,53 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                     {
                         if(NULL == m_pPopUpWin)
                         {
-                              m_pPopUpWin = new wxWindow(this, -1, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
-                              m_pPopUpText  = new wxStaticText(m_pPopUpWin, -1, _T(""), wxPoint(2,2), wxDefaultSize, wxSIMPLE_BORDER);
+                              m_pPopUpWin = new AISroWin(this);
+                              m_pPopUpWin->Hide();
                         }
 
-                        wxFont *plabelFont = pFontMgr->GetFont(_T("AISRollover"));
-                        m_pPopUpText->SetFont(*plabelFont);
 
-                        wxString s;
-                        char *tp = ptarget->ShipName;
-                        while((*tp) && (*tp != '@'))
-                              s.Append(*tp++);
-                        s.Trim();
-
-
-                        wxString t(ptarget->Get_vessel_type_string(true), wxConvUTF8);
-                        if(t.Len())
+                        if(!m_pPopUpWin->IsShown())
                         {
-                              s.Prepend(_T(" "));
-                              s.Prepend(t);
+                              wxString s;
+
+
+                              if(ptarget->b_nameValid)
+                              {
+                                    char *tp = ptarget->ShipName;
+                                    while((*tp) && (*tp != '@'))
+                                          s.Append(*tp++);
+                                    s.Trim();
+
+                                    wxString t(ptarget->Get_vessel_type_string(true), wxConvUTF8);
+                                    if(t.Len())
+                                    {
+                                          s.Prepend(_T(" "));
+                                          s.Prepend(t);
+                                    }
+                              }
+                              else
+                              {
+                                    wxString t;
+                                    t.Printf(_T("%d"), ptarget->MMSI);
+                                    s.Prepend(t);
+                              }
+
+
+                              m_pPopUpWin->SetString(s);
+
+                              m_pPopUpWin->SetPosition(wxPoint(x+16, y+16));
+                              m_pPopUpWin->SetBitmap();
+                              m_pPopUpWin->Refresh();
+                              m_pPopUpWin->Show();
+
                         }
-
-                        s.Prepend(_T("  "));
-                        s.Append(_T("  "));
-
-                        m_pPopUpText->SetLabel(s);
-
-                        int w,h;
-                        m_pPopUpText->GetSize(&w, &h);
-                        m_pPopUpWin->SetSize(x+16, y+16, w + 4, h + 4);           // Assumes a nominal 32 x 32 cursor
-                        m_pPopUpWin->Show();
                     }
               }
               else
               {
-                    if(m_pPopUpWin)
-                    {
+                    if(m_pPopUpWin && m_pPopUpWin->IsShown())
                           m_pPopUpWin->Hide();
-                          RefreshRect(m_pPopUpWin->GetRect());
 
-                    }
               }
         }
 
@@ -3303,6 +3321,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
 
                 case ID_DEF_MENU_ACTIVATE_MEASURE:
+//                        WarpPointer(popx,popy);
                         m_bMeasure_Active = true;
                         m_nMeasureState = 1;
                         break;
@@ -3379,7 +3398,6 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                       }
 
                       g_pais_query_dialog_active->SetMMSI(m_FoundAIS_MMSI);
-//                      delete m_pSnapshotAIS_Target_Data;                // no longer needed
 
                       g_pais_query_dialog_active->UpdateText();
                       g_pais_query_dialog_active->Show();
@@ -6109,6 +6127,7 @@ void AISTargetQueryDialog::UpdateText()
       {
             m_pQueryTextCtl->Clear();
             m_pQueryTextCtl->AppendText ( query_text );
+//            m_pQueryTextCtl->AppendText ( _T("\n") );
       }
 
       //    Grow/Shrink "this" to fit the contents
@@ -6292,18 +6311,19 @@ void S57QueryDialog::CreateControls()
 
 
 // A horizontal box sizer to contain Reset, OK, Cancel and Help
-        wxBoxSizer* okCancelBox = new wxBoxSizer ( wxHORIZONTAL );
-        topSizer->Add ( okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxALL, 5 );
+//        wxBoxSizer* okCancelBox = new wxBoxSizer ( wxHORIZONTAL );
+//        topSizer->Add ( okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND|wxALL, 5 );
 
 //    Button color
         wxColour button_color = GetGlobalColor ( _T ( "UIBCK" ) );
 
 // The OK button
         wxButton* ok = new wxButton ( this, wxID_OK, wxT ( "&OK" ), wxDefaultPosition, wxDefaultSize, 0 );
-        okCancelBox->Add ( ok, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+        topSizer->Add ( ok, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
         ok->SetBackgroundColour ( button_color );
         ok->SetForegroundColour ( text_color );
 
+/*
 // The Cancel button
         wxButton* cancel = new wxButton ( this, wxID_CANCEL, wxT ( "&Cancel" ), wxDefaultPosition, wxDefaultSize, 0 );
         okCancelBox->Add ( cancel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -6315,7 +6335,7 @@ void S57QueryDialog::CreateControls()
         okCancelBox->Add ( help, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
         help->SetBackgroundColour ( button_color );
         help->SetForegroundColour ( text_color );
-
+*/
 }
 
 //    Process a "notification" from Tree control
@@ -6489,4 +6509,73 @@ void S57ObjectTree::OnItemSelectChange( wxTreeEvent& event)
       wxTreeItemId item_id = event.GetItem();
       m_parent->SetSelectedItem(item_id);
 }
+
+
+//-----------------------------------------------------------------------
+//
+//    AIS Rollover window implementation
+//
+//-----------------------------------------------------------------------
+BEGIN_EVENT_TABLE(AISroWin, wxWindow)
+            EVT_PAINT(AISroWin::OnPaint)
+
+            END_EVENT_TABLE()
+
+// Define a constructor
+AISroWin::AISroWin(wxWindow *parent):
+            wxWindow(parent, wxID_ANY, wxPoint(0,0), wxSize(1,1), wxNO_BORDER)
+{
+      m_pbm = NULL;
+
+      Hide();
+}
+
+AISroWin::~AISroWin()
+{
+      delete m_pbm;
+}
+
+void AISroWin::SetBitmap()
+{
+      int h, w;
+
+      wxClientDC cdc(GetParent());
+      wxFont *plabelFont = pFontMgr->GetFont(_T("AISRollover"));
+      cdc.GetTextExtent(m_string, &w, &h,  NULL, NULL, plabelFont);
+
+      m_size.x = w + 4;
+      m_size.y = h + 10;
+
+      wxMemoryDC mdc;
+
+      delete m_pbm;
+      m_pbm = new wxBitmap( m_size.x, m_size.y, -1);
+      mdc.SelectObject(*m_pbm);
+
+      mdc.Blit(0, 0, m_size.x, m_size.y, &cdc, m_position.x, m_position.y);
+
+      //    Draw the text
+      mdc.SetFont(*plabelFont);
+      mdc.DrawText(m_string,0,0);
+
+      SetSize(m_position.x, m_position.y, m_size.x, m_size.y);           // Assumes a nominal 32 x 32 cursor
+
+
+}
+
+void AISroWin::OnPaint(wxPaintEvent& event)
+{
+      int width, height;
+      GetClientSize(&width, &height );
+      wxPaintDC dc(this);
+
+      if(m_string.Len())
+      {
+            wxMemoryDC mdc;
+            mdc.SelectObject(*m_pbm);
+            dc.Blit(0, 0, width, height, &mdc, 0,0);
+      }
+}
+
+
 
