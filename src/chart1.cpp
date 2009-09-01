@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.56 2009/08/31 02:37:11 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.57 2009/09/01 22:18:33 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.57  2009/09/01 22:18:33  bdbcat
+ * Change status bar background
+ *
  * Revision 1.56  2009/08/31 02:37:11  bdbcat
  * Improve Status Bar
  *
@@ -236,7 +239,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.56 2009/08/31 02:37:11 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.57 2009/09/01 22:18:33 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -1683,7 +1686,7 @@ void MyFrame::ApplyGlobalColorSchemetoStatusBar(void)
 {
       if(m_pStatusBar != NULL)
       {
-            m_pStatusBar->SetBackgroundColour(GetGlobalColor(_T("UINFF")));
+            m_pStatusBar->SetBackgroundColour(GetGlobalColor(_T("UIBDR")));    //UINFF
             m_pStatusBar->ClearBackground();
 
           //    As an optimization, if color scheme is anything other than GLOBAL_COLOR_SCHEME_DAY,
