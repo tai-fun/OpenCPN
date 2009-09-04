@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.40 2009/08/30 03:31:20 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.41 2009/09/04 02:00:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -49,13 +49,13 @@
 #endif                        // end rms
 
 
-#define NMAX_MESSAGE 100
 
-CPL_CVSID("$Id: nmea.cpp,v 1.40 2009/08/30 03:31:20 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.41 2009/09/04 02:00:05 bdbcat Exp $");
 
-extern bool             g_bNMEADebug;
+extern int             g_nNMEADebug;
 extern ComPortManager   *g_pCommMan;
 extern bool             g_bGPSAISMux;
+extern int              g_total_NMEAerror_messages;
 
 int                      s_dns_test_flag;
 
@@ -565,8 +565,6 @@ extern ENUM_BUFFER_STATE            rx_share_buffer_state;
 
 OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, wxMutex *pMutex, const wxString& PortName, ComPortManager *pComMan)
 {
-      m_total_error_messages = 0;
-
       m_launcher = Launcher;                        // This thread's immediate "parent"
 
       m_pMainEventHandler = MessageTarget->GetEventHandler();
@@ -862,7 +860,7 @@ void *OCP_NMEA_Thread::Entry()
                                   break;
 
                               case WAIT_TIMEOUT:
-                                    if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                                    if((m_total_error_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
                                     {
                                           m_total_error_messages++;
                                           wxString msg;
@@ -883,7 +881,7 @@ HandleASuccessfulRead:
 
             if(dwRead > 0)
             {
-                  if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                  if((m_total_error_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
                   {
                         m_total_error_messages++;
                         wxString msg;
@@ -905,11 +903,18 @@ HandleASuccessfulRead:
 
                         nchar--;
                   }
-                  if((m_total_error_messages < NMAX_MESSAGE) && g_bNMEADebug)
+                  if((m_total_error_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
                   {
+
                         m_total_error_messages++;
-                        wxString msg1;
-                        msg1.Printf(_T("Buffer is %s"), szBuf);
+                        wxString msg1 = _T("Buffer is: ");
+                        int nc = dwRead;
+                        char *pb = szBuf;
+                        while(nc)
+                        {
+                              msg1.Append(*pb++);
+                              nc--;
+                        }
                         ThreadMessage(msg1);
                   }
 
@@ -982,9 +987,9 @@ thread_exit:
 
 void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
 {
-      if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
+      if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
       {
-            m_total_error_messages++;
+            g_total_NMEAerror_messages++;
             wxString msg(_T("NMEA Sentence received..."));
             msg.Append(str_temp_buf);
             ThreadMessage(msg);
@@ -999,9 +1004,9 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
       {
             if(m_NMEA0183.LastSentenceIDReceived == wxString(_T("RMC")))
             {
-                  if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
+                  if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
                   {
-                        m_total_error_messages++;
+                        g_total_NMEAerror_messages++;
                         wxString msg(_T("NMEA RMC received..."));
                         ThreadMessage(msg);
                   }
@@ -1041,9 +1046,9 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
                               if(m_pShareMutex)
                                     m_pShareMutex->Unlock();
 
-                              if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
+                              if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
                               {
-                                    m_total_error_messages++;
+                                    g_total_NMEAerror_messages++;
                                     wxString msg1(_T("EVT_NMEA_DIRECT sent"));
                                     ThreadMessage(msg1);
                               }
@@ -1057,9 +1062,9 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
                         }
                         else
                         {
-                              if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
+                              if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
                               {
-                                    m_total_error_messages++;
+                                    g_total_NMEAerror_messages++;
                                     wxString msg(_T("   NMEA RMC Sentence is invalid..."));
                                     msg.Append(str_temp_buf);
                                     ThreadMessage(msg);
@@ -1097,9 +1102,9 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
       }
       else
       {
-            if( g_bNMEADebug && (m_total_error_messages < NMAX_MESSAGE) )
+            if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
             {
-                  m_total_error_messages++;
+                  g_total_NMEAerror_messages++;
                   wxString msg(_T("   Unrecognized NMEA Sentence..."));
                   msg.Append(str_temp_buf);
                   ThreadMessage(msg);

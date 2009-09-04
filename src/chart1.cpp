@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.57 2009/09/01 22:18:33 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.58 2009/09/04 02:00:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.58  2009/09/04 02:00:53  bdbcat
+ * Improve debug messages
+ *
  * Revision 1.57  2009/09/01 22:18:33  bdbcat
  * Change status bar background
  *
@@ -239,7 +242,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.57 2009/09/01 22:18:33 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.58 2009/09/04 02:00:53 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -337,7 +340,7 @@ bool              g_bShowPrintIcon;
 bool              g_bShowOutlines;
 bool              g_bShowDepthUnits;
 bool              g_bGarminPersistance;
-bool              g_bNMEADebug;
+int               g_nNMEADebug;
 
 bool              g_bShowGPXIcons;  // toh, 2009.02.14
 bool              g_bNavAidShowRadarRings;            // toh, 2009.02.24
@@ -360,6 +363,9 @@ bool            bGPSValid;
 
 int             gHDx_Watchdog;
 bool            g_bHDxValid;
+
+bool            g_bDebugCM93;
+bool            g_bDebugS57;
 
 #ifdef USE_S57
 s52plib           *ps52plib;
@@ -510,6 +516,7 @@ double           g_TrackDeltaDistance;
 bool             g_bTrackTime;
 bool             g_bTrackDistance;
 
+int              g_total_NMEAerror_messages;
 
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
@@ -1286,7 +1293,16 @@ bool MyApp::OnInit()
 #endif
 
 //      establish GPS timeout value as multiple of frame timer
-        gsp_watchdog_timeout_ticks = (GPS_TIMEOUT_SECONDS * 1000) / TIMER_GFRAME_1;
+//      This will override any nonsense or unset value from the config file
+        if((gsp_watchdog_timeout_ticks > 60) || (gsp_watchdog_timeout_ticks <= 0))
+            gsp_watchdog_timeout_ticks = (GPS_TIMEOUT_SECONDS * 1000) / TIMER_GFRAME_1;
+
+        wxString dogmsg;
+        dogmsg.Printf(_T("GPS Watchdog Timeout is: %d sec."), gsp_watchdog_timeout_ticks);
+        wxLogMessage(dogmsg);
+
+        gGPS_Watchdog = 2;
+        gHDx_Watchdog = 2;
 
 //      Start up the ticker....
         gFrame->FrameTimer1.Start(TIMER_GFRAME_1, wxTIMER_CONTINUOUS);
@@ -2912,12 +2928,21 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 //  Update and check watchdog timer for GPS data source
       gGPS_Watchdog--;
       if(gGPS_Watchdog <= 0)
+      {
           bGPSValid = false;
+          if(g_nNMEADebug && (gGPS_Watchdog == 0))
+                wxLogMessage(_T("   ***GPS Watchdog timeout..."));
+      }
 
 //  Update and check watchdog timer for Heading data source
       gHDx_Watchdog--;
       if(gHDx_Watchdog <= 0)
+      {
             g_bHDxValid = false;
+            if(g_nNMEADebug && (gHDx_Watchdog == 0))
+                  wxLogMessage(_T("   ***HDx Watchdog timeout..."));
+      }
+
 
 //      Update the Toolbar Status window the first time watchdog times out
       if(gGPS_Watchdog == 0)
@@ -3980,16 +4005,16 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 
 
 
-/*  DEBUG
-                if(pStatusBar)
-                {
-                    wxString buf_nolf(buf);
-                    buf_nolf.RemoveLast();
-                    SetStatusText(buf_nolf, 3);
-                }
-*/
-
             wxString str_buf(buf, wxConvUTF8);
+
+            if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
+            {
+                  g_total_NMEAerror_messages++;
+                  wxString msg(_T("MEH.NMEA Sentence received..."));
+                  msg.Append(str_buf);
+                  wxLogMessage(msg);
+            }
+
             m_NMEA0183 << str_buf;
             if(m_NMEA0183.PreParse())
             {
