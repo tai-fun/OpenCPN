@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.13 2009/08/22 01:18:44 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.14 2009/09/04 01:56:33 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.14  2009/09/04 01:56:33  bdbcat
+ * Improve Annunciator box sizing
+ *
  * Revision 1.13  2009/08/22 01:18:44  bdbcat
  * Improved font support
  *
@@ -48,6 +51,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.14  2009/09/04 01:56:33  bdbcat
+ * Improve Annunciator box sizing
+ *
  * Revision 1.13  2009/08/22 01:18:44  bdbcat
  * Improved font support
  *
@@ -135,7 +141,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.13 2009/08/22 01:18:44 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.14 2009/09/04 01:56:33 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -494,28 +500,21 @@ void AnnunText::CalculateMinSize(void)
 {
             //    Calculate the minimum required size of the window based on text size
 
-      int wl, hl, wv, hv;
-
-      wxMemoryDC mdc;
-
-      wxBitmap m_bitmap(800,200, -1);           // plenty big
-      mdc.SelectObject(m_bitmap);
+      int wl = 50;            // reasonable defaults?
+      int hl = 20;
+      int wv = 50;
+      int hv = 20;
 
       if(m_plabelFont)
-      {
-            mdc.SetFont(*m_plabelFont);
-            mdc.GetTextExtent(_T("1234"), &wl, &hl);
-      }
+            GetTextExtent(_T("1234"), &wl, &hl, NULL, NULL, m_plabelFont);
+
 
       if(m_pvalueFont)
-      {
-            mdc.SetFont(*m_pvalueFont);
-            mdc.GetTextExtent(_T("123.45"), &wv, &hv);
-      }
+            GetTextExtent(_T("123.45"), &wv, &hv, NULL, NULL, m_pvalueFont);
 
       wxSize min;
       min.x = wl + wv;
-      min.y = wxMax(hl,hv) * 1.5;
+      min.y = (hl + hv) * 1.2;
 
       SetMinSize(min);
 }
@@ -535,6 +534,7 @@ void AnnunText::RefreshFonts()
       m_pvalueFont = pFontMgr->GetFont(m_ValueTextElement);
 
       CalculateMinSize();
+
 }
 
 void AnnunText::SetLegendElement(const wxString &element)
@@ -615,7 +615,7 @@ CDI::CDI(wxWindow *parent, wxWindowID id, long style, const wxString& name):
             wxWindow(parent, id, wxDefaultPosition, wxDefaultSize, style, name)
 
 {
-      SetMinSize(wxSize(-1,150));
+      SetMinSize(wxSize(10,150));
 }
 
 void CDI::SetColorScheme(ColorScheme cs)
