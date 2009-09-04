@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.38 2009/08/31 02:38:05 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.39 2009/09/04 01:50:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.39  2009/09/04 01:50:53  bdbcat
+ * Config option for LUP errors
+ *
  * Revision 1.38  2009/08/31 02:38:05  bdbcat
  * Remove tmp file on SENC create
  *
@@ -100,6 +103,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.39  2009/09/04 01:50:53  bdbcat
+ * Config option for LUP errors
+ *
  * Revision 1.38  2009/08/31 02:38:05  bdbcat
  * Remove tmp file on SENC create
  *
@@ -238,7 +244,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.38 2009/08/31 02:38:05 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.39 2009/09/04 01:50:53 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -259,6 +265,7 @@ extern wxString          *g_pcsv_locn;
 extern wxString          *g_pSENCPrefix;
 extern FILE              *s_fpdebug;
 extern bool              g_bGDAL_Debug;
+extern bool              g_bDebugS57;
 
 static jmp_buf env_ogrf;                    // the context saved by setjmp();
 
@@ -4057,9 +4064,12 @@ int s57chart::BuildRAZFromSENCFile( const wxString& FullPath )
 
                          if(NULL == LUP)
                          {
-                               wxString msg(obj->FeatureName, wxConvUTF8);
-                               msg.Prepend(_T("   Could not find LUP for "));
-                               LogMessageOnce(msg);
+                               if(g_bDebugS57)
+                               {
+                                     wxString msg(obj->FeatureName, wxConvUTF8);
+                                    msg.Prepend(_T("   Could not find LUP for "));
+                                    LogMessageOnce(msg);
+                               }
                                delete obj;
                          }
                          else
