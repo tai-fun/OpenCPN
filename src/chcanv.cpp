@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.61 2009/09/01 22:20:15 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.62 2009/09/04 01:58:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.62  2009/09/04 01:58:50  bdbcat
+ * Correct RouteDeleteAll fault
+ *
  * Revision 1.61  2009/09/01 22:20:15  bdbcat
  * Improve AIS target rollover
  *
@@ -290,7 +293,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.61 2009/09/01 22:20:15 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.62 2009/09/04 01:58:50 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -3584,6 +3587,9 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                        wxMessageDialog mdlg(this, _("Are you sure you want to delete <ALL> routes?"), wxString(_T("OpenCPN Alert")),wxYES_NO  );
                        if(mdlg.ShowModal() == wxID_YES)
                        {
+                            if ( pRouteMan->GetpActiveRoute() )
+                                  pRouteMan->DeactivateRoute();
+
                             pRouteMan->DeleteAllRoutes();
                             m_pSelectedRoute = NULL;
                        }
