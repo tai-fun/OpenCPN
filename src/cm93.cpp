@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.19 2009/08/27 02:17:30 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.20 2009/09/04 01:57:51 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.20  2009/09/04 01:57:51  bdbcat
+ * Improve Chart outline algorithm
+ *
  * Revision 1.19  2009/08/27 02:17:30  bdbcat
  * Remove GTK call to wxRegion(), it faults.
  *
@@ -125,6 +128,7 @@ extern s52plib          *ps52plib;
 extern cm93manager      *s_pcm93mgr;
 extern MyConfig         *pConfig;
 extern wxString         g_CM93DictDir;
+extern bool             g_bDebugCM93;
 
 #ifndef __WXMSW__
 extern struct sigaction sa_all;
@@ -821,16 +825,6 @@ bool Is_CM93Cell_Present(wxString &fileprefix, double lat, double lon, int scale
       wxString fileroot;
       fileroot.Printf(_T("%04d%04d/"), ilatroot, ilonroot);
 
-/*
-      file.Printf(_T("/%04d%04d."), jlat, jlon);
-      file += scale_char;
-      file.Prepend(scale_char);
-      file.Prepend(fileroot);
-      file.Prepend(fileprefix);
-
-      if(::wxFileExists(file))
-            return true;
-*/
       /// here
       wxString sdir(fileprefix);
       sdir += fileroot;
@@ -840,42 +834,34 @@ bool Is_CM93Cell_Present(wxString &fileprefix, double lat, double lon, int scale
       tfile.Printf(_T("?%03d%04d."), jlat, jlon);
       tfile += scale_char;
 
-      wxDir dir(sdir);
-
-      wxArrayString file_array;
-      int n_files = dir.GetAllFiles(sdir, &file_array, tfile, wxDIR_FILES);
-
-      if(n_files)
-            return true;
-
-      else
+      if(::wxDirExists(sdir))
       {
+            wxDir dir(sdir);
+
+            wxArrayString file_array;
+            int n_files = dir.GetAllFiles(sdir, &file_array, tfile, wxDIR_FILES);
+
+            if(n_files)
+                  return true;
+
+            else
+            {
 
        //    Try with alternate case of m_scalechar
-            wxString old_scalechar(scale_char);
-            wxString new_scalechar = old_scalechar.Lower();
+                  wxString old_scalechar(scale_char);
+                  wxString new_scalechar = old_scalechar.Lower();
 
-/*
-            wxString file1;
-            file1.Printf(_T("/%04d%04d."), jlat, jlon);
-            file1 += new_scalechar;
-            file1.Prepend(new_scalechar);
+                  wxString tfile1;
+                  tfile1.Printf(_T("?%03d%04d."), jlat, jlon);
+                  tfile1 += new_scalechar;
 
-            file1.Prepend(fileroot);
-            file1.Prepend(fileprefix);
+                  int n_files1 = dir.GetAllFiles(sdir, &file_array, tfile1, wxDIR_FILES);
 
-            return(::wxFileExists(file1));
-*/
-            wxString tfile1;
-            tfile1.Printf(_T("?%03d%04d."), jlat, jlon);
-            tfile1 += new_scalechar;
-
-            int n_files1 = dir.GetAllFiles(sdir, &file_array, tfile1, wxDIR_FILES);
-
-            return (n_files1 > 0);
-
+                  return (n_files1 > 0);
+            }
       }
-
+      else
+            return false;
 }
 
 
@@ -1873,9 +1859,12 @@ int cm93chart::CreateObjChain()
 
                          if(NULL == LUP)
                          {
-                              wxString msg(obj->FeatureName, wxConvUTF8);
-                              msg.Prepend(_T("   Could not find LUP for "));
-                              LogMessageOnce(msg);
+                               if(g_bDebugCM93)
+                               {
+                                    wxString msg(obj->FeatureName, wxConvUTF8);
+                                    msg.Prepend(_T("   CM93 could not find LUP for "));
+                                    LogMessageOnce(msg);
+                               }
                                delete obj;
                          }
                          else
@@ -4415,13 +4404,13 @@ bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool
                                     MyPoint *p = (MyPoint *)mcd.pvertices;
                                     wxPoint *pwp = mcd.pPoints;
 
-                                    for(int ip =0 ; ip < mcd.m_nvertices ; ip++)
+                                    for(int ip = 0 ; ip < mcd.m_nvertices ; ip++)
                                     {
 
                                           double plon = p->x;
                                           if(fabs(plon - vp.clon) > 180.)
                                           {
-                                                if(plon > ref_lon)
+                                                if(plon > vp.clon)
                                                       plon -= 360.;
                                                 else
                                                       plon += 360.;
@@ -4439,7 +4428,21 @@ bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool
                                           p++;
                                     }
 
-                                    pdc->DrawLines(mcd.m_nvertices, pwp);
+                                    //    Scrub the points
+                                    //    looking for segments for which the wrong longitude decision was made
+                                    //    TODO all this mole needs to be rethought, again
+                                    bool btest = true;
+                                    wxPoint p0 = pwp[0];
+                                    for(int ip = 1 ; ip < mcd.m_nvertices ; ip++)
+                                    {
+                                          if((p0.x > vp.pix_width) && (pwp[ip].x < 0) || ((p0.x < 0) && (pwp[ip].x > vp.pix_width)))
+                                                btest = false;
+
+                                          p0 = pwp[ip];
+                                    }
+
+                                    if(btest)
+                                          pdc->DrawLines(mcd.m_nvertices, pwp);
                               }
                         }
                   }
