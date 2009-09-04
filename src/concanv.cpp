@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.14 2009/09/04 01:56:33 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.15 2009/09/04 02:40:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.15  2009/09/04 02:40:47  bdbcat
+ * Fix Route/Leg for MSW
+ *
  * Revision 1.14  2009/09/04 01:56:33  bdbcat
  * Improve Annunciator box sizing
  *
@@ -51,6 +54,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.15  2009/09/04 02:40:47  bdbcat
+ * Fix Route/Leg for MSW
+ *
  * Revision 1.14  2009/09/04 01:56:33  bdbcat
  * Improve Annunciator box sizing
  *
@@ -141,7 +147,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.14 2009/09/04 01:56:33 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.15 2009/09/04 02:40:47 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -412,8 +418,8 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
       event.GetPosition(&x, &y);
 
 
-//    Check the regions
-/*
+//    Check the region of the Route/Leg button
+#ifdef __WXMSW__
       if(event.LeftDown())
       {
             wxRegion rg(m_pLegRouteButton->GetRect());
@@ -428,9 +434,8 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
                   pThisLegBox->Refresh(true);
             }
       }
-*/
+
       ///TODO  Why is this necessary???
-#ifdef __WXMSW__
       wxRegion rr(GetRect());
       if(rr.Contains(x,y)  != wxInRegion)
             ReleaseMouse();
