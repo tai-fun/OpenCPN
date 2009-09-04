@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.41 2009/09/04 02:00:05 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.42 2009/09/04 02:23:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -50,7 +50,7 @@
 
 
 
-CPL_CVSID("$Id: nmea.cpp,v 1.41 2009/09/04 02:00:05 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.42 2009/09/04 02:23:26 bdbcat Exp $");
 
 extern int             g_nNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -860,9 +860,9 @@ void *OCP_NMEA_Thread::Entry()
                                   break;
 
                               case WAIT_TIMEOUT:
-                                    if((m_total_error_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
+                                    if((g_total_NMEAerror_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
                                     {
-                                          m_total_error_messages++;
+                                          g_total_NMEAerror_messages++;
                                           wxString msg;
                                           msg.Printf(_T("NMEA timeout"));
                                           ThreadMessage(msg);
@@ -881,9 +881,9 @@ HandleASuccessfulRead:
 
             if(dwRead > 0)
             {
-                  if((m_total_error_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
+                  if((g_total_NMEAerror_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
                   {
-                        m_total_error_messages++;
+                        g_total_NMEAerror_messages++;
                         wxString msg;
                         msg.Printf(_T("NMEA activity...%d bytes"), dwRead);
                         ThreadMessage(msg);
@@ -903,10 +903,9 @@ HandleASuccessfulRead:
 
                         nchar--;
                   }
-                  if((m_total_error_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
+                  if((g_total_NMEAerror_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
                   {
-
-                        m_total_error_messages++;
+                        g_total_NMEAerror_messages++;
                         wxString msg1 = _T("Buffer is: ");
                         int nc = dwRead;
                         char *pb = szBuf;

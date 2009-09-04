@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.18 2009/08/29 23:24:44 bdbcat Exp $
+ * $Id: nmea.h,v 1.19 2009/09/04 02:22:45 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.19  2009/09/04 02:22:45  bdbcat
+ * Improve NMEA message handling
+ *
  * Revision 1.18  2009/08/29 23:24:44  bdbcat
  * Various, including alert suppression logic
  *
@@ -252,7 +255,6 @@ private:
       char                    *rx_buffer;
 
       unsigned long           error;
-      int                     m_total_error_messages;
 
       NMEA0183                m_NMEA0183;
 
