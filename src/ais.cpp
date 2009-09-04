@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.29 2009/08/29 23:24:06 bdbcat Exp $
+ * $Id: ais.cpp,v 1.30 2009/09/04 02:05:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.30  2009/09/04 02:05:35  bdbcat
+ * Improve NMEA message handling
+ *
  * Revision 1.29  2009/08/29 23:24:06  bdbcat
  * Various, including alert suppression logic
  *
@@ -167,12 +170,24 @@ extern int              g_ais_alert_dialog_x, g_ais_alert_dialog_y;
 extern int              g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
 extern wxString         g_sAIS_Alert_Sound_File;
 
+extern int              g_nNMEADebug;
+extern int              g_total_NMEAerror_messages;
+
 //    A static structure storing generic position data
 //    Used to communicate from NMEA threads to main application thread
-static      GenericPosDat     AISPositionMuxData;
+//static      GenericPosDat     AISPositionMuxData;
+
+//-------------------------------------------------------------------------------------------------------------
+//    OCP_AIS_Thread Static data store
+//-------------------------------------------------------------------------------------------------------------
+
+extern char                         rx_share_buffer[];
+extern unsigned int                 rx_share_buffer_length;
+extern ENUM_BUFFER_STATE            rx_share_buffer_state;
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.29 2009/08/29 23:24:06 bdbcat Exp $");
+
+CPL_CVSID("$Id: ais.cpp,v 1.30 2009/09/04 02:05:35 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -812,6 +827,75 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
 */
 }
 
+void AIS_Decoder::ThreadMessage(const wxString &msg)
+{
+
+    //    Signal the main program thread
+      wxCommandEvent event( EVT_THREADMSG);
+      event.SetEventObject( (wxObject *)this );
+      event.SetString(msg);
+      m_pMainEventHandler->AddPendingEvent(event);
+
+}
+
+
+void AIS_Decoder::Parse_And_Send_Posn(wxString &str_temp_buf)
+{
+      if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
+      {
+            g_total_NMEAerror_messages++;
+            wxString msg(_T("AIS.NMEA Sentence received..."));
+            msg.Append(str_temp_buf);
+            ThreadMessage(msg);
+      }
+
+   // Send the NMEA string to the decoder
+      m_NMEA0183 << str_temp_buf;
+
+      if (true == m_NMEA0183.PreParse())
+      {
+            {
+//    Signal the main program thread with raw sentence
+                  wxCommandEvent event( EVT_NMEA);
+                  event.SetEventObject( (wxObject *)this );
+                  event.SetExtraLong(EVT_NMEA_PARSE_RX);
+
+                  wxMutexLocker stateLocker(*m_pShareGPSMutex);          // scope is right here
+                  if(stateLocker.IsOk() )
+                  {
+                        if(RX_BUFFER_EMPTY == rx_share_buffer_state)
+                        {
+                              strcpy(rx_share_buffer, str_temp_buf.mb_str());
+                              rx_share_buffer_state = RX_BUFFER_FULL;
+                              rx_share_buffer_length = str_temp_buf.Len();
+
+                              m_pMainEventHandler->AddPendingEvent(event);
+                        }
+                  }
+                  else
+                  {
+                        // Cant get mutex, so punt
+                  }
+            }
+      }
+      else
+      {
+            if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
+            {
+                  g_total_NMEAerror_messages++;
+                  wxString msg(_T("   AIS.Unrecognized NMEA Sentence..."));
+                  msg.Append(str_temp_buf);
+                  ThreadMessage(msg);
+            }
+      }
+}
+
+
+
+
+
+
+#if 0
 void AIS_Decoder::Parse_And_Send_Posn(wxString &str_temp_buf)
 {
 
@@ -865,6 +949,8 @@ void AIS_Decoder::Parse_And_Send_Posn(wxString &str_temp_buf)
             }
       }
 }
+
+#endif
 
 
 //----------------------------------------------------------------------------------
