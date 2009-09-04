@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.22 2009/08/29 23:24:44 bdbcat Exp $
+ * $Id: ais.h,v 1.23 2009/09/04 02:22:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.23  2009/09/04 02:22:21  bdbcat
+ * New Methods
+ *
  * Revision 1.22  2009/08/29 23:24:44  bdbcat
  * Various, including alert suppression logic
  *
@@ -317,6 +320,7 @@ private:
     void UpdateOneCPA(AIS_Target_Data *ptarget);
     void UpdateAllAlarms(void);
     void Parse_And_Send_Posn(wxString &str_temp_buf);
+    void ThreadMessage(const wxString &msg);
 
 
     AIS_Target_Hash *AISTargetList;
