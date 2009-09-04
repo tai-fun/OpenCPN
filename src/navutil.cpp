@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.45  2009/09/04 01:56:03  bdbcat
+ * New config options
+ *
  * Revision 1.44  2009/08/30 14:19:40  bdbcat
  * Correct Track last point coordinates
  *
@@ -130,6 +133,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.45  2009/09/04 01:56:03  bdbcat
+ * New config options
+ *
  * Revision 1.44  2009/08/30 14:19:40  bdbcat
  * Correct Track last point coordinates
  *
@@ -289,7 +295,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID("$Id: navutil.cpp,v 1.44 2009/08/30 14:19:40 bdbcat Exp $");
+CPL_CVSID("$Id: navutil.cpp,v 1.45 2009/09/04 01:56:03 bdbcat Exp $");
 
 //    Statics
 
@@ -331,7 +337,7 @@ extern bool             g_bShowDepthUnits;
 extern bool             g_bAutoAnchorMark;
 extern bool             g_bShowOutlines;
 extern bool             g_bGarminPersistance;
-extern bool             g_bNMEADebug;
+extern int              g_nNMEADebug;
 
 extern int              g_nframewin_x;
 extern int              g_nframewin_y;
@@ -380,10 +386,13 @@ extern double           g_TrackIntervalSeconds;
 extern double           g_TrackDeltaDistance;
 extern bool             g_bTrackTime;
 extern bool             g_bTrackDistance;
+extern int              gsp_watchdog_timeout_ticks;
 
 extern int              g_nCacheLimit;
 
 extern bool             g_bGDAL_Debug;
+extern bool             g_bDebugCM93;
+extern bool             g_bDebugS57;
 
 #ifdef USE_S57
 extern s52plib          *ps52plib;
@@ -1205,6 +1214,8 @@ void Route::DrawSegment(wxDC& dc, wxPoint *rp1, wxPoint *rp2, ViewPort &VP, bool
 
 void Route::Draw(wxDC& dc, ViewPort &VP)
 {
+      if(m_nPoints == 0)
+            return;
 
       if(m_bRtIsSelected)
       {
@@ -2012,6 +2023,8 @@ void Track::AddPointNow()
 
 void Track::Draw(wxDC& dc, ViewPort &VP)
 {
+      if(GetnPoints() == 0)
+            return;
 
       dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "CHMGD" ) ) ) );
       wxPen dPen( GetGlobalColor ( _T ( "CHMGD" ) ), 3 ) ;
@@ -2109,6 +2122,15 @@ int MyConfig::LoadMyConfig(int iteration)
 //    Global options and settings
       SetPath(_T("/Settings"));
 
+      // Some undocumented values
+      Read(_T("nCacheLimit"), &g_nCacheLimit, CACHE_N_LIMIT_DEFAULT);
+      Read(_T("DebugGDAL"), &g_bGDAL_Debug, 0);
+      Read(_T("DebugNMEA"), &g_nNMEADebug, 0);
+      Read(_T("GPSDogTimeout"),  &gsp_watchdog_timeout_ticks, GPS_TIMEOUT_SECONDS);
+      Read(_T("DebugCM93"),  &g_bDebugCM93, 0);
+      Read(_T("DebugS57"),  &g_bDebugS57, 0);
+
+
       s_bSetSystemTime = false;
       Read(_T("SetSystemTime"), &s_bSetSystemTime);
 
@@ -2134,12 +2156,6 @@ int MyConfig::LoadMyConfig(int iteration)
       Read(_T("PlanSpeed"),  &stps);
       stps.ToDouble(&g_PlanSpeed);
 
-      Read(_T("nCacheLimit"), &g_nCacheLimit, CACHE_N_LIMIT_DEFAULT);
-
-      Read(_T("DebugGDAL"), &g_bGDAL_Debug, 0);
-
-      g_bNMEADebug = false;
-      Read(_T("DebugNMEA"),  &g_bNMEADebug);
 
       SetPath(_T("/Settings/GlobalState"));
       Read(_T("bFollow"), &st_bFollow);
