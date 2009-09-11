@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.19 2009/09/04 02:22:45 bdbcat Exp $
+ * $Id: nmea.h,v 1.20 2009/09/11 20:39:17 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.20  2009/09/11 20:39:17  bdbcat
+ * Improve message handling
+ *
  * Revision 1.19  2009/09/04 02:22:45  bdbcat
  * Improve NMEA message handling
  *
@@ -145,6 +148,53 @@ class     MyFrame;
 class     OCP_NMEA_Thread;
 class     OCP_GARMIN_Thread;
 class     ComPortManager;
+
+
+//----------------------------------------------------------------------------
+// NMEAEvent
+//----------------------------------------------------------------------------
+
+class OCPN_NMEAEvent: public wxEvent
+{
+      public:
+            OCPN_NMEAEvent( wxEventType commandType = wxEVT_NULL, int id = 0 );
+
+            OCPN_NMEAEvent(const OCPN_NMEAEvent & event)
+            : wxEvent(event),
+              m_NMEAstring(event.m_NMEAstring)
+              { }
+
+             ~OCPN_NMEAEvent( );
+
+    // accessors
+            wxString GetNMEAString() { return m_NMEAstring; }
+            void SetNMEAString(wxString &string) { m_NMEAstring = string; }
+
+
+    // required for sending with wxPostEvent()
+//            wxEvent* Clone();
+            wxEvent *Clone() const { return new OCPN_NMEAEvent(*this); }
+
+      private:
+            wxString    m_NMEAstring;
+
+//            DECLARE_DYNAMIC_CLASS(OCPN_NMEAEvent)
+
+};
+
+    DECLARE_EVENT_TYPE(wxEVT_OCPN_NMEA, 6666)
+
+
+// code implementing the event type and the event class
+/*
+DECLARE_EVENT_MACRO( OCPN_EVT_NMEA_ACTION, -1 )
+typedef void (wxEvtHandler::*OCPN_NMEAEventFunction)(OCPN_NMEAEvent&);
+
+#define EVT_OCPN_NMEA(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( OCPN_EVT_NMEA_ACTION, id, -1, \
+    (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  \
+    wxStaticCastEvent( OCPN_NMEAEventFunction, & fn ), (wxObject *) NULL ),
+*/
 
 
 //----------------------------------------------------------------------------
