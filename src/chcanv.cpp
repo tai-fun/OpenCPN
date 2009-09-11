@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.62 2009/09/04 01:58:50 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.63 2009/09/11 20:41:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.63  2009/09/11 20:41:46  bdbcat
+ * Implement png graphics, new AIS Query dialog
+ *
  * Revision 1.62  2009/09/04 01:58:50  bdbcat
  * Correct RouteDeleteAll fault
  *
@@ -187,6 +190,8 @@
 #include "wx/wx.h"
 #endif //precompiled headers
 #include "wx/image.h"
+#include <wx/graphics.h>
+
 #include "dychart.h"
 
 #include <wx/listimpl.cpp>
@@ -212,6 +217,10 @@
 #endif
 
 #include "ais.h"
+
+#ifdef OCPN_USE_PNGICONS
+  #include "bitmaps/icons.h"
+#endif
 
 // ----------------------------------------------------------------------------
 // Useful Prototypes
@@ -243,6 +252,7 @@ extern WayPointman      *pWayPointMan;
 extern MarkProp         *pMarkPropDialog;
 extern RouteProp        *pRoutePropDialog;
 extern MarkInfo         *pMarkInfoDialog; // toh, 2009.02.08
+extern Track            *g_pActiveTrack;
 
 extern bool             bDrawCurrentValues;
 extern wxString         *pWVS_Locn;
@@ -293,20 +303,25 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.62 2009/09/04 01:58:50 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.63 2009/09/11 20:41:46 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
 //  The relevant static identifying label is the same as the file name
-//  e.g. down.xpm contains a line .....static char *down[]....
+//  e.g. down.xpm contains a line .....static const char *down[]....
 
-#include "bitmaps/down.xpm"
-#include "bitmaps/up.xpm"
-#include "bitmaps/left.xpm"
-#include "bitmaps/right.xpm"
-#include "bitmaps/pencil.xpm"
+//#ifndef USE_PNG_CURSOR
 
-#include "bitmaps/tidesml.xpm"
+ #include "bitmaps/down.xpm"
+ #include "bitmaps/up.xpm"
+ #include "bitmaps/left.xpm"
+ #include "bitmaps/right.xpm"
+ #include "bitmaps/pencil.xpm"
+//#endif
+
+#ifndef USE_PNG_TIDESML
+ #include "bitmaps/tidesml.xpm"
+#endif
 
 //    Constants for right click menus
 enum
@@ -455,13 +470,22 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
 //    Build the cursors
 
 #if defined( __WXGTK__) || defined(__WXOSX__) /* inline rms */
-        {
+
+
+#ifdef USE_PNG_CURSOR_THIS_DOES_NOT_WORK
+              wxImage ICursorLeft  = _img_left->ConvertToImage( );
+              wxImage ICursorRight  = _img_right->ConvertToImage( );
+              wxImage ICursorUp  = _img_up->ConvertToImage( );
+              wxImage ICursorDown  = _img_down->ConvertToImage( );
+              wxImage ICursorPencil  = _img_pencil->ConvertToImage( );
+
+#else
                 wxImage ICursorLeft ( left );
                 wxImage ICursorRight ( right );
                 wxImage ICursorUp ( up );
                 wxImage ICursorDown ( down );
                 wxImage ICursorPencil ( pencil );
-
+#endif
                 if ( ICursorLeft.Ok() )
                 {
                         ICursorLeft.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_X, 0 );
@@ -506,17 +530,73 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
                 }
                 else
                         pCursorPencil =  new wxCursor ( wxCURSOR_ARROW );
-        }
+
 #else
-        {
+
                 //    Windows and X11 need custom, private cursors, say sorry...
+                //    unless PNG graphic cursors are available....
+
+#ifndef USE_PNG_CURSOR
                 pCursorLeft =    new ocpCursor ( left,  0, 00, 15 );
                 pCursorRight =   new ocpCursor ( right, 0, 31, 15 );
                 pCursorUp =      new ocpCursor ( up,    0, 15, 00 );
                 pCursorDown =    new ocpCursor ( down,  0, 15, 31 );
                 pCursorPencil =  new ocpCursor ( pencil, 0, 00, 20 );
-        }
+
+#else
+              wxImage ICursorLeft  = _img_left->ConvertToImage( );
+              wxImage ICursorRight  = _img_right->ConvertToImage( );
+              wxImage ICursorUp  = _img_up->ConvertToImage( );
+              wxImage ICursorDown  = _img_down->ConvertToImage( );
+              wxImage ICursorPencil  = _img_pencil->ConvertToImage( );
+
+              if ( ICursorLeft.Ok() )
+              {
+                    ICursorLeft.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_X, 0 );
+                    ICursorLeft.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_Y, 15 );
+                    pCursorLeft =  new wxCursor ( ICursorLeft );
+              }
+              else
+                    pCursorLeft =  new wxCursor ( wxCURSOR_ARROW );
+
+              if ( ICursorRight.Ok() )
+              {
+                    ICursorRight.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_X, 31 );
+                    ICursorRight.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_Y, 15 );
+                    pCursorRight =  new wxCursor ( ICursorRight );
+              }
+              else
+                    pCursorRight =  new wxCursor ( wxCURSOR_ARROW );
+
+              if ( ICursorUp.Ok() )
+              {
+                    ICursorUp.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_X, 15 );
+                    ICursorUp.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_Y, 0 );
+                    pCursorUp =  new wxCursor ( ICursorUp );
+              }
+              else
+                    pCursorUp =  new wxCursor ( wxCURSOR_ARROW );
+
+              if ( ICursorDown.Ok() )
+              {
+                    ICursorDown.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_X, 15 );
+                    ICursorDown.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_Y, 31 );
+                    pCursorDown =  new wxCursor ( ICursorDown );
+              }
+              else
+                    pCursorDown =  new wxCursor ( wxCURSOR_ARROW );
+
+              if ( ICursorPencil.Ok() )
+              {
+                    ICursorPencil.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_X, 0 );
+                    ICursorPencil.SetOption ( wxIMAGE_OPTION_CUR_HOTSPOT_Y, 15 );
+                    pCursorPencil =  new wxCursor ( ICursorPencil );
+              }
+              else
+                    pCursorPencil =  new wxCursor ( wxCURSOR_ARROW );
 #endif
+
+#endif      // MSW, X11
 
         pCursorArrow = new wxCursor ( wxCURSOR_ARROW );
 
@@ -578,14 +658,17 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         CreateDepthUnitEmbossMaps( GLOBAL_COLOR_SCHEME_DAY );
 
 //    Build icons for tide/current points
+#ifdef USE_PNG_TIDESML
+        m_bmTideDay = wxBitmap(*_img_tidesml);
+#else
         m_bmTideDay = wxBitmap(tidesml);
+#endif
 
 //    Dusk
         m_bmTideDusk = CreateDimBitmap(m_bmTideDay, .50);
 
 //    Night
         m_bmTideNight = CreateDimBitmap(m_bmTideDay, .20);
-
 
 
 }
@@ -1392,6 +1475,8 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
 
 //      This icon was adapted and scaled from the S52 Presentation Library version 3_03.
 //     Symbol VECGND02
+
+#ifndef USE_PNG_OWNSHIP
 static int s_pred_icon[] = {
                       0,0,
                       10,10,
@@ -1418,6 +1503,17 @@ static int s_ownship_icon[] = {
       0, -50
 };
 
+#else
+static int s_png_pred_icon[] = {
+      -10,-10,
+      -10,10,
+      10,10,
+      10,-10
+};
+#endif
+
+
+
 wxPoint transrot(wxPoint pt, double theta, wxPoint offset)
 {
       wxPoint ret;
@@ -1435,14 +1531,20 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
 {
 
         int drawit = 0;
-        wxPoint lShipPoint, lPredPoint;
+        wxPoint lShipPoint, lPredPoint, lHeadPoint;
 
 //    Is ship in Vpoint?
         if ( VPoint.vpBBox.PointInBox ( gLon, gLat, 0 ) )
                 drawit++;                                 // yep
 
 
-//    Calculate ownshipe Position Predictor
+///debug
+//        gCog = 60.;
+//        gSog = 6.;
+//        gHdt = 70.;
+//        g_bHDxValid = true;
+
+//    Calculate ownship Position Predictor
 
         double pred_lat, pred_lon;
 
@@ -1451,13 +1553,42 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
         GetCanvasPointPix ( gLat, gLon, &lShipPoint );
         GetCanvasPointPix ( pred_lat, pred_lon, &lPredPoint );
 
-        double theta = atan2 ( (double)( lPredPoint.y - lShipPoint.y ), (double)( lPredPoint.x - lShipPoint.x ) );
-        theta += PI;
+        double cog_rad = atan2 ( (double)( lPredPoint.y - lShipPoint.y ), (double)( lPredPoint.x - lShipPoint.x ) );
+        cog_rad += PI;
 
 //    Is predicted point in the VPoint?
         if ( VPoint.vpBBox.PointInBox ( pred_lon, pred_lat, 0 ) )
                 drawit++;                                 // yep
 
+        //  Draw the icon rotated to the COG
+        //  or to the Hdt if available
+        double icon_hdt = gCog;
+        if(g_bHDxValid)
+             icon_hdt = gHdt;
+
+
+//    Calculate ownship Heading pointer as a predictor
+        double hdg_pred_lat, hdg_pred_lon;
+
+        ll_gc_ll ( gLat, gLon, icon_hdt, gSog * m_ownship_predictor_minutes / 60., &hdg_pred_lat, &hdg_pred_lon );
+
+        GetCanvasPointPix ( gLat, gLon, &lShipPoint );
+        GetCanvasPointPix ( hdg_pred_lat, hdg_pred_lon, &lHeadPoint );
+
+        double icon_rad = atan2 ( (double)( lHeadPoint.y - lShipPoint.y ), (double)( lHeadPoint.x - lShipPoint.x ) );
+        icon_rad += PI;
+
+        if(gSog < 0.2)
+              icon_rad = (icon_hdt + 90.) * PI / 180.;
+
+//    Compare the points lHeadPoint and lPredPoint
+//    If they differ by more than n pixels, then render the head vector
+
+        double ndelta_pix = 10.;
+        bool b_render_hdt = false;
+        double dist = sqrt(pow((double)(lHeadPoint.x - lPredPoint.x), 2) + pow((double)(lHeadPoint.y - lPredPoint.y), 2));
+        if(dist > ndelta_pix)
+              b_render_hdt = true;
 
 //    Do the draw if either the ship or prediction is within the current VPoint
         if ( drawit )
@@ -1469,12 +1600,12 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
 
                 if(SHIP_LOWACCURACY == m_ownship_state)
                 {
-                      ship_color = GetGlobalColor ( _T ( "UYELLOW" ) );
+                      ship_color = GetGlobalColor ( _T ( "YELO1" ) );
                 }
 
                 if(SHIP_INVALID == m_ownship_state)
                 {
-                      ship_color = GetGlobalColor ( _T ( "UYELLOW" ) );
+                      ship_color = GetGlobalColor ( _T ( "YELO1" ) );
                 }
 
                 dc.SetBrush ( wxBrush ( ship_color ) );
@@ -1492,10 +1623,181 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
 
                 double pred_icon_scale_factor = 1.25;
                 if(llmm < 10)
-                {
                       pred_icon_scale_factor *= llmm / 10;
+
+
+
+
+#ifdef USE_PNG_OWNSHIP
+                wxImage os_image = _img_ship->ConvertToImage();
+
+                if(SHIP_NORMAL != m_ownship_state)
+                {
+//                      wxImage gsi = os_image.ConvertToGreyscale();
+//                      os_image = gsi;
+                      os_image.RotateHue(.12);
                 }
 
+//                os_image.Rescale(33, 65, wxIMAGE_QUALITY_HIGH);
+                wxImage rot_image = os_image.Rotate(-(icon_rad - (PI / 2.)), wxPoint(os_image.GetWidth()/2, os_image.GetHeight()/2));
+                wxBitmap os_bm(rot_image);
+                wxMemoryDC mdc(os_bm);
+
+                int w =  os_bm.GetWidth();
+                int h = os_bm.GetHeight();
+                dc.Blit(lShipPoint.x - w/2, lShipPoint.y - h/2, w, h, &mdc, 0, 0, wxCOPY, true);
+
+
+#if wxUSE_GRAPHICS_CONTEXT
+                wxGraphicsContext *pgc;
+
+                wxMemoryDC *pmdc = wxDynamicCast(&dc, wxMemoryDC);
+                if(pmdc)
+                {
+                      pgc = wxGraphicsContext::Create(*pmdc);
+                }
+                else
+                {
+                      wxClientDC *pcdc = wxDynamicCast(&dc, wxClientDC);
+                      if(pcdc)
+                            pgc = wxGraphicsContext::Create(*pcdc);
+                }
+
+
+                if(pgc)
+                {
+                      //      COG Predictor
+                      wxDash dash_long[2];
+                      dash_long[0] = ( int ) ( 3.6 * m_pix_per_mm );  //8// Long dash  <---------+
+                      dash_long[1] = ( int ) ( 1.8 * m_pix_per_mm );  //2// Short gap            |
+
+                      wxPen ppPen2 ( GetGlobalColor ( _T ( "UDKRD" ) ), 1, wxUSER_DASH );
+                      ppPen2.SetDashes( 2, dash_long );
+
+                      pgc->SetPen(ppPen2);
+
+                      pgc->StrokeLine(lShipPoint.x, lShipPoint.y, lPredPoint.x, lPredPoint.y);
+
+                      dc.CalcBoundingBox(lShipPoint.x, lShipPoint.y);               // keep dc dirty box up-to-date
+                      dc.CalcBoundingBox(lPredPoint.x, lPredPoint.y);
+
+
+
+                      pred_icon_scale_factor = .40;
+
+                      wxPoint icon[10];
+
+                      for ( int i=0; i<4; i++ )
+                      {
+                            int j = i * 2;
+                            double pxa = ( double ) (s_png_pred_icon[j]  );
+                            double pya = ( double ) (s_png_pred_icon[j+1]);
+
+                            pya *=  pred_icon_scale_factor;
+                            pxa *=  pred_icon_scale_factor;
+
+                            double px = ( pxa * sin ( cog_rad ) ) + ( pya * cos ( cog_rad ) );
+                            double py = ( pya * sin ( cog_rad ) ) - ( pxa * cos ( cog_rad ) );
+
+
+                            icon[i].x = ( int ) ( px ) + lPredPoint.x;
+                            icon[i].y = ( int ) ( py ) + lPredPoint.y;
+                      }
+
+
+                      wxGraphicsPath gpath = pgc->CreatePath();
+
+                      gpath.MoveToPoint(icon[0].x,icon[0].y);
+                      gpath.AddLineToPoint(icon[1].x,icon[1].y);
+                      gpath.AddLineToPoint(icon[2].x,icon[2].y);
+                      gpath.AddLineToPoint(icon[3].x,icon[3].y);
+                      gpath.AddLineToPoint(icon[0].x,icon[0].y);
+
+                      wxPen ppPen1 ( GetGlobalColor ( _T ( "UDKRD" ) ), 1, wxSOLID );
+                      pgc->SetPen(ppPen1);
+
+                      pgc->SetBrush(*wxWHITE_BRUSH);
+
+                      pgc->FillPath(gpath);
+                      pgc->StrokePath(gpath);
+
+                      dc.CalcBoundingBox(icon[0].x,icon[0].y);              // keep dc dirty box up-to-date
+                      dc.CalcBoundingBox(icon[1].x,icon[1].y);
+                      dc.CalcBoundingBox(icon[2].x,icon[2].y);
+                      dc.CalcBoundingBox(icon[3].x,icon[3].y);
+                      dc.CalcBoundingBox(icon[0].x,icon[0].y);
+
+
+
+                      //      HDT Predictor
+                      if(b_render_hdt)
+                      {
+                            wxDash dash_short[2];
+                            dash_short[0] = ( int ) ( 1.5 * m_pix_per_mm );  // Short dash  <---------+
+                            dash_short[1] = ( int ) ( 1.8 * m_pix_per_mm );  // Short gap            |
+
+                            wxPen ppPen2 ( GetGlobalColor ( _T ( "UDKRD" ) ), 1, wxUSER_DASH );
+                            ppPen2.SetDashes( 2, dash_short );
+
+                            pgc->SetPen(ppPen2);
+
+                            pgc->StrokeLine(lShipPoint.x, lShipPoint.y, lHeadPoint.x, lHeadPoint.y);
+                            dc.CalcBoundingBox(lHeadPoint.x, lHeadPoint.y);               // keep dc dirty box up-to-date
+
+                            wxGraphicsPath gpath = pgc->CreatePath();
+
+                            wxPen ppPen1 ( GetGlobalColor ( _T ( "UDKRD" ) ), 1, wxSOLID );
+                            pgc->SetPen(ppPen1);
+                            pgc->SetBrush(*wxWHITE_BRUSH);
+
+                            gpath.AddCircle(lHeadPoint.x, lHeadPoint.y, 4);
+                            pgc->FillPath(gpath);
+                            pgc->StrokePath(gpath);
+
+                            dc.CalcBoundingBox(lHeadPoint.x+4, lHeadPoint.y+4);               // keep dc dirty box up-to-date
+
+                      }
+
+
+                      delete pgc;
+                }
+#else
+
+                wxPen ppPen2 ( GetGlobalColor ( _T ( "UDKRD" ) ), 2, wxSOLID );
+                dc.SetPen ( ppPen2 );
+                dc.DrawLine ( lShipPoint.x, lShipPoint.y, lPredPoint.x, lPredPoint.y );
+
+                pred_icon_scale_factor = 0.5;
+
+                wxPoint icon[10];
+
+                for ( int i=0; i<4; i++ )
+                {
+                      int j = i * 2;
+                      double pxa = ( double ) (s_png_pred_icon[j]  );
+                      double pya = ( double ) (s_png_pred_icon[j+1]);
+
+                      pya *=  pred_icon_scale_factor;
+                      pxa *=  pred_icon_scale_factor;
+
+                      double px = ( pxa * sin ( cog_rad ) ) + ( pya * cos ( cog_rad ) );
+                      double py = ( pya * sin ( cog_rad ) ) - ( pxa * cos ( cog_rad ) );
+
+
+                      icon[i].x = ( int ) ( px ) + lPredPoint.x;
+                      icon[i].y = ( int ) ( py ) + lPredPoint.y;
+                }
+
+                wxPen ppPen1 ( GetGlobalColor ( _T ( "UDKRD" ) ), 2, wxSOLID );
+                dc.SetPen ( ppPen1 );
+
+                dc.DrawLine ( icon[0].x,icon[0].y, icon[1].x ,icon[1].y );
+                dc.DrawLine ( icon[1].x,icon[1].y, icon[2].x ,icon[2].y  );
+                dc.DrawLine ( icon[2].x,icon[2].y, icon[3].x ,icon[3].y );
+                dc.DrawLine ( icon[3].x,icon[3].y, icon[0].x ,icon[0].y  );
+#endif
+
+#else  //USE_PNG_OWNSHIP
                 wxPen ppPen2 ( GetGlobalColor ( _T ( "UBLCK" ) ), 3, wxSOLID );
                 dc.SetPen ( ppPen2 );
                 dc.DrawLine ( lShipPoint.x, lShipPoint.y, lPredPoint.x, lPredPoint.y );
@@ -1511,8 +1813,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       pya *=  pred_icon_scale_factor;
                       pxa *=  pred_icon_scale_factor;
 
-                      double px = ( pxa * sin ( theta ) ) + ( pya * cos ( theta ) );
-                      double py = ( pya * sin ( theta ) ) - ( pxa * cos ( theta ) );
+                      double px = ( pxa * sin ( cog_rad ) ) + ( pya * cos ( cog_rad ) );
+                      double py = ( pya * sin ( cog_rad ) ) - ( pxa * cos ( cog_rad ) );
 
 
                       icon[i].x = ( int ) ( px ) + lPredPoint.x;
@@ -1528,17 +1830,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                 dc.DrawLine ( icon[6].x,icon[6].y, icon[7].x ,icon[7].y  );
 
 
- //               dc.DrawCircle ( lPredPoint.x, lPredPoint.y, 8 );
-
                 if(VPoint.chart_scale < 50000)
                 {
-
-                        //  Draw the icon rotated to the COG
-                        //  or to the Hdt if available
-
-                        double icon_theta = theta;
-                        if(g_bHDxValid)
-                              icon_theta = (gHdt + 90.) * PI / 180.;
 
                         wxPoint ownship_icon[10];
                         for ( int i=0; i<10 ; i++ )
@@ -1549,8 +1842,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                                 pya /= 1.5;
                                 pxa /= 1.5;
 
-                                double px = ( pxa * sin ( icon_theta ) ) + ( pya * cos ( icon_theta ) );
-                                double py = ( pya * sin ( icon_theta ) ) - ( pxa * cos ( icon_theta ) );
+                                double px = ( pxa * sin ( icon_rad ) ) + ( pya * cos ( icon_rad ) );
+                                double py = ( pya * sin ( icon_rad ) ) - ( pxa * cos ( icon_rad ) );
 
                                 ownship_icon[i].x = ( int ) ( px ) + lShipPoint.x;
                                 ownship_icon[i].y = ( int ) ( py ) + lShipPoint.y;
@@ -1571,12 +1864,15 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       if(SHIP_NORMAL == m_ownship_state)
                             dc.SetBrush ( wxBrush ( ship_color, wxTRANSPARENT ) );
                       else
-                            dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "UYELLOW" )) ) );
+                            dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "YELO1" )) ) );
 
                       dc.DrawEllipse ( lShipPoint.x - 10, lShipPoint.y - 10, 20, 20 );
                       dc.DrawEllipse ( lShipPoint.x -  6, lShipPoint.y -  6, 12, 12 );
 
                 }
+
+#endif      //USE_PNG_OWNSHIP
+
 
 //    Test code to draw CEP circle based on chart scale
 
@@ -1598,8 +1894,49 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       wxPoint r;
                       ll_gc_ll ( gLat, gLon, 0, factor, &tlat, &tlon );
                       GetCanvasPointPix ( tlat, tlon, &r );
-                      int pix_radius = abs(lShipPoint.y - r.y);
+//                      int pix_radius = abs(lShipPoint.y - r.y);
 
+                      double lpp = sqrt(pow((double)(lShipPoint.x - r.x), 2) + pow((double)(lShipPoint.y - r.y), 2));
+                      int pix_radius = (int)lpp;
+
+#if wxUSE_GRAPHICS_CONTEXT
+
+                      wxGraphicsContext *pgc;
+
+                      wxMemoryDC *pmdc = wxDynamicCast(&dc, wxMemoryDC);
+                      if(pmdc)
+                      {
+                            pgc = wxGraphicsContext::Create(*pmdc);
+                      }
+                      else
+                      {
+                            wxClientDC *pcdc = wxDynamicCast(&dc, wxClientDC);
+                            if(pcdc)
+                                  pgc = wxGraphicsContext::Create(*pcdc);
+                      }
+
+
+                      if(pgc)
+                      {
+                            wxPen ppPen1 ( GetGlobalColor ( _T ( "URED" ) ) , 2 );
+                            pgc->SetPen(ppPen1);
+
+                            for (int i=1; i<=g_iNavAidRadarRingsNumberVisible;i++)
+                            {
+                                  int RadiusRing;
+                                  RadiusRing = i * pix_radius;
+
+                                  wxGraphicsPath gpath = pgc->CreatePath();
+
+                                  gpath.AddCircle(lShipPoint.x, lShipPoint.y, RadiusRing);
+                                  pgc->StrokePath(gpath);
+
+                                  dc.CalcBoundingBox(lShipPoint.x + RadiusRing , lShipPoint.y + RadiusRing);               // keep dc dirty box up-to-date
+                                  dc.CalcBoundingBox(lShipPoint.x - RadiusRing , lShipPoint.y - RadiusRing);
+                            }
+                      }
+
+#else
                       dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "URED" ) ) , 2 ) );
 
                       wxBrush CurrentBrush = dc.GetBrush();
@@ -1612,6 +1949,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                             dc.DrawCircle(lShipPoint.x, lShipPoint.y, RadiusRing);
                       }
                       dc.SetBrush(CurrentBrush);
+#endif
                 }
 
 
@@ -2419,7 +2757,6 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
         }
 
 
-
 //    AIS Target Rollover
         if(g_pAIS && g_pAIS->GetNumTargets())
         {
@@ -3189,7 +3526,7 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                                 pdef_menu->Append ( ID_DEF_MENU_QUERY,  _T ( "Object Query" ) );
 
                         if(m_bMeasure_Active)
-                              PopupMenu ( pdef_menu, 10,10 );           // if measure tool is on, position the menu statically
+                              PopupMenu ( pdef_menu, x,y /*10,10*/ );           // if measure tool is on, position the menu statically
                         else
                               PopupMenu ( pdef_menu, x, y );
 
@@ -3638,6 +3975,8 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
               case ID_TK_MENU_DELETE:
               {
+                    if(m_pSelectedRoute == g_pActiveTrack)
+                        parent_frame->TrackOff();
                     pRouteMan->DeleteRoute ( m_pSelectedRoute );
                     m_pSelectedRoute = NULL;
                     m_pFoundRoutePoint = NULL;
@@ -4023,7 +4362,7 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
 
 //    Draw the WVSChart only in the areas NOT covered by the current chart view
 //    And, only if the region is ..not.. empty
-        if ( !WVSRegion.IsEmpty() && ( fabs ( Current_Ch->GetChartSkew() ) < 1.0 ) )
+        if ( !WVSRegion.IsEmpty() && ( fabs ( Current_Ch->GetChartSkew() ) < 1.0 ) && (VPoint.view_scale_ppm > 5e-05) )
                 pwvs_chart->RenderViewOnDC ( temp_dc, VPoint );
 
         //    This is a bit of debug code.
@@ -4124,9 +4463,9 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
               int hilite_offset = 3;
               scratch_dc.GetTextExtent(s, &w, &h);
 
-              if((brg >= 0.) && (brg < 180.))
+              if(true/*(brg >= 0.) && (brg < 180.)*/)
               {
-                    angle = 90. - brg;
+                    angle = 0; //90. - brg;
 
                     xp = r_rband.x  - (w * cos((angle) * PI / 180.));
                     yp = r_rband.y  + (w * sin((angle) * PI / 180.));
@@ -4142,7 +4481,7 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
               }
               else
               {
-                    angle = 270. - brg;
+                    angle = 0; //270. - brg;
 
                     xp = r_rband.x;
                     yp = r_rband.y;
@@ -4195,7 +4534,7 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
                 if ( b_newview || m_bTCupdate )         // need to update the overlay
                 {
                         delete pss_overlay_bmp;
-                        pss_overlay_bmp = DrawTCCBitmap();
+                        pss_overlay_bmp = DrawTCCBitmap(&scratch_dc);
                 }
 
                 //    blit the semi-static overlay onto the scratch DC if it is needed
@@ -4445,15 +4784,21 @@ int *ChartCanvas::CreateEmbossMap ( wxFont &font, int width, int height, const c
 //  Get a wxBitmap with wxMask associated containing the semi-static overlays
 //----------------------------------------------------------------------------
 
-wxBitmap *ChartCanvas::DrawTCCBitmap ( bool bAddNewSelpoints )
+wxBitmap *ChartCanvas::DrawTCCBitmap ( wxDC *pbackground_dc, bool bAddNewSelpoints )
 {
         wxBitmap *p_bmp = new wxBitmap ( VPoint.pix_width, VPoint.pix_height, -1 );
 
-        //      Here is the drawing DC
+        //      Here is the new drawing DC
         wxMemoryDC ssdc;
         ssdc.SelectObject ( *p_bmp );
-        ssdc.SetBackground ( *wxBLACK_BRUSH );
-        ssdc.Clear();
+        ssdc.SetBackground ( *wxWHITE_BRUSH );
+
+        //  if a background dc is provided, use it as wallpaper
+        if(pbackground_dc)
+            ssdc.Blit(0, 0, VPoint.pix_width, VPoint.pix_height, pbackground_dc, 0, 0);
+        else
+              ssdc.Clear();
+
 
         //      Believe it or not, it is faster to REDRAW the overlay objects
         //      onto a mono bitmap, and then convert it into a mask bitmap
@@ -5966,6 +6311,73 @@ ocpCursor::ocpCursor ( const char **xpm_data, long type,
 #endif   // __WXOSX__ end rms
 
 
+
+
+
+//------------------------------------------------------------------------------
+//    AISInfoWin Implementation
+//------------------------------------------------------------------------------
+BEGIN_EVENT_TABLE ( AISInfoWin, wxWindow )
+            EVT_PAINT ( AISInfoWin::OnPaint )
+            END_EVENT_TABLE()
+
+
+// constructor
+AISInfoWin::AISInfoWin ( wxWindow *parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name):
+            wxWindow(parent, id, pos, size, wxSIMPLE_BORDER)
+{
+}
+
+
+AISInfoWin::~AISInfoWin(void)
+{
+}
+
+void AISInfoWin::OnPaint(wxPaintEvent& event)
+{
+      int width, height;
+      GetClientSize(&width, &height );
+      wxPaintDC dc(this);
+
+      dc.SetFont(GetFont());
+      dc.SetBackground(wxBrush(GetBackgroundColour()));
+      dc.SetTextForeground(GetForegroundColour());
+      dc.SetBackgroundMode(wxTRANSPARENT);
+
+      dc.Clear();
+
+      if(m_text.Len())
+      {
+            int font_size_x, font_size_y, font_descent, font_lead;
+            dc.GetTextExtent(_T("1"), &font_size_x, &font_size_y, &font_descent, &font_lead);
+            int dy = font_size_y;
+
+            int y = 0;
+            int x_offset = 4;
+            unsigned int i = 0;
+            wxString line;
+
+            while(i < m_text.Len() - 1)
+            {
+                  while(m_text[i] != '\n' && i < m_text.Len() - 1)
+                        line.Append(m_text[i++]);
+
+                  dc.DrawText(line, x_offset, y);
+
+                  i++;
+                  y += dy;
+                  line.Clear();
+            }
+      }
+}
+
+void AISInfoWin::AppendText(wxString &text)
+{
+      m_text = text;
+      Refresh(false);
+}
+
+
 //---------------------------------------------------------------------------------------
 //          AISTargetQueryDialog Implementation
 //---------------------------------------------------------------------------------------
@@ -5976,13 +6388,10 @@ IMPLEMENT_CLASS ( AISTargetQueryDialog, wxDialog )
 
             BEGIN_EVENT_TABLE ( AISTargetQueryDialog, wxDialog )
             EVT_BUTTON( ID_AISDIALOGOK, AISTargetQueryDialog::OnIdOKClick )
-
             EVT_CLOSE(AISTargetQueryDialog::OnClose)
-
             END_EVENT_TABLE()
 
-
-            AISTargetQueryDialog::AISTargetQueryDialog( )
+ AISTargetQueryDialog::AISTargetQueryDialog( )
 {
       Init();
 }
@@ -6005,6 +6414,7 @@ void AISTargetQueryDialog::Init( )
 {
       m_MMSI = 0;
       m_pQueryTextCtl = NULL;
+      m_nl = 0;
 
 }
 void AISTargetQueryDialog::OnClose(wxCloseEvent& event)
@@ -6018,13 +6428,6 @@ void AISTargetQueryDialog::OnIdOKClick( wxCommandEvent& event )
       Close();
 }
 
-
-void AISTargetQueryDialog::SetMMSI(int mmsi)
-{
-      m_MMSI = mmsi;
-}
-
-
 bool AISTargetQueryDialog::Create ( wxWindow* parent,
                                     wxWindowID id, const wxString& caption,
                                     const wxPoint& pos, const wxSize& size, long style )
@@ -6037,8 +6440,10 @@ bool AISTargetQueryDialog::Create ( wxWindow* parent,
         //    will not detract from night-vision
 
       long wstyle = wxDEFAULT_FRAME_STYLE;
-      if ( global_color_scheme != GLOBAL_COLOR_SCHEME_DAY )
+      if (( global_color_scheme != GLOBAL_COLOR_SCHEME_DAY ) && ( global_color_scheme != GLOBAL_COLOR_SCHEME_RGB ))
             wstyle |= ( wxNO_BORDER );
+
+      m_colorscheme = global_color_scheme;
 
       if ( !wxDialog::Create ( parent, id, caption, pos, size, wstyle ) )
             return false;
@@ -6046,14 +6451,14 @@ bool AISTargetQueryDialog::Create ( wxWindow* parent,
       wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
       SetBackgroundColour ( back_color );
 
-      wxFont *dFont = wxTheFontList->FindOrCreateFont ( 10, wxFONTFAMILY_TELETYPE,
-                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+//      wxFont *dFont = wxTheFontList->FindOrCreateFont ( 10, wxFONTFAMILY_TELETYPE,
+//                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+
+      wxFont *dFont = pFontMgr->GetFont(_T("AISTargetQuery"), 10);
 
       SetFont ( *dFont );
       CreateControls();
 
-//      SetDialogHelp();
-//      SetDialogValidators();
 
 // This fits the dialog to the minimum size dictated by
 // the sizers
@@ -6065,7 +6470,33 @@ bool AISTargetQueryDialog::Create ( wxWindow* parent,
 
 // Centre the dialog on the parent or (if none) screen
       Centre();
+
       return true;
+}
+
+void AISTargetQueryDialog::SetColorScheme(ColorScheme cs)
+{
+      if(cs != m_colorscheme)
+      {
+            long wstyle = wxDEFAULT_FRAME_STYLE;
+            if (( global_color_scheme != GLOBAL_COLOR_SCHEME_DAY ) && ( global_color_scheme != GLOBAL_COLOR_SCHEME_RGB ))
+                  wstyle |= ( wxNO_BORDER );
+
+            SetWindowStyle(wstyle);
+
+            m_colorscheme = cs;
+
+            if(m_pQueryTextCtl)
+            {
+                  wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
+                  m_pQueryTextCtl->SetBackgroundColour ( back_color );
+
+                  wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
+                  m_pQueryTextCtl->SetForegroundColour ( text_color );
+            }
+
+            Refresh();
+      }
 }
 
 
@@ -6076,16 +6507,19 @@ void AISTargetQueryDialog::CreateControls()
 
 // A top-level sizer
       wxBoxSizer* topSizer = new wxBoxSizer ( wxVERTICAL );
-      this->SetSizer ( topSizer );
+      SetSizer ( topSizer );
 
 // A second box sizer to give more space around the controls
-      wxBoxSizer* boxSizer = new wxBoxSizer ( wxVERTICAL );
-      topSizer->Add ( boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+      m_pboxSizer = new wxBoxSizer ( wxVERTICAL );
+      topSizer->Add ( m_pboxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
 // Here is the query result
 
-      m_pQueryTextCtl = new wxTextCtrl ( this, -1, _T ( "" ),
-                  wxDefaultPosition, wxSize ( 500, 500 ), wxTE_MULTILINE /*| wxTE_DONTWRAP*/ | wxTE_READONLY );
+//      m_pQueryTextCtl = new wxTextCtrl ( this, -1, _T ( "" ),
+//                  wxDefaultPosition, wxSize ( -1, -1 ), wxTE_MULTILINE /*| wxTE_DONTWRAP*/ | wxTE_READONLY );
+
+      m_pQueryTextCtl = new AISInfoWin ( this );
+
 
       wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
       m_pQueryTextCtl->SetBackgroundColour ( back_color );
@@ -6093,19 +6527,12 @@ void AISTargetQueryDialog::CreateControls()
       wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
       m_pQueryTextCtl->SetForegroundColour ( text_color );
 
-      boxSizer->Add ( m_pQueryTextCtl, 0, wxALIGN_LEFT|wxALL|wxADJUST_MINSIZE, 5 );
+      m_pboxSizer->Add ( m_pQueryTextCtl, 0, wxALIGN_LEFT|wxALL, 0 );
 
-      wxFont *qFont = wxTheFontList->FindOrCreateFont ( 12, wxFONTFAMILY_TELETYPE,
-                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
-      m_pQueryTextCtl->SetFont ( *qFont );
-
-      m_pQueryTextCtl->SetSelection ( 0,0 );
-      m_pQueryTextCtl->SetInsertionPoint ( 0 );
 
 // A horizontal box sizer to contain Reset, OK, Cancel and Help
       wxBoxSizer* okCancelBox = new wxBoxSizer ( wxHORIZONTAL );
-      boxSizer->Add ( okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,
-                      5 );
+      topSizer->Add ( okCancelBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 //    Button color
       wxColour button_color = GetGlobalColor ( _T ( "UIBCK" ) );;
@@ -6121,23 +6548,41 @@ void AISTargetQueryDialog::CreateControls()
 void AISTargetQueryDialog::UpdateText()
 {
       wxString query_text;
+      int n_nl;
+
+      if(m_pQueryTextCtl)
+             m_pQueryTextCtl->Clear();
+
       if(m_MMSI)
       {
             AIS_Target_Data *td = g_pAIS->Get_Target_Data_From_MMSI(m_MMSI);
             if(td)
             {
-                  td->BuildQueryResult(&query_text, NULL);
+                  query_text = td->BuildQueryResult(&n_nl);
+
+                  if(m_pQueryTextCtl)
+                  {
+                        int font_size_x, font_size_y, font_descent, font_lead;
+                        m_pQueryTextCtl->GetTextExtent(_T("1"), &font_size_x, &font_size_y, &font_descent, &font_lead);
+                        int sy = (font_size_y * n_nl) + 4;
+                        int sx = font_size_x * 50;
+
+                        m_pQueryTextCtl->SetSize(wxSize(sx, sy));
+                        m_pboxSizer->SetMinSize(wxSize(sx, sy));
+                        m_pboxSizer->FitInside(m_pQueryTextCtl);
+
+                        m_pQueryTextCtl->AppendText ( query_text );
+                        m_pQueryTextCtl->SetInsertionPoint ( 0 );
+
+                        //    Grow/Shrink "this" to fit the contents
+                        if(n_nl != m_nl)
+                        {
+                              m_nl = n_nl;
+                              Fit();
+                        }
+                  }
             }
       }
-      if(m_pQueryTextCtl)
-      {
-            m_pQueryTextCtl->Clear();
-            m_pQueryTextCtl->AppendText ( query_text );
-//            m_pQueryTextCtl->AppendText ( _T("\n") );
-      }
-
-      //    Grow/Shrink "this" to fit the contents
-      Fit();
 }
 
 
@@ -6163,7 +6608,7 @@ S57QueryDialog::S57QueryDialog ( wxWindow* parent,
                                  wxWindowID id, const wxString& caption,
                                  const wxPoint& pos, const wxSize& size, long style )
 {
-        Init();
+      Init();
         Create ( parent, id, caption, pos, size, style );
 }
 
@@ -6227,9 +6672,6 @@ bool S57QueryDialog::Create ( wxWindow* parent,
 
         SetFont ( *dFont );
         CreateControls();
-
-//      SetDialogHelp();
-//      SetDialogValidators();
 
 // This fits the dialog to the minimum size dictated by
 // the sizers
@@ -6366,6 +6808,8 @@ void S57QueryDialog::SetSelectedItem(wxTreeItemId item_id)
             m_pQueryTextCtl->AppendText ( QueryResult );
       }
 
+      m_pQueryTextCtl->SetInsertionPoint(0);
+
       m_pQueryTextCtl->Refresh();
 
 }
@@ -6374,6 +6818,7 @@ void S57QueryDialog::OnPaint ( wxPaintEvent& event )
 {
       m_pQueryTextCtl->Clear();
       m_pQueryTextCtl->AppendText ( QueryResult );
+      m_pQueryTextCtl->SetInsertionPoint(0);
 
 }
 

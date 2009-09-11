@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.32 2009/09/01 22:17:15 bdbcat Exp $
+ * $Id: chcanv.h,v 1.33 2009/09/11 20:42:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.33  2009/09/11 20:42:29  bdbcat
+ * Implement png graphics, new AIS Query dialog
+ *
  * Revision 1.32  2009/09/01 22:17:15  bdbcat
  * New Methods
  *
@@ -367,7 +370,8 @@ private:
       void DrawTCWindow(int x, int y, void *pIDX);
       void RenderChartOutline(wxDC *pdc, int dbIndex, ViewPort& vp, bool bdraw_mono = false);
       void RenderAllChartOutlines(wxDC *pdc, ViewPort& vp, bool bdraw_mono = false);
-      wxBitmap *DrawTCCBitmap(bool bAddNewSelpoints = true);
+      wxBitmap *DrawTCCBitmap( wxDC *pbackground_dc, bool bAddNewSelpoints = true);
+
       void AISDraw(wxDC& dc);
       void ScaleBarDraw( wxDC& dc, int x_origin, int y_origin );
 
@@ -577,6 +581,8 @@ public:
             const wxSize& size = wxDefaultSize,
             long style = wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU );
 
+      void SetColorScheme(ColorScheme cs);
+
       /// Creates the controls and sizers
       void CreateControls();
 
@@ -584,6 +590,7 @@ public:
       void SetObjectTree(void **pOD, int n_items);
 
       void SetSelectedItem(wxTreeItemId item_id);                  // a "notification" from Tree control
+
 
       wxString format_attributes(wxString &attr, int lcol, int rcol);
 
@@ -605,6 +612,8 @@ public:
 
 };
 
+
+class AISInfoWin;
 
 //----------------------------------------------------------------------------------------------------------
 //    AISTargetQueryDialog Specification
@@ -642,13 +651,18 @@ public:
       void CreateControls();
 
       void SetText(wxString &text_string);
+      void SetColorScheme(ColorScheme cs);
 
       void UpdateText(void);
-      void SetMMSI(int mmsi);
-
+      void SetMMSI(int mmsi){ m_MMSI = mmsi; }
+      int  GetMMSI(void){ return m_MMSI; }
       //    Data
       int               m_MMSI;
-      wxTextCtrl        *m_pQueryTextCtl;
+//      wxTextCtrl        *m_pQueryTextCtl;
+      AISInfoWin        *m_pQueryTextCtl;
+      ColorScheme       m_colorscheme;
+      wxBoxSizer        *m_pboxSizer;
+      int               m_nl;
 };
 
 
@@ -717,5 +731,31 @@ class AISroWin: public wxWindow
 
             DECLARE_EVENT_TABLE()
 };
+
+
+//------------------------------------------------------------------------------
+//    AISInfoWin Specification
+//------------------------------------------------------------------------------
+
+class AISInfoWin : public wxWindow
+{
+      public:
+            AISInfoWin ( wxWindow *parent, wxWindowID id = -1, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                         long style = 0, const wxString& name = _T(""));
+
+            ~AISInfoWin(void);
+
+            void OnPaint(wxPaintEvent& event);
+            void AppendText(wxString &text);
+            void Clear(void){}
+            void SetInsertionPoint(int pt){}
+
+            wxString    m_text;
+
+
+            DECLARE_EVENT_TABLE()
+
+};
+
 
 #endif
