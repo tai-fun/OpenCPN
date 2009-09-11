@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.20 2009/09/04 01:57:51 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.21 2009/09/11 20:10:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.21  2009/09/11 20:10:17  bdbcat
+ * Improve dictionary search
+ *
  * Revision 1.20  2009/09/04 01:57:51  bdbcat
  * Improve Chart outline algorithm
  *
@@ -4621,6 +4624,10 @@ cm93_dictionary *cm93compchart::FindAndLoadDictFromDir(const wxString &dir)
             target.Append(path[i]);
             if(path[i] == wxFileName::GetPathSeparator())
             {
+                  wxString msg = _T(" Looking for CM93 dictionary in ");
+                  msg.Append(target);
+                  wxLogMessage(msg);
+
                   if(pdict->LoadDictionary(target))
                   {
                         retval = pdict;
@@ -4647,23 +4654,30 @@ cm93_dictionary *cm93compchart::FindAndLoadDictFromDir(const wxString &dir)
       {
             path = fnc.GetPath(wxPATH_GET_VOLUME);        // get path without sep
 
+            wxString msg = _T(" Looking harder for CM93 dictionary in ");
+            msg.Append(path);
+            wxLogMessage(msg);
+
 
             if((path.Len() == 0) || path.IsSameAs(fnc.GetPathSeparator()))
             {
                   bdone = true;
+                  wxLogMessage(_T("Early break1"));
                   break;
             }
 
             //    Abort the search loop if the directory tree does not contain some indication of CM93
-            if((wxNOT_FOUND == path.Find((const wxChar *)"cm93")) && (wxNOT_FOUND == path.Find((const wxChar *)"CM93")))
+            if((wxNOT_FOUND == path.Find(_T("cm93"))) && (wxNOT_FOUND == path.Find(_T("CM93"))))
             {
                   bdone = true;
+                  wxLogMessage(_T("Early break2"));
                   break;
             }
 
 //    Search here
-//    This takeas a while to search a fully populated cm93 tree....
+//    This takes a while to search a fully populated cm93 tree....
             wxDir dir(path);
+
             if(dir.IsOpened())
             {
                   found_dict_file_name = dir.FindFirst(path, _T("CM93OBJ.dic"));
