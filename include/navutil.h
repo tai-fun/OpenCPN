@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.18 2009/08/30 03:30:34 bdbcat Exp $
+ * $Id: navutil.h,v 1.19 2009/09/11 23:19:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.19  2009/09/11 23:19:18  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.18  2009/08/30 03:30:34  bdbcat
  * New Methods
  *
@@ -163,6 +166,9 @@ public:
                                           unsigned char rval, unsigned char gval, unsigned char bval, unsigned char transparency);
       void ReLoadIcon(void);
 
+      wxString CreatePropString(void);
+      void SetPropFromString(const wxString &prop_string);
+
       void SetPosition(double lat, double lon);
       void CalculateDCRect(wxDC& dc, wxRect *prect);
 
@@ -187,6 +193,8 @@ public:
       wxString          m_MarkDescription;
       wxString          m_GUID;
       wxString          m_IconName;
+      wxString          m_prop_string_format;         // Alpha character, like "A", giving version of property string
+
       wxBitmap          *m_pbmIcon;
       bool              m_bBlink;
       bool              m_bDynamicName;
@@ -196,7 +204,8 @@ public:
       int               m_NameLocationOffsetY;
       wxDateTime        m_CreateTime;
 
-      HyperlinkList     *m_HyperlinkList; // toh, 2009.02.14
+      HyperlinkList     *m_HyperlinkList;
+
 
 };
 
@@ -541,7 +550,7 @@ public:
       FontMgr();
       ~FontMgr();
 
-      wxFont *GetFont(const wxString &TextElement);
+      wxFont *GetFont(const wxString &TextElement, int default_size = 0);
 
       int GetNumFonts(void);
       wxString *GetConfigString(int i);

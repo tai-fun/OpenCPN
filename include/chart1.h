@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.28 2009/08/31 02:36:46 bdbcat Exp $
+ * $Id: chart1.h,v 1.29 2009/09/11 23:19:18 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.29  2009/09/11 23:19:18  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.28  2009/08/31 02:36:46  bdbcat
  * New Methods
  *
@@ -124,6 +127,7 @@
 #include "nmea0183.h"
 
 
+
 //    Global Static utility functions
 extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
                              const char * pszErrorMsg );
@@ -131,10 +135,18 @@ extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
 wxArrayString *EnumerateSerialPorts(void);
 wxColour GetGlobalColor(wxString colorName);
 
+class OCPN_NMEAEvent;
 
 //----------------------------------------------------------------------------
 //   constants
 //----------------------------------------------------------------------------
+#define OCPN_USE_PNGICONS
+#define USE_PNG_TIDESML
+#define USE_PNG_OWNSHIP
+#define USE_PNG_CURSOR
+
+
+
 
 #define TIMER_GFRAME_1 999
 
@@ -257,6 +269,7 @@ class MyFrame: public wxFrame
     bool DoChartUpdate(int bSelectType);
     void OnEvtNMEA(wxCommandEvent& event);
     void OnEvtTHREADMSG(wxCommandEvent& event);
+    void OnEvtOCPN_NMEA(OCPN_NMEAEvent & event);
 
     void UpdateAllFonts(void);
     void PositionConsole(void);
@@ -281,6 +294,8 @@ class MyFrame: public wxFrame
     void ClearbFollow(void);
     void ToggleChartOutlines(void);
     void ToggleENCText(void);
+    void TrackOn(void);
+    void TrackOff(void);
 
     ColorScheme GetColorScheme();
     void SetAndApplyColorScheme(ColorScheme cs);
@@ -313,6 +328,7 @@ class MyFrame: public wxFrame
     void BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index,
                          string_to_pbitmap_hash &hash);
     void ApplyGlobalColorSchemetoStatusBar(void);
+    void PostProcessNNEA(bool brx_rmc, wxString &sfixtime);
 
     int  toolbar_width_without_static;
 
