@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.58 2009/09/04 02:00:53 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.59 2009/09/11 23:19:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.59  2009/09/11 23:19:46  bdbcat
+ * Implement png graphics
+ *
  * Revision 1.58  2009/09/04 02:00:53  bdbcat
  * Improve debug messages
  *
@@ -182,6 +185,7 @@
 #include "wx/printdlg.h"
 #include "wx/artprov.h"
 #include "wx/stdpaths.h"
+#include "scrollingdialog.h"
 
 
 
@@ -242,7 +246,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.58 2009/09/04 02:00:53 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.59 2009/09/11 23:19:46 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -546,27 +550,39 @@ void InitializeUserColors(void);
 void DeInitializeUserColors(void);
 void SetSystemColors(ColorScheme cs);
 
+
+//------------------------------------------------------------------------------
+//    PNG Icon resources
+//------------------------------------------------------------------------------
+#ifdef OCPN_USE_PNGICONS
+
+#include "bitmaps/icons.h"
+#include "bitmaps/icons.cpp"
+
+#endif
+
 // ----------------------------------------------------------------------------
 // Icon resources
 // ----------------------------------------------------------------------------
-
-#include "bitmaps/settings.xpm"
-#include "bitmaps/zoomin.xpm"
-#include "bitmaps/zoomout.xpm"
-#include "bitmaps/scin.xpm"
-#include "bitmaps/scout.xpm"
-#include "bitmaps/tide.xpm"
-#include "bitmaps/text.xpm"
-#include "bitmaps/route.xpm"
-#include "bitmaps/exitt.xpm"
-#include "bitmaps/follow.xpm"
-#include "bitmaps/current.xpm"
-#include "bitmaps/print.xpm"
-#include "bitmaps/help.xpm"
-#include "bitmaps/colscheme.xpm"
-#include "bitmaps/gpx_import.xpm"   // toh, 2009.02.14
-#include "bitmaps/gpx_export.xpm"   // toh, 2009.02.14
-#include "bitmaps/track.xpm"
+#ifndef OCPN_USE_PNGICONS
+ #include "bitmaps/settings.xpm"
+ #include "bitmaps/zoomin.xpm"
+ #include "bitmaps/zoomout.xpm"
+ #include "bitmaps/scin.xpm"
+ #include "bitmaps/scout.xpm"
+ #include "bitmaps/tide.xpm"
+ #include "bitmaps/text.xpm"
+ #include "bitmaps/route.xpm"
+ #include "bitmaps/exitt.xpm"
+ #include "bitmaps/follow.xpm"
+ #include "bitmaps/current.xpm"
+ #include "bitmaps/print.xpm"
+ #include "bitmaps/help.xpm"
+ #include "bitmaps/colscheme.xpm"
+ #include "bitmaps/gpx_import.xpm"
+ #include "bitmaps/gpx_export.xpm"
+ #include "bitmaps/track.xpm"
+#endif
 
 //------------------------------------------------------------------------------
 //              Fwd Refs
@@ -643,7 +659,7 @@ bool MyApp::OnInit()
 #endif
 
 #ifdef __WXMSW__
-//      _CrtSetBreakAlloc(161121);
+      _CrtSetBreakAlloc(173707);
 #endif
 
 
@@ -777,6 +793,15 @@ bool MyApp::OnInit()
         CPLSetErrorHandler( MyCPLErrorHandler );
 #endif
 
+
+//    Initialize embedded PNG icon graphics
+#ifdef OCPN_USE_PNGICONS
+        ::wxInitAllImageHandlers();
+//        wxImage::AddHandler(wxPNGHandler);
+        initialize_images();
+#endif
+
+
 //      Create some static strings
         pNMEADataSource = new wxString();
         pNMEA_AP_Port = new wxString();
@@ -863,12 +888,14 @@ bool MyApp::OnInit()
             wxLogMessage(_T("Using existing Config_File: ") + Config_File);
         else
         {
-            wxString msg1(_T("Cannot find Config File "));
+/*
+              wxString msg1(_T("Cannot find Config File "));
               msg1.Append(Config_File);
               msg1.Append(_T("...OK to create? (will exit if No)"));
 
               wxMessageDialog mdlg(gFrame, msg1, wxString(_T("OpenCPN")),wxYES_NO  );
               if(mdlg.ShowModal() == wxID_YES)
+*/
               {
                   wxLogMessage(_T("Creating new Config_File: ") + Config_File);
 
@@ -879,11 +906,13 @@ bool MyApp::OnInit()
                        if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
                                wxLogMessage(_T("Cannot create config file directory for ") + Config_File);
               }
+/*
               else
               {
                    Config_File.Clear();
                    return false;                    // Probably will provoke some memory leakage....
               }
+*/
         }
 
 //      Open/Create the Config Object
@@ -1187,10 +1216,6 @@ bool MyApp::OnInit()
 
         stats = new StatWin(gFrame);
 
-        //  Moved to MyFrame ctor
-//        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, wxString("TCP/IP:66.235.48.168"));  // a test
-//        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, *pAIS_Port);
-
         pAPilot = new AutoPilotWindow(gFrame, *pNMEA_AP_Port);
 
 #ifdef USE_WIFI_CLIENT
@@ -1209,22 +1234,6 @@ bool MyApp::OnInit()
         if(g_bframemax)
             gFrame->Maximize(true);
 
-/*
-#ifdef USE_S57
-//      Try to validate the ISO8211 library
-//      especially the ability to do ddfrecord updates
-//      which is required for s57 ENC updates.
-
-        if(!s57_ddfrecord_test())
-        {
-            wxString message(_T("GDAL/OGR library is not up-to-date.\n"));
-            message.Append(_T("S57 ENC Updates will be disabled.\n"));
-            message.Append(_T("Please see README file."));
-            wxMessageDialog mdlg(gFrame, message, wxString(_T("OpenCPN")),wxICON_INFORMATION | wxOK );
-            mdlg.ShowModal();
-        }
-#endif
-*/
 
 //      Try to load the current chart list Data file
         ChartData = new ChartDB(gFrame);
@@ -1261,17 +1270,17 @@ bool MyApp::OnInit()
                   double clat, clon;
                   if(ChartData->GetCentroidOfLargestScaleChart(&clat, &clon, CHART_FAMILY_RASTER))
                   {
+                        gLat = clat;
+                        gLon = clon;
                         gFrame->ClearbFollow();
-                        vLat = clat;
-                        vLon = clon;
                   }
                   else
                   {
                         if(ChartData->GetCentroidOfLargestScaleChart(&clat, &clon, CHART_FAMILY_VECTOR))
                         {
+                              gLat = clat;
+                              gLon = clon;
                               gFrame->ClearbFollow();
-                              vLat = clat;
-                              vLon = clon;
                         }
                   }
 
@@ -1521,12 +1530,13 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
         else
            g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, this, *pNMEADataSource, &m_mutexNMEAEvent );
 
-//        g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, this, *pNMEADataSource, &m_mutexNMEAEvent);
-
 
 //        pAIS = new AIS_Decoder(ID_AIS_WINDOW, gFrame, wxString("TCP/IP:66.235.48.168"));  // a test
         g_pAIS = new AIS_Decoder(ID_AIS_WINDOW, this, *pAIS_Port, &m_mutexNMEAEvent);
 
+
+        //  Create/connect a dynamic event handler slot for OCPN_NMEAEvent(s) coming from NMEA or AIS threads
+        Connect(wxEVT_OCPN_NMEA, (wxObjectEventFunction)(wxEventFunction)&MyFrame::OnEvtOCPN_NMEA);
 
 //  Initialize the Printer data structures
 
@@ -1690,6 +1700,24 @@ void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
       if(pMarkInfoDialog)
             pMarkInfoDialog->SetColorScheme(cs);
 
+      //    For the AIS target query dialog, we must rebuild it to incorporate the style desired for the colorscheme selected
+      if(g_pais_query_dialog_active)
+      {
+            bool b_isshown = g_pais_query_dialog_active->IsShown();
+            int n_mmsi = g_pais_query_dialog_active->GetMMSI();
+            if(b_isshown)
+                  g_pais_query_dialog_active->Show(false);              // dismiss it
+
+
+            g_pais_query_dialog_active->Close();
+
+            g_pais_query_dialog_active = new AISTargetQueryDialog();
+            g_pais_query_dialog_active->Create ( this, -1, wxT ( "AIS Target Query" ) );
+            g_pais_query_dialog_active->SetMMSI(n_mmsi);
+            g_pais_query_dialog_active->UpdateText();
+            if(b_isshown)
+                  g_pais_query_dialog_active->Show();
+      }
 
       ApplyGlobalColorSchemetoStatusBar();
 
@@ -1745,7 +1773,7 @@ wxToolBar *MyFrame::CreateAToolbar()
     style |= wxTB_HORIZONTAL ;
     m_ptool_ct_dummy = NULL;
 
-    tb = new wxToolBar(this, -1, wxPoint(-1, -1), wxSize(-1, -1), wxTB_HORIZONTAL | wxNO_BORDER);
+    tb = new wxToolBar(this, -1, wxPoint(-1, -1), wxSize(-1, -1), wxTB_HORIZONTAL | wxNO_BORDER | wxTB_FLAT);
 
     tb->SetToolBitmapSize(wxSize(32,32));
     tb->SetRows(1);
@@ -1810,40 +1838,40 @@ wxToolBar *MyFrame::CreateAToolbar()
     tb->AddTool( ID_ZOOMOUT, _T(""), *(*phash)[wxString(_T("zoomout"))], _T(""), wxITEM_NORMAL);
     x += pitch_tool;
 
-    tb->AddSeparator();
-    x += pitch_sep;
+//    tb->AddSeparator();
+//    x += pitch_sep;
 
     tb->AddTool( ID_STKDN, _T(""), *(*phash)[wxString(_T("scin"))], _T("Shift to Larger Scale Chart"), wxITEM_NORMAL);
     x += pitch_tool;
     tb->AddTool( ID_STKUP, _T(""),*(*phash)[wxString(_T("scout"))], _T("Shift to Smaller Scale Chart"), wxITEM_NORMAL);
     x += pitch_tool;
 
-    tb->AddSeparator();
-    x += pitch_sep;
+//    tb->AddSeparator();
+//    x += pitch_sep;
 
     tb->AddTool( ID_ROUTE, _T(""), *(*phash)[wxString(_T("route"))], _T("Create Route"), wxITEM_NORMAL);
     x += pitch_tool;
     tb->AddTool( ID_FOLLOW, _T(""), *(*phash)[wxString(_T("follow"))], _T("Auto Follow"), wxITEM_CHECK);
     x += pitch_tool;
 
-    tb->AddSeparator();
-    x += pitch_sep;
+//    tb->AddSeparator();
+ //   x += pitch_sep;
 
     tb->AddTool( ID_SETTINGS, _T(""), *(*phash)[wxString(_T("settings"))], _T("ToolBox"), wxITEM_NORMAL);
     x += pitch_tool;
     tb->AddTool( ID_TEXT, _T(""), *(*phash)[wxString(_T("text"))], _T("Show ENC Text"), wxITEM_CHECK);
     x += pitch_tool;
 
-    tb->AddSeparator();
-    x += pitch_sep;
+//    tb->AddSeparator();
+//    x += pitch_sep;
 
     tb->AddTool( ID_CURRENT, _T(""), *(*phash)[wxString(_T("current"))], _T("Show Currents"), wxITEM_CHECK);
     x += pitch_tool;
     tb->AddTool( ID_TIDE, _T(""), *(*phash)[wxString(_T("tide"))], _T("Show Tides"), wxITEM_CHECK);
     x += pitch_tool;
 
-    tb->AddSeparator();
-    x += pitch_sep;
+//    tb->AddSeparator();
+//    x += pitch_sep;
 
     if(g_bShowPrintIcon)
     {
@@ -1940,6 +1968,55 @@ wxToolBar *MyFrame::CreateAToolbar()
 //      Some helpers functions for Toolbar support
 void MyFrame::PrepareToolbarBitmaps(void)
 {
+
+#ifdef OCPN_USE_PNGICONS
+    // Load up all the toolbar bitmap xpm data pointers into a hash map
+    tool_xpm_hash.clear();
+    tool_xpm_hash[_T("settings")]     = (char *)_img_settings;
+    tool_xpm_hash[_T("zoomin")]       = (char *)_img_zoomin;
+    tool_xpm_hash[_T("zoomout")]      = (char *)_img_zoomout;
+    tool_xpm_hash[_T("scin")]         = (char *)_img_scin;
+    tool_xpm_hash[_T("scout")]        = (char *)_img_scout;
+    tool_xpm_hash[_T("tide")]         = (char *)_img_tide;
+    tool_xpm_hash[_T("route")]        = (char *)_img_route;
+    tool_xpm_hash[_T("current")]      = (char *)_img_current;
+    tool_xpm_hash[_T("text")]         = (char *)_img_text;
+    tool_xpm_hash[_T("print")]        = (char *)_img_print;
+    tool_xpm_hash[_T("exitt")]        = (char *)_img_exitt;
+    tool_xpm_hash[_T("follow")]       = (char *)_img_follow;
+    tool_xpm_hash[_T("help")]         = (char *)_img_help;
+    tool_xpm_hash[_T("colorscheme")]  = (char *)_img_colscheme;
+    tool_xpm_hash[_T("gpx_import")]   = (char *)_img_gpx_import; // toh, 2009.02.14
+    tool_xpm_hash[_T("gpx_export")]   = (char *)_img_gpx_export; // toh, 2009.02.14
+    tool_xpm_hash[_T("track")]        = (char *)_img_track;
+
+        //  Process all members of the XPM hashmap
+
+    string_to_pchar_hash::iterator it;
+    for( it = tool_xpm_hash.begin(); it != tool_xpm_hash.end(); ++it )
+    {
+          wxImage *pimg;
+
+          wxString index = it->first;
+          wxBitmap *px1 = (wxBitmap*)tool_xpm_hash[index];
+
+//  Build Day Bitmap
+          pimg = new wxImage(px1->ConvertToImage());
+          BuildToolBitmap(pimg, 230, index, tool_bitmap_hash_day);
+          delete pimg;
+
+//  Build Dusk Bitmap
+          pimg = new wxImage(px1->ConvertToImage());
+          BuildToolBitmap(pimg, 128, index, tool_bitmap_hash_dusk);
+          delete pimg;
+
+//  Build Night Bitmap
+          pimg = new wxImage(px1->ConvertToImage());
+          BuildToolBitmap(pimg,  32, index, tool_bitmap_hash_night);
+          delete pimg;
+    }
+
+#else
     // Load up all the toolbar bitmap xpm data pointers into a hash map
     tool_xpm_hash.clear();
     tool_xpm_hash[_T("settings")]     = (char *)settings;
@@ -1966,26 +2043,28 @@ void MyFrame::PrepareToolbarBitmaps(void)
     string_to_pchar_hash::iterator it;
     for( it = tool_xpm_hash.begin(); it != tool_xpm_hash.end(); ++it )
     {
-        wxImage *pimg;
+          wxImage *pimg;
 
-        wxString index = it->first;
-        char **px1 = (char **)tool_xpm_hash[index];
+          wxString index = it->first;
+          char **px1 = (char **)tool_xpm_hash[index];
 
 //  Build Day Bitmap
-        pimg = new wxImage(px1);
-        BuildToolBitmap(pimg, 230, index, tool_bitmap_hash_day);
-        delete pimg;
+          pimg = new wxImage(px1);
+          BuildToolBitmap(pimg, 230, index, tool_bitmap_hash_day);
+          delete pimg;
 
 //  Build Dusk Bitmap
-        pimg = new wxImage(px1);
-        BuildToolBitmap(pimg, 128, index, tool_bitmap_hash_dusk);
-        delete pimg;
+          pimg = new wxImage(px1);
+          BuildToolBitmap(pimg, 128, index, tool_bitmap_hash_dusk);
+          delete pimg;
 
 //  Build Night Bitmap
-        pimg = new wxImage(px1);
-        BuildToolBitmap(pimg,  32, index, tool_bitmap_hash_night);
-        delete pimg;
+          pimg = new wxImage(px1);
+          BuildToolBitmap(pimg,  32, index, tool_bitmap_hash_night);
+          delete pimg;
     }
+#endif
+
 }
 
 void MyFrame::BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index, string_to_pbitmap_hash &hash)
@@ -2082,7 +2161,7 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
 #endif
 
 #ifdef __WXMSW__
-    wxColour back_color = GetGlobalColor(_T("GREY1"));
+    wxColour back_color = GetGlobalColor(_T("GREY2"));            // Was GREY1, switched on v 1.3.4 with transparent toolbar icons
 #else
     wxColour back_color = GetGlobalColor(_T("GREY2"));
 #endif
@@ -2364,6 +2443,12 @@ void MyFrame::UpdateAllFonts()
             PositionConsole();
             cc1->Refresh();
       }
+
+      if(g_pais_query_dialog_active)
+      {
+            g_pais_query_dialog_active->Destroy();
+            g_pais_query_dialog_active = NULL;
+      }
 }
 
 void MyFrame::OnToolLeftClick(wxCommandEvent& event)
@@ -2562,39 +2647,57 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     case ID_TRACK:
     {
           if(!g_bTrackActive)
-          {
-                g_bTrackActive = true;
-                g_pActiveTrack = new Track();
-
-                g_pActiveTrack->SetTrackTimer(g_TrackIntervalSeconds);
-                g_pActiveTrack->SetTrackDeltaDistance(g_TrackDeltaDistance);
-                g_pActiveTrack->SetTPTime(g_bTrackTime);
-                g_pActiveTrack->SetTPDist(g_bTrackDistance);
-
-                pRouteList->Append ( g_pActiveTrack );
-                g_pActiveTrack->Start();
-
-
-          }
+                TrackOn();
           else
-          {
-                g_pActiveTrack->Stop();
-                g_bTrackActive = false;
-
-                if ( g_pActiveTrack->GetnPoints() < 2 )
-                      pRouteMan->DeleteRoute ( g_pActiveTrack );
-
-                g_pActiveTrack = NULL;
-
-          }
-
-          toolBar->ToggleTool(ID_TRACK, g_bTrackActive);
+                TrackOff();
 
           break;
     }
 
   }         // switch
 }
+
+void MyFrame::TrackOn(void)
+{
+      g_bTrackActive = true;
+      g_pActiveTrack = new Track();
+
+      g_pActiveTrack->SetTrackTimer(g_TrackIntervalSeconds);
+      g_pActiveTrack->SetTrackDeltaDistance(g_TrackDeltaDistance);
+      g_pActiveTrack->SetTPTime(g_bTrackTime);
+      g_pActiveTrack->SetTPDist(g_bTrackDistance);
+
+      pRouteList->Append ( g_pActiveTrack );
+      g_pActiveTrack->Start();
+
+      toolBar->ToggleTool(ID_TRACK, g_bTrackActive);
+
+}
+
+void MyFrame::TrackOff(void)
+{
+      if(g_pActiveTrack)
+      {
+            g_pActiveTrack->Stop();
+
+            if ( g_pActiveTrack->GetnPoints() < 2 )
+                  pRouteMan->DeleteRoute ( g_pActiveTrack );
+      }
+
+      g_pActiveTrack = NULL;
+
+      g_bTrackActive = false;
+
+      toolBar->ToggleTool(ID_TRACK, g_bTrackActive);
+}
+
+
+
+
+
+
+
+
 
 void MyFrame::ToggleENCText(void)
 {
@@ -2636,7 +2739,9 @@ void MyFrame::SetbFollow(void)
 {
       cc1->m_bFollow = true;
 //      Warp speed jump to current position
-      cc1->SetViewPoint(gLat, gLon, cc1->GetVPScale(),
+
+      if(NULL != Current_Ch)
+            cc1->SetViewPoint(gLat, gLon, cc1->GetVPScale(),
                               Current_Ch->GetChartSkew() * PI / 180., FORCE_SUBSAMPLE);
       cc1->Refresh(false);
       toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
@@ -2705,8 +2810,10 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 
 int MyFrame::DoOptionsDialog()
 {
-    options *pSetDlg = new options(this, -1, _T("ToolBox"), *pInit_Chart_Dir,
-          wxDefaultPosition, wxSize(-1, -1) );
+      options *pSetDlg = new options(this, -1, _T("ToolBox") );
+
+//    Set initial Chart Dir
+      pSetDlg->SetInitChartDir(*pInit_Chart_Dir);
 
 //      Pass two working pointers for Chart Dir Dialog
       pSetDlg->SetCurrentDirListPtr(pChartDirArray);
@@ -2782,7 +2889,8 @@ int MyFrame::DoOptionsDialog()
                   else
                      g_pnmea = new NMEAWindow(ID_NMEA_WINDOW, gFrame, *pNMEADataSource, &m_mutexNMEAEvent );
 
-            }
+                  SetbFollow();
+           }
 
 
             if(*pNMEA_AP_Port != previous_NMEA_APPort)
@@ -3023,7 +3131,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 
         cc1->UpdateAIS();
 
-        if(g_pais_query_dialog_active)
+        if(g_pais_query_dialog_active && g_pais_query_dialog_active->IsShown())
               g_pais_query_dialog_active->UpdateText();
 
 
@@ -3968,9 +4076,121 @@ void MyFrame::OnEvtTHREADMSG(wxCommandEvent & event)
 }
 
 
+void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
+{
+      wxString sfixtime;
+      bool bshow_tick = false;
+
+      wxString str_buf = event.GetNMEAString();
+
+      if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
+      {
+            g_total_NMEAerror_messages++;
+            wxString msg(_T("MEH.NMEA Sentence received..."));
+            msg.Append(str_buf);
+            wxLogMessage(msg);
+      }
+
+      m_NMEA0183 << str_buf;
+      if(m_NMEA0183.PreParse())
+      {
+            if(m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
+            {
+                  if(m_NMEA0183.Parse())
+                  {
+                        if(m_NMEA0183.Rmc.IsDataValid == NTrue)
+                        {
+                              float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
+                              int lat_deg_int = (int)(llt / 100);
+                              float lat_deg = lat_deg_int;
+                              float lat_min = llt - (lat_deg * 100);
+                              gLat = lat_deg + (lat_min/60.);
+                              if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
+                                    gLat = -gLat;
+
+                              float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
+                              int lon_deg_int = (int)(lln / 100);
+                              float lon_deg = lon_deg_int;
+                              float lon_min = lln - (lon_deg * 100);
+                              gLon = lon_deg + (lon_min/60.);
+                              if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
+                                    gLon = -gLon;
+
+                              gSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                              gCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
+
+                              gVar = m_NMEA0183.Rmc.MagneticVariation;
+                              if(m_NMEA0183.Rmc.MagneticVariationDirection == West)
+                                    gVar = -gVar;
+
+                              sfixtime = m_NMEA0183.Rmc.UTCTime;
+
+                              gGPS_Watchdog = gsp_watchdog_timeout_ticks;
+
+                              bshow_tick = true;
+                        }
+                  }
+            }
+            else if(m_NMEA0183.LastSentenceIDReceived == _T("HDT"))
+            {
+                  if(m_NMEA0183.Parse())
+                  {
+                        gHdt = m_NMEA0183.Hdt.DegreesTrue;
+                        g_bHDxValid = true;
+                        gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                  }
+            }
+
+            else if(m_NMEA0183.LastSentenceIDReceived == _T("HDG"))
+            {
+                  if(m_NMEA0183.Parse())
+                  {
+                        gHdt = m_NMEA0183.Hdg.MagneticSensorHeadingDegrees;
+                        if(m_NMEA0183.Hdg.MagneticVariationDirection == East)
+                              gHdt += m_NMEA0183.Hdg.MagneticVariationDegrees;
+                        else
+                              gHdt -= m_NMEA0183.Hdg.MagneticVariationDegrees;
+
+                        g_bHDxValid = true;
+                        gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                  }
+            }
+
+            else if(m_NMEA0183.LastSentenceIDReceived == _T("HDM"))
+            {
+                  if(m_NMEA0183.Parse())
+                  {
+                        gHdt = m_NMEA0183.Hdm.DegreesMagnetic;
+                        gHdt += gVar;
+
+                        g_bHDxValid = true;
+                        gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                  }
+            }
+
+      }
+      else
+      {
+            if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
+            {
+                  g_total_NMEAerror_messages++;
+                  wxString msg(_T("   Unrecognized NMEA Sentence..."));
+                  msg.Append(str_buf);
+                  wxLogMessage(msg);
+            }
+      }
+
+
+      PostProcessNNEA(bshow_tick, sfixtime);
+}
+
+
+
+
 
 void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 {
+#if 0
 #define LOCAL_BUFFER_LENGTH 4096
 
     char buf[LOCAL_BUFFER_LENGTH];
@@ -4029,13 +4249,16 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
                                     float lat_deg = lat_deg_int;
                                     float lat_min = llt - (lat_deg * 100);
                                     gLat = lat_deg + (lat_min/60.);
+                                    if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
+                                          gLat = -gLat;
 
                                     float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
                                     int lon_deg_int = (int)(lln / 100);
                                     float lon_deg = lon_deg_int;
                                     float lon_min = lln - (lon_deg * 100);
-                                    float tgLon = lon_deg + (lon_min/60.);
-                                    gLon = -tgLon;
+                                    gLon = lon_deg + (lon_min/60.);
+                                    if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
+                                          gLon = -gLon;
 
                                     gSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
                                     gCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
@@ -4128,8 +4351,17 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 
     }           // switch
 
-    if(bshow_tick)
+    if(brx_rmc)
     {
+
+          //      Maintain the validity flags
+          bool last_bGPSValid = bGPSValid;
+          bGPSValid = true;
+          if(!last_bGPSValid)
+                UpdateToolbarStatusWindow(Current_Ch, false);
+
+
+
       //      Show a little heartbeat tick in StatusWindow0 on NMEA events
       //      But no faster than 10 hz.
       unsigned long uiCurrentTickCount ;
@@ -4255,8 +4487,162 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 #endif            //ocpnUPDATE_SYSTEM_TIME
 
 
-
+#endif
 }
+
+void MyFrame::PostProcessNNEA(bool brx_rmc, wxString &sfixtime)
+{
+      //    If gSog is greater than some threshold, we determine that we are "cruising"
+      if(gSog > 3.0)
+            g_bCruising = true;
+
+      if(brx_rmc)
+      {
+            //      Maintain the validity flags
+            bool last_bGPSValid = bGPSValid;
+            bGPSValid = true;
+            if(!last_bGPSValid)
+                  UpdateToolbarStatusWindow(Current_Ch, false);
+
+
+            //      Show a little heartbeat tick in StatusWindow0 on NMEA events
+            //      But no faster than 10 hz.
+            unsigned long uiCurrentTickCount ;
+            m_MMEAeventTime.SetToCurrent() ;
+            uiCurrentTickCount = m_MMEAeventTime.GetMillisecond() / 100 ;           // tenths of a second
+            uiCurrentTickCount += m_MMEAeventTime.GetTicks() * 10 ;
+            if(uiCurrentTickCount > m_ulLastNEMATicktime + 1)
+            {
+                  m_ulLastNEMATicktime = uiCurrentTickCount ;
+
+                  if(tick_idx++ > 6)
+                        tick_idx = 0;
+            }
+      }
+
+//    Show gLat/gLon in StatusWindow0
+
+      if(NULL != GetStatusBar())
+      {
+            char tick_buf[2];
+            tick_buf[0] = nmea_tick_chars[tick_idx];
+            tick_buf[1] = 0;
+
+            wxString s1(tick_buf, wxConvUTF8);
+            s1 += _T("  Ownship:   ");
+            s1 += toSDMM(1, gLat);
+            s1 += _T("   ");
+            s1 += toSDMM(2, gLon);
+            SetStatusText ( s1, STAT_FIELD_TICK );
+      }
+
+      wxString sogcog;
+      sogcog.Printf(_T("SOG: %5.2f kts  COG: %5.0f Deg"), gSog, gCog);
+      SetStatusText ( sogcog, STAT_FIELD_SOGCOG );
+
+#ifdef ocpnUPDATE_SYSTEM_TIME
+//      Use the fix time to update the local system clock, only once per session
+      if((sfixtime.Len()) && s_bSetSystemTime && (m_bTimeIsSet == false))
+      {
+            wxDateTime Fix_Time;
+
+            if(6 == sfixtime.Len())                   // perfectly recognised format?
+            {
+                  wxString a;
+                  long b;
+                  int hr = 0;
+                  int min = 0;
+                  int sec = 0;
+
+                  a = sfixtime.Mid(0,2);
+                  if(a.ToLong(&b))
+                        hr = b;
+                  a = sfixtime.Mid(2,2);
+                  if(a.ToLong(&b))
+                        min = b;
+                  a = sfixtime.Mid(4,2);
+                  if(a.ToLong(&b))
+                        sec = b;
+
+                  Fix_Time.Set(hr, min, sec);
+            }
+            wxString fix_time_format = Fix_Time.Format(_T("%Y-%m-%dT%H:%M:%S"));  // this should show as LOCAL
+
+
+      //          Compare the server (fix) time to the current system time
+            wxDateTime sdt;
+            sdt.SetToCurrent();
+            wxDateTime cwxft = Fix_Time;                  // take a copy
+            wxTimeSpan ts;
+            ts = cwxft.Subtract(sdt);
+
+            int b = (ts.GetSeconds()).ToLong();
+
+      //          Correct system time if necessary
+      //      Only set the time if wrong by more than 1 minute, and less than 2 hours
+      //      This should eliminate bogus times which may come from faulty GPS units
+
+            if((abs(b) > 60) && (abs(b) < (2 * 60 * 60)))
+            {
+
+      #ifdef __WXMSW__
+      //      Fix up the fix_time to convert to GMT
+                  Fix_Time = Fix_Time.ToGMT();
+
+      //    Code snippet following borrowed from wxDateCtrl, MSW
+
+                  const wxDateTime::Tm tm(Fix_Time.GetTm());
+
+
+                  SYSTEMTIME stm;
+                  stm.wYear = (WXWORD)tm.year;
+                  stm.wMonth = (WXWORD)(tm.mon - wxDateTime::Jan + 1);
+                  stm.wDay = tm.mday;
+
+                  stm.wDayOfWeek = 0;
+                  stm.wHour = Fix_Time.GetHour();
+                  stm.wMinute = tm.min;
+                  stm.wSecond = tm.sec;
+                  stm.wMilliseconds = 0;
+
+                        ::SetSystemTime(&stm);            // in GMT
+
+
+      #else
+
+
+      //      This contortion sets the system date/time on POSIX host
+      //      Requires the following line in /etc/sudoers
+      //          nav ALL=NOPASSWD:/bin/date -s *
+
+                        wxString msg;
+                        msg.Printf(_T("Setting system time, delta t is %d seconds"), b);
+                        wxLogMessage(msg);
+
+                        wxString sdate(Fix_Time.Format(_T("%D")));
+                        sdate.Prepend(_T("sudo /bin/date -s \""));
+
+                        wxString stime(Fix_Time.Format(_T("%T")));
+                        stime.Prepend(_T(" "));
+                        sdate.Append(stime);
+                        sdate.Append(_T("\""));
+
+                        msg.Printf(_T("Linux command is:"));
+                        msg += sdate;
+                        wxLogMessage(msg);
+                        wxExecute(sdate, wxEXEC_ASYNC);
+
+      #endif      //__WXMSW__
+                        m_bTimeIsSet = true;
+
+            }           // if needs correction
+      }               // if valid time
+
+#endif            //ocpnUPDATE_SYSTEM_TIME
+}
+
+
+
 void MyFrame::StopSockets(void)
 {
 #ifdef USE_WIFI_CLIENT
@@ -4677,15 +5063,15 @@ FILE *f;
       //    Method 1:  Use GetDefaultCommConfig()
       // Try first 16 possible COM ports, check for a default configuration
       for (int i=1; i<16; i++)
-{
-      char s[20];
-      sprintf(s, "COM%d", i);
+      {
+            char s[20];
+            sprintf(s, "COM%d", i);
 
-      COMMCONFIG cc;
-      DWORD dwSize = sizeof(COMMCONFIG);
-      if (GetDefaultCommConfig(s, &cc, &dwSize))
-            preturn->Add(wxString(s));
-}
+            COMMCONFIG cc;
+            DWORD dwSize = sizeof(COMMCONFIG);
+            if (GetDefaultCommConfig(s, &cc, &dwSize))
+                  preturn->Add(wxString(s));
+      }
 
 
 #if 0
@@ -4825,6 +5211,7 @@ static const char *usercolors[] = {
 "DILG1; 212;208;200;",              // Dialog Background
 "DILG2; 255;255;255;",              // Control Background
 "DILG3;   0;  0;  0;",              // Text
+"UDKRD; 124; 16;  0;",
 
 "Table:DUSK",
 "GREEN1; 60;128; 60;",
@@ -4847,6 +5234,7 @@ static const char *usercolors[] = {
 "DILG1; 110;110;110;",              // Dialog Background
 "DILG2; 100;100;100;",              // Control Background
 "DILG3; 130;130;130;",              // Text
+"UDKRD; 124; 16;  0;",
 
 "Table:NIGHT",
 "GREEN1; 30; 80; 30;",
@@ -4869,6 +5257,7 @@ static const char *usercolors[] = {
 "DILG1;  80; 80; 80;",              // Dialog Background
 "DILG2;  52; 52; 52;",              // Control Background
 "DILG3;  65; 65; 65;",              // Text
+"UDKRD; 124; 16;  0;",
 
 "*****"
 };
@@ -5186,6 +5575,9 @@ void SetSystemColors ( ColorScheme cs )
 #endif
 }
 
+
+#if 0
+
 //------------------------------------------------------------------------------
 // DummyTextCtrl
 //------------------------------------------------------------------------------
@@ -5386,4 +5778,4 @@ void DummyTextCtrl::OnChar(wxKeyEvent &event)
 
       }
 }
-
+#endif
