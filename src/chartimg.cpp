@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.27 2009/08/03 03:21:38 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.28 2009/09/11 20:15:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.28  2009/09/11 20:15:16  bdbcat
+ * Correct possible stream buffer overrun
+ *
  * Revision 1.27  2009/08/03 03:21:38  bdbcat
  * Cleanup for MSVC
  *
@@ -72,6 +75,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.28  2009/09/11 20:15:16  bdbcat
+ * Correct possible stream buffer overrun
+ *
  * Revision 1.27  2009/08/03 03:21:38  bdbcat
  * Cleanup for MSVC
  *
@@ -175,7 +181,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.27 2009/08/03 03:21:38 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.28 2009/09/11 20:15:16 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1515,6 +1521,15 @@ InitReturn ChartBaseBSB::PostInit(void)
             if(thisline_size < 0)
             {
                   wxString msg(_T("   Chart File corrupt in PostInit() on chart "));
+                  msg.Append(*m_pFullPath);
+                  wxLogMessage(msg);
+
+                  return INIT_FAIL_REMOVE;
+            }
+
+            if(thisline_size > ifs_bufsize)
+            {
+                  wxString msg(_T("   ifs_bufsize too small PostInit() on chart "));
                   msg.Append(*m_pFullPath);
                   wxLogMessage(msg);
 
@@ -3978,7 +3993,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.27 2009/08/03 03:21:38 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.28 2009/09/11 20:15:16 bdbcat Exp $
 *
 */
 
