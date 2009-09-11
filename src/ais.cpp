@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.30 2009/09/04 02:05:35 bdbcat Exp $
+ * $Id: ais.cpp,v 1.31 2009/09/11 19:49:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.31  2009/09/11 19:49:40  bdbcat
+ * Improve message handling, format dialogs
+ *
  * Revision 1.30  2009/09/04 02:05:35  bdbcat
  * Improve NMEA message handling
  *
@@ -139,6 +142,7 @@ extern  int             s_dns_test_flag;
 extern  Select          *pSelectAIS;
 extern  double          gLat, gLon, gSog, gCog;
 extern  bool            g_bGPSAISMux;
+extern FontMgr          *pFontMgr;
 
 //    AIS Global configuration
 extern bool             g_bCPAMax;
@@ -181,13 +185,13 @@ extern int              g_total_NMEAerror_messages;
 //    OCP_AIS_Thread Static data store
 //-------------------------------------------------------------------------------------------------------------
 
-extern char                         rx_share_buffer[];
-extern unsigned int                 rx_share_buffer_length;
-extern ENUM_BUFFER_STATE            rx_share_buffer_state;
+//extern char                         rx_share_buffer[];
+//extern unsigned int                 rx_share_buffer_length;
+//extern ENUM_BUFFER_STATE            rx_share_buffer_state;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.30 2009/09/04 02:05:35 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.31 2009/09/11 19:49:40 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -337,10 +341,10 @@ AIS_Target_Data::AIS_Target_Data()
 
 }
 
-void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
+wxString AIS_Target_Data::BuildQueryResult( int *pn_nl)
 {
       wxString line;
-
+      wxString result;
 
     //  Clip any unused characters (@) from the name
       wxString ts;
@@ -351,10 +355,10 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
       line.Printf(_T("ShipName:  "));
       line.Append( ts );
       line.Append(_T("\n\n"));
-      result->Append(line);
+      result.Append(line);
 
       line.Printf(_T("MMSI:      %d\n"), MMSI);
-      result->Append(line);
+      result.Append(line);
 
        //  Clip any unused characters (@) from the callsign
       ts.Clear();
@@ -365,19 +369,19 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
       line.Printf(_T("CallSign:  "));
       line.Append( ts );
       line.Append(_T("\n"));
-      result->Append(line);
+      result.Append(line);
 
       if(IMO > 0)
             line.Printf(_T("IMO:        %8d\n"), IMO);
       else
             line.Printf(_T("IMO:\n"));
-      result->Append(line);
+      result.Append(line);
 
       if(AIS_CLASS_A == Class)
             line.Printf(_T("Class:     A\n\n"));
       else
             line.Printf(_T("Class:     B\n\n"));
-      result->Append(line);
+      result.Append(line);
 
     //      Nav Status
       ts.Clear();
@@ -391,7 +395,7 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
       line.Printf(_T("Navigational Status:  "));
       line.Append( ts );
       line.Append(_T("\n"));
-      result->Append(line);
+      result.Append(line);
 
 
     //      Ship type
@@ -403,7 +407,7 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
       line.Printf(_T("Ship Type:            "));
       line.Append( ts );
       line.Append(_T("\n"));
-      result->Append(line);
+      result.Append(line);
 
     //  Destination
       ts.Clear();
@@ -414,7 +418,7 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
       line.Printf(_T("Destination:          "));
       line.Append( ts );
       line.Append(_T("\n"));
-      result->Append(line);
+      result.Append(line);
 
       wxDateTime now = wxDateTime::Now();
 
@@ -434,7 +438,7 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
             line.Append(_T("\n"));
       }
 
-      result->Append(line);
+      result.Append(line);
 
     //  Dimensions
       if((DimA + DimB + DimC + DimD) == 0)
@@ -450,19 +454,19 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
             line.Printf(_T("Size:                %5dm x %dm x %4.1fm\n\n"), (DimA + DimB), (DimC + DimD), Draft);
 
 
-      result->Append(line);
+      result.Append(line);
 
       line.Printf(_T("Course:               %5.0f Deg.\n"), COG);
-      result->Append(line);
+      result.Append(line);
 
       line.Printf(_T("Speed:                %5.2f Kts.\n"), SOG);
-      result->Append(line);
+      result.Append(line);
 
       line.Printf(_T("Range:                %5.1f NM\n"), Range_NM);
-      result->Append(line);
+      result.Append(line);
 
       line.Printf(_T("Bearing:              %5.0f Deg.\n"), Brg);
-      result->Append(line);
+      result.Append(line);
 
       line.Printf(_T("Position:              "));
 
@@ -472,14 +476,14 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
       pos_st += toSDMM(2, Lon);
       pos_st << _T("\n\n");
       line << pos_st;
-      result->Append(line);
+      result.Append(line);
 
 
       wxDateTime rt(ReportTicks);
       line.Printf(_T("Latest Report Time:       "));
       line << rt.FormatISOTime();
       line << _(" UTC\n");
-      result->Append(line);
+      result.Append(line);
 
 
       now.MakeGMT();
@@ -487,10 +491,10 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
 
 
       line.Printf(_T("Report Age:               %3d Sec.\n"), target_age);
-      result->Append(line);
+      result.Append(line);
 
       line.Printf(_T("Recent Report Period:     %3d Sec.\n\n"), RecentPeriod);
-      result->Append(line);
+      result.Append(line);
 
       double hours = floor(TCPA / 60.);
       double mins = TCPA - (hours * 60);
@@ -499,19 +503,27 @@ void AIS_Target_Data::BuildQueryResult(wxString *result, wxSize *psize)
             line.Printf(_T("TCPA:                 %02d:%02d Hr:Min\n"), (int)hours, (int)mins);
       else
             line.Printf(_T("TCPA:  \n"));
-      result->Append(line);
+      result.Append(line);
 
       if(bCPA_Valid)
-            line.Printf(_T("CPA:                 %6.1f NM"), CPA);
+            line.Printf(_T("CPA:                 %6.1f NM\n"), CPA);
       else
-            line.Printf(_T("CPA:       "));
-      result->Append(line);
+            line.Printf(_T("CPA:       \n"));
+      result.Append(line);
 
-      if(psize)
+      if(pn_nl)
       {
-            psize->SetHeight(500);
-            psize->SetWidth(450);
+            int nl = 0;
+            for(unsigned int i=0 ; i < result.Len() ; i++)
+            {
+                  if(result.GetChar(i) == '\n')
+                        nl++;
+            }
+
+            *pn_nl = nl;
       }
+
+      return result;
 }
 
 
@@ -782,14 +794,6 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
         {
 //              wxDateTime now = wxDateTime::Now();
 //              printf("AIS Event at %ld\n", now.GetTicks());
-/*
-                if(pStatusBar)
-                {
-                    wxString buf_nolf(buf);
-                    buf_nolf.RemoveLast();
-                    SetStatusText(buf_nolf, 4);
-                }
-*/
 
             wxString message = event.GetString();
 
@@ -797,34 +801,13 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
             if(!message.IsEmpty())
                 nr = Decode(message);
 
-/*
-            if(nr > 1)
-                  printf("AIS Decode() returned error: %d\n", nr);
-*/
 
             if(g_bGPSAISMux)
                   Parse_And_Send_Posn(message);
 
-
-
             break;
         }       //case
     }           // switch
-
-/*    if(bshow_tick)
-    {
-    //      Show a little heartbeat tick in StatusWindow0 on AIS events
-
-        if(tick_idx++ > 6)
-            tick_idx = 0;
-
-        char tick_buf[2];
-        tick_buf[0] = nmea_tick_chars[tick_idx];
-        tick_buf[1] = 0;
-        if(NULL != GetStatusBar())
-            SetStatusText(tick_buf, 0);
-    }
-*/
 }
 
 void AIS_Decoder::ThreadMessage(const wxString &msg)
@@ -839,16 +822,23 @@ void AIS_Decoder::ThreadMessage(const wxString &msg)
 }
 
 
-void AIS_Decoder::Parse_And_Send_Posn(wxString &str_temp_buf)
+void AIS_Decoder::Parse_And_Send_Posn(wxString &message)
 {
       if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
       {
             g_total_NMEAerror_messages++;
             wxString msg(_T("AIS.NMEA Sentence received..."));
-            msg.Append(str_temp_buf);
+            msg.Append(message);
             ThreadMessage(msg);
       }
 
+      OCPN_NMEAEvent Nevent(wxEVT_OCPN_NMEA, 0);
+      Nevent.SetNMEAString(message);
+      m_pMainEventHandler->AddPendingEvent(Nevent);
+
+      return;
+
+#if 0
    // Send the NMEA string to the decoder
       m_NMEA0183 << str_temp_buf;
 
@@ -888,6 +878,8 @@ void AIS_Decoder::Parse_And_Send_Posn(wxString &str_temp_buf)
                   ThreadMessage(msg);
             }
       }
+
+#endif
 }
 
 
@@ -1426,7 +1418,7 @@ void AIS_Decoder::UpdateAllAlarms(void)
             if(NULL != td)
             {
                   ais_alarm_type this_alarm = AIS_NO_ALARM;
-                  if(g_bCPAWarn && td->b_active)
+                  if(g_bCPAWarn && td->b_active && td->b_positionValid)
                   {
                         //      Skip anchored/moored targets if requested
                         if((!g_bShowMoored) && (td->SOG <= g_ShowMoored_Kts))
@@ -1482,6 +1474,8 @@ void AIS_Decoder::UpdateAllAlarms(void)
 
 void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
 {
+      if(!ptarget->b_positionValid)
+            return;
 
             //    Express the SOGs as meters per hour
       double v0 = gSog         * 1852.;
@@ -1826,26 +1820,37 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
 //    Iterate on the list
       wxSelectableItemListNode *node = pSelectAIS->GetSelectList()->GetFirst();
 
+      int n_sel = 0;
       while(node)
       {
             pFindSel = node->GetData();
             if(pFindSel->m_seltype == SELTYPE_AISTARGET)
             {
-                  int mmsi = (int) pFindSel->m_pData1;
+                  int mmsi = (int) pFindSel->m_Data4;
 
                   AIS_Target_Data *tdp = Get_Target_Data_From_MMSI(mmsi);
                   if(tdp == NULL)
                         int yyp = 6;
 
-                  if(tdp->SOG > 100.)
+                  if(tdp->SOG > 200.)
                         int yyu = 4;
             }
+
+            n_sel++;
 
             node = node->GetNext();
       }
 
-      ///testing
+      if(n_sel > m_n_targets)
+            int yyr = 3;
+
+      if(n_sel > GetTargetList()->size())
+            int yyl = 4;
 #endif
+
+
+      ///testing
+
 
       //    Scrub the target hash list
       //    removing any targets older than stipulated age
@@ -2617,8 +2622,12 @@ void *OCP_AIS_Thread::Entry()
 
 fail_point:
 
-      return 0;
+      CloseHandle(m_hSerialComm);
 
+      if (osReader.hEvent)
+            CloseHandle(osReader.hEvent);
+
+      return 0;
 }
 
 #endif            //__WXMSW__
@@ -2674,11 +2683,11 @@ bool AISTargetAlertDialog::Create ( int target_mmsi,
         //    will not detract from night-vision
 
       long wstyle = wxDEFAULT_FRAME_STYLE;
-      if ( global_color_scheme != GLOBAL_COLOR_SCHEME_DAY )
+      if (( global_color_scheme != GLOBAL_COLOR_SCHEME_DAY ) && ( global_color_scheme != GLOBAL_COLOR_SCHEME_RGB ))
             wstyle |= ( wxNO_BORDER );
 
       wxSize size_min = size;
-      size_min.IncTo(wxSize(400,400));
+      size_min.IncTo(wxSize(500,600));
       if ( !wxDialog::Create ( parent, id, caption, pos, size_min, wstyle ) )
             return false;
 
@@ -2689,10 +2698,9 @@ bool AISTargetAlertDialog::Create ( int target_mmsi,
       wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
       SetBackgroundColour ( back_color );
 
-      wxFont *dFont = wxTheFontList->FindOrCreateFont ( 10, wxFONTFAMILY_TELETYPE,
-                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
-
+      wxFont *dFont = pFontMgr->GetFont(_T("AISTargetAlert"), 12);
       SetFont ( *dFont );
+
       CreateControls();
 
       if(CanSetTransparent())
@@ -2705,7 +2713,6 @@ bool AISTargetAlertDialog::Create ( int target_mmsi,
 // This ensures that the dialog cannot be sized smaller
 // than the minimum size
       GetSizer()->SetSizeHints ( this );
-
 
       return true;
 }
@@ -2722,12 +2729,14 @@ void AISTargetAlertDialog::CreateControls()
 
 // A second box sizer to give more space around the controls
       wxBoxSizer* boxSizer = new wxBoxSizer ( wxVERTICAL );
-      topSizer->Add ( boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5 );
+      topSizer->Add ( boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 2 );
 
 // Here is the query result
 
-      m_pAlertTextCtl = new wxTextCtrl ( this, -1, _T ( "" ),
-                  wxDefaultPosition, wxSize ( -1, -1 ), wxTE_MULTILINE /*| wxTE_DONTWRAP*/ | wxTE_READONLY );
+//      m_pAlertTextCtl = new wxTextCtrl ( this, -1, _T ( "" ),
+//                  wxDefaultPosition, wxSize ( -1, -1 ), wxTE_MULTILINE | wxTE_READONLY );
+
+      m_pAlertTextCtl = new AISInfoWin ( this );
 
       wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
       m_pAlertTextCtl->SetBackgroundColour ( back_color );
@@ -2735,23 +2744,24 @@ void AISTargetAlertDialog::CreateControls()
       wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
       m_pAlertTextCtl->SetForegroundColour ( text_color );
 
-      wxFont *qFont = wxTheFontList->FindOrCreateFont ( 12, wxFONTFAMILY_TELETYPE,
-                  wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
-      m_pAlertTextCtl->SetFont ( *qFont );
 
       wxString alert_text;
-      wxSize text_size;
-      if(GetAlertText(m_target_mmsi, &alert_text, &text_size))
+      int n_nl;
+      if(GetAlertText(m_target_mmsi, alert_text, &n_nl))
       {
             m_pAlertTextCtl->AppendText ( alert_text );
-            text_size.IncBy(10,10);
-            boxSizer->SetMinSize(text_size);
+
+            int font_size_x, font_size_y, font_descent, font_lead;
+            m_pAlertTextCtl->GetTextExtent(_T("1"), &font_size_x, &font_size_y, &font_descent, &font_lead);
+            int sy = (font_size_y * n_nl) + 4;
+            int sx = font_size_x * 50;
+
+            m_pAlertTextCtl->SetSize(wxSize(sx, sy));
+            boxSizer->SetMinSize(wxSize(sx, sy));
+            boxSizer->FitInside(m_pAlertTextCtl);
       }
+      boxSizer->Add ( m_pAlertTextCtl, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 1 );
 
-      m_pAlertTextCtl->SetSelection ( 0,0 );
-      m_pAlertTextCtl->SetInsertionPoint ( 0 );
-
-      boxSizer->Add ( m_pAlertTextCtl, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 5 );
 
 
 // A horizontal box sizer to contain Ack
@@ -2775,7 +2785,7 @@ void AISTargetAlertDialog::CreateControls()
 
 }
 
-bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult, wxSize *psize)
+bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString &result, int *pn_nl)
 {
       //    Search the parent AIS_Decoder's target list for specified mmsi
 
@@ -2785,7 +2795,7 @@ bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult, wxSize *psi
 
             if(td_found)
             {
-                  td_found->BuildQueryResult(presult, psize);
+                  result = td_found->BuildQueryResult(pn_nl);
                   return true;
             }
             else
@@ -2798,13 +2808,15 @@ bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString *presult, wxSize *psi
 void AISTargetAlertDialog::UpdateText()
 {
       wxString alert_text;
-      if(GetAlertText(m_target_mmsi, &alert_text, NULL))
+      if(GetAlertText(m_target_mmsi, alert_text, NULL))
       {
             m_pAlertTextCtl->Clear();
             m_pAlertTextCtl->AppendText ( alert_text );
       }
       if(CanSetTransparent())
             SetTransparent(192);
+
+      m_pAlertTextCtl->SetInsertionPoint(0);
 }
 
 
