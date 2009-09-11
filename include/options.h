@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.15 2009/08/29 23:24:44 bdbcat Exp $
+ * $Id: options.h,v 1.16 2009/09/11 20:31:30 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.16  2009/09/11 20:31:30  bdbcat
+ * Utilize wxScollingDialog
+ *
  * Revision 1.15  2009/08/29 23:24:44  bdbcat
  * Various, including alert suppression logic
  *
@@ -88,6 +91,7 @@
 #include "wx/notebook.h"
 #include "wx/dirctrl.h"
 #include "wx/spinctrl.h"
+#include "scrollingdialog.h"
 
 //      Forward Declarations
 class wxGenericDirCtrl;
@@ -159,7 +163,7 @@ enum {
 #endif
 
 
-class options: public wxDialog
+class options: public wxScrollingDialog
 {
     DECLARE_DYNAMIC_CLASS( options )
     DECLARE_EVENT_TABLE()
@@ -167,16 +171,18 @@ class options: public wxDialog
 public:
     options( );
     options( MyFrame* parent, wxWindowID id = SYMBOL_OPTIONS_IDNAME, const wxString& caption = SYMBOL_OPTIONS_TITLE,
-           const wxString& Initial_Chart_Dir = _(""), const wxPoint& pos = SYMBOL_OPTIONS_POSITION,
-           const wxSize& size = SYMBOL_OPTIONS_SIZE, long style = SYMBOL_OPTIONS_STYLE);
+           const wxPoint& pos = SYMBOL_OPTIONS_POSITION, const wxSize& size = SYMBOL_OPTIONS_SIZE, long style = SYMBOL_OPTIONS_STYLE);
 
     bool Create( MyFrame* parent, wxWindowID id = SYMBOL_OPTIONS_IDNAME, const wxString& caption = SYMBOL_OPTIONS_TITLE,
              const wxPoint& pos = SYMBOL_OPTIONS_POSITION, const wxSize& size = SYMBOL_OPTIONS_SIZE,
-             long style = SYMBOL_OPTIONS_STYLE, const wxString& init_chart_dir = _(""));
+             long style = SYMBOL_OPTIONS_STYLE);
+
+    void Init();
 
     void CreateControls();
     void SetColorScheme(ColorScheme cs);
 
+    void SetInitChartDir(wxString &dir){ m_init_chart_dir = dir;}
     void SetInitialSettings();
 
     void SetCurrentDirListPtr(wxArrayString *p)  {m_pCurrentDirList = p;}
@@ -314,7 +320,7 @@ public:
     MyConfig                *m_pConfig;
 
     wxArrayPtrVoid          OBJLBoxArray;
-    wxString                *m_pinit_chart_dir;
+    wxString                m_init_chart_dir;
     MyFrame                 *pParent;
 
     wxArrayString           *m_pSerialArray;
