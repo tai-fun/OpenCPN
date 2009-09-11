@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.42 2009/09/04 02:23:26 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.43 2009/09/11 20:38:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -50,7 +50,7 @@
 
 
 
-CPL_CVSID("$Id: nmea.cpp,v 1.42 2009/09/04 02:23:26 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.43 2009/09/11 20:38:44 bdbcat Exp $");
 
 extern int             g_nNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -64,6 +64,38 @@ int                      s_dns_test_flag;
 static      GenericPosDat     ThreadPositionData;
 
 
+
+//------------------------------------------------------------------------------
+//    NMEA Event Implementation
+//------------------------------------------------------------------------------
+DEFINE_EVENT_TYPE(wxEVT_OCPN_NMEA)
+
+
+OCPN_NMEAEvent::OCPN_NMEAEvent( wxEventType commandType, int id )
+      :wxEvent(id, commandType)
+{
+}
+
+
+
+
+OCPN_NMEAEvent::~OCPN_NMEAEvent( )
+{
+}
+
+
+
+/*
+// user code sending the event
+
+            void MyWindow::SendEvent()
+{
+      wxPlotEvent event( wxEVT_PLOT_ACTION, GetId() );
+      event.SetEventObject( this );
+      event.SetCurve( m_curve );
+      GetEventHandler()->ProcessEvent( event );
+}
+*/
 
 
 //------------------------------------------------------------------------------
@@ -785,14 +817,14 @@ void *OCP_NMEA_Thread::Entry()
 //    Set up read event specification
 
       if(!SetCommMask((HANDLE)m_gps_fd, EV_RXCHAR)) // Setting Event Type
-             return (0);
+            goto thread_exit;
 
 // Create the overlapped event. Must be closed before exiting
 // to avoid a handle leak.
       osReader.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
       if (osReader.hEvent == NULL)
-            return 0;            // Error creating overlapped event; abort.
+            goto thread_exit;
 
       not_done = true;
       bool nl_found;
@@ -970,12 +1002,16 @@ HandleASuccessfulRead:
 
       }           // the big while...
 
-//          Close the port cleanly
-      m_pCommMan->CloseComPort(m_gps_fd);
 
 
 fail_point:
 thread_exit:
+//          Close the port cleanly
+      m_pCommMan->CloseComPort(m_gps_fd);
+
+      if (osReader.hEvent)
+            CloseHandle(osReader.hEvent);
+
       m_launcher->SetSecThreadInActive();             // I am dead
 
       return 0;
@@ -994,6 +1030,12 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
             ThreadMessage(msg);
       }
 
+      OCPN_NMEAEvent Nevent(wxEVT_OCPN_NMEA, 0);
+      Nevent.SetNMEAString(str_temp_buf);
+      m_pMainEventHandler->AddPendingEvent(Nevent);
+
+      return;
+#if 0
    // Send the NMEA string to the decoder
       m_NMEA0183 << str_temp_buf;
 
@@ -1057,7 +1099,7 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
                               event.SetEventObject( (wxObject *)this );
                               event.SetExtraLong(EVT_NMEA_DIRECT);
                               event.SetClientData(&ThreadPositionData);
-                              m_pMainEventHandler->AddPendingEvent(event);
+//                              m_pMainEventHandler->AddPendingEvent(event);
                         }
                         else
                         {
@@ -1074,6 +1116,12 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
 
             else
             {
+
+                  OCPN_NMEAEvent Nevent(wxEVT_OCPN_NMEA, 0);
+                  Nevent.SetNMEAString(str_temp_buf);
+                  m_pMainEventHandler->AddPendingEvent(Nevent);
+
+
 //    Signal the main program thread with raw sentence
                   wxCommandEvent event( EVT_NMEA,  GetId());
                   event.SetEventObject( (wxObject *)this );
@@ -1089,7 +1137,7 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
                               rx_share_buffer_length = str_temp_buf.Len();
 
                               event.SetClientData(&ThreadPositionData);
-                              m_pMainEventHandler->AddPendingEvent(event);
+//                              m_pMainEventHandler->AddPendingEvent(event);
                         }
                   }
                   else
@@ -1109,7 +1157,7 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
                   ThreadMessage(msg);
             }
       }
-
+#endif
 }
 
 
@@ -1878,9 +1926,6 @@ int ComPortManager::OpenComPortPhysical(wxString &com_name, int baud_rate)
 
 int ComPortManager::CloseComPortPhysical(int fd)
 {
-        /* this is the clean way to do it */
-//    pttyset_old->c_cflag |= HUPCL;
-//    (void)tcsetattr(fd,TCSANOW,pttyset_old);
 
       close(fd);
 
