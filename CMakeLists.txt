@@ -98,6 +98,7 @@ set(SRCS
 			${OPENCPN_DIR}/src/s57chart.cpp 
 			${OPENCPN_DIR}/src/mygeom.cpp 
 			${OPENCPN_DIR}/src/tri.c
+			${OPENCPN_DIR}/src/scrollingdialog.cpp
                         ${OPENCPN_DIR}/src/myiso8211/ddffielddefn.cpp 
 			${OPENCPN_DIR}/src/myiso8211/ddfmodule.cpp 
 			${OPENCPN_DIR}/src/myiso8211/ddfrecord.cpp 

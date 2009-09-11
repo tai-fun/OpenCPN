@@ -87,7 +87,8 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/nmea0183/rte.cpp \
 			src/nmea0183/hdt.cpp \
 			src/nmea0183/hdg.cpp \
-			src/nmea0183/hdm.cpp
+			src/nmea0183/hdm.cpp \
+			src/scrollingdialog.cpp
 
 if BUILD_WITH_S57
 opencpn_SOURCES +=	src/s52cnsy.cpp \
@@ -319,6 +320,8 @@ install-data-local:
 	cp -p ./$(srcdir)/data/tcdata/HARMONIC.IDX  $(DESTDIR)$(pkgdatadir)/tcdata
 	cp -p ./$(srcdir)/data/license.txt  $(DESTDIR)$(pkgdatadir)
 	cp -p ./$(srcdir)/data/tips.html  $(DESTDIR)$(pkgdatadir)
+	cp -p ./$(srcdir)/data/opencpn.png  /usr/share/icons
+	cp -p ./$(srcdir)/data/opencpn.desktop  /usr/share/applications
 
 uninstall-local:
 	rm -fr $(DESTDIR)$(pkgdatadir)/wvsdata/*
