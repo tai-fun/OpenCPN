@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.18 2009/09/01 22:19:46 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.19 2009/09/12 02:01:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.19  2009/09/12 02:01:21  bdbcat
+ * Correct Route delete logic to exclude tracks
+ *
  * Revision 1.18  2009/09/01 22:19:46  bdbcat
  * Correct DeleteRoute()
  *
@@ -66,6 +69,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.19  2009/09/12 02:01:21  bdbcat
+ * Correct Route delete logic to exclude tracks
+ *
  * Revision 1.18  2009/09/01 22:19:46  bdbcat
  * Correct DeleteRoute()
  *
@@ -238,7 +244,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.18 2009/09/01 22:19:46 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.19 2009/09/12 02:01:21 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -697,9 +703,13 @@ void Routeman::DeleteAllRoutes(void)
       {
             Route *proute = node->GetData();
 
-            DeleteRoute(proute);
-
-            node = pRouteList->GetFirst();                   // Route
+            if(!proute->m_bIsTrack)
+            {
+                  DeleteRoute(proute);
+                  node = pRouteList->GetFirst();                   // Route
+            }
+            else
+                  node = node->GetNext();
       }
 
 }
