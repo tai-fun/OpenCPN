@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.24 2009/09/11 19:50:06 bdbcat Exp $
+ * $Id: ais.h,v 1.25 2009/09/18 02:25:28 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.25  2009/09/18 02:25:28  bdbcat
+ * Rebuild AIS Alert dialog
+ *
  * Revision 1.24  2009/09/11 19:50:06  bdbcat
  * Improve message handling, format dialogs
  *
@@ -189,7 +192,7 @@ class AIS_Target_Data
 public:
 
     AIS_Target_Data();
-    wxString BuildQueryResult(int *pn_nl = NULL);
+    wxString BuildQueryResult(void);
     char *Get_vessel_type_string(bool b_short = false);
 
 
@@ -416,7 +419,8 @@ private:
 
 
 class AISInfoWin;
-//----------------------------------------------------------------------------------------------------------//    AISTargetAlertDialog Specification
+//----------------------------------------------------------------------------------------------------------
+//    AISTargetAlertDialog Specification
 //----------------------------------------------------------------------------------------------------------
 class AISTargetAlertDialog: public wxDialog
 {
@@ -444,7 +448,7 @@ class AISTargetAlertDialog: public wxDialog
            void UpdateText();
 
       private:
-            bool GetAlertText(int mmsi, wxString &result, int *pn_nl);
+            bool GetAlertText(void);
             void OnClose(wxCloseEvent& event);
             void OnIdAckClick( wxCommandEvent& event );
             void OnMove( wxMoveEvent& event );
@@ -456,6 +460,8 @@ class AISTargetAlertDialog: public wxDialog
             int               m_target_mmsi;
             AIS_Decoder       *m_pdecoder;
             wxWindow          *m_pparent;
+            wxFont            *m_pFont;
+            wxString          m_alert_text;
 
 };
 
