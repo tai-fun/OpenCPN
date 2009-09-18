@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.59 2009/09/11 23:19:46 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.60 2009/09/18 02:48:33 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.60  2009/09/18 02:48:33  bdbcat
+ * Various
+ *
  * Revision 1.59  2009/09/11 23:19:46  bdbcat
  * Implement png graphics
  *
@@ -246,7 +249,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.59 2009/09/11 23:19:46 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.60 2009/09/18 02:48:33 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -418,6 +421,7 @@ AISTargetQueryDialog    *g_pais_query_dialog_active;
 
 int               g_ais_alert_dialog_x, g_ais_alert_dialog_y;
 int               g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
+int               g_ais_query_dialog_x, g_ais_query_dialog_y;
 
 bool            s_socket_test_running;
 bool            s_socket_test_passed;
@@ -522,6 +526,8 @@ bool             g_bTrackDistance;
 
 int              g_total_NMEAerror_messages;
 
+int              g_cm93_zoom_factor;
+
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
 
@@ -540,8 +546,8 @@ DEFINE_GUID(GARMIN_DETECT_GUID, 0x2c9c45c2L, 0x8e7d, 0x4c08, 0xa1, 0x2d, 0x81, 0
 #include <crtdbg.h>
 #endif
 
-#ifdef __WXMSW__
-     extern  long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
+#ifdef __MSVC__
+     extern  "C" long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
 #endif
 
 //    Some static helpers
@@ -653,13 +659,12 @@ bool MyApp::OnInit()
       //    Handle any Floating Point Exceptions which may leak thru from other
       //    processes.  The exception filter is in cutil.c
     //  Dunno why it wont link in MSVC.....
-#ifndef __MSVC__
-//    SetUnhandledExceptionFilter( &MyUnhandledExceptionFilter );
-#endif
+
+    SetUnhandledExceptionFilter( &MyUnhandledExceptionFilter );
 #endif
 
 #ifdef __WXMSW__
-      _CrtSetBreakAlloc(173707);
+//      _CrtSetBreakAlloc(173707);
 #endif
 
 
@@ -1468,7 +1473,17 @@ void MyApp::OnSocketEvent(wxSocketEvent& event)
     }
 }
 
-
+/*
+int MyApp::FilterEvent(wxEvent& event)
+{
+      if ( event.GetEventType() == wxEVT_CHAR )
+      {
+            if(cc1->Do_Hotkeys((wxKeyEvent&)event))
+            return true;
+      }
+      return -1;
+}
+*/
 
 //------------------------------------------------------------------------------
 // MyFrame
@@ -1712,7 +1727,7 @@ void MyFrame::SetAndApplyColorScheme(ColorScheme cs)
             g_pais_query_dialog_active->Close();
 
             g_pais_query_dialog_active = new AISTargetQueryDialog();
-            g_pais_query_dialog_active->Create ( this, -1, wxT ( "AIS Target Query" ) );
+            g_pais_query_dialog_active->Create ( this, -1, wxT ( "AIS Target Query" ), wxPoint(g_ais_query_dialog_x, g_ais_query_dialog_y));
             g_pais_query_dialog_active->SetMMSI(n_mmsi);
             g_pais_query_dialog_active->UpdateText();
             if(b_isshown)
@@ -2485,23 +2500,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_FOLLOW:
         {
-              TogglebFollow();
-/*
-            if(!cc1->m_bFollow)
-            {
-                cc1->m_bFollow = true;
-//      Warp speed jump to current position
-                cc1->SetViewPoint(gLat, gLon, cc1->GetVPScale(),
-                                  Current_Ch->GetChartSkew() * PI / 180., FORCE_SUBSAMPLE);
-                cc1->Refresh(false);
-            }
-            else
-            {
-                cc1->m_bFollow = false;
-            }
-
-            toolBar->ToggleTool(ID_FOLLOW, cc1->m_bFollow);
-*/
+           TogglebFollow();
             break;
         }
 
@@ -2530,6 +2529,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
             if(Current_Ch)
                 Current_Ch->InvalidateCache();
+            cc1->ReloadVP();
             cc1->Refresh(false);
             break;
         }
@@ -2615,16 +2615,8 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
      case ID_COLSCHEME:
         {
-            ColorScheme s = GetColorScheme();
-            int is = (int)s;
-            is++;
-            s = (ColorScheme)is;
-            if(s == N_COLOR_SCHEMES)
-                s = GLOBAL_COLOR_SCHEME_RGB;
-
-            SetAndApplyColorScheme(s);
-
-            break;
+              ToggleColorScheme();
+              break;
         }
 
     case ID_TBEXIT:
@@ -2655,6 +2647,18 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     }
 
   }         // switch
+}
+
+void MyFrame::ToggleColorScheme()
+{
+      ColorScheme s = GetColorScheme();
+      int is = (int)s;
+      is++;
+      s = (ColorScheme)is;
+      if(s == N_COLOR_SCHEMES)
+            s = GLOBAL_COLOR_SCHEME_RGB;
+
+      SetAndApplyColorScheme(s);
 }
 
 void MyFrame::TrackOn(void)
@@ -3073,7 +3077,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 
 
 //      Update the chart database and displayed chart
-      bool bnew_chart = DoChartUpdate(0);
+      bool bnew_chart = DoChartUpdate();
 
 //      Update the active route, if any
       if(pRouteMan->UpdateProgress())
@@ -3587,7 +3591,7 @@ void MyFrame::SetChartThumbnail(int index)
 //      This improves useability for large scale pans
 //      Return true if Current_Ch has been changed, implying need for a full redraw
 //----------------------------------------------------------------------------------
-bool MyFrame::DoChartUpdate(int bSelectType)
+bool MyFrame::DoChartUpdate(void)
 {
         float tLat, tLon;
         ChartStack LastStack;
@@ -4128,6 +4132,7 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
                               gGPS_Watchdog = gsp_watchdog_timeout_ticks;
 
                               bshow_tick = true;
+
                         }
                   }
             }
@@ -4190,138 +4195,11 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
 
 void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 {
-#if 0
-#define LOCAL_BUFFER_LENGTH 4096
-
-    char buf[LOCAL_BUFFER_LENGTH];
     bool bshow_tick = false;
     time_t fixtime;
 
     switch(event.GetExtraLong())
     {
-        case EVT_NMEA_PARSE_RX:
-        {
-              if(m_mutexNMEAEvent.TryLock() == wxMUTEX_NO_ERROR )
-              {
-                if(RX_BUFFER_FULL == rx_share_buffer_state)
-                {
-                    int nchar = strlen(rx_share_buffer);
-                    strncpy (buf, rx_share_buffer, wxMin(nchar + 1, LOCAL_BUFFER_LENGTH - 1));
-                    rx_share_buffer_state = RX_BUFFER_EMPTY;
-
-                    if(rx_share_buffer_length != strlen(rx_share_buffer))
-                        wxLogMessage(_T("Got NMEA Event with inconsistent rx_share_buffer"));
-                }
-                else
-                    wxLogMessage(_T("Got NMEA Event with RX_BUFFER_EMPTY"));
-
-                m_mutexNMEAEvent.Unlock();
-            }
-            else
-            {
-                AddPendingEvent(event);               // If we cannot get the Mutex, resubmit the event
-                break;
-            }
-
-
-
-            wxString str_buf(buf, wxConvUTF8);
-
-            if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
-            {
-                  g_total_NMEAerror_messages++;
-                  wxString msg(_T("MEH.NMEA Sentence received..."));
-                  msg.Append(str_buf);
-                  wxLogMessage(msg);
-            }
-
-            m_NMEA0183 << str_buf;
-            if(m_NMEA0183.PreParse())
-            {
-                  if(m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
-                  {
-                        if(m_NMEA0183.Parse())
-                        {
-                              if(m_NMEA0183.Rmc.IsDataValid == NTrue)
-                              {
-                                    float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
-                                    int lat_deg_int = (int)(llt / 100);
-                                    float lat_deg = lat_deg_int;
-                                    float lat_min = llt - (lat_deg * 100);
-                                    gLat = lat_deg + (lat_min/60.);
-                                    if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
-                                          gLat = -gLat;
-
-                                    float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
-                                    int lon_deg_int = (int)(lln / 100);
-                                    float lon_deg = lon_deg_int;
-                                    float lon_min = lln - (lon_deg * 100);
-                                    gLon = lon_deg + (lon_min/60.);
-                                    if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
-                                          gLon = -gLon;
-
-                                    gSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
-                                    gCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
-
-                                    gVar = m_NMEA0183.Rmc.MagneticVariation;
-                                    if(m_NMEA0183.Rmc.MagneticVariationDirection == West)
-                                          gVar = -gVar;
-
-                                    fixtime = 0;
-
-                                    bool last_bGPSValid = bGPSValid;
-                                    bGPSValid = true;
-                                    if(!last_bGPSValid)
-                                          UpdateToolbarStatusWindow(Current_Ch, false);
-
-                                    gGPS_Watchdog = gsp_watchdog_timeout_ticks;
-
-                                    bshow_tick = true;
-                              }
-                        }
-                  }
-                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDT"))
-                  {
-                        if(m_NMEA0183.Parse())
-                        {
-                              gHdt = m_NMEA0183.Hdt.DegreesTrue;
-                              g_bHDxValid = true;
-                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
-                        }
-                  }
-
-                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDG"))
-                  {
-                        if(m_NMEA0183.Parse())
-                        {
-                              gHdt = m_NMEA0183.Hdg.MagneticSensorHeadingDegrees;
-                              if(m_NMEA0183.Hdg.MagneticVariationDirection == East)
-                                    gHdt += m_NMEA0183.Hdg.MagneticVariationDegrees;
-                              else
-                                    gHdt -= m_NMEA0183.Hdg.MagneticVariationDegrees;
-
-                              g_bHDxValid = true;
-                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
-                        }
-                  }
-
-                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDM"))
-                  {
-                       if(m_NMEA0183.Parse())
-                       {
-                              gHdt = m_NMEA0183.Hdm.DegreesMagnetic;
-                              gHdt += gVar;
-
-                              g_bHDxValid = true;
-                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
-                        }
-                  }
-
-            }
-
-            break;
-        }       //case
-
         case EVT_NMEA_DIRECT:
         {
                 wxMutexLocker stateLocker(m_mutexNMEAEvent);          // scope is this case
@@ -4351,143 +4229,9 @@ void MyFrame::OnEvtNMEA(wxCommandEvent & event)
 
     }           // switch
 
-    if(brx_rmc)
-    {
+    wxString sfixtime(_T(""));
+    PostProcessNNEA(bshow_tick, sfixtime);
 
-          //      Maintain the validity flags
-          bool last_bGPSValid = bGPSValid;
-          bGPSValid = true;
-          if(!last_bGPSValid)
-                UpdateToolbarStatusWindow(Current_Ch, false);
-
-
-
-      //      Show a little heartbeat tick in StatusWindow0 on NMEA events
-      //      But no faster than 10 hz.
-      unsigned long uiCurrentTickCount ;
-      m_MMEAeventTime.SetToCurrent() ;
-      uiCurrentTickCount = m_MMEAeventTime.GetMillisecond() / 100 ;           // tenths of a second
-      uiCurrentTickCount += m_MMEAeventTime.GetTicks() * 10 ;
-      if(uiCurrentTickCount > m_ulLastNEMATicktime + 1)
-      {
-            m_ulLastNEMATicktime = uiCurrentTickCount ;
-
-            if(tick_idx++ > 6)
-                  tick_idx = 0;
-//            char tick_buf[2];
-//            tick_buf[0] = nmea_tick_chars[tick_idx];
-//            tick_buf[1] = 0;
-//            if(NULL != GetStatusBar())
-//                  SetStatusText(wxString(tick_buf, wxConvUTF8), 0);
-      }
-    }
-
-//    If gSog is greater than some threshold, we determine that we are "cruising"
-      if(gSog > 3.0)
-            g_bCruising = true;
-
-//    Show gLat/gLon in StatusWindow0
-
-      if(NULL != GetStatusBar())
-      {
-            char tick_buf[2];
-            tick_buf[0] = nmea_tick_chars[tick_idx];
-            tick_buf[1] = 0;
-
-            wxString s1(tick_buf, wxConvUTF8);
-            s1 += _T("  Ownship:   ");
-            s1 += toSDMM(1, gLat);
-            s1 += _T("   ");
-            s1 += toSDMM(2, gLon);
-            SetStatusText ( s1, STAT_FIELD_TICK );
-      }
-
-      wxString sogcog;
-      sogcog.Printf(_T("SOG: %5.2f kts  COG: %5.0f Deg"), gSog, gCog);
-      SetStatusText ( sogcog, STAT_FIELD_SOGCOG );
-
-#ifdef ocpnUPDATE_SYSTEM_TIME
-//      Use the fix time to update the local system clock, only once per session
-      if((0 != fixtime) && s_bSetSystemTime && (m_bTimeIsSet == false))
-      {
-            wxDateTime Fix_Time;
-            Fix_Time.Set(fixtime);
-            wxString fix_time_format = Fix_Time.Format(_T("%Y-%m-%dT%H:%M:%S"));  // this should show as LOCAL
-
-
-//          Compare the server (fix) time to the current system time
-            wxDateTime sdt;
-            sdt.SetToCurrent();
-            wxDateTime cwxft = Fix_Time;                  // take a copy
-            wxTimeSpan ts;
-            ts = cwxft.Subtract(sdt);
-
-            int b = (ts.GetSeconds()).ToLong();
-
-//          Correct system time if necessary
-//      Only set the time if wrong by more than 1 minute, and less than 2 hours
-//      This should eliminate bogus times which may come from faulty GPS units
-
-            if((abs(b) > 60) && (abs(b) < (2 * 60 * 60)))
-            {
-
-#ifdef __WXMSW__
-//      Fix up the fix_time to convert to GMT
-                  Fix_Time = Fix_Time.ToGMT();
-
-//    Code snippet following borrowed from wxDateCtrl, MSW
-
-                  const wxDateTime::Tm tm(Fix_Time.GetTm());
-
-
-                  SYSTEMTIME stm;
-                  stm.wYear = (WXWORD)tm.year;
-                  stm.wMonth = (WXWORD)(tm.mon - wxDateTime::Jan + 1);
-                  stm.wDay = tm.mday;
-
-                  stm.wDayOfWeek = 0;
-                  stm.wHour = Fix_Time.GetHour();
-                  stm.wMinute = tm.min;
-                  stm.wSecond = tm.sec;
-                  stm.wMilliseconds = 0;
-
-                  ::SetSystemTime(&stm);            // in GMT
-
-
-#else
-
-
-//      This contortion sets the system date/time on POSIX host
-//      Requires the following line in /etc/sudoers
-//          nav ALL=NOPASSWD:/bin/date -s *
-
-                        wxString msg;
-                        msg.Printf(_T("Setting system time, delta t is %d seconds"), b);
-                        wxLogMessage(msg);
-
-                        wxString sdate(Fix_Time.Format(_T("%D")));
-                        sdate.Prepend(_T("sudo /bin/date -s \""));
-
-                        wxString stime(Fix_Time.Format(_T("%T")));
-                        stime.Prepend(_T(" "));
-                        sdate.Append(stime);
-                        sdate.Append(_T("\""));
-
-                        msg.Printf(_T("Linux command is:"));
-                        msg += sdate;
-                        wxLogMessage(msg);
-                        wxExecute(sdate, wxEXEC_ASYNC);
-
-#endif      //__WXMSW__
-                        m_bTimeIsSet = true;
-
-            }           // if needs correction
-      }               // if valid time
-
-#endif            //ocpnUPDATE_SYSTEM_TIME
-
-
-#endif
 }
 
 void MyFrame::PostProcessNNEA(bool brx_rmc, wxString &sfixtime)
@@ -4529,7 +4273,7 @@ void MyFrame::PostProcessNNEA(bool brx_rmc, wxString &sfixtime)
             tick_buf[1] = 0;
 
             wxString s1(tick_buf, wxConvUTF8);
-            s1 += _T("  Ownship:   ");
+            s1 += _T(" Ship: ");
             s1 += toSDMM(1, gLat);
             s1 += _T("   ");
             s1 += toSDMM(2, gLon);
@@ -5576,206 +5320,3 @@ void SetSystemColors ( ColorScheme cs )
 }
 
 
-#if 0
-
-//------------------------------------------------------------------------------
-// DummyTextCtrl
-//------------------------------------------------------------------------------
-
-
-//      DummyTextCtrl implementation
-BEGIN_EVENT_TABLE(DummyTextCtrl, wxTextCtrl)
-            EVT_CHAR(DummyTextCtrl::OnChar)
-            EVT_MOUSE_EVENTS ( DummyTextCtrl::OnMouseEvent )
-
-END_EVENT_TABLE()
-
-DummyTextCtrl::DummyTextCtrl(wxWindow *parent, wxWindowID id):
-            wxTextCtrl(parent, id)
-{
-      m_MouseWheelTimer.SetOwner(this);
-}
-void DummyTextCtrl::OnMouseEvent(wxMouseEvent &event)
-{
-      //    Note:  On WXMSW, mouse wheel events only happen for the window
-      //    which has the focus, independent of where the cursor is.
-      //    Since this window needs the focus to get wxKey events, so it
-      //    also gets wheels
-#ifdef __WXMSW__
-
-         //        Check for wheel rotation
-      m_mouse_wheel_oneshot = 50;                  //msec
-                                                      // ideally, should be just longer than the time between
-                                                      // processing accumulated mouse events from the event queue
-                                                      // as would happen during screen redraws.
-      int wheel_dir = event.GetWheelRotation();
-
-      if(m_MouseWheelTimer.IsRunning())
-      {
-            if(wheel_dir != m_last_wheel_dir)
-                  m_MouseWheelTimer.Stop();
-            else
-                  m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // restart timer
-      }
-
-      m_last_wheel_dir = wheel_dir;
-
-      if(!m_MouseWheelTimer.IsRunning())
-      {
-            if(cc1)
-            {
-                  if(g_bEnableZoomToCursor)
-                  {
-                        if(wheel_dir > 0)
-                              cc1->ZoomCanvasIn(cc1->m_cursor_lat, cc1->m_cursor_lon);
-                        else if(wheel_dir < 0)
-                              cc1->ZoomCanvasOut(cc1->m_cursor_lat, cc1->m_cursor_lon);
-
-                        wxPoint r;                                                        // move the mouse pointer to zoomed location
-                        cc1->GetCanvasPointPix(cc1->m_cursor_lat, cc1->m_cursor_lon, &r);
-                        cc1->WarpPointer(r.x, r.y);
-                  }
-                  else
-                  {
-                        if(wheel_dir > 0)
-                              cc1->ZoomCanvasIn();
-                        else if(wheel_dir < 0)
-                              cc1->ZoomCanvasOut();
-                  }
-            }
-
-            m_MouseWheelTimer.Start(m_mouse_wheel_oneshot, true);           // start timer
-      }
-#endif
-}
-
-
-void DummyTextCtrl::OnChar(wxKeyEvent &event)
-{
-      int key_code = event.GetKeyCode();
-
-      switch(key_code)
-      {
-            case  WXK_LEFT:
-                  if ( event.GetModifiers() == wxMOD_CONTROL )
-                        gFrame->DoStackDown();
-                  else
-                        cc1->PanCanvas(-100, 0);
-                  break;
-
-            case  WXK_UP:
-                  cc1->PanCanvas(0, -100);
-                  break;
-
-            case  WXK_RIGHT:
-                  if ( event.GetModifiers() == wxMOD_CONTROL )
-                        gFrame->DoStackUp();
-                  else
-                        cc1->PanCanvas(100, 0);
-                  break;
-
-            case  WXK_DOWN:
-                  cc1->PanCanvas(0, 100);
-                  break;
-
-            case WXK_F10:
-                  gFrame->DoStackDown();
-                  break;
-
-            case WXK_F11:
-                  gFrame->DoStackUp();
-                  break;
-
-            case WXK_F2:
-                  gFrame->TogglebFollow();
-                  break;
-
-            case WXK_F12:
-                  gFrame->ToggleChartOutlines();
-                  break;
-
-            case WXK_F9:
-                  gFrame->ClearbFollow();
-                  break;
-
-            case WXK_F8:
-                  gFrame->SetbFollow();
-                  break;
-
-            case WXK_F3:
-                  gFrame->ToggleENCText();
-                  break;
-
-            default:
-                  break;
-
-      }
-
-      char key_char = (char)key_code;
-      switch(key_char)
-      {
-            case '+':
-            case 26:                     // Ctrl Z
-                  cc1->ZoomCanvasIn();
-                  break;
-
-            case '-':
-            case 24:                     // Ctrl X
-                  cc1->ZoomCanvasOut();
-                  break;
-
-            case 19:                     // Ctrl S
-                  gFrame->ToggleENCText();
-                  break;
-
-            case 1:                      // Ctrl A
-                  gFrame->TogglebFollow();
-                  break;
-
-            case 15:                     // Ctrl O
-                  gFrame->ToggleChartOutlines();
-                  break;
-
-            case 49:                     // Ctrl 1
-                  gFrame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_DAY);
-                  break;
-
-            case 50:                     // Ctrl 2
-                  gFrame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_DUSK);
-                  break;
-
-            case 51:                     // Ctrl 3
-                  gFrame->SetAndApplyColorScheme(GLOBAL_COLOR_SCHEME_NIGHT);
-                  break;
-
-            case 13:                     // Ctrl M                      //    Drop Marker;
-            {
-                  RoutePoint *pWP = new RoutePoint ( cc1->m_cursor_lat, cc1->m_cursor_lon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "New Mark" ) ), NULL );
-                  pSelect->AddSelectableRoutePoint ( cc1->m_cursor_lat, cc1->m_cursor_lon, pWP );
-                  pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
-                  cc1->Refresh ( false );
-                  break;
-            }
-
-            case 32:                     // Ctrl Space            //    Drop MOB
-            {
-                  if ( event.GetModifiers() == wxMOD_CONTROL )
-                  {
-                        RoutePoint *pWP = new RoutePoint ( gLat, gLon, wxString ( _T ( "mob" ) ), wxString ( _T ( "MAN OVERBOARD" ) ), NULL );
-                        pSelect->AddSelectableRoutePoint ( gLat, gLon, pWP );
-                        pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
-                        cc1->Refresh ( false );
-                  }
-                  break;
-            }
-
-            case 17:                       // Ctrl Q
-                  gFrame->Close();
-                  break;
-
-            default:
-                  break;
-
-      }
-}
-#endif

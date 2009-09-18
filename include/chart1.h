@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.29 2009/09/11 23:19:18 bdbcat Exp $
+ * $Id: chart1.h,v 1.30 2009/09/18 02:48:46 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.30  2009/09/18 02:48:46  bdbcat
+ * Various
+ *
  * Revision 1.29  2009/09/11 23:19:18  bdbcat
  * *** empty log message ***
  *
@@ -266,7 +269,7 @@ class MyFrame: public wxFrame
     void OnExit(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
     void OnFrameTimer1(wxTimerEvent& event);
-    bool DoChartUpdate(int bSelectType);
+    bool DoChartUpdate(void);
     void OnEvtNMEA(wxCommandEvent& event);
     void OnEvtTHREADMSG(wxCommandEvent& event);
     void OnEvtOCPN_NMEA(OCPN_NMEAEvent & event);
@@ -296,6 +299,7 @@ class MyFrame: public wxFrame
     void ToggleENCText(void);
     void TrackOn(void);
     void TrackOff(void);
+    void ToggleColorScheme();
 
     ColorScheme GetColorScheme();
     void SetAndApplyColorScheme(ColorScheme cs);
