@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.15 2009/09/04 02:40:47 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.16 2009/09/18 01:23:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.16  2009/09/18 01:23:13  bdbcat
+ * Increase Annunciator x size
+ *
  * Revision 1.15  2009/09/04 02:40:47  bdbcat
  * Fix Route/Leg for MSW
  *
@@ -54,6 +57,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.16  2009/09/18 01:23:13  bdbcat
+ * Increase Annunciator x size
+ *
  * Revision 1.15  2009/09/04 02:40:47  bdbcat
  * Fix Route/Leg for MSW
  *
@@ -147,7 +153,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.15 2009/09/04 02:40:47 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.16 2009/09/18 01:23:13 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -515,7 +521,7 @@ void AnnunText::CalculateMinSize(void)
 
 
       if(m_pvalueFont)
-            GetTextExtent(_T("123.45"), &wv, &hv, NULL, NULL, m_pvalueFont);
+            GetTextExtent(_T("123.456"), &wv, &hv, NULL, NULL, m_pvalueFont);
 
       wxSize min;
       min.x = wl + wv;
