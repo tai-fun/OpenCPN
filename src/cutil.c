@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.11 2009/08/10 02:23:14 bdbcat Exp $
+ * $Id: cutil.c,v 1.12 2009/09/18 01:22:14 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Extern C Linked Utilities
@@ -27,6 +27,9 @@
  *
  *
  * $Log: cutil.c,v $
+ * Revision 1.12  2009/09/18 01:22:14  bdbcat
+ * MSVC Fix
+ *
  * Revision 1.11  2009/08/10 02:23:14  bdbcat
  * Correct line endings
  *
@@ -94,7 +97,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: cutil.c,v 1.11 2009/08/10 02:23:14 bdbcat Exp $");
+CPL_CVSID("$Id: cutil.c,v 1.12 2009/09/18 01:22:14 bdbcat Exp $");
 
 /*************************************************************************
 
@@ -329,7 +332,7 @@ double      round_msvc (double x)
 
 }
 
-#ifdef __WXMSW__
+#ifdef __MSVC__
 #include <windows.h>
 #include <float.h>            // for _clear87()
 
