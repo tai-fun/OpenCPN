@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.21 2009/09/11 20:10:17 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.22 2009/09/18 02:15:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.22  2009/09/18 02:15:35  bdbcat
+ * Add variable zoom detail level
+ *
  * Revision 1.21  2009/09/11 20:10:17  bdbcat
  * Improve dictionary search
  *
@@ -132,6 +135,7 @@ extern cm93manager      *s_pcm93mgr;
 extern MyConfig         *pConfig;
 extern wxString         g_CM93DictDir;
 extern bool             g_bDebugCM93;
+extern int              g_cm93_zoom_factor;
 
 #ifndef __WXMSW__
 extern struct sigaction sa_all;
@@ -3880,7 +3884,15 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
 
 }
 
-
+double scale_breaks[] = {
+      5000.,                  //G
+      15000.,                 //F
+      40000.,                 //E
+      150000.,                //D
+      300000.,                //C
+      1000000.,               //B
+      3000000.                //A
+};
 
 //-----------------------------------------------------------------------
 //              Calculate and Set ViewPoint Constants
@@ -3890,42 +3902,45 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 {
       double scale_mpp = 3000 / vpt->view_scale_ppm;
 
+      double scale_mpp_adj = scale_mpp;
+
+      double scale_breaks_adj[7];
+
+      for(int i=0 ; i < 7 ; i++)
+            scale_breaks_adj[i] = scale_breaks[i];
+
+
+
+      //    Completely intuitive exponential curve adjustment
+      if(g_cm93_zoom_factor)
+      {
+            double efactor = (double)(g_cm93_zoom_factor) * (.176 / 7.);
+            for(int i=0 ; i < 7 ; i++)
+            {
+                  double efr = efactor * (7 - i);
+                  scale_breaks_adj[i] = scale_breaks[i] * pow(10., efr);
+#ifdef CM93_DEBUG_PRINTF
+                  printf("g_cm93_zoom_factor: %2d  efactor: %6g efr:%6g, scale_breaks[i]:%6g  scale_breaks_adj[i]: %6g\n",
+                         g_cm93_zoom_factor, efactor, efr, scale_breaks[i], scale_breaks_adj[i]);
+#endif
+            }
+      }
+
       int cmscale = 7;
+      int brk_index = 0;
       while(cmscale > 0)
       {
-
-            if(scale_mpp < 5000)
-                  break;                        // G, 7500
+            if(scale_mpp_adj < scale_breaks_adj[brk_index])
+                  break;
             cmscale--;
-
-            if(scale_mpp < 15000/*10000*/)
-                  break;                        // F, 20000
-            cmscale--;
-
-            if(scale_mpp < 40000/*30000*/)
-                  break;                        // E, 50000
-            cmscale--;
-
-            if(scale_mpp < 150000)
-                  break;                        // D, 100000
-            cmscale--;
-
-            if(scale_mpp < 300000)
-                  break;                        // C, 200000
-            cmscale--;
-
-            if(scale_mpp < 1000000)
-                  break;                        // B, 1000000
-            cmscale--;
-
-            if(scale_mpp < 3000000)
-                  break;                        // A, 3000000
-            cmscale--;
+            brk_index++;
       }
+
+
 
 #ifdef CM93_DEBUG_PRINTF
 //      if(cmscale != m_cmscale)
-            printf("\n\non SetVPParms, scale_mpp %g...resulting in cmscale:%d, %c\n", scale_mpp, cmscale, (char)('A' + cmscale -1));
+            printf("\n\non SetVPParms, scale_mpp %g  scale_mpp_adj %g ...resulting in cmscale:%d, %c\n", scale_mpp, scale_mpp_adj, cmscale, (char)('A' + cmscale -1));
 #endif
 
       m_cmscale = cmscale;

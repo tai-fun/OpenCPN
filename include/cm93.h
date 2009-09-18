@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.11 2009/08/25 21:38:25 bdbcat Exp $
+ * $Id: cm93.h,v 1.12 2009/09/18 02:16:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.12  2009/09/18 02:16:03  bdbcat
+ * Add variable zoom detail level
+ *
  * Revision 1.11  2009/08/25 21:38:25  bdbcat
  * *** empty log message ***
  *
@@ -67,6 +70,7 @@
 //    Some constants
 #define     INDEX_m_sor       217                // cm93 dictionary index for object type _m_sor
 
+#define CM93_ZOOM_FACTOR_MAX_RANGE 5
 
 WX_DEFINE_ARRAY_INT(int, ArrayOfInts);
 
