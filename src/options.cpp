@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.30 2009/09/11 20:31:19 bdbcat Exp $
+ * $Id: options.cpp,v 1.31 2009/09/18 01:29:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.31  2009/09/18 01:29:12  bdbcat
+ * Add cm93 zoom factor slider
+ *
  * Revision 1.30  2009/09/11 20:31:19  bdbcat
  * Utilize wxScollingDialog
  *
@@ -137,6 +140,7 @@
 #include "dychart.h"
 #include "chart1.h"
 #include "options.h"
+#include "cm93.h"
 
 #include "navutil.h"
 #ifdef USE_S57
@@ -194,6 +198,8 @@ extern double           g_TrackDeltaDistance;
 extern double           g_TrackDeltaDistance;
 extern bool             g_bTrackTime;
 extern bool             g_bTrackDistance;
+
+extern int              g_cm93_zoom_factor;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -717,6 +723,15 @@ void options::CreateControls()
     itemStaticBoxSizer83->Add(p24Color, 0, wxALL|wxEXPAND, border_size);
 
 
+
+    wxStaticBox *pslStatBox = new wxStaticBox(ps57Ctl, wxID_ANY, _T("CM93 Zoom Detail"));
+    wxStaticBoxSizer* itemStaticBoxSizersl = new wxStaticBoxSizer(pslStatBox, wxVERTICAL);
+    itemStaticBoxSizer83->Add(itemStaticBoxSizersl, 0, wxALL|wxEXPAND, border_size);
+    m_pSlider_CM93_Zoom = new wxSlider(ps57Ctl, ID_CM93ZOOM , 0, -CM93_ZOOM_FACTOR_MAX_RANGE, CM93_ZOOM_FACTOR_MAX_RANGE,
+                                       wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL | wxSL_AUTOTICKS | wxSL_LABELS);
+    itemStaticBoxSizersl->Add(m_pSlider_CM93_Zoom, 0, wxALL|wxEXPAND, border_size);
+
+
     wxStaticBox*  pdepth_static = new wxStaticBox(ps57Ctl, wxID_ANY, _T("Depth Settings"));
     wxStaticBoxSizer *pdepth_sizer = new wxStaticBoxSizer(pdepth_static, wxHORIZONTAL);
     itemBoxSizer25->Add(pdepth_sizer, 0, wxTOP|wxALL|wxEXPAND, 2);
@@ -1227,6 +1242,8 @@ void options::SetInitialSettings()
       m_pCheck_AlertAudio->SetValue(g_bAIS_CPA_Alert_Audio);
       m_pCheck_Alert_Moored->SetValue(g_bAIS_CPA_Alert_Suppress_Moored);
 
+      m_pSlider_CM93_Zoom->SetValue(g_cm93_zoom_factor);
+
 
 #ifdef USE_S57
 //    S52 Primary Filters
@@ -1549,6 +1566,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
     WiFiSource.Append(m_itemWIFI_TCPIP_Source->GetLineText(0));
     *pWIFIServerName = WiFiSource;
 #endif
+
+    g_cm93_zoom_factor = m_pSlider_CM93_Zoom->GetValue();
 
 #ifdef USE_S57
     //    Handle s57 Tab

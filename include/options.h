@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.16 2009/09/11 20:31:30 bdbcat Exp $
+ * $Id: options.h,v 1.17 2009/09/18 01:28:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.17  2009/09/18 01:28:15  bdbcat
+ * Add cm93 zoom factor slider
+ *
  * Revision 1.16  2009/09/11 20:31:30  bdbcat
  * Utilize wxScollingDialog
  *
@@ -137,14 +140,15 @@ enum {
         ID_ATONTEXTCHECKBOX,
         ID_LDISTEXTCHECKBOX,
         ID_DECLTEXTCHECKBOX,
-        ID_PANELADVANCED,   // toh, 2009.02.14
-        ID_GPXCHECKBOX,       // toh, 2009.02.14
-        ID_DRAGGINGCHECKBOX,   // toh, 2009.02.14
+        ID_PANELADVANCED,
+        ID_GPXCHECKBOX,
+        ID_DRAGGINGCHECKBOX,
         ID_AISALERTDIALOG,
         ID_AISALERTAUDIO,
         ID_AISALERTSELECTSOUND,
         ID_AISALERTTESTSOUND,
-        ID_TRACKCHECKBOX
+        ID_TRACKCHECKBOX,
+        ID_CM93ZOOM
 
 };
 
@@ -242,6 +246,7 @@ public:
     wxTextCtrl              *m_SafetyCtl;
     wxTextCtrl              *m_DeepCtl;
     wxRadioBox              *pDepthUnitSelect;
+    wxSlider                *m_pSlider_CM93_Zoom;
 
 //    For "Charts" page
     wxPanel* itemPanel9;
