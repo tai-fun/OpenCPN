@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.39 2009/09/04 01:50:53 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.40 2009/09/18 01:38:01 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.40  2009/09/18 01:38:01  bdbcat
+ * Correct Progress Dialog size
+ *
  * Revision 1.39  2009/09/04 01:50:53  bdbcat
  * Config option for LUP errors
  *
@@ -103,6 +106,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.40  2009/09/18 01:38:01  bdbcat
+ * Correct Progress Dialog size
+ *
  * Revision 1.39  2009/09/04 01:50:53  bdbcat
  * Config option for LUP errors
  *
@@ -244,7 +250,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.39 2009/09/04 01:50:53 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.40 2009/09/18 01:38:01 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -3628,11 +3634,12 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
                                        wxPD_REMAINING_TIME  | wxPD_SMOOTH );
 
     //      The created size in wxWidgets 2.8 is waaay too large, so....
+/*
     wxSize sz = SENC_prog->GetSize();
     sz.x /= 2;
     SENC_prog->SetSize(sz);
     SENC_prog->Centre();
-
+*/
 
     //      Analyze Updates
     //      The OGR library will apply updates automatically, if enabled.
@@ -4254,10 +4261,11 @@ int s57chart::BuildRAZFromSENCFile( const wxString& FullPath )
                           wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
     //      The created size in wxWidgets 2.8 is waaay too large, so....
-                wxSize sz = SENC_prog->GetSize();
+/*              wxSize sz = SENC_prog->GetSize();
                 sz.x /= 2;
                 SENC_prog->SetSize(sz);
-                SENC_prog->Centre();
+                ENC_prog->Centre();
+*/
 #endif
             }
         }                       //while(!dun)
