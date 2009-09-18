@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.47  2009/09/18 02:21:16  bdbcat
+ * Various, MSVC fonts, dialog locations
+ *
  * Revision 1.46  2009/09/11 23:19:01  bdbcat
  * *** empty log message ***
  *
@@ -136,6 +139,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.47  2009/09/18 02:21:16  bdbcat
+ * Various, MSVC fonts, dialog locations
+ *
  * Revision 1.46  2009/09/11 23:19:01  bdbcat
  * *** empty log message ***
  *
@@ -296,12 +302,13 @@
 #include "routeman.h"
 #include "s52utils.h"
 #include "chartbase.h"
+#include "cm93.h"
 
 #ifdef USE_S57
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.46 2009/09/11 23:19:01 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.47 2009/09/18 02:21:16 bdbcat Exp $" );
 
 //    Statics
 
@@ -375,6 +382,7 @@ extern bool             g_bAIS_CPA_Alert;
 extern bool             g_bAIS_CPA_Alert_Audio;
 extern int              g_ais_alert_dialog_x, g_ais_alert_dialog_y;
 extern int              g_ais_alert_dialog_sx, g_ais_alert_dialog_sy;
+extern int              g_ais_query_dialog_x, g_ais_query_dialog_y;
 extern wxString         g_sAIS_Alert_Sound_File;
 extern bool             g_bAIS_CPA_Alert_Suppress_Moored;
 
@@ -405,6 +413,7 @@ extern s52plib          *ps52plib;
 #endif
 
 extern wxString         g_CM93DictDir;
+extern int              g_cm93_zoom_factor;
 
 
 //------------------------------------------------------------------------------
@@ -2193,6 +2202,10 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "DebugS57" ),  &g_bDebugS57, 0 );
 
 
+      Read ( _T ( "CM93DetailFactor" ),  &g_cm93_zoom_factor, 0 );
+      g_cm93_zoom_factor = wxMin(g_cm93_zoom_factor,CM93_ZOOM_FACTOR_MAX_RANGE);
+      g_cm93_zoom_factor = wxMax(g_cm93_zoom_factor,(-CM93_ZOOM_FACTOR_MAX_RANGE));
+
       s_bSetSystemTime = false;
       Read ( _T ( "SetSystemTime" ), &s_bSetSystemTime );
 
@@ -2277,10 +2290,12 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "AISAlertAudioFile" ),  &g_sAIS_Alert_Sound_File );
       Read ( _T ( "bAISAlertSuppressMoored" ), &g_bAIS_CPA_Alert_Suppress_Moored );
 
-      g_ais_alert_dialog_sx = Read ( _T ( "AlertDialogSizeX" ), 400L );
-      g_ais_alert_dialog_sy = Read ( _T ( "AlertDialogSizeY" ), 400L );
-      g_ais_alert_dialog_x = Read ( _T ( "AlertDialogPosX" ), 400L );
-      g_ais_alert_dialog_y = Read ( _T ( "AlertDialogPosY" ), 400L );
+      g_ais_alert_dialog_sx = Read ( _T ( "AlertDialogSizeX" ), 200L );
+      g_ais_alert_dialog_sy = Read ( _T ( "AlertDialogSizeY" ), 200L );
+      g_ais_alert_dialog_x = Read ( _T ( "AlertDialogPosX" ), 200L );
+      g_ais_alert_dialog_y = Read ( _T ( "AlertDialogPosY" ), 200L );
+      g_ais_query_dialog_x = Read ( _T ( "QueryDialogPosX" ), 200L );
+      g_ais_query_dialog_y = Read ( _T ( "QueryDialogPosY" ), 200L );
 
 
 #ifdef USE_S57
@@ -3202,6 +3217,8 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "ShowChartOutlines" ),  g_bShowOutlines );
       Write ( _T ( "GarminPersistance" ),  g_bGarminPersistance );
 
+      Write ( _T ( "CM93DetailFactor" ),  g_cm93_zoom_factor );
+
       wxString st0;
       st0.Printf ( _T ( "%g" ), g_PlanSpeed );
       Write ( _T ( "PlanSpeed" ), st0 );
@@ -3280,6 +3297,8 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "AlertDialogSizeY" ),  g_ais_alert_dialog_sy );
       Write ( _T ( "AlertDialogPosX" ),  g_ais_alert_dialog_x );
       Write ( _T ( "AlertDialogPosY" ),  g_ais_alert_dialog_y );
+      Write ( _T ( "QueryDialogPosX" ),  g_ais_query_dialog_x );
+      Write ( _T ( "QueryDialogPosY" ),  g_ais_query_dialog_y );
 
 
 #ifdef USE_S57
@@ -5206,7 +5225,31 @@ wxFont *FontMgr::GetFont ( const wxString &TextElement, int default_size )
 #endif
 
 #ifdef __WXMSW__
-      nativefont = _T ( "0;-11;0;0;0;400;0;0;0;0;0;0;0;0;MS Sans Serif" );
+//      nativefont = _T ( "0;-11;0;0;0;400;0;0;0;0;0;0;0;0;MS Sans Serif" );
+
+      int h, w, hm, wm;
+      ::wxDisplaySize(&w, &h);            // pixels
+      ::wxDisplaySizeMM(&wm, &hm);        // MM
+      double pix_per_inch_v = (h / hm) *  25.4;
+      int lfHeight = -(int)((new_size * (pix_per_inch_v/72.0)) + 0.5);
+
+      nativefont.Printf(_T("%d;%ld;%ld;%ld;%ld;%ld;%d;%d;%d;%d;%d;%d;%d;%d;%s"),
+               0,                   // version, in case we want to change the format later
+               lfHeight,            //lf.lfHeight
+               0,                   //lf.lfWidth,
+               0,                   //lf.lfEscapement,
+               0,                   //lf.lfOrientation,
+               400,                 //lf.lfWeight,
+               0,                   //lf.lfItalic,
+               0,                   //lf.lfUnderline,
+               0,                   //lf.lfStrikeOut,
+               0,                   //lf.lfCharSet,
+               0,                   //lf.lfOutPrecision,
+               0,                   //lf.lfClipPrecision,
+               0,                   //lf.lfQuality,
+               0,                   //lf.lfPitchAndFamily,
+               "MS Sans Serif");      //lf.lfFaceName
+
 #endif
 
 
