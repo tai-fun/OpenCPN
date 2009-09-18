@@ -71,6 +71,7 @@ struct GeoRef {
 #define RADIAN    (180.0/PI)
 
 #define DATUM_INDEX_WGS84     100
+#define DATUM_INDEX_UNKNOWN   -1
 
 
 static const double WGS84_semimajor_axis_meters       = 6378137.0;           // WGS84 semimajor axis
