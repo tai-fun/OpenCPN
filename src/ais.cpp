@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.31 2009/09/11 19:49:40 bdbcat Exp $
+ * $Id: ais.cpp,v 1.32 2009/09/18 02:31:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.32  2009/09/18 02:31:04  bdbcat
+ * Rebuild AIS Alert dialog
+ *
  * Revision 1.31  2009/09/11 19:49:40  bdbcat
  * Improve message handling, format dialogs
  *
@@ -143,6 +146,7 @@ extern  Select          *pSelectAIS;
 extern  double          gLat, gLon, gSog, gCog;
 extern  bool            g_bGPSAISMux;
 extern FontMgr          *pFontMgr;
+extern ChartCanvas      *cc1;
 
 //    AIS Global configuration
 extern bool             g_bCPAMax;
@@ -191,7 +195,7 @@ extern int              g_total_NMEAerror_messages;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.31 2009/09/11 19:49:40 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.32 2009/09/18 02:31:04 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -299,6 +303,7 @@ AIS_Target_Data::AIS_Target_Data()
 
     SOG = 555.;
     COG = 666.;
+    HDG = 511.;
 
     wxDateTime now = wxDateTime::Now();
     now.MakeGMT();
@@ -341,8 +346,9 @@ AIS_Target_Data::AIS_Target_Data()
 
 }
 
-wxString AIS_Target_Data::BuildQueryResult( int *pn_nl)
+wxString AIS_Target_Data::BuildQueryResult( void )
 {
+
       wxString line;
       wxString result;
 
@@ -510,19 +516,60 @@ wxString AIS_Target_Data::BuildQueryResult( int *pn_nl)
       else
             line.Printf(_T("CPA:       \n"));
       result.Append(line);
+/*
+      //    Count lines and characters
+      wxString max_line;
+      int nl = 0;
+      unsigned int max_len = 0;
+      int max_pix = 0;
 
       if(pn_nl)
       {
-            int nl = 0;
-            for(unsigned int i=0 ; i < result.Len() ; i++)
+            unsigned int i = 0;
+            wxString rline;
+
+            while(i < result.Len())
             {
-                  if(result.GetChar(i) == '\n')
-                        nl++;
+                  while(result.GetChar(i) != '\n')
+                        rline.Append(result.GetChar(i++));
+
+                  if(rline.Len() > max_len)
+                  {
+                        max_line = rline;
+                        max_len = rline.Len();
+                  }
+
+                  if(pFont && ppix_size)              // measure this line exactly
+                  {
+                        int w, h;
+                        pdc->GetTextExtent(rline, &w, &h, NULL, NULL, pFont);
+                        if(w > max_pix)
+                              max_pix = w;
+                  }
+
+
+                  i++;              // skip nl
+                  nl++;
+                  rline.Clear();
             }
 
             *pn_nl = nl;
+            if(pn_cmax)
+                  *pn_cmax = max_len;
       }
 
+
+      //    Measurement requested?
+      if(pFont && ppix_size)
+      {
+            int w, h;
+            pdc->GetTextExtent(max_line, &w, &h, NULL, NULL, pFont);
+
+            ppix_size->x = max_pix;       // x comes from above
+            ppix_size->y = h * nl;        // y is the same for all
+      }
+
+*/
       return result;
 }
 
@@ -1968,6 +2015,7 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
                         g_pais_alert_dialog_active = pAISAlertDialog;
                         pAISAlertDialog->Show();                        // Show modeless, so it stays on the screen
 
+
                         //    Audio alert if requested
                         m_bAIS_Audio_Alert_On = true;             // always on when alert is first shown
                   }
@@ -2639,7 +2687,7 @@ fail_point:
 IMPLEMENT_CLASS ( AISTargetAlertDialog, wxDialog )
 
 
-// AISTargetQueryDialog event table definition
+// AISTargetAlertDialog event table definition
 
             BEGIN_EVENT_TABLE ( AISTargetAlertDialog, wxDialog )
 
@@ -2700,6 +2748,7 @@ bool AISTargetAlertDialog::Create ( int target_mmsi,
 
       wxFont *dFont = pFontMgr->GetFont(_T("AISTargetAlert"), 12);
       SetFont ( *dFont );
+      m_pFont = dFont;
 
       CreateControls();
 
@@ -2733,10 +2782,10 @@ void AISTargetAlertDialog::CreateControls()
 
 // Here is the query result
 
-//      m_pAlertTextCtl = new wxTextCtrl ( this, -1, _T ( "" ),
-//                  wxDefaultPosition, wxSize ( -1, -1 ), wxTE_MULTILINE | wxTE_READONLY );
-
       m_pAlertTextCtl = new AISInfoWin ( this );
+      m_pAlertTextCtl->SetHPad(8);
+      m_pAlertTextCtl->SetVPad(2);
+
 
       wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
       m_pAlertTextCtl->SetBackgroundColour ( back_color );
@@ -2745,19 +2794,18 @@ void AISTargetAlertDialog::CreateControls()
       m_pAlertTextCtl->SetForegroundColour ( text_color );
 
 
-      wxString alert_text;
-      int n_nl;
-      if(GetAlertText(m_target_mmsi, alert_text, &n_nl))
+//      wxString alert_text;
+//      int n_nl;
+//      wxSize pix_size;
+
+      if(GetAlertText())
       {
-            m_pAlertTextCtl->AppendText ( alert_text );
+            m_pAlertTextCtl->AppendText ( m_alert_text );
 
-            int font_size_x, font_size_y, font_descent, font_lead;
-            m_pAlertTextCtl->GetTextExtent(_T("1"), &font_size_x, &font_size_y, &font_descent, &font_lead);
-            int sy = (font_size_y * n_nl) + 4;
-            int sx = font_size_x * 50;
+            wxSize osize = m_pAlertTextCtl->GetOptimumSize();
 
-            m_pAlertTextCtl->SetSize(wxSize(sx, sy));
-            boxSizer->SetMinSize(wxSize(sx, sy));
+            m_pAlertTextCtl->SetSize(osize);
+            boxSizer->SetMinSize(osize);
             boxSizer->FitInside(m_pAlertTextCtl);
       }
       boxSizer->Add ( m_pAlertTextCtl, 1, wxALIGN_LEFT|wxALL|wxEXPAND, 1 );
@@ -2785,7 +2833,7 @@ void AISTargetAlertDialog::CreateControls()
 
 }
 
-bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString &result, int *pn_nl)
+bool AISTargetAlertDialog::GetAlertText()
 {
       //    Search the parent AIS_Decoder's target list for specified mmsi
 
@@ -2795,7 +2843,7 @@ bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString &result, int *pn_nl)
 
             if(td_found)
             {
-                  result = td_found->BuildQueryResult(pn_nl);
+                  m_alert_text = td_found->BuildQueryResult();
                   return true;
             }
             else
@@ -2807,11 +2855,10 @@ bool AISTargetAlertDialog::GetAlertText(int mmsi, wxString &result, int *pn_nl)
 
 void AISTargetAlertDialog::UpdateText()
 {
-      wxString alert_text;
-      if(GetAlertText(m_target_mmsi, alert_text, NULL))
+      if(GetAlertText())
       {
             m_pAlertTextCtl->Clear();
-            m_pAlertTextCtl->AppendText ( alert_text );
+            m_pAlertTextCtl->AppendText ( m_alert_text );
       }
       if(CanSetTransparent())
             SetTransparent(192);
