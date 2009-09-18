@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.33 2009/09/11 20:42:29 bdbcat Exp $
+ * $Id: chcanv.h,v 1.34 2009/09/18 02:49:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.34  2009/09/18 02:49:38  bdbcat
+ * Various, including AIS Info Window update, ship icons
+ *
  * Revision 1.33  2009/09/11 20:42:29  bdbcat
  * Implement png graphics, new AIS Query dialog
  *
@@ -243,10 +246,12 @@ public:
       void PopupMenuHandler(wxCommandEvent& event);
       void SetMyCursor(wxCursor *c);
 
+      bool Do_Hotkeys(wxKeyEvent &event);
 
       void SetViewPoint(double lat, double lon, double scale_ppm, double skew, int sample_mode);
       void SetVPScale(double sc);
       void SetViewPoint ( double lat, double lon);
+      void ReloadVP ( void );
 
       void GetCanvasPointPix(double rlat, double rlon, wxPoint *r);
       void GetCanvasPixPoint(int x, int y, double &lat, double &lon);
@@ -464,6 +469,17 @@ private:
 
       AISroWin    *m_pPopUpWin;
 
+      wxImage     m_os_image_green_day;
+      wxImage     m_os_image_green_dusk;
+      wxImage     m_os_image_green_night;
+      wxImage     m_os_image_red_day;
+      wxImage     m_os_image_red_dusk;
+      wxImage     m_os_image_red_night;
+
+      wxImage     *m_pos_image_green;
+      wxImage     *m_pos_image_red;
+
+
 
 DECLARE_EVENT_TABLE()
 };
@@ -526,7 +542,7 @@ private:
       bool        btc_valid;
       ChartCanvas *pParent;
       int         corr_mins;
-      char        stz[4];
+      wxString    m_stz;
       int         t_graphday_00_at_station;
       wxDateTime  graphday;
       int         plot_y_offset;
@@ -648,6 +664,8 @@ public:
 
       void OnClose(wxCloseEvent& event);
       void OnIdOKClick( wxCommandEvent& event );
+      void OnMove( wxMoveEvent& event );
+
       void CreateControls();
 
       void SetText(wxString &text_string);
@@ -749,12 +767,16 @@ class AISInfoWin : public wxWindow
             void AppendText(wxString &text);
             void Clear(void){}
             void SetInsertionPoint(int pt){}
+            wxSize GetOptimumSize(int *pn_nl = NULL, int *pn_cmax = NULL);
+            void SetHPad(int d){ m_offsetx = d; }
+            void SetVPad(int d){ m_offsety = d; }
 
             wxString    m_text;
+            int         m_maxtl;
 
+            int         m_offsetx, m_offsety;
 
             DECLARE_EVENT_TABLE()
-
 };
 
 
