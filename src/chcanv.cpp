@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.64 2009/09/18 02:51:54 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.65 2009/09/18 03:38:24 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.65  2009/09/18 03:38:24  bdbcat
+ * Update HDT predictor color
+ *
  * Revision 1.64  2009/09/18 02:51:54  bdbcat
  * Various, including AIS Info Window update, ship icons
  *
@@ -307,7 +310,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.64 2009/09/18 02:51:54 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.65 2009/09/18 03:38:24 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1882,13 +1885,14 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
 
                             wxPen ppPen1 ( pred_colour, 2, wxSOLID );
                             pgc->SetPen(ppPen1);
-                            pgc->SetBrush(*wxWHITE_BRUSH);
+                            pgc->SetBrush(wxBrush(GetGlobalColor ( _T ( "GREY2" ) )));
 
                             gpath.AddCircle(lHeadPoint.x, lHeadPoint.y, 4);
                             pgc->FillPath(gpath);
                             pgc->StrokePath(gpath);
 
-                            dc.CalcBoundingBox(lHeadPoint.x+4, lHeadPoint.y+4);               // keep dc dirty box up-to-date
+                            dc.CalcBoundingBox(lHeadPoint.x+6, lHeadPoint.y+6);               // keep dc dirty box up-to-date
+                            dc.CalcBoundingBox(lHeadPoint.x-6, lHeadPoint.y-6);               // keep dc dirty box up-to-date
 
                       }
 
@@ -1939,7 +1943,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                 {
                       wxPen ppPen2 ( pred_colour, 1, wxSOLID );
                       dc.SetPen ( ppPen2 );
-                      dc.SetBrush(*wxWHITE_BRUSH);
+                      dc.SetBrush(wxBrush(GetGlobalColor ( _T ( "GREY2" ) )));
 
                       dc.DrawLine ( lShipPoint.x, lShipPoint.y, lHeadPoint.x, lHeadPoint.y );
 
