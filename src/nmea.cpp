@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.43 2009/09/11 20:38:44 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.44 2009/09/18 01:41:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -50,7 +50,7 @@
 
 
 
-CPL_CVSID("$Id: nmea.cpp,v 1.43 2009/09/11 20:38:44 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.44 2009/09/18 01:41:26 bdbcat Exp $");
 
 extern int             g_nNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -529,6 +529,46 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
             m_sock->Connect(m_addr, FALSE);       // Non-blocking connect
         }
       }
+
+      //--------------Simulator
+#if(0)
+      {
+            if(m_pShareMutex)
+                  wxMutexLocker stateLocker(*m_pShareMutex) ;
+            float kCog = 160.;
+            float kSog = 6.0;
+
+            //    Kludge the startup case
+            if(ThreadPositionData.kLat < 1.0)
+                  ThreadPositionData.kLat = START_LAT;
+            if(fabs(ThreadPositionData.kLon) < 1.0)
+                  ThreadPositionData.kLon = START_LON;
+
+            double pred_lat;
+            double pred_lon;
+
+            double dist = kSog / 3600.;
+            ll_gc_ll(ThreadPositionData.kLat, ThreadPositionData.kLon, kCog, dist, &pred_lat, &pred_lon);
+
+
+            ThreadPositionData.kCog = kCog;
+            ThreadPositionData.kSog = kSog;
+            ThreadPositionData.kLat = pred_lat;
+            ThreadPositionData.kLon = pred_lon;
+            ThreadPositionData.FixTime = 0;
+
+    //    Signal the main program thread
+
+            wxCommandEvent event( EVT_NMEA,  GetId() );
+            event.SetEventObject( (wxObject *)this );
+            event.SetExtraLong(EVT_NMEA_DIRECT);
+            event.SetClientData(&ThreadPositionData);
+            parent_frame->GetEventHandler()->AddPendingEvent(event);
+
+      }
+#endif
+
+
 
       TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
 }
