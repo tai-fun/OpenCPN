@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.15 2009/06/28 02:02:29 bdbcat Exp $
+ * $Id: chartimg.h,v 1.16 2009/09/18 02:12:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.16  2009/09/18 02:12:12  bdbcat
+ * Add support for DTM field in BSB charts
+ *
  * Revision 1.15  2009/06/28 02:02:29  bdbcat
  * Implement Datum transforms.
  *
@@ -348,6 +351,8 @@ protected:
 
       wxString  m_datum_str;
       int       m_datum_index;
+      double    m_dtm_lat;
+      double    m_dtm_lon;
 };
 
 

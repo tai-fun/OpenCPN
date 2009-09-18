@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.28 2009/09/11 20:15:16 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.29 2009/09/18 02:13:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.29  2009/09/18 02:13:20  bdbcat
+ * Add support for DTM field in BSB charts
+ *
  * Revision 1.28  2009/09/11 20:15:16  bdbcat
  * Correct possible stream buffer overrun
  *
@@ -75,6 +78,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.29  2009/09/18 02:13:20  bdbcat
+ * Add support for DTM field in BSB charts
+ *
  * Revision 1.28  2009/09/11 20:15:16  bdbcat
  * Correct possible stream buffer overrun
  *
@@ -181,7 +187,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.28 2009/09/11 20:15:16 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.29 2009/09/18 02:13:20 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -545,6 +551,47 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
                         Chart_Skew = fcs;
                   }
             }
+
+            else if (!strncmp(buffer, "Latitude Offset", 15))
+            {
+                  wxStringTokenizer tkz(str_buf, _T("="));
+                  wxString token = tkz.GetNextToken();
+                  if(token.IsSameAs(_T("Latitude Offset"), FALSE))
+                  {
+                        int i;
+                        i = tkz.GetPosition();
+                        float lto;
+                        sscanf(&buffer[i], "%f,", &lto);
+                        m_dtm_lat = lto;
+                  }
+            }
+
+
+            else if (!strncmp(buffer, "Longitude Offset", 16))
+            {
+                  wxStringTokenizer tkz(str_buf, _T("="));
+                  wxString token = tkz.GetNextToken();
+                  if(token.IsSameAs(_T("Longitude Offset"), FALSE))
+                  {
+                        int i;
+                        i = tkz.GetPosition();
+                        float lno;
+                        sscanf(&buffer[i], "%f,", &lno);
+                        m_dtm_lon = lno;
+                  }
+            }
+
+            else if (!strncmp(buffer, "Datum", 5))
+            {
+                  wxStringTokenizer tkz(str_buf, _T("="));
+                  wxString token = tkz.GetNextToken();
+                  if(token.IsSameAs(_T("Datum"), FALSE))
+                  {
+                        token = tkz.GetNextToken();
+                        m_datum_str = token;
+                  }
+            }
+
 
             else if (!strncmp(buffer, "Name", 4))
             {
@@ -1112,6 +1159,14 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                 m_cph = float_cph;
             }
 
+            else if (!strncmp(buffer, "DTM", 3))
+            {
+                  float fdtmlat, fdtmlon;
+                  sscanf(&buffer[4], "%f,%f", &fdtmlat, &fdtmlon);
+                  m_dtm_lat = fdtmlat;
+                  m_dtm_lon = fdtmlon;
+            }
+
 
             else if (!strncmp(buffer, "PLY", 3))
             {
@@ -1295,6 +1350,10 @@ ChartBaseBSB::ChartBaseBSB()
       m_mapped_color_index = COLOR_RGB_DEFAULT;
 
       m_datum_str = _T("WGS84");                // assume until proven otherwise
+
+      m_dtm_lat = 0.;
+      m_dtm_lon = 0.;
+
 
 }
 
@@ -1624,12 +1683,7 @@ InitReturn ChartBaseBSB::PostInit(void)
       strncpy(d_str, m_datum_str.mb_str(), 99);
       d_str[99] = 0;
 
-      int datum_index = GetDatumIndex(d_str);
-      if(-1 != datum_index)
-            m_datum_index = datum_index;
-      else
-            m_datum_index = GetDatumIndex("WGS 84");
-
+      m_datum_index = GetDatumIndex(d_str);
 
       bReadyToRender = true;
       return INIT_OK;
@@ -2168,17 +2222,24 @@ void ChartBaseBSB::SetVPParms(ViewPort *vpt)
 {
       //    Calculate the potential datum offset parameters for this viewport, if not WGS84
 
-      if(m_datum_index != DATUM_INDEX_WGS84)
+      if(m_datum_index == DATUM_INDEX_WGS84)
+      {
+            m_lon_datum_adjust = 0.;
+            m_lat_datum_adjust = 0.;
+      }
+
+      else if(m_datum_index == DATUM_INDEX_UNKNOWN)
+      {
+            m_lon_datum_adjust = (-m_dtm_lon) / 3600.;
+            m_lat_datum_adjust = (-m_dtm_lat) / 3600.;
+      }
+
+      else
       {
             double to_lat, to_lon;
             MolodenskyTransform (vpt->clat, vpt->clon, &to_lat, &to_lon, m_datum_index, DATUM_INDEX_WGS84);
             m_lon_datum_adjust = -(to_lon - vpt->clon);
             m_lat_datum_adjust = -(to_lat - vpt->clat);
-      }
-      else
-      {
-            m_lon_datum_adjust = 0.;
-            m_lat_datum_adjust = 0.;
       }
 
       ComputeSourceRectangle(*vpt, &Rsrc);
@@ -3993,7 +4054,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.28 2009/09/11 20:15:16 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.29 2009/09/18 02:13:20 bdbcat Exp $
 *
 */
 
