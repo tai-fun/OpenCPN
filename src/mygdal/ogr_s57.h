@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_s57.h,v 1.3 2008/08/27 22:51:38 bdbcat Exp $
+ * $Id: ogr_s57.h,v 1.4 2009/09/25 15:22:05 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Declarations for classes binding S57 support onto OGRLayer,
@@ -29,6 +29,9 @@
  ******************************************************************************
  *
  * $Log: ogr_s57.h,v $
+ * Revision 1.4  2009/09/25 15:22:05  bdbcat
+ * Improve SENC creation progress dialog
+ *
  * Revision 1.3  2008/08/27 22:51:38  bdbcat
  * Add error returns to ENC update logic
  *
@@ -130,6 +133,7 @@ class OGRS57Layer : public OGRLayer
 /************************************************************************/
 /*                          OGRS57DataSource                            */
 /************************************************************************/
+typedef bool (*CallBackFunction)(void);
 
 class OGRS57DataSource
 {
@@ -162,7 +166,7 @@ class OGRS57DataSource
     void                SetOptionList( char ** );
     const char         *GetOption( const char * );
 
-    int                 Open( const char * pszName, int bTestOpen = FALSE );
+    int                 Open( const char * pszName, int bTestOpen = FALSE, CallBackFunction p_callback = NULL );
     int                 OpenMin( const char * pszName, int bTestOpen = FALSE );
     int                 Create( const char *pszName, char **papszOptions );
 

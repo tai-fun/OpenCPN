@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57reader.cpp,v 1.6 2009/06/25 02:38:01 bdbcat Exp $
+ * $Id: s57reader.cpp,v 1.7 2009/09/25 15:22:05 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Reader class.
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: s57reader.cpp,v $
+ * Revision 1.7  2009/09/25 15:22:05  bdbcat
+ * Improve SENC creation progress dialog
+ *
  * Revision 1.6  2009/06/25 02:38:01  bdbcat
  * Add debug support.
  *
@@ -190,7 +193,7 @@
 #include "cpl_string.h"
 #include "ogr_s57.h"
 
-CPL_CVSID("$Id: s57reader.cpp,v 1.6 2009/06/25 02:38:01 bdbcat Exp $");
+CPL_CVSID("$Id: s57reader.cpp,v 1.7 2009/09/25 15:22:05 bdbcat Exp $");
 
 /************************************************************************/
 /*                             S57Reader()                              */
@@ -464,7 +467,7 @@ void S57Reader::Rewind()
 /*      indexes.                                                        */
 /************************************************************************/
 
-int S57Reader::Ingest()
+int S57Reader::Ingest(CallBackFunction pcallback)
 {
     DDFRecord   *poRecord;
 
@@ -479,6 +482,12 @@ int S57Reader::Ingest()
 /* -------------------------------------------------------------------- */
     while( (poRecord = poModule->ReadRecord()) != NULL )
     {
+          if(pcallback)
+          {
+            if (!(*pcallback)())
+              return 0;
+          }
+
         DDFField        *poKeyField = poRecord->GetField(1);
         const char *pszname = poKeyField->GetFieldDefn()->GetName();
 

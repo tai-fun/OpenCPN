@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrs57datasource.cpp,v 1.5 2009/03/30 19:08:43 bdbcat Exp $
+ * $Id: ogrs57datasource.cpp,v 1.6 2009/09/25 15:22:05 bdbcat Exp $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements OGRS57DataSource class
@@ -28,6 +28,9 @@
  ******************************************************************************
  *
  * $Log: ogrs57datasource.cpp,v $
+ * Revision 1.6  2009/09/25 15:22:05  bdbcat
+ * Improve SENC creation progress dialog
+ *
  * Revision 1.5  2009/03/30 19:08:43  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -127,7 +130,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrs57datasource.cpp,v 1.5 2009/03/30 19:08:43 bdbcat Exp $");
+CPL_CVSID("$Id: ogrs57datasource.cpp,v 1.6 2009/09/25 15:22:05 bdbcat Exp $");
 
 S57ClassRegistrar *OGRS57DataSource::poRegistrar = NULL;
 
@@ -239,10 +242,10 @@ int OGRS57DataSource::TestCapability( const char * )
 /************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
-
-int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
+int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen, CallBackFunction pcallback )
 
 {
+
     int         iModule;
     int         error_return = 0;
 
@@ -413,7 +416,7 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
 
         for( iModule = 0; iModule < nModules; iModule++ )
         {
-              int ingest_error = papoModules[iModule]->Ingest();
+              int ingest_error = papoModules[iModule]->Ingest( pcallback );
               if(ingest_error)
                     error_return = ingest_error;
         }
@@ -425,6 +428,14 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
 
         for( iClass = 0; iClass < MAX_CLASSES; iClass++ )
         {
+              if(pcallback)
+              {
+                    if (!(*pcallback)())
+                    {
+                          break;;
+                    }
+              }
+
             if( panClassCount[iClass] > 0 )
             {
                 poDefn =
