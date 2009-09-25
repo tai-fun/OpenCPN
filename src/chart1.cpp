@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.60 2009/09/18 02:48:33 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.61 2009/09/25 15:11:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.61  2009/09/25 15:11:18  bdbcat
+ * Implement chart Activate/Deactivate
+ *
  * Revision 1.60  2009/09/18 02:48:33  bdbcat
  * Various
  *
@@ -249,7 +252,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.60 2009/09/18 02:48:33 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.61 2009/09/25 15:11:18 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -527,6 +530,12 @@ bool             g_bTrackDistance;
 int              g_total_NMEAerror_messages;
 
 int              g_cm93_zoom_factor;
+CM93DSlide       *pCM93DetailSlider;
+bool             g_bShowCM93DetailSlider;
+int              g_cm93detail_dialog_x, g_cm93detail_dialog_y;
+
+bool             g_bUseGreenShip;
+
 
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
@@ -590,6 +599,8 @@ void SetSystemColors(ColorScheme cs);
  #include "bitmaps/track.xpm"
 #endif
 
+#include "bitmaps/opencpn.xpm"
+
 //------------------------------------------------------------------------------
 //              Fwd Refs
 //------------------------------------------------------------------------------
@@ -641,6 +652,10 @@ IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit()
 {
+      if (!wxApp::OnInit())
+            return false;
+
+
 //      CALLGRIND_STOP_INSTRUMENTATION
 
 //      Establish the locale
@@ -1573,7 +1588,21 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 
         bFirstAuto = true;
 
+ //        Establish the system icons for the frame.
+
 #ifdef __WXMSW__
+       SetIcon(wxICON(0));                // this grabs the first icon in the integrated MSW resource file
+#endif
+
+#ifdef __WXGTK__
+       wxIcon app_icon(opencpn);          // This comes from opencpn.xpm inclusion above
+       SetIcon(app_icon);
+#endif
+
+
+
+#ifdef __WXMSW__
+
 //    Establish the entry points in USER32.DLL for system color control
 
         wxDynamicLibrary dllUser32(_T("user32.dll"));
@@ -1583,13 +1612,6 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 
         SaveSystemColors();
 #endif
-
-        // Hotkey handler moved to ChartCanvas
-//        g_pDummyTextCtrl = new DummyTextCtrl(this, -1);
-//        g_pDummyTextCtrl->Move(-100,-100);
-//        g_pDummyTextCtrl->Show();
-//        g_pDummyTextCtrl->SetFocus();
-
 
 
 }
@@ -3422,13 +3444,17 @@ void MyFrame::SelectChartFromStack(int index)
 
             if(pTentative_Chart)
             {
-                Current_Ch = pTentative_Chart;
-                pCurrentStack->CurrentStackEntry = index;
+                  if(Current_Ch)
+                        Current_Ch->Deactivate();
+
+                  Current_Ch = pTentative_Chart;
+                  Current_Ch->Activate();
+
+                  pCurrentStack->CurrentStackEntry = index;
             }
             else
-            {
                 SetChartThumbnail(index);       // need to reset thumbnail on failed chart open
-            }
+
 
 
 //      Update the Status Line
@@ -3679,7 +3705,6 @@ bool MyFrame::DoChartUpdate(void)
         //              Check to see if Chart Stack has changed
         if(!ChartData->EqualStacks(pWorkStack, pCurrentStack))
         {
-
         //      New chart stack, so...
                 bNewPiano = true;
 
@@ -3704,6 +3729,9 @@ bool MyFrame::DoChartUpdate(void)
                 else                            // Current_Ch is NOT in new stack
                 {                                       // So, need to open a new chart
                                                         //      Find the smallest scale raster chart that opens OK
+
+                  ChartBase *pProposed = NULL;
+
                   if(bAutoOpen)
                   {
                         bool search_direction = false;            // default is to search from lowest to highest
@@ -3716,15 +3744,15 @@ bool MyFrame::DoChartUpdate(void)
                         if(bOpenSmallest)
                               search_direction = false;
 
-                        Current_Ch = ChartData->OpenStackChartConditional(pCurrentStack, search_direction, new_open_type, new_open_family);
+                        pProposed = ChartData->OpenStackChartConditional(pCurrentStack, search_direction, new_open_type, new_open_family);
 
 //    Try to open other types/families of chart in some priority
-                        if(NULL == Current_Ch)
-                              Current_Ch = ChartData->OpenStackChartConditional(pCurrentStack, search_direction,
+                        if(NULL == pProposed)
+                              pProposed = ChartData->OpenStackChartConditional(pCurrentStack, search_direction,
                                     CHART_TYPE_CM93COMP, CHART_FAMILY_VECTOR);
 
-                        if(NULL == Current_Ch)
-                              Current_Ch = ChartData->OpenStackChartConditional(pCurrentStack, search_direction,
+                        if(NULL == pProposed)
+                              pProposed = ChartData->OpenStackChartConditional(pCurrentStack, search_direction,
                                     CHART_TYPE_CM93COMP, CHART_FAMILY_RASTER);
 
                         bNewChart = true;
@@ -3732,13 +3760,13 @@ bool MyFrame::DoChartUpdate(void)
                   }     // bAutoOpen
 
                   else
-                        Current_Ch = NULL;
+                        pProposed = NULL;
 
 
 
 //  If no go, then
 //  Open a Dummy Chart
-                  if(NULL == Current_Ch)
+                  if(NULL == pProposed)
                   {
                       if(NULL == pDummyChart)
                       {
@@ -3750,10 +3778,18 @@ bool MyFrame::DoChartUpdate(void)
                          if(pLast_Ch->m_ChartType != CHART_TYPE_DUMMY)
                                bNewChart = true;
 
-                      Current_Ch = pDummyChart;
+                      pProposed = pDummyChart;
                    }
 
+// Arriving here, pProposed points to an opened chart, or NULL.
+                   if(Current_Ch)
+                         Current_Ch->Deactivate();
+                   Current_Ch = pProposed;
+
+                   if(Current_Ch)
+                         Current_Ch->Activate();
                 }   // need new chart
+
 
 // Arriving here, Current_Ch is opened and OK, or NULL
                 if(NULL != Current_Ch)
@@ -4978,7 +5014,7 @@ static const char *usercolors[] = {
 "DILG1; 110;110;110;",              // Dialog Background
 "DILG2; 100;100;100;",              // Control Background
 "DILG3; 130;130;130;",              // Text
-"UDKRD; 124; 16;  0;",
+"UDKRD;  80;  0;  0;",
 
 "Table:NIGHT",
 "GREEN1; 30; 80; 30;",
@@ -5001,7 +5037,7 @@ static const char *usercolors[] = {
 "DILG1;  80; 80; 80;",              // Dialog Background
 "DILG2;  52; 52; 52;",              // Control Background
 "DILG3;  65; 65; 65;",              // Text
-"UDKRD; 124; 16;  0;",
+"UDKRD;  50;  0;  0;",
 
 "*****"
 };
