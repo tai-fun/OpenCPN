@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.19 2009/09/12 02:01:21 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.20 2009/09/25 15:17:33 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.20  2009/09/25 15:17:33  bdbcat
+ * Correct msw SendToGPS call
+ *
  * Revision 1.19  2009/09/12 02:01:21  bdbcat
  * Correct Route delete logic to exclude tracks
  *
@@ -69,6 +72,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.20  2009/09/25 15:17:33  bdbcat
+ * Correct msw SendToGPS call
+ *
  * Revision 1.19  2009/09/12 02:01:21  bdbcat
  * Correct Route delete logic to exclude tracks
  *
@@ -244,7 +250,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.19 2009/09/12 02:01:21 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.20 2009/09/25 15:17:33 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -646,6 +652,9 @@ void Routeman::DeleteRoute(Route *pRoute)
 {
       if(pRoute)
       {
+            if ( GetpActiveRoute() == pRoute )
+                  DeactivateRoute();
+
             //    Remove the route from associated lists
             pSelect->DeleteAllSelectableRouteSegments(pRoute);
             pRouteList->DeleteObject(pRoute);
@@ -705,6 +714,7 @@ void Routeman::DeleteAllRoutes(void)
 
             if(!proute->m_bIsTrack)
             {
+                  pConfig->DeleteConfigRoute ( proute );
                   DeleteRoute(proute);
                   node = pRouteList->GetFirst();                   // Route
             }
@@ -881,102 +891,6 @@ void SendToGpsDlg::CreateControls()
       itemBoxSizer16->Add(m_SendButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
       m_SendButton->SetDefault();
 
-/*
-                            MarkProp* itemDialog1 = this;
-
-                            wxBoxSizer* itemBoxSizer2 = new wxBoxSizer(wxVERTICAL);
-                            itemDialog1->SetSizer(itemBoxSizer2);
-
-                            wxStaticBox* itemStaticBoxSizer3Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Properties"));
-
-                            wxStaticBoxSizer* itemStaticBoxSizer3 = new wxStaticBoxSizer(itemStaticBoxSizer3Static, wxVERTICAL);
-                            itemBoxSizer2->Add(itemStaticBoxSizer3, 1, wxEXPAND|wxALL, 5);
-
-                            wxStaticText* itemStaticText4 = new wxStaticText( itemDialog1, wxID_STATIC, _("Mark Name"), wxDefaultPosition, wxDefaultSize, 0 );
-                            itemStaticBoxSizer3->Add(itemStaticText4, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
-
-                            m_MarkNameCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL, _T(""), wxDefaultPosition, wxSize(-1, -1), 0 );
-                            itemStaticBoxSizer3->Add(m_MarkNameCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
-
-                            m_ShowNameCheckbox = new wxCheckBox( itemDialog1, ID_SHOWNAMECHECKBOX1, _("Show Name"), wxDefaultPosition, wxSize(-1, -1), 0 );
-                            itemStaticBoxSizer3->Add(m_ShowNameCheckbox, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
-
-                            wxStaticText* itemStaticText4a= new wxStaticText( itemDialog1, wxID_STATIC, _("Mark Icon"), wxDefaultPosition, wxDefaultSize, 0 );
-                            itemStaticBoxSizer3->Add(itemStaticText4a, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
-
-                            m_IconList = new wxListCtrl( itemDialog1, ID_ICONCTRL, wxDefaultPosition, wxSize(300, 100),
-                                        wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES );
-                            itemStaticBoxSizer3->Add(m_IconList, 2, wxEXPAND|wxALL, 5);
-
-
-                            wxStaticBox* itemStaticBoxSizer4Static = new wxStaticBox(itemDialog1, wxID_ANY, _("Position"));
-
-                            wxStaticBoxSizer* itemStaticBoxSizer4 = new wxStaticBoxSizer(itemStaticBoxSizer4Static, wxVERTICAL);
-                            itemBoxSizer2->Add(itemStaticBoxSizer4, 0, wxEXPAND|wxALL, 5);
-
-                            wxStaticText* itemStaticText5 = new wxStaticText( itemDialog1, wxID_STATIC, _("Latitude"), wxDefaultPosition, wxDefaultSize, 0 );
-                            itemStaticBoxSizer4->Add(itemStaticText5, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
-
-                            m_MarkLatCtl = new LatLonTextCtrl( itemDialog1, ID_LATCTRL, _T(""), wxDefaultPosition, wxSize(180, -1), 0 );
-                            itemStaticBoxSizer4->Add(m_MarkLatCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
-
-
-                            wxStaticText* itemStaticText6 = new wxStaticText( itemDialog1, wxID_STATIC, _("Longitude"), wxDefaultPosition, wxDefaultSize, 0 );
-                            itemStaticBoxSizer4->Add(itemStaticText6, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
-
-                            m_MarkLonCtl = new LatLonTextCtrl( itemDialog1, ID_LONCTRL, _T(""), wxDefaultPosition, wxSize(180, -1), 0 );
-                            itemStaticBoxSizer4->Add(m_MarkLonCtl, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
-
-                            wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
-                            itemBoxSizer2->Add(itemBoxSizer16, 0, wxALIGN_RIGHT|wxALL, 5);
-
-                            m_CancelButton = new wxButton( itemDialog1, ID_MARKPROP_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-                            itemBoxSizer16->Add(m_CancelButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-
-                            m_OKButton = new wxButton( itemDialog1, ID_MARKPROP_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-                            itemBoxSizer16->Add(m_OKButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-                            m_OKButton->SetDefault();
-
-    //  Fill in list control
-
-                            m_IconList->Hide();
-
-                            int client_x, client_y;
-                            m_IconList->GetClientSize(&client_x, &client_y);
-
-                            m_IconList->SetImageList(pWayPointMan->Getpmarkicon_image_list(), wxIMAGE_LIST_SMALL);
-
-                            wxListItem itemCol0;
-                            itemCol0.SetImage(-1);
-                            itemCol0.SetText(_T("Icon"));
-
-                            m_IconList->InsertColumn(0, itemCol0);
-                            m_IconList->SetColumnWidth( 0, 40 );
-
-                            wxListItem itemCol;
-                            itemCol.SetText(_T("Description"));
-                            itemCol.SetImage(-1);
-                            itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-                            m_IconList->InsertColumn(1, itemCol);
-                            m_IconList->SetColumnWidth( 1, client_x - 56 );
-
-
-    //      Iterate on the Icon Descriptions, filling in the control
-
-                            for(int i = 0 ; i < pWayPointMan->GetNumIcons() ; i++)
-                            {
-                                  wxString *ps = pWayPointMan->GetIconDescription(i);
-
-                                  long item_index = m_IconList->InsertItem(i, _T(""), 0);
-                                  m_IconList->SetItem(item_index, 1, *ps);
-
-                                  m_IconList->SetItemImage(item_index,i);
-                            }
-
-                            m_IconList->Show();
-
-                            SetColorScheme((ColorScheme)0);
-*/
 }
 
 
@@ -985,6 +899,10 @@ void SendToGpsDlg::OnSendClick( wxCommandEvent& event )
       //    Get the selected comm port
       int i = m_itemCommListBox->GetSelection();
       wxString src(m_itemCommListBox->GetString(i));
+
+#ifdef __WXMSW__
+      src.Prepend(_T("\\\\.\\"));                  // Required for access to Serial Ports greater than COM9
+#endif
 
       //    And send it out
       if(m_pRoute)
