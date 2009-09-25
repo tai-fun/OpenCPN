@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.22 2009/09/18 02:15:35 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.23 2009/09/25 15:05:18 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.23  2009/09/25 15:05:18  bdbcat
+ * Implement toplevel CM93 detail slider
+ *
  * Revision 1.22  2009/09/18 02:15:35  bdbcat
  * Add variable zoom detail level
  *
@@ -136,6 +139,11 @@ extern MyConfig         *pConfig;
 extern wxString         g_CM93DictDir;
 extern bool             g_bDebugCM93;
 extern int              g_cm93_zoom_factor;
+extern CM93DSlide       *pCM93DetailSlider;
+extern int              g_cm93detail_dialog_x, g_cm93detail_dialog_y;
+extern bool             g_bShowCM93DetailSlider;
+
+extern MyFrame          *gFrame;
 
 #ifndef __WXMSW__
 extern struct sigaction sa_all;
@@ -3884,6 +3892,28 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
 
 }
 
+void cm93compchart::Activate(void)
+{
+      if(g_bShowCM93DetailSlider)
+      {
+            if(!pCM93DetailSlider)
+            {
+                  pCM93DetailSlider = new CM93DSlide(gFrame, -1 , 0, -CM93_ZOOM_FACTOR_MAX_RANGE, CM93_ZOOM_FACTOR_MAX_RANGE,
+                              wxPoint(g_cm93detail_dialog_x, g_cm93detail_dialog_y), wxDefaultSize, wxSIMPLE_BORDER , _T("cm93 Detail") );
+            }
+            pCM93DetailSlider->Show();
+      }
+}
+
+void cm93compchart::Deactivate(void)
+{
+      if(pCM93DetailSlider)
+      {
+            pCM93DetailSlider-> Destroy();
+            pCM93DetailSlider = NULL;
+      }
+}
+
 double scale_breaks[] = {
       5000.,                  //G
       15000.,                 //F
@@ -4559,6 +4589,7 @@ VC_Element **cm93compchart::Get_pvc_array(void)
 bool cm93compchart::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
 {
 //      SetVPParms ( &vp_proposed );                    // This will ensure that the required CM93 cell is loaded
+
 
       if(NULL != m_pcm93chart_current)
             return m_pcm93chart_current->AdjustVP(vp_last, vp_proposed);

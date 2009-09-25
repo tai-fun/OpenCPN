@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.34 2009/09/18 02:49:38 bdbcat Exp $
+ * $Id: chcanv.h,v 1.35 2009/09/25 15:02:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.35  2009/09/25 15:02:38  bdbcat
+ * Implement toplevel CM93 detail slider
+ *
  * Revision 1.34  2009/09/18 02:49:38  bdbcat
  * Various, including AIS Info Window update, ship icons
  *
@@ -475,9 +478,13 @@ private:
       wxImage     m_os_image_red_day;
       wxImage     m_os_image_red_dusk;
       wxImage     m_os_image_red_night;
+      wxImage     m_os_image_grey_day;
+      wxImage     m_os_image_grey_dusk;
+      wxImage     m_os_image_grey_night;
 
       wxImage     *m_pos_image_green;
       wxImage     *m_pos_image_red;
+      wxImage     *m_pos_image_grey;
 
 
 
@@ -674,9 +681,9 @@ public:
       void UpdateText(void);
       void SetMMSI(int mmsi){ m_MMSI = mmsi; }
       int  GetMMSI(void){ return m_MMSI; }
+
       //    Data
       int               m_MMSI;
-//      wxTextCtrl        *m_pQueryTextCtl;
       AISInfoWin        *m_pQueryTextCtl;
       ColorScheme       m_colorscheme;
       wxBoxSizer        *m_pboxSizer;
@@ -775,6 +782,34 @@ class AISInfoWin : public wxWindow
             int         m_maxtl;
 
             int         m_offsetx, m_offsety;
+
+            DECLARE_EVENT_TABLE()
+};
+
+//------------------------------------------------------------------------------
+//    CM93 Detail Slider Specification
+//------------------------------------------------------------------------------
+
+class CM93DSlide : public wxDialog
+{
+      public:
+            CM93DSlide ( wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue,
+                         const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0, const wxString& title = _T(""));
+
+            ~CM93DSlide(void);
+
+            void Init(void);
+            bool Create( wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue,
+                                     const wxPoint& pos, const wxSize& size, long style, const wxString& title);
+
+            void OnCancelClick( wxCommandEvent& event );
+            void OnMove( wxMoveEvent& event );
+            void OnThumbRelease( wxScrollEvent& event);
+            void OnClose(wxCloseEvent& event);
+
+
+            wxSlider          *m_pCM93DetailSlider;
+            wxWindow          *m_pparent;
 
             DECLARE_EVENT_TABLE()
 };
