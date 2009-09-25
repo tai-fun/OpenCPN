@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.12 2009/09/18 02:16:03 bdbcat Exp $
+ * $Id: cm93.h,v 1.13 2009/09/25 14:59:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.13  2009/09/25 14:59:36  bdbcat
+ * Define chart Activate/Deactivate
+ *
  * Revision 1.12  2009/09/18 02:16:03  bdbcat
  * Add variable zoom detail level
  *
@@ -402,6 +405,9 @@ class cm93compchart : public s57chart
 
 
             InitReturn Init( const wxString& name, ChartInitFlag flags, ColorScheme cs );
+
+            void Activate(void);
+            void Deactivate(void);
 
             double GetNormalScaleMin(double canvas_scale_factor);
             double GetNormalScaleMax(double canvas_scale_factor);
