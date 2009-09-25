@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.40 2009/09/18 01:38:01 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.41 2009/09/25 15:09:24 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.41  2009/09/25 15:09:24  bdbcat
+ * Improve SENC creation progress dialog
+ *
  * Revision 1.40  2009/09/18 01:38:01  bdbcat
  * Correct Progress Dialog size
  *
@@ -106,6 +109,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.41  2009/09/25 15:09:24  bdbcat
+ * Improve SENC creation progress dialog
+ *
  * Revision 1.40  2009/09/18 01:38:01  bdbcat
  * Correct Progress Dialog size
  *
@@ -250,7 +256,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.40 2009/09/18 01:38:01 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.41 2009/09/25 15:09:24 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -288,17 +294,23 @@ WX_DEFINE_OBJARRAY(ArrayOfVC_Elements);
 
 
 
-//  This needs to be temporarily static so that S57OBJ ctor can use it to
-//  convert SENC SM data to lat/lon for bounding boxes.
-//  Eventually, goes into private data when chart rendering is done by
-//  SM methods only.
-//  At that point, S57OBJ works only in SM
-
-//static double s_ref_lat, s_ref_lon;
-
-
 #define S57_THUMB_SIZE  200
 
+
+wxProgressDialog *s_ProgDialog;
+int s_cnt;
+
+static bool s_ProgressCallBack(void)
+{
+      bool ret = true;
+      s_cnt++;
+      if((s_cnt % 100) == 0)
+      {
+            if(s_ProgDialog)
+                  ret = s_ProgDialog->Pulse();              // return false if cancel is pressed
+      }
+      return ret;
+}
 
 //----------------------------------------------------------------------------------
 //      S57Obj CTOR
@@ -2059,8 +2071,14 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
     {
           if(GetBaseFileAttr(fn))
           {
-                if(FindOrCreateSenc(name) != INIT_OK)
-                      ret_value = INIT_FAIL_REMOVE;
+                int sret = FindOrCreateSenc(name);
+                if(sret != BUILD_SENC_OK)
+                {
+                      if(sret == BUILD_SENC_NOK_RETRY)
+                            ret_value = INIT_FAIL_RETRY;
+                      else
+                            ret_value = INIT_FAIL_REMOVE;
+                }
                 else
                       ret_value = PostInit(flags, cs);
           }
@@ -3466,8 +3484,12 @@ bool s57chart::GetBaseFileAttr(wxFileName fn)
 int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFileName)
 {
     OGRFeature *objectDef;
+    OGRFeature *pEdgeVectorRecordFeature;
+    S57Reader   *poReader;
+    int feid = 0;
+    int rcid_max = -1;
+
     int nProg = 0;
-//    wxString date000, edtn000;
     wxString nice_name;
     int bbad_update = false;
 
@@ -3628,18 +3650,13 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
     wxString Title(_T("OpenCPN S57 SENC File Create..."));
     Title.append(SENCfile.GetFullPath());
 
-    wxProgressDialog    *SENC_prog;
-    SENC_prog = new wxProgressDialog(  Title, Message, m_nGeoRecords, NULL,
+
+//    wxProgressDialog    *SENC_prog;
+    s_ProgDialog = new wxProgressDialog(  Title, Message, m_nGeoRecords, NULL,
                                        wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME |
                                        wxPD_REMAINING_TIME  | wxPD_SMOOTH );
 
-    //      The created size in wxWidgets 2.8 is waaay too large, so....
-/*
-    wxSize sz = SENC_prog->GetSize();
-    sz.x /= 2;
-    SENC_prog->SetSize(sz);
-    SENC_prog->Centre();
-*/
+
 
     //      Analyze Updates
     //      The OGR library will apply updates automatically, if enabled.
@@ -3669,7 +3686,7 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
     OGRwkbGeometryType geoType;
     wxString sobj;
 
-    bcont = SENC_prog->Update(1, _T(""));
+    bcont = s_ProgDialog->Update(1, _T(""));
 
 
     //  Here comes the actual ISO8211 file reading
@@ -3687,20 +3704,22 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
     //      Open the OGRS57DataSource
     //      This will ingest the .000 file from the working dir, and apply updates
 
-    int open_return = poS57DS->Open(m_tmpup_array->Item(0).mb_str(), TRUE);
+    int open_return = poS57DS->Open(m_tmpup_array->Item(0).mb_str(), TRUE, &s_ProgressCallBack);
     if(open_return == BAD_UPDATE)
           bbad_update = true;
 
+    bcont = s_ProgDialog->Update(2, _T(""));
+    if(!bcont)
+          goto abort_point;
+
     //      Get a pointer to the reader
-    S57Reader   *poReader = poS57DS->GetModule(0);
+    poReader = poS57DS->GetModule(0);
 
 //        Prepare Vector Edge Helper table
 
 //        First, find the max RCID field by looking at each element in the index in turn
-    int feid = 0;
-    int rcid_max = -1;
 
-    OGRFeature *pEdgeVectorRecordFeature = poReader->ReadVector( feid, RCNM_VE );
+    pEdgeVectorRecordFeature = poReader->ReadVector( feid, RCNM_VE );
     while(NULL != pEdgeVectorRecordFeature)
     {
           int record_id = pEdgeVectorRecordFeature-> GetFieldAsInteger( "RCID" );
@@ -3784,8 +3803,10 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
                             if(nProg > m_nGeoRecords - 1)
                                   nProg = m_nGeoRecords - 1;
 
-                            if(0 == (nProg % 1000))
-                                  bcont = SENC_prog->Update(nProg, sobj);
+//                            if(0 == (nProg % 1000))
+//                                  bcont = s_ProgDialog->Update(nProg, sobj);
+                            if(s_ProgDialog)
+                              bcont = s_ProgDialog->Update(nProg, sobj);
 
 
                             geoType = wkbUnknown;
@@ -3865,18 +3886,22 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
 
     }
 
-
+    if(bcont)
+    {
     //      Create and write the Vector Edge Table
-    CreateSENCVectorEdgeTable(fps57, poReader);
+      CreateSENCVectorEdgeTable(fps57, poReader);
 
     //      Create and write the Connected NodeTable
-    CreateSENCConnNodeTable(fps57, poReader);
+      CreateSENCConnNodeTable(fps57, poReader);
+    }
 
+
+abort_point:
     delete poS57DS;
 
 //    VSIFClose( s_fpdebug);
 
-    delete SENC_prog;
+    delete s_ProgDialog;
 
     fclose(fps57);
 
@@ -3894,10 +3919,10 @@ int s57chart::BuildSENCFile(const wxString& FullPath000, const wxString& SENCFil
 
     int ret_code = 0;
 
-    if(!bcont)
+    if(!bcont)                // aborted
     {
           wxRemoveFile(tmp_file);                     // kill the temp file
-          ret_code = 0;
+          ret_code = BUILD_SENC_NOK_RETRY;
     }
 
     if(bcont)
