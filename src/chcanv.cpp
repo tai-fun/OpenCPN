@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.65 2009/09/18 03:38:24 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.66 2009/09/25 15:07:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.66  2009/09/25 15:07:44  bdbcat
+ * Implement toplevel CM93 detail slider
+ *
  * Revision 1.65  2009/09/18 03:38:24  bdbcat
  * Update HDT predictor color
  *
@@ -302,6 +305,14 @@ extern AISTargetAlertDialog    *g_pais_alert_dialog_active;
 extern AISTargetQueryDialog    *g_pais_query_dialog_active;
 extern int              g_ais_query_dialog_x, g_ais_query_dialog_y;
 
+extern CM93DSlide       *pCM93DetailSlider;
+extern bool             g_bShowCM93DetailSlider;
+extern int              g_cm93detail_dialog_x, g_cm93detail_dialog_y;
+extern int              g_cm93_zoom_factor;
+
+extern bool             g_bUseGreenShip;
+
+extern ChartCanvas      *cc1;
 
 
 //  TODO why are these static?
@@ -310,7 +321,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.65 2009/09/18 03:38:24 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.66 2009/09/25 15:07:44 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -339,6 +350,7 @@ enum
         ID_DEF_MENU_DROP_WP,
         ID_DEF_MENU_QUERY,
         ID_DEF_MENU_MOVE_BOAT_HERE,
+        ID_DEF_MENU_CM93ZOOM,
         ID_WP_MENU_DELPOINT,
         ID_WP_MENU_PROPERTIES,
         ID_WP_MENU_DELETEALL,
@@ -421,6 +433,7 @@ BEGIN_EVENT_TABLE ( ChartCanvas, wxWindow )
 
         EVT_MENU ( ID_DEF_MENU_ACTIVATE_MEASURE,   ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_DEF_MENU_DEACTIVATE_MEASURE, ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_CM93ZOOM,           ChartCanvas::PopupMenuHandler )
 
         EVT_MENU ( ID_WP_MENU_DELPOINT,           ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_WP_MENU_PROPERTIES,         ChartCanvas::PopupMenuHandler )
@@ -741,6 +754,36 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
               }
         }
 
+        //Grey
+        m_os_image_grey_day   = (_img_ship_red->ConvertToImage()).ConvertToGreyscale();
+
+        int gimg_width = m_os_image_grey_day.GetWidth();
+        int gimg_height = m_os_image_grey_day.GetHeight();
+
+        m_os_image_grey_dusk  = m_os_image_grey_day.Copy();
+        m_os_image_grey_night = m_os_image_grey_day.Copy();
+
+        for(int iy=0 ; iy < gimg_height ; iy++)
+        {
+              for(int ix=0 ; ix < gimg_width ; ix++)
+              {
+                    if(!m_os_image_grey_day.IsTransparent(ix, iy))
+                    {
+                          wxImage::RGBValue rgb(m_os_image_grey_day.GetRed(ix, iy), m_os_image_grey_day.GetGreen(ix, iy), m_os_image_grey_day.GetBlue(ix, iy));
+                          wxImage::HSVValue hsv = wxImage::RGBtoHSV(rgb);
+                          hsv.value = hsv.value * factor_dusk;
+                          wxImage::RGBValue nrgb = wxImage::HSVtoRGB(hsv);
+                          m_os_image_grey_dusk.SetRGB(ix, iy, nrgb.red, nrgb.green, nrgb.blue);
+
+                          hsv = wxImage::RGBtoHSV(rgb);
+                          hsv.value = hsv.value * factor_night;
+                          nrgb = wxImage::HSVtoRGB(hsv);
+                          m_os_image_grey_night.SetRGB(ix, iy, nrgb.red, nrgb.green, nrgb.blue);
+                    }
+              }
+        }
+
+
 #endif
         //  Set initial pointers to ownship images
         m_pos_image_green = &m_os_image_green_day;
@@ -954,18 +997,22 @@ void ChartCanvas::SetColorScheme(ColorScheme cs)
             case GLOBAL_COLOR_SCHEME_DAY:
                   m_pos_image_green = &m_os_image_green_day;
                   m_pos_image_red   = &m_os_image_red_day;
+                  m_pos_image_grey  = &m_os_image_grey_day;
                   break;
             case GLOBAL_COLOR_SCHEME_DUSK:
                   m_pos_image_green = &m_os_image_green_dusk;
                   m_pos_image_red   = &m_os_image_red_dusk;
+                  m_pos_image_grey  = &m_os_image_grey_dusk;
                   break;
             case GLOBAL_COLOR_SCHEME_NIGHT:
                   m_pos_image_green = &m_os_image_green_night;
                   m_pos_image_red   = &m_os_image_red_night;
+                  m_pos_image_grey  = &m_os_image_grey_night;
                   break;
             default:
                   m_pos_image_green = &m_os_image_green_day;
                   m_pos_image_red   = &m_os_image_red_day;
+                  m_pos_image_grey  = &m_os_image_grey_day;
                   break;
       }
 
@@ -1298,7 +1345,7 @@ bool ChartCanvas::ZoomCanvasIn(double lat, double lon)
                    proposed_scale_onscreen = min_allowed_scale;
        }
 
-       if((lat == 0.) && (lon == 0.))
+       if((lat == 0.) && (lon == 0.))            // this is a special secret code, means to change scale only
              SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
        else
              SetViewPoint ( lat, lon, GetCanvasScaleFactor() / proposed_scale_onscreen, VPoint.skew, CURRENT_RENDER );
@@ -1319,12 +1366,11 @@ bool ChartCanvas::ZoomCanvasOut(double lat, double lon)
             return false;
 
 
-      if((lat == 0.) && (lon == 0.))
+      if((lat == 0.) && (lon == 0.))            // this is a special secret code, means to change scale only
             SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
       else
             SetViewPoint ( lat, lon, GetCanvasScaleFactor() / proposed_scale_onscreen, VPoint.skew, CURRENT_RENDER );
 
-//      SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
 
       Refresh(false);
       return true;
@@ -1554,6 +1600,12 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
         if(0.0 == m_true_scale_ppm)
               m_true_scale_ppm = scale_ppm;
 
+        //        Another fallback, for highly zoomed out charts
+        //        This adjustment makes the displayed TrueScale correspond to the
+        //        same algorithm used to calculate the chart zoom-out limit for ChartDummy.
+        if(scale_ppm < 1e-4)
+              m_true_scale_ppm = scale_ppm;
+
         if(m_true_scale_ppm)
               VPoint.chart_scale = m_canvas_scale_factor / ( m_true_scale_ppm );
         else
@@ -1671,6 +1723,9 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
         double cog_rad = atan2 ( (double)( lPredPoint.y - lShipPoint.y ), (double)( lPredPoint.x - lShipPoint.x ) );
         cog_rad += PI;
 
+        double lpp = sqrt(pow((double)(lPredPoint.x - lShipPoint.x), 2) + pow((double)(lPredPoint.y - lShipPoint.y), 2));
+
+
 //    Is predicted point in the VPoint?
         if ( VPoint.vpBBox.PointInBox ( pred_lon, pred_lat, 0 ) )
                 drawit++;                                 // yep
@@ -1709,68 +1764,72 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
         if ( drawit )
         {
 
-                //      Establish ship color
-                 //     It changes color based on GPS and Chart accuracy/availability
-                wxColour ship_color(GetGlobalColor ( _T ( "URED" )));         // default is OK
+#ifdef USE_PNG_OWNSHIP
+                wxImage *pos_image;
+                wxColour pred_colour;
 
-                if(SHIP_LOWACCURACY == m_ownship_state)
+                if(g_bUseGreenShip)
                 {
-                      ship_color = GetGlobalColor ( _T ( "YELO1" ) );
-                }
+                        pos_image = m_pos_image_green;
+                        pred_colour = GetGlobalColor ( _T ( "GREEN2" ) );
 
-                if(SHIP_INVALID == m_ownship_state)
+                        if(SHIP_NORMAL != m_ownship_state)
+                        {
+                            pos_image = m_pos_image_red;
+                            pred_colour = GetGlobalColor ( _T ( "UDKRD" ) );
+                        }
+                }
+                else
                 {
-                      ship_color = GetGlobalColor ( _T ( "YELO1" ) );
+                        pos_image = m_pos_image_red;
+                        pred_colour = GetGlobalColor ( _T ( "URED" ) );
+
+                        if(SHIP_NORMAL != m_ownship_state)
+                        {
+                              pos_image = m_pos_image_grey;
+                              pred_colour = GetGlobalColor ( _T ( "GREY1" ) );
+                        }
                 }
+                int img_width = pos_image->GetWidth();
+                int img_height = pos_image->GetHeight();
 
-                dc.SetBrush ( wxBrush ( ship_color ) );
+                //      Draw the ownship icon
+                if(VPoint.chart_scale < 300000)             // According to S52, this should be 50,000
+                {
 
-                //      Draw the COG predictor
+                        wxPoint rot_ctr(1 + img_width/2, 1 + img_height/2);
 
-                //      First, however, scale the predictor icon by an empirical factor
-                //      If the predictor length is less than 10 mm, scale further
-                GetClientSize ( &canvas_width, &canvas_height );
-                double x_mm = wxGetDisplaySizeMM().GetWidth();         // gives client width in mm
-                double pix_per_mm = canvas_width / x_mm;
+                        wxImage rot_image = pos_image->Rotate(-(icon_rad - (PI / 2.)), rot_ctr);
+                        wxBitmap os_bm(rot_image);
+                        wxMemoryDC mdc(os_bm);
 
-                double lpp = sqrt(pow((double)(lPredPoint.x - lShipPoint.x), 2) + pow((double)(lPredPoint.y - lShipPoint.y), 2));
-                double llmm = lpp / pix_per_mm;
+                        int w =  os_bm.GetWidth();
+                        int h = os_bm.GetHeight();
+                        dc.Blit(lShipPoint.x - w/2, (lShipPoint.y - h/2) , w, h, &mdc, 0, 0, wxCOPY, true);
 
-                double pred_icon_scale_factor = 1.25;
-                if(llmm < 10)
-                      pred_icon_scale_factor *= llmm / 10;
+                        dc.CalcBoundingBox( lShipPoint.x - w/2, lShipPoint.y - h/2 );
+                        dc.CalcBoundingBox( lShipPoint.x - w/2 + w, lShipPoint.y - h/2 + h );        // Maintain dirty box,, missing in __WXMSW__ library
+                }
+                else
+                {
+                      dc.SetPen ( wxPen ( pred_colour , 2 ) );
+
+                      if(SHIP_NORMAL == m_ownship_state)
+                            dc.SetBrush ( wxBrush ( pred_colour, wxTRANSPARENT ) );
+                      else
+                            dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "YELO1" )) ) );
+
+                      dc.DrawEllipse ( lShipPoint.x - 10, lShipPoint.y - 10, 20, 20 );
+                      dc.DrawEllipse ( lShipPoint.x -  6, lShipPoint.y -  6, 12, 12 );
+
+                      dc.DrawLine ( lShipPoint.x - 12, lShipPoint.y, lShipPoint.x + 12, lShipPoint.y);
+                      dc.DrawLine ( lShipPoint.x, lShipPoint.y - 12, lShipPoint.x, lShipPoint.y + 12);
+
+                }
 
 
 
                 bool b_render_cog = true;
-
-#ifdef USE_PNG_OWNSHIP
-                wxImage *pos_image = m_pos_image_green;
-                wxColour pred_colour = GetGlobalColor ( _T ( "GREEN2" ) );
-
-                if(SHIP_NORMAL != m_ownship_state)
-                {
-                        pos_image = m_pos_image_red;
-                        pred_colour = GetGlobalColor ( _T ( "UDKRD" ) );
-                }
-
-                int img_width = pos_image->GetWidth();
-                int img_height = pos_image->GetHeight();
-
-                wxPoint rot_ctr(1 + img_width/2, 1 + img_height/2);
-
-                wxImage rot_image = pos_image->Rotate(-(icon_rad - (PI / 2.)), rot_ctr);
-                wxBitmap os_bm(rot_image);
-                wxMemoryDC mdc(os_bm);
-
-                int w =  os_bm.GetWidth();
-                int h = os_bm.GetHeight();
-                dc.Blit(lShipPoint.x - w/2, (lShipPoint.y - h/2) , w, h, &mdc, 0, 0, wxCOPY, true);
-
-                dc.CalcBoundingBox( lShipPoint.x - w/2, lShipPoint.y - h/2 );
-                dc.CalcBoundingBox( lShipPoint.x - w/2 + w, lShipPoint.y - h/2 + h );        // Maintain dirty box,, missing in __WXMSW__ library
-
-
                 if(lpp < img_height/2)                  // don't draw predictors if they are shorter than the ship
                       b_render_cog = false;
 
@@ -1796,8 +1855,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       {
                               //      COG Predictor
                               wxDash dash_long[2];
-                              dash_long[0] = ( int ) ( 3.6 * m_pix_per_mm );  //8// Long dash  <---------+
-                              dash_long[1] = ( int ) ( 1.8 * m_pix_per_mm );  //2// Short gap            |
+                              dash_long[0] = ( int ) ( 3.0 * m_pix_per_mm );  //8// Long dash  <---------+
+                              dash_long[1] = ( int ) ( 1.5 * m_pix_per_mm );  //2// Short gap            |
 
                               wxPen ppPen2 ( pred_colour, 3, wxUSER_DASH );
                               ppPen2.SetDashes( 2, dash_long );
@@ -1820,7 +1879,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
 
 
 
-                              pred_icon_scale_factor = .40;
+                              double png_pred_icon_scale_factor = .40;
 
                               wxPoint icon[10];
 
@@ -1830,8 +1889,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                                     double pxa = ( double ) (s_png_pred_icon[j]  );
                                     double pya = ( double ) (s_png_pred_icon[j+1]);
 
-                                    pya *=  pred_icon_scale_factor;
-                                    pxa *=  pred_icon_scale_factor;
+                                    pya *=  png_pred_icon_scale_factor;
+                                    pxa *=  png_pred_icon_scale_factor;
 
                                     double px = ( pxa * sin ( cog_rad ) ) + ( pya * cos ( cog_rad ) );
                                     double py = ( pya * sin ( cog_rad ) ) - ( pxa * cos ( cog_rad ) );
@@ -1899,7 +1958,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
 
                       delete pgc;
                 }
-#else
+#else       //wxGraphicsContext
 
                 if(b_render_cog)
                 {
@@ -1907,7 +1966,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                         dc.SetPen ( ppPen2 );
                         dc.DrawLine ( lShipPoint.x, lShipPoint.y, lPredPoint.x, lPredPoint.y );
 
-                        pred_icon_scale_factor = 0.5;
+                        double png_pred_icon_scale_factor = 0.5;
 
                         wxPoint icon[10];
 
@@ -1917,8 +1976,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                               double pxa = ( double ) (s_png_pred_icon[j]  );
                               double pya = ( double ) (s_png_pred_icon[j+1]);
 
-                              pya *=  pred_icon_scale_factor;
-                              pxa *=  pred_icon_scale_factor;
+                              pya *=  png_pred_icon_scale_factor;
+                              pxa *=  png_pred_icon_scale_factor;
 
                               double px = ( pxa * sin ( cog_rad ) ) + ( pya * cos ( cog_rad ) );
                               double py = ( pya * sin ( cog_rad ) ) - ( pxa * cos ( cog_rad ) );
@@ -1946,13 +2005,43 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                       dc.SetBrush(wxBrush(GetGlobalColor ( _T ( "GREY2" ) )));
 
                       dc.DrawLine ( lShipPoint.x, lShipPoint.y, lHeadPoint.x, lHeadPoint.y );
-
                       dc.DrawCircle(lHeadPoint.x, lHeadPoint.y, 4);
-
                 }
 #endif
 
 #else  //USE_PNG_OWNSHIP
+                //      Establish ship color
+                 //     It changes color based on GPS and Chart accuracy/availability
+                wxColour ship_color(GetGlobalColor ( _T ( "URED" )));         // default is OK
+
+                if(SHIP_LOWACCURACY == m_ownship_state)
+                {
+                      ship_color = GetGlobalColor ( _T ( "YELO1" ) );
+                }
+
+                if(SHIP_INVALID == m_ownship_state)
+                {
+                      ship_color = GetGlobalColor ( _T ( "YELO1" ) );
+                }
+
+                dc.SetBrush ( wxBrush ( ship_color ) );
+
+                //      Draw the COG predictor
+
+                //      First, however, scale the predictor icon by an empirical factor
+                //      If the predictor length is less than 10 mm, scale further
+                GetClientSize ( &canvas_width, &canvas_height );
+                double x_mm = wxGetDisplaySizeMM().GetWidth();         // gives client width in mm
+                double pix_per_mm = canvas_width / x_mm;
+
+                double llmm = lpp / pix_per_mm;
+
+                double pred_icon_scale_factor = 1.25;
+                if(llmm < 10)
+                      pred_icon_scale_factor *= llmm / 10;
+
+
+
                 wxPen ppPen2 ( GetGlobalColor ( _T ( "UBLCK" ) ), 3, wxSOLID );
                 dc.SetPen ( ppPen2 );
                 dc.DrawLine ( lShipPoint.x, lShipPoint.y, lPredPoint.x, lPredPoint.y );
@@ -1984,10 +2073,10 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                 dc.DrawLine ( icon[4].x,icon[4].y, icon[5].x ,icon[5].y );
                 dc.DrawLine ( icon[6].x,icon[6].y, icon[7].x ,icon[7].y  );
 
+                //      Now draw the ownship icon
 
                 if(VPoint.chart_scale < 50000)
                 {
-
                         wxPoint ownship_icon[10];
                         for ( int i=0; i<10 ; i++ )
                         {
@@ -2023,7 +2112,6 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
 
                       dc.DrawEllipse ( lShipPoint.x - 10, lShipPoint.y - 10, 20, 20 );
                       dc.DrawEllipse ( lShipPoint.x -  6, lShipPoint.y -  6, 12, 12 );
-
                 }
 
 #endif      //USE_PNG_OWNSHIP
@@ -2272,7 +2360,7 @@ void ChartCanvas::AISDraw ( wxDC& dc )
 
                         //    Of course, if the target reported a valid HDG, then use it for ship icon
                         if((int)(td->HDG) != 511)
-                              theta = (td->HDG - 90) * PI / 180.;
+                              theta = (td->HDG - 90 + Current_Ch->GetChartSkew() ) * PI / 180.;
 
                                 //  Draw the icon rotated to the COG
                          wxPoint ais_tri_icon[3];
@@ -2291,18 +2379,19 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                   ais_tri_icon[i].y = (int) round( py );
                           }
 
-                                // Default color is green
-                          dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "UINFG" ) ) ) );
                           dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "UBLCK" ) ) ) );
+
+                                // Default color is green
+                          wxBrush target_brush =  wxBrush ( GetGlobalColor ( _T ( "UINFG" ) ) ) ;
 
                          //and....
                           if(!td->b_nameValid)
-                                dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "CHYLW" ) ) ) );
+                                target_brush =  wxBrush ( GetGlobalColor ( _T ( "CHYLW" ) ) ) ;
 
 //    Check for alarms here, maintained by AIS class timer tick
                           if((td->n_alarm_state == AIS_ALARM_SET) || (td->n_alarm_state == AIS_ALARM_ACKNOWLEDGED))
                           {
-                                      dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "URED" ) ) ) );
+                                      target_brush = wxBrush ( GetGlobalColor ( _T ( "URED" ) ) ) ;
 
                                       //  Calculate the point of CPA for target
                                       double tcpa_lat,tcpa_lon;
@@ -2361,8 +2450,6 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                       dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "URED" ) ) ) );
                           }
 
-                          //        Actually Draw the target ship
-                          dc.DrawPolygon ( 3, ais_tri_icon, TargetPoint.x, TargetPoint.y );
 
 
                           //  Highlight the AIS target symbol if an alert dialog is currently open for it
@@ -2392,21 +2479,23 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                            //       Render the COG line if the speed is greater than moored speed defined by ais options dialog
                            if((g_bShowCOG) && (td->SOG > g_ShowMoored_Kts))
                            {
-                                      int pixx = ais_tri_icon[1].x + TargetPoint.x;
-                                      int pixy = ais_tri_icon[1].y + TargetPoint.y;
-                                      int pixx1 = PredPoint.x;
-                                      int pixy1 = PredPoint.y;
+                                 int pixx =  TargetPoint.x;  // + ais_tri_icon[1].x;
+                                 int pixy =  TargetPoint.y;  // + ais_tri_icon[1].y;
+                                 int pixx1 = PredPoint.x;
+                                 int pixy1 = PredPoint.y;
 
                                       //  Don't draw the COG line  and predictor point if zoomed far out....
-                                      double l = pow(pow((double)(PredPoint.x - TargetPoint.x), 2) + pow((double)(PredPoint.y - TargetPoint.y), 2), 0.5);
+                                 double l = pow(pow((double)(PredPoint.x - TargetPoint.x), 2) + pow((double)(PredPoint.y - TargetPoint.y), 2), 0.5);
 
-                                      if(l > 24)
-                                      {
+                                 if(l > 24)
+                                 {
                                           ClipResult res = cohen_sutherland_line_clip_i ( &pixx, &pixy, &pixx1, &pixy1,
                                                  0, VPoint.pix_width, 0, VPoint.pix_height );
                                           if ( res != Invisible )
                                                 dc.DrawLine ( pixx, pixy, pixx1, pixy1 );
 
+                                          dc.SetBrush ( target_brush );
+                                          dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "UBLCK" )), 1) );
                                           dc.DrawCircle ( PredPoint.x, PredPoint.y, 5 );
 
                                 //      Draw RateOfTurn Vector
@@ -2423,8 +2512,14 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                                 int yrot = ( int ) round ( pixy1 + ( nv * sin ( theta2 ) ) );
                                                 dc.DrawLine ( pixx1, pixy1, xrot, yrot );
                                           }
-                                      }
+                                 }
                            }
+
+                           //        Actually Draw the target ship
+                           dc.SetBrush ( target_brush );
+                           dc.SetPen ( wxPen ( GetGlobalColor ( _T ( "UBLCK" )), 1) );
+
+                           dc.DrawPolygon ( 3, ais_tri_icon, TargetPoint.x, TargetPoint.y );
 
                            //        If this is an AIS Class B target, so symbolize it
                            if(td->Class == AIS_CLASS_B)
@@ -2432,7 +2527,6 @@ void ChartCanvas::AISDraw ( wxDC& dc )
                                  dc.SetBrush ( wxBrush ( GetGlobalColor ( _T ( "BLUE3" ) ) ) );
                                  dc.DrawCircle ( TargetPoint.x, TargetPoint.y, 5 );
                            }
-
 
                 }       // drawit
         }         // iterator
@@ -2782,7 +2876,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
         //    Calculate meaningful SelectRadius
         float SelectRadius;
         int sel_rad_pix = 8;
-        SelectRadius = sel_rad_pix/ ( m_true_scale_ppm * 1852 * 60 );
+        SelectRadius = sel_rad_pix/ ( m_true_scale_ppm * 1852 * 60 );  // Degrees, approximately
 
 #ifdef __WXMSW__
         if ( console->IsShown() )
@@ -3020,8 +3114,12 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         //    Check to see if there is a nearby point which may be reused
                         RoutePoint *pMousePoint = NULL;
 
-                        RoutePoint *pNearbyPoint = pWayPointMan->GetNearbyWaypoint(rlat, rlon, 500.);
-                        if(pNearbyPoint)
+                        //    Calculate meaningful SelectRadius
+                        int nearby_sel_rad_pix = 8;
+                        double nearby_radius_meters = nearby_sel_rad_pix / m_true_scale_ppm;
+
+                        RoutePoint *pNearbyPoint = pWayPointMan->GetNearbyWaypoint(rlat, rlon, nearby_radius_meters);
+                        if(pNearbyPoint && (pNearbyPoint != m_prev_pMousePoint))
                         {
                               wxMessageDialog near_point_dlg(this, _T("Use nearby waypoint?"), _T("OpenCPN Route Create"), (long)wxYES_NO | wxCANCEL | wxYES_DEFAULT);
                               int dlg_return = near_point_dlg.ShowModal();
@@ -3669,10 +3767,14 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                         if (( Current_Ch->m_ChartFamily == CHART_FAMILY_VECTOR ))
                                 pdef_menu->Append ( ID_DEF_MENU_QUERY,  _T ( "Object Query" ) );
 
-                        if(m_bMeasure_Active)
-                              PopupMenu ( pdef_menu, x,y /*10,10*/ );           // if measure tool is on, position the menu statically
-                        else
-                              PopupMenu ( pdef_menu, x, y );
+                        if (( Current_Ch->m_ChartType == CHART_TYPE_CM93COMP ))
+                        {
+                              pdef_menu->AppendCheckItem(ID_DEF_MENU_CM93ZOOM, _T("Enable CM93 Detail Slider"));
+                              if(pCM93DetailSlider)
+                                     pdef_menu->Check(ID_DEF_MENU_CM93ZOOM, pCM93DetailSlider->IsShown());
+                        }
+
+                        PopupMenu ( pdef_menu, x, y );
 
 
                         delete pdef_menu;
@@ -3817,6 +3919,26 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                         Refresh ( false );
                         break;
 
+                case ID_DEF_MENU_CM93ZOOM:
+                        g_bShowCM93DetailSlider = event.IsChecked();
+
+                        if(g_bShowCM93DetailSlider)
+                        {
+                              if(!pCM93DetailSlider)
+                              {
+                                    pCM93DetailSlider = new CM93DSlide(this, -1 , 0, -CM93_ZOOM_FACTOR_MAX_RANGE, CM93_ZOOM_FACTOR_MAX_RANGE,
+                                                wxPoint(g_cm93detail_dialog_x, g_cm93detail_dialog_y), wxDefaultSize, wxSIMPLE_BORDER , _T("cm93 Detail") );
+                              }
+                              pCM93DetailSlider->Show();
+                        }
+                        else
+                        {
+                              if(pCM93DetailSlider)
+                                    pCM93DetailSlider->Close();
+                        }
+
+                        Refresh();
+                        break;
 
 #ifdef USE_S57
                 case ID_DEF_MENU_QUERY:
@@ -4209,7 +4331,6 @@ void ChartCanvas::RenderAllChartOutlines ( wxDC *pdc, ViewPort& vp, bool bdraw_m
  //        On CM93 Composite Charts, draw the outlines of the next smaller scale cell
         if(Current_Ch->m_ChartType == CHART_TYPE_CM93COMP)
         {
-//              cm93compchart *pch = wxDynamicCast(Current_Ch, cm93compchart);
               cm93compchart *pch = (cm93compchart *)Current_Ch;
               if(pch)
               {
@@ -4458,7 +4579,6 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
                 }
         }
 
-
 //    Use an offscreen canvas, to protect the chart bitmap which may be cached by the Current_Ch object
 //    First, grab a fresh copy of the chart object's image data, and render to a temp dc
 
@@ -4612,16 +4732,16 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
               {
                     angle = 0; //90. - brg;
 
-                    xp = r_rband.x  - (w * cos((angle) * PI / 180.));
-                    yp = r_rband.y  + (w * sin((angle) * PI / 180.));
+                    xp = r_rband.x  - (int)(w * cos((angle) * PI / 180.));
+                    yp = r_rband.y  + (int)(w * sin((angle) * PI / 180.));
 
-                    xp += (hilite_offset * sin((angle) * PI / 180.));
-                    yp += (hilite_offset * cos((angle) * PI / 180.));
+                    xp += (int)(hilite_offset * sin((angle) * PI / 180.));
+                    yp += (int)(hilite_offset * cos((angle) * PI / 180.));
 
                     xp1 = r_rband.x;
                     yp1 = r_rband.y;
-                    xp1 += (hilite_offset * sin((angle) * PI / 180.));
-                    yp1 += (hilite_offset * cos((angle) * PI / 180.));
+                    xp1 += (int)(hilite_offset * sin((angle) * PI / 180.));
+                    yp1 += (int)(hilite_offset * cos((angle) * PI / 180.));
 
               }
               else
@@ -4630,13 +4750,13 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
 
                     xp = r_rband.x;
                     yp = r_rband.y;
-                    xp += (hilite_offset * sin((angle) * PI / 180.));
-                    yp += (hilite_offset * cos((angle) * PI / 180.));
+                    xp += (int)(hilite_offset * sin((angle) * PI / 180.));
+                    yp += (int)(hilite_offset * cos((angle) * PI / 180.));
 
-                    xp1 = r_rband.x  + (w * cos((angle) * PI / 180.));
-                    yp1 = r_rband.y  - (w * sin((angle) * PI / 180.));
-                    xp1 += (hilite_offset * sin((angle) * PI / 180.));
-                    yp1 += (hilite_offset * cos((angle) * PI / 180.));
+                    xp1 = r_rband.x  + (int)(w * cos((angle) * PI / 180.));
+                    yp1 = r_rband.y  - (int)(w * sin((angle) * PI / 180.));
+                    xp1 += (int)(hilite_offset * sin((angle) * PI / 180.));
+                    yp1 += (int)(hilite_offset * cos((angle) * PI / 180.));
 
              }
 
@@ -4644,11 +4764,11 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
               hilite_array[0].x = xp;
               hilite_array[0].y = yp;
 
-              hilite_array[1].x = xp + ((h) * sin((angle) * PI / 180.));
-              hilite_array[1].y = yp + ((h) * cos((angle) * PI / 180.));
+              hilite_array[1].x = xp + (int)((h) * sin((angle) * PI / 180.));
+              hilite_array[1].y = yp + (int)((h) * cos((angle) * PI / 180.));
 
-              hilite_array[2].x = xp1 + ((h) * sin((angle) * PI / 180.));
-              hilite_array[2].y = yp1 + ((h) * cos((angle) * PI / 180.));
+              hilite_array[2].x = xp1 + (int)((h) * sin((angle) * PI / 180.));
+              hilite_array[2].y = yp1 + (int)((h) * cos((angle) * PI / 180.));
 
               hilite_array[3].x = xp1;
               hilite_array[3].y = yp1;
@@ -4735,6 +4855,14 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
         m_bTCupdate = false;
 
         dc.DestroyClippingRegion();
+
+/*
+        if(pCM93DetailSlider->IsShown())
+        {
+            pCM93DetailSlider->Refresh();
+            pCM93DetailSlider->Update();
+        }
+*/
 
 
 //    Handle deferred WarpPointer
@@ -5491,11 +5619,14 @@ TCWin::TCWin ( ChartCanvas *parent, int x, int y, void *pvIDX )
                         mtz = _T( "CST" );
                         break;
         }
-        if ( this_now.IsDST() )
-                mtz[1] = 'D';
 
         if(mtz.Len())
+        {
+              if ( this_now.IsDST() )
+                    mtz[1] = 'D';
+
               m_stz = mtz;
+        }
 
 
 //    Establish the inital drawing day as today
@@ -7239,6 +7370,100 @@ void AISroWin::OnPaint(wxPaintEvent& event)
             mdc.SelectObject(*m_pbm);
             dc.Blit(0, 0, width, height, &mdc, 0,0);
       }
+}
+
+//------------------------------------------------------------------------------
+//    CM93 Detail Slider Implementation
+//------------------------------------------------------------------------------
+BEGIN_EVENT_TABLE(CM93DSlide, wxDialog)
+            EVT_MOVE( CM93DSlide::OnMove )
+            EVT_COMMAND_SCROLL_THUMBRELEASE(-1, CM93DSlide::OnThumbRelease)
+            EVT_CLOSE(CM93DSlide::OnClose)
+            END_EVENT_TABLE()
+
+CM93DSlide::CM93DSlide ( wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue,
+                         const wxPoint& pos, const wxSize& size, long style, const wxString& title)
+{
+      Init();
+      Create(parent, ID_CM93ZOOMG, value, minValue, maxValue, pos, size, style, title );
+}
+
+
+CM93DSlide::~CM93DSlide()
+{
+      delete m_pCM93DetailSlider;
+}
+
+void CM93DSlide::Init(void)
+{
+      m_pCM93DetailSlider = NULL;
+}
+
+
+bool CM93DSlide::Create( wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue,
+                    const wxPoint& pos, const wxSize& size, long style, const wxString& title)
+{
+      if(!wxDialog::Create(parent, id, title, pos, size, wxDEFAULT_DIALOG_STYLE))
+            return false;
+
+      m_pparent = parent;
+
+      m_pCM93DetailSlider = new wxSlider(this, id , value, minValue, maxValue,
+                                         wxPoint(0,0), wxDefaultSize, wxSL_HORIZONTAL | wxSL_AUTOTICKS | wxSL_LABELS, wxDefaultValidator, title);
+
+      m_pCM93DetailSlider->SetSize(wxSize(200, -1));
+
+      m_pCM93DetailSlider->InvalidateBestSize();
+      wxSize bs = m_pCM93DetailSlider->GetBestSize();
+
+      m_pCM93DetailSlider->SetSize(wxSize(200, bs.y));
+      Fit();
+
+      m_pCM93DetailSlider->SetValue(g_cm93_zoom_factor);
+
+      Hide();
+
+      return true;
+}
+
+void CM93DSlide::OnCancelClick( wxCommandEvent& event )
+{
+      g_bShowCM93DetailSlider = false;
+      Close();
+}
+
+
+void CM93DSlide::OnClose(wxCloseEvent& event)
+{
+      g_bShowCM93DetailSlider = false;
+
+      Destroy();
+      pCM93DetailSlider = NULL;
+}
+
+
+void CM93DSlide::OnMove( wxMoveEvent& event )
+{
+      //    Record the dialog position
+      wxPoint p = event.GetPosition();
+      g_cm93detail_dialog_x = p.x;
+      g_cm93detail_dialog_y = p.y;
+
+      event.Skip();
+}
+
+void CM93DSlide::OnThumbRelease( wxScrollEvent& event)
+{
+      g_cm93_zoom_factor = m_pCM93DetailSlider->GetValue();
+
+      cc1->SetCursor(*wxHOURGLASS_CURSOR);
+
+      if(Current_Ch)
+            Current_Ch->InvalidateCache();
+      cc1->ReloadVP();
+      cc1->Refresh(false);
+
+      cc1->SetCursor(wxNullCursor);
 }
 
 
