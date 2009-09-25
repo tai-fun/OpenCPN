@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.16 2009/09/18 01:23:13 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.17 2009/09/25 15:11:51 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.17  2009/09/25 15:11:51  bdbcat
+ * Tweak ETA
+ *
  * Revision 1.16  2009/09/18 01:23:13  bdbcat
  * Increase Annunciator x size
  *
@@ -57,6 +60,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.17  2009/09/25 15:11:51  bdbcat
+ * Tweak ETA
+ *
  * Revision 1.16  2009/09/18 01:23:13  bdbcat
  * Increase Annunciator x size
  *
@@ -153,7 +159,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.16 2009/09/18 01:23:13 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.17 2009/09/25 15:11:51 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -358,7 +364,7 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                   if(gSog > 0.)
                   {
                         float tttg_sec = (trng / gSog) * 3600.;
-                        tttg_span = wxTimeSpan::Seconds(tttg_sec);
+                        tttg_span = wxTimeSpan::Seconds((long)tttg_sec);
                         tttg_s = tttg_span.Format();
                   }
                   else
@@ -379,7 +385,7 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                         wxString seta;
 
                         if(gSog > 0.)
-                              seta = eta.FormatTime();
+                              seta = eta.Format(_T("%H:%M"));
                         else
                               seta = _("---");
 
@@ -525,7 +531,7 @@ void AnnunText::CalculateMinSize(void)
 
       wxSize min;
       min.x = wl + wv;
-      min.y = (hl + hv) * 1.2;
+      min.y = (int)((hl + hv) * 1.2);
 
       SetMinSize(min);
 }
