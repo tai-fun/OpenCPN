@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.48  2009/09/25 15:13:27  bdbcat
+ * Correct waypoint date/time
+ *
  * Revision 1.47  2009/09/18 02:21:16  bdbcat
  * Various, MSVC fonts, dialog locations
  *
@@ -139,6 +142,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.48  2009/09/25 15:13:27  bdbcat
+ * Correct waypoint date/time
+ *
  * Revision 1.47  2009/09/18 02:21:16  bdbcat
  * Various, MSVC fonts, dialog locations
  *
@@ -308,7 +314,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.47 2009/09/18 02:21:16 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.48 2009/09/25 15:13:27 bdbcat Exp $" );
 
 //    Statics
 
@@ -414,7 +420,10 @@ extern s52plib          *ps52plib;
 
 extern wxString         g_CM93DictDir;
 extern int              g_cm93_zoom_factor;
+extern bool             g_bShowCM93DetailSlider;
+extern int              g_cm93detail_dialog_x, g_cm93detail_dialog_y;
 
+extern bool             g_bUseGreenShip;
 
 //------------------------------------------------------------------------------
 // Some wxWidgets macros for useful classes
@@ -2200,11 +2209,16 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "GPSDogTimeout" ),  &gsp_watchdog_timeout_ticks, GPS_TIMEOUT_SECONDS );
       Read ( _T ( "DebugCM93" ),  &g_bDebugCM93, 0 );
       Read ( _T ( "DebugS57" ),  &g_bDebugS57, 0 );
+      Read ( _T ( "UseGreenShipIcon" ),  &g_bUseGreenShip, 0 );
 
 
       Read ( _T ( "CM93DetailFactor" ),  &g_cm93_zoom_factor, 0 );
       g_cm93_zoom_factor = wxMin(g_cm93_zoom_factor,CM93_ZOOM_FACTOR_MAX_RANGE);
       g_cm93_zoom_factor = wxMax(g_cm93_zoom_factor,(-CM93_ZOOM_FACTOR_MAX_RANGE));
+
+      g_cm93detail_dialog_x = Read ( _T ( "CM93DetailZoomPosX" ), 200L );
+      g_cm93detail_dialog_y = Read ( _T ( "CM93DetailZoomPosY" ), 200L );
+      Read ( _T ( "ShowCM93DetailSlider" ),  &g_bShowCM93DetailSlider, 0 );
 
       s_bSetSystemTime = false;
       Read ( _T ( "SetSystemTime" ), &s_bSetSystemTime );
@@ -3218,6 +3232,9 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "GarminPersistance" ),  g_bGarminPersistance );
 
       Write ( _T ( "CM93DetailFactor" ),  g_cm93_zoom_factor );
+      Write ( _T ( "CM93DetailZoomPosX" ),  g_cm93detail_dialog_x );
+      Write ( _T ( "CM93DetailZoomPosY" ),  g_cm93detail_dialog_y );
+      Write ( _T ( "ShowCM93DetailSlider" ), g_bShowCM93DetailSlider );
 
       wxString st0;
       st0.Printf ( _T ( "%g" ), g_PlanSpeed );
@@ -4715,7 +4732,10 @@ RoutePoint *LoadGPXTrackpoint ( wxXmlNode* wptnode )
                   {
                         wxString TimeString = child1->GetContent();
                         if ( TimeString.Len() )
+                        {
+                              TimeString.Replace(_T("T"), _T(" "));             // make ParseDateTime work
                               dt.ParseDateTime ( TimeString );
+                        }
                   }
             }
             // Read hyperlink
