@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.34 2009/09/18 03:51:28 bdbcat Exp $
+ * $Id: about.cpp,v 1.35 2009/09/25 15:18:34 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.35  2009/09/25 15:18:34  bdbcat
+ * 925
+ *
  * Revision 1.34  2009/09/18 03:51:28  bdbcat
  * 917
  *
@@ -136,12 +139,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.34 2009/09/18 03:51:28 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.35 2009/09/25 15:18:34 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n                      Version 1.3.3 Build 917"};
+char OpenCPNVersion[] = {"\n\n                      Version 1.3.3 Build 925"};
 
 
 char AboutText[] =
