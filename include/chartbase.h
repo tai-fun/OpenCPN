@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.15 2009/08/22 01:23:24 bdbcat Exp $
+ * $Id: chartbase.h,v 1.16 2009/09/25 14:58:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.16  2009/09/25 14:58:13  bdbcat
+ * Change ChartDummy Minimum scale
+ *
  * Revision 1.15  2009/08/22 01:23:24  bdbcat
  * *** empty log message ***
  *
@@ -181,6 +184,9 @@ public:
 
       virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs) = 0;
 
+      virtual void Activate(void) {};
+      virtual void Deactivate(void) {};
+
 //    Accessors
       virtual ThumbData *GetThumbData(int tnx, int tny, float lat, float lon) = 0;
       virtual ThumbData *GetThumbData() = 0;
@@ -284,7 +290,7 @@ public:
 
       virtual int GetNativeScale();
       double GetNormalScaleMin(double canvas_scale_factor){return 1.0;}
-      double GetNormalScaleMax(double canvas_scale_factor){ return 1.0e8;}
+      double GetNormalScaleMax(double canvas_scale_factor){ return 8.0e7;}
 
       virtual wxString GetPubDate();
       virtual double GetChartSkew(){ return 0.0;}
