@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.30 2009/09/18 02:48:46 bdbcat Exp $
+ * $Id: chart1.h,v 1.31 2009/09/25 14:56:50 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.31  2009/09/25 14:56:50  bdbcat
+ * *** empty log message ***
+ *
  * Revision 1.30  2009/09/18 02:48:46  bdbcat
  * Various
  *
@@ -153,8 +156,8 @@ class OCPN_NMEAEvent;
 
 #define TIMER_GFRAME_1 999
 
-#define ID_QUIT     101
-
+#define ID_QUIT         101
+#define ID_CM93ZOOMG    102
 
 //    ToolBar Constants
 const int ID_TOOLBAR = 500;
