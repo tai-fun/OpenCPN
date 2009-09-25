@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.44 2009/09/18 01:41:26 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.45 2009/09/25 15:19:56 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -50,7 +50,7 @@
 
 
 
-CPL_CVSID("$Id: nmea.cpp,v 1.44 2009/09/18 01:41:26 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.45 2009/09/25 15:19:56 bdbcat Exp $");
 
 extern int             g_nNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -145,6 +145,7 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
 
 //    NMEA Data Source is shared with AIS port, AIS does the muxing
 //    and we don't have anything else to do......
+      g_bGPSAISMux = false;
       if(m_data_source_string.Contains(_T("AIS")))
             g_bGPSAISMux = true;
 
@@ -572,7 +573,6 @@ void NMEAWindow::OnTimerNMEA(wxTimerEvent& event)
 
       TimerNMEA.Start(TIMER_NMEA_MSEC,wxTIMER_CONTINUOUS);
 }
-
 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -1804,8 +1804,9 @@ ComPortManager::~ComPortManager()
 int ComPortManager::OpenComPort(wxString &com_name, int baud_rate)
 {
       // Already open?
-      int port_descriptor = GetComPort(com_name);
-      if(-1 == port_descriptor)
+      int port_descriptor;
+      OpenCommPortElement *pe = GetComPort(com_name);
+      if(NULL == pe)
       {
             port_descriptor = OpenComPortPhysical(com_name, 4800);
             if( port_descriptor < 0)
@@ -1845,34 +1846,38 @@ int ComPortManager::CloseComPort(int fd)
       return 0;
 }
 
-
-
 //------------------------------------------------------------
 //    GetComPort()
 //    Return the descriptor for an already open com port.
 //    return -1 if the port is not already open
 //------------------------------------------------------------
 
-int ComPortManager::GetComPort(wxString &com_name)
+OpenCommPortElement *ComPortManager::GetComPort(wxString &com_name)
 {
       for ( ListOfOpenCommPorts::Node *node = m_port_list.GetFirst(); node; node = node->GetNext() )
       {
             OpenCommPortElement *current = node->GetData();
 
             if(current->com_name.IsSameAs(com_name))
-                  return current->port_descriptor;
+                  return current;
       }
 
-      return -1;
+      return NULL;
 }
 
 int ComPortManager::WriteComPort(wxString& com_name, const wxString& string)
 {
-      int port_descriptor = GetComPort(com_name);
-      if(-1 == port_descriptor)
-            port_descriptor = OpenComPort(com_name, 4800);
+      int port_descriptor;
+      int status;
 
-      int status = WriteComPortPhysical(port_descriptor, string);
+      OpenCommPortElement *pe = GetComPort(com_name);
+
+      if(NULL == pe)
+            port_descriptor = OpenComPort(com_name, 4800);
+      else
+            port_descriptor = pe->port_descriptor;
+
+      status = WriteComPortPhysical(port_descriptor, string);
 
       return status;
 }
