@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.31 2009/09/18 01:29:12 bdbcat Exp $
+ * $Id: options.cpp,v 1.32 2009/09/25 15:15:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.32  2009/09/25 15:15:38  bdbcat
+ * Implement toplevel CM93 detail slider
+ *
  * Revision 1.31  2009/09/18 01:29:12  bdbcat
  * Add cm93 zoom factor slider
  *
@@ -200,6 +203,8 @@ extern bool             g_bTrackTime;
 extern bool             g_bTrackDistance;
 
 extern int              g_cm93_zoom_factor;
+extern CM93DSlide       *pCM93DetailSlider;
+extern bool             g_bShowCM93DetailSlider;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
