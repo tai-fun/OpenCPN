@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.20 2009/09/11 20:39:17 bdbcat Exp $
+ * $Id: nmea.h,v 1.21 2009/09/25 15:00:30 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.21  2009/09/25 15:00:30  bdbcat
+ * Improve ComPortManager
+ *
  * Revision 1.20  2009/09/11 20:39:17  bdbcat
  * Improve message handling
  *
@@ -555,7 +558,7 @@ public:
       ~ComPortManager();
 
       int OpenComPort(wxString &com_name, int baud_rate);
-      int GetComPort(wxString &com_name);                   // get the descriptor for an already open port, or -1 if not open
+      OpenCommPortElement *GetComPort(wxString &com_name);
       int CloseComPort(int fd);
 
       int WriteComPort(wxString& com_name, const wxString& string);
