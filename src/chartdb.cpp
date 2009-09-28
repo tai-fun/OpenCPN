@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.25 2009/09/28 13:20:14 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.26 2009/09/28 23:05:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.26  2009/09/28 23:05:21  bdbcat
+ * Correct again for IDL crossing
+ *
  * Revision 1.25  2009/09/28 13:20:14  bdbcat
  * Correct for IDL crossing
  *
@@ -136,7 +139,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.25 2009/09/28 13:20:14 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.26 2009/09/28 23:05:21 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -1318,7 +1321,7 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
             }
 
             //    Check the special case where chart spans the international dateline
-            if( (pt->LonMax > 180.) && (pt->LonMin < 180.) )
+            else if( (pt->LonMax > 180.) && (pt->LonMin < 180.) )
             {
                   if(CheckPositionWithinChart(i, lat, lon + 360.)  &&  (j < MAXSTACK) )
                   {
