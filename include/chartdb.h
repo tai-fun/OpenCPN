@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.15 2009/08/30 03:30:27 bdbcat Exp $
+ * $Id: chartdb.h,v 1.16 2009/09/28 13:20:36 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.16  2009/09/28 13:20:36  bdbcat
+ * Correct for IDL crossing
+ *
  * Revision 1.15  2009/08/30 03:30:27  bdbcat
  * New Methods
  *
@@ -220,6 +223,7 @@ private:
 
       int SearchDirAndAddSENC(wxString& dir, bool bshow_prog, bool bupdate);
       bool CreateS57SENCChartTableEntry(wxString full_name, ChartTableEntry *pEntry, Extent *pext);
+      bool CheckPositionWithinChart(int index, float lat, float lon);
 
       ChartFamilyEnum GetChartFamily(int charttype);
 

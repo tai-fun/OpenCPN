@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.29 2009/09/18 02:13:20 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.30 2009/09/28 13:19:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.30  2009/09/28 13:19:09  bdbcat
+ * Correct for IDL crossing
+ *
  * Revision 1.29  2009/09/18 02:13:20  bdbcat
  * Add support for DTM field in BSB charts
  *
@@ -78,6 +81,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.30  2009/09/28 13:19:09  bdbcat
+ * Correct for IDL crossing
+ *
  * Revision 1.29  2009/09/18 02:13:20  bdbcat
  * Add support for DTM field in BSB charts
  *
@@ -187,7 +193,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.29 2009/09/18 02:13:20 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.30 2009/09/28 13:19:09 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1839,6 +1845,23 @@ bool ChartBaseBSB::SetMinMax(void)
                   m_LonMin = m_LonMax;
                   m_LonMax = t_lonmin;
             }
+
+            //  Now need to nrmalize the LonMax, and the plypoints table.
+            if(m_LonMin > m_LonMax)
+            {
+                  m_LonMax += 360.;
+                  Plypoint *ppp = (Plypoint *)GetCOVRTableHead(0);      // Normalize the plypoints
+                  int cnPlypoint = GetCOVRTablenPoints(0);
+
+                  for(int u=0 ; u<cnPlypoint ; u++)
+                  {
+                        if( m_LonMin > ppp->lnp)
+                              ppp->lnp += 360.;
+                        ppp++;
+                  }
+            }
+
+
       }
 
       // Case 2 Lons are both < -180, which means the extent will be reported incorrectly
@@ -4054,7 +4077,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.29 2009/09/18 02:13:20 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.30 2009/09/28 13:19:09 bdbcat Exp $
 *
 */
 

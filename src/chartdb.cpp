@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.24 2009/08/30 03:34:07 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.25 2009/09/28 13:20:14 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.25  2009/09/28 13:20:14  bdbcat
+ * Correct for IDL crossing
+ *
  * Revision 1.24  2009/08/30 03:34:07  bdbcat
  * New Methods
  *
@@ -133,7 +136,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.24 2009/08/30 03:34:07 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.25 2009/09/28 13:20:14 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -1212,6 +1215,7 @@ bool ChartDB::GetDBBoundingBox(int dbIndex, wxBoundingBox *box)
 //-------------------------------------------------------------------
 //    Build Chart stack
 //-------------------------------------------------------------------
+/*
 int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
 {
       int i=0;
@@ -1223,6 +1227,7 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
       for(i=0 ; i<nEntry ; i++)
       {
 
+            ChartTableEntry *pt = &pChartTable[i];
 //    First check on rough Bounding box
 
             if((lat < pChartTable[i].LatMax) &&
@@ -1291,6 +1296,112 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
 
       return j;
 }
+*/
+
+int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
+{
+      int i=0;
+      int j=0;
+
+      if(!bValid)
+            return 0;                           // Database is not properly initialized
+
+      for(i=0 ; i<nEntry ; i++)
+      {
+
+            ChartTableEntry *pt = &pChartTable[i];
+
+            if(CheckPositionWithinChart(i, lat, lon)  &&  (j < MAXSTACK) )
+            {
+                  cstk->DBIndex[j] = i;
+                  j++;
+            }
+
+            //    Check the special case where chart spans the international dateline
+            if( (pt->LonMax > 180.) && (pt->LonMin < 180.) )
+            {
+                  if(CheckPositionWithinChart(i, lat, lon + 360.)  &&  (j < MAXSTACK) )
+                  {
+                        cstk->DBIndex[j] = i;
+                        j++;
+                  }
+            }
+
+
+      }
+
+      cstk->nEntry = j;
+
+//    Sort the stack on scale
+      int swap = 1;
+      int n,m,ti;
+      while(swap == 1)
+      {
+            swap = 0;
+            for(i=0 ; i<j-1 ; i++)
+            {
+                  m = cstk->DBIndex[i];
+                  n = cstk->DBIndex[i+1];
+
+                  if(pChartTable[n].Scale < pChartTable[m].Scale)
+                  {
+                        ti = cstk->DBIndex[i];
+                        cstk->DBIndex[i] = cstk->DBIndex[i+1];
+                        cstk->DBIndex[i+1] = ti;
+                        swap = 1;
+                  }
+            }
+      }
+
+
+      return j;
+}
+
+
+
+//-------------------------------------------------------------------
+//    Check to see it lat/lon is within a database chart at index
+//-------------------------------------------------------------------
+bool ChartDB::CheckPositionWithinChart(int index, float lat, float lon)
+{
+            ChartTableEntry *pt = &pChartTable[index];
+//    First check on rough Bounding box
+
+            if((lat < pChartTable[index].LatMax) &&
+                (lat > pChartTable[index].LatMin) &&
+                (lon > pChartTable[index].LonMin) &&
+                (lon < pChartTable[index].LonMax))
+            {
+//    Double check on Primary Ply points polygon
+
+                  bool bInside = G_FloatPtInPolygon((MyFlPoint *)pChartTable[index].pPlyTable,
+                              pChartTable[index].nPlyEntries,
+                              lon, lat);
+
+                  if(bInside )
+                  {
+                        if(pChartTable[index].nAuxPlyEntries)
+                        {
+                              for(int k=0 ; k<pChartTable[index].nAuxPlyEntries ; k++)
+                              {
+                                    bool bAuxInside = G_FloatPtInPolygon((MyFlPoint *)pChartTable[index].pAuxPlyTable[k],
+                                                pChartTable[index].pAuxCntTable[k],lon, lat);
+                                    if(bAuxInside)
+                                          return true;;
+                              }
+
+                        }
+                        else
+                              return true;
+                  }
+            }
+
+            return false;
+}
+
+
+
+
 
 //-------------------------------------------------------------------
 //    Compare Chart Stacks
