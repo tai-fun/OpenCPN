@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.13 2009/09/25 14:59:36 bdbcat Exp $
+ * $Id: cm93.h,v 1.14 2009/09/29 18:29:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.14  2009/09/29 18:29:49  bdbcat
+ * Implement GetPixPoint
+ *
  * Revision 1.13  2009/09/25 14:59:36  bdbcat
  * Define chart Activate/Deactivate
  *
@@ -334,6 +337,7 @@ class cm93chart : public s57chart
             void SetVPParms(ViewPort *vpt);
             void GetPointPix(ObjRazRules *rzRules, float northing, float easting, wxPoint *r);
             void GetPointPix(ObjRazRules *rzRules, wxPoint2DDouble *en, wxPoint *r, int nPoints);
+            void GetPixPoint(int pixx, int pixy, double *plat, double *plon, ViewPort *vpt);
 
             void SetCM93Dict(cm93_dictionary *pDict){m_pDict = pDict;}
             void SetCM93Prefix(wxString &prefix){m_prefix = prefix;}

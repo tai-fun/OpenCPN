@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.23 2009/09/25 15:05:18 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.24 2009/09/29 18:29:28 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.24  2009/09/29 18:29:28  bdbcat
+ * Implement GetPixPoint
+ *
  * Revision 1.23  2009/09/25 15:05:18  bdbcat
  * Implement toplevel CM93 detail slider
  *
@@ -143,6 +146,7 @@ extern CM93DSlide       *pCM93DetailSlider;
 extern int              g_cm93detail_dialog_x, g_cm93detail_dialog_y;
 extern bool             g_bShowCM93DetailSlider;
 
+// TODO  These should be gotten from the ctor
 extern MyFrame          *gFrame;
 
 #ifndef __WXMSW__
@@ -1614,6 +1618,30 @@ void cm93chart::GetPointPix(ObjRazRules *rzRules, wxPoint2DDouble *en, wxPoint *
             r[i].y = (int)round(m_pixy_vp_center - ((valy - m_northing_vp_center) * m_view_scale_ppm));
       }
 }
+
+void cm93chart::GetPixPoint(int pixx, int pixy, double *plat, double *plon, ViewPort *vpt)
+{
+     //    Use Mercator estimator
+      int dx = pixx - (vpt->pix_width / 2);
+      int dy = (vpt->pix_height / 2) - pixy;
+
+      double xp = (dx * cos(vpt->skew)) - (dy * sin(vpt->skew));
+      double yp = (dy * cos(vpt->skew)) + (dx * sin(vpt->skew));
+
+      double d_east = xp / vpt->view_scale_ppm;
+      double d_north = yp / vpt->view_scale_ppm;
+
+      double slat, slon;
+      fromSM(d_east, d_north, vpt->clat, vpt->clon, &slat, &slon);
+
+      if(slon > 360.)
+            slon -= 360.;
+
+      *plat = slat;
+      *plon = slon;
+
+}
+
 
 //-----------------------------------------------------------------------
 //              Calculate and Set ViewPoint Constants
@@ -3568,8 +3596,8 @@ int cm93chart::loadsubcell(int cellindex, wxChar sub_char)
 
 
 
-      int jlat = (((ilat - 30) / m_dval) * m_dval) + 30;              // normalize
-      int jlon = (ilon / m_dval) * m_dval;
+      int jlat = (int)(((ilat - 30) / m_dval) * m_dval) + 30;              // normalize
+      int jlon = (int)((ilon / m_dval) * m_dval);
 
       int ilatroot = (((ilat - 30) / 60) * 60) + 30;
       int ilonroot = (ilon / 60) * 60;
@@ -3901,7 +3929,12 @@ void cm93compchart::Activate(void)
                   pCM93DetailSlider = new CM93DSlide(gFrame, -1 , 0, -CM93_ZOOM_FACTOR_MAX_RANGE, CM93_ZOOM_FACTOR_MAX_RANGE,
                               wxPoint(g_cm93detail_dialog_x, g_cm93detail_dialog_y), wxDefaultSize, wxSIMPLE_BORDER , _T("cm93 Detail") );
             }
+
+            //    Here is an ugly piece of code which prevents the slider from taking the keyboard focus
+            //    Only seems to work for Windows.....
+            pCM93DetailSlider->Disable();
             pCM93DetailSlider->Show();
+            pCM93DetailSlider->Enable();
       }
 }
 
