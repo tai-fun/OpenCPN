@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.66 2009/09/25 15:07:44 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.67 2009/09/29 18:32:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.67  2009/09/29 18:32:09  bdbcat
+ * Various
+ *
  * Revision 1.66  2009/09/25 15:07:44  bdbcat
  * Implement toplevel CM93 detail slider
  *
@@ -321,7 +324,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.66 2009/09/25 15:07:44 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.67 2009/09/29 18:32:09 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1749,7 +1752,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
         icon_rad += PI;
 
         if(gSog < 0.2)
-              icon_rad = (icon_hdt + 90.) * PI / 180.;
+              icon_rad = ((icon_hdt + 90.) * PI / 180.) + VPoint.skew;
 
 //    Compare the points lHeadPoint and lPredPoint
 //    If they differ by more than n pixels, then render the head vector
@@ -2775,40 +2778,39 @@ void ChartCanvas::PanTimerEvent ( wxTimerEvent& event )
 
 bool ChartCanvas::CheckEdgePan ( int x, int y )
 {
-        double chart_extent_lon = VPoint.pref_a_lon - VPoint.pref_c_lon;
-        double chart_extent_lat = VPoint.pref_a_lat - VPoint.pref_c_lat;
+      bool bft = false;
+      int pan_margin = 20;
+      int pan_timer_set = 100;
+      double pan_delta = VPoint.pix_width / 50;
 
-        double new_lat = VPoint.clat;
-        double new_lon = VPoint.clon;
+      wxPoint np(VPoint.pix_width  / 2, VPoint.pix_height / 2 );
 
-        bool bft = false;
-        int pan_margin = 20;
-        double pan_factor = .02;
-        int pan_timer_set = 100;
+      if ( x > canvas_width - pan_margin )
+      {
+            np.x += (int)pan_delta;
+            bft = true;
+      }
 
-        if ( x > canvas_width - pan_margin )
-        {
-                new_lon += chart_extent_lon * pan_factor;
-                bft = true;
-        }
+      else if ( x < pan_margin )
+      {
+            np.x -= (int)pan_delta;
+            bft = true;
+      }
 
-        else if ( x < pan_margin )
-        {
-                new_lon -= chart_extent_lon * pan_factor;
-                bft = true;
-        }
+      if ( y < pan_margin )
+      {
+            np.y -= (int)pan_delta;
+            bft = true;
+      }
 
-        if ( y < pan_margin )
-        {
-                new_lat += chart_extent_lat * pan_factor;
-                bft = true;
-        }
+      else if ( y > canvas_height - pan_margin )
+      {
+            np.y += (int)pan_delta;
+            bft = true;
+      }
 
-        else if ( y > canvas_height - pan_margin )
-        {
-                new_lat -= chart_extent_lat * pan_factor;
-                bft = true;
-        }
+      double new_lat, new_lon;
+      GetCanvasPixPoint ( np.x, np.y, new_lat, new_lon );
 
         if ( ( bft ) && !pPanTimer->IsRunning() )
         {
@@ -3015,7 +3017,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
               SelectItem *pFind = pSelectAIS->FindSelection ( m_cursor_lat, m_cursor_lon, SELTYPE_AISTARGET, SelectRadius );
               if ( pFind )
               {
-                    int FoundAIS_MMSI = ( int ) pFind->m_pData1;
+                    int FoundAIS_MMSI = ( long ) pFind->m_pData1;       // cast to long avoids problems with 64bit compilers
                     AIS_Target_Data *ptarget = g_pAIS->Get_Target_Data_From_MMSI(FoundAIS_MMSI);
 
                     if(ptarget)
@@ -3763,16 +3765,15 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                               pdef_menu->Append ( ID_DEF_MENU_DEACTIVATE_MEASURE,    _T ( "Measure Off" ) );
 
 
-
-                        if (( Current_Ch->m_ChartFamily == CHART_FAMILY_VECTOR ))
-                                pdef_menu->Append ( ID_DEF_MENU_QUERY,  _T ( "Object Query" ) );
-
                         if (( Current_Ch->m_ChartType == CHART_TYPE_CM93COMP ))
                         {
                               pdef_menu->AppendCheckItem(ID_DEF_MENU_CM93ZOOM, _T("Enable CM93 Detail Slider"));
                               if(pCM93DetailSlider)
                                      pdef_menu->Check(ID_DEF_MENU_CM93ZOOM, pCM93DetailSlider->IsShown());
                         }
+
+                        if (( Current_Ch->m_ChartFamily == CHART_FAMILY_VECTOR ))
+                              pdef_menu->Append ( ID_DEF_MENU_QUERY,  _T ( "Object Query" ) );
 
                         PopupMenu ( pdef_menu, x, y );
 
@@ -3929,7 +3930,13 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                                     pCM93DetailSlider = new CM93DSlide(this, -1 , 0, -CM93_ZOOM_FACTOR_MAX_RANGE, CM93_ZOOM_FACTOR_MAX_RANGE,
                                                 wxPoint(g_cm93detail_dialog_x, g_cm93detail_dialog_y), wxDefaultSize, wxSIMPLE_BORDER , _T("cm93 Detail") );
                               }
+
+            //    Here is an ugly piece of code which prevents the slider from taking the keyboard focus
+            //    Only seems to work for Windows.....
+                              pCM93DetailSlider->Disable();
                               pCM93DetailSlider->Show();
+                              pCM93DetailSlider->Enable();
+
                         }
                         else
                         {
@@ -5431,13 +5438,14 @@ void ChartCanvas::DrawAllCurrentsInBBox ( wxDC& dc, wxBoundingBox& BBox, double 
                                                         }
                                                 }           // scale
                                         }
+/*          This is useful for debugging the TC database
                                         else
                                         {
                                                 dc.SetPen ( *porange_pen );
                                                 dc.SetBrush ( *pgray_brush );
                                                 dc.DrawPolygon ( 4, d );
                                         }
-
+*/
 
                                 }
                                 lon_last = lon;
@@ -6630,8 +6638,10 @@ void AISInfoWin::OnPaint(wxPaintEvent& event)
 
       dc.SetFont(GetFont());
       dc.SetBackground(wxBrush(GetBackgroundColour()));
-      dc.SetTextForeground(GetForegroundColour());
+ //     dc.SetTextForeground(GetForegroundColour());
       dc.SetBackgroundMode(wxTRANSPARENT);
+
+      dc.SetTextForeground(pFontMgr->GetFontColor(_T("AISTargetQuery")));
 
       dc.Clear();
 
@@ -6795,12 +6805,14 @@ bool AISTargetQueryDialog::Create ( wxWindow* parent,
       if ( !wxDialog::Create ( parent, id, caption, pos, size, wstyle ) )
             return false;
 
-	  wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
+      wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
       SetBackgroundColour ( back_color );
 
       wxFont *dFont = pFontMgr->GetFont(_T("AISTargetQuery"), 12);
-
       SetFont ( *dFont );
+
+      SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetQuery")));
+
       CreateControls();
 
 // This fits the dialog to the minimum size dictated by
@@ -6833,6 +6845,9 @@ void AISTargetQueryDialog::SetColorScheme(ColorScheme cs)
 
                   wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
                   m_pQueryTextCtl->SetForegroundColour ( text_color );
+
+                  m_pQueryTextCtl->SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetQuery")));
+
             }
 
             Refresh();
@@ -7335,6 +7350,8 @@ void AISroWin::SetBitmap()
       int h, w;
 
       wxClientDC cdc(GetParent());
+
+
       wxFont *plabelFont = pFontMgr->GetFont(_T("AISRollover"));
       cdc.GetTextExtent(m_string, &w, &h,  NULL, NULL, plabelFont);
 
@@ -7351,6 +7368,8 @@ void AISroWin::SetBitmap()
 
       //    Draw the text
       mdc.SetFont(*plabelFont);
+      mdc.SetTextForeground(pFontMgr->GetFontColor(_T("AISRollover")));
+
       mdc.DrawText(m_string,0,0);
 
       SetSize(m_position.x, m_position.y, m_size.x, m_size.y);           // Assumes a nominal 32 x 32 cursor
