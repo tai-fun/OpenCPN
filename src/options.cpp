@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.32 2009/09/25 15:15:38 bdbcat Exp $
+ * $Id: options.cpp,v 1.33 2009/09/29 18:14:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.33  2009/09/29 18:14:26  bdbcat
+ * Add color to managed fonts
+ *
  * Revision 1.32  2009/09/25 15:15:38  bdbcat
  * Implement toplevel CM93 detail slider
  *
@@ -1730,9 +1733,13 @@ void options::OnChooseFont( wxCommandEvent& event )
       wxFontData font_data;
 
       wxFont *pif = pFontMgr->GetFont(sel_text_element);
+      wxColour init_color = pFontMgr->GetFontColor(sel_text_element);
+
       wxFontData init_font_data;
       if(pif)
             init_font_data.SetInitialFont(*pif);
+      init_font_data.SetColour(init_color);
+
 
 #ifdef __WXX11__
       X11FontPicker dg(pParent, init_font_data);
@@ -1745,7 +1752,8 @@ void options::OnChooseFont( wxCommandEvent& event )
             font_data = dg.GetFontData();
             wxFont font = font_data.GetChosenFont();
             psfont = new wxFont(font);
-            pFontMgr->SetFont(sel_text_element, psfont);
+            wxColor color = font_data.GetColour();
+            pFontMgr->SetFont(sel_text_element, psfont, color);
 
             pParent->UpdateAllFonts();
       }

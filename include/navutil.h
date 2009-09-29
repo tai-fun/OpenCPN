@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.19 2009/09/11 23:19:18 bdbcat Exp $
+ * $Id: navutil.h,v 1.20 2009/09/29 18:10:14 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.20  2009/09/29 18:10:14  bdbcat
+ * Add color to managed fonts
+ *
  * Revision 1.19  2009/09/11 23:19:18  bdbcat
  * *** empty log message ***
  *
@@ -532,13 +535,14 @@ class MyFontDesc
 {
 public:
 
-      MyFontDesc(const char *DialogString, const char *ConfigString, wxFont *pFont);
+      MyFontDesc(const char *DialogString, const char *ConfigString, wxFont *pFont, wxColour color);
       ~MyFontDesc();
 
       wxString    *m_dialogstring;
       wxString    *m_configstring;
       wxString    *m_nativeInfo;
       wxFont      *m_font;
+      wxColour    m_color;
 };
 
 
@@ -551,13 +555,16 @@ public:
       ~FontMgr();
 
       wxFont *GetFont(const wxString &TextElement, int default_size = 0);
+      wxColour GetFontColor ( const wxString &TextElement );
 
       int GetNumFonts(void);
       wxString *GetConfigString(int i);
       wxString *GetDialogString(int i);
       wxString *GetNativeDesc(int i);
+      wxString GetFullConfigDesc ( int i );
+
       void LoadFontNative(wxString *pConfigString, wxString *pNativeDesc);
-      bool SetFont(wxString &TextElement, wxFont *pFont);
+      bool SetFont(wxString &TextElement, wxFont *pFont, wxColour color);
 
 private:
 

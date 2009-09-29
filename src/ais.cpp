@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.32 2009/09/18 02:31:04 bdbcat Exp $
+ * $Id: ais.cpp,v 1.33 2009/09/29 18:13:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.33  2009/09/29 18:13:50  bdbcat
+ * Add color to managed fonts
+ *
  * Revision 1.32  2009/09/18 02:31:04  bdbcat
  * Rebuild AIS Alert dialog
  *
@@ -195,7 +198,7 @@ extern int              g_total_NMEAerror_messages;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.32 2009/09/18 02:31:04 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.33 2009/09/29 18:13:50 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -2750,6 +2753,8 @@ bool AISTargetAlertDialog::Create ( int target_mmsi,
       SetFont ( *dFont );
       m_pFont = dFont;
 
+      SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetAlert")));
+
       CreateControls();
 
       if(CanSetTransparent())
@@ -2790,8 +2795,9 @@ void AISTargetAlertDialog::CreateControls()
       wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
       m_pAlertTextCtl->SetBackgroundColour ( back_color );
 
-      wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
-      m_pAlertTextCtl->SetForegroundColour ( text_color );
+//      wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
+//      m_pAlertTextCtl->SetForegroundColour ( text_color );
+      m_pAlertTextCtl->SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetAlert")));
 
 
 //      wxString alert_text;

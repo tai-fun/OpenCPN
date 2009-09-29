@@ -27,7 +27,7 @@
  *
  *
  * $Log: navutil.cpp,v $
- * Revision 1.49  2009/09/29 18:04:05  bdbcat
+ * Revision 1.50  2009/09/29 18:09:54  bdbcat
  * Add color to managed fonts
  *
  * Revision 1.48  2009/09/25 15:13:27  bdbcat
@@ -145,7 +145,7 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
- * Revision 1.49  2009/09/29 18:04:05  bdbcat
+ * Revision 1.50  2009/09/29 18:09:54  bdbcat
  * Add color to managed fonts
  *
  * Revision 1.48  2009/09/25 15:13:27  bdbcat
@@ -320,7 +320,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.49 2009/09/29 18:04:05 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.50 2009/09/29 18:09:54 bdbcat Exp $" );
 
 //    Statics
 
