@@ -37,6 +37,7 @@ extern WayPointman      *pWayPointMan;
 extern ChartCanvas      *cc1;
 extern Select           *pSelect;
 extern Routeman         *pRouteMan;
+extern RouteProp        *pRoutePropDialog;
 
 WX_DEFINE_LIST(HyperlinkCtrlList);        // toh, 2009.02.22
 
@@ -60,7 +61,7 @@ BEGIN_EVENT_TABLE( RouteProp, wxDialog )
     EVT_BUTTON( ID_ROUTEPROP_CANCEL, RouteProp::OnRoutepropCancelClick )
     EVT_BUTTON( ID_ROUTEPROP_OK, RouteProp::OnRoutepropOkClick )
     EVT_LIST_ITEM_SELECTED( ID_LISTCTRL, RouteProp::OnRoutepropListClick )
-
+    EVT_CLOSE(RouteProp::OnClose )
 END_EVENT_TABLE()
 
 /*!
@@ -209,7 +210,7 @@ void RouteProp::CreateControls()
     itemBoxSizer2->Add(itemStaticBoxSizer14, 1, wxEXPAND|wxALL, 5);
 
     m_wpList = new wxListCtrl( itemDialog1, ID_LISTCTRL, wxDefaultPosition, wxSize(-1, 100),
-        wxLC_REPORT|wxLC_HRULES|wxLC_VRULES );
+                               wxLC_REPORT|wxLC_HRULES|wxLC_VRULES|wxLC_EDIT_LABELS );
     itemStaticBoxSizer14->Add(m_wpList, 2, wxEXPAND|wxALL, 5);
 
     wxBoxSizer* itemBoxSizer16 = new wxBoxSizer(wxHORIZONTAL);
@@ -222,8 +223,10 @@ void RouteProp::CreateControls()
     itemBoxSizer16->Add(m_OKButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
     m_OKButton->SetDefault();
 
-    //  Fill in list control
-    //    m_wpList->SetImageList(m_imageListBars, wxIMAGE_LIST_SMALL);
+    //      To correct a bug in MSW commctl32, we nee to catch column width drag events, and do a Refresh()
+    //      Otherwise, the column heading disappear.....
+    //      Does no harm for GTK builds, so no need for conditional
+    Connect(wxEVT_COMMAND_LIST_COL_END_DRAG, (wxObjectEventFunction)(wxEventFunction)&RouteProp::OnEvtColDragEnd);
 
     // note that under MSW for SetColumnWidth() to work we need to create the
     // items with images initially even if we specify dummy image id
@@ -232,44 +235,43 @@ void RouteProp::CreateControls()
 
     itemCol.SetText(_T("Leg"));
     m_wpList->InsertColumn(0, itemCol);
-    m_wpList->SetColumnWidth( 0, 35 );
+    m_wpList->SetColumnWidth( 0,  50 );
 
     itemCol.SetText(_T("To Waypoint"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(1, itemCol);
-    m_wpList->SetColumnWidth( 1, 150 );
+    m_wpList->SetColumnWidth( 1,   150 );
 
     itemCol.SetText(_T("Distance"));
     itemCol.SetAlign(wxLIST_FORMAT_RIGHT);
     m_wpList->InsertColumn(2, itemCol);
-    m_wpList->SetColumnWidth( 2, 80 );
+    m_wpList->SetColumnWidth( 2,   100 );
 
     itemCol.SetText(_T("Bearing"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(3, itemCol);
-    m_wpList->SetColumnWidth( 3, 80 );
+    m_wpList->SetColumnWidth( 3,   80 );
 
     itemCol.SetText(_T("Latitude"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(4, itemCol);
-    m_wpList->SetColumnWidth( 4, 95 );
+    m_wpList->SetColumnWidth( 4,  95 );
 
     itemCol.SetText(_T("Longitude"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(5, itemCol);
-    m_wpList->SetColumnWidth( 5, 95 );
+    m_wpList->SetColumnWidth( 5,   95 );
 
     itemCol.SetText(_T("ETE"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(6, itemCol);
-    m_wpList->SetColumnWidth( 6, 120 );
+    m_wpList->SetColumnWidth( 6,  120 );
 
 //  Fetch any config file values
     m_planspeed = g_PlanSpeed;
 
     SetColorScheme((ColorScheme)0);
 
-////@end RouteProp content construction
 }
 
 
@@ -469,6 +471,17 @@ bool RouteProp::UpdateProperties()
                 i++;
                 node = node->GetNext();
           }
+
+#if 0
+          m_wpList->SetColumnWidth( 0, wxLIST_AUTOSIZE/* 35 */);
+          m_wpList->SetColumnWidth( 1,  wxLIST_AUTOSIZE/* 150*/ );
+          m_wpList->SetColumnWidth( 2,  wxLIST_AUTOSIZE/* 80*/ );
+          m_wpList->SetColumnWidth( 3,  wxLIST_AUTOSIZE/* 80*/ );
+          m_wpList->SetColumnWidth( 4,  wxLIST_AUTOSIZE/* 95*/ );
+          m_wpList->SetColumnWidth( 5,  wxLIST_AUTOSIZE/* 95*/ );
+          m_wpList->SetColumnWidth( 6,  wxLIST_AUTOSIZE/* 120*/ );
+#endif
+
     }
     return true;
 }
@@ -515,8 +528,10 @@ void RouteProp::OnPlanSpeedCtlUpdated( wxCommandEvent& event )
 
 void RouteProp::OnRoutepropCancelClick( wxCommandEvent& event )
 {
-    Show(false);
-    event.Skip();
+
+      Hide();
+//      Close();
+      event.Skip();
 }
 
 /*!
@@ -527,10 +542,21 @@ void RouteProp::OnRoutepropOkClick( wxCommandEvent& event )
 {
     SaveChanges();              // write changes to globals and update config
 
-    Show(false);
+    Hide();
+//    Close();
     event.Skip();
 }
 
+void RouteProp::OnClose(wxCloseEvent& event)
+{
+//      Destroy();
+//      pRoutePropDialog = NULL;
+}
+
+void RouteProp::OnEvtColDragEnd(wxListEvent& event)
+{
+      m_wpList->Refresh();
+}
 
 
 
