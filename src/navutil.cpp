@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.49  2009/09/29 18:04:05  bdbcat
+ * Add color to managed fonts
+ *
  * Revision 1.48  2009/09/25 15:13:27  bdbcat
  * Correct waypoint date/time
  *
@@ -142,6 +145,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.49  2009/09/29 18:04:05  bdbcat
+ * Add color to managed fonts
+ *
  * Revision 1.48  2009/09/25 15:13:27  bdbcat
  * Correct waypoint date/time
  *
@@ -314,7 +320,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.48 2009/09/25 15:13:27 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.49 2009/09/29 18:04:05 bdbcat Exp $" );
 
 //    Statics
 
@@ -1085,6 +1091,8 @@ void RoutePoint::Draw ( wxDC& dc, wxPoint *rpn )
       if ( m_bShowName )
       {
             dc.SetFont ( *pFontMgr->GetFont ( _T ( "Marks" ) ) );
+            dc.SetTextForeground(pFontMgr->GetFontColor(_T("Marks")));
+
             dc.DrawText ( m_MarkName, r.x + m_NameLocationOffsetX, r.y + m_NameLocationOffsetY );
       }
 
@@ -3402,9 +3410,13 @@ void MyConfig::UpdateSettings()
       for ( int i=0 ; i<nFonts ; i++ )
       {
             wxString cfstring ( *pFontMgr->GetConfigString ( i ) );
+
+/*
             wxString valstring ( *pFontMgr->GetDialogString ( i ) );
             valstring.Append ( _T ( ":" ) );
             valstring.Append ( *pFontMgr->GetNativeDesc ( i ) );
+*/
+            wxString valstring = pFontMgr->GetFullConfigDesc ( i );
             Write ( cfstring, valstring );
       }
 
@@ -5149,7 +5161,7 @@ void NavObjectCollection::LoadGPXTrack ( wxXmlNode* rtenode )
 #include "wx/encinfo.h"
 #include "wx/fontutil.h"
 
-MyFontDesc::MyFontDesc ( const char *DialogString, const char *ConfigString, wxFont *pFont )
+MyFontDesc::MyFontDesc ( const char *DialogString, const char *ConfigString, wxFont *pFont, wxColour color )
 {
       m_dialogstring = new wxString ( DialogString,  wxConvUTF8 );
       m_configstring = new wxString ( ConfigString,  wxConvUTF8 );
@@ -5157,6 +5169,7 @@ MyFontDesc::MyFontDesc ( const char *DialogString, const char *ConfigString, wxF
       m_nativeInfo = new wxString ( pFont->GetNativeFontInfoDesc() );
 
       m_font = pFont;
+      m_color = color;
 }
 
 MyFontDesc::~MyFontDesc()
@@ -5190,6 +5203,21 @@ FontMgr::~FontMgr()
       delete m_fontlist;
 }
 
+
+wxColour FontMgr::GetFontColor ( const wxString &TextElement )
+{
+       //    Look thru the font list for a match
+      MyFontDesc *pmfd;
+      wxNode *node = ( wxNode * ) ( m_fontlist->GetFirst() );  while ( node )
+      {
+            pmfd = ( MyFontDesc * ) node->GetData();
+            if ( *pmfd->m_dialogstring == TextElement )
+                  return pmfd->m_color;
+            node = node->GetNext();
+      }
+
+      return wxColour(0,0,0);
+}
 
 wxFont *FontMgr::GetFont ( const wxString &TextElement, int default_size )
 {
@@ -5276,7 +5304,9 @@ wxFont *FontMgr::GetFont ( const wxString &TextElement, int default_size )
       wxFont *nf0 = new wxFont();
       wxFont *nf = nf0->New ( nativefont );
 
-      MyFontDesc *pnewfd = new MyFontDesc ( TextElement.mb_str(), configstring.mb_str(), nf );
+      wxColor color(*wxBLACK);
+
+      MyFontDesc *pnewfd = new MyFontDesc ( TextElement.mb_str(), configstring.mb_str(), nf, color );
       m_fontlist->Append ( pnewfd );
 
       return pnewfd->m_font;
@@ -5284,7 +5314,7 @@ wxFont *FontMgr::GetFont ( const wxString &TextElement, int default_size )
 }
 
 
-bool FontMgr::SetFont ( wxString &TextElement, wxFont *pFont )
+bool FontMgr::SetFont ( wxString &TextElement, wxFont *pFont, wxColour color )
 {
       //    Look thru the font list for a match
       MyFontDesc *pmfd;
@@ -5305,6 +5335,7 @@ bool FontMgr::SetFont ( wxString &TextElement, wxFont *pFont )
 
                   pmfd->m_font = pFont;
                   pmfd->m_nativeInfo = new wxString ( pFont->GetNativeFontInfoDesc() );
+                  pmfd->m_color = color;
 
                   return true;
             }
@@ -5342,6 +5373,21 @@ wxString *FontMgr::GetNativeDesc ( int i )
       return ret;
 }
 
+wxString FontMgr::GetFullConfigDesc ( int i )
+{
+      MyFontDesc *pfd = ( MyFontDesc * ) ( m_fontlist->Item ( i )->GetData() );
+      wxString ret =  *(pfd->m_dialogstring);
+      ret.Append ( _T ( ":" ) );
+      ret.Append( *(pfd->m_nativeInfo) );
+      ret.Append ( _T ( ":" ) );
+      wxString cols =  pfd->m_color.GetAsString(wxC2S_CSS_SYNTAX);
+      ret.Append(cols);
+      return ret;
+}
+
+
+
+
 void FontMgr::LoadFontNative ( wxString *pConfigString, wxString *pNativeDesc )
 {
       //    Parse the descriptor string
@@ -5349,6 +5395,11 @@ void FontMgr::LoadFontNative ( wxString *pConfigString, wxString *pNativeDesc )
       wxStringTokenizer tk ( *pNativeDesc, _T ( ":" ) );
       wxString dialogstring = tk.GetNextToken();
       wxString nativefont = tk.GetNextToken();
+
+      wxString c = tk.GetNextToken();
+      wxColour color(c);            // from string description
+
+
 
       //    Search for a match in the list
       MyFontDesc *pmfd;
@@ -5375,7 +5426,7 @@ void FontMgr::LoadFontNative ( wxString *pConfigString, wxString *pNativeDesc )
             wxFont *nf = nf0->New ( nativefont );
             delete nf0;
 
-            MyFontDesc *pnewfd = new MyFontDesc ( dialogstring.mb_str(), pConfigString->mb_str(), nf );
+            MyFontDesc *pnewfd = new MyFontDesc ( dialogstring.mb_str(), pConfigString->mb_str(), nf, color );
             m_fontlist->Append ( pnewfd );
 
       }
