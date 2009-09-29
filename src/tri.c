@@ -100,12 +100,29 @@ Bibliography:
 */
 
 #include "triangulate.h"
+
+#ifdef __MSVC__
+#include <windows.h>
+#endif
+
+#ifndef __MSVC__
+#include <signal.h>
+#include <setjmp.h>
+#endif
+
+
+#ifndef __MSVC__
+extern struct sigaction sa_all;
+extern struct sigaction sa_all_old;
+extern jmp_buf           env;                    // the context saved by setjmp();
+#endif
+
 static int initialise(int);
 static int alloc_mem(int, int[]);
 
 static int nrecurse;
 
-CPL_CVSID("$Id: tri.c,v 1.9 2009/08/03 03:11:48 bdbcat Exp $");
+CPL_CVSID("$Id: tri.c,v 1.10 2009/09/29 18:22:26 bdbcat Exp $");
 
 /*
 * \brief MSVC needs "__inline" instead of "inline" in C-source files.
@@ -4170,36 +4187,6 @@ int int_construct_trapezoids(int nseg)
             if(int_add_segment(choose_segment()))
                   goto bail_point;
 
-/*  Debug code
-      for(i=1 ; i<nseg ; i++)
-      {
-            if(iseg[i].is_inserted ==FALSE)
-                  h=4;
-      }
-*/
-//bail_point:
-/*
-      for(i=1 ; i< tr_idx ; i++)
-      {
-            if(int_inside_polygon(i))
-            {
-                  if(itr[i].hi.y != itr[i].lo.y)
-                  {
-                        itr[i].inside = 1;
-                        nvtrap++;
-                  }
-            }
-      }
-*/
-
-/* Dead, test above is ok
-       nvtrap = 0;
-      for(i=1 ; i< tr_idx ; i++)
-      {
-            if((itr[i].state == ST_VALID) && (itr[i].hi.y != itr[i].lo.y) && (itr[i].lseg != -1) && (itr[i].rseg != -1))
-                  nvtrap++;
-      }
-*/
 
       return 0;
 
@@ -4207,6 +4194,17 @@ bail_point:
       return 1;
 }
 
+
+#ifdef __MSVC__
+      DWORD filter(EXCEPTION_POINTERS * eps)
+{
+      if (eps->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+            return EXCEPTION_EXECUTE_HANDLER;
+      return EXCEPTION_CONTINUE_SEARCH;
+}
+
+      EXCEPTION_POINTERS * eps = 0;
+#endif
 
 
 
@@ -4231,7 +4229,9 @@ bail_point:
  * this routine
  */
 
-int int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itrap_t **trap_return, isegment_t **iseg_return, int *n_traps)
+
+
+int do_int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itrap_t **trap_return, isegment_t **iseg_return, int *n_traps)
 {
       int i, iv;
       int ccount, npoints, genus;
@@ -4314,59 +4314,6 @@ int int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itra
             }
       }
 
-
-
-/*
-      nmonpoly = monotonate_trapezoids(n);
-
-//  Create output data structure
-
-      pplast = NULL;
-      top = NULL;
-
-      for (i = 0; i < nmonpoly; i++)
-      {
-            pp = (polyout *)calloc(sizeof(polyout), 1);
-            pp->is_valid = 1;
-            pp->id_poly = i;
-
-//  Walk the chain once to get the length
-            nvc = 1;
-            vfirst = mchain[mon[i]].vnum;
-            p = mchain[mon[i]].next;
-            while (mchain[p].vnum != vfirst)
-            {
-                  p = mchain[p].next;
-                  nvc++;
-            }
-
-            pp->nvert = nvc;
-            pp->vertex_index_list = (int *)malloc(nvc * sizeof(int));
-
-            vlr = pp->vertex_index_list;
-
-            vfirst = mchain[mon[i]].vnum;
-            *vlr++ = vfirst;
-
-            p = mchain[mon[i]].next;
-            while (mchain[p].vnum != vfirst)
-            {
-                  *vlr++ = mchain[p].vnum;
-                  p = mchain[p].next;
-            }
-
-            if(NULL != pplast)
-                  pplast->poly_next = pp;
-
-            if(NULL == top)
-                  top = pp;
-
-//  prepare next link
-            pplast= pp;
-      }
-
-*/
-
       free(permute);
       free(iqs);
 
@@ -4374,16 +4321,57 @@ int int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itra
 
       *iseg_return = iseg;
 
-//      if(0 == ret_val)
-//            return 0;
-//      else
-
       *n_traps = tr_idx;
 
       return ret_val;
-//            return tr_idx;
+
 }
 
+int int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itrap_t **trap_return, isegment_t **iseg_return, int *n_traps)
+{
+      int ret_val;
+
+      //    In a MS WIndows environment, use SEH to catch bad code in the tesselator
+      //    Polygons producing faults will not be drawn
+#ifdef __MSVC__
+      __try
+      {
+            ret_val = do_int_trapezate_polygon(ncontours, cntr, vertices, trap_return,iseg_return, n_traps);
+      }
+      __except (eps = GetExceptionInformation(), filter(eps))
+      {
+            ret_val = 1;
+            *n_traps = 0;
+            *trap_return = NULL;
+            *iseg_return = NULL;
+      }
+#else
+      //    In a Posix environment, use sigaction, etc.. to catch bad code in the tesselator
+      //    Polygons producing faults will not be drawn
+
+      sigaction(SIGSEGV, &sa_all, &sa_all_old);             // save existing action for this signal
+
+      if(sigsetjmp(env, 1))             //  Something in the below code block faulted....
+      {
+
+            ret_val = 1;
+            *n_traps = 0;
+            *trap_return = NULL;
+            *iseg_return = NULL;
+
+            sigaction(SIGSEGV, &sa_all_old, NULL);        // reset signal handler
+
+            return ret_val;
+      }
+
+      ret_val = do_int_trapezate_polygon(ncontours, cntr, vertices, trap_return,iseg_return, n_traps);
+
+      sigaction(SIGSEGV, &sa_all_old, NULL);        // reset signal handler
+
+#endif
+
+      return ret_val;
+}
 
 
 
