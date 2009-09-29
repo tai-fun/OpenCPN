@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.11  2009/09/29 18:15:36  bdbcat
+ * Eliminate more unusable current stations
+ *
  * Revision 1.10  2009/08/25 21:27:17  bdbcat
  * Cleanup/study
  *
@@ -45,6 +48,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: tcmgr.cpp,v $
+ * Revision 1.11  2009/09/29 18:15:36  bdbcat
+ * Eliminate more unusable current stations
+ *
  * Revision 1.10  2009/08/25 21:27:17  bdbcat
  * Cleanup/study
  *
@@ -106,7 +112,7 @@
 #define PI        3.1415926535897931160E0      /* pi */
 #endif
 
-CPL_CVSID("$Id: tcmgr.cpp,v 1.10 2009/08/25 21:27:17 bdbcat Exp $");
+CPL_CVSID("$Id: tcmgr.cpp,v 1.11 2009/09/29 18:15:36 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //    Some Time Converters
@@ -1725,6 +1731,11 @@ char stz[80];
                   return(1);
 
                   if(abs(pIDX->IDX_ht_time_off) > 1000)           // useable?
+                        pIDX->IDX_Useable = 0;
+
+                  if(abs(pIDX->IDX_flood_dir) > 360)           // useable?
+                        pIDX->IDX_Useable = 0;
+                  if(abs(pIDX->IDX_ebb_dir) > 360)           // useable?
                         pIDX->IDX_Useable = 0;
 
 //    Fix up the secondaries which are identical to masters
