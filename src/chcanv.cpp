@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.67 2009/09/29 18:32:09 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.68 2009/09/30 02:34:26 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.68  2009/09/30 02:34:26  bdbcat
+ * Another correction for IDL crossing
+ *
  * Revision 1.67  2009/09/29 18:32:09  bdbcat
  * Various
  *
@@ -324,7 +327,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.67 2009/09/29 18:32:09 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.68 2009/09/30 02:34:26 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1290,12 +1293,17 @@ void ChartCanvas::GetCanvasPixPoint ( int x, int y, double &lat, double &lon )
                                 if ( 0 == Cur_BSB_Ch->vp_pix_to_latlong ( VPoint, x, y, &slat, &slon ) )
                                 {
                                         lat = slat;
+
+                                        if(slon < -180.)
+                                              slon += 360.;
+                                        else if(slon > 180.)
+                                              slon -= 360.;
+
                                         lon = slon;
                                         bUseMercator = false;
                                 }
                         }
                 }
-                bUseMercator = true;
 
                 //    if needed, use the Mercator scaling estimator
                 if ( bUseMercator )
@@ -4365,7 +4373,7 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
               b_draw = true;
 
         //  Does simple test fail, and current vp cross international dateline?
-        if(((vp.pref_b_lon < -180.) || (vp.pref_d_lon > 180.)) && !b_draw)
+        if(!b_draw && ((vp.pref_b_lon < -180.) || (vp.pref_d_lon > 180.)))
         {
               //  If so, do an explicit test with alternate phasing
               if(vp.pref_b_lon < -180.)
@@ -4390,6 +4398,20 @@ void ChartCanvas::RenderChartOutline ( wxDC *pdc, int dbIndex, ViewPort& vp, boo
             }
 
         }
+
+        //  Does simple test fail, and chart box cross international dateline?
+        if(!b_draw && (box.GetMinX() < 180.) && (box.GetMaxX() > 180.))
+        {
+              wxPoint2DDouble p(-360., 0);
+              box.Translate(p);
+              if ( vp.vpBBox.Intersect ( box, 0 ) != _OUT )               // chart is not outside of viewport
+              {
+                    b_draw = true;
+                    lon_bias = -360.;
+              }
+        }
+
+
 
         if(!b_draw)
               return;

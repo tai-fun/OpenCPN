@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.30 2009/09/28 13:19:09 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.31 2009/09/30 02:30:10 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.31  2009/09/30 02:30:10  bdbcat
+ * Another correction for IDL crossing
+ *
  * Revision 1.30  2009/09/28 13:19:09  bdbcat
  * Correct for IDL crossing
  *
@@ -81,6 +84,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.31  2009/09/30 02:30:10  bdbcat
+ * Another correction for IDL crossing
+ *
  * Revision 1.30  2009/09/28 13:19:09  bdbcat
  * Correct for IDL crossing
  *
@@ -193,7 +199,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.30 2009/09/28 13:19:09 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.31 2009/09/30 02:30:10 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1360,6 +1366,8 @@ ChartBaseBSB::ChartBaseBSB()
       m_dtm_lat = 0.;
       m_dtm_lon = 0.;
 
+      m_bIDLcross = false;
+
 
 }
 
@@ -2156,6 +2164,12 @@ int ChartBaseBSB::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
 
       alon = lon + m_lon_datum_adjust;
       alat = lat + m_lat_datum_adjust;
+
+      if(m_bIDLcross)
+      {
+            if(alon < 0.)
+                  alon += 360.;
+      }
 
     if(bUseGeoRef)
     {
@@ -3540,6 +3554,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
       int plonmax = 0;
       int platmin = 100000;
       int platmax = 0;
+      int nlonmin, nlonmax;
 
       for(n=0 ; n<nRefpoint ; n++)
       {
@@ -3548,11 +3563,13 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
             {
                   lonmax = pRefTable[n].lonr;
                   plonmax = (int)pRefTable[n].xr;
+                  nlonmax = n;
             }
             if(pRefTable[n].lonr < lonmin)
             {
                   lonmin = pRefTable[n].lonr;
                   plonmin = (int)pRefTable[n].xr;
+                  nlonmin = n;
             }
 
             //    Latitude
@@ -3565,6 +3582,30 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
             {
                   latmax = pRefTable[n].latr;
                   platmax = (int)pRefTable[n].yr;
+            }
+      }
+
+      //    Special case for charts which cross the IDL
+      if((lonmin * lonmax) < 0)
+      {
+            if(pRefTable[nlonmin].xr > pRefTable[nlonmax].xr)
+            {
+                  //    walk the reference table and add 360 to any longitude which is < 0
+                  for(n=0 ; n<nRefpoint ; n++)
+                  {
+                        if(pRefTable[n].lonr < 0.0)
+                              pRefTable[n].lonr += 360.;
+                  }
+                  //    Correct max and min
+                  float t = lonmax;
+                  lonmax = lonmin + 360.;
+                  lonmin = t;
+
+                  int tp = plonmax;
+                  plonmax = plonmin;
+                  plonmin = tp;
+
+                  m_bIDLcross = true;
             }
       }
 
@@ -3607,6 +3648,12 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
             cPoints.lat[n] = pRefTable[n].latr;
         }
 
+/*
+        for(n=0 ; n<nRefpoint ; n++)
+        {
+              printf("cPoints:  %d  %g %g %g %g\n", n, cPoints.tx[n], cPoints.ty[n], (double)cPoints.lon[n], (double)cPoints.lat[n]);
+        }
+*/
         //      Helper parameters
         cPoints.txmax = plonmax;
         cPoints.txmin = plonmin;
@@ -4077,7 +4124,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.30 2009/09/28 13:19:09 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.31 2009/09/30 02:30:10 bdbcat Exp $
 *
 */
 

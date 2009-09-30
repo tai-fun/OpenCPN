@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.16 2009/09/18 02:12:12 bdbcat Exp $
+ * $Id: chartimg.h,v 1.17 2009/09/30 02:30:34 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.17  2009/09/30 02:30:34  bdbcat
+ * Another correction for IDL crossing
+ *
  * Revision 1.16  2009/09/18 02:12:12  bdbcat
  * Add support for DTM field in BSB charts
  *
@@ -353,6 +356,8 @@ protected:
       int       m_datum_index;
       double    m_dtm_lat;
       double    m_dtm_lon;
+
+      bool      m_bIDLcross;
 };
 
 
