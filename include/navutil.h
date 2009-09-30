@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.20 2009/09/29 18:10:14 bdbcat Exp $
+ * $Id: navutil.h,v 1.21 2009/09/30 02:31:10 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.21  2009/09/30 02:31:10  bdbcat
+ * Update to GPX 1.1 format
+ *
  * Revision 1.20  2009/09/29 18:10:14  bdbcat
  * Add color to managed fonts
  *
@@ -360,8 +363,7 @@ public:
       void ExportGPX(wxWindow* parent);   // toh, 2009.02.15
       void ImportGPX(wxWindow* parent);   // toh, 2009.02.15
 
-//    toh, 2009.02.10
-      void CreateGPXNavObj(void);
+      void CreateExportGPXNavObj(void);
       void CreateGPXWayPoints(void);
       void CreateGPXRoutes(void);
       void CreateGPXTracks(void);

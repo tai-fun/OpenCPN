@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.51  2009/09/30 02:32:38  bdbcat
+ * Update to GPX 1.1 format
+ *
  * Revision 1.50  2009/09/29 18:09:54  bdbcat
  * Add color to managed fonts
  *
@@ -145,6 +148,9 @@
  * Support Route/Mark Properties
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.51  2009/09/30 02:32:38  bdbcat
+ * Update to GPX 1.1 format
+ *
  * Revision 1.50  2009/09/29 18:09:54  bdbcat
  * Add color to managed fonts
  *
@@ -320,7 +326,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.50 2009/09/29 18:09:54 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.51 2009/09/30 02:32:38 bdbcat Exp $" );
 
 //    Statics
 
@@ -3475,7 +3481,7 @@ bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
 
             fn.SetExt ( _T ( "gpx" ) );
 
-            CreateGPXNavObj();
+            CreateExportGPXNavObj();
 
             // TODO this is awkward
             if ( !pRoute->m_bIsTrack )
@@ -3510,7 +3516,7 @@ void MyConfig::ExportGPX ( wxWindow* parent )
 
             fn.SetExt ( _T ( "gpx" ) );
 
-            CreateGPXNavObj();
+            CreateExportGPXNavObj();
             CreateGPXWayPoints();
             CreateGPXRoutes();
             CreateGPXTracks();
@@ -3933,18 +3939,23 @@ void MyConfig::GPXLoadTrack ( wxXmlNode* trknode )
 
 
 
-// toh, 2009.02.10
+
 //---------------------------------------------------------------------------------
 //    GPX XML Support for Navigation Objects
 //---------------------------------------------------------------------------------
 
-void MyConfig::CreateGPXNavObj ( void )
+void MyConfig::CreateExportGPXNavObj ( void )
 {
       m_pXMLNavObj = new wxXmlDocument;
       m_XMLrootnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "gpx" ) );
+      m_pXMLNavObj->SetRoot ( m_XMLrootnode );
+
       m_XMLrootnode->AddProperty ( _T ( "version" ),_T ( "1.1" ) );
       m_XMLrootnode->AddProperty ( _T ( "creator" ),_T ( "OpenCPN" ) );
-      m_pXMLNavObj->SetRoot ( m_XMLrootnode );
+      m_XMLrootnode->AddProperty( _T ( "xmlns:xsi" ), _T("http://www.w3.org/2001/XMLSchema-instance") );
+      m_XMLrootnode->AddProperty( _T ( "xmlns" ), _T("http://www.topografix.com/GPX/1/1") );
+      m_XMLrootnode->AddProperty( _T ( "xsi:schemaLocation" ), _T("http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd") );
+
 }
 
 
@@ -4016,14 +4027,36 @@ void MyConfig::CreateGPXTracks ( void )
 
 void MyConfig::CreateGPXRoute ( Route *pRoute )
 {
-      RoutePointList *pRoutePointList = pRoute->pRoutePointList;
+      wxXmlNode *GPXRte_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "rte" ) );
+      m_XMLrootnode->AddChild ( GPXRte_node );
 
-      wxXmlNode *GPXWpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "rte" ) );
-      GPXWpt_node->AddProperty ( _T ( "name" ),pRoute->m_RouteNameString );
+
+
+/*      GPXRte_node->AddProperty ( _T ( "name" ),pRoute->m_RouteNameString );
       wxString strnum;
       strnum.Printf ( _T ( "%d" ),pRoute->m_ConfigRouteNum );
-      GPXWpt_node->AddProperty ( _T ( "number" ),strnum );
-      m_XMLrootnode->AddChild ( GPXWpt_node );
+      GPXRte_node->AddProperty ( _T ( "number" ),strnum );
+*/
+
+      //  or
+      wxXmlNode *node;
+      wxXmlNode *tnode;
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
+      GPXRte_node->AddChild ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pRoute->m_RouteNameString );
+      node->AddChild ( tnode );
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "number" ) );
+      GPXRte_node->AddChild ( node );
+      wxString strnum;
+      strnum.Printf ( _T ( "%d" ),pRoute->m_ConfigRouteNum );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), strnum );
+      node->AddChild ( tnode );
+      //
+
+
+      RoutePointList *pRoutePointList = pRoute->pRoutePointList;
 
       wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
       RoutePoint *prp;
@@ -4034,7 +4067,7 @@ void MyConfig::CreateGPXRoute ( Route *pRoute )
             prp = node2->GetData();
 
             wxXmlNode *rpt_node = CreateGPXRptNode ( prp,i+1 );
-            GPXWpt_node->AddChild ( rpt_node );
+            GPXRte_node->AddChild ( rpt_node );
 
             node2=node2->GetNext();
             i++;
@@ -4043,15 +4076,35 @@ void MyConfig::CreateGPXRoute ( Route *pRoute )
 
 void MyConfig::CreateGPXTrack ( Route *pRoute )
 {
-      RoutePointList *pRoutePointList = pRoute->pRoutePointList;
 
-      wxXmlNode *GPXWpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trk" ) );
-      GPXWpt_node->AddProperty ( _T ( "name" ),pRoute->m_RouteNameString );
+      wxXmlNode *GPXTrk_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trk" ) );
+      m_XMLrootnode->AddChild ( GPXTrk_node );
+
+
+/*
+      GPXTrk_node->AddProperty ( _T ( "name" ),pRoute->m_RouteNameString );
       wxString strnum;
       strnum.Printf ( _T ( "%d" ),pRoute->m_ConfigRouteNum );
-      GPXWpt_node->AddProperty ( _T ( "number" ),strnum );
-      m_XMLrootnode->AddChild ( GPXWpt_node );
+      GPXTrk_node->AddProperty ( _T ( "number" ),strnum );
+*/
 
+      wxXmlNode *node;
+      wxXmlNode *tnode;
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
+      GPXTrk_node->AddChild ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pRoute->m_RouteNameString );
+      node->AddChild ( tnode );
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "number" ) );
+      GPXTrk_node->AddChild ( node );
+      wxString strnum;
+      strnum.Printf ( _T ( "%d" ),pRoute->m_ConfigRouteNum );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), strnum );
+      node->AddChild ( tnode );
+
+
+      RoutePointList *pRoutePointList = pRoute->pRoutePointList;
       wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
       RoutePoint *prp;
 
@@ -4061,7 +4114,7 @@ void MyConfig::CreateGPXTrack ( Route *pRoute )
             prp = node2->GetData();
 
             wxXmlNode *rpt_node = CreateGPXTptNode ( prp,i+1 );
-            GPXWpt_node->AddChild ( rpt_node );
+            GPXTrk_node->AddChild ( rpt_node );
 
             node2=node2->GetNext();
             i++;
@@ -4123,17 +4176,10 @@ wxXmlNode *MyConfig::CreateGPXWptNode ( RoutePoint *pr )
       wxXmlNode *tnode;
       wxXmlNode *current_sib_node;
 
-      //  Icon
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
-      GPXWpt_node->AddChild ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
 
       //  Name
       node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
-      current_sib_node->SetNext ( node );
+      GPXWpt_node->AddChild ( node );
       tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkName );
       node->AddChild ( tnode );
 
@@ -4143,6 +4189,32 @@ wxXmlNode *MyConfig::CreateGPXWptNode ( RoutePoint *pr )
       node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "desc" ) );
       current_sib_node->SetNext ( node );
       tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkDescription );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      //  Icon
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      // Type (waypoint or POI)
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      //  RoutePoint properties/flags
+      wxString str = pr->CreatePropString();
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "prop" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), str );
       node->AddChild ( tnode );
 
       current_sib_node = node;
@@ -4187,23 +4259,6 @@ wxXmlNode *MyConfig::CreateGPXWptNode ( RoutePoint *pr )
             linknode = linknode->GetNext();
       }
 
-      // Type (waypoint or POI)
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
-      //  RoutePoint properties/flags
-      wxString str = pr->CreatePropString();
-
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "prop" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), str );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
 
       return ( GPXWpt_node );
 }
@@ -4224,17 +4279,10 @@ wxXmlNode *MyConfig::CreateGPXRptNode ( RoutePoint *pr,int nbr )
       wxXmlNode *tnode;
       wxXmlNode *current_sib_node;
 
-      //  Icon
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
-      GPXWpt_node->AddChild ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
 
       //  Name
       node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
-      current_sib_node->SetNext ( node );
+      GPXWpt_node->AddChild ( node );
       tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkName );
       node->AddChild ( tnode );
 
@@ -4247,6 +4295,33 @@ wxXmlNode *MyConfig::CreateGPXRptNode ( RoutePoint *pr,int nbr )
       node->AddChild ( tnode );
 
       current_sib_node = node;
+
+      //  Icon
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      // Type (waypoint or POI)
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      //  RoutePoint properties/flags
+      wxString str = pr->CreatePropString();
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "prop" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), str );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
 
       // Hyperlinks
       HyperlinkList *linklist = pr->m_HyperlinkList;
@@ -4288,23 +4363,6 @@ wxXmlNode *MyConfig::CreateGPXRptNode ( RoutePoint *pr,int nbr )
             linknode = linknode->GetNext();
       }
 
-      // Type (waypoint or POI)
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
-      //  RoutePoint properties/flags
-      wxString str = pr->CreatePropString();
-
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "prop" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), str );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
 
       return ( GPXWpt_node );
 }
@@ -4324,25 +4382,9 @@ wxXmlNode *MyConfig::CreateGPXTptNode ( RoutePoint *pr,int nbr )
       //  Get and create the mark properties, one by one
       wxXmlNode *node;
       wxXmlNode *tnode;
-      wxXmlNode *current_sib_node;
+      wxXmlNode *current_sib_node = NULL;
 
-      //  Icon
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
-      GPXWpt_node->AddChild ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
-      //  Name
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkName );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
-      //  Create Time
+            //  Create Time
       if ( pr->m_CreateTime.IsValid() )
       {
             wxString dt;
@@ -4352,12 +4394,33 @@ wxXmlNode *MyConfig::CreateGPXTptNode ( RoutePoint *pr,int nbr )
             dt += _T ( "Z" );
 
             node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "time" ) );
-            current_sib_node->SetNext ( node );
+            GPXWpt_node->AddChild ( node );
             tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), dt );
             node->AddChild ( tnode );
 
             current_sib_node = node;
       }
+
+      //  Name
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
+      if(current_sib_node)
+            current_sib_node->SetNext ( node );
+      else
+            GPXWpt_node->AddChild ( node );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkName );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      //  Icon
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
 
 
       return ( GPXWpt_node );
@@ -4386,17 +4449,10 @@ static wxXmlNode *CreateGPXWptNode ( RoutePoint *pr )
       wxXmlNode *tnode;
       wxXmlNode *current_sib_node;
 
-      //  Icon
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
-      GPXWpt_node->AddChild ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
 
       //  Name
       node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
-      current_sib_node->SetNext ( node );
+      GPXWpt_node->AddChild ( node );
       tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkName );
       node->AddChild ( tnode );
 
@@ -4406,6 +4462,32 @@ static wxXmlNode *CreateGPXWptNode ( RoutePoint *pr )
       node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "desc" ) );
       current_sib_node->SetNext ( node );
       tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkDescription );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      //  Icon
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      // Type (waypoint or POI)
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" )  );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      //  RoutePoint properties/flags
+      wxString str = pr->CreatePropString();
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "prop" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), str );
       node->AddChild ( tnode );
 
       current_sib_node = node;
@@ -4450,23 +4532,6 @@ static wxXmlNode *CreateGPXWptNode ( RoutePoint *pr )
             linknode = linknode->GetNext();
       }
 
-      // Type (waypoint or POI)
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
-      //  RoutePoint properties/flags
-      wxString str = pr->CreatePropString();
-
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "prop" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), str );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
 
       return ( GPXWpt_node );
 }
@@ -4488,17 +4553,10 @@ wxXmlNode *CreateGPXRptNode ( RoutePoint *pr,int nbr )
       wxXmlNode *tnode;
       wxXmlNode *current_sib_node;
 
-      //  Icon
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
-      GPXWpt_node->AddChild ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
 
       //  Name
       node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
-      current_sib_node->SetNext ( node );
+      GPXWpt_node->AddChild ( node );
       tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkName );
       node->AddChild ( tnode );
 
@@ -4514,6 +4572,33 @@ wxXmlNode *CreateGPXRptNode ( RoutePoint *pr,int nbr )
 
             current_sib_node = node;
       }
+
+           //  Icon
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+           // Type (waypoint or POI)
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+      //  RoutePoint properties/flags
+      wxString str = pr->CreatePropString();
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "prop" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), str );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
 
       // Hyperlinks
       HyperlinkList *linklist = pr->m_HyperlinkList;
@@ -4555,54 +4640,49 @@ wxXmlNode *CreateGPXRptNode ( RoutePoint *pr,int nbr )
             linknode = linknode->GetNext();
       }
 
-      // Type (waypoint or POI)
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
-      //  RoutePoint properties/flags
-      wxString str = pr->CreatePropString();
-
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "prop" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), str );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
       return ( GPXWpt_node );
 }
 
 wxXmlNode *CreateGPXTptNode ( RoutePoint *pr,int nbr )
 {
-      wxXmlNode *GPXWpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trkseg" ) );
+      wxXmlNode *GPXTpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trkseg" ) );
 
       wxString str_lat;
       str_lat.Printf ( _T ( "%.6f" ), pr->m_lat );
       wxString str_lon;
       str_lon.Printf ( _T ( "%.6f" ), pr->m_lon );
-      GPXWpt_node->AddProperty ( _T ( "lat" ),str_lat );
-      GPXWpt_node->AddProperty ( _T ( "lon" ),str_lon );
+      GPXTpt_node->AddProperty ( _T ( "lat" ),str_lat );
+      GPXTpt_node->AddProperty ( _T ( "lon" ),str_lon );
 
       //  Get and create the mark properties, one by one
       wxXmlNode *node;
       wxXmlNode *tnode;
-      wxXmlNode *current_sib_node;
+      wxXmlNode *current_sib_node = NULL;
 
-      //  Icon
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
-      GPXWpt_node->AddChild ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
-      node->AddChild ( tnode );
+            //  Create Time
+      if ( pr->m_CreateTime.IsValid() )
+      {
+            wxString dt;
+            dt = pr->m_CreateTime.FormatISODate();
+            dt += _T ( "T" );
+            dt += pr->m_CreateTime.FormatISOTime();
+            dt += _T ( "Z" );
 
-      current_sib_node = node;
+            node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "time" ) );
+            GPXTpt_node->AddChild ( node );
+            tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), dt );
+            node->AddChild ( tnode );
+
+            current_sib_node = node;
+      }
+
 
       //  Name
       node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
-      current_sib_node->SetNext ( node );
+      if(current_sib_node)
+            current_sib_node->SetNext ( node );
+      else
+            GPXTpt_node->AddChild ( node );
       tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_MarkName );
       node->AddChild ( tnode );
 
@@ -4619,22 +4699,23 @@ wxXmlNode *CreateGPXTptNode ( RoutePoint *pr,int nbr )
             current_sib_node = node;
       }
 
-      //  Create Time
-      if ( pr->m_CreateTime.IsValid() )
-      {
-            wxString dt;
-            dt = pr->m_CreateTime.FormatISODate();
-            dt += _T ( "T" );
-            dt += pr->m_CreateTime.FormatISOTime();
-            dt += _T ( "Z" );
+      //  Icon
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "sym" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pr->m_IconName );
+      node->AddChild ( tnode );
 
-            node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "time" ) );
-            current_sib_node->SetNext ( node );
-            tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), dt );
-            node->AddChild ( tnode );
+      current_sib_node = node;
 
-            current_sib_node = node;
-      }
+            // Type (waypoint or POI)
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+      current_sib_node->SetNext ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
+      node->AddChild ( tnode );
+
+      current_sib_node = node;
+
+
 
       // Hyperlinks
       HyperlinkList *linklist = pr->m_HyperlinkList;
@@ -4679,15 +4760,7 @@ wxXmlNode *CreateGPXTptNode ( RoutePoint *pr,int nbr )
             }
       }
 
-      // Type (waypoint or POI)
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
-      return ( GPXWpt_node );
+      return ( GPXTpt_node );
 }
 
 RoutePoint *LoadGPXTrackpoint ( wxXmlNode* wptnode )
