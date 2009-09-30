@@ -1,3 +1,135 @@
+1.3.4 ChangeLog
+
+1.  Improve AIS Target Management
+2.  Support Windows COM Ports above COM9
+3.  Improve GPS and AIS shared port selection logic.
+4.  Correct Route Plan Speed limit.
+5.  Correct handling of named waypoint in route delete logic.
+6.  Correct radar range ring display.
+7.  Implement Route Export... Right click to Export, GPX-IN to import.
+8.  Corrected colour schemes on some BSB charts, allowing default RGB colours if present
+9.  Changed Mouse Wheel Zoom logic.  Now zooms centered at cursor point.
+10. Correct Route Properties to display times in Days/Hours/Minutes.
+11. Highlight selected waypoint in Route Properties dialog.
+----------Publish Beta 1.3.3 Build 715---------
+
+12. Improve AIS CPA Alert graphics
+13. Make Wheel-Zoom-to-cursor option configurable in Toolbox->Etc
+14. Correct AIS Class B decoding.
+----------Publish Beta 1.3.3 Build 716---------
+
+15.  Improve search for cm93 auxiliary dictionary files.
+16.  Improve Route and Waypoint graphics on GPX-In
+17.  Correct some CM93 chart detection algorithms.
+18.  Implement "Measure" Tool, experimental.  Right-Click->"Measure..."
+19.  Change/simplify linux serial port detection logic.
+----------Publish Beta 1.3.3 Build 728---------
+
+20.  Improve Route and Waypoint selection/deletion logic
+21.  Improve Waypoint calculations near Intl Date Line (180 ELon).
+22.  Change Measure Tool mouse interface.
+23.  Implement Tracking, enable on Toolbox->Etc......
+24.  Add ability to suppress AIS Alerts from moored targets
+25.  Correct/Improve font selection logic for Nav Console
+26.  Linux builds, add support for /dev/rfcomm devices, e.g. Bluetooth GPS
+27.  Help file opens system default browser instead of internal HTML viewer.
+28.  Implement rt-click "Delete All Routes", "Delete All Waypoints"
+29.  Implement rt-click "Move Boat Here" as an assist to planning without GPS input.
+30.  On CM93 charts, with "Show Chart Outlines", show next finer scale cell outlines (experimental)
+31.  New icons   Comments solicited.
+32.  Tweak AIS dialog
+33.  Support partial or incomplete CM93 datasets.
+----------Publish Beta 1.3.3 Build 821---------
+
+34.  Quick fix for directory chart scanning
+----------Publish Beta 1.3.3 Build 822---------
+
+35.  Correct problem with Route->Insert Waypoint...
+36.  Correct (yet again) pixel and Route calculations near Lon 0 and Lon 180
+37.  Handle segfault in GTK library code associated with CM93 region calculation,
+38   Improve CM93 Chart outline rendering
+39.  Correct Current Index entries for US West Coast. Linux users need CVS update.
+----------Publish Beta 1.3.3 Build 825---------
+
+40.  Correct Route Draw logic for segment with both waypoints off-screen.
+41.  Implement AIS target mouse rollover
+42.  Eliminate rendering of CM93 A-scale outlines
+43.  Correct ToolTip text for Scale-In/Scale-Out
+44.  Improve AIS Alert suppression logic.
+45.  Correct Track Rt-Click fault.
+46.  Correct "Wheel-zoom-to-cursor" chart stack update.
+47.  Implement HDT, HDG, and HDM NMEA Messages, and show Ownship heading.
+48.  Correct for modern (> 2.23) versions of gpsd speed reporting
+49   Correct Wheel-zoom-to-cursor logic causing cursor jump.
+50.  Correct memory leak in Track draw
+51.  Correct Vector chart preview logic
+52.  Improve Status Bar font selection
+----------Publish Beta 1.3.3 Build 830---------
+
+53.  Correct Measure tool crash
+54.  Correct Object Query dialog, remove Cancel and Help buttons
+55.  Correct AIS Mouse crash
+56.  Implement Measure tool "On" by F4 keyboard shortcut, escape to cancel
+---------Publish Beta 1.3.3 Build 901---------
+
+57.  Correct fault in Route creation near existing waypoint.
+58.  Correct fault in Delete All Routes with any route active.
+59.  Correct Route Console annunciator box sizes
+60.  Improved NMEA debugging
+---------Publish Beta 1.3.3 Build 903---------
+
+61.  Improve NMEA message handler logic
+62.  Bypass rendering of WVS charts if scale is less than 5e-5 pix per meter (i.e. small scale, zoomed way out)
+63.  Implement new ownship icon, toolbox icons
+64.  Implement new arrow and pencil icons, Windows only
+65.  Correct Object Query initial scroll position
+66.  Correct Radar Range rings for skewed RNC's
+67.  Correct AIS logic for false alerts from targets reporting name before position, (rare, but statistically possible).
+68.  Implement scrolling Toolbox dialog for smaller screens.
+69.  Correct Routepoint property export/import.
+70.  Correct TrackDelete Logic while tracking is active.
+71.  Implement selectable fonts for AIS target query and Alert dialogs
+72.  Change (Improve?) Measure tool behavior
+73.  Correct DeleteAllRoutes logic with Tracking on.
+---------Publish Beta 1.3.3 Build 911---------
+
+74.  Correct Right-Click logic after DeleteAllRoutes
+75.  Correct Ship Draw logic for refresh box in Windows
+76.  Update Ownship icon shape/colors
+77.  Modify hotkeys for screen brightness and auto-follow toggles.
+78.  Modify ScaleIn/Out hotkeys to F7/F8
+79.  Correct Route->SendToGPS logic.
+80.  Implement CM93 chart zoom detail control slider.
+81.  Correct AIS Target Query dialog initial poition.
+82.  Re-enable GPSD input.
+---------Publish Beta 1.3.3 Build 917---------
+
+83.  Correct Tide/Current Right-Click crash
+84.  Correct crash on delete of last point of active route.
+85.  Correct Application/Frame Icon presentation
+86.  Improve nearby Routepoint calculation, now 8 pixels.
+87.  Implement cm93 zoom detail slidebar as floating dialog.
+88.  Correct DeleteAllRoutes logic for config file.
+89.  Correct Trackpoint XML time representation/decoding
+90.  Improve SENC creation progress dialog responsiveness.
+91.  Correct AIS target symbol heading for skewed charts.
+92.  Correct logic in SendToGPS for NMEA Data Source port.
+---------Publish Beta 1.3.3 Build 925---------
+
+93.  Implement SEH/Signal fault handler for CM93 renderer.
+94.  Correct anchored ownship heading on skewed charts.
+95.  Correct/Remove some invalid Current Reporting Stations
+96.  Correct (some) loss of hotkeys when cm93 slider is shown.
+97.  Correct georeferencing for RNC's which span the Intl. Date Line
+98.  Update GPX output format to Version 1.1
+---------Publish Beta 1.3.3 Build 929---------
+
+
+
+
+
+
+
 1.3.2 ChangeLog
 
 1.  Update/correct xcode build project for Macintosh OS-X.
