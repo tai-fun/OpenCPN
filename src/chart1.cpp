@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.61 2009/09/25 15:11:18 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.62 2009/09/30 23:15:23 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.62  2009/09/30 23:15:23  bdbcat
+ * Add more default values to bnovice
+ *
  * Revision 1.61  2009/09/25 15:11:18  bdbcat
  * Implement chart Activate/Deactivate
  *
@@ -252,7 +255,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.61 2009/09/25 15:11:18 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.62 2009/09/30 23:15:23 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -1176,10 +1179,24 @@ bool MyApp::OnInit()
 //      Think catch-22
         pConfig->LoadMyConfig(1);
 
-        //  Override some config options for inital user startup with empty config file
+        //  Override some config options for initial user startup with empty config file
         if(b_novicemode)
         {
               g_bShowOutlines = true;
+
+              g_CPAMax_NM = 20.;
+              g_CPAWarn_NM = 2.;
+              g_TCPA_Max = 30.;
+              g_bMarkLost = true;;
+              g_MarkLost_Mins = 8;
+              g_bRemoveLost = true;
+              g_RemoveLost_Mins = 10;
+              g_bShowCOG = true;
+              g_ShowCOG_Mins = 5;
+              g_bShowMoored = true;
+              g_ShowMoored_Kts = 0.2;
+
+              g_PlanSpeed = 5.;
         }
 
 
