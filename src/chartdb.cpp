@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.26 2009/09/28 23:05:21 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.27 2009/09/30 02:28:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.27  2009/09/30 02:28:52  bdbcat
+ * Cleanup
+ *
  * Revision 1.26  2009/09/28 23:05:21  bdbcat
  * Correct again for IDL crossing
  *
@@ -139,7 +142,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.26 2009/09/28 23:05:21 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.27 2009/09/30 02:28:52 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -1370,25 +1373,25 @@ bool ChartDB::CheckPositionWithinChart(int index, float lat, float lon)
             ChartTableEntry *pt = &pChartTable[index];
 //    First check on rough Bounding box
 
-            if((lat < pChartTable[index].LatMax) &&
-                (lat > pChartTable[index].LatMin) &&
-                (lon > pChartTable[index].LonMin) &&
-                (lon < pChartTable[index].LonMax))
+            if((lat < pt->LatMax) &&
+                (lat > pt->LatMin) &&
+                (lon > pt->LonMin) &&
+                (lon < pt->LonMax))
             {
 //    Double check on Primary Ply points polygon
 
-                  bool bInside = G_FloatPtInPolygon((MyFlPoint *)pChartTable[index].pPlyTable,
-                              pChartTable[index].nPlyEntries,
+                  bool bInside = G_FloatPtInPolygon((MyFlPoint *)pt->pPlyTable,
+                              pt->nPlyEntries,
                               lon, lat);
 
                   if(bInside )
                   {
-                        if(pChartTable[index].nAuxPlyEntries)
+                        if(pt->nAuxPlyEntries)
                         {
-                              for(int k=0 ; k<pChartTable[index].nAuxPlyEntries ; k++)
+                              for(int k=0 ; k<pt->nAuxPlyEntries ; k++)
                               {
-                                    bool bAuxInside = G_FloatPtInPolygon((MyFlPoint *)pChartTable[index].pAuxPlyTable[k],
-                                                pChartTable[index].pAuxCntTable[k],lon, lat);
+                                    bool bAuxInside = G_FloatPtInPolygon((MyFlPoint *)pt->pAuxPlyTable[k],
+                                                pt->pAuxCntTable[k],lon, lat);
                                     if(bAuxInside)
                                           return true;;
                               }
