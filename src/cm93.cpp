@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.24 2009/09/29 18:29:28 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.25 2009/09/30 03:21:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.25  2009/09/30 03:21:12  bdbcat
+ * Correct GetValidRegion with fault catching for GTK
+ *
  * Revision 1.24  2009/09/29 18:29:28  bdbcat
  * Implement GetPixPoint
  *
@@ -4296,10 +4299,10 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
       //    Create a (complicated) region from the covr description of the current cell
       //    This could be expensive.....
 
-#if 0
       //    the gdk library may fault for unknown reasons....
       //    catch this by setjmp/longjmp method, maybe....
 
+#ifdef __WXGTK__
       sigaction(SIGSEGV, &sa_all, &sa_all_old);             // save existing action for this signal
 
       if(sigsetjmp(env, 1))             //  Something in the below code block faulted....
@@ -4313,12 +4316,11 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
 
             return;
       }
-      sigaction(SIGSEGV, &sa_all_old, NULL);        // reset signal handler
 #endif
 
       if(m_pcm93chart_current)
       {
-#ifndef __WXGTK__      //    the gdk library may fault for unknown reasons....
+#ifndef __TRYSETJMP__      //    the gdk library may fault for unknown reasons....
             for(unsigned int im=0 ; im < m_pcm93chart_current->m_covr_array.GetCount() ; im++)
             {
                   M_COVR_Desc mcd = m_pcm93chart_current->m_covr_array.Item(im);
@@ -4346,6 +4348,11 @@ void cm93compchart::GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pVali
      }
       else
             pValidRegion->Union(0, 0, 1,1);
+
+#ifdef __WXGTK__
+            sigaction(SIGSEGV, &sa_all_old, NULL);        // reset signal handler
+#endif
+
 }
 
 
