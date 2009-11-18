@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.33 2009/09/29 18:13:50 bdbcat Exp $
+ * $Id: ais.cpp,v 1.34 2009/11/18 01:22:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.34  2009/11/18 01:22:44  bdbcat
+ * Move all buffers to heap
+ *
  * Revision 1.33  2009/09/29 18:13:50  bdbcat
  * Add color to managed fonts
  *
@@ -198,7 +201,7 @@ extern int              g_total_NMEAerror_messages;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.33 2009/09/29 18:13:50 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.34 2009/11/18 01:22:44 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -2139,6 +2142,8 @@ OCP_AIS_Thread::OCP_AIS_Thread(wxEvtHandler *pParent, const wxString& PortName)
       m_pPortName = new wxString(PortName);
 
       rx_buffer = new char[RX_BUFFER_SIZE + 1];
+      temp_buf = new char[RX_BUFFER_SIZE + 1];
+
       put_ptr = rx_buffer;
       tak_ptr = rx_buffer;
       nl_count = 0;
@@ -2150,6 +2155,7 @@ OCP_AIS_Thread::~OCP_AIS_Thread(void)
 {
       delete m_pPortName;
       delete rx_buffer;
+      delete temp_buf;
 
 }
 
@@ -2201,7 +2207,6 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
                 //copy the buffer, looking for nl
                 char *tptr;
                 char *ptmpbuf;
-                char temp_buf[RX_BUFFER_SIZE];
 
                 tptr = tak_ptr;
                 ptmpbuf = temp_buf;
@@ -2746,14 +2751,16 @@ bool AISTargetAlertDialog::Create ( int target_mmsi,
       m_pparent = parent;
       m_pdecoder = pdecoder;
 
-      wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
-      SetBackgroundColour ( back_color );
-
       wxFont *dFont = pFontMgr->GetFont(_T("AISTargetAlert"), 12);
       SetFont ( *dFont );
       m_pFont = dFont;
 
-      SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetAlert")));
+      wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
+      SetBackgroundColour ( back_color );
+
+      wxColour text_color = GetGlobalColor ( _T ( "UINFF" ) );          // or UINFD
+      SetForegroundColour ( text_color );
+//      SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetAlert")));
 
       CreateControls();
 
@@ -2795,9 +2802,9 @@ void AISTargetAlertDialog::CreateControls()
       wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
       m_pAlertTextCtl->SetBackgroundColour ( back_color );
 
-//      wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
-//      m_pAlertTextCtl->SetForegroundColour ( text_color );
-      m_pAlertTextCtl->SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetAlert")));
+      wxColour text_color = GetGlobalColor ( _T ( "UINFF" ) );          // or UINFD
+      m_pAlertTextCtl->SetForegroundColour ( text_color );
+//      m_pAlertTextCtl->SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetAlert")));
 
 
 //      wxString alert_text;
