@@ -50,6 +50,9 @@ NMEA0183::NMEA0183()
    response_table.Append( (RESPONSE *) &Rmc );
    response_table.Append( (RESPONSE *) &Wpl );
    response_table.Append( (RESPONSE *) &Rte );
+   response_table.Append( (RESPONSE *) &Gll );
+   response_table.Append( (RESPONSE *) &Vtg );
+
 /*
    response_table.Add( (RESPONSE *) &Rot );
    response_table.Add( (RESPONSE *) &Rpm );

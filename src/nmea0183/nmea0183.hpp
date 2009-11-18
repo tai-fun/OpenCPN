@@ -63,6 +63,8 @@
 #include "RMC.HPP"
 #include "wpl.hpp"
 #include "rte.hpp"
+#include "gll.hpp"
+#include "vtg.hpp"
 /*
 #include "ROT.hpp"
 #include "RPM.hpp"
@@ -149,6 +151,8 @@ class NMEA0183
        RMC Rmc;
        WPL Wpl;
        RTE Rte;
+       GLL Gll;
+       VTG Vtg;
  /*
       ROT Rot;
       RPM Rpm;
