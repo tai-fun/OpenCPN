@@ -117,7 +117,7 @@ bool RTE::Write( SENTENCE& sentence )
    {
       case CompleteRoute:
 
-         sentence += _T("c");
+            sentence += _T("C");             // uppercase required for GPS MLR FFX312
          break;
 
       case WorkingRoute:
