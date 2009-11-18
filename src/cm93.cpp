@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.25 2009/09/30 03:21:12 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.26 2009/11/18 01:24:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.26  2009/11/18 01:24:15  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.25  2009/09/30 03:21:12  bdbcat
  * Correct GetValidRegion with fault catching for GTK
  *
@@ -135,8 +138,13 @@
  #include <setjmp.h>
 #endif
 
-
-
+#ifdef __MSVC__
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
+#define new DEBUG_NEW
+#endif
 
 extern wxString         *g_pSENCPrefix;
 extern s52plib          *ps52plib;
@@ -148,6 +156,7 @@ extern int              g_cm93_zoom_factor;
 extern CM93DSlide       *pCM93DetailSlider;
 extern int              g_cm93detail_dialog_x, g_cm93detail_dialog_y;
 extern bool             g_bShowCM93DetailSlider;
+extern bool             g_b_overzoom_x;                      // Allow high overzoom
 
 // TODO  These should be gotten from the ctor
 extern MyFrame          *gFrame;
@@ -1505,6 +1514,13 @@ cm93chart::~cm93chart()
             free(mcd.pPoints);
       }
 
+      for(unsigned int im=0 ; im < m_covr_array_outlines.GetCount() ; im++)
+      {
+            M_COVR_Desc mcd = m_covr_array_outlines.Item(im);
+            free(mcd.pvertices);
+            free(mcd.pPoints);
+      }
+
       free(m_pcontour_array);
 }
 
@@ -1815,7 +1831,7 @@ int cm93chart::CreateObjChain()
       while(iObj < m_CIB.m_nfeature_records)
       {
 
-            if((pobjectDef != NULL) /*&& (iObj <= 1390)*/)  // no run at 391, ok at 390
+            if((pobjectDef != NULL) /*&& (iObj <= 1390)*/)
             {
 
                   Extended_Geometry *xgeom = BuildGeom(pobjectDef, NULL, iObj);
@@ -1895,8 +1911,8 @@ int cm93chart::CreateObjChain()
                                  break;
                          }
 
- // Debug hooks
-//        if(!strncmp(obj->FeatureName, "_m_sor", 6))
+// Debug hooks
+//        if(!strncmp(obj->FeatureName, "CTRPNT", 6))
 //            int ffl = 4;
 //    if(obj->Index == 2173)
 //        int rrt = 5;
@@ -2359,6 +2375,46 @@ Extended_Geometry *cm93chart::BuildGeom(Object *pobject, wxFileOutputStream *pos
       return ret_ptr;
 }
 
+
+void fromSM93(double x, double y, double lat0, double lon0, double *lat, double *lon)
+{
+      double z, s0, y0, lat3, lon1;
+      z = CM93_semimajor_axis_meters; //WGS84_semimajor_axis_meters * mercator_k0;
+
+      double f = 1.0 / 298.;    // flattening .003355
+      double es = 2 * f - f * f;      // eccentricity^2  .006700
+      double e = sqrt(es);
+
+
+//    Replaced by below...
+      s0 = sin(lat0 * DEGREE);
+      y0 = (.5 * log((1 + s0) / (1 - s0))) * z;
+
+      lat3 = (2.0 * atan(exp((y0+y)/z)) - PI/2.) / DEGREE;
+      *lat = lat3;
+
+
+      // lon = x + lon0
+      lon1 = lon0 + (x / (DEGREE * z));
+      *lon = lon1;
+
+//testing eccentricity math
+      s0 = sin(lat0 * DEGREE);
+
+      double falsen, t, xi;
+      falsen = z *log(tan(PI/4 + lat0 * DEGREE / 2)*pow((1. - e * s0)/(1. + e * s0), e/2.));
+      t = exp((y + falsen) / (z));
+      xi = (PI / 2.) - 2.0 * atan(t);
+      double esf = (es/2. + (5*es*es/24.) + (es*es*es/12.) + (13.0 *es*es*es*es/360.)) * sin( 2 * xi);
+      esf += ((7.*es*es/48.) + (29.*es*es*es/240.) + (811.*es*es*es*es/11520.)) * sin (4. * xi);
+      esf += ((7.*es*es*es/120.) + (81*es*es*es*es/1120.) + (4279.*es*es*es*es/161280.)) * sin(8. * xi);
+
+
+  *lat = -(xi + esf) / DEGREE;
+}
+
+
+
 void cm93chart::Transform(cm93_point *s, double *lat, double *lon)
 {
       //    Simple linear transform
@@ -2368,8 +2424,12 @@ void cm93chart::Transform(cm93_point *s, double *lat, double *lon)
 
       //    Convert to lat/lon
       *lat = (2.0 * atan(exp(valy/CM93_semimajor_axis_meters)) - PI/2.) / DEGREE;
-
       *lon = (valx / (DEGREE * CM93_semimajor_axis_meters));
+
+//      fromSM93(valx, valy, 0., 0., lat, lon);
+
+
+
 }
 
 
@@ -2678,7 +2738,6 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
             return NULL;
       }
 
-//      wxString sclass = pDict->m_S57ClassArray->Item(iclass);
       wxString sclass_sub = sclass;
 
         //  Going to make some substitutions here
@@ -2696,6 +2755,9 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
 
 
 
+      // Debug hook
+//      if(sclass.IsSameAs(_T("CHNWIR")))
+//            int yyp = 5;
 
 
 //        else if(sclass.IsSameAs(_T("_texto")))
@@ -2733,8 +2795,8 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
 //      pobj->prim = geomtype_sub;
 
         //  Debug hook
-//        if(sclass.IsSameAs((char *)"OBSTRN"))
-//              int ggk = 5;
+ //       if(sclass.IsSameAs((char *)"UWTROC"))
+ //             int ggk = 5;
 
 
       pobj->attList = new wxString();
@@ -3533,6 +3595,10 @@ bool cm93chart::LoadM_COVRSet(ViewPort *vpt)
                               //     Add this geometry to the M_COVR array m_covr_array_outlines
                                                       m_covr_array_outlines.Add(pmcd);
 
+                              //    Clean up the xgeom
+                                                      free( xgeom->pvector_index );
+                                                      free( xgeom->contour_array );
+                                                      free( xgeom->vertex_array );
                                                       free(xgeom);
                                           }
                                      }
@@ -4218,17 +4284,24 @@ double cm93compchart::GetNormalScaleMin(double canvas_scale_factor)
                   cmscale--;
             }
 
-            //    And return a sensible minimum scale, allowing 4x overzoom.
+            //Adjust overzoom factor based on  g_b_overzoom_x option setting
+            double oz_factor;
+            if(g_b_overzoom_x)
+                  oz_factor = 256.;
+            else
+                  oz_factor = 4.;
+
+            //    And return a sensible minimum scale, allowing selected overzoom.
             switch(cmscale)
             {
-                  case  0: return 20000000. / 4.;            // Z
-                  case  1: return 3000000.  / 4.;            // A
-                  case  2: return 1000000.  / 4.;            // B
-                  case  3: return 200000.   / 4.;            // C
-                  case  4: return 100000.   / 4.;            // D
-                  case  5: return 50000.    / 4.;            // E
-                  case  6: return 20000.    / 4.;            // F
-                  case  7: return 7500.     / 4.;            // G
+                  case  0: return 20000000. / oz_factor;            // Z
+                  case  1: return 3000000.  / oz_factor;            // A
+                  case  2: return 1000000.  / oz_factor;            // B
+                  case  3: return 200000.   / oz_factor;            // C
+                  case  4: return 100000.   / oz_factor;            // D
+                  case  5: return 50000.    / oz_factor;            // E
+                  case  6: return 20000.    / oz_factor;            // F
+                  case  7: return 7500.     / oz_factor;            // G
                   default: return 10.;
             }
       }
@@ -4244,6 +4317,7 @@ double cm93compchart::GetNormalScaleMax(double canvas_scale_factor)
 
 wxPoint GetPixFromLLVP(double lat, double lon, const ViewPort& VPoint)
 {
+
 //      Inline the Simple Mercator Transform for performance reasons
       double easting, northing;
 

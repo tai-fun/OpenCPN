@@ -17,17 +17,6 @@
 //#define CACHE_MEM_LIMIT 60000                             // Free mem threshold for freeing a chart from cache
 
 
-// Optional
-//  Some build environments may need root privileges for hardware
-//  port I/O, such as is needed by the raw NMEA data input class.
-//  Enable opencpn temporary root privileges via seteuid() function here.
-//  And don't forget to make opencpn binary executable file "+SUID".
-//#define dyUSE_EUID 1
-
-//          Auto save config file occasionally during run
-//          protecting against inadvertant crash....
-//          Set in minutes.
-#define AUTO_CONFIG_SAVE_MINUTES 5
 
 
 //          If defined, update the system time using GPS receiver data.
@@ -128,7 +117,7 @@ extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
 #ifdef __MSVC__66
         #ifdef _DEBUG
             #define _CRTDBG_MAP_ALLOC
-//            #include <crtdbg.h>
+            #include <crtdbg.h>
 //            #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
 //            #define new DEBUG_NEW
         #endif

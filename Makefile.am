@@ -7,7 +7,10 @@ WX_LIB_DIR=$(WX_HOME)/lib
 INCLUDES = \
 	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
 	 -I/usr/X11R6/include\
-	 -I./$(srcdir)/src/mygdal
+	 -I./$(srcdir)/src/mygdal\
+	 -I./$(srcdir)/src/grib\
+	 -I./$(srcdir)/src/grib/bzip2
+
 
 
 
@@ -46,6 +49,8 @@ AM_CXXFLAGS += $(GL_CFLAGS)
 opencpn_LDADD += $(GL_LIBS)
 endif
 
+
+#opencpn_LDADD += ./$(srcdir)/src/grib/bzip2/libbz2.a
 
 bin_PROGRAMS = opencpn
 
@@ -88,7 +93,21 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/nmea0183/hdt.cpp \
 			src/nmea0183/hdg.cpp \
 			src/nmea0183/hdm.cpp \
-			src/scrollingdialog.cpp
+			src/nmea0183/gll.cpp \
+			src/nmea0183/vtg.cpp \
+			src/scrollingdialog.cpp \
+			src/grib.cpp \
+			src/grib/GribReader.cpp \
+			src/grib/GribRecord.cpp  \
+			src/grib/zuFile.cpp \
+			src/grib/IsoLine.cpp \
+			src/grib/bzip2/blocksort.c \
+			src/grib/bzip2/bzlib.c \
+			src/grib/bzip2/compress.c \
+			src/grib/bzip2/crctable.c \
+			src/grib/bzip2/decompress.c \
+			src/grib/bzip2/huffman.c \
+			src/grib/bzip2/randtable.c 
 
 if BUILD_WITH_S57
 opencpn_SOURCES +=	src/s52cnsy.cpp \
@@ -181,6 +200,7 @@ noinst_HEADERS = \
  	include/wificlient.h \
  	include/wvschart.h \
  	include/cm93.h \
+	include/grib.h \
 	src/mygdal/cpl_config.h \
  	src/mygdal/cpl_conv.h \
  	src/mygdal/cpl_csv.h \

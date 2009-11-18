@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.25 2009/09/18 02:25:28 bdbcat Exp $
+ * $Id: ais.h,v 1.26 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.26  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.25  2009/09/18 02:25:28  bdbcat
  * Rebuild AIS Alert dialog
  *
@@ -401,6 +404,8 @@ private:
       char                    *tak_ptr;
 
       char                    *rx_buffer;
+
+      char                    *temp_buf;
 
       unsigned long           error;
       int                     nl_count;

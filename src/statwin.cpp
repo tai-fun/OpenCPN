@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.cpp,v $
+ * Revision 1.17  2009/11/18 01:26:13  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.16  2009/03/26 22:31:55  bdbcat
  * Opencpn 1.3.0 Update
  *
@@ -95,7 +98,7 @@
 extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
 
-CPL_CVSID("$Id: statwin.cpp,v 1.16 2009/03/26 22:31:55 bdbcat Exp $");
+CPL_CVSID("$Id: statwin.cpp,v 1.17 2009/11/18 01:26:13 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    StatWin Implementation
@@ -114,7 +117,7 @@ StatWin::StatWin(wxFrame *frame):
       int x,y;
       GetClientSize(&x, &y);
 
-      m_pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
+      m_backBrush = wxBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
 
       SetBackgroundColour(GetGlobalColor(_T("UIBDR")));
 
@@ -136,6 +139,12 @@ StatWin::StatWin(wxFrame *frame):
 
 StatWin::~StatWin()
 {
+      pPiano->Close();
+
+#ifdef USE_WIFI_CLIENT
+      pWiFi->Close();
+#endif
+
 }
 
 
@@ -143,7 +152,7 @@ StatWin::~StatWin()
 void StatWin::OnPaint(wxPaintEvent& event)
 {
       wxPaintDC dc(this);
-      dc.SetBackground(*m_pbackBrush);
+      dc.SetBackground(m_backBrush);
       dc.Clear();
 }
 
@@ -191,7 +200,7 @@ int StatWin::GetFontHeight()
 void StatWin::SetColorScheme(ColorScheme cs)
 {
 
-    m_pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
+    m_backBrush = wxBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
 
     //  Also apply color scheme to all known children
     pPiano->SetColorScheme(cs);
@@ -285,18 +294,18 @@ void PianoWin::SetColorScheme(ColorScheme cs)
 
       //    Recreate the local brushes
 
-    m_pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
+    m_backBrush = wxBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
 
-    m_ptBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("BLUE2")), wxSOLID);    // Raster Chart unselected
-    m_pslBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("BLUE1")), wxSOLID);    // and selected
+    m_tBrush =    wxBrush(GetGlobalColor(_T("BLUE2")), wxSOLID);    // Raster Chart unselected
+    m_slBrush =   wxBrush(GetGlobalColor(_T("BLUE1")), wxSOLID);    // and selected
 
-    m_pvBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN2")), wxSOLID);    // Vector Chart unselected
-    m_psvBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN1")), wxSOLID);    // and selected
+    m_vBrush =    wxBrush(GetGlobalColor(_T("GREEN2")), wxSOLID);    // Vector Chart unselected
+    m_svBrush =   wxBrush(GetGlobalColor(_T("GREEN1")), wxSOLID);    // and selected
 
-    m_pcBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("YELO2")), wxSOLID);     // CM93 Chart unselected
-    m_pscBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("YELO1")), wxSOLID);    // and selected
+    m_cBrush =    wxBrush(GetGlobalColor(_T("YELO2")), wxSOLID);     // CM93 Chart unselected
+    m_scBrush =   wxBrush(GetGlobalColor(_T("YELO1")), wxSOLID);    // and selected
 
-    m_puvBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UINFD")), wxSOLID);    // and unavailable
+    m_uvBrush =   wxBrush(GetGlobalColor(_T("UINFD")), wxSOLID);    // and unavailable
 
 }
 
@@ -310,7 +319,7 @@ void PianoWin::OnPaint(wxPaintEvent& event)
       if(!pCurrentStack)                        // Stack must be valid
             return;
 
-      dc.SetBackground(*m_pbackBrush);
+      dc.SetBackground(m_backBrush);
       dc.Clear();
 
 //    Create the Piano Keys
@@ -324,43 +333,43 @@ void PianoWin::OnPaint(wxPaintEvent& event)
             wxPen ppPen(GetGlobalColor(_T("CHBLK")), 1, wxSOLID);
             dc.SetPen(ppPen);
 
-            dc.SetBrush(*m_ptBrush);
+            dc.SetBrush(m_tBrush);
 
 //      If no S57 support, mark the chart as "unavailable"
             for(int i=0 ; i<nKeys ; i++)
             {
                   if(ChartData->GetCSChartType(pCurrentStack, i) == CHART_TYPE_S57)
 #ifndef USE_S57
-                        dc.SetBrush(*m_puvBrush);
+                        dc.SetBrush(m_uvBrush);
 #else
-                        dc.SetBrush(*m_pvBrush);
+                        dc.SetBrush(m_vBrush);
 #endif
                   else if(ChartData->GetCSChartType(pCurrentStack, i) == CHART_TYPE_CM93)
-                        dc.SetBrush(*m_pcBrush);
+                        dc.SetBrush(m_cBrush);
 
                   else if(ChartData->GetCSChartType(pCurrentStack, i) == CHART_TYPE_CM93COMP)
-                        dc.SetBrush(*m_pcBrush);
+                        dc.SetBrush(m_cBrush);
 
                   else
-                        dc.SetBrush(*m_ptBrush);
+                        dc.SetBrush(m_tBrush);
 
                   dc.DrawRectangle(KeyRegion[i].GetBox());
             }
 
             if(ChartData->GetCSChartType(pCurrentStack, pCurrentStack->CurrentStackEntry) == CHART_TYPE_S57)
 #ifndef USE_S57
-                  dc.SetBrush(*m_puvBrush);
+                  dc.SetBrush(m_uvBrush);
 #else
-                  dc.SetBrush(*m_psvBrush);
+                  dc.SetBrush(m_svBrush);
 #endif
             else if(ChartData->GetCSChartType(pCurrentStack, pCurrentStack->CurrentStackEntry) == CHART_TYPE_CM93)
-                        dc.SetBrush(*m_pscBrush);
+                        dc.SetBrush(m_scBrush);
 
             else if(ChartData->GetCSChartType(pCurrentStack, pCurrentStack->CurrentStackEntry) == CHART_TYPE_CM93COMP)
-                  dc.SetBrush(*m_pscBrush);
+                  dc.SetBrush(m_scBrush);
 
             else
-                  dc.SetBrush(*m_pslBrush);
+                  dc.SetBrush(m_slBrush);
 
             if((pCurrentStack->CurrentStackEntry >= 0 ) && (pCurrentStack->CurrentStackEntry < nKeys))
                   dc.DrawRectangle(KeyRegion[pCurrentStack->CurrentStackEntry].GetBox());
@@ -488,13 +497,13 @@ void WiFiStatWin::OnSize(wxSizeEvent& event)
 
 void WiFiStatWin::SetColorScheme(ColorScheme cs)
 {
-    pbackBrush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
+    backBrush = wxBrush(GetGlobalColor(_T("UIBDR")), wxSOLID);
 
-    pqual_hiBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("CHYLW")), wxSOLID);    //Yellow
-    psecureBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UINFO")), wxSOLID);    //Orange
+    qual_hiBrush =   wxBrush(GetGlobalColor(_T("CHYLW")), wxSOLID);    //Yellow
+    secureBrush =    wxBrush(GetGlobalColor(_T("UINFO")), wxSOLID);    //Orange
 
-    pqual_hiNewBrush =   wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UGREN")), wxSOLID); //Bright Green
-    psecureNewBrush =    wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("URED")), wxSOLID);  //Bright Red
+    qual_hiNewBrush =   wxBrush(GetGlobalColor(_T("UGREN")), wxSOLID); //Bright Green
+    secureNewBrush =    wxBrush(GetGlobalColor(_T("URED")), wxSOLID);  //Bright Red
 
 }
 
@@ -504,13 +513,13 @@ void WiFiStatWin::OnPaint(wxPaintEvent& event)
     GetClientSize(&width, &height );
     wxPaintDC dc(this);
 
-    dc.SetBackground(*pbackBrush);
+    dc.SetBackground(backBrush);
     dc.Clear();
 
     int bar_total = width / NSIGBARS;
 
 //    Create the Signal Strength Indicators
-    dc.SetBrush(*pbackBrush);
+    dc.SetBrush(backBrush);
     wxPen ppPen(GetGlobalColor(_T("UBLCK")), 1, wxSOLID);
     dc.SetPen(ppPen);
 
@@ -522,21 +531,21 @@ void WiFiStatWin::OnPaint(wxPaintEvent& event)
             {
                 int x = width - bar_total * (ista + 1);
 
-                dc.SetBrush(*pbackBrush);
+                dc.SetBrush(backBrush);
                 dc.DrawRectangle(x+2, 2, bar_total-4 , height-4);
 
                 // Old stations get soft color bars
                 if(m_age[ista])
                 {
-                    dc.SetBrush(*pqual_hiBrush);
+                    dc.SetBrush(qual_hiBrush);
                     if(m_secure[ista])
-                        dc.SetBrush(*psecureBrush);
+                        dc.SetBrush(secureBrush);
                 }
                 else
                 {
-                    dc.SetBrush(*pqual_hiNewBrush);
+                    dc.SetBrush(qual_hiNewBrush);
                     if(m_secure[ista])
-                        dc.SetBrush(*psecureNewBrush);
+                        dc.SetBrush(secureNewBrush);
                 }
 
                 DrawBars(dc, x+2, 2, bar_total-4 , height-4, m_quality[ista], 100);

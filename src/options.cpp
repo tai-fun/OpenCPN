@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.33 2009/09/29 18:14:26 bdbcat Exp $
+ * $Id: options.cpp,v 1.34 2009/11/18 01:25:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.34  2009/11/18 01:25:31  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.33  2009/09/29 18:14:26  bdbcat
  * Add color to managed fonts
  *
@@ -208,6 +211,8 @@ extern bool             g_bTrackDistance;
 extern int              g_cm93_zoom_factor;
 extern CM93DSlide       *pCM93DetailSlider;
 extern bool             g_bShowCM93DetailSlider;
+
+extern bool             g_bShowGRIBIcon;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -406,7 +411,7 @@ void options::CreateControls()
     wxStaticBox* itemStaticBoxSizerPrintStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Printing"));
     wxStaticBoxSizer* itemStaticBoxSizerPrint = new wxStaticBoxSizer(itemStaticBoxSizerPrintStatic, wxVERTICAL);
     itemBoxSizer6->Add(itemStaticBoxSizerPrint, 0, wxEXPAND|wxALL, 5);
-    pPrintShowIcon = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Printing Icon"), wxDefaultPosition,
+    pPrintShowIcon = new wxCheckBox( itemPanel5, ID_PRINTCHECKBOX1, _("Show Printing Icon"), wxDefaultPosition,
                              wxSize(-1, -1), 0 );
     pPrintShowIcon->SetValue(FALSE);
     itemStaticBoxSizerPrint->Add(pPrintShowIcon, 1, wxALIGN_LEFT|wxALL, 2);
@@ -418,7 +423,7 @@ void options::CreateControls()
     itemBoxSizer6->Add(itemStaticBoxSizerCDO, 0, wxEXPAND|wxALL, border_size);
 
     //  Chart Outlines checkbox
-    pCDOOutlines = new wxCheckBox( itemPanel5, ID_DEBUGCHECKBOX1, _("Show Chart Outlines"), wxDefaultPosition,
+    pCDOOutlines = new wxCheckBox( itemPanel5, ID_OUTLINECHECKBOX1, _("Show Chart Outlines"), wxDefaultPosition,
                                    wxSize(-1, -1), 0 );
     pCDOOutlines->SetValue(FALSE);
     itemStaticBoxSizerCDO->Add(pCDOOutlines, 1, wxALIGN_LEFT|wxALL, 2);
@@ -988,6 +993,25 @@ void options::CreateControls()
 
     itemNotebook4->AddPage(itemPanelFont, _("Fonts"));
 
+    //      Build GRIB. Page
+
+    itemPanelGRIB = new wxPanel( itemNotebook4, ID_PANELGRIB, wxDefaultPosition, wxDefaultSize,
+                                     wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+    wxBoxSizer* itemBoxSizerGRIBPanel = new wxBoxSizer(wxVERTICAL);
+    itemPanelGRIB->SetSizer(itemBoxSizerGRIBPanel);
+
+    itemNotebook4->AddPage(itemPanelGRIB, _("GRIB"));
+
+    //  Grib toolbox icon checkbox
+    wxStaticBox* itemStaticBoxSizerGRIBStatic = new wxStaticBox(itemPanelGRIB, wxID_ANY, _("GRIB"));
+    wxStaticBoxSizer* itemStaticBoxSizerGRIB = new wxStaticBoxSizer(itemStaticBoxSizerGRIBStatic, wxVERTICAL);
+    itemBoxSizerGRIBPanel->Add(itemStaticBoxSizerGRIB, 0, wxGROW|wxALL, border_size);
+    pGRIBShowIcon = new wxCheckBox( itemPanelGRIB, ID_GRIBCHECKBOX, _("Show GRIB icon"), wxDefaultPosition,
+                                    wxSize(-1, -1), 0 );
+    itemStaticBoxSizerGRIB->Add(pGRIBShowIcon, 1, wxALIGN_LEFT|wxALL, border_size);
+
+
+
     //      Build Etc. Page
 
     itemPanelAdvanced = new wxPanel( itemNotebook4, ID_PANELADVANCED, wxDefaultPosition, wxDefaultSize,
@@ -1196,6 +1220,8 @@ void options::SetInitialSettings()
 
       m_pCheck_Trackpoint_time->SetValue(g_bTrackTime);
       m_pCheck_Trackpoint_distance->SetValue(g_bTrackDistance);
+
+      pGRIBShowIcon->SetValue(g_bShowGRIBIcon);
 
 
 //    AIS Parameters
@@ -1663,9 +1689,16 @@ void options::OnXidOkClick( wxCommandEvent& event )
         pInit_Chart_Dir->Append(cur_path);
     }
 
+    delete m_pSerialArray;
+
+
+//    GRIB
+    g_bShowGRIBIcon= pGRIBShowIcon->GetValue();
+
 
     //      Could be a lot smarter here
     EndModal(GENERIC_CHANGED | S52_CHANGED);
+
 
 }
 

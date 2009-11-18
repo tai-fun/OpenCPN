@@ -25,10 +25,10 @@
 #ifndef __S52UTILS_H__
 #define __S52UTILS_H__
 
-#include <stdio.h>  // printf()
+//#include <stdio.h>  // printf()
 
 #ifdef SOLARIS
-// well should be cc 
+// well should be cc
 #define PRINTF    printf(__FILE__":%i: : ", __LINE__),printf
 #else
 #define PRINTF    printf(__FILE__":%i: %s(): ", __LINE__, __FUNCTION__),printf

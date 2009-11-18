@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.17 2009/09/25 15:11:51 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.18 2009/11/18 01:24:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.18  2009/11/18 01:24:54  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.17  2009/09/25 15:11:51  bdbcat
  * Tweak ETA
  *
@@ -60,6 +63,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.18  2009/11/18 01:24:54  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.17  2009/09/25 15:11:51  bdbcat
  * Tweak ETA
  *
@@ -159,7 +165,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.17 2009/09/25 15:11:51 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.18 2009/11/18 01:24:54 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -283,7 +289,7 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                   wxString srng;
                   float rng = pRouteMan->GetCurrentRngToActivePoint();
                   float nrng = pRouteMan->GetCurrentRngToActiveNormalArrival();
-                  if(fabs(rng - nrng) > .01)
+                  if((fabs(rng - nrng) > .01) && (rng < 10.0))
                   {
                         if(nrng < 10.0)
                             srng.Printf(_T("%5.2f/%5.2f"), rng, nrng );

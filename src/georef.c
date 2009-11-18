@@ -56,7 +56,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.15 2009/08/25 21:30:40 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.16 2009/11/18 01:24:54 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -377,42 +377,32 @@ void toSM(double lat, double lon, double lat0, double lon0, double *x, double *y
 {
     double xlon, z, x1, s, y3, s0, y30, y4;
 
-	xlon = lon;
+    xlon = lon;
 
 /*  Make sure lon and lon0 are same phase */
 
-      if(lon * lon0 < 0.)
-      {
+    if((lon * lon0 < 0.) && (fabs(lon - lon0) > 180.))
+    {
             if(lon < 0.)
                   xlon += 360.;
             else
                   xlon -= 360.;
-      }
+    }
 
-      z = WGS84_semimajor_axis_meters * mercator_k0;
-
-    //  x = lambda - lambda0
+    z = WGS84_semimajor_axis_meters * mercator_k0;
 
     x1 = (xlon - lon0) * DEGREE * z;
+    *x = x1;
 
      // y =.5 ln( (1 + sin t) / (1 - sin t) )
     s = sin(lat * DEGREE);
     y3 = (.5 * log((1 + s) / (1 - s))) * z;
 
-
     s0 = sin(lat0 * DEGREE);
     y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
     y4 = y3 - y30;
 
-    *x = x1;
     *y = y4;
-
-    //testing eccentricity math
-/*
-    double falsen =  a * k0 *log(tan(PI/4 + lat0 * DEGREE / 2)*pow((1. - e * s0)/(1. + e * s0), e/2.));
-    double test =       a * k0 *log(tan(PI/4 + lat  * DEGREE / 2)*pow((1. - e * s )/(1. + e * s ), e/2.));
-    *y = test - falsen;
-*/
 
 }
 
@@ -432,32 +422,104 @@ fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon)
       double lat2 =(atan2(e11, sqrt(1 - e11 * e11))) / DEGREE;
 */
 //    which is the same as....
+
       s0 = sin(lat0 * DEGREE);
       y0 = (.5 * log((1 + s0) / (1 - s0))) * z;
 
       lat3 = (2.0 * atan(exp((y0+y)/z)) - PI/2.) / DEGREE;
+      *lat = lat3;
+
 
       // lon = x + lon0
       lon1 = lon0 + (x / (DEGREE * z));
+      *lon = lon1;
 
-      *lat = lat3;
+}
+
+void toSM_ECC(double lat, double lon, double lat0, double lon0, double *x, double *y)
+{
+      double xlon, z, x1, s, y3, s0, y30, y4;
+
+      double falsen;
+      double test;
+      double ypy;
+
+      double f = 1.0 / 298.;    // flattening .003355
+      double e2 = 2 * f - f * f;      // eccentricity^2  .006700
+      double e = sqrt(e2);
+
+
+      xlon = lon;
+
+
+      /*  Make sure lon and lon0 are same phase */
+
+      if(lon * lon0 < 0.)
+      {
+            if(lon < 0.)
+                  xlon += 360.;
+            else
+                  xlon -= 360.;
+      }
+
+      z = WGS84_semimajor_axis_meters * mercator_k0;
+
+      x1 = (xlon - lon0) * DEGREE * z;
+      *x = x1;
+
+
+     // y =.5 ln( (1 + sin t) / (1 - sin t) )
+      s = sin(lat * DEGREE);
+      y3 = (.5 * log((1 + s) / (1 - s))) * z;
+
+      s0 = sin(lat0 * DEGREE);
+      y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
+      y4 = y3 - y30;
+//      *y = y4;
+
+    //testing eccentricity math
+
+
+      falsen =  z *log(tan(PI/4 + lat0 * DEGREE / 2)*pow((1. - e * s0)/(1. + e * s0), e/2.));
+      test =    z *log(tan(PI/4 + lat  * DEGREE / 2)*pow((1. - e * s )/(1. + e * s ), e/2.));
+      ypy = test - falsen;
+
+      *y = ypy;
+}
+
+void fromSM_ECC(double x, double y, double lat0, double lon0, double *lat, double *lon)
+{
+      double z, s0, lon1;
+      double falsen, t, xi, esf;
+
+      double f = 1.0 / 298.;    // flattening .003355
+      double es = 2 * f - f * f;      // eccentricity^2  .006700
+      double e = sqrt(es);
+
+      z = WGS84_semimajor_axis_meters * mercator_k0;
+
+      lon1 = lon0 + (x / (DEGREE * z));
       *lon = lon1;
 
 //testing eccentricity math
-/*
-      double falsen, t, xi;
-      falsen = a * k0 *log(tan(PI/4 + lat0 * DEGREE / 2)*pow((1. - e * s0)/(1. + e * s0), e/2.));
-      t = exp((falsen - y) / (z));
+
+      s0 = sin(lat0 * DEGREE);
+
+      falsen = z *log(tan(PI/4 + lat0 * DEGREE / 2)*pow((1. - e * s0)/(1. + e * s0), e/2.));
+      t = exp((y + falsen) / (z));
       xi = (PI / 2.) - 2.0 * atan(t);
-      double phi = xi + (es/2. + (5*es*es/24.) + (es*es*es/12.) + (13.0 *es*es*es*es/360.)) * sin( 2 * xi);
-      phi += ((7.*es*es/48.) + (29.*es*es*es/240.) + (811.*es*es*es*es/11520.)) * sin (4. * xi);
-      phi += ((7.*es*es*es/120.) + (81*es*es*es*es/1120.) + (4279.*es*es*es*es/161280.)) * sin(8. * xi);
 
-      phi /= DEGREE;
+      esf = (es/2. + (5*es*es/24.) + (es*es*es/12.) + (13.0 *es*es*es*es/360.)) * sin( 2 * xi);
+      esf += ((7.*es*es/48.) + (29.*es*es*es/240.) + (811.*es*es*es*es/11520.)) * sin (4. * xi);
+      esf += ((7.*es*es*es/120.) + (81*es*es*es*es/1120.) + (4279.*es*es*es*es/161280.)) * sin(8. * xi);
 
-     *lat = phi;
-*/
+
+     *lat = -(xi + esf) / DEGREE;
+
 }
+
+
+
 
 #if 0
 Molodensky
@@ -827,10 +889,28 @@ int Georef_Calculate_Coefficients_Onedir(int n_points, int n_par, double *tx, do
             return control.info;
 }
 
-int Georef_Calculate_Coefficients(struct GeoRef *cp)
+int Georef_Calculate_Coefficients(struct GeoRef *cp, int nlin_lon)
 {
     int  r1, r2, r3, r4;
-    int mp = 3;
+    int mp;
+    int mp_lat, mp_lon;
+
+    double *pnull;
+    double *px;
+
+    //      Zero out the points
+    cp->pwx[6] = cp->pwy[6] = cp->wpx[6] = cp->wpy[6] = 0.;
+    cp->pwx[7] = cp->pwy[7] = cp->wpx[7] = cp->wpy[7] = 0.;
+    cp->pwx[8] = cp->pwy[8] = cp->wpx[8] = cp->wpy[8] = 0.;
+    cp->pwx[9] = cp->pwy[9] = cp->wpx[9] = cp->wpy[9] = 0.;
+    cp->pwx[3] = cp->pwy[3] = cp->wpx[3] = cp->wpy[3] = 0.;
+    cp->pwx[4] = cp->pwy[4] = cp->wpx[4] = cp->wpy[4] = 0.;
+    cp->pwx[5] = cp->pwy[5] = cp->wpx[5] = cp->wpy[5] = 0.;
+    cp->pwx[0] = cp->pwy[0] = cp->wpx[0] = cp->wpy[0] = 0.;
+    cp->pwx[1] = cp->pwy[1] = cp->wpx[1] = cp->wpy[1] = 0.;
+    cp->pwx[2] = cp->pwy[2] = cp->wpx[2] = cp->wpy[2] = 0.;
+
+    mp = 3;
 
     switch (cp->order)
     {
@@ -843,17 +923,36 @@ int Georef_Calculate_Coefficients(struct GeoRef *cp)
     case 3:
         mp = 10;
         break;
+    default:
+        mp = 3;
+        break;
     }
 
+    mp_lat = mp;
+
+    //      Force linear fit for longitude if nlin_lon > 0
+    mp_lon = mp;
+    if(nlin_lon)
+          mp_lon = 3;
+
+    //      Make a dummay double array
+    pnull = (double *)calloc(cp->count * sizeof(double), 1);
 
     //      pixel(tx,ty) to (lat,lon)
     //      Calculate and use a linear equation for p[0..2] to hint the solver
 
-    r1 = Georef_Calculate_Coefficients_Onedir(cp->count, mp, cp->tx, cp->ty, cp->lon, cp->pwx,
+    r1 = Georef_Calculate_Coefficients_Onedir(cp->count, mp_lon, cp->tx, cp->ty, cp->lon, cp->pwx,
                                          cp->lonmin - (cp->txmin * (cp->lonmax - cp->lonmin) /(cp->txmax - cp->txmin)),
                                          (cp->lonmax - cp->lonmin) /(cp->txmax - cp->txmin),
                                          0.);
-    r2 = Georef_Calculate_Coefficients_Onedir(cp->count, mp, cp->tx, cp->ty, cp->lat, cp->pwy,
+
+    //      if blin_lon > 0, force cross terms in latitude equation coefficients to be zero by making lat not dependent on tx,
+    if(nlin_lon)
+          px = pnull;
+    else
+          px = cp->tx;
+
+    r2 = Georef_Calculate_Coefficients_Onedir(cp->count, mp_lat, px, cp->ty, cp->lat, cp->pwy,
                                          cp->latmin - (cp->tymin * (cp->latmax - cp->latmin) /(cp->tymax - cp->tymin)),
                                          0.,
                                          (cp->latmax - cp->latmin) /(cp->tymax - cp->tymin));
@@ -861,15 +960,23 @@ int Georef_Calculate_Coefficients(struct GeoRef *cp)
     //      (lat,lon) to pixel(tx,ty)
     //      Calculate and use a linear equation for p[0..2] to hint the solver
 
-    r3 = Georef_Calculate_Coefficients_Onedir(cp->count, mp, cp->lon, cp->lat, cp->tx, cp->wpx,
+    r3 = Georef_Calculate_Coefficients_Onedir(cp->count, mp_lon, cp->lon, cp->lat, cp->tx, cp->wpx,
                                          cp->txmin - ((cp->txmax - cp->txmin) * cp->lonmin / (cp->lonmax - cp->lonmin)),
                                          (cp->txmax - cp->txmin) / (cp->lonmax - cp->lonmin),
                                          0.0);
 
-    r4 = Georef_Calculate_Coefficients_Onedir(cp->count, mp, cp->lon, cp->lat, cp->ty, cp->wpy,
+    //      if blin_lon > 0, force cross terms in latitude equation coefficients to be zero by making ty not dependent on lon,
+    if(nlin_lon)
+          px = pnull;
+    else
+          px = cp->lon;
+
+    r4 = Georef_Calculate_Coefficients_Onedir(cp->count, mp_lat, pnull/*cp->lon*/, cp->lat, cp->ty, cp->wpy,
                                          cp->tymin - ((cp->tymax - cp->tymin) * cp->latmin / (cp->latmax - cp->latmin)),
                                         0.0,
                                         (cp->tymax - cp->tymin) / (cp->latmax - cp->latmin));
+
+    free (pnull);
 
     if((r1) && (r1 < 4) && (r2) && (r2 < 4) && (r3) && (r3 < 4) && (r4) && (r4 < 4))
         return 0;

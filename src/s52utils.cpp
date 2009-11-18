@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52utils.cpp,v 1.7 2009/08/03 03:14:38 bdbcat Exp $
+ * $Id: s52utils.cpp,v 1.8 2009/11/18 01:26:13 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Utility Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52utils.cpp,v $
+ * Revision 1.8  2009/11/18 01:26:13  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.7  2009/08/03 03:14:38  bdbcat
  * Cleanup for MSVC
  *
@@ -72,28 +75,25 @@
  *
  */
 
-#include "dychart.h"
-//CPL_CVSID("$Id: s52utils.cpp,v 1.7 2009/08/03 03:14:38 bdbcat Exp $");
+//#include "dychart.h"              // comment out because MSVC CRT Mem debug breaks compile???
+
+//CPL_CVSID("$Id: s52utils.cpp,v 1.8 2009/11/18 01:26:13 bdbcat Exp $");
 
 #include "s52utils.h"
-#include <stdio.h>        // FILE
-#include <string.h>       // strncmp()
+//#include <stdio.h>        // FILE
+//#include <string.h>       // strncmp()
 
-#include <stdlib.h>       // exit()
+//#include <stdlib.h>       // exit()
 
 // configuration file
 #define CONF_NAME   "./s52test.conf"
 
-#ifdef __WXMSW__66
-    #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
-    #define new DEBUG_NEW
-#endif
 
 
 #define TRUE 1
 #define FALSE 0
 
-#define CPATH_MAX 255
+//#define CPATH_MAX 255
 ///////////////////////////////////////////////////////////////////
 //
 //   GLOBAL MARINER PARAMETER (will move out)
@@ -210,7 +210,7 @@ static double _MARparamVal[] = {
 };
 
 //////////////////////////////////////////////////////////////////
-
+#if 0
 int S52_getConfig(const char *label, valueBuf *vbuf)
 // return TRUE and string value in vbuf for label, FLASE if fail
 {
@@ -257,6 +257,7 @@ int S52_getConfig(const char *label, valueBuf *vbuf)
    return 0;
 
 }
+#endif
 
 double S52_getMarinerParam(S52_MAR_param_t param)
 // return Mariner parameter or '0.0' if fail

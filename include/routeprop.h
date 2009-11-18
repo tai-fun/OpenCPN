@@ -18,6 +18,8 @@
 #include "wx/listctrl.h"
 #include "chart1.h"                 // for ColorScheme
 #include "wx/hyperlink.h"           // toh, 2009.02.08
+#include "scrollingdialog.h"
+
 
 WX_DECLARE_LIST(wxHyperlinkCtrl, HyperlinkCtrlList);// establish class as list member
 
@@ -158,7 +160,7 @@ public:
  * MarkProp class declaration
  */
 
-class MarkProp: public wxDialog
+class MarkProp: public wxScrollingDialog
 {
     DECLARE_DYNAMIC_CLASS( MarkProp )
     DECLARE_EVENT_TABLE()

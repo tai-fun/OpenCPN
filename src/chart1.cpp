@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.62 2009/09/30 23:15:23 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.63 2009/11/18 01:23:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.63  2009/11/18 01:23:17  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.62  2009/09/30 23:15:23  bdbcat
  * Add more default values to bnovice
  *
@@ -228,15 +231,15 @@
 #include "chartimg.h"               // for ChartBaseBSB
 #include "routeprop.h"
 #include "cm93.h"
+#include "grib.h"
+
 
 #include <wx/image.h>
 #include "wx/apptrait.h"
 
-// begin rms
 #ifdef __WXOSX__
 #include "macutils.h"
 #endif
-// end rms
 
 #ifdef USE_S57
 #include "s52plib.h"
@@ -249,13 +252,17 @@
 #include "wificlient.h"
 #endif
 
-//#include <mcheck.h>
-
+#ifdef __WXMSW__
+//#define __MSVC__LEAK
+#ifdef __MSVC__LEAK
+#include "Stackwalker.h"
+#endif
+#endif
 
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.62 2009/09/30 23:15:23 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.63 2009/11/18 01:23:17 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -314,7 +321,7 @@ wxString        *pWVS_Locn;
 wxString        *pInit_Chart_Dir;
 wxString        *g_pcsv_locn;
 wxString        *g_pSENCPrefix;
-wxString        *g_pPresLibData;
+wxString        g_PresLibData;
 
 int             user_user_id;
 int             file_user_id;
@@ -394,9 +401,6 @@ s52plib         *ps52plib;
 WIFIWindow      *pWIFI;
 #endif
 
-
-
-static wxString *pval;          // Private environment temp storage
 
 #ifdef __WXOSX__
 #include "macutils.h"
@@ -540,6 +544,25 @@ int              g_cm93detail_dialog_x, g_cm93detail_dialog_y;
 bool             g_bUseGreenShip;
 
 
+
+//    GRIB Support
+GRIBUIDialog     *g_pGribDialog;
+
+int              g_grib_dialog_x, g_grib_dialog_y;
+int              g_grib_dialog_sx, g_grib_dialog_sy;
+wxString         g_grib_dir;
+bool             g_bShowGRIBIcon;
+
+
+bool             g_b_overzoom_x;                      // Allow high overzoom
+bool             g_bshow_overzoom_emboss;
+
+int              g_n_ownship_meters;
+
+int              g_nautosave_interval_seconds;
+
+about             *g_pAboutDlg;
+
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
 
@@ -552,11 +575,15 @@ jmp_buf           env;                    // the context saved by setjmp();
 DEFINE_GUID(GARMIN_DETECT_GUID, 0x2c9c45c2L, 0x8e7d, 0x4c08, 0xa1, 0x2d, 0x81, 0x6b, 0xba, 0xe7, 0x22, 0xc0);
 #endif
 
-#ifdef __MSVC__66
+/*
+#ifdef __MSVC__
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
+#define new DEBUG_NEW
 #endif
+*/
 
 #ifdef __MSVC__
      extern  "C" long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
@@ -641,7 +668,30 @@ catch_signals(int signo)
 }
 #endif
 
+/*
+#include "DbgHeap.h"
+// Enable invalid memory access detection mode
+DbgHeap g_Heap; // the global debug heap object.
 
+void* operator new (size_t nSize)
+{
+    // the last parameter - allocation alignment method
+    void* pPtr = g_Heap.Allocate(nSize, true);
+    // you may run your program with both methods to ensure everything's ok
+
+    if (!pPtr)
+    {
+        // do whatever you want if no memory. Either return NULL pointer
+        // or throw an exception. This is flexible.
+    }
+    return pPtr;
+}
+
+void operator delete (void* pPtr)
+{
+    g_Heap.Free(pPtr);
+}
+*/
 
 
 // `Main program' equivalent, creating windows and returning main app frame
@@ -658,6 +708,57 @@ bool MyApp::OnInit()
       if (!wxApp::OnInit())
             return false;
 
+      wxPlatformInfo Platform = wxPlatformInfo::Get();
+
+      //    On MSW, force the entire process to run on one CPU core only
+      //    This resolves some difficulty with wxThread syncronization
+#ifdef __WXMSW__
+      //Gets the current process handle
+      HANDLE hProc = GetCurrentProcess();
+      DWORD procMask;
+      DWORD sysMask;
+      HANDLE hDup;
+      DuplicateHandle(hProc,
+                      hProc,
+                      hProc,
+                      &hDup,
+                      0,
+                      FALSE,
+                      DUPLICATE_SAME_ACCESS);
+
+//Gets the current process affinity mask
+      GetProcessAffinityMask(hDup,&procMask,&sysMask);
+
+// Take a simple approach, and assume up to 4 processors
+      DWORD newMask;
+      if((procMask & 1) == 1) newMask = 1;
+      else if((procMask & 2) == 2) newMask = 2;
+      else if((procMask & 4) == 4) newMask = 4;
+      else if((procMask & 8) == 8) newMask = 8;
+
+//Set te affinity mask for the process
+      BOOL res = SetProcessAffinityMask(hDup,(DWORD_PTR)newMask);
+
+      if(res == 0 )
+      {
+         //Error setting affinity mask!!
+      }
+#endif
+
+
+
+
+#ifdef __MSVC__LEAK
+      InitAllocCheck(ACOutput_Simple);             // ACOutput_Simple (default)
+                                                   // ACOutput_Advanced
+                                                   //        This has a more detailed output of the callstack. For more info see here.
+                                                   // ACOutput_XML
+                                                   // This outputs the leaks in an XML file so  you can read it easily from other applications
+                                                   //http://www.codeproject.com/KB/applications/leakfinder.aspx
+#endif
+
+
+//      _CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
 
 //      CALLGRIND_STOP_INSTRUMENTATION
 
@@ -670,19 +771,17 @@ bool MyApp::OnInit()
       g_start_time = wxDateTime::Now();
 
 #ifdef __WXMSW__
-    //testing
-//    _controlfp( _EM_INVALID | _EM_DENORMAL /*| _EM_ZERODIVIDE*/
-//    | _EM_OVERFLOW | _EM_UNDERFLOW |_EM_INEXACT, _MCW_EM );
 
       //    Handle any Floating Point Exceptions which may leak thru from other
       //    processes.  The exception filter is in cutil.c
-    //  Dunno why it wont link in MSVC.....
+      //    Seems to only happen for W98
 
-    SetUnhandledExceptionFilter( &MyUnhandledExceptionFilter );
+      if(Platform.GetOperatingSystemId() == wxOS_WINDOWS_9X)
+            SetUnhandledExceptionFilter( &MyUnhandledExceptionFilter );
 #endif
 
 #ifdef __WXMSW__
-//      _CrtSetBreakAlloc(173707);
+//     _CrtSetBreakAlloc(1409);
 #endif
 
 
@@ -725,9 +824,6 @@ bool MyApp::OnInit()
         malloc_max = 0;
 
 //      wxHandleFatalExceptions(true);
-
-//      Init the private environment handler
-        pval = new wxString;
 
 // Set up default FONT encoding, which should have been done by wxWidgets some time before this......
         wxFont temp_font(10, wxDEFAULT ,wxNORMAL, wxNORMAL, FALSE, wxString(_T("")), wxFONTENCODING_SYSTEM );
@@ -833,7 +929,6 @@ bool MyApp::OnInit()
         g_pcsv_locn = new wxString();
         pInit_Chart_Dir = new wxString();
         g_pSENCPrefix = new wxString();
-        g_pPresLibData = new wxString;
 
 //      Create an array string to hold repeating messages, so they don't
 //      overwhelm the log
@@ -891,13 +986,13 @@ bool MyApp::OnInit()
 
 //      Establish the location of the config file
 #ifdef __WXMSW__
-        wxString Config_File("opencpn.ini");
+        wxString Config_File(_T("opencpn.ini"));
         Config_File.Prepend(*pHome_Locn);
 
 #elif defined __WXMAC__
         wxString Config_File = std_path.GetUserConfigDir(); // should be ~/Library/Preferences
         appendOSDirSlash(&Config_File) ;
-        Config_File.Append("opencpn.ini");
+        Config_File.Append(_T("opencpn.ini"));
 #else
         wxString Config_File = std_path.GetUserDataDir(); // should be ~/.opencpn
         appendOSDirSlash(&Config_File) ;
@@ -1042,7 +1137,7 @@ bool MyApp::OnInit()
 
 //      If the config file contains an entry for PresentationLibraryData, use it.
 //      Otherwise, default to conditionally set spot under g_pcsv_locn
-        if(g_pPresLibData->IsEmpty())
+        if(g_PresLibData.IsEmpty())
         {
               plib_data = *g_pcsv_locn;
               appendOSDirSlash(&plib_data);
@@ -1050,7 +1145,7 @@ bool MyApp::OnInit()
         }
         else
         {
-              plib_data = *g_pPresLibData;
+              plib_data = g_PresLibData;
         }
 
 
@@ -1394,7 +1489,6 @@ int MyApp::OnExit()
         delete phost_name;
         delete pInit_Chart_Dir;
         delete pWVS_Locn;
-        delete pval;
 
         delete pNMEADataSource;
         delete pNMEA_AP_Port;
@@ -1433,6 +1527,10 @@ int MyApp::OnExit()
         //      Restore any changed system colors
 #ifdef __WXMSW__
     RestoreSystemColors();
+#endif
+
+#ifdef __MSVC__LEAK
+    DeInitAllocCheck();
 #endif
 
         return TRUE;
@@ -1674,7 +1772,9 @@ void MyFrame::OnActivate(wxActivateEvent& event)
         Refresh(false);     // This frame Refresh() invalidates children (i.e.canvas) on MSW!!
     }
 */
-    event.Skip();
+      cc1->SetFocus();              // This seems to be needed for MSW, to get key and wheel events
+                                    // after minimize/maximize.
+      event.Skip();
 }
 
 
@@ -1816,6 +1916,7 @@ void MyFrame::DestroyMyToolbar()
 {
     delete m_ptool_ct_dummy;
     delete toolBar;
+    toolBar = NULL;
 }
 
 
@@ -1954,6 +2055,16 @@ wxToolBar *MyFrame::CreateAToolbar()
           x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
 
+    if (g_bShowGRIBIcon)
+    {
+          tb->AddTool( ID_GRIB, _T(""), *(*phash)[wxString(_T("grib"))], *(*phash)[wxString(_T("grib"))],
+                       wxITEM_CHECK,_T("Show GRIB dialog"));
+          x += pitch_tool;
+          x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
+    }
+
+
+
     tb->AddTool( ID_COLSCHEME, _T(""), *(*phash)[wxString(_T("colorscheme"))], _T("Change Color Scheme"), wxITEM_NORMAL);
     x += pitch_tool;
     tb->AddTool( ID_HELP, _T(""), *(*phash)[wxString(_T("help"))], _T("About OpenCPN"), wxITEM_NORMAL);
@@ -2040,9 +2151,10 @@ void MyFrame::PrepareToolbarBitmaps(void)
     tool_xpm_hash[_T("follow")]       = (char *)_img_follow;
     tool_xpm_hash[_T("help")]         = (char *)_img_help;
     tool_xpm_hash[_T("colorscheme")]  = (char *)_img_colscheme;
-    tool_xpm_hash[_T("gpx_import")]   = (char *)_img_gpx_import; // toh, 2009.02.14
-    tool_xpm_hash[_T("gpx_export")]   = (char *)_img_gpx_export; // toh, 2009.02.14
+    tool_xpm_hash[_T("gpx_import")]   = (char *)_img_gpx_import;
+    tool_xpm_hash[_T("gpx_export")]   = (char *)_img_gpx_export;
     tool_xpm_hash[_T("track")]        = (char *)_img_track;
+    tool_xpm_hash[_T("grib")]         = (char *)_img_grib;
 
         //  Process all members of the XPM hashmap
 
@@ -2253,7 +2365,45 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
     return;
 }
 
+void MyFrame::DeleteToolbarBitmaps()
+{
+#ifdef OCPN_USE_PNGICONS
 
+    delete _img_settings;
+    delete _img_zoomin;
+    delete _img_zoomout;
+    delete _img_scin;
+    delete _img_scout;
+    delete _img_tide;
+    delete _img_route;
+    delete _img_current;
+    delete _img_text;
+    delete _img_print;
+    delete _img_exitt;
+    delete _img_follow;
+    delete _img_help;
+    delete _img_colscheme;
+    delete _img_gpx_import;
+    delete _img_gpx_export;
+    delete _img_track;
+    delete _img_tidesml;
+    delete _img_grib;
+
+    delete _img_left;
+    delete _img_right;
+    delete _img_up;
+    delete _img_down;
+    delete _img_pencil;
+
+    delete _img_mob;
+    delete _img_opencpn;
+
+    delete _img_ship_green;
+    delete _img_ship_red;
+
+
+#endif
+}
 
 
 
@@ -2273,6 +2423,8 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
       quitflag++ ;
 
       FrameTimer1.Stop();
+
+      TrackOff();
 
     /*
           Automatically drop an anchorage waypoint, if enabled
@@ -2332,10 +2484,15 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
       delete g_printData;
       delete g_pageSetupData;
 
+      if(g_pAboutDlg)
+            g_pAboutDlg->Destroy();
+
 //      Explicitely Close some children, especially the ones with event handlers
 //      or that call GUI methods
 
     cc1->Destroy();
+    cc1 = NULL;
+
     if(g_pnmea)
     {
           g_pnmea->Close();
@@ -2358,14 +2515,24 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
     }
 
     if(NULL != console)
+    {
           console->Destroy();
+          console = NULL;
+    }
 
     stats->Destroy();
+    stats = NULL;
 
 //    pthumbwin->Destroy();
     delete pthumbwin;
+    pthumbwin = NULL;
 
-    delete pAPilot;
+    if(pAPilot)
+    {
+      pAPilot->Close();
+      pAPilot->Destroy();
+      pAPilot = NULL;
+    }
 
     // Delete the toolbar bitmaps
 
@@ -2388,6 +2555,11 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
         wxBitmap *pbm = it->second;
         delete pbm;
     }
+
+    DeleteToolbarBitmaps();               // delete the originals, too
+
+    DestroyMyToolbar();
+
 
     this->Destroy();
 
@@ -2640,8 +2812,10 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
 
     case ID_HELP:
       {
-            about *pAboutDlg = new about(this, &g_SData_Locn);
-            pAboutDlg->Show();
+            if(!g_pAboutDlg)
+                  g_pAboutDlg = new about(this, &g_SData_Locn);
+
+            g_pAboutDlg->Show();
 
             break;
       }
@@ -2681,6 +2855,11 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
                 TrackOn();
           else
                 TrackOff();
+          break;
+    }
+    case ID_GRIB:
+    {
+          cc1->ShowGribDialog();
 
           break;
     }
@@ -2877,9 +3056,10 @@ int MyFrame::DoOptionsDialog()
 
       bool bPrevPrintIcon = g_bShowPrintIcon;
 
-      bool bPrevGPXIcon = g_bShowGPXIcons;      // toh, 2009.02.14
-
+      bool bPrevGPXIcon = g_bShowGPXIcons;
       bool bPrevTrackIcon = g_bShowTrackIcon;
+      bool bPrevGRIBIcon = g_bShowGRIBIcon;
+
 
 //    Pause all of the async classes
 #ifdef USE_WIFI_CLIENT
@@ -3002,7 +3182,8 @@ int MyFrame::DoOptionsDialog()
 
       if((bPrevPrintIcon       != g_bShowPrintIcon)     ||
          (bPrevGPXIcon         != g_bShowGPXIcons)      ||
-         (bPrevTrackIcon       != g_bShowTrackIcon)
+         (bPrevTrackIcon       != g_bShowTrackIcon)     ||
+         (bPrevGRIBIcon        != g_bShowGRIBIcon)
         )
             return true;    // indicate a refresh is necessary;
 
@@ -3031,9 +3212,27 @@ void MyFrame::DoStackUp(void)
 }
 
 
+
 void MyFrame::OnFrameTimer1(wxTimerEvent& event)
 {
-      g_tick++;
+#ifdef __WXMSW__
+//    if(!cont_on_heap)
+    {
+//        if(_heapchk() != _HEAPOK)
+        {
+
+//       _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_DEBUG );
+//       _CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_DEBUG );
+//       _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
+
+//       _CrtCheckMemory();
+
+//       _CrtDbgBreak( );
+        }
+    }
+#endif
+
+    g_tick++;
 
 //      Finish TCP/IP Sockets test
 // See the code in MyApp::TestSockets()
@@ -3139,19 +3338,16 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
             char buf[40];
             sprintf(buf, "%3d/%3d/%3d", mem_initial/1024, mem_current/1024, mem_total/1024);
 
-            SetStatusText(wxString(buf,  wxConvUTF8), STAT_FIELD_MEM5);
+            SetStatusText(wxString(buf,  wxConvUTF8), 4);
       }
 //      printf("%d\n", mem_current);
 #endif
 #endif
 
-#ifdef AUTO_CONFIG_SAVE_MINUTES
 //  Possibly save the current configuration
-      if(0 == (g_tick % (AUTO_CONFIG_SAVE_MINUTES * 60)))
-      {
-        pConfig->UpdateSettings();
-      }
-#endif
+      if(0 == (g_tick % (g_nautosave_interval_seconds)))
+             pConfig->UpdateSettings();
+
 
 //  Force own-ship drawing parameters
       cc1->SetOwnShipState(SHIP_NORMAL);
@@ -3282,22 +3478,21 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 
 // First, clear background
 // Using a color depending on the state  Chart_Error_Factor
-      wxBrush *p_brush;
-      p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("GREEN3")), wxSOLID);   // quiet green
+      wxBrush brush(GetGlobalColor(_T("GREEN3")), wxSOLID);   // quiet green
 
 
       if(Current_Ch->Chart_Error_Factor > .02)                                       // X percent error
-            p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("CHYLW")), wxSOLID);   // loud yellow
+            brush = wxBrush(GetGlobalColor(_T("CHYLW")), wxSOLID);   // loud yellow
 
       if(!bGPSValid)
       {
           if(Current_Ch->Chart_Error_Factor > .02)                                       // X percent error
-                p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("UINFO")), wxSOLID);  // orange
+              brush = wxBrush(GetGlobalColor(_T("UINFO")), wxSOLID);  // orange
           else
-              p_brush = wxTheBrushList->FindOrCreateBrush(GetGlobalColor(_T("RED1")), wxSOLID);  // soft red
+              brush = wxBrush(GetGlobalColor(_T("RED1")), wxSOLID);  // soft red
       }
 
-      dc.SetBackground(*p_brush);
+      dc.SetBackground(brush);
       dc.Clear();
 
 // Show Pub date
@@ -3389,34 +3584,36 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
 
       int x_offset = 4;
 
-//    Possibly adjust the font?
-      GetTextExtent(name, &w, &h, NULL, NULL, pSWFont3);
-      if(w + x_offset > date_locn_x)
+      if(name.Len())
       {
-            dc.SetFont(*pSWFont2);
-            GetTextExtent(name, &w, &h, NULL, NULL, pSWFont2);
-            if(w + x_offset > date_locn_x)                   // still too long, so shorten it
+      //    Possibly adjust the font?
+            GetTextExtent(name, &w, &h, NULL, NULL, pSWFont3);
+            if(w + x_offset > date_locn_x)
             {
-              wxString nameshort;
-              int l = name.Len();
-              l -= 3;
-              while(l)              //ell
-              {
-                nameshort = name.Mid(0, l);
-                nameshort.Append(_T("..."));
-                GetTextExtent(nameshort, &w, &h, NULL, NULL, pSWFont2);
-                if(w + x_offset < date_locn_x)
-                  break;
-                l -= 1;
-              }
-              dc.DrawText(nameshort, x_offset, size_y - h - iSysDescent);    // properly placed
+                  dc.SetFont(*pSWFont2);
+                  GetTextExtent(name, &w, &h, NULL, NULL, pSWFont2);
+                  if(w + x_offset > date_locn_x)                   // still too long, so shorten it
+                  {
+                        wxString nameshort;
+                        int el = name.Len();
+                        el -= 3;
+                        while(el > 0)              //ell
+                        {
+                              nameshort = name.Mid(0, el);
+                              nameshort.Append(_T("..."));
+                              GetTextExtent(nameshort, &w, &h, NULL, NULL, pSWFont2);
+                              if(w + x_offset < date_locn_x)
+                                    break;
+                              el -= 1;
+                        }
+                        dc.DrawText(nameshort, x_offset, size_y - h - iSysDescent);    // properly placed
+                  }
+                  else
+                        dc.DrawText(name, x_offset, size_y - h - iSysDescent);
             }
             else
-                  dc.DrawText(name, x_offset, size_y - h - iSysDescent);
+            dc.DrawText(name, x_offset, size_y - h - iSysDescent);
       }
-      else
-        dc.DrawText(name, x_offset, size_y - h - iSysDescent);
-
 //   Delete the current status tool, if present
       int ct_pos = toolBar->GetToolPos(ID_TBSTAT);
       if(ct_pos != -1)
@@ -3451,13 +3648,20 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       SendSizeEvent();
 }
 
-
-void MyFrame::SelectChartFromStack(int index)
+int MyFrame::GetnChartStack(void)
 {
+       return pCurrentStack->nEntry;
+}
+
+void MyFrame::SelectChartFromStack(int index, bool bDir, ChartTypeEnum New_Type, ChartFamilyEnum New_Family)
+{
+
+
         if(index < pCurrentStack->nEntry)
         {
 //      Open the new chart
-            ChartBase *pTentative_Chart = ChartData->OpenChartFromStack(pCurrentStack, index);
+            ChartBase *pTentative_Chart;
+            pTentative_Chart = ChartData->OpenStackChartConditional(pCurrentStack, index, bDir, New_Type, New_Family);
 
             if(pTentative_Chart)
             {
@@ -3467,7 +3671,7 @@ void MyFrame::SelectChartFromStack(int index)
                   Current_Ch = pTentative_Chart;
                   Current_Ch->Activate();
 
-                  pCurrentStack->CurrentStackEntry = index;
+                  pCurrentStack->CurrentStackEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->m_pFullPath);
             }
             else
                 SetChartThumbnail(index);       // need to reset thumbnail on failed chart open
@@ -3745,31 +3949,38 @@ bool MyFrame::DoChartUpdate(void)
 
                 else                            // Current_Ch is NOT in new stack
                 {                                       // So, need to open a new chart
-                                                        //      Find the smallest scale raster chart that opens OK
+                                                        //      Find the largest scale raster chart that opens OK
 
                   ChartBase *pProposed = NULL;
 
                   if(bAutoOpen)
                   {
                         bool search_direction = false;            // default is to search from lowest to highest
+                        int start_index = 0;
 
                         //    A special case:  If panning at high scale, open largest scale chart first
                         if((LastStack.CurrentStackEntry == LastStack.nEntry - 1) || (LastStack.nEntry == 0))
+                        {
                               search_direction = true;
+                              start_index = pCurrentStack->nEntry - 1;
+                        }
 
                         //    Another special case, open smallest on program start
                         if(bOpenSmallest)
+                        {
                               search_direction = false;
+                              start_index = 0;
+                        }
 
-                        pProposed = ChartData->OpenStackChartConditional(pCurrentStack, search_direction, new_open_type, new_open_family);
+                        pProposed = ChartData->OpenStackChartConditional(pCurrentStack, start_index, search_direction, new_open_type, new_open_family);
 
 //    Try to open other types/families of chart in some priority
                         if(NULL == pProposed)
-                              pProposed = ChartData->OpenStackChartConditional(pCurrentStack, search_direction,
+                              pProposed = ChartData->OpenStackChartConditional(pCurrentStack, start_index, search_direction,
                                     CHART_TYPE_CM93COMP, CHART_FAMILY_VECTOR);
 
                         if(NULL == pProposed)
-                              pProposed = ChartData->OpenStackChartConditional(pCurrentStack, search_direction,
+                              pProposed = ChartData->OpenStackChartConditional(pCurrentStack, start_index, search_direction,
                                     CHART_TYPE_CM93COMP, CHART_FAMILY_RASTER);
 
                         bNewChart = true;
@@ -3804,7 +4015,11 @@ bool MyFrame::DoChartUpdate(void)
                    Current_Ch = pProposed;
 
                    if(Current_Ch)
+                   {
                          Current_Ch->Activate();
+                         pCurrentStack->CurrentStackEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->m_pFullPath);
+                   }
+
                 }   // need new chart
 
 
@@ -4151,81 +4366,170 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
       m_NMEA0183 << str_buf;
       if(m_NMEA0183.PreParse())
       {
-            if(m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
-            {
-                  if(m_NMEA0183.Parse())
+                  if(m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
                   {
-                        if(m_NMEA0183.Rmc.IsDataValid == NTrue)
+                        if(m_NMEA0183.Parse())
                         {
-                              float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
+                              if(m_NMEA0183.Rmc.IsDataValid == NTrue)
+                              {
+                                    float llt = m_NMEA0183.Rmc.Position.Latitude.Latitude;
+                                    int lat_deg_int = (int)(llt / 100);
+                                    float lat_deg = lat_deg_int;
+                                    float lat_min = llt - (lat_deg * 100);
+                                    gLat = lat_deg + (lat_min/60.);
+                                    if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
+                                          gLat = -gLat;
+
+                                    float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
+                                    int lon_deg_int = (int)(lln / 100);
+                                    float lon_deg = lon_deg_int;
+                                    float lon_min = lln - (lon_deg * 100);
+                                    gLon = lon_deg + (lon_min/60.);
+                                    if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
+                                          gLon = -gLon;
+
+                                    gSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                                    gCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
+
+                                    gVar = m_NMEA0183.Rmc.MagneticVariation;
+                                    if(m_NMEA0183.Rmc.MagneticVariationDirection == West)
+                                          gVar = -gVar;
+
+                                    sfixtime = m_NMEA0183.Rmc.UTCTime;
+
+                                    gGPS_Watchdog = gsp_watchdog_timeout_ticks;
+
+                                    bshow_tick = true;
+                              }
+                        }
+                        else if(g_nNMEADebug)
+                        {
+                              wxString msg(_T("   "));
+                              msg.Append(m_NMEA0183.ErrorMessage);
+                              msg.Append(_T(" : "));
+                              msg.Append(str_buf);
+                              wxLogMessage(msg);
+                        }
+
+                  }
+
+                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDT"))
+                  {
+                        if(m_NMEA0183.Parse())
+                        {
+                              gHdt = m_NMEA0183.Hdt.DegreesTrue;
+                              g_bHDxValid = true;
+                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                        }
+                        else if(g_nNMEADebug)
+                        {
+                              wxString msg(_T("   "));
+                              msg.Append(m_NMEA0183.ErrorMessage);
+                              msg.Append(_T(" : "));
+                              msg.Append(str_buf);
+                              wxLogMessage(msg);
+                        }
+
+                  }
+
+
+                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDG"))
+                  {
+                        if(m_NMEA0183.Parse())
+                        {
+                              gHdt = m_NMEA0183.Hdg.MagneticSensorHeadingDegrees;
+                              if(m_NMEA0183.Hdg.MagneticVariationDirection == East)
+                                    gHdt += m_NMEA0183.Hdg.MagneticVariationDegrees;
+                              else
+                                    gHdt -= m_NMEA0183.Hdg.MagneticVariationDegrees;
+
+                              g_bHDxValid = true;
+                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                        }
+                        else if(g_nNMEADebug)
+                        {
+                              wxString msg(_T("   "));
+                              msg.Append(m_NMEA0183.ErrorMessage);
+                              msg.Append(_T(" : "));
+                              msg.Append(str_buf);
+                              wxLogMessage(msg);
+                        }
+
+                  }
+
+                  else if(m_NMEA0183.LastSentenceIDReceived == _T("HDM"))
+                  {
+                        if(m_NMEA0183.Parse())
+                        {
+                              gHdt = m_NMEA0183.Hdm.DegreesMagnetic;
+                              gHdt += gVar;
+
+                              g_bHDxValid = true;
+                              gHDx_Watchdog = gsp_watchdog_timeout_ticks;
+                        }
+                        else if(g_nNMEADebug)
+                        {
+                              wxString msg(_T("   "));
+                              msg.Append(m_NMEA0183.ErrorMessage);
+                              msg.Append(_T(" : "));
+                              msg.Append(str_buf);
+                              wxLogMessage(msg);
+                        }
+
+                  }
+
+                  else if(m_NMEA0183.LastSentenceIDReceived == _T("VTG"))
+                  {
+                        if(m_NMEA0183.Parse())
+                        {
+                              gSog = m_NMEA0183.Vtg.SpeedKnots;
+                              gCog = m_NMEA0183.Vtg.TrackDegreesTrue;
+                        }
+                        else if(g_nNMEADebug)
+                        {
+                              wxString msg(_T("   "));
+                              msg.Append(m_NMEA0183.ErrorMessage);
+                              msg.Append(_T(" : "));
+                              msg.Append(str_buf);
+                              wxLogMessage(msg);
+                        }
+                  }
+
+                  else if(m_NMEA0183.LastSentenceIDReceived == _T("GLL"))
+                  {
+                        if(m_NMEA0183.Parse())
+                        {
+                              float llt = m_NMEA0183.Gll.Position.Latitude.Latitude;
                               int lat_deg_int = (int)(llt / 100);
                               float lat_deg = lat_deg_int;
                               float lat_min = llt - (lat_deg * 100);
                               gLat = lat_deg + (lat_min/60.);
-                              if(m_NMEA0183.Rmc.Position.Latitude.Northing == South)
+                              if(m_NMEA0183.Gll.Position.Latitude.Northing == South)
                                     gLat = -gLat;
 
-                              float lln = m_NMEA0183.Rmc.Position.Longitude.Longitude;
+                              float lln = m_NMEA0183.Gll.Position.Longitude.Longitude;
                               int lon_deg_int = (int)(lln / 100);
                               float lon_deg = lon_deg_int;
                               float lon_min = lln - (lon_deg * 100);
                               gLon = lon_deg + (lon_min/60.);
-                              if(m_NMEA0183.Rmc.Position.Longitude.Easting == West)
+                              if(m_NMEA0183.Gll.Position.Longitude.Easting == West)
                                     gLon = -gLon;
 
-                              gSog = m_NMEA0183.Rmc.SpeedOverGroundKnots;
-                              gCog = m_NMEA0183.Rmc.TrackMadeGoodDegreesTrue;
-
-                              gVar = m_NMEA0183.Rmc.MagneticVariation;
-                              if(m_NMEA0183.Rmc.MagneticVariationDirection == West)
-                                    gVar = -gVar;
-
-                              sfixtime = m_NMEA0183.Rmc.UTCTime;
+                              sfixtime = m_NMEA0183.Gll.UTCTime;
 
                               gGPS_Watchdog = gsp_watchdog_timeout_ticks;
 
                               bshow_tick = true;
-
+                        }
+                        else if(g_nNMEADebug)
+                        {
+                              wxString msg(_T("   "));
+                              msg.Append(m_NMEA0183.ErrorMessage);
+                              msg.Append(_T(" : "));
+                              msg.Append(str_buf);
+                              wxLogMessage(msg);
                         }
                   }
-            }
-            else if(m_NMEA0183.LastSentenceIDReceived == _T("HDT"))
-            {
-                  if(m_NMEA0183.Parse())
-                  {
-                        gHdt = m_NMEA0183.Hdt.DegreesTrue;
-                        g_bHDxValid = true;
-                        gHDx_Watchdog = gsp_watchdog_timeout_ticks;
-                  }
-            }
-
-            else if(m_NMEA0183.LastSentenceIDReceived == _T("HDG"))
-            {
-                  if(m_NMEA0183.Parse())
-                  {
-                        gHdt = m_NMEA0183.Hdg.MagneticSensorHeadingDegrees;
-                        if(m_NMEA0183.Hdg.MagneticVariationDirection == East)
-                              gHdt += m_NMEA0183.Hdg.MagneticVariationDegrees;
-                        else
-                              gHdt -= m_NMEA0183.Hdg.MagneticVariationDegrees;
-
-                        g_bHDxValid = true;
-                        gHDx_Watchdog = gsp_watchdog_timeout_ticks;
-                  }
-            }
-
-            else if(m_NMEA0183.LastSentenceIDReceived == _T("HDM"))
-            {
-                  if(m_NMEA0183.Parse())
-                  {
-                        gHdt = m_NMEA0183.Hdm.DegreesMagnetic;
-                        gHdt += gVar;
-
-                        g_bHDxValid = true;
-                        gHDx_Watchdog = gsp_watchdog_timeout_ticks;
-                  }
-            }
-
       }
       else
       {
@@ -4838,9 +5142,10 @@ FILE *f;
 
       memset(paPortNames,0x00,sizeof(paPortNames)) ;
       iPortNameCount = FindSerialPortNames(&paPortNames[0],MAX_SERIAL_PORTS) ;
-      for (int iPortIndex=0;iPortIndex<iPortNameCount;iPortIndex++)
+      for (int iPortIndex=0 ; iPortIndex<iPortNameCount ; iPortIndex++)
       {
-            preturn->Add( _T(paPortNames[iPortIndex]));
+            wxString sm(paPortNames[iPortIndex], wxConvUTF8);
+            preturn->Add(sm);
             free(paPortNames[iPortIndex]) ;
       }
 #endif      //__WXOSX__

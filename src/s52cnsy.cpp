@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.20 2009/07/29 00:54:17 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.21 2009/11/18 01:25:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.21  2009/11/18 01:25:31  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.20  2009/07/29 00:54:17  bdbcat
  * Update for gcc 4.2.4
  *
@@ -113,6 +116,8 @@
 #include "wx/wx.h"
 #endif //precompiled headers
 
+#include "wx/tokenzr.h"
+
 #include "dychart.h"
 
 #include "s57chart.h"
@@ -129,7 +134,7 @@ bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.20 2009/07/29 00:54:17 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.21 2009/11/18 01:25:31 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -1281,9 +1286,9 @@ static void *LIGHTS05 (void *param)
 
     wxString orientstr;
 
-// Debug
-//      if(obj->Index == 856)
-//            return NULL; //int tty = 5;
+// Debug Hook
+//      if(obj->Index == 1318)
+//            int tty = 5;
 
 
 
@@ -1481,6 +1486,9 @@ static void *LIGHTS05 (void *param)
                       strcat(sym, ",LITGN, 2");
                 else if (strpbrk(colist, "\001\006\013"))
                       strcat(sym, ",LITYW, 2");
+                else
+                      strcat(sym, ",CHMGD, 2");                 // default is magenta
+
             }
             else if ('\0' == colist[2])
             {
@@ -1604,7 +1612,7 @@ static void *OBSTRN04 (void *param)
       S57Obj *obj = rzRules->obj;
 
       //    Debug Hook
-//      if(obj->Index == 4163)
+//      if(obj->Index == 701)
 //            int yyp = 5;
 
       double   valsou      = UNKNOWN;
@@ -1626,7 +1634,7 @@ static void *OBSTRN04 (void *param)
             if (GEO_AREA == obj->Primitive_type)
                   least_depth = _DEPVAL01(obj, least_depth);
 
-            if (UNKNOWN != least_depth)
+            if (UNKNOWN == least_depth)
             {
                   char catobsstr[20];
                   catobsstr[0] = 0;
@@ -3283,12 +3291,15 @@ static wxString _LITDSN01(S57Obj *obj)
 
     // LITCHR
       int litchr = -9;
+      wxString spost(_T(""));
       GetIntAttr(obj, "LITCHR", litchr);
 
+      bool b_grp2 = false;                      // 2 GRP attributes expected
       if(-9 != litchr)
       {
             switch (litchr)
             {
+/*
                   case 1:   return_value.Append(_T("F"));    break;
                   case 2:   return_value.Append(_T("Fl"));   break;
                   case 3:   return_value.Append(_T("Fl"));   break;
@@ -3296,65 +3307,111 @@ static wxString _LITDSN01(S57Obj *obj)
                   case 7:   return_value.Append(_T("Iso"));  break;
                   case 8:   return_value.Append(_T("Occ"));  break;
                   case 12:  return_value.Append(_T("Mo"));   break;
+*/
+
+                  case 1: return_value.Append(_T("F"));    break;                   //fixed     IP 10.1;
+                  case 2: return_value.Append(_T("Fl"));   break;                   //flashing  IP 10.4;
+                  case 3: return_value.Append(_T("LFl"));  break;                   //long-flashing   IP 10.5;
+                  case 4: return_value.Append(_T("Q"));    break;                   //quick-flashing  IP 10.6;
+                  case 5: return_value.Append(_T("VQ"));   break;                   //very quick-flashing   IP 10.7;
+                  case 6: return_value.Append(_T("UQ"));   break;                   //ultra quick-flashing  IP 10.8;
+                  case 7: return_value.Append(_T("Iso"));  break;                   //isophased IP 10.3;
+                  case 8: return_value.Append(_T("Occ"));  break;                   //occulting IP 10.2;
+                  case 9: return_value.Append(_T(""));     break;                   //interrupted quick-flashing  IP 10.6;
+                  case 10: return_value.Append(_T(""));    break;                   //interrupted very quick-flashing   IP 10.7;
+                  case 11: return_value.Append(_T(""));    break;                   //interrupted ultra quick-flashing  IP 10.8;
+                  case 12: return_value.Append(_T("Mo"));  break;                   //morse     IP 10.9;
+                  case 13: return_value.Append(_T(""));    break;                   //fixed/flash     IP 10.10;
+                  case 14: return_value.Append(_T(""));    break;                   //flash/long-flash
+                  case 15: return_value.Append(_T(""));    break;                   //occulting/flash
+                  case 16: return_value.Append(_T(""));    break;                   //fixed/long-flash
+                  case 17: return_value.Append(_T(""));    break;                   //occulting alternating
+                  case 18: return_value.Append(_T(""));    break;                   //long-flash alternating
+                  case 19: return_value.Append(_T(""));    break;                   //flash alternating
+                  case 20: return_value.Append(_T(""));    break;                   //group alternating
+                  case 21: return_value.Append(_T("F")); spost = _T(" (vert)");    break;                   //2 fixed (vertical)
+                  case 22: return_value.Append(_T("F")); spost = _T(" (horz)");    break;                   //2 fixed (horizontal)
+                  case 23: return_value.Append(_T("F")); spost = _T(" (vert)");    break;                   //3 fixed (vertical)
+                  case 24: return_value.Append(_T("F")); spost = _T(" (horz)");    break;                   //3 fixed (horizontal)
+                  case 25: return_value.Append(_T("Q + LFL"));  b_grp2 = true;    break;                   //quick-flash plus long-flash
+                  case 26: return_value.Append(_T("VQ + LFL")); b_grp2 = true;    break;                   //very quick-flash plus long-flash
+                  case 27: return_value.Append(_T("UQ + LFL")); b_grp2 = true;    break;                   //ultra quick-flash plus long-flash
+                  case 28: return_value.Append(_T("Alt"));                        break;                   //alternating
+                  case 29: return_value.Append(_T("F + Alt")); b_grp2 = true;     break;                   //fixed and alternating flashing
 
                   default: break;
             }
       }
 
+      int nfirst_grp = -1;
+      if(b_grp2)
+      {
+            wxString ret_new;
+            nfirst_grp = return_value.Find(_T(" "));
+            if( wxNOT_FOUND != nfirst_grp)
+            {
+                  ret_new = return_value.Mid(0, nfirst_grp);
+                  ret_new.Append(_T("(?)"));
+                  ret_new.Append(return_value.Mid(nfirst_grp));
+                  return_value = ret_new;
+                  nfirst_grp += 1;
+            }
+      }
 
 
-
-    /*
-      1: fixed     IP 10.1;
-      2: flashing  IP 10.4;
-      3: long-flashing   IP 10.5;
-      4: quick-flashing  IP 10.6;
-      5: very quick-flashing   IP 10.7;
-      6: ultra quick-flashing  IP 10.8;
-      7: isophased IP 10.3;
-      8: occulting IP 10.2;
-      9: interrupted quick-flashing  IP 10.6;
-      10: interrupted very quick-flashing   IP 10.7;
-      11: interrupted ultra quick-flashing  IP 10.8;
-      12: morse     IP 10.9;
-      13: fixed/flash     IP 10.10;
-      14: flash/long-flash
-      15: occulting/flash
-      16: fixed/long-flash
-      17: occulting alternating
-      18: long-flash alternating
-      19: flash alternating
-      20: group alternating
-      21: 2 fixed (vertical)
-      22: 2 fixed (horizontal)
-      23: 3 fixed (vertical)
-      24: 3 fixed (horizontal)
-      25: quick-flash plus long-flash
-      26: very quick-flash plus long-flash
-      27: ultra quick-flash plus long-flash
-      28: alternating
-      29: fixed and alternating flashing
-    */
 
      // SIGGRP, (c)(c) ...
       char grp_str[20] = {'\0'};;
       GetStringAttr(obj, "SIGGRP", grp_str, 19);
       if(strlen(grp_str))
       {
-            wxString s(grp_str, wxConvUTF8);
-            if(s != _T("(1)"))
-                  return_value.Append(s);
+            wxString ss(grp_str, wxConvUTF8);
+
+            if(b_grp2)
+            {
+                  wxStringTokenizer tkz(ss, _T("()"));
+
+                  int n_tok = 0;
+                  while ( tkz.HasMoreTokens() && (n_tok <2))
+                  {
+                        wxString s = tkz.GetNextToken();
+                        if(s.Len())
+                        {
+                              if((n_tok == 0) && (nfirst_grp > 0))
+                              {
+                                    return_value[nfirst_grp] = s[0];
+                              }
+                              else
+                              {
+                                    if(s != _T("1"))
+                                    {
+                                          return_value.Append(_T("("));
+                                          return_value.Append(s);
+                                          return_value.Append(_T(")"));
+                                    }
+                              }
+
+                              n_tok++;
+                        }
+                  }
+            }
+            else
+            {
+                  if(ss != _T("(1)"))
+                        return_value.Append(ss);
+            }
       }
 
     // COLOUR,
       char col_str[20];
       GetStringAttr(obj, "COLOUR", col_str, 19);
 
+      int n_cols = 0;
       if (strlen(col_str))
-            _parseList(col_str, colist, sizeof(colist));
+            n_cols = _parseList(col_str, colist, sizeof(colist));
 
+/*
       int colour = colist[0];
-
       if(-9 != colour)
       {
             switch (colour)
@@ -3366,6 +3423,23 @@ static wxString _LITDSN01(S57Obj *obj)
                   default:  break;
             }
       }
+*/
+      if(n_cols)
+            return_value.Append(_T(" "));
+
+      for(int i=0 ; i < n_cols ; i++)
+      {
+            switch (colist[i])
+            {
+                  case 1:  return_value.Append(_T("W")); break;
+                  case 3:  return_value.Append(_T("R")); break;
+                  case 4:  return_value.Append(_T("G")); break;
+                  case 6:  return_value.Append(_T("Y")); break;
+                  default:  break;
+            }
+      }
+
+
 
     /*
       1: white     IP 11.1;    450.2-3;
@@ -3418,7 +3492,7 @@ static wxString _LITDSN01(S57Obj *obj)
       if(UNKNOWN != valnmr)
       {
             wxString s;
-            s.Printf(_T("%2.0fNM"), valnmr);
+            s.Printf(_T("%2.0fM"), valnmr);
             s.Trim(false);          // remove leading spaces
             s.Prepend(_T(" "));
             return_value.Append(s);
@@ -3454,6 +3528,9 @@ static wxString _LITDSN01(S57Obj *obj)
 
 
 #endif
+
+      return_value.Append(spost);                     // add any final modifiers
+
       return return_value;
 }
 

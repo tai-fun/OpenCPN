@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: thumbwin.cpp,v 1.5 2008/08/26 13:46:25 bdbcat Exp $
+ * $Id: thumbwin.cpp,v 1.6 2009/11/18 01:26:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Thumbnail Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: thumbwin.cpp,v $
+ * Revision 1.6  2009/11/18 01:26:13  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.5  2008/08/26 13:46:25  bdbcat
  * Better color scheme support
  *
@@ -87,14 +90,13 @@
 //------------------------------------------------------------------------------
 extern ChartDB          *ChartData;
 extern ChartStack       *pCurrentStack;
-extern int              CurrentStackEntry;
 
 extern MyFrame          *gFrame;
 extern ChartBase        *Current_Ch;
 extern ChartCanvas      *cc1;
 
 
-CPL_CVSID("$Id: thumbwin.cpp,v 1.5 2008/08/26 13:46:25 bdbcat Exp $");
+CPL_CVSID("$Id: thumbwin.cpp,v 1.6 2009/11/18 01:26:13 bdbcat Exp $");
 
 //------------------------------------------------------------------------------
 //    Thumbwin Implementation

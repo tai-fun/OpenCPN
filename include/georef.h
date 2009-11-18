@@ -96,6 +96,9 @@ extern "C" void fromTM(double x, double y, double lat0, double lon0, double *lat
 extern "C" void toSM(double lat, double lon, double lat0, double lon0, double *x, double *y);
 extern "C" void fromSM(double x, double y, double lat0, double lon0, double *lat, double *lon);
 
+extern "C" void toSM_ECC(double lat, double lon, double lat0, double lon0, double *x, double *y);
+extern "C" void fromSM_ECC(double x, double y, double lat0, double lon0, double *lat, double *lon);
+
 extern "C" void ll_gc_ll(double lat, double lon, double crs, double dist, double *dlat, double *dlon);
 
 extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
@@ -117,7 +120,7 @@ double fromDMS(char *dms);
 
 
 #ifdef __cplusplus
-extern "C" int Georef_Calculate_Coefficients(struct GeoRef *cp);
+extern "C" int Georef_Calculate_Coefficients(struct GeoRef *cp, int nlin_lon);
 #endif
 
 

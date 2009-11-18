@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.35 2009/09/25 15:02:38 bdbcat Exp $
+ * $Id: chcanv.h,v 1.36 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.36  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.35  2009/09/25 15:02:38  bdbcat
  * Implement toplevel CM93 detail slider
  *
@@ -152,6 +155,8 @@
 #define     PAN_TIMER         2
 #define     CURTRACK_TIMER    3
 
+
+
 typedef enum ScaleTypeEnum
 {
       SCALE_SUBSAMP = 0,
@@ -187,6 +192,7 @@ enum {
       ID_AISDIALOGOK
 };
 
+
 //----------------------------------------------------------------------------
 // ViewPort
 //----------------------------------------------------------------------------
@@ -195,6 +201,8 @@ class ViewPort
   public:
 //  ctor
     ViewPort()  { bValid = false; skew = 0; view_scale_ppm = 1;}
+
+    wxPoint GetMercatorPixFromLL(double lat, double lon);
 
 //  Accessors
     bool IsValid() { return bValid; }
@@ -229,7 +237,29 @@ class ViewPort
 };
 
 
+//    This is the callback function prototype used to call back registered overlay providers
+typedef bool (*RenderOverlayCallBackFunction)(wxMemoryDC *pmdc, ViewPort *vp);
 
+
+class OverlaySpec
+{
+      public:
+            int                                 m_sequence;
+            RenderOverlayCallBackFunction       m_render_callback;
+};
+
+
+class emboss_data
+{
+      public:
+            emboss_data(){ pmap = NULL; }
+            ~emboss_data(){ free(pmap); }
+
+            int         *pmap;
+            int         width;
+            int         height;
+      private:
+};
 
 //----------------------------------------------------------------------------
 // ChartCanvas
@@ -288,6 +318,11 @@ public:
       bool ZoomCanvasIn(double lat = 0., double lon = 0.);
       bool ZoomCanvasOut(double lat = 0., double lon = 0.);
       bool PanCanvas(int dx, int dy);
+
+      bool RegisterOverlayProvider(int sequence, RenderOverlayCallBackFunction pcallback);
+      bool UnRegisterOverlayProvider(int sequence, RenderOverlayCallBackFunction pcallback);
+
+      void ShowGribDialog(void);
 
       //Todo build more accessors
       bool        m_bFollow;
@@ -384,9 +419,14 @@ private:
       void ScaleBarDraw( wxDC& dc, int x_origin, int y_origin );
 
       void EmbossDepthScale(wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, int emboss_ident);
-      int *CreateEmbossMap(wxFont &font, int width, int height, const char *str, ColorScheme cs);
+      emboss_data *CreateEmbossMapData(wxFont &font, int width, int height, const char *str, ColorScheme cs);
       void CreateDepthUnitEmbossMaps(ColorScheme cs);
       wxBitmap CreateDimBitmap(wxBitmap &Bitmap, double factor);
+
+      void CreateOZEmbossMapData(ColorScheme cs);
+      void EmbossOverzoomIndicator ( wxMemoryDC *temp_dc, wxMemoryDC *scratch_dc);
+
+      void EmbossCanvas ( wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, emboss_data *pemboss, int x, int y);
 
       void JaggyCircle(wxDC &dc, wxPen pen, int x, int y, int radius);
 
@@ -447,10 +487,12 @@ private:
       double   m_ownship_predictor_minutes;      // Minutes shown on ownship position predictor graphic
                                                 // defaults to 5
 
-      int         m_emboss_width, m_emboss_height;
-      int         *m_pEM_Feet;                // maps for depth unit emboss pattern
-      int         *m_pEM_Meters;
-      int         *m_pEM_Fathoms;
+      emboss_data *m_pEM_Feet;                // maps for depth unit emboss pattern
+      emboss_data *m_pEM_Meters;
+      emboss_data *m_pEM_Fathoms;
+
+      emboss_data *m_pEM_OverZoom;
+
 
       double      m_pix_per_mm;     // pixels per millimeter on the screen
 
@@ -486,6 +528,11 @@ private:
       wxImage     *m_pos_image_red;
       wxImage     *m_pos_image_grey;
 
+      wxArrayPtrVoid      m_OverlaySpecArray;
+
+      wxImage     m_ship_pix_image;             //cached ship draw image for high overzoom
+      int         m_cur_ship_pix;
+      bool        m_cur_ship_pix_isgrey;
 
 
 DECLARE_EVENT_TABLE()

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.20 2009/09/25 15:17:33 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.21 2009/11/18 01:25:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.21  2009/11/18 01:25:31  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.20  2009/09/25 15:17:33  bdbcat
  * Correct msw SendToGPS call
  *
@@ -72,6 +75,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.21  2009/11/18 01:25:31  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.20  2009/09/25 15:17:33  bdbcat
  * Correct msw SendToGPS call
  *
@@ -250,7 +256,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.20 2009/09/25 15:17:33 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.21 2009/11/18 01:25:31 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -858,6 +864,8 @@ void SendToGpsDlg::CreateControls()
       for (unsigned int iPortIndex=0 ; iPortIndex < pSerialArray->GetCount() ; iPortIndex++)
             m_itemCommListBox->Append( pSerialArray->Item(iPortIndex) );
 
+      delete pSerialArray;
+
       //    Make the proper inital selection
       int sidx = 0;
       m_itemCommListBox->SetSelection(sidx);
@@ -900,9 +908,6 @@ void SendToGpsDlg::OnSendClick( wxCommandEvent& event )
       int i = m_itemCommListBox->GetSelection();
       wxString src(m_itemCommListBox->GetString(i));
 
-#ifdef __WXMSW__
-      src.Prepend(_T("\\\\.\\"));                  // Required for access to Serial Ports greater than COM9
-#endif
 
       //    And send it out
       if(m_pRoute)

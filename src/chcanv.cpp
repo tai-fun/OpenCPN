@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.68 2009/09/30 02:34:26 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.69 2009/11/18 01:24:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.69  2009/11/18 01:24:15  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.68  2009/09/30 02:34:26  bdbcat
  * Another correction for IDL crossing
  *
@@ -225,6 +228,7 @@
 #include "routeprop.h"
 #include "tcmgr.h"
 #include "cm93.h"                   // for chart outline draw
+#include "grib.h"
 
 #ifdef USE_S57
 #include "s57chart.h"               // for ArrayOfS57Obj
@@ -321,13 +325,23 @@ extern bool             g_bUseGreenShip;
 extern ChartCanvas      *cc1;
 
 
+extern GRIBUIDialog     *g_pGribDialog;
+
+extern int              g_grib_dialog_x, g_grib_dialog_y;
+extern int              g_grib_dialog_sx, g_grib_dialog_sy;
+extern wxString         g_grib_dir;
+
+extern bool             g_bshow_overzoom_emboss;
+extern int              g_n_ownship_meters;
+
+
 //  TODO why are these static?
 static int mouse_x;
 static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.68 2009/09/30 02:34:26 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.69 2009/11/18 01:24:15 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -389,6 +403,46 @@ enum
         ID_WP_MENU_ADDITIONAL_INFO                  // toh, 2009.02.08
 
 };
+
+//------------------------------------------------------------------------------
+//    ViewPort Implementation
+//------------------------------------------------------------------------------
+wxPoint ViewPort::GetMercatorPixFromLL(double lat, double lon)
+{
+      double easting, northing;
+      double xlon = lon;
+
+     /*  Make sure lon and lon0 are same phase */
+      if(xlon * clon < 0.)
+      {
+            if(xlon < 0.)
+                 xlon += 360.;
+            else
+                 xlon -= 360.;
+      }
+
+      if(fabs(xlon - clon) > 180.)
+      {
+            if(xlon > clon)
+                xlon -= 360.;
+            else
+                xlon += 360.;
+      }
+
+      toSM(lat, xlon, clat, clon, &easting, &northing);
+
+      double epix = easting  * view_scale_ppm;
+      double npix = northing * view_scale_ppm;
+
+      double dx = epix * cos ( skew ) + npix * sin ( skew );
+      double dy = npix * cos ( skew ) - epix * sin ( skew );
+
+      wxPoint r;
+      r.x = ( int ) /*round*/ ( ( pix_width  / 2 ) + dx );
+      r.y = ( int ) /*round*/ ( ( pix_height / 2 ) - dy );
+
+      return r;
+}
 
 
 //------------------------------------------------------------------------------
@@ -684,6 +738,10 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
 
         CreateDepthUnitEmbossMaps( GLOBAL_COLOR_SCHEME_DAY );
 
+        m_pEM_OverZoom = NULL;
+        CreateOZEmbossMapData(GLOBAL_COLOR_SCHEME_DAY);
+
+
 //    Build icons for tide/current points
 #ifdef USE_PNG_TIDESML
         m_bmTideDay = wxBitmap(*_img_tidesml);
@@ -825,9 +883,12 @@ ChartCanvas::~ChartCanvas()
         delete pwvs_chart;
         delete pss_overlay_bmp;
 
-        free ( m_pEM_Feet );
-        free ( m_pEM_Meters );
-        free ( m_pEM_Fathoms );
+        delete m_pEM_Feet;
+        delete m_pEM_Meters;
+        delete m_pEM_Fathoms;
+
+        delete m_pEM_OverZoom;
+
 }
 
 void ChartCanvas::OnChar(wxKeyEvent &event)
@@ -882,8 +943,11 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
                   case WXK_F3:
                         parent_frame->ToggleENCText();
                         b_proc = true;
-                        break;
+#ifdef __WXMSW__
+           _heapchk();
+#endif
 
+                        break;
                   case WXK_F4:
                         m_bMeasure_Active = true;
                         m_nMeasureState = 1;
@@ -907,11 +971,41 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
                         b_proc = true;
                         break;
 
-                  case WXK_F12:
-                        parent_frame->ToggleChartOutlines();
-                        b_proc = true;
+                  case WXK_F9:
+                  {
+/*
+                        char * t = (char *)malloc(8);
+                        strcpy(t, "1234567");
+                        free(t);
+                        strcpy(t,  "DAVE");
+#ifdef _WXMSW__
+         _heapchk();
+#endif
+//                                free(t);
+
+*/
+                        break;
+                  }
+                  case WXK_F11:
+                        ShowGribDialog();
+
                         break;
 
+                  case WXK_F12:
+                      {
+                        parent_frame->ToggleChartOutlines();
+                        b_proc = true;
+
+#ifdef __WXMSW__
+/*
+                   _CrtMemState state;
+                 _CrtMemCheckpoint( &state );
+                  pConfig->UpdateSettings();
+                _CrtMemDumpAllObjectsSince( &state );
+*/
+#endif
+                        break;
+                      }
                   default:
                         break;
 
@@ -995,6 +1089,18 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
       return b_proc;
 }
 
+void ChartCanvas::ShowGribDialog(void)
+{
+
+       g_pGribDialog = new GRIBUIDialog();
+       g_pGribDialog->Create ( this, -1, _T("GRIB Display Control"), g_grib_dir,
+                               wxPoint( g_grib_dialog_x, g_grib_dialog_y), wxSize( g_grib_dialog_sx, g_grib_dialog_sy));
+
+       g_pGribDialog->Show();                        // Show modeless, so it stays on the screen
+}
+
+
+
 void ChartCanvas::SetColorScheme(ColorScheme cs)
 {
             //    Setup ownship image pointers
@@ -1023,6 +1129,7 @@ void ChartCanvas::SetColorScheme(ColorScheme cs)
       }
 
       CreateDepthUnitEmbossMaps( cs );
+      CreateOZEmbossMapData( cs );
 
       SetbTCUpdate(true);                        // force re-render of tide/current locators
       FlushBackgroundRender();
@@ -1201,7 +1308,7 @@ void ChartCanvas::GetCanvasPointPix ( double rlat, double rlon, wxPoint *r )
                 // then fall back to mercater estimate from canvas parameters
                 bool bUseMercator = true;
 
-                if ( ( Current_Ch->m_ChartType == CHART_TYPE_GEO ) || ( Current_Ch->m_ChartType == CHART_TYPE_KAP ) )
+                if(Current_Ch->m_ChartFamily == CHART_FAMILY_RASTER)
                 {
                         ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *> ( Current_Ch );
                         bool bInside = G_FloatPtInPolygon ( ( MyFlPoint * ) Cur_BSB_Ch->GetCOVRTableHead ( 0 ),
@@ -1221,49 +1328,8 @@ void ChartCanvas::GetCanvasPointPix ( double rlat, double rlon, wxPoint *r )
                 //    using VPoint center as reference point
                 if ( bUseMercator )
                 {
-
-                      //      Inline the Simple Mercator Transform for performance reasons
-                      // See the code at toSM()
-                      double easting, northing;
-                      {
-                            double s, y3, s0, y30;
-                            double z = WGS84_semimajor_axis_meters * mercator_k0;
-
-                            double xlon = rlon;
-
-                            /*  Make sure lon and lon0 are same phase */
-                            if(xlon * VPoint.clon < 0.)
-                            {
-                                  if(xlon < 0.)
-                                        xlon += 360.;
-                                  else
-                                        xlon -= 360.;
-                            }
-
-                            if(fabs(xlon - VPoint.clon) > 180.)
-                            {
-                                  if(xlon > VPoint.clon)
-                                        xlon -= 360.;
-                                  else
-                                        xlon += 360.;
-                            }
-                           easting = (xlon - VPoint.clon) * DEGREE * z;
-
-                            s = sin(rlat * DEGREE);
-                            y3 = (.5 * log((1 + s) / (1 - s))) * z;
-
-                            s0 = sin(VPoint.clat * DEGREE);
-                            y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
-                            northing = y3 - y30;
-                      }
-
-                        double epix = easting  * VPoint.view_scale_ppm;
-                        double npix = northing * VPoint.view_scale_ppm;
-
-                        double dx = epix * cos ( VPoint.skew ) + npix * sin ( VPoint.skew );
-                        double dy = npix * cos ( VPoint.skew ) - epix * sin ( VPoint.skew );
-                        r->x = ( int ) round ( ( VPoint.pix_width  / 2 ) + dx );
-                        r->y = ( int ) round ( ( VPoint.pix_height / 2 ) - dy );
+                      wxPoint p = VPoint.GetMercatorPixFromLL(rlat, rlon);
+                      *r = p;
                 }
         }
 }
@@ -1284,8 +1350,8 @@ void ChartCanvas::GetCanvasPixPoint ( int x, int y, double &lat, double &lon )
                 {
                         ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *> ( Current_Ch );
 
-//          bool bInside = G_FloatPtInPolygon((MyFlPoint *)Cur_BSB_Ch->pPlyTable,
-//                                             Cur_BSB_Ch->nPlypoint, rlon, rlat);
+                        // TODO     maybe need iterative process to validate bInside
+                        //          first pass is mercator, then check chart boundaries
                         bool bInside = true;
                         if ( bInside )
                         {
@@ -1803,6 +1869,25 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                 }
                 int img_width = pos_image->GetWidth();
                 int img_height = pos_image->GetHeight();
+
+
+                //      calculate true ship size in pixels
+                int ship_pix = (int)/*rint*/(g_n_ownship_meters * VPoint.view_scale_ppm);
+
+                //      Grow the ship icon if needed, will only happen on big overzoom
+                if(ship_pix > img_height)
+                {
+                      //      Make a new member image under some conditions
+                      if((m_cur_ship_pix != ship_pix) || ((SHIP_NORMAL == m_ownship_state) && m_cur_ship_pix_isgrey) || !m_ship_pix_image.IsOk())
+                      {
+                        int nh = ship_pix;
+                        int nw = img_width * ship_pix / img_height;
+                        m_ship_pix_image =   pos_image->Scale(nw, nh, wxIMAGE_QUALITY_HIGH);
+                        m_cur_ship_pix_isgrey = (SHIP_NORMAL != m_ownship_state);
+                        m_cur_ship_pix = ship_pix;
+                      }
+                      pos_image = &m_ship_pix_image;
+                }
 
                 //      Draw the ownship icon
                 if(VPoint.chart_scale < 300000)             // According to S52, this should be 50,000
@@ -2943,6 +3028,10 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
         }
 #endif
 
+
+        if(g_pGribDialog)
+              g_pGribDialog->SetCursorLatLon(m_cursor_lat, m_cursor_lon);
+
         //        Check for wheel rotation
         m_mouse_wheel_oneshot = 50;                  //msec
                                                       // ideally, should be just longer than the time between
@@ -3761,9 +3850,12 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                 case SELTYPE_UNKNOWN:
                         pdef_menu = new wxMenu();
 
-                        pdef_menu->Append ( ID_DEF_MENU_MAX_DETAIL, _T ( "Max Detail Here" ) );
-                        pdef_menu->Append ( ID_DEF_MENU_SCALE_IN,   _T ( "Scale In" ) );
-                        pdef_menu->Append ( ID_DEF_MENU_SCALE_OUT,  _T ( "Scale Out" ) );
+                        if(parent_frame->GetnChartStack() > 1)
+                        {
+                              pdef_menu->Append ( ID_DEF_MENU_MAX_DETAIL, _T ( "Max Detail Here" ) );
+                              pdef_menu->Append ( ID_DEF_MENU_SCALE_IN,   _T ( "Scale In" ) );
+                              pdef_menu->Append ( ID_DEF_MENU_SCALE_OUT,  _T ( "Scale Out" ) );
+                        }
                         pdef_menu->Append ( ID_DEF_MENU_DROP_WP,    _T ( "Drop Mark Here" ) );
                         pdef_menu->Append ( ID_DEF_MENU_MOVE_BOAT_HERE, _T ( "Move Boat Here" ) );
 
@@ -3849,7 +3941,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
                         parent_frame->DoChartUpdate();
 
-                        parent_frame->SelectChartFromStack ( 0 );
+                        parent_frame->SelectChartFromStack (0, false, CHART_TYPE_UNKNOWN, CHART_FAMILY_RASTER);
                         break;
 
                 case ID_DEF_MENU_SCALE_IN:
@@ -4712,6 +4804,24 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
               EmbossDepthScale ( &temp_dc, &scratch_dc, depth_display_ident );
         }
 
+        //        If extremely overzoomed, show the embossed informational symbol
+        if(g_bshow_overzoom_emboss)
+        {
+
+            double chart_native_ppm;
+            if(Current_Ch)
+                chart_native_ppm = m_canvas_scale_factor / Current_Ch->GetNativeScale();
+            else
+                chart_native_ppm = m_true_scale_ppm;
+
+            double zoom_factor = VPoint.view_scale_ppm / chart_native_ppm;
+
+            if(zoom_factor > 4.0)
+            {
+                  EmbossOverzoomIndicator ( &temp_dc, &scratch_dc);
+            }
+        }
+
 
 //    Draw the overlay objects directly on the scratch dc
 
@@ -4850,6 +4960,14 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
                 }
         }
 
+//    Process the array of registered overlay providers
+        for(unsigned int i=0 ; i < m_OverlaySpecArray.GetCount() ; i++)
+        {
+              OverlaySpec *olspec = (OverlaySpec *)m_OverlaySpecArray.Item(i);
+
+              //  Do the callback
+              (*olspec->m_render_callback)(&scratch_dc, &VPoint);            //(*pcallback)()
+        }
 
 //    And finally, blit the scratch dc onto the physical dc
         wxRegionIterator upd_final ( rgn_blit );
@@ -4885,14 +5003,6 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
 
         dc.DestroyClippingRegion();
 
-/*
-        if(pCM93DetailSlider->IsShown())
-        {
-            pCM93DetailSlider->Refresh();
-            pCM93DetailSlider->Update();
-        }
-*/
-
 
 //    Handle deferred WarpPointer
         if ( warp_flag )
@@ -4904,10 +5014,112 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
 }
 
 
+ bool ChartCanvas::RegisterOverlayProvider(int sequence, RenderOverlayCallBackFunction callback)
+{
+      OverlaySpec *spec = new OverlaySpec;
+      spec->m_sequence = sequence;
+      spec->m_render_callback = callback;
+
+      m_OverlaySpecArray.Add(spec);
+
+      return true;
+}
+
+bool ChartCanvas::UnRegisterOverlayProvider(int sequence, RenderOverlayCallBackFunction callback)
+{
+      for(unsigned int i=0 ; i < m_OverlaySpecArray.GetCount() ; i++)
+      {
+            OverlaySpec *olspec = (OverlaySpec *)m_OverlaySpecArray.Item(i);
+
+            if((olspec->m_render_callback = callback) && (olspec->m_sequence == sequence))
+            {
+                  m_OverlaySpecArray.Remove(olspec);
+                  delete olspec;
+                  break;
+            }
+      }
+
+      return true;
+}
+
+
+
+
+
+
 void ChartCanvas::SetMyCursor ( wxCursor *c )
 {
         pPriorCursor = c;
         SetCursor ( *c );
+}
+
+
+
+void ChartCanvas::EmbossCanvas ( wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc, emboss_data *pemboss, int x, int y)
+{
+      if(!pemboss)
+            return;
+
+        //Grab a snipped image out of the chart
+      wxMemoryDC snip_dc;
+      wxBitmap snip_bmp ( pemboss->width, pemboss->height, -1 );
+      snip_dc.SelectObject ( snip_bmp );
+
+      snip_dc.Blit ( 0,0, pemboss->width, pemboss->height, psource_dc, x, y );
+
+      wxImage snip_img = snip_bmp.ConvertToImage();
+
+      double factor = 200;
+
+
+        //  Apply emboss map to the snip image
+      {
+            unsigned char* pdata = snip_img.GetData();
+
+            for ( int y=0 ; y < pemboss->height ; y++ )
+            {
+                  int map_index = ( y * pemboss->width );
+                  for ( int x=0 ; x < pemboss->width ; x++ )
+                  {
+                        double val = ( pemboss->pmap[map_index] * factor ) / 256.;
+
+                        int nred = ( int ) ( ( *pdata ) +  val );
+                        nred = nred > 255 ? 255 : ( nred < 0 ? 0 : nred );
+                        *pdata++ = ( unsigned char ) nred;
+
+                        int ngreen = ( int ) ( ( *pdata ) +  val );
+                        ngreen = ngreen > 255 ? 255 : ( ngreen < 0 ? 0 : ngreen );
+                        *pdata++ = ( unsigned char ) ngreen;
+
+                        int nblue = ( int ) ( ( *pdata ) +  val );
+                        nblue = nblue > 255 ? 255 : ( nblue < 0 ? 0 : nblue );
+                        *pdata++ = ( unsigned char ) nblue;
+
+                        map_index++;
+                  }
+            }
+      }
+
+
+        //  Convert embossed snip to a bitmap
+      wxBitmap emb_bmp ( snip_img );
+
+        //  Map to another memoryDC
+      wxMemoryDC result_dc;
+      result_dc.SelectObject ( emb_bmp );
+
+        //  Blit to target
+      pdest_dc->Blit ( x, y, pemboss->width, pemboss->height, &result_dc, 0, 0 );
+
+      result_dc.SelectObject ( wxNullBitmap );
+      snip_dc.SelectObject ( wxNullBitmap );
+
+}
+
+
+void ChartCanvas::EmbossOverzoomIndicator ( wxMemoryDC *psource_dc, wxMemoryDC *pdest_dc)
+{
+      EmbossCanvas ( psource_dc, pdest_dc, m_pEM_OverZoom, 0,0);
 }
 
 
@@ -4916,47 +5128,54 @@ void ChartCanvas::EmbossDepthScale ( wxMemoryDC *psource_dc, wxMemoryDC *pdest_d
         if ( emboss_ident == DEPTH_UNIT_UNKNOWN )
                 return;
 
+        emboss_data *ped = NULL;
+        switch ( emboss_ident )
+        {
+              case DEPTH_UNIT_FEET:
+                    ped = m_pEM_Feet;
+                    break;
+              case DEPTH_UNIT_METERS:
+                    ped = m_pEM_Meters;
+                    break;
+              case DEPTH_UNIT_FATHOMS:
+                    ped = m_pEM_Fathoms;
+                    break;
+              default:
+                    ped = NULL;
+                    break;
+        }
+
+        if(!ped)
+              return;
+
+
+        EmbossCanvas ( psource_dc, pdest_dc, ped, (VPoint.pix_width - ped->width), 0);
+/*
         int chart_width = VPoint.pix_width;
 
         //Grab an snipped image out of the chart
         wxMemoryDC snip_dc;
-        wxBitmap snip_bmp ( m_emboss_width, m_emboss_height, -1 );
+        wxBitmap snip_bmp ( ped->width, ped->height, -1 );
         snip_dc.SelectObject ( snip_bmp );
 
-        snip_dc.Blit ( 0,0, m_emboss_width, m_emboss_height, psource_dc, chart_width - m_emboss_width, 0 );
+        snip_dc.Blit ( 0,0, ped->width, ped->height, psource_dc, (chart_width - ped->width), 0 );
 
         wxImage snip_img = snip_bmp.ConvertToImage();
 
         double factor = 200;
 
-        int *pmap = NULL;
-        switch ( emboss_ident )
-        {
-              case DEPTH_UNIT_FEET:
-                    pmap = m_pEM_Feet;
-                    break;
-              case DEPTH_UNIT_METERS:
-                    pmap = m_pEM_Meters;
-                    break;
-              case DEPTH_UNIT_FATHOMS:
-                    pmap = m_pEM_Fathoms;
-                    break;
-              default:
-                    pmap = NULL;
-                    break;
-        }
 
         //  Apply emboss map to the snip image
-        if ( pmap != NULL )
+        if ( ped != NULL )
         {
                 unsigned char* pdata = snip_img.GetData();
 
-                for ( int y=0 ; y < m_emboss_height ; y++ )
+                for ( int y=0 ; y < ped->height ; y++ )
                 {
-                        int map_index = ( y * m_emboss_width );
-                        for ( int x=0 ; x < m_emboss_width ; x++ )
+                        int map_index = ( y * ped->width );
+                        for ( int x=0 ; x < ped->width ; x++ )
                         {
-                                double val = ( pmap[map_index] * factor ) / 256.;
+                                double val = ( ped->pmap[map_index] * factor ) / 256.;
 
                                 int nred = ( int ) ( ( *pdata ) +  val );
                                 nred = nred > 255 ? 255 : ( nred < 0 ? 0 : nred );
@@ -4984,11 +5203,11 @@ void ChartCanvas::EmbossDepthScale ( wxMemoryDC *psource_dc, wxMemoryDC *pdest_d
         result_dc.SelectObject ( emb_bmp );
 
         //  Blit to target
-        pdest_dc->Blit ( chart_width - m_emboss_width, 0, m_emboss_width, m_emboss_height, &result_dc, 0, 0 );
+        pdest_dc->Blit ( chart_width - ped->width, 0, ped->width, ped->height, &result_dc, 0, 0 );
 
         result_dc.SelectObject ( wxNullBitmap );
         snip_dc.SelectObject ( wxNullBitmap );
-
+*/
 }
 
 
@@ -4997,25 +5216,36 @@ void ChartCanvas::CreateDepthUnitEmbossMaps ( ColorScheme cs )
 {
         wxFont font ( 60, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD );
 
-        m_emboss_width = 400;
-        m_emboss_height = 100;
+        int emboss_width = 400;
+        int emboss_height = 100;
 
 // Free any existing emboss maps
-        if(NULL != m_pEM_Feet)
-              free(m_pEM_Feet);
-        if(NULL != m_pEM_Meters)
-              free(m_pEM_Meters);
-        if(NULL != m_pEM_Fathoms)
-              free(m_pEM_Fathoms);
+        delete m_pEM_Feet;
+        delete m_pEM_Meters;
+        delete m_pEM_Fathoms;
 
-// Create the 3 DepthUnit emboss maps
-        m_pEM_Feet    = CreateEmbossMap ( font, m_emboss_width, m_emboss_height, "Feet", cs);
-        m_pEM_Meters  = CreateEmbossMap ( font, m_emboss_width, m_emboss_height, "Meters", cs );
-        m_pEM_Fathoms = CreateEmbossMap ( font, m_emboss_width, m_emboss_height, "Fathoms", cs );
+// Create the 3 DepthUnit emboss map structures
+        m_pEM_Feet    = CreateEmbossMapData ( font, emboss_width, emboss_height, "Feet", cs);
+        m_pEM_Meters  = CreateEmbossMapData ( font, emboss_width, emboss_height, "Meters", cs );
+        m_pEM_Fathoms = CreateEmbossMapData ( font, emboss_width, emboss_height, "Fathoms", cs );
+}
+
+void ChartCanvas::CreateOZEmbossMapData(ColorScheme cs)
+{
+      delete m_pEM_OverZoom;
+
+      int w, h;
+      wxFont font ( 40, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD );
+      wxClientDC dc(this);
+      dc.SetFont(font);
+      dc.GetTextExtent(_T("OverZoom"), &w, &h);
+
+      m_pEM_OverZoom    = CreateEmbossMapData ( font, w + 10, h + 10, "OverZoom", cs);
 }
 
 
-int *ChartCanvas::CreateEmbossMap ( wxFont &font, int width, int height, const char *str, ColorScheme cs )
+
+emboss_data *ChartCanvas::CreateEmbossMapData ( wxFont &font, int width, int height, const char *str, ColorScheme cs )
 {
         int *pmap;
 
@@ -5079,7 +5309,12 @@ int *ChartCanvas::CreateEmbossMap ( wxFont &font, int width, int height, const c
                 }
         }
 
-        return pmap;
+        emboss_data *pret = new emboss_data;
+        pret->pmap = pmap;
+        pret->width = width;
+        pret->height = height;
+
+        return pret;
 }
 
 //----------------------------------------------------------------------------
@@ -5190,7 +5425,10 @@ void ChartCanvas::DrawAllRoutesInBBox ( wxDC& dc, wxBoundingBox& BltBBox )
         {
                 Route *pRouteDraw = node->GetData();
                 if ( pRouteDraw )
-                      pRouteDraw->Draw ( dc, VPoint );
+                {
+                      if ( BltBBox.Intersect ( pRouteDraw->RBBox, 0 ) != _OUT ) // Route is not wholly outside window
+                            pRouteDraw->Draw ( dc, VPoint );
+                }
 
                 node = node->GetNext();
         }
@@ -6865,10 +7103,10 @@ void AISTargetQueryDialog::SetColorScheme(ColorScheme cs)
                   wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
                   m_pQueryTextCtl->SetBackgroundColour ( back_color );
 
-                  wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
+                  wxColour text_color = GetGlobalColor ( _T ( "UINFF" ) );          // or UINFD
                   m_pQueryTextCtl->SetForegroundColour ( text_color );
 
-                  m_pQueryTextCtl->SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetQuery")));
+//                  m_pQueryTextCtl->SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetQuery")));
 
             }
 
@@ -6898,7 +7136,7 @@ void AISTargetQueryDialog::CreateControls()
       wxColour back_color =GetGlobalColor ( _T ( "UIBCK" ) );
       m_pQueryTextCtl->SetBackgroundColour ( back_color );
 
-      wxColour text_color = GetGlobalColor ( _T ( "UINFD" ) );          // or UINFF
+      wxColour text_color = GetGlobalColor ( _T ( "UINFF" ) );          // or UINFD
       m_pQueryTextCtl->SetForegroundColour ( text_color );
 
       m_pboxSizer->Add ( m_pQueryTextCtl, 0, wxALIGN_LEFT|wxALL, 0 );

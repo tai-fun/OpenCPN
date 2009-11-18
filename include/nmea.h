@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.21 2009/09/25 15:00:30 bdbcat Exp $
+ * $Id: nmea.h,v 1.22 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.22  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.21  2009/09/25 15:00:30  bdbcat
  * Improve ComPortManager
  *
@@ -306,6 +309,7 @@ private:
       char                    *tak_ptr;
 
       char                    *rx_buffer;
+      char                    *temp_buf;
 
       unsigned long           error;
 
@@ -545,6 +549,7 @@ class OpenCommPortElement
 public:
       wxString    com_name;
       int         port_descriptor;
+      int         n_open;
 };
 
 //    Declare a list of open comm ports
@@ -562,6 +567,9 @@ public:
       int CloseComPort(int fd);
 
       int WriteComPort(wxString& com_name, const wxString& string);
+      bool GetLogFlag(){ return m_blog; }
+      void SetLogFlag(bool flag){ m_blog = flag; }
+
 private:
       int OpenComPortPhysical(wxString &com_name, int baud_rate);
       int CloseComPortPhysical(int fd);
@@ -569,6 +577,7 @@ private:
 
       ListOfOpenCommPorts     m_port_list;
 
+      bool        m_blog;
 
 };
 

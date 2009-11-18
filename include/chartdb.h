@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.16 2009/09/28 13:20:36 bdbcat Exp $
+ * $Id: chartdb.h,v 1.17 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.17  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.16  2009/09/28 13:20:36  bdbcat
  * Correct for IDL crossing
  *
@@ -193,7 +196,7 @@ public:
       bool GetDBFullPath(int dbIndex, char *buf);
       bool GetDBBoundingBox(int dbindex, wxBoundingBox *box);
       bool SearchForChartDir(wxString &dir);
-      ChartBase *OpenStackChartConditional(ChartStack *ps, bool bLargest, ChartTypeEnum New_Type, ChartFamilyEnum New_Family_Fallback);
+      ChartBase *OpenStackChartConditional(ChartStack *ps, int start_index, bool bLargest, ChartTypeEnum New_Type, ChartFamilyEnum New_Family_Fallback);
 
       int  GetnAuxPlyEntries(int dbIndex){ return pChartTable[dbIndex].nAuxPlyEntries; }
       int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);

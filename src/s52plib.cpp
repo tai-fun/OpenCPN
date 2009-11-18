@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.36 2009/08/22 01:25:57 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.37 2009/11/18 01:26:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.37  2009/11/18 01:26:12  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.36  2009/08/22 01:25:57  bdbcat
  * Correct linked list traversal logic
  *
@@ -96,6 +99,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.37  2009/11/18 01:26:12  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.36  2009/08/22 01:25:57  bdbcat
  * Correct linked list traversal logic
  *
@@ -231,7 +237,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, const char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.36 2009/08/22 01:25:57 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.37 2009/11/18 01:26:12 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -1035,9 +1041,10 @@ Rules *s52plib::StringToRules ( const wxString& str_in )
             // parse Symbology instruction in string
 
             // Special Case for Circular Arc,  (opencpn private)
-            // Allocate a Rule structure to be used to hold a cahed bitmap of the created symbol
+            // Allocate a Rule structure to be used to hold a cached bitmap of the created symbol
             INSTRUCTION ( "CA",RUL_ARC_2C )
             r->razRule = ( Rule* ) calloc ( 1,sizeof ( Rule ) );
+            r->b_private_razRule = true;                            // mark this raxRule to be free'd later
             SCANFWRD
       }
 
@@ -1130,42 +1137,51 @@ strk[8]=0;
 ++str;
 }
 
-//  If it should happen that no rule is built, delete the initially allocated rule
-if ( 0 == top->ruleType )
-{
-      if ( top->INST0 )
-            free ( top->INST0 );
-
-      free ( top );
-
-      top = NULL;
-}
-
-//   Traverse the entire rule set tree, pruning after first unallocated (dead) rule
-r = top;
-    while ( r )
-{
-      if ( 0 == r->ruleType )
+      //  If it should happen that no rule is built, delete the initially allocated rule
+      if ( 0 == top->ruleType )
       {
-            free ( r );
-            last->next = NULL;
-            break;
+            if ( top->INST0 )
+                  free ( top->INST0 );
+
+            free ( top );
+
+            top = NULL;
       }
 
-      last = r;
-      Rules *n = r->next;
-      r = n;
+      //   Traverse the entire rule set tree, pruning after first unallocated (dead) rule
+      r = top;
+      while ( r )
+      {
+            if ( 0 == r->ruleType )
+            {
+                  free ( r );
+                  last->next = NULL;
+                  break;
+            }
+
+            last = r;
+            Rules *n = r->next;
+            r = n;
+      }
+
+
+      //   Traverse the entire rule set tree, adding sequence numbers
+      r = top;
+      int i = 0;
+      while ( r )
+      {
+            r->n_sequence = i++;
+
+            r = r->next;
+      }
+
+      return top;
 }
 
 
-//    free(str0);
-return top;
-       }
 
 
-
-
-       int s52plib::_LUP2rules ( LUPrec *LUP, S57Obj *pObj )
+int s52plib::_LUP2rules ( LUPrec *LUP, S57Obj *pObj )
 {
       if ( NULL == LUP )
             return -1;
@@ -1928,6 +1944,28 @@ void s52plib::DestroyLUP ( LUPrec *pLUP )
             if ( top->INST0 )
                   free ( top->INST0 );        // free the Instruction string head
 
+            if(top->b_private_razRule)          // need to free razRule?
+            {
+                  Rule *pR = top->razRule;
+                  if ( pR->exposition.LXPO )
+                        delete pR->exposition.LXPO;
+
+                  free ( pR->vector.LVCT );
+
+                  if ( pR->bitmap.SBTM )
+                        delete pR->bitmap.SBTM;
+
+                  free ( pR->colRef.SCRF );
+
+                  if ( pR->pixelPtr )
+                  {
+                        wxBitmap *pbm = ( wxBitmap * ) ( pR->pixelPtr );
+                        delete pbm;
+                   }
+                   free ( pR );
+
+            }
+
             free ( top );
             top = Rtmp;
       }
@@ -2484,35 +2522,35 @@ char      *_getParamVal ( ObjRazRules *rzRules, char *str, char *buf, int bsz )
 
 
 
-S52_Text  *_parseTEXT ( ObjRazRules *rzRules, char *str0 )
+char *_parseTEXT ( ObjRazRules *rzRules, S52_Text *text, char *str0 )
 {
-      S52_Text *text = NULL;
       char buf[MAXL] = {'\0'};   // output string
 
       char *str = str0;
-      text = ( struct _S52_Text * ) calloc ( sizeof ( S52_Text ),1 );
 
-      str = _getParamVal ( rzRules, str, &text->hjust, 1 );   // HJUST
-      str = _getParamVal ( rzRules, str, &text->vjust, 1 );   // VJUST
-      str = _getParamVal ( rzRules, str, &text->space, 1 );   // SPACE
+      if(text)
+      {
+            str = _getParamVal ( rzRules, str, &text->hjust, 1 );   // HJUST
+            str = _getParamVal ( rzRules, str, &text->vjust, 1 );   // VJUST
+            str = _getParamVal ( rzRules, str, &text->space, 1 );   // SPACE
 
-      // CHARS
-      str         = _getParamVal ( rzRules, str, buf, 5 );
-      text->style = buf[0];
-      text->weight= buf[1];
-      text->width = buf[2];
-      text->bsize = atoi ( buf+3 );
+            // CHARS
+            str         = _getParamVal ( rzRules, str, buf, 5 );
+            text->style = buf[0];
+            text->weight= buf[1];
+            text->width = buf[2];
+            text->bsize = atoi ( buf+3 );
 
-      str         = _getParamVal ( rzRules, str, buf, MAXL );
-      text->xoffs = atoi ( buf );          // XOFFS
-      str         = _getParamVal ( rzRules, str, buf, MAXL );
-      text->yoffs = atoi ( buf );          // YOFFS
-      str         = _getParamVal ( rzRules, str, buf, MAXL );
-      text->pcol   = ps52plib->S52_getColor ( buf );  // COLOUR
-      str         = _getParamVal ( rzRules, str, buf, MAXL );
-      text->dis   = atoi ( buf );          // Text Group, used for "Important" text detection
-
-      return text;
+            str         = _getParamVal ( rzRules, str, buf, MAXL );
+            text->xoffs = atoi ( buf );          // XOFFS
+            str         = _getParamVal ( rzRules, str, buf, MAXL );
+            text->yoffs = atoi ( buf );          // YOFFS
+            str         = _getParamVal ( rzRules, str, buf, MAXL );
+            text->pcol   = ps52plib->S52_getColor ( buf );  // COLOUR
+            str         = _getParamVal ( rzRules, str, buf, MAXL );
+            text->dis   = atoi ( buf );          // Text Group, used for "Important" text detection
+      }
+      return str;
 }
 
 
@@ -2537,7 +2575,8 @@ S52_Text   *S52_PL_parseTX ( ObjRazRules *rzRules, Rules *rules, char *cmd )
       val[MAXL - 1] = '\0';                               // make sure the string terminates
       sprintf ( b, "%s", val );
 
-      text = _parseTEXT ( rzRules, str );
+      text = ( struct _S52_Text * ) calloc ( sizeof ( S52_Text ),1 );
+      str = _parseTEXT ( rzRules, text, str );
       if ( NULL != text )
             text->frmtd = new wxString ( buf, wxConvUTF8 );
 
@@ -2555,66 +2594,68 @@ S52_Text   *S52_PL_parseTE ( ObjRazRules *rzRules, Rules *rules, char *cmd )
       char *parg = arg;
       char *pf   = fmt;
       S52_Text *text = NULL;
-      char *str  = NULL;
-      //char *str  = rules->INSTstr;
 
+      char *str = ( char* ) rules->INSTstr;
 
-      str = ( char* ) rules->INSTstr;
-      str = _getParamVal ( rzRules, str, fmt, MAXL );   // get FORMAT
-
-      str = _getParamVal ( rzRules, str, arg, MAXL );   // get ATTRIB list
-      if ( NULL == str )
-            return 0;   // abort this command word if mandatory param absent
-
-
-      //*b = *pf;
-      while ( *pf != '\0' )
+      if(str && *str)
       {
+            str = _getParamVal ( rzRules, str, fmt, MAXL );   // get FORMAT
 
-            // begin a convertion specification
-            if ( *pf == '%' )
+            str = _getParamVal ( rzRules, str, arg, MAXL );   // get ATTRIB list
+            if ( NULL == str )
+                  return 0;   // abort this command word if mandatory param absent
+
+
+            //*b = *pf;
+            while ( *pf != '\0' )
             {
-                  char val[MAXL] = {'\0'};   // value of arg
-                  char tmp[MAXL] = {'\0'};   // temporary format string
-                  char *t = tmp;
-                  int  cc        = 0;        // 1 == Conversion Character found
-                  //*t = *pf;
 
-                  // get value for this attribute
-                  parg = _getParamVal ( rzRules, parg, val, MAXL );
-                  if ( NULL == parg )
-                        return 0;   // abort
-
-                  if ( 0==strcmp ( val, "2147483641" ) )
-                        return 0;
-
-                  *t = *pf;       // stuff the '%'
-
-                  // scan for end at convertion character
-                  do
+                  // begin a convertion specification
+                  if ( *pf == '%' )
                   {
-                        *++t = *++pf;   // fill conver spec
+                        char val[MAXL] = {'\0'};   // value of arg
+                        char tmp[MAXL] = {'\0'};   // temporary format string
+                        char *t = tmp;
+                        int  cc        = 0;        // 1 == Conversion Character found
+                        //*t = *pf;
 
-                        switch ( *pf )
+                        // get value for this attribute
+                        parg = _getParamVal ( rzRules, parg, val, MAXL );
+                        if ( NULL == parg )
+                              return 0;   // abort
+
+                        if ( 0==strcmp ( val, "2147483641" ) )
+                              return 0;
+
+                        *t = *pf;       // stuff the '%'
+
+                        // scan for end at convertion character
+                        do
                         {
-                              case 'c':
-                              case 's': b += sprintf ( b, tmp, val );       cc = 1; break;
-                              case 'f': b += sprintf ( b, tmp, atof ( val ) ); cc = 1; break;
-                              case 'd':
-                              case 'i': b += sprintf ( b, tmp, atoi ( val ) ); cc = 1; break;
+                              *++t = *++pf;   // fill conver spec
+
+                              switch ( *pf )
+                              {
+                                    case 'c':
+                                    case 's': b += sprintf ( b, tmp, val );       cc = 1; break;
+                                    case 'f': b += sprintf ( b, tmp, atof ( val ) ); cc = 1; break;
+                                    case 'd':
+                                    case 'i': b += sprintf ( b, tmp, atoi ( val ) ); cc = 1; break;
+                              }
                         }
+                        while ( !cc );
+                        pf++;             // skip conv. char
+
                   }
-                  while ( !cc );
-                  pf++;             // skip conv. char
-
+                  else
+                        *b++ = *pf++;
             }
-            else
-                  *b++ = *pf++;
-      }
 
-      text = _parseTEXT ( rzRules, str );
-      if ( NULL != text )
-            text->frmtd = new wxString ( buf, wxConvUTF8 );
+            text = ( struct _S52_Text * ) calloc ( sizeof ( S52_Text ),1 );
+            str = _parseTEXT ( rzRules, text, str );
+            if ( NULL != text )
+                  text->frmtd = new wxString ( buf, wxConvUTF8 );
+      }
 
       return text;
 }
@@ -2754,8 +2795,9 @@ int s52plib::RenderT_All ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp, boo
             return 0;
 
       S52_Text *text = NULL;
+      bool b_free_text = false;
 
-      //  The Ftext object is cached in the S57Obj.
+      //  The first Ftext object is cached in the S57Obj.
       //  If not present, create it on demand
       if ( !rzRules->obj->bFText_Added )
       {
@@ -2765,6 +2807,41 @@ int s52plib::RenderT_All ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp, boo
                   text = S52_PL_parseTE ( rzRules, rules, NULL );
 
             if ( text )
+            {
+                  rzRules->obj->bFText_Added = true;
+                  rzRules->obj->FText = text;
+                  rzRules->obj->FText->rul_seq_creator = rules->n_sequence;
+            }
+      }
+
+      //    S57Obj already contains a cached text object
+      //    If it was created by this Rule earlier, then render it
+      //    Otherwise, create a new text object, render it, and delete when done
+      //    This will be slower, obviously, but happens infrequently enough?
+      else
+      {
+            if(rules->n_sequence == rzRules->obj->FText->rul_seq_creator)
+                  text =  rzRules->obj->FText;
+            else
+            {
+                  if ( bTX )
+                        text = S52_PL_parseTX ( rzRules, rules, NULL );
+                  else
+                        text = S52_PL_parseTE ( rzRules, rules, NULL );
+
+                  b_free_text = true;
+            }
+
+      }
+
+
+      if ( text )
+      {
+            if ( m_bShowS57ImportantTextOnly && ( text->dis >= 20 ) )
+                  return 0;
+
+            //    Establish a font
+            if(!text->pFont)
             {
                   int spec_weight = text->weight - 0x30;
                   wxFontWeight fontweight;
@@ -2777,25 +2854,23 @@ int s52plib::RenderT_All ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp, boo
 
                   text->pFont = wxTheFontList->FindOrCreateFont ( text->bsize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, fontweight );
 
-                  rzRules->obj->bFText_Added = true;
-                  rzRules->obj->FText = text;
             }
-      }
 
-      text =  rzRules->obj->FText;
-
-      if ( text )
-      {
-            if ( m_bShowS57ImportantTextOnly && ( text->dis >= 20 ) )
-                  return 0;
 
             //  Render text at declared x/y of object
             wxPoint r;
             rzRules->chart->GetPointPix ( rzRules, rzRules->obj->y, rzRules->obj->x, &r );
 
             wxRect rect;
-//                bool bwas_drawn = RenderText ( pdc, text->pFont, str, r.x, r.y, text->xoffs, text->yoffs, text->col, &rect, rzRules->obj, m_bDeClutterText  );
+
             bool bwas_drawn = RenderText ( pdc, text, r.x, r.y, &rect, rzRules->obj, m_bDeClutterText );
+
+            //    If this is an un-cached text object render, then do not update the S57Obj in any way
+            if(b_free_text)
+            {
+                  free (text);
+                  return 1;
+            }
 
             rzRules->obj->rText = rect;
 
@@ -4271,7 +4346,12 @@ int s52plib::RenderMPS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
 
                   //  Need a new LUP
                   LUPrec *NewLUP = new LUPrec;
-                  *NewLUP = * ( rzRules->LUP );
+
+                  *NewLUP = * ( rzRules->LUP );       // copy the parent's LUP
+                  NewLUP->ATTCArray = NULL;           //
+                  NewLUP->ATTC = NULL;
+                  NewLUP->INST = NULL;
+
                   point_rzRules->LUP = NewLUP;
 
                   //  Need a new S57Obj
@@ -4286,6 +4366,7 @@ int s52plib::RenderMPS ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
                   point_rzRules->next = previous_rzRules;
                   Rules *ru = StringToRules ( _T ( "CS(SOUNDG03;" ) );
                   point_rzRules->LUP->ruleList = ru;
+
 
                   point_obj->x = east;
                   point_obj->y = nort;
@@ -4489,6 +4570,9 @@ int s52plib::RenderCARC ( ObjRazRules *rzRules, Rules *rules, ViewPort *vp )
             if ( arc_width )
             {
                   wxColour colorb = S52_getwxColour ( arc_color );
+
+                  if(!colorb.IsOk())
+                        colorb = S52_getwxColour ( _T("CHMGD") );
 
                   pthispen = wxThePenList->FindOrCreatePen ( colorb, arc_width, wxSOLID );
                   mdc.SetPen ( *pthispen );
@@ -5607,9 +5691,17 @@ inline int s52plib::dda_trap ( wxPoint *segs, int lseg, int rseg, int ytop, int 
       //    if xmax and xmin are both < 0, arrange to simply fill the ledge array with 0
       if ( ( xmax < 0 ) && ( xmin < 0 ) )
       {
-            xmax = 0;
-            xmin = 0;
+            xmax = -2;
+            xmin = -2;
       }
+      //    if xmax and xmin are both > rclip, arrange to simply fill the ledge array with rclip + 1
+      //    This may induce special clip case below, and cause trap not to be rendered
+      else if ( ( xmax > rclip ) && ( xmin > rclip ) )
+      {
+            xmax = rclip + 1;
+            xmin = rclip + 1;
+      }
+
 
       dy = ( ymax - ymin );
       if ( dy )
@@ -5665,18 +5757,25 @@ inline int s52plib::dda_trap ( wxPoint *segs, int lseg, int rseg, int ytop, int 
       }
 
 
-
-
       //    Some peephole optimization:
-      //    if xmax and xmin are both > rclip, arrange to simply fill the redge array with rclip
-      if ( ( xmax > rclip ) && ( xmin > rclip ) )
+      //    if xmax and xmin are both < 0, arrange to simply fill the redge array with -1
+      //    This may induce special clip case below, and cause trap not to be rendered
+      if ( ( xmax < 0 ) && ( xmin < 0 ) )
       {
-            xmax = rclip;
-            xmin = rclip;
+            xmax = -1;
+            xmin = -1;
+      }
+
+      //    if xmax and xmin are both > rclip, arrange to simply fill the redge array with rclip + 1
+      //    This may induce special clip case below, and cause trap not to be rendered
+      else if ( ( xmax > rclip ) && ( xmin > rclip ) )
+      {
+            xmax = rclip + 1;
+            xmin = rclip + 1;
       }
 
       y_dda_limit = wxMin ( ybot, ymax );
-      y_dda_limit = wxMin ( y_dda_limit, 1499 );            // don't overrun edage array
+      y_dda_limit = wxMin ( y_dda_limit, 1499 );            // don't overrun edge array
 
       dy = ( ymax - ymin );
       if ( dy )
@@ -6059,7 +6158,7 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, S
 
       else if ( obj->pPolyTrapGeo )
       {
-            if ( obj->pPolyTrapGeo->IsOk() )
+            if ( obj->pPolyTrapGeo->IsOk()  /*&& (obj->Index == 7) && ( obj->pPolyTrapGeo->GetnVertexMax() < 1000)*/)
             {
                   PolyTrapGroup *ptg = obj->pPolyTrapGeo->Get_PolyTrapGroup_head();
 
@@ -6098,37 +6197,29 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, S
 
                         S52color *cd = &cp;
                         if ( ptg->m_trap_error )
-                        {
                               cd = &cs;
-                        }
 
-                        /*
-                                          DEBUG CODE
-                                          double *p = &(ptg->pgroup_geom[lseg * 2]);
-                                          double v0x_from_lseg = *p;
-                                          p++;
-                                          double v0y_from_lseg = *p;
-                                          wxPoint prttv0;
-                                          rzRules->chart->GetPointPix ( rzRules, v0y_from_lseg, 0., &prttv0 );
-
-                                          p++;
-                                          double v1x_from_lseg = *p;
-                                          p++;
-                                          double v1y_from_lseg = *p;
-                                          wxPoint prttv1;
-                                          rzRules->chart->GetPointPix ( rzRules, v1y_from_lseg, 0., &prttv1 );
-                        */
 
                         int trap_height = trap_y_bot - trap_y_top;
 
                         //    Clip the trapezoid array to the render_canvas_parms dimensions
                         if ( ( trap_y_top >= pb_spec->y - trap_height ) && ( trap_y_bot <= pb_spec->y + pb_spec->height + trap_height ) )
                         {
-//                  printf("\nTrap %d  lseg: %d   rseg: %d   loy: %d   hiy: %d\n", i, lseg, rseg, loy, hiy);
-                              if ( dda_trap ( ptp, lseg, rseg, trap_y_top, trap_y_bot, cd, pb_spec, pPatt_spec ) )
+/*
+                              if(obj->Index == 7)
                               {
-//                                    printf ( "Error on object %d\n", obj->Index );
+                                    int clip_top =  pb_spec->y - trap_height;
+                                    int clip_bot = pb_spec->y + pb_spec->height + trap_height;
+                                    printf("Trap %d pb_spec-> %d clip_top %d clip_bot %d\n", i, pb_spec->y, clip_top, clip_bot);
+                                    printf("Trap %d  lseg: %d   rseg: %d   loy: %d   hiy: %d\n", i, lseg, rseg, trap_y_top, trap_y_bot);
                               }
+*/
+//                              if((lseg == 66) && (trap_y_top < 0))
+  //                                    cs.B = 128;
+
+                              dda_trap ( ptp, lseg, rseg, trap_y_top, trap_y_bot, cd, pb_spec, pPatt_spec );
+
+
                         }
 
                         ptraps++;

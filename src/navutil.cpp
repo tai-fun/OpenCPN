@@ -27,127 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
- * Revision 1.51  2009/09/30 02:32:38  bdbcat
- * Update to GPX 1.1 format
+ * Revision 1.52  2009/11/18 01:24:54  bdbcat
+ * 1.3.5 Beta 1117
  *
- * Revision 1.50  2009/09/29 18:09:54  bdbcat
- * Add color to managed fonts
- *
- * Revision 1.48  2009/09/25 15:13:27  bdbcat
- * Correct waypoint date/time
- *
- * Revision 1.47  2009/09/18 02:21:16  bdbcat
- * Various, MSVC fonts, dialog locations
- *
- * Revision 1.46  2009/09/11 23:19:01  bdbcat
- * *** empty log message ***
- *
- * Revision 1.45  2009/09/04 01:56:03  bdbcat
- * New config options
- *
- * Revision 1.44  2009/08/30 14:19:40  bdbcat
- * Correct Track last point coordinates
- *
- * Revision 1.43  2009/08/30 03:31:56  bdbcat
- * Optimize wxGraphicsContext calls
- *
- * Revision 1.42  2009/08/29 23:25:59  bdbcat
- * Correct leak in Route::Draw()
- *
- * Revision 1.41  2009/08/25 21:32:13  bdbcat
- * Various, including GDK SIGSEGV workaround
- *
- * Revision 1.40  2009/08/22 01:21:17  bdbcat
- * Tracks
- *
- * Revision 1.39  2009/08/03 03:08:20  bdbcat
- * Improve Waypoint logic
- *
- * Revision 1.38  2009/07/29 00:49:54  bdbcat
- * Update Route Draw logic
- *
- * Revision 1.37  2009/07/17 03:54:54  bdbcat
- * Add config option for Wheel Zoom to cursor.
- *
- * Revision 1.36  2009/07/16 02:43:49  bdbcat
- * Various, esp Export Route.
- *
- * Revision 1.35  2009/07/08 01:51:15  bdbcat
- * Cleanup.
- *
- * Revision 1.34  2009/06/30 03:02:16  bdbcat
- * Add configurable chart cache limit.
- *
- * Revision 1.33  2009/06/28 21:41:09  bdbcat
- * Save GPX_IO directory fix.
- *
- * Revision 1.32  2009/06/28 03:34:52  bdbcat
- * Save GPX_IO directory.
- *
- * Revision 1.31  2009/06/17 02:46:29  bdbcat
- * More Options
- *
- * Revision 1.30  2009/06/14 01:51:16  bdbcat
- * AIS Alert Dialog
- *
- * Revision 1.29  2009/06/03 03:18:27  bdbcat
- * Correct GPX Route import logic
- *
- * Revision 1.28  2009/05/14 02:48:34  bdbcat
- * Correct southern latitude restore on startup.
- *
- * Revision 1.27  2009/05/09 01:30:52  bdbcat
- * Correct wx constants in wxFileDialog.
- *
- * Revision 1.26  2009/05/05 03:59:27  bdbcat
- * New text options
- *
- * Revision 1.25  2009/04/19 02:24:56  bdbcat
- * Implement "Important Text" option
- *
- * Revision 1.24  2009/04/13 02:33:25  bdbcat
- * Add "show ATON labels" option
- *
- * Revision 1.23  2009/03/30 19:06:17  bdbcat
- * Opencpn 1.3.0 Update
- *
- * Revision 1.22  2009/03/26 22:29:39  bdbcat
- * Opencpn 1.3.0 Update
- *
- * Revision 1.21  2008/12/22 18:38:56  bdbcat
- * Add NMEA Debug flag
- *
- * Revision 1.20  2008/12/19 01:46:02  bdbcat
- * Add selectable depth unit conversion for S57 charts
- *
- * Revision 1.19  2008/11/12 04:13:11  bdbcat
- * Support Garmin Devices / Mac Fonts / Cleanup
- *
- * Revision 1.18  2008/10/31 01:07:43  bdbcat
- * Fix initial Lat/Lon/scale value logic
- *
- * Revision 1.17  2008/10/23 23:28:47  bdbcat
- * Add OwnShipLatLon to config file for debugging
- *
- * Revision 1.16  2008/08/26 13:48:15  bdbcat
- * Better color scheme support
- *
- * Revision 1.15  2008/08/09 23:58:40  bdbcat
- * Numerous revampings....
- *
- * Revision 1.14  2008/04/20 20:54:40  bdbcat
- * Set defaults
- *
- * Revision 1.13  2008/04/11 03:25:08  bdbcat
- * Implement Auto Anchor Mark
- *
- * Revision 1.12  2008/04/10 01:03:51  bdbcat
- * Cleanup
- *
- * Revision 1.11  2008/03/30 22:05:53  bdbcat
- * Support Route/Mark Properties
- *
- * $Log: navutil.cpp,v $
  * Revision 1.51  2009/09/30 02:32:38  bdbcat
  * Update to GPX 1.1 format
  *
@@ -326,7 +208,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.51 2009/09/30 02:32:38 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.52 2009/11/18 01:24:54 bdbcat Exp $" );
 
 //    Statics
 
@@ -351,7 +233,7 @@ extern wxString         *pNMEA_AP_Port;
 extern wxString         *pWIFIServerName;
 extern wxString         *g_pcsv_locn;
 extern wxString         *g_pSENCPrefix;
-extern wxString         *g_pPresLibData;
+extern wxString         g_PresLibData;
 
 extern bool             g_bShowPrintIcon;
 extern AutoPilotWindow  *pAPilot;
@@ -436,6 +318,14 @@ extern bool             g_bShowCM93DetailSlider;
 extern int              g_cm93detail_dialog_x, g_cm93detail_dialog_y;
 
 extern bool             g_bUseGreenShip;
+
+extern wxString         g_grib_dir;
+extern bool             g_bShowGRIBIcon;
+
+extern bool             g_b_overzoom_x;                      // Allow high overzoom
+extern bool             g_bshow_overzoom_emboss;
+extern int              g_nautosave_interval_seconds;
+extern int              g_n_ownship_meters;
 
 //------------------------------------------------------------------------------
 // Some wxWidgets macros for useful classes
@@ -924,6 +814,7 @@ RoutePoint::RoutePoint ( double lat, double lon, const wxString& icon_ident, con
 
       m_prop_string_format = _T ( "A" );              // Set the current Property String format indicator
 
+      m_HyperlinkList = NULL;
       m_HyperlinkList = new HyperlinkList;
 
       wxString GUID = pWayPointMan->CreateGUID ( this );
@@ -957,6 +848,8 @@ RoutePoint::~RoutePoint ( void )
 //  Remove this point from the global waypoint list
       if ( NULL != pWayPointMan )
             pWayPointMan->m_pWayPointList->DeleteObject ( this );
+
+      delete m_HyperlinkList;
 }
 
 wxString RoutePoint::CreatePropString ( void )
@@ -1218,8 +1111,10 @@ Route::Route ( void )
       m_bIsTrack = false;
       m_nPoints = 0;
       m_nm_sequence = 1;
+      m_route_length = 0.0;
 
       pRoutePointList = new RoutePointList;
+      m_pLastAddedPoint = NULL;
 
       RBBox.Reset();
 }
@@ -1242,8 +1137,18 @@ void Route::AddPoint ( RoutePoint *pNewPoint, bool b_rename_in_sequence )
 
       m_nPoints++;
 
-      CalculateBBox();
-      UpdateSegmentDistances();
+//      CalculateBBox();
+      RBBox.Expand(pNewPoint->m_lon, pNewPoint->m_lat);
+
+
+//      UpdateSegmentDistances();
+
+      if(m_pLastAddedPoint)
+            pNewPoint->m_seg_len = DistGreatCircle(m_pLastAddedPoint->m_lat, m_pLastAddedPoint->m_lon, pNewPoint->m_lat, pNewPoint->m_lon);
+
+      m_route_length += pNewPoint->m_seg_len;
+
+      m_pLastAddedPoint = pNewPoint;
 
       if ( b_rename_in_sequence && pNewPoint->m_MarkName.IsEmpty() )
       {
@@ -1443,7 +1348,7 @@ void Route::RenderSegment ( wxDC& dc, int xa, int ya, int xb, int yb, ViewPort &
       //    If hilite is desired, use a Native Graphics context to render alpha colours
       //    That is, if wxGraphicsContext is available.....
 
-#if wxUSE_GRAPHICS_CONTEXT
+#if dwxUSE_GRAPHICS_CONTEXT
       if ( hilite_width )
       {
             wxGraphicsContext *pgc;
@@ -1531,36 +1436,6 @@ void Route::RenderSegment ( wxDC& dc, int xa, int ya, int xb, int yb, ViewPort &
             }
             dc.DrawPolygon ( 6, &icon[0], 0, 0 );
       }
-}
-
-void Route::RenderSegmentGC ( void *gc, int xa, int ya, int xb, int yb, ViewPort &VP, wxPen &dPen, int hilite_width )
-{
-
-      //    If hilite is desired, use a Native Graphics context to render alpha colours
-      //    That is, if wxGraphicsContext is available.....
-
-#if wxUSE_GRAPHICS_CONTEXT
-      if ( hilite_width )
-      {
-            wxGraphicsContext *pgc = ( wxGraphicsContext * ) gc;
-
-            if ( pgc )
-            {
-                  wxColour y = GetGlobalColor ( _T ( "YELO1" ) );
-                  wxColour hilt ( y.Red(), y.Green(), y.Blue(), 128 );
-
-                  wxPen HiPen ( hilt, hilite_width, wxSOLID );
-
-                  pgc->SetPen ( HiPen );
-                  pgc->StrokeLine ( xa, ya, xb, yb );
-
-                  pgc->SetPen ( dPen );
-                  pgc->StrokeLine ( xa, ya, xb, yb );
-
-            }
-      }
-
-#endif
 }
 
 
@@ -1910,13 +1785,15 @@ void Route::RenameRoutePoints ( void )
 
 bool Route::SendToGPS ( wxString& com_name, bool bsend_waypoints, wxGauge *pProgress )
 {
-      SENTENCE snt;
+      SENTENCE    snt;
       NMEA0183    oNMEA0183;
       oNMEA0183.TalkerID = _T ( "EC" );
 
       int nProg = pRoutePointList->GetCount() + 1;
       if ( pProgress )
             pProgress->SetRange ( 100 );
+
+      int port_fd = g_pCommMan->OpenComPort ( com_name, 4800 );
 
       //    Send out the waypoints, in order
       if ( bsend_waypoints )
@@ -1943,16 +1820,16 @@ bool Route::SendToGPS ( wxString& com_name, bool bsend_waypoints, wxGauge *pProg
 
                   oNMEA0183.Wpl.Write ( snt );
 
-//                  printf("%s", snt.Sentence.mb_str());
                   g_pCommMan->WriteComPort ( com_name, snt.Sentence );
 
                   if ( pProgress )
                   {
                         pProgress->SetValue ( ( ip * 100 ) / nProg );
                         pProgress->Refresh();
+                        pProgress->Update();
                   }
 
-                  wxMilliSleep ( 100 );
+                  wxMilliSleep ( 1000 );
 
                   node = node->GetNext();
 
@@ -1966,7 +1843,7 @@ bool Route::SendToGPS ( wxString& com_name, bool bsend_waypoints, wxGauge *pProg
       oNMEA0183.Rte.TypeOfRoute = CompleteRoute;
 
       if ( m_RouteNameString.IsEmpty() )
-            oNMEA0183.Rte.RouteName = _T ( "(NO NAME)" );
+            oNMEA0183.Rte.RouteName = _T ( "00" );
       else
             oNMEA0183.Rte.RouteName = m_RouteNameString;
 
@@ -1989,7 +1866,9 @@ bool Route::SendToGPS ( wxString& com_name, bool bsend_waypoints, wxGauge *pProg
       g_pCommMan->WriteComPort ( com_name, snt.Sentence );
 
 
-      wxMilliSleep ( 100 );
+      wxMilliSleep ( 1000 );
+
+      g_pCommMan->CloseComPort ( port_fd );
 
       return true;
 }
@@ -2006,11 +1885,11 @@ bool Route::IsEqualTo ( Route *ptargetroute )
 
       while ( pthisnode )
       {
-            RoutePoint *pthisrp = pthisnode->GetData();
-            RoutePoint *pthatrp = pthatnode->GetData();
-
             if ( NULL == pthatnode )
                   return false;
+
+            RoutePoint *pthisrp = pthisnode->GetData();
+            RoutePoint *pthatrp = pthatnode->GetData();
 
             if ( ( fabs ( pthisrp->m_lat - pthatrp->m_lat ) > 1.0e-6 ) || ( fabs ( pthisrp->m_lon - pthatrp->m_lon ) > 1.0e-6 ) )
                   return false;
@@ -2042,6 +1921,8 @@ Track::Track ( void )
       m_DeltaDistance = 0.0;
       m_bTrackTime = false;
       m_bTrackDistance = false;
+      m_prev_time = wxDateTime::Now();
+      m_prev_time.ResetTime();            // set to midnight this morning.
 
       m_track_run = 0;
 }
@@ -2059,15 +1940,15 @@ void Track::Start ( void )
             AddPointNow();                   // Add initial point
             m_TimerTrack.Start ( 1000, wxTIMER_CONTINUOUS );
             m_bRunning = true;
-
-
-//            m_bRbanding = true;
       }
 }
 
 void Track::Stop ( void )
 {
-      AddPointNow();                   // Add last point
+      if ( m_bRunning )
+            AddPointNow();                   // Add last point
+
+
       m_TimerTrack.Stop();
       m_bRunning = false;
       m_track_run = 0;
@@ -2098,10 +1979,18 @@ void Track::OnTimerTrack ( wxTimerEvent& event )
 
 void Track::AddPointNow()
 {
+
+      wxDateTime now = wxDateTime::Now();
+
+      if((m_prev_glat == gLat) && (m_prev_glon == gLon))                 // avoid zero length segs
+            return;
+
+      if(m_prev_time == now)                                            // avoid zero time segs
+            return;
+
       RoutePoint *pTrackPoint = new RoutePoint ( gLat, gLon, wxString ( _T ( "xmred" ) ), wxString ( _T ( "" ) ), NULL );
       pTrackPoint->m_bShowName = false;
       pTrackPoint->m_bIsVisible  = false;
-      wxDateTime now = wxDateTime::Now();
       pTrackPoint->m_CreateTime = now.ToUTC();
 
       AddPoint ( pTrackPoint );
@@ -2112,6 +2001,8 @@ void Track::AddPointNow()
 
       m_prev_glon = gLon;
       m_prev_glat = gLat;
+
+      m_prev_time = now;
 }
 
 
@@ -2127,21 +2018,6 @@ void Track::Draw ( wxDC& dc, ViewPort &VP )
       double radius_meters = Current_Ch->GetNativeScale() * .0015;         // 1.5 mm at original scale
       double radius = radius_meters * VP.view_scale_ppm;
 
-#if wxUSE_GRAPHICS_CONTEXT
-      wxGraphicsContext *pgc;
-
-      wxMemoryDC *pmdc = wxDynamicCast ( &dc, wxMemoryDC );
-      if ( pmdc )
-      {
-            pgc = wxGraphicsContext::Create ( *pmdc );
-      }
-      else
-      {
-            wxClientDC *pcdc = wxDynamicCast ( &dc, wxClientDC );
-            if ( pcdc )
-                  pgc = wxGraphicsContext::Create ( *pcdc );
-      }
-#endif
 
       wxPoint rpt, rptn;
       DrawPointWhich ( dc, 1, &rpt );
@@ -2155,11 +2031,7 @@ void Track::Draw ( wxDC& dc, ViewPort &VP )
             RoutePoint *prp = node->GetData();
             prp->Draw ( dc, &rptn );
 
-#if wxUSE_GRAPHICS_CONTEXT
-            RenderSegmentGC ( ( void * ) pgc, rpt.x, rpt.y, rptn.x, rptn.y, VP, dPen, ( int ) radius );   // no arrows, with hilite
-#else
             RenderSegment ( dc, rpt.x, rpt.y, rptn.x, rptn.y, VP, false, ( int ) radius );      // no arrows, with hilite
-#endif
             rpt = rptn;
 
             node = node->GetNext();
@@ -2171,17 +2043,8 @@ void Track::Draw ( wxDC& dc, ViewPort &VP )
       {
             wxPoint r;
             cc1->GetCanvasPointPix ( gLat, gLon, &r );
-#if wxUSE_GRAPHICS_CONTEXT
-            RenderSegmentGC ( ( void * ) pgc, rpt.x, rpt.y, r.x, r.y, VP, dPen, ( int ) radius );   // no arrows, with hilite
-#else
             RenderSegment ( dc, rpt.x, rpt.y, r.x, r.y, VP, false, ( int ) radius );      // no arrows, with hilite
-#endif
       }
-
-#if wxUSE_GRAPHICS_CONTEXT
-      delete pgc;
-#endif
-
 }
 
 
@@ -2203,7 +2066,7 @@ MyConfig::MyConfig ( const wxString &appName, const wxString &vendorName, const 
       m_sNavObjSetFile += _T ( "navobj.xml" );
 
       m_pNavObjectInputSet = NULL;
-      m_pNavObjectOutputSet = NULL;
+//      m_pNavObjectOutputSet = NULL;
 }
 
 
@@ -2224,6 +2087,10 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "DebugCM93" ),  &g_bDebugCM93, 0 );
       Read ( _T ( "DebugS57" ),  &g_bDebugS57, 0 );
       Read ( _T ( "UseGreenShipIcon" ),  &g_bUseGreenShip, 0 );
+      Read ( _T ( "AllowExtremeOverzoom" ),  &g_b_overzoom_x, 1 );
+      Read ( _T ( "ShowOverzoomEmbossWarning" ),  &g_bshow_overzoom_emboss, 1 );
+      Read ( _T ( "AutosaveIntervalSeconds" ),  &g_nautosave_interval_seconds, 300 );
+      Read ( _T ( "OwnshipLengthMeters" ),  &g_n_ownship_meters, 12 );
 
 
       Read ( _T ( "CM93DetailFactor" ),  &g_cm93_zoom_factor, 0 );
@@ -2234,26 +2101,21 @@ int MyConfig::LoadMyConfig ( int iteration )
       g_cm93detail_dialog_y = Read ( _T ( "CM93DetailZoomPosY" ), 200L );
       Read ( _T ( "ShowCM93DetailSlider" ),  &g_bShowCM93DetailSlider, 0 );
 
-      s_bSetSystemTime = false;
-      Read ( _T ( "SetSystemTime" ), &s_bSetSystemTime );
+      Read ( _T ( "SetSystemTime" ), &s_bSetSystemTime, 0 );
 
-      m_bShowDebugWindows = true;
-      Read ( _T ( "ShowDebugWindows" ), &m_bShowDebugWindows );
+      Read ( _T ( "ShowDebugWindows" ), &m_bShowDebugWindows, 1 );
 
-      g_bShowPrintIcon = false;
-      Read ( _T ( "ShowPrintIcon" ), &g_bShowPrintIcon );
+      Read ( _T ( "ShowPrintIcon" ), &g_bShowPrintIcon, 0 );
 
-      g_bShowDepthUnits = true;
-      Read ( _T ( "ShowDepthUnits" ), &g_bShowDepthUnits );
+      Read ( _T ( "ShowDepthUnits" ), &g_bShowDepthUnits, 1 );
 
-      g_bAutoAnchorMark = false;
-      Read ( _T ( "AutoAnchorDrop" ),  &g_bAutoAnchorMark );
+      Read ( _T ( "AutoAnchorDrop" ),  &g_bAutoAnchorMark, 0 );
 
-      g_bShowOutlines = false;
-      Read ( _T ( "ShowChartOutlines" ),  &g_bShowOutlines );
+      Read ( _T ( "ShowChartOutlines" ),  &g_bShowOutlines, 0 );
 
-      g_bGarminPersistance = false;
-      Read ( _T ( "GarminPersistance" ),  &g_bGarminPersistance );
+      Read ( _T ( "GarminPersistance" ),  &g_bGarminPersistance, 0 );
+
+      Read ( _T ( "ShowGRIBIcon" ),  &g_bShowGRIBIcon, 0 );
 
       wxString stps;
       Read ( _T ( "PlanSpeed" ),  &stps );
@@ -2389,7 +2251,7 @@ int MyConfig::LoadMyConfig ( int iteration )
       SetPath ( _T ( "/Directories" ) );
       Read ( strpres, &valpres );              // Get the File name
       if ( iteration == 0 )
-            *g_pPresLibData = valpres;
+            g_PresLibData = valpres;
 
       wxString strd ( _T ( "S57DataLocation" ) );
       wxString val;
@@ -2420,6 +2282,7 @@ int MyConfig::LoadMyConfig ( int iteration )
       SetPath ( _T ( "/Directories" ) );
       Read ( _T ( "CM93DictionaryLocation" ), &g_CM93DictDir );
 
+      Read ( _T ( "GRIBDirectory" ), &g_grib_dir );
 
       SetPath ( _T ( "/Directories" ) );
       wxString vald;
@@ -2858,6 +2721,9 @@ int MyConfig::LoadMyConfig ( int iteration )
                                     if ( token.Length() > 0 )
                                           link->Type = token;
 
+                                    if(NULL == pWP->m_HyperlinkList)
+                                          pWP->m_HyperlinkList = new HyperlinkList;
+
                                     pWP->m_HyperlinkList->Append ( link );
                               }
                               i++;
@@ -3112,42 +2978,42 @@ bool MyConfig::AddNewWayPoint ( RoutePoint *pWP, int crm )
       Write ( str_buf, str_buf1 );
 
       // toh, 2009.02.23
-      int NbrLinks = pWP->m_HyperlinkList->GetCount();
-      if ( NbrLinks > 0 )
+      if( pWP->m_HyperlinkList)
       {
-            HyperlinkList *hyperlinklist = pWP->m_HyperlinkList;
-
-            wxHyperlinkListNode *linknode = hyperlinklist->GetFirst();
-
-            int i=1;
-            while ( linknode )
+            int NbrLinks = pWP->m_HyperlinkList->GetCount();
+            if ( NbrLinks > 0 )
             {
-                  Hyperlink *link = linknode->GetData();
-                  wxString Link = link->Link;
-                  wxString Descr = link->DescrText;
-                  linknode = linknode->GetNext();
+                  wxHyperlinkListNode *linknode = pWP->m_HyperlinkList->GetFirst();
 
-                  wxString t ( _T ( "RoutePointLink" ) );
-                  str_buf.Printf ( _T ( "%d" ), i );
-                  t.Append ( str_buf );
+                  int i=1;
+                  while ( linknode )
+                  {
+                        Hyperlink *link = linknode->GetData();
+                        wxString Link = link->Link;
+                        wxString Descr = link->DescrText;
+                        linknode = linknode->GetNext();
 
-                  str_buf1 = _T ( "" );
-                  str_buf1.Append ( link->Link );
-                  if ( link->DescrText.Length() > 0 )
-                  {
-                        str_buf1.Append ( _T ( "^" ) );
-                        str_buf1.Append ( link->DescrText );
+                        wxString t ( _T ( "RoutePointLink" ) );
+                        str_buf.Printf ( _T ( "%d" ), i );
+                        t.Append ( str_buf );
+
+                        str_buf1 = _T ( "" );
+                        str_buf1.Append ( link->Link );
+                        if ( link->DescrText.Length() > 0 )
+                        {
+                              str_buf1.Append ( _T ( "^" ) );
+                              str_buf1.Append ( link->DescrText );
+                        }
+                        if ( link->Type.Length() > 0 )
+                        {
+                              str_buf1.Append ( _T ( "^" ) );
+                              str_buf1.Append ( link->Type );
+                        }
+                        Write ( t, str_buf1 );
+                        i++;
                   }
-                  if ( link->Type.Length() > 0 )
-                  {
-                        str_buf1.Append ( _T ( "^" ) );
-                        str_buf1.Append ( link->Type );
-                  }
-                  Write ( t, str_buf1 );
-                  i++;
             }
       }
-
 
       Flush();
 
@@ -3249,6 +3115,9 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "CM93DetailZoomPosX" ),  g_cm93detail_dialog_x );
       Write ( _T ( "CM93DetailZoomPosY" ),  g_cm93detail_dialog_y );
       Write ( _T ( "ShowCM93DetailSlider" ), g_bShowCM93DetailSlider );
+      Write ( _T ( "AllowExtremeOverzoom" ), g_b_overzoom_x );
+
+      Write ( _T ( "ShowGRIBIcon" ), g_bShowGRIBIcon );
 
       wxString st0;
       st0.Printf ( _T ( "%g" ), g_PlanSpeed );
@@ -3356,7 +3225,7 @@ void MyConfig::UpdateSettings()
       SetPath ( _T ( "/Directories" ) );
       Write ( _T ( "S57DataLocation" ), *g_pcsv_locn );
       Write ( _T ( "SENCFileLocation" ), *g_pSENCPrefix );
-      Write ( _T ( "PresentationLibraryData" ), *g_pPresLibData );
+      Write ( _T ( "PresentationLibraryData" ), g_PresLibData );
       Write ( _T ( "CM93DictionaryLocation" ), g_CM93DictDir );
 
 #endif
@@ -3364,6 +3233,8 @@ void MyConfig::UpdateSettings()
       SetPath ( _T ( "/Directories" ) );
       Write ( _T ( "InitChartDir" ), *pInit_Chart_Dir );
       Write ( _T ( "GPXIODir" ), m_gpx_path );
+      Write ( _T ( "GRIBDirectory" ), g_grib_dir );
+
 
       if ( g_pnmea )
       {
@@ -3452,27 +3323,27 @@ void MyConfig::UpdateSettings()
 
       //    Create the NavObjectCollection, and save to specified file
 
-      m_pNavObjectOutputSet = new NavObjectCollection ( _T ( "gpx" ), _T ( "1.0" ), _T ( "opencpn" ) );
+      NavObjectCollection *pNavObjectSet = new NavObjectCollection( _T ( "gpx" ), _T ( "1.0" ), _T ( "opencpn" ) );
 
-      m_pNavObjectOutputSet->CreateGPXPoints();
-      m_pNavObjectOutputSet->CreateGPXRoutes();
-      m_pNavObjectOutputSet->CreateGPXTracks();
+      pNavObjectSet->CreateGPXPoints();
+      pNavObjectSet->CreateGPXRoutes();
+      pNavObjectSet->CreateGPXTracks();
 
-      m_pNavObjectOutputSet->Save ( m_sNavObjSetFile, 4 );
+      pNavObjectSet->Save ( m_sNavObjSetFile, 4 );
 
-      delete m_pNavObjectOutputSet;
-
+      delete pNavObjectSet;
 
 }
 
 bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
 {
-      wxFileDialog *saveDialog = new wxFileDialog ( parent, wxT ( "Export GPX file" ), m_gpx_path, wxT ( "" ),
-              wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
 
-      int response = saveDialog->ShowModal();
+      wxFileDialog saveDialog( parent, wxT ( "Export GPX file" ), m_gpx_path, wxT ( "" ),
+                  wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
 
-      wxString path = saveDialog->GetPath();
+      int response = saveDialog.ShowModal();
+
+      wxString path = saveDialog.GetPath();
       wxFileName fn ( path );
       m_gpx_path = fn.GetPath();
 
@@ -3502,12 +3373,15 @@ bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
 // toh, 2009.02.15
 void MyConfig::ExportGPX ( wxWindow* parent )
 {
-      wxFileDialog *saveDialog = new wxFileDialog ( parent, wxT ( "Export GPX file" ), m_gpx_path, wxT ( "" ),
-              wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
+//      wxFileDialog *saveDialog = new wxFileDialog ( parent, wxT ( "Export GPX file" ), m_gpx_path, wxT ( "" ),
+//              wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
 
-      int response = saveDialog->ShowModal();
+      wxFileDialog saveDialog( parent, wxT ( "Export GPX file" ), m_gpx_path, wxT ( "" ),
+                  wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
 
-      wxString path = saveDialog->GetPath();
+      int response = saveDialog.ShowModal();
+
+      wxString path = saveDialog.GetPath();
       wxFileName fn ( path );
       m_gpx_path = fn.GetPath();
 
@@ -3527,16 +3401,17 @@ void MyConfig::ExportGPX ( wxWindow* parent )
 // toh, 2009.02.15
 void MyConfig::ImportGPX ( wxWindow* parent )
 {
-      wxFileDialog *openDialog = new wxFileDialog ( parent, wxT ( "Import GPX file" ), m_gpx_path, wxT ( "" ),
-              wxT ( "GPX files (*.gpx)|*.gpx|All files (*.*)|*.*" ), wxFD_OPEN );
-      int response = openDialog->ShowModal();
 
-      wxFileName fn ( openDialog->GetPath() );
+      wxFileDialog openDialog( parent, wxT ( "Import GPX file" ), m_gpx_path, wxT ( "" ),
+                  wxT ( "GPX files (*.gpx)|*.gpx|All files (*.*)|*.*" ), wxFD_OPEN );
+      int response = openDialog.ShowModal();
+
+      wxFileName fn ( openDialog.GetPath() );
       m_gpx_path = fn.GetPath();
 
       if ( response == wxID_OK )
       {
-            wxString path = openDialog->GetPath();
+            wxString path = openDialog.GetPath();
 
             if ( ::wxFileExists ( path ) )
             {
@@ -3698,6 +3573,8 @@ RoutePoint *MyConfig::GPXLoadWaypoint ( wxXmlNode* wptnode,bool &WpExists, bool 
 
             pWP->m_NameLocationOffsetX = -10;
             pWP->m_NameLocationOffsetY = 8;
+
+            delete pWP->m_HyperlinkList;
             pWP->m_HyperlinkList = linklist;
 
             if ( !LoadingRoute )
@@ -3802,8 +3679,6 @@ void MyConfig::GPXLoadRoute ( wxXmlNode* rtenode )
             }
             else
             {
-                  //    Remove the route from associated lists
-                  pRouteList->DeleteObject ( pTentRoute );
 
                   // walk the route, deleting points used only by this route
                   wxRoutePointListNode *pnode = ( pTentRoute->pRoutePointList )->GetFirst();
@@ -3826,6 +3701,8 @@ void MyConfig::GPXLoadRoute ( wxXmlNode* rtenode )
 
                         pnode = pnode->GetNext();
                   }
+
+                  delete pTentRoute;
             }
       }
 }
@@ -3845,7 +3722,8 @@ void MyConfig::GPXLoadTrack ( wxXmlNode* trknode )
             pTentTrack->m_RouteNameString = RouteName;
 
             wxXmlNode *child = trknode->GetChildren();
-            int ip = 0;
+
+            RoutePoint *pRecentPoint = NULL;
 
             while ( child )
             {
@@ -3854,15 +3732,25 @@ void MyConfig::GPXLoadTrack ( wxXmlNode* trknode )
                   {
                         RoutePoint *pWp = LoadGPXTrackpoint ( child );
 
-                        pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
-                        ip++;
+                        //    Don't add this point if it is geographically the same as the previous point
+                        if(pRecentPoint)
+                        {
+                              if((pRecentPoint->m_lat != pWp->m_lat) || (pRecentPoint->m_lon != pWp->m_lon))
+                                    pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
+
+                        }
+                        else
+                              pTentTrack->AddPoint ( pWp, false );                      // add first point always
+
+                        pRecentPoint = pWp;
+
                   }
                   child = child->GetNext();
             }
 
             //    Search for an identical route/track already in place.  If found, discard this one
 
-            bool  trackExists = false;
+            bool  bAddtrack = true;
             wxRouteListNode *route_node = pRouteList->GetFirst();
             while ( route_node )
             {
@@ -3870,17 +3758,21 @@ void MyConfig::GPXLoadTrack ( wxXmlNode* trknode )
 
                   if ( proute->IsEqualTo ( pTentTrack ) )
                   {
-                        trackExists = true;
+                        bAddtrack = false;
                         break;
                   }
                   route_node = route_node->GetNext();                         // next route
             }
 
+            //    If the track has only 1 point, don't load it.
+            //    This usually occurs if some points were dscarded above as being co-incident.
+            if(pTentTrack->GetnPoints() < 2)
+                  bAddtrack = false;
+
 //    TODO  All this trouble for a tentative route.......Should make some Route methods????
-            if ( !trackExists )
+            if ( bAddtrack )
             {
                   pRouteList->Append ( pTentTrack );
-
 
                   //    Add the selectable points and segments
 
@@ -3908,8 +3800,6 @@ void MyConfig::GPXLoadTrack ( wxXmlNode* trknode )
             }
             else
             {
-                  //    Remove the route from associated lists
-                  pRouteList->DeleteObject ( pTentTrack );
 
                   // walk the route, deleting points used only by this route
                   wxRoutePointListNode *pnode = ( pTentTrack->pRoutePointList )->GetFirst();
@@ -3932,6 +3822,8 @@ void MyConfig::GPXLoadTrack ( wxXmlNode* trknode )
 
                         pnode = pnode->GetNext();
                   }
+
+                  delete pTentTrack;
             }
       }
 }
@@ -4221,42 +4113,45 @@ wxXmlNode *MyConfig::CreateGPXWptNode ( RoutePoint *pr )
 
       // Hyperlinks
       HyperlinkList *linklist = pr->m_HyperlinkList;
-      wxHyperlinkListNode *linknode = linklist->GetFirst();
-      while ( linknode )
+      if(linklist)
       {
-            Hyperlink *link = linknode->GetData();
-            wxString Link = link->Link;
-            wxString Descr = link->DescrText;
-            wxString Type = link->Type;
-
-            node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
-            current_sib_node->SetNext ( node );
-
-            wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
-            node->SetProperties ( prop );
-
-            if ( Descr.Length() > 0 )
+            wxHyperlinkListNode *linknode = linklist->GetFirst();
+            while ( linknode )
             {
-                  wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
-                  node->AddChild ( textnode );
-                  wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
-                  textnode->AddChild ( descrnode );
+                  Hyperlink *link = linknode->GetData();
+                  wxString Link = link->Link;
+                  wxString Descr = link->DescrText;
+                  wxString Type = link->Type;
 
+                  node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
+                  current_sib_node->SetNext ( node );
+
+                  wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
+                  node->SetProperties ( prop );
+
+                  if ( Descr.Length() > 0 )
+                  {
+                        wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
+                        node->AddChild ( textnode );
+                        wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
+                        textnode->AddChild ( descrnode );
+
+                  }
+
+                  current_sib_node = node;
+
+                  if ( Type.Length() > 0 )
+                  {
+                        wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+                        node->AddChild ( typenode );
+                        wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
+                        typenode->AddChild ( typnode );
+                  }
+
+                  current_sib_node = node;
+
+                  linknode = linknode->GetNext();
             }
-
-            current_sib_node = node;
-
-            if ( Type.Length() > 0 )
-            {
-                  wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-                  node->AddChild ( typenode );
-                  wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
-                  typenode->AddChild ( typnode );
-            }
-
-            current_sib_node = node;
-
-            linknode = linknode->GetNext();
       }
 
 
@@ -4325,44 +4220,46 @@ wxXmlNode *MyConfig::CreateGPXRptNode ( RoutePoint *pr,int nbr )
 
       // Hyperlinks
       HyperlinkList *linklist = pr->m_HyperlinkList;
-      wxHyperlinkListNode *linknode = linklist->GetFirst();
-      while ( linknode )
+      if(linklist)
       {
-            Hyperlink *link = linknode->GetData();
-            wxString Link = link->Link;
-            wxString Descr = link->DescrText;
-            wxString Type = link->Type;
-
-            node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
-            current_sib_node->SetNext ( node );
-
-            wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
-            node->SetProperties ( prop );
-
-            if ( Descr.Length() > 0 )
+            wxHyperlinkListNode *linknode = linklist->GetFirst();
+            while ( linknode )
             {
-                  wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
-                  node->AddChild ( textnode );
-                  wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
-                  textnode->AddChild ( descrnode );
+                  Hyperlink *link = linknode->GetData();
+                  wxString Link = link->Link;
+                  wxString Descr = link->DescrText;
+                  wxString Type = link->Type;
 
+                  node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
+                  current_sib_node->SetNext ( node );
+
+                  wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
+                  node->SetProperties ( prop );
+
+                  if ( Descr.Length() > 0 )
+                  {
+                        wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
+                        node->AddChild ( textnode );
+                        wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
+                        textnode->AddChild ( descrnode );
+
+                  }
+
+                  current_sib_node = node;
+
+                  if ( Type.Length() > 0 )
+                  {
+                        wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+                        node->AddChild ( typenode );
+                        wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
+                        typenode->AddChild ( typnode );
+                  }
+
+                  current_sib_node = node;
+
+                  linknode = linknode->GetNext();
             }
-
-            current_sib_node = node;
-
-            if ( Type.Length() > 0 )
-            {
-                  wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-                  node->AddChild ( typenode );
-                  wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
-                  typenode->AddChild ( typnode );
-            }
-
-            current_sib_node = node;
-
-            linknode = linknode->GetNext();
       }
-
 
       return ( GPXWpt_node );
 }
@@ -4494,44 +4391,46 @@ static wxXmlNode *CreateGPXWptNode ( RoutePoint *pr )
 
       // Hyperlinks
       HyperlinkList *linklist = pr->m_HyperlinkList;
-      wxHyperlinkListNode *linknode = linklist->GetFirst();
-      while ( linknode )
+      if(linklist)
       {
-            Hyperlink *link = linknode->GetData();
-            wxString Link = link->Link;
-            wxString Descr = link->DescrText;
-            wxString Type = link->Type;
-
-            node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
-            current_sib_node->SetNext ( node );
-
-            wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
-            node->SetProperties ( prop );
-
-            if ( Descr.Length() > 0 )
+            wxHyperlinkListNode *linknode = linklist->GetFirst();
+            while ( linknode )
             {
-                  wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
-                  node->AddChild ( textnode );
-                  wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
-                  textnode->AddChild ( descrnode );
+                  Hyperlink *link = linknode->GetData();
+                  wxString Link = link->Link;
+                  wxString Descr = link->DescrText;
+                  wxString Type = link->Type;
 
+                  node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
+                  current_sib_node->SetNext ( node );
+
+                  wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
+                  node->SetProperties ( prop );
+
+                  if ( Descr.Length() > 0 )
+                  {
+                        wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
+                        node->AddChild ( textnode );
+                        wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
+                        textnode->AddChild ( descrnode );
+
+                  }
+
+                  current_sib_node = node;
+
+                  if ( Type.Length() > 0 )
+                  {
+                        wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+                        node->AddChild ( typenode );
+                        wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
+                        typenode->AddChild ( typnode );
+                  }
+
+                  current_sib_node = node;
+
+                  linknode = linknode->GetNext();
             }
-
-            current_sib_node = node;
-
-            if ( Type.Length() > 0 )
-            {
-                  wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-                  node->AddChild ( typenode );
-                  wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
-                  typenode->AddChild ( typnode );
-            }
-
-            current_sib_node = node;
-
-            linknode = linknode->GetNext();
       }
-
 
       return ( GPXWpt_node );
 }
@@ -4602,46 +4501,50 @@ wxXmlNode *CreateGPXRptNode ( RoutePoint *pr,int nbr )
 
       // Hyperlinks
       HyperlinkList *linklist = pr->m_HyperlinkList;
-      wxHyperlinkListNode *linknode = linklist->GetFirst();
-      while ( linknode )
+      if(linklist)
       {
-            Hyperlink *link = linknode->GetData();
-            wxString Link = link->Link;
-            wxString Descr = link->DescrText;
-            wxString Type = link->Type;
-
-            node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
-            current_sib_node->SetNext ( node );
-
-            wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
-            node->SetProperties ( prop );
-
-            if ( Descr.Length() > 0 )
+            wxHyperlinkListNode *linknode = linklist->GetFirst();
+            while ( linknode )
             {
-                  wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
-                  node->AddChild ( textnode );
-                  wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
-                  textnode->AddChild ( descrnode );
+                  Hyperlink *link = linknode->GetData();
+                  wxString Link = link->Link;
+                  wxString Descr = link->DescrText;
+                  wxString Type = link->Type;
 
+                  node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
+                  current_sib_node->SetNext ( node );
+
+                  wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
+                  node->SetProperties ( prop );
+
+                  if ( Descr.Length() > 0 )
+                  {
+                        wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
+                        node->AddChild ( textnode );
+                        wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
+                        textnode->AddChild ( descrnode );
+
+                  }
+
+                  current_sib_node = node;
+
+                  if ( Type.Length() > 0 )
+                  {
+                        wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+                        node->AddChild ( typenode );
+                        wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
+                        typenode->AddChild ( typnode );
+                  }
+
+                  current_sib_node = node;
+
+                  linknode = linknode->GetNext();
             }
-
-            current_sib_node = node;
-
-            if ( Type.Length() > 0 )
-            {
-                  wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-                  node->AddChild ( typenode );
-                  wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
-                  typenode->AddChild ( typnode );
-            }
-
-            current_sib_node = node;
-
-            linknode = linknode->GetNext();
       }
 
       return ( GPXWpt_node );
 }
+
 
 wxXmlNode *CreateGPXTptNode ( RoutePoint *pr,int nbr )
 {
@@ -4719,49 +4622,55 @@ wxXmlNode *CreateGPXTptNode ( RoutePoint *pr,int nbr )
 
       // Hyperlinks
       HyperlinkList *linklist = pr->m_HyperlinkList;
-      if ( linklist->GetCount() )
+      if(linklist)
       {
-            wxHyperlinkListNode *linknode = linklist->GetFirst();
-            while ( linknode )
+            if ( linklist->GetCount() )
             {
-                  Hyperlink *link = linknode->GetData();
-                  wxString Link = link->Link;
-                  wxString Descr = link->DescrText;
-                  wxString Type = link->Type;
-
-                  node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
-                  current_sib_node->SetNext ( node );
-
-                  wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
-                  node->SetProperties ( prop );
-
-                  if ( Descr.Length() > 0 )
+                  wxHyperlinkListNode *linknode = linklist->GetFirst();
+                  while ( linknode )
                   {
-                        wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
-                        node->AddChild ( textnode );
-                        wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
-                        textnode->AddChild ( descrnode );
+                        Hyperlink *link = linknode->GetData();
+                        wxString Link = link->Link;
+                        wxString Descr = link->DescrText;
+                        wxString Type = link->Type;
 
+                        node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "link" ) );
+                        current_sib_node->SetNext ( node );
+
+                        wxXmlProperty *prop = new wxXmlProperty ( _T ( "href" ),Link );
+                        node->SetProperties ( prop );
+
+                        if ( Descr.Length() > 0 )
+                        {
+                              wxXmlNode *textnode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "text" ) );
+                              node->AddChild ( textnode );
+                              wxXmlNode *descrnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Descr );
+                              textnode->AddChild ( descrnode );
+
+                        }
+
+                        current_sib_node = node;
+
+                        if ( Type.Length() > 0 )
+                        {
+                              wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
+                              node->AddChild ( typenode );
+                              wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
+                              typenode->AddChild ( typnode );
+                        }
+
+                        current_sib_node = node;
+
+                        linknode = linknode->GetNext();
                   }
-
-                  current_sib_node = node;
-
-                  if ( Type.Length() > 0 )
-                  {
-                        wxXmlNode *typenode = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-                        node->AddChild ( typenode );
-                        wxXmlNode *typnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),Type );
-                        typenode->AddChild ( typnode );
-                  }
-
-                  current_sib_node = node;
-
-                  linknode = linknode->GetNext();
             }
       }
 
       return ( GPXTpt_node );
 }
+
+
+
 
 RoutePoint *LoadGPXTrackpoint ( wxXmlNode* wptnode )
 {
@@ -4895,6 +4804,7 @@ NavObjectCollection::NavObjectCollection ( wxString RootName, wxString Version, 
       m_pXMLrootnode->AddProperty ( _T ( "version" ), Version );
       m_pXMLrootnode->AddProperty ( _T ( "creator" ), Creator );
       SetRoot ( m_pXMLrootnode );
+      m_proot_next = NULL;
 }
 
 NavObjectCollection::~NavObjectCollection()
@@ -4911,9 +4821,7 @@ bool NavObjectCollection::CreateGPXPoints ( void )
       wxRoutePointListNode *node = pWayPointMan->m_pWayPointList->GetFirst();
 
       RoutePoint *pr;
-      wxXmlNode *prev_node;
 
-      bool IsFirst = true;
       while ( node )
       {
             pr = node->GetData();
@@ -4922,15 +4830,13 @@ bool NavObjectCollection::CreateGPXPoints ( void )
             {
                   wxXmlNode *mark_node = CreateGPXWptNode ( pr );
 
-                  if ( IsFirst )
-                  {
-                        IsFirst = false;
+                  if( m_proot_next == NULL )
                         m_pXMLrootnode->AddChild ( mark_node );
-                  }
                   else
-                        prev_node->SetNext ( mark_node );
+                        m_proot_next->SetNext( mark_node );
 
-                  prev_node = mark_node;
+                  m_proot_next = mark_node;
+
             }
             node = node->GetNext();
       }
@@ -4955,18 +4861,33 @@ bool NavObjectCollection::CreateGPXRoutes ( void )
                   wxString strnum;
                   strnum.Printf ( _T ( "%d" ),pRoute->m_ConfigRouteNum );
                   GPXWpt_node->AddProperty ( _T ( "number" ),strnum );
-                  m_pXMLrootnode->AddChild ( GPXWpt_node );
+
+
+                  if(m_proot_next == NULL)
+                        m_pXMLrootnode->AddChild ( GPXWpt_node );
+                  else
+                        m_proot_next->SetNext( GPXWpt_node );
+
+                  m_proot_next = GPXWpt_node;
 
                   wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
                   RoutePoint *prp;
 
                   int i=1;
+                  wxXmlNode *current_sib;
+
                   while ( node2 )
                   {
                         prp = node2->GetData();
 
                         wxXmlNode *rpt_node = CreateGPXRptNode ( prp,i+1 );
-                        GPXWpt_node->AddChild ( rpt_node );
+
+                        if(i == 1)
+                              GPXWpt_node->AddChild ( rpt_node );
+                        else
+                              current_sib->SetNext(rpt_node);
+
+                        current_sib = rpt_node;
 
                         node2=node2->GetNext();
                         i++;
@@ -4997,18 +4918,32 @@ bool NavObjectCollection::CreateGPXTracks ( void )
                         wxString strnum;
                         strnum.Printf ( _T ( "%d" ),pRoute->m_ConfigRouteNum );
                         GPXWpt_node->AddProperty ( _T ( "number" ),strnum );
-                        m_pXMLrootnode->AddChild ( GPXWpt_node );
+
+                        if(m_proot_next == NULL)
+                              m_pXMLrootnode->AddChild ( GPXWpt_node );
+                        else
+                              m_proot_next->SetNext( GPXWpt_node );
+
+                        m_proot_next = GPXWpt_node;
 
                         wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
                         RoutePoint *prp;
 
                         int i=1;
+                        wxXmlNode *current_sib;
+
                         while ( node2 )
                         {
                               prp = node2->GetData();
 
                               wxXmlNode *rpt_node = CreateGPXTptNode ( prp,i+1 );
-                              GPXWpt_node->AddChild ( rpt_node );
+
+                              if(i == 1)
+                                    GPXWpt_node->AddChild ( rpt_node );
+                              else
+                                    current_sib->SetNext(rpt_node);
+
+                              current_sib = rpt_node;
 
                               node2=node2->GetNext();
                               i++;
@@ -5116,8 +5051,6 @@ wxXmlNode *NavObjectCollection::CreateMarkNode ( RoutePoint *pr )
 
 void NavObjectCollection::LoadGPXTrack ( wxXmlNode* rtenode )
 {
-//      int routenum = m_NextRouteNum;
-
       wxString Name = rtenode->GetName();
       wxString RouteName = rtenode->GetPropVal ( _T ( "name" ),_T ( "N.N." ) );
 
@@ -5128,27 +5061,34 @@ void NavObjectCollection::LoadGPXTrack ( wxXmlNode* rtenode )
             pTentTrack->m_RouteNameString = RouteName;
 
             wxXmlNode *child = rtenode->GetChildren();
-            int ip = 0;
+
+            RoutePoint *pRecentPoint = NULL;
 
             while ( child )
             {
                   wxString ChildName = child->GetName();
                   if ( ChildName == _T ( "trkseg" ) )
                   {
-//                        bool WpExists;
                         RoutePoint *pWp = LoadGPXTrackpoint ( child );
 
-                        pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
-//                        if(!WpExists)
-//                              pWp->m_ConfigWPNum = 1000 + (routenum * 100) + ip;  // dummy mark number
-                        ip++;
+                        //    Don't add this point if it is geographically the same as the previous point
+                        if(pRecentPoint)
+                        {
+                              if((pRecentPoint->m_lat != pWp->m_lat) || (pRecentPoint->m_lon != pWp->m_lon))
+                                    pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
+                        }
+                        else
+                              pTentTrack->AddPoint ( pWp, false );                      // add first point always
+
+                        pRecentPoint = pWp;
                   }
                   child = child->GetNext();
             }
 
             //    Search for an identical route already in place.  If found, discard this one
 
-            bool  trackExists = false;
+            bool  bAddtrack = true;
+
             wxRouteListNode *route_node = pRouteList->GetFirst();
             while ( route_node )
             {
@@ -5156,17 +5096,22 @@ void NavObjectCollection::LoadGPXTrack ( wxXmlNode* rtenode )
 
                   if ( proute->IsEqualTo ( pTentTrack ) )
                   {
-                        trackExists = true;
+                        bAddtrack = false;
                         break;
                   }
                   route_node = route_node->GetNext();                         // next route
             }
 
+            //    If the track has only 1 point, don't load it.
+            //    This usually occurs if some points were dscarded above as being co-incident.
+
+            if(pTentTrack->GetnPoints() < 2)
+                  bAddtrack = false;
+
 //    TODO  All this trouble for a tentative route.......Should make some Route methods????
-            if ( !trackExists )
+            if ( bAddtrack )
             {
                   pRouteList->Append ( pTentTrack );
-
 
                   //    Add the selectable points and segments
 
@@ -5194,8 +5139,6 @@ void NavObjectCollection::LoadGPXTrack ( wxXmlNode* rtenode )
             }
             else
             {
-                  //    Remove the route from associated lists
-                  pRouteList->DeleteObject ( pTentTrack );
 
                   // walk the route, deleting points used only by this route
                   wxRoutePointListNode *pnode = ( pTentTrack->pRoutePointList )->GetFirst();
@@ -5218,6 +5161,8 @@ void NavObjectCollection::LoadGPXTrack ( wxXmlNode* rtenode )
 
                         pnode = pnode->GetNext();
                   }
+
+                  delete pTentTrack;
             }
       }
 }
@@ -5453,7 +5398,11 @@ wxString FontMgr::GetFullConfigDesc ( int i )
       ret.Append ( _T ( ":" ) );
       ret.Append( *(pfd->m_nativeInfo) );
       ret.Append ( _T ( ":" ) );
-      wxString cols =  pfd->m_color.GetAsString(wxC2S_CSS_SYNTAX);
+
+      wxString cols(_T("rgb(0,0,0)"));
+      if(pfd->m_color.IsOk())
+            cols =  pfd->m_color.GetAsString(wxC2S_CSS_SYNTAX);
+
       ret.Append(cols);
       return ret;
 }

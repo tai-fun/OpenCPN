@@ -75,7 +75,24 @@ RouteProp::RouteProp( )
 RouteProp::RouteProp( wxWindow* parent, wxWindowID id,
                      const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
 {
-    Create(parent, id, caption, pos, size, style);
+      m_TotalDistCtl = NULL;
+      m_wpList = NULL;
+
+/*
+      wxScrollingDialog::Init();
+
+      SetLayoutAdaptation(true);
+      SetLayoutAdaptationLevel(2);
+
+      long wstyle = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxVSCROLL;
+      wxScrollingDialog::Create( parent, id, caption, pos, size,wstyle );
+*/
+      Create(parent, id, caption, pos, size, style);
+      CreateControls();
+      GetSizer()->SetSizeHints(this);
+      Centre();
+
+
 }
 
 void RouteProp::OnRoutepropListClick( wxListEvent& event )
@@ -126,17 +143,12 @@ RouteProp::~RouteProp( )
 
 bool RouteProp::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
 {
-////@begin RouteProp member initialisation
-    m_TotalDistCtl = NULL;
-    m_wpList = NULL;
-////@end RouteProp member initialisation
 
 ////@begin RouteProp creation
     SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS);
     wxDialog::Create( parent, id, caption, pos, size, style );
 
     CreateControls();
-    GetSizer()->Fit(this);
     GetSizer()->SetSizeHints(this);
     Centre();
 ////@end RouteProp creation
@@ -223,7 +235,7 @@ void RouteProp::CreateControls()
     itemBoxSizer16->Add(m_OKButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
     m_OKButton->SetDefault();
 
-    //      To correct a bug in MSW commctl32, we nee to catch column width drag events, and do a Refresh()
+    //      To correct a bug in MSW commctl32, we need to catch column width drag events, and do a Refresh()
     //      Otherwise, the column heading disappear.....
     //      Does no harm for GTK builds, so no need for conditional
     Connect(wxEVT_COMMAND_LIST_COL_END_DRAG, (wxObjectEventFunction)(wxEventFunction)&RouteProp::OnEvtColDragEnd);
@@ -604,7 +616,19 @@ MarkProp::MarkProp( )
 MarkProp::MarkProp(  wxWindow* parent, wxWindowID id,
                      const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
 {
-    Create(parent, id, caption, pos, size, style);
+      wxScrollingDialog::Init();
+
+      SetLayoutAdaptation(true);
+      SetLayoutAdaptationLevel(2);
+
+      long wstyle = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxVSCROLL;
+      wxScrollingDialog::Create( parent, id, caption, pos, size,wstyle );
+
+//    Create(parent, id, caption, pos, size, style);
+      CreateControls();
+      GetSizer()->SetSizeHints(this);
+      Centre();
+
 }
 
 MarkProp::~MarkProp( )
@@ -626,7 +650,6 @@ bool MarkProp::Create( wxWindow* parent, wxWindowID id, const wxString& caption,
     wxDialog::Create( parent, id, caption, pos, size, style );
 
     CreateControls();
-    GetSizer()->Fit(this);
     GetSizer()->SetSizeHints(this);
     Centre();
 
@@ -661,7 +684,7 @@ void MarkProp::CreateControls()
     wxStaticText* itemStaticText4a= new wxStaticText( itemDialog1, wxID_STATIC, _("Mark Icon"), wxDefaultPosition, wxDefaultSize, 0 );
     itemStaticBoxSizer3->Add(itemStaticText4a, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
-    m_IconList = new wxListCtrl( itemDialog1, ID_ICONCTRL, wxDefaultPosition, wxSize(300, 100),
+    m_IconList = new wxListCtrl( itemDialog1, ID_ICONCTRL, wxDefaultPosition, wxSize(300, 300),
         wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_VRULES );
     itemStaticBoxSizer3->Add(m_IconList, 2, wxEXPAND|wxALL, 5);
 

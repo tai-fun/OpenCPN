@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.41 2009/09/25 15:09:24 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.42 2009/11/18 01:26:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.42  2009/11/18 01:26:13  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.41  2009/09/25 15:09:24  bdbcat
  * Improve SENC creation progress dialog
  *
@@ -109,6 +112,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.42  2009/11/18 01:26:13  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.41  2009/09/25 15:09:24  bdbcat
  * Improve SENC creation progress dialog
  *
@@ -256,7 +262,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.41 2009/09/25 15:09:24 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.42 2009/11/18 01:26:13 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -278,6 +284,7 @@ extern wxString          *g_pSENCPrefix;
 extern FILE              *s_fpdebug;
 extern bool              g_bGDAL_Debug;
 extern bool              g_bDebugS57;
+extern bool              g_b_overzoom_x;                      // Allow high overzoom
 
 static jmp_buf env_ogrf;                    // the context saved by setjmp();
 
@@ -1146,6 +1153,72 @@ wxString S57Obj::GetAttrValueAsString ( char *AttrName )
 
 
 //----------------------------------------------------------------------------------
+//      render_canvas_parms Implementation
+//----------------------------------------------------------------------------------
+
+render_canvas_parms::render_canvas_parms()
+{
+}
+
+render_canvas_parms::render_canvas_parms(int xr, int yr, int widthr, int heightr, wxColour color)
+{
+      depth = BPP;
+      pb_pitch = (widthr * depth / 8 );
+      lclip = x;
+      rclip = x + widthr - 1;
+      pix_buff = (unsigned char *)malloc(heightr * pb_pitch);
+      width = widthr;
+      height = heightr;
+      x = xr;
+      y = yr;
+
+      unsigned char r, g, b;
+      if(color.IsOk())
+      {
+            r = color.Red();
+            g = color.Green();
+            b = color.Blue();
+      }
+      else
+            r=g=b=0;
+
+
+      if(depth == 24)
+      {
+            for(int i=0 ; i < height ; i++)
+            {
+                  unsigned char *p = pix_buff + (i * pb_pitch);
+                  for(int j=0 ; j < width ; j++)
+                  {
+                        *p++ = r;
+                        *p++ = g;
+                        *p++ = b;
+                  }
+            }
+      }
+      else
+      {
+            for(int i=0 ; i < height ; i++)
+            {
+                  unsigned char *p = pix_buff + (i * pb_pitch);
+                  for(int j=0 ; j < width ; j++)
+                  {
+                        *p++ = r;
+                        *p++ = g;
+                        *p++ = b;
+                        *p++ = 0;
+                  }
+            }
+      }
+
+}
+
+render_canvas_parms::~render_canvas_parms(void)
+{
+}
+
+
+//----------------------------------------------------------------------------------
 //      s57chart Implementation
 //----------------------------------------------------------------------------------
 
@@ -1351,7 +1424,9 @@ void s57chart::FreeObjectsAndRules()
 {
 //      Delete the created ObjRazRules, including the S57Objs
 //      and any child lists
-//      The LUPs are deleted elsewhere...
+//      The LUPs of base elements are deleted elsewhere ( void s52plib::DestroyLUPArray ( wxArrayOfLUPrec *pLUPArray ))
+//      But we need to manually destroy any LUPS related to children
+
     ObjRazRules *top;
     ObjRazRules *nxx;
     for (int i=0; i<PRIO_NUM; ++i)
@@ -1372,6 +1447,10 @@ void s57chart::FreeObjectsAndRules()
                       while(ctop)
                       {
                         delete ctop->obj;
+
+                        ps52plib->DestroyLUP ( ctop->LUP );
+                        delete ctop->LUP;
+
                         ObjRazRules *cnxx = ctop->next;
                         free(ctop);
                         ctop = cnxx;
@@ -1391,7 +1470,14 @@ void s57chart::FreeObjectsAndRules()
  {
        double ppm = canvas_scale_factor /m_Chart_Scale;        // true_chart_scale_on_display   = m_canvas_scale_factor / pixels_per_meter of displayed chart
 
-       ppm *= 4;
+                  //Adjust overzoom factor based on  g_b_overzoom_x option setting
+       double oz_factor;
+       if(g_b_overzoom_x)
+             oz_factor = 256.;
+       else
+             oz_factor = 4.;
+
+       ppm *= oz_factor;
 
        return canvas_scale_factor / ppm;
  }
@@ -1830,8 +1916,9 @@ bool s57chart::DoRenderViewOnDC(wxMemoryDC& dc, ViewPort& VPoint, RenderTypeEnum
         pDIB->SelectIntoDC(dc);
 
         return bnewview;
-}
 
+
+}
 
 
 int s57chart::DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
@@ -1841,41 +1928,64 @@ int s57chart::DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
     ObjRazRules *top;
     ObjRazRules *crnt;
 
+    wxASSERT(rect);
+
+//    This does not work due to some issue with ref data of allocated buffer.....
+//    render_canvas_parms pb_spec( rect->x, rect->y, rect->width, rect->height,  GetGlobalColor ( _T ( "NODTA" ) ));
+
     render_canvas_parms pb_spec;
 
-//      Get some heap memory for the area renderer
+    pb_spec.depth = BPP;
+    pb_spec.pb_pitch = ((rect->width * pb_spec.depth / 8 ));
+    pb_spec.lclip = rect->x;
+    pb_spec.rclip = rect->x + rect->width - 1;
+    pb_spec.pix_buff = (unsigned char *)malloc(rect->height * pb_spec.pb_pitch);
+    pb_spec.width = rect->width;
+    pb_spec.height = rect->height;
+    pb_spec.x = rect->x;
+    pb_spec.y = rect->y;
 
-      pb_spec.depth = BPP;                              // set the depth
+    // Preset background
+    wxColour color = GetGlobalColor ( _T ( "NODTA" ) );
+    unsigned char r, g, b;
+    if(color.IsOk())
+    {
+          r = color.Red();
+          g = color.Green();
+          b = color.Blue();
+    }
+    else
+          r=g=b=0;
 
-        if(rect)
-        {
-                pb_spec.pb_pitch = ((rect->width * pb_spec.depth / 8 ));
-                pb_spec.lclip = rect->x;
-                pb_spec.rclip = rect->x + rect->width - 1;
-                pb_spec.pix_buff = (unsigned char *)malloc(rect->height * pb_spec.pb_pitch);
-                if(NULL == pb_spec.pix_buff)
-                    wxLogMessage(_T("   PixBuf NULL 1"));
 
-                // Preset background
-                memset(pb_spec.pix_buff, 128,rect->height * pb_spec.pb_pitch);
-                pb_spec.width = rect->width;
-                pb_spec.height = rect->height;
-                pb_spec.x = rect->x;
-                pb_spec.y = rect->y;
-        }
-        else
-        {
-                pb_spec.pb_pitch = ((vp.pix_width * pb_spec.depth / 8 )) ;
-                pb_spec.lclip = 0;
-                pb_spec.rclip = vp.pix_width-1;
-                pb_spec.pix_buff = (unsigned char *)malloc(vp.pix_height * pb_spec.pb_pitch);
-                // Preset background
-                memset(pb_spec.pix_buff, 128,vp.pix_height * pb_spec.pb_pitch);
-                pb_spec.width = vp.pix_width;
-                pb_spec.height  = vp.pix_height;
-                pb_spec.x = 0;
-                pb_spec.y = 0;
-        }
+    if(pb_spec.depth == 24)
+    {
+          for(int i=0 ; i < pb_spec.height ; i++)
+          {
+                unsigned char *p = pb_spec.pix_buff + (i * pb_spec.pb_pitch);
+                for(int j=0 ; j < pb_spec.width ; j++)
+                {
+                      *p++ = r;
+                      *p++ = g;
+                      *p++ = b;
+                }
+          }
+    }
+    else
+    {
+          int  color_int = ( ( r ) << 16 ) + ( ( g ) << 8 ) + ( b );
+
+          for(int i=0 ; i < pb_spec.height ; i++)
+          {
+                int *p = (int *) (pb_spec.pix_buff + (i * pb_spec.pb_pitch));
+                for(int j=0 ; j < pb_spec.width ; j++)
+                {
+                      *p++ = color_int;
+                }
+          }
+    }
+
+
 
 //      Render the areas quickly
     for (i=0; i<PRIO_NUM; ++i)
@@ -1897,8 +2007,7 @@ int s57chart::DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
 
 //      Convert the Private render canvas into a bitmap
 #ifdef ocpnUSE_ocpnBitmap
-        ocpnBitmap *pREN = new ocpnBitmap(pb_spec.pix_buff,
-                                                pb_spec.width, pb_spec.height, pb_spec.depth);
+        ocpnBitmap *pREN = new ocpnBitmap(pb_spec.pix_buff, pb_spec.width, pb_spec.height, pb_spec.depth);
 #else
         wxImage *prender_image = new wxImage(pb_spec.width, pb_spec.height, false);
         prender_image->SetData((unsigned char*)pb_spec.pix_buff);
@@ -1926,8 +2035,6 @@ int s57chart::DCRenderRect(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
 #endif
 
         delete pREN;
-
-
 
 //      Render the rest of the objects/primitives
         DCRenderLPB(dcinput, vp, rect);

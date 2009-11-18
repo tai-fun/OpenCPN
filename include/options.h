@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.17 2009/09/18 01:28:15 bdbcat Exp $
+ * $Id: options.h,v 1.18 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.18  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.17  2009/09/18 01:28:15  bdbcat
  * Add cm93 zoom factor slider
  *
@@ -118,6 +121,8 @@ enum {
         ID_BUTTONREBUILD,
         xID_OK,
         ID_DEBUGCHECKBOX1,
+        ID_PRINTCHECKBOX1,
+        ID_OUTLINECHECKBOX1,
         ID_BUTTONADD,
         ID_PANEL3,
         ID_CHECKLISTBOX,
@@ -148,7 +153,9 @@ enum {
         ID_AISALERTSELECTSOUND,
         ID_AISALERTTESTSOUND,
         ID_TRACKCHECKBOX,
-        ID_CM93ZOOM
+        ID_CM93ZOOM,
+        ID_PANELGRIB,
+        ID_GRIBCHECKBOX
 
 };
 
@@ -301,7 +308,11 @@ public:
 //    For "AIS Options"
     wxComboBox              *m_itemAISListBox;
 
-//    For "Etc." Page , toh, 2009.02.14
+//    For "GRIB" Page
+    wxPanel*                itemPanelGRIB;
+    wxCheckBox              *pGRIBShowIcon;
+
+//    For "Etc." Page
     wxPanel*                itemPanelAdvanced;
     wxCheckBox              *pGPXShowIcons;
     wxCheckBox              *pNavAidShowRadarRings;

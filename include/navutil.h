@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.21 2009/09/30 02:31:10 bdbcat Exp $
+ * $Id: navutil.h,v 1.22 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.22  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.21  2009/09/30 02:31:10  bdbcat
  * Update to GPX 1.1 format
  *
@@ -251,8 +254,6 @@ public:
       bool IsEqualTo(Route *ptargetroute);
       void ClearHighlights(void);
       void RenderSegment(wxDC& dc, int xa, int ya, int xb, int yb, ViewPort &VP, bool bdraw_arrow, int hilite_width = 0);
-      void RenderSegmentGC(void *gc, int xa, int ya, int xb, int yb, ViewPort &VP, wxPen &dPen, int hilite_width = 0);
-
 
       bool SendToGPS(wxString& com_name, bool bsend_waypoints, wxGauge *pProgress);
 
@@ -267,6 +268,7 @@ public:
       wxString    m_RouteStartString;
       wxString    m_RouteEndString;
       bool        m_bIsTrack;             //TODO should use class type instead
+      RoutePoint  *m_pLastAddedPoint;
 
 
       wxArrayString      RoutePointGUIDList;
@@ -321,6 +323,8 @@ class Track : public wxEvtHandler, public Route
             bool              m_bTrackDistance;
 
             double            m_prev_glat, m_prev_glon;
+            wxDateTime        m_prev_time;
+
             RoutePoint        *m_prev_pTrackPoint;
             int               m_track_run;
 
@@ -396,7 +400,7 @@ public:
       wxString    m_gpx_path;
 
       wxString                m_sNavObjSetFile;
-      NavObjectCollection     *m_pNavObjectOutputSet;
+//      NavObjectCollection     *m_pNavObjectOutputSet;
       NavObjectCollection     *m_pNavObjectInputSet;
 
 //    These members are set/reset in Options dialog
@@ -518,8 +522,7 @@ class NavObjectCollection : public wxXmlDocument
             wxXmlNode   *CreateMarkNode(RoutePoint *pr);
 
             wxXmlNode   *m_pXMLrootnode;
-
-
+            wxXmlNode   *m_proot_next;
 };
 
 

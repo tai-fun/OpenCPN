@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.31 2009/09/30 02:30:10 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.32 2009/11/18 01:24:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.32  2009/11/18 01:24:15  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.31  2009/09/30 02:30:10  bdbcat
  * Another correction for IDL crossing
  *
@@ -84,6 +87,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.32  2009/11/18 01:24:15  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.31  2009/09/30 02:30:10  bdbcat
  * Another correction for IDL crossing
  *
@@ -191,6 +197,9 @@
 
 #include <sys/stat.h>
 
+extern bool             g_b_overzoom_x;                      // Allow high overzoom
+
+
 // ----------------------------------------------------------------------------
 // Random Prototypes
 // ----------------------------------------------------------------------------
@@ -199,7 +208,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.31 2009/09/30 02:30:10 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.32 2009/11/18 01:24:15 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -271,6 +280,8 @@ ChartBase::ChartBase()
       m_Chart_Scale = 10000;              // a benign value
 
       m_nCOVREntries = 0;
+      m_pCOVRTable = NULL;
+      m_pCOVRContourTable = NULL;
 
       m_EdDate.Set(1, wxDateTime::Jan, 2000);
 
@@ -292,6 +303,13 @@ ChartBase::~ChartBase()
       delete m_pName;
 
       //    Free the COVR tables
+
+      for(unsigned int j=0 ; j<(unsigned int)m_nCOVREntries ; j++)
+            free( m_pCOVRTable[j] );
+
+      free( m_pCOVRTable );
+      free( m_pCOVRContourTable );
+
 }
 
 
@@ -1028,6 +1046,14 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                               wxString str(&buffer[i], wxConvUTF8);
                               m_datum_str = str.BeforeFirst(',').Trim();
                         }
+                        if(token.IsSameAs(_T("PP"), TRUE))                  // extract Projection Lat
+                        {
+                              int i;
+                              i = tkz.GetPosition();
+                              float fcs;
+                              sscanf(&buffer[i], "%f,", &fcs);
+                              m_proj_lat = fcs;
+                        }
 
                  }
             }
@@ -1262,8 +1288,20 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
       m_pCOVRTable = (float **)malloc(sizeof(float *));
       *m_pCOVRTable = (float *)malloc(nPlypoint * 2 * sizeof(float));
       memcpy(*m_pCOVRTable, pPlyTable, nPlypoint * 2 * sizeof(float));
-
       free(pPlyTable);
+
+
+      //    Adjust the PLY points to WGS84 datum
+      Plypoint *ppp = (Plypoint *)GetCOVRTableHead(0);
+      int cnPlypoint = GetCOVRTablenPoints(0);
+
+      for(int u=0 ; u<cnPlypoint ; u++)
+      {
+            ppp->lnp += m_dtm_lon / 3600;
+            ppp->ltp += m_dtm_lat / 3600;
+            ppp++;
+      }
+
 
       if(!SetMinMax())
             return INIT_FAIL_REMOVE;          // have to bail here
@@ -1433,7 +1471,11 @@ ChartBaseBSB::~ChartBaseBSB()
 
 double ChartBaseBSB::GetNormalScaleMin(double canvas_scale_factor)
 {
-      return (canvas_scale_factor / m_ppm_avg) / 2;         // don't suggest too much overscale
+      if(g_b_overzoom_x)
+            return (canvas_scale_factor / m_ppm_avg) / 32;         // allow wide range overzoom overscale
+      else
+            return (canvas_scale_factor / m_ppm_avg) / 2;         // don't suggest too much overscale
+
 }
 
 double ChartBaseBSB::GetNormalScaleMax(double canvas_scale_factor)
@@ -1455,13 +1497,28 @@ double ChartBaseBSB::GetClosestValidNaturalScalePPM(double target_scale)
       {
             while(binary_scale_factor < binary_scale_factor_max)
             {
-            if(fabs((chart_1x_scale / binary_scale_factor ) - target_scale) < (target_scale * 0.05))
-                  break;
-            if((chart_1x_scale / binary_scale_factor ) < target_scale)
-                  break;
-            else
-                  binary_scale_factor *= 2.;
+                  if(fabs((chart_1x_scale / binary_scale_factor ) - target_scale) < (target_scale * 0.05))
+                        break;
+                  if((chart_1x_scale / binary_scale_factor ) < target_scale)
+                        break;
+                  else
+                        binary_scale_factor *= 2.;
             }
+      }
+      else
+      {
+            int ibsf = 1;
+            while(ibsf < 64)
+            {
+                  if(fabs((chart_1x_scale * ibsf ) - target_scale) < (target_scale * 0.05))
+                        break;
+                  if((chart_1x_scale * ibsf ) >= target_scale)
+                        break;
+                  else
+                        ibsf *= 2;
+            }
+
+            binary_scale_factor = 1. / ibsf;
       }
 
       return  chart_1x_scale / binary_scale_factor;
@@ -1808,7 +1865,7 @@ bool ChartBaseBSB::SetMinMax(void)
 
       //    Check for special cases
 
-      //    Case 1:  Chart spans International Date Line, Longitude min/max is non-obvious.
+      //    Case 1:  Chart spans International Date Line or Greenwich, Longitude min/max is non-obvious.
       if((m_LonMax * m_LonMin) < 0)              // min/max are opposite signs
       {
             //    Georeferencing is not yet available, so find the reference points closest to min/max ply points
@@ -1846,15 +1903,53 @@ bool ChartBaseBSB::SetMinMax(void)
                   }
             }
 
-                  // Make the check
+            //    Is this chart crossing IDL or Greenwich?
+            // Make the check
             if(pRefTable[imaxclose].xr < pRefTable[iminclose].xr)
             {
+                  //    This chart crosses IDL and needs a flip, meaning that all negative longitudes need to be normalized
+                  //    and the min/max relcalculated
+                  //    This code added to correct non-rectangular charts crossing IDL, such as nz14605.kap
+
+                  m_LonMax = -360.0;
+                  m_LonMin = 360.0;
+                  m_LatMax = -90.0;
+                  m_LatMin = 90.0;
+
+
+                  Plypoint *ppp = (Plypoint *)GetCOVRTableHead(0);      // Normalize the plypoints
+                  int cnPlypoint = GetCOVRTablenPoints(0);
+
+
+                  for(int u=0 ; u<cnPlypoint ; u++)
+                  {
+                        if( ppp->lnp < 0.)
+                              ppp->lnp += 360.;
+
+                        if(ppp->lnp > m_LonMax)
+                              m_LonMax = ppp->lnp;
+                        if(ppp->lnp < m_LonMin)
+                              m_LonMin = ppp->lnp;
+
+                        if(ppp->ltp > m_LatMax)
+                              m_LatMax = ppp->ltp;
+                        if(ppp->ltp < m_LatMin)
+                              m_LatMin = ppp->ltp;
+
+                        ppp++;
+                  }
+            }
+
+/*          Removed in favor of above algorithm
+         if(pRefTable[imaxclose].xr < pRefTable[iminclose].xr)
+         {
                   float t_lonmin = m_LonMin;
                   m_LonMin = m_LonMax;
                   m_LonMax = t_lonmin;
-            }
+         }
 
-            //  Now need to nrmalize the LonMax, and the plypoints table.
+
+            //  Now need to normalize the LonMax, and the plypoints table.
             if(m_LonMin > m_LonMax)
             {
                   m_LonMax += 360.;
@@ -1868,7 +1963,7 @@ bool ChartBaseBSB::SetMinMax(void)
                         ppp++;
                   }
             }
-
+*/
 
       }
 
@@ -2123,6 +2218,7 @@ static double polytrans( double* coeff, double lon, double lat );
 
 int ChartBaseBSB::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
 {
+//      printf("pixtolatlon %d         %d %d\n", pixx, pixy, pixy+Rsrc.y);
     if(bUseGeoRef)
     {
         if(bHaveImbeddedGeoref)
@@ -2149,10 +2245,42 @@ int ChartBaseBSB::pix_to_latlong(int pixx, int pixy, double *plat, double *plon)
 
 int ChartBaseBSB::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *plat, double *plon)
 {
+      if(bUseGeoRef)
+      {
       // be careful changing this to double, test it......
-    float raster_scale = GetPPM() / vp.view_scale_ppm;
+            float raster_scale = GetPPM() / vp.view_scale_ppm;
 
-    return(pix_to_latlong((int)(pixx*raster_scale) + Rsrc.x, (int)(pixy*raster_scale) + Rsrc.y, plat, plon));
+            return(pix_to_latlong((int)(pixx*raster_scale) + Rsrc.x, (int)(pixy*raster_scale) + Rsrc.y, plat, plon));
+      }
+      else
+      {
+                           // Use a Mercator estimator, with Eccentricity corrrection applied
+            int dx = pixx - ( vp.pix_width  / 2 );
+            int dy = ( vp.pix_height / 2 ) - pixy;
+
+            double xp = ( dx * cos ( vp.skew ) ) - ( dy * sin ( vp.skew ) );
+            double yp = ( dy * cos ( vp.skew ) ) + ( dx * sin ( vp.skew ) );
+
+            double d_east = xp / vp.view_scale_ppm;
+            double d_north = yp / vp.view_scale_ppm;
+
+            double slat, slon;
+            if(0)
+                  fromSM ( d_east, d_north, vp.clat, vp.clon, &slat, &slon );
+            else
+                  fromSM_ECC ( d_east, d_north, vp.clat, vp.clon, &slat, &slon );
+
+            *plat = slat;
+
+            if(slon < -180.)
+                  slon += 360.;
+            else if(slon > 180.)
+                  slon -= 360.;
+            *plon = slon;
+
+            return 0;
+      }
+
 }
 
 
@@ -2203,15 +2331,54 @@ int ChartBaseBSB::latlong_to_pix(double lat, double lon, int &pixx, int &pixy)
 int ChartBaseBSB::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy, ViewPort& vp)
 {
     int px, py;
-    int ret_val = latlong_to_pix(lat, lon, px, py);
+
+    if(bUseGeoRef)
+    {
+            latlong_to_pix(lat, lon, px, py);
 
       // be careful changing this to double, test it......
-    float raster_scale = GetPPM() / vp.view_scale_ppm;
+            float raster_scale = GetPPM() / vp.view_scale_ppm;
 
-    pixx = (int)(((px - Rsrc.x) / raster_scale) + 0.5);
-    pixy = (int)(((py - Rsrc.y) / raster_scale) + 0.5);
+            pixx = (int)(((px - Rsrc.x) / raster_scale) + 0.5);
+            pixy = (int)(((py - Rsrc.y) / raster_scale) + 0.5);
 
-    return ret_val;
+            return 0;
+    }
+    else                      // Use a Mercator estimator, with Eccentricity corrrection applied
+    {
+                double easting, northing;
+                double xlon = lon;
+
+                //  Make sure lon and lon0 are same phase
+                if(xlon * vp.clon < 0.)
+                {
+                      if(xlon < 0.)
+                            xlon += 360.;
+                      else
+                            xlon -= 360.;
+                }
+
+                if(fabs(xlon - vp.clon) > 180.)
+                {
+                      if(xlon > vp.clon)
+                            xlon -= 360.;
+                      else
+                            xlon += 360.;
+                }
+
+                toSM_ECC(lat, xlon, vp.clat, vp.clon, &easting, &northing);
+
+                double epix = easting  * vp.view_scale_ppm;
+                double npix = northing * vp.view_scale_ppm;
+
+                double dx = epix * cos ( vp.skew ) + npix * sin ( vp.skew );
+                double dy = npix * cos ( vp.skew ) - epix * sin ( vp.skew );
+
+                pixx = ( int ) /*rint*/( ( vp.pix_width  / 2 ) + dx );
+                pixy = ( int ) /*rint*/( ( vp.pix_height / 2 ) - dy );
+
+                return 0;
+    }
 }
 
 void ChartBaseBSB::ComputeSourceRectangle(ViewPort &vp, wxRect *pSourceRect)
@@ -2220,28 +2387,33 @@ void ChartBaseBSB::ComputeSourceRectangle(ViewPort &vp, wxRect *pSourceRect)
     int pixxd, pixyd;
 
     //      This funny contortion is necessary to allow scale factors < 1, i.e. overzoom
-    double binary_scale_factor = (round(100 * GetPPM() / vp.view_scale_ppm)) / 100.;
+    double binary_scale_factor = (round(100000 * GetPPM() / vp.view_scale_ppm)) / 100000.;
+
+//    printf(" in ComputeSourceRect bsf %g  1_over_bsf %g\n", binary_scale_factor, 1./binary_scale_factor);
+
+    m_raster_scale_factor = binary_scale_factor;
 
     if(!latlong_to_pix(vp.clat, vp.clon, pixxd, pixyd))
     {
           pSourceRect->x = pixxd - (int)(vp.pix_width  * binary_scale_factor / 2);
           pSourceRect->y = pixyd - (int)(vp.pix_height * binary_scale_factor / 2);
 
-          pSourceRect->width =  (int)(vp.pix_width  * binary_scale_factor) ;
-          pSourceRect->height = (int)(vp.pix_height * binary_scale_factor) ;
+          pSourceRect->width =  (int)ceil(vp.pix_width  * binary_scale_factor) ;
+          pSourceRect->height = (int)ceil(vp.pix_height * binary_scale_factor) ;
     }
 
     else
     {
                 //  Internal Georeferencing on this chart has been declared bad, so
-                //  use a linear Mercater estimator to get started
-
+                //  use a Mercator estimator with eccentricity correction to get started
         double e_est, n_est;
-        toSM(vp.clat, vp.clon,
-             pRefTable[m_i_ref_near_center].latr,
-             pRefTable[m_i_ref_near_center].lonr, &e_est, &n_est);
-        int dx = (int)(e_est * m_ppm_avg);
-        int dy = (int)(n_est * m_ppm_avg);
+        if(0)
+            toSM(vp.clat, vp.clon, pRefTable[m_i_ref_near_center].latr, pRefTable[m_i_ref_near_center].lonr, &e_est, &n_est);
+        else
+            toSM_ECC(vp.clat, vp.clon, pRefTable[m_i_ref_near_center].latr, pRefTable[m_i_ref_near_center].lonr, &e_est, &n_est);
+
+        int dx = (int)/*rint*/(e_est * m_ppm_avg);
+        int dy = (int)/*rint*/(n_est * m_ppm_avg);
 
         int pixxe = (int)(pRefTable[m_i_ref_near_center].xr) + dx;
         int pixye = (int)(pRefTable[m_i_ref_near_center].yr) - dy;
@@ -2277,6 +2449,7 @@ void ChartBaseBSB::SetVPParms(ViewPort *vpt)
             MolodenskyTransform (vpt->clat, vpt->clon, &to_lat, &to_lon, m_datum_index, DATUM_INDEX_WGS84);
             m_lon_datum_adjust = -(to_lon - vpt->clon);
             m_lat_datum_adjust = -(to_lat - vpt->clat);
+
       }
 
       ComputeSourceRectangle(*vpt, &Rsrc);
@@ -2292,13 +2465,12 @@ bool ChartBaseBSB::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
                         //        Phasing: (binary_scale_factor = 2.0) means zoom OUT.
                         //                  (binary_scale_factor < 1) means overzoom
 
-      double binary_scale_factor = ( round ( 100 * GetPPM() / vp_proposed.view_scale_ppm ) ) / 100.;
-
+      double binary_scale_factor = ( round ( 100000 * GetPPM() / vp_proposed.view_scale_ppm ) ) / 100000.;
 
       int pixxd, pixyd;
       int pixx, pixy;
 
-      //    Require the ViewPort to specify a lat/lon such thaat the center point falls on an exact 4 pixel
+      //    Require the ViewPort to specify a lat/lon such that the center point falls on an exact 4 pixel
       //    boundary with respect to the native chart pixels.  This simplifies the arithmetic elsewhere....
 
      //  If internal georeferencing on this chart is OK.......
@@ -2473,7 +2645,7 @@ bool ChartBaseBSB::GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnu
             }
             else
             {
-                  GetAndScaleData(&ppnx, s1, source.width, dest.width,
+                  GetAndScaleData(&ppnx, s1, source.width, dest,
                       scale_type_corrected);
             }
 
@@ -2546,7 +2718,7 @@ bool ChartBaseBSB::GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnu
             }
             else
             {
-                  GetAndScaleData(&ppnx, s1, source.width, dest.width,
+                  GetAndScaleData(&ppnx, s1, source.width, dest,
                                   scale_type_corrected);
             }
 
@@ -2632,6 +2804,8 @@ bool ChartBaseBSB::GetView( wxRect& source, wxRect& dest, ScaleTypeEnum scale_ty
 
       float canvas_scale = (float)dest.width / (float)source.width;
 
+//      printf("canvas_scale %g\n", canvas_scale);
+
 //    Create a temporary PixelCache
 //      delete pPixCache;
       PixelCache *pPixCacheTemp = new PixelCache(dest.width, dest.height, BPP);
@@ -2653,7 +2827,7 @@ bool ChartBaseBSB::GetView( wxRect& source, wxRect& dest, ScaleTypeEnum scale_ty
 //    Get and Rescale the data directly into the temporary PixelCache data buffer
 
             unsigned char *ppnx = pPixCacheTemp->GetpData();
-            if(!GetAndScaleData(&ppnx, source, source.width, dest.width, scale_type))
+            if(!GetAndScaleData(&ppnx, source, source.width, dest, scale_type))
             {
                 delete pPixCacheTemp;                       // Some error, retain old cache
                 return false;
@@ -2678,11 +2852,11 @@ bool ChartBaseBSB::GetView( wxRect& source, wxRect& dest, ScaleTypeEnum scale_ty
 
 
 bool ChartBaseBSB::GetAndScaleData(unsigned char **ppn, wxRect& source, int s_width,
-                                    int d_width, ScaleTypeEnum scale_type)
+                                   wxRect& dest, ScaleTypeEnum scale_type)
 {
       unsigned char *s_data;
 
-      float factor = ((float)s_width)/((float)d_width);
+      float factor = ((float)s_width)/((float)dest.width);
 
       float pfactor = 1.0 / factor;
 
@@ -2710,7 +2884,7 @@ bool ChartBaseBSB::GetAndScaleData(unsigned char **ppn, wxRect& source, int s_wi
       }
 
 
-      int cs1 = s_width/d_width;
+      int cs1 = s_width/dest.width;
 
 //    Setup the scale_type dependencies
       int get_bits_submap = 1;            // default, bi-linear
@@ -2940,28 +3114,40 @@ bool ChartBaseBSB::GetAndScaleData(unsigned char **ppn, wxRect& source, int s_wi
             }     // SCALE_SUBSAMP
 
       }
-      else  //factor < 1
+      else  //factor < 1, overzoom
       {
             //    Seems safe enough to read all the required data
             int sx = wxMax(source.x, 0);
 
             //    Although we must adjust (increase) temporary allocation for negative source.x
 
-            s_data = (unsigned char *) x_malloc( (sx/*source.x*/ + source.width) * source.height * BPP/8 );
+            s_data = (unsigned char *) x_malloc( (sx + source.width) * source.height * BPP/8 );
 
             GetChartBits(source, s_data, get_bits_submap);
 
+            unsigned char *target_line_start = target_data;
+
+            target_height = dest.height;
+            target_width = dest.width;
+
             for (int j = 0; j < target_height; j++)
             {
-                  int y_offset = (j * old_height / target_height) * old_width;
+//                  int y_offset = (j  * old_height / target_height) * old_width;
+                  int y_offset = (int)(j *m_raster_scale_factor) * source.width;
 
+                  target_data = target_line_start;
                   for (int i = 0; i < target_width; i++)
                   {
+                        wxASSERT((target_data - *ppn) < target_width * target_height * BPP / 8);
                         memcpy( target_data,
-                                s_data + BPP/8*(y_offset + ((i * old_width )/ target_width)),
-                                BPP/8 );
+//                                s_data + BPP/8*(y_offset + ((i * old_width )/ target_width)),
+                                s_data + BPP/8*(y_offset + (int)(i * m_raster_scale_factor)),
+                                                        BPP/8 );
                         target_data += BPP/8;
+
                   }
+
+                  target_line_start += target_width * BPP / 8;
             }
 
       }
@@ -3554,7 +3740,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
       int plonmax = 0;
       int platmin = 100000;
       int platmax = 0;
-      int nlonmin, nlonmax;
+      int nlonmin, nlonmax, nlatmax, nlatmin;
 
       for(n=0 ; n<nRefpoint ; n++)
       {
@@ -3577,11 +3763,13 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
             {
                   latmin = pRefTable[n].latr;
                   platmin = (int)pRefTable[n].yr;
+                  nlatmin = n;
             }
             if(pRefTable[n].latr > latmax)
             {
                   latmax = pRefTable[n].latr;
                   platmax = (int)pRefTable[n].yr;
+                  nlatmax = n;
             }
       }
 
@@ -3666,37 +3854,25 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 
         cPoints.status = 1;
 
-
         bUseGeoRef = true;                // default is true
 
         if(!bHaveImbeddedGeoref)
         {
-              if(nRefpoint == 4)          // typical old BSB chart
+              if(nRefpoint == 4)          // typical old BSB chart, or manually scanned/converted TIFF image
               {
-                  cPoints.order = 1;
-                  Georef_Calculate_Coefficients(&cPoints);
+                  bUseGeoRef = false;         // 4 REF points is too few for cubic poly match.
               }
               else
               {
                     cPoints.order = 3;
-                    if(Georef_Calculate_Coefficients(&cPoints))
-                        bUseGeoRef = false;         // some error in georef calculation
+
+                      // force longitude fit to linear and require no cross terms if chart is un-skewed, the usual case
+                    if(Georef_Calculate_Coefficients(&cPoints, (Chart_Skew == 0)))
+                        bUseGeoRef = false;         // some error in georef calculation, usually very bad fit
               }
 
-            // Touch up the coefficients
-            if(cPoints.order < 3)
-            {
-                cPoints.pwx[6] = cPoints.pwy[6] = cPoints.wpx[6] = cPoints.wpy[6] = 0.;
-                cPoints.pwx[7] = cPoints.pwy[7] = cPoints.wpx[7] = cPoints.wpy[7] = 0.;
-                cPoints.pwx[8] = cPoints.pwy[8] = cPoints.wpx[8] = cPoints.wpy[8] = 0.;
-                cPoints.pwx[9] = cPoints.pwy[9] = cPoints.wpx[9] = cPoints.wpy[9] = 0.;
-            }
-            if(cPoints.order < 2)
-            {
-                cPoints.pwx[3] = cPoints.pwy[3] = cPoints.wpx[3] = cPoints.wpy[3] = 0.;
-                cPoints.pwx[4] = cPoints.pwy[4] = cPoints.wpx[4] = cPoints.wpy[4] = 0.;
-                cPoints.pwx[5] = cPoints.pwy[5] = cPoints.wpx[5] = cPoints.wpy[5] = 0.;
-            }
+              for(int h=0 ; h < 10 ; h++)
+                    printf(" %d  %g\n",  h, cPoints.pwy[h]);          // pix to lat
         }
 
 
@@ -3731,10 +3907,13 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
             {
                 if(!bGeoErrorSent)
                 {
-                    wxString msg;
-                    msg.Printf(_T("   Georeference Chart_Error_Factor on chart is %5g"), Chart_Error_Factor);
-                    msg.Append(*m_pFullPath);
-                    wxLogMessage(msg);
+                      wxString msg = _T("   Georeference Chart_Error_Factor on chart ");
+                      msg.Append(*m_pFullPath);
+                      wxString msg1;
+                      msg1.Printf(_T(" is %5g"), Chart_Error_Factor);
+                      msg.Append(msg1);
+
+                      wxLogMessage(msg);
 //                    printf("!!Georeference Chart_Error_Factor on chart %s is %5g\n", pFullPath->mb_str(), Chart_Error_Factor);
 
                     bGeoErrorSent = true;
@@ -3856,8 +4035,22 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
                     }
               }
 
+              //  Another try
+              //  Calculate ppm from chart max and min latitudes
+              if(0 == m_ppm_avg)
+              {
+                    double easting0, northing0;
+                    toSM(pRefTable[nlonmax].latr, pRefTable[nlonmax].lonr, lat_ref, lon_ref, &easting0, &northing0);
+
+                    double easting1, northing1;
+                    toSM(pRefTable[nlonmin].latr, pRefTable[nlonmin].lonr, lat_ref, lon_ref, &easting1, &northing1);
+
+                    m_ppm_avg = fabs((pRefTable[nlonmin].xr - pRefTable[nlonmax].xr) / (easting0 - easting1));
+              }
+
+
                 // Last chance
-                // Find two points with different longitudes, get Simple Mercator scale from them
+                // Find any two points with different longitudes, get Simple Mercator scale from them
               if(0 == m_ppm_avg)
               {
                     for(i=0 ; i<nRefpoint ; i++)
@@ -3891,215 +4084,97 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 
         if((0 == m_ppm_avg) && (0 != m_Chart_Scale) && (0 != m_Chart_DU ))
         {
-             m_ppm_avg = m_Chart_DU * 39.37 / m_Chart_Scale;
-             m_ppm_avg *= cos(lat_ref * PI / 180.);                    // correct to chart centroid
-//             printf("tm_ppm_avg:  %g\n",  tm_ppm_avg);
+             m_ppm_avg = m_Chart_DU * 39.3701 / m_Chart_Scale;
         }
+
+
+        //        Special case for very small scale charts without embedded georef constants
+        if((m_Chart_Scale > 5.0e6)  &&  (Chart_Skew == 0) && !bHaveImbeddedGeoref)
+        {
+              wxLogMessage(_T("  Small scale chart georef Mercator override activated..."));
+
+              bUseGeoRef = false;               // signal to use Mercator estimator
+              Chart_Error_Factor = .019;        // override the Chart Error Factor to just good enough
+
+
+              if(m_ppm_avg == 0.)
+              {
+                    if(m_Chart_Scale == 0.)
+                    {
+                          wxLogMessage(_T("  Cannot calculate effective pix-per-meter because SC is zero"));
+                          m_ppm_avg = 1.0;                      // absolute fallback
+                          return 0;
+                    }
+                    m_ppm_avg = m_Chart_DU * 39.3701 / m_Chart_Scale;         // direct from the scanned parameters
+                    if(m_ppm_avg == 0.)
+                    {
+                          wxLogMessage(_T("  Cannot calculate effective pix-per-meter because DU is zero"));
+                          m_ppm_avg = 1.0;                      // absolute fallback
+                          return 0;
+                    }
+              }
+              else
+              {
+                    wxLogMessage(_T("  Using minimal 2 REFpoint solution"));
+
+              //  Check for consistency between DU and stated chart scale
+                    double ppm_check = m_Chart_DU * 39.3701 / m_Chart_Scale;         // direct from the scanned parameters
+                    if(fabs((ppm_check - m_ppm_avg) / m_ppm_avg) > .01)
+                    {
+                          wxLogMessage(_T("  Info:Chart DU and/or SC are inconsistent"));
+                    }
+              }
+
+//              m_Chart_Scale = 127900000.;   // For BATHY.KAP
+//              m_ppm_avg = m_Chart_DU * 39.3701 / m_Chart_Scale;         // direct from the scanned parameters
+
+            //    Search for and find the reference point which is nearest the latitude projection point, longitude mid-chart
+            //    We will later use this point as a reference point for mercator estimator
+            //    Note that this calculation overrides a previous calculation of m_i_ref_near_center
+              d_current_min = pow(360.0, 2);
+              for(n=0 ; n<nRefpoint ; n++)
+              {
+                    double cx = (lonmin +lonmax)/2.;
+                    double cy = m_proj_lat;
+
+                    double d = pow((pRefTable[n].lonr - cx), 2) + pow((pRefTable[n].latr - cy), 2);
+                    if(d < d_current_min)
+                    {
+                          d_current_min = d;
+                          m_i_ref_near_center = n;
+                    }
+              }
+
+
+
+
+        }
+
 
         if(0 == m_ppm_avg)
               m_ppm_avg = 1.0;                      // absolute fallback
 
 
+//    Do a last little test on non-skewed charts
+        if(0. == Chart_Skew)
+        {
+            double eastingt, northingt;
+            toSM_ECC(pRefTable[nlatmin].latr, pRefTable[nlatmin].lonr, pRefTable[nlatmax].latr, pRefTable[nlatmax].lonr, &eastingt, &northingt);
 
+            double latpix = fabs(pRefTable[nlatmin].yr - pRefTable[nlatmax].yr);
 
+            double calc_latpix = fabs(northingt * m_ppm_avg);
 
-#if 0
-                   // Define reference point as near "average" point
-      double lat_ref = (latmax + latmin)/2.;
-      double lon_ref = (lonmax + lonmin)/2.;
-
-        //        Calculate chart draw scaling factor ppm_avg (pixels per meter), latitude
-        //  If the parameter DU was specified in the header, we have a exact relationship
-
-      if ((0 != m_Chart_DU ) && (0 != m_Chart_Scale))
-      {
-                        m_ppm_avg = m_Chart_DU * 39.37 / m_Chart_Scale;
-                        m_ppm_avg *= cos(lat_ref * PI / 180.);                    // correct to chart centroid
-
-      }
-
-
-      if(bUseGeoRef)
-      {
-
-            // calculate the northing/easting from the reference point to a position
-            // about 10% of the chart size away from the reference point
-
-                double lat_test = lat_ref; // + 0.10 * (latmax - latmin);
-                double lon_test = lon_ref + 0.10 * (lonmax - lonmin);
-                double easting, northing;
-                toSM(lat_test, lon_test, lat_ref, lon_ref, &easting, &northing);
-
-            // Calculate the pixel positions of reference point and test point
-                int xref, yref;
-                latlong_to_pix(lat_ref, lon_ref, xref, yref);
-                int x_test, y_test;
-                latlong_to_pix(lat_test, lon_test, x_test, y_test);
-
-            // And so the pixel rates, and pixels per meter.
-            // Note that this type of polar length calculation works nicely on all chart skew angles
-                m_ppm_avg = sqrt(((x_test - xref) * (x_test - xref)) + ((y_test - yref) * (y_test - yref))) /
-                            sqrt((easting * easting) + (northing * northing));
-
-
-            double ac = 1./cos(lat_ref * PI / 180.);
-            double ppm_t = m_ppm_avg * ac;
-      }
-
-                //  Otherwise, we'll need to use some empirical solution
-      else
-      {
-                        m_ppm_avg = 0.;
-
-                        if ( bUseGeoRef )
-                        {
-
-                                // Define reference point as near "average" point
-                                double lat_ref = ( latmax + latmin ) /2.;
-                                double lon_ref = ( lonmax + lonmin ) /2.;
-
-                                //  Calculate the pixel difference for a Great Circle course
-                                //  of 000 degrees for 1 nautical mile, (i.e. 1852 m)
-
-                                double lat_test, lon_test;
-                                ll_gc_ll ( lat_ref, lon_ref, 0, 1.0, &lat_test, &lon_test );
-
-                                // Calculate the pixel positions of reference point and test point
-
-                                int xref, yref;
-                                latlong_to_pix ( lat_ref, lon_ref, xref, yref );
-                                int x_test, y_test;
-                                latlong_to_pix ( lat_test, lon_test, x_test, y_test );
-
-                                m_ppm_avg = abs ( y_test - yref ) / 1852.;
-                                m_ppm_avg *= cos(lat_ref * PI / 180.);                    // correct to chart centroid
-                        }
-                        else
-                                //  Algorithmic georeferencing is no good, so
-                                //  Try to get a m_ppm_avg from looking directly at the reference points
-                        {
-                                // Define reference point as near "average" point
-                                double lat_ref = ( latmax + latmin ) /2.;
-                                double lon_ref = ( lonmax + lonmin ) /2.;
-
-                                //  Search the control points for that one which is closest to chart center
-
-                                double min_dist = 360;
-                                int imin;
-                                for ( i=0 ; i<nRefpoint ; i++ )
-                                {
-                                        double dist = sqrt ( ( ( lat_ref - pRefTable[i].latr ) * ( lat_ref - pRefTable[i].latr ) )
-                                                             + ( ( lon_ref - pRefTable[i].lonr ) * ( lon_ref - pRefTable[i].lonr ) ) );
-
-                                        if ( dist < min_dist )
-                                        {
-                                                min_dist = dist;
-                                                imin = i;
-                                        }
-                                }
-
-                                //  Now search the control points for that one point whose longitude matches,
-                                //  and which is closest
-
-                                double min_distl = 360;
-                                int iminl = -1;
-                                for ( i=0 ; i<nRefpoint ; i++ )
-                                {
-                                        if ( ( pRefTable[imin].lonr == pRefTable[i].lonr ) && ( i != imin ) )
-                                        {
-                                                double distl = fabs ( pRefTable[imin].latr - pRefTable[i].latr );
-
-                                                if ( distl < min_distl )
-                                                {
-                                                        min_distl = distl;
-                                                        iminl = i;
-                                                }
-                                        }
-                                }
-
-                                //  Found one?
-                                if ( -1 != iminl )
-                                {
-/*
-                                        double easting0, northing0;
-                                        toSM ( pRefTable[imin].latr, pRefTable[imin].lonr, lat_ref, lon_ref, &easting0, &northing0 );
-
-                                        double easting1, northing1;
-                                        toSM ( pRefTable[iminl].latr, pRefTable[iminl].lonr, lat_ref, lon_ref, &easting1, &northing1 );
-
-                                        m_ppm_avg = fabs ( ( pRefTable[imin].xr - pRefTable[iminl].xr ) / ( easting0 - easting1 ) );
-*/
-                                      double dx = pRefTable[imin].xr - pRefTable[iminl].xr;
-                                      double dy = pRefTable[imin].yr - pRefTable[iminl].yr;
-                                      double l = sqrt(pow(dx, 2) + pow(dy,2));
-                                      double l1 = ( pRefTable[imin].latr - pRefTable[iminl].latr ) * 1852. * 60.;
-
-                                      m_ppm_avg = fabs ( l / l1 );
-                                }
-
-/*
-                                //  One more try, assume simple Mercator projection
-                                //  Find two reference points with identical latitude
-                                else
-                                {
-                                        ppm_avg = 0;
-                                        for ( i=0 ; i<nRefpoint ; i++ )
-                                        {
-                                                for ( int j=i+1 ; j < nRefpoint ; j++ )
-                                                {
-                                                        if ( ( pRefTable[i].latr == pRefTable[j].latr ) )
-                                                        {
-                                                                double easting0, northing0;
-                                                                toSM ( pRefTable[i].latr, pRefTable[i].lonr, lat_ref, lon_ref, &easting0, &northing0 );
-
-                                                                double easting1, northing1;
-                                                                toSM ( pRefTable[j].latr, pRefTable[j].lonr, lat_ref, lon_ref, &easting1, &northing1 );
-
-                                                                ppm_avg = fabs ( ( pRefTable[i].xr - pRefTable[j].xr ) / ( easting0 - easting1 ) );
-
-                                                                break;
-                                                        }
-                                                }
-                                                if ( 0.0 != ppm_avg )
-                                                        break;
-                                        }
-                                }
-
-                                // Last chance
-                                // Find two points with different longitudes, get Simple Mercator scale from them
-                                if ( 0 == ppm_avg )
-                                {
-                                        for ( i=0 ; i<nRefpoint ; i++ )
-                                        {
-                                                for ( int j=i+1 ; j < nRefpoint ; j++ )
-                                                {
-                                                        if ( ( pRefTable[i].lonr != pRefTable[j].lonr ) )
-                                                        {
-                                                                double easting0, northing0;
-                                                                toSM ( pRefTable[i].latr, pRefTable[i].lonr, lat_ref, lon_ref, &easting0, &northing0 );
-
-                                                                double easting1, northing1;
-                                                                toSM ( pRefTable[j].latr, pRefTable[j].lonr, lat_ref, lon_ref, &easting1, &northing1 );
-
-                                                                ppm_avg = fabs ( ( pRefTable[i].xr - pRefTable[j].xr ) / ( easting0 - easting1 ) );
-
-                                                                break;
-                                                        }
-                                                }
-                                                if ( 0.0 != ppm_avg )
-                                                        break;
-                                        }
-                                }
-*/
-                        }
-
-
-                        // cannot use georef at all
-
-                        if ( 0 == m_ppm_avg )
-                                m_ppm_avg = 1.0;                      // absolute fallback
-                }
-#endif
+            if(fabs(1.0 - calc_latpix / latpix) > .005)
+            {
+                  wxString msg = _T("   Georeference Square_Factor on chart ");
+                  msg.Append(*m_pFullPath);
+                  wxString msg1;
+                  msg1.Printf(_T(" is %5g"), calc_latpix / latpix);
+                  msg.Append(msg1);
+                  wxLogMessage(msg);
+             }
+        }
       return(0);
 
 }
@@ -4124,7 +4199,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.31 2009/09/30 02:30:10 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.32 2009/11/18 01:24:15 bdbcat Exp $
 *
 */
 
@@ -4150,6 +4225,10 @@ static double polytrans( double* coeff, double lon, double lat )
     ret += coeff[9]*lat*lat*lat;
 //    ret += coeff[10]*lat*lat*lat*lat;
 //    ret += coeff[11]*lat*lat*lat*lat*lat;
+
+//    for(int n = 0 ; n < 10 ; n++)
+//          printf("  %g\n", coeff[n]);
+
     return ret;
 }
 

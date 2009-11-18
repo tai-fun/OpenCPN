@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.31 2009/09/25 14:56:50 bdbcat Exp $
+ * $Id: chart1.h,v 1.32 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.32  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.31  2009/09/25 14:56:50  bdbcat
  * *** empty log message ***
  *
@@ -133,7 +136,6 @@
 #include "nmea0183.h"
 
 
-
 //    Global Static utility functions
 extern "C" void MyCPLErrorHandler( CPLErr eErrClass, int nError,
                              const char * pszErrorMsg );
@@ -181,9 +183,10 @@ enum
       ID_TBSTAT,
       ID_PRINT,
       ID_COLSCHEME,
-      ID_GPXIMPORT,     // toh, 2009.02.14
-      ID_GPXEXPORT,     // toh, 2009.02.14
-      ID_TRACK
+      ID_GPXIMPORT,
+      ID_GPXEXPORT,
+      ID_TRACK,
+      ID_GRIB
 };
 
 
@@ -208,7 +211,27 @@ enum
     ID_COMBO = 1000
 };
 
+//    ChartType constants
+typedef enum ChartTypeEnum
+{
+      CHART_TYPE_KAP = 0,
+      CHART_TYPE_GEO,
+      CHART_TYPE_S57,
+      CHART_TYPE_CM93,
+      CHART_TYPE_CM93COMP,
+      CHART_TYPE_DUMMY,
+      CHART_TYPE_UNKNOWN,
+      CHART_TYPE_DONTCARE
+}_ChartTypeEnum;
 
+//    ChartFamily constants
+typedef enum ChartFamilyEnum
+{
+      CHART_FAMILY_UNKNOWN = 0,
+      CHART_FAMILY_RASTER,
+      CHART_FAMILY_VECTOR,
+      CHART_FAMILY_DONTCARE
+}_ChartFamilyEnum;
 
 typedef enum ColorScheme
 {
@@ -218,6 +241,8 @@ typedef enum ColorScheme
       GLOBAL_COLOR_SCHEME_NIGHT,
       N_COLOR_SCHEMES
 }_ColorScheme;
+
+
 
 #define N_STATUS_BAR_FIELDS_MAX     20
 
@@ -286,15 +311,15 @@ class MyFrame: public wxFrame
     void UpdateChartStatusField(int i);
     void UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize = true);
     void MouseEvent(wxMouseEvent& event);
-    void SelectChartFromStack(int index);
+    void SelectChartFromStack(int index,  bool bDir = false,  ChartTypeEnum New_Type = CHART_TYPE_DONTCARE, ChartFamilyEnum New_Family = CHART_FAMILY_DONTCARE);
     void ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar);
     void SetChartThumbnail(int index);
     int  DoOptionsDialog();
     void DoPrint(void);
     void StopSockets(void);
     void ResumeSockets(void);
-    void DoExportGPX(void);     // toh, 2009.02.15
-    void DoImportGPX(void);   // toh, 2009.02.15
+    void DoExportGPX(void);
+    void DoImportGPX(void);
     void TogglebFollow(void);
     void SetbFollow(void);
     void ClearbFollow(void);
@@ -303,6 +328,7 @@ class MyFrame: public wxFrame
     void TrackOn(void);
     void TrackOff(void);
     void ToggleColorScheme();
+    int GetnChartStack(void);
 
     ColorScheme GetColorScheme();
     void SetAndApplyColorScheme(ColorScheme cs);
@@ -334,6 +360,7 @@ class MyFrame: public wxFrame
     void PrepareToolbarBitmaps(void);
     void BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index,
                          string_to_pbitmap_hash &hash);
+    void DeleteToolbarBitmaps();
     void ApplyGlobalColorSchemetoStatusBar(void);
     void PostProcessNNEA(bool brx_rmc, wxString &sfixtime);
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52s57.h,v 1.19 2009/07/29 00:53:29 bdbcat Exp $
+ * $Id: s52s57.h,v 1.20 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 PLIB and S57 Chart data types
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52s57.h,v $
+ * Revision 1.20  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.19  2009/07/29 00:53:29  bdbcat
  * Update for gcc 4.2.4
  *
@@ -224,6 +227,8 @@ typedef struct _Rules{
    char    *INSTstr;          // Symbology Instruction string
    Rule    *razRule;          // rule
    char    *INST0;            // Head of the entire object Instruction string
+   int     n_sequence;        // sequence number in list, used to identify a particular rule
+   bool    b_private_razRule; // marker indicating that razRule should be free'd on Rules destroy
    struct _Rules *next;
 }Rules;
 
@@ -282,6 +287,7 @@ typedef struct _S52_Text {
     S52color   *pcol;       // pointer to S52colour
     int        dis;         // display
     wxFont     *pFont;
+    int        rul_seq_creator;  // sequence number of the Rule creating this object
 } S52_Text;
 
 
@@ -431,6 +437,10 @@ typedef struct _ObjRazRules{
 class render_canvas_parms
 {
 public:
+      render_canvas_parms(void);
+      render_canvas_parms(int x, int y, int width, int height, wxColour color);
+      ~render_canvas_parms(void);
+
       unsigned char           *pix_buff;
       int                     lclip;
       int                     rclip;

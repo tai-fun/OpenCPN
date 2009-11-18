@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.17 2009/09/30 02:30:34 bdbcat Exp $
+ * $Id: chartimg.h,v 1.18 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.18  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.17  2009/09/30 02:30:34  bdbcat
  * Another correction for IDL crossing
  *
@@ -241,7 +244,7 @@ protected:
       virtual int BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int xl, int sub_samp);
 
       virtual bool GetAndScaleData(unsigned char **ppn,
-                                   wxRect& source, int s_width, int d_width, ScaleTypeEnum scale_type);
+                                   wxRect& source, int s_width, wxRect& dest, ScaleTypeEnum scale_type);
 
 
       bool GetViewUsingCache( wxRect& source, wxRect& dest, ScaleTypeEnum scale_type );
@@ -336,6 +339,7 @@ protected:
       double      m_ppm_avg;              // Calculated true scale factor of the 1X chart,
                                         // pixels per meter
 
+      double      m_raster_scale_factor;        // exact scaling factor for pixel oversampling calcs
 
       //    Storage for background render machine
 
@@ -358,6 +362,7 @@ protected:
       double    m_dtm_lon;
 
       bool      m_bIDLcross;
+      double    m_proj_lat;
 };
 
 

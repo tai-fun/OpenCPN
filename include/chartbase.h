@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.16 2009/09/25 14:58:13 bdbcat Exp $
+ * $Id: chartbase.h,v 1.17 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.17  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.16  2009/09/25 14:58:13  bdbcat
  * Change ChartDummy Minimum scale
  *
@@ -101,26 +104,6 @@ typedef enum ChartInitFlag
       HEADER_ONLY,
       THUMB_ONLY
 }_ChartInitFlag;
-
-//    ChartType constants
-typedef enum ChartTypeEnum
-{
-      CHART_TYPE_KAP = 0,
-      CHART_TYPE_GEO,
-      CHART_TYPE_S57,
-      CHART_TYPE_CM93,
-      CHART_TYPE_CM93COMP,
-      CHART_TYPE_DUMMY,
-      CHART_TYPE_UNKNOWN
-}_ChartTypeEnum;
-
-//    ChartFamily constants
-typedef enum ChartFamilyEnum
-{
-      CHART_FAMILY_UNKNOWN = 0,
-      CHART_FAMILY_RASTER,
-      CHART_FAMILY_VECTOR
-}_ChartFamilyEnum;
 
 
 typedef enum RenderTypeEnum

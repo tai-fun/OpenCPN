@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.45 2009/09/25 15:19:56 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.46 2009/11/18 01:24:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -49,8 +49,9 @@
 #endif                        // end rms
 
 
+#define SERIAL_OVERLAPPED
 
-CPL_CVSID("$Id: nmea.cpp,v 1.45 2009/09/25 15:19:56 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.46 2009/11/18 01:24:54 bdbcat Exp $");
 
 extern int             g_nNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -156,10 +157,11 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
           comx =  m_data_source_string.AfterFirst(':');      // strip "Serial:"
 
 #ifdef __WXMSW__
-          comx.Prepend(_T("\\\\.\\"));                  // Required for access to Serial Ports greater than COM9
+          wxString scomx = comx;
+          scomx.Prepend(_T("\\\\.\\"));                  // Required for access to Serial Ports greater than COM9
 
 //  As a quick check, verify that the specified port is available
-            HANDLE m_hSerialComm = CreateFile(comx.mb_str(),       // Port Name
+            HANDLE m_hSerialComm = CreateFile(scomx.mb_str(),       // Port Name
                                              GENERIC_READ,
                                              0,
                                              NULL,
@@ -644,6 +646,7 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, 
       m_pPortName = new wxString(PortName);
 
       rx_buffer = new char[RX_BUFFER_SIZE + 1];
+      temp_buf = new char[RX_BUFFER_SIZE + 1];
 
       put_ptr = rx_buffer;                            // local circular queue
       tak_ptr = rx_buffer;
@@ -660,6 +663,7 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, 
 OCP_NMEA_Thread::~OCP_NMEA_Thread(void)
 {
       delete rx_buffer;
+      delete temp_buf;
       delete m_pPortName;
 }
 
@@ -742,6 +746,10 @@ void *OCP_NMEA_Thread::Entry()
           // do not retry for the next 5s
                           maxErrorLoop = 0;
 
+         //  Turn off Open/Close logging
+                          bool blog = m_pCommMan->GetLogFlag();
+                          m_pCommMan->SetLogFlag(false);
+
           // free old unplug current port
                           m_pCommMan->CloseComPort(m_gps_fd);
 
@@ -753,6 +761,9 @@ void *OCP_NMEA_Thread::Entry()
                           } else {
                                 wxString msg(_T("NMEA input device open on hotplug OK: "));
                           }
+
+          //      Reset the log flag
+                          m_pCommMan->SetLogFlag(blog);
                     }
               }
         } // end Fulup hack
@@ -777,7 +788,6 @@ void *OCP_NMEA_Thread::Entry()
             {
                 char *tptr;
                 char *ptmpbuf;
-                char temp_buf[RX_BUFFER_SIZE];
 
 
 //    Copy the message into a temporary _buffer
@@ -791,13 +801,18 @@ void *OCP_NMEA_Thread::Entry()
 
                    if((tptr - rx_buffer) > RX_BUFFER_SIZE)
                       tptr = rx_buffer;
+
+                   wxASSERT_MSG((ptmpbuf - temp_buf) < RX_BUFFER_SIZE, "temp_buf overrun");
+
                 }
 
                 if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
                 {
                     *ptmpbuf++ = *tptr++;
                     if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                    tptr = rx_buffer;
+                       tptr = rx_buffer;
+
+                    wxASSERT_MSG((ptmpbuf - temp_buf) < RX_BUFFER_SIZE, "temp_buf overrun");
 
                     *ptmpbuf = 0;
 
@@ -830,6 +845,7 @@ thread_exit:
 
 
 #ifdef __WXMSW__
+
 //    Entry Point
 void *OCP_NMEA_Thread::Entry()
 {
@@ -854,6 +870,8 @@ void *OCP_NMEA_Thread::Entry()
 
       hSerialComm = (HANDLE)m_gps_fd;
 
+
+#ifdef SERIAL_OVERLAPPED
 //    Set up read event specification
 
       if(!SetCommMask((HANDLE)m_gps_fd, EV_RXCHAR)) // Setting Event Type
@@ -873,6 +891,7 @@ void *OCP_NMEA_Thread::Entry()
       char szBuf[READ_BUF_SIZE];
 
       DWORD dwRead;
+
 
 //    The main loop
 
@@ -949,6 +968,7 @@ void *OCP_NMEA_Thread::Entry()
 
 
 
+
 HandleASuccessfulRead:
 
             if(dwRead > 0)
@@ -988,15 +1008,18 @@ HandleASuccessfulRead:
                         }
                         ThreadMessage(msg1);
                   }
-
             }
+#ifdef __WXMSW__
+//            if(!_CrtCheckMemory())
+//             _CrtDbgBreak( );
+#endif
+
 
 //    Found a NL char, thus end of message?
             if(nl_found)
             {
                   char *tptr;
                   char *ptmpbuf;
-                  char temp_buf[RX_BUFFER_SIZE];
 
                   bool partial = false;
                   while (!partial)
@@ -1004,38 +1027,44 @@ HandleASuccessfulRead:
 
             //    Copy the message into a temp buffer
 
-                    tptr = tak_ptr;
-                    ptmpbuf = temp_buf;
+                        tptr = tak_ptr;
+                        ptmpbuf = temp_buf;
 
-                    while((*tptr != 0x0a) && (tptr != put_ptr))
-                    {
-                          *ptmpbuf++ = *tptr++;
+                        while((*tptr != 0x0a) && (tptr != put_ptr))
+                        {
+                              *ptmpbuf++ = *tptr++;
 
-                          if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                tptr = rx_buffer;
-                    }
+                              if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                                    tptr = rx_buffer;
+                              wxASSERT_MSG((ptmpbuf - temp_buf) < RX_BUFFER_SIZE, "temp_buf overrun");
+                        }
 
-                    if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
-                    {
-                          *ptmpbuf++ = *tptr++;
-                          if((tptr - rx_buffer) > RX_BUFFER_SIZE)
-                                tptr = rx_buffer;
+                        if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
+                        {
+                              *ptmpbuf++ = *tptr++;
+                              if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                                    tptr = rx_buffer;
+                              wxASSERT_MSG((ptmpbuf - temp_buf) < RX_BUFFER_SIZE, "temp_buf overrun");
 
-                          *ptmpbuf = 0;
+                              *ptmpbuf = 0;
 
-                          tak_ptr = tptr;
+                              tak_ptr = tptr;
 
-    // parse and send the message
-                         wxString str_temp_buf(temp_buf, wxConvUTF8);
-                         Parse_And_Send_Posn(str_temp_buf);
-
-                   }
-                   else
-                   {
-                      partial = true;
-//                    ThreadMessage("partial");
-                   }
+      // parse and send the message
+                              wxString str_temp_buf(temp_buf, wxConvUTF8);
+                              Parse_And_Send_Posn(str_temp_buf);
+                        }
+                        else
+                        {
+                              partial = true;
+                        }
                 }                 // while !partial
+
+#ifdef __WXMSW__
+//                if(!_CrtCheckMemory())
+//                      _CrtDbgBreak( );
+#endif
+
             }           // nl found
 
        fWaitingOnRead = FALSE;
@@ -1046,6 +1075,7 @@ HandleASuccessfulRead:
 
 fail_point:
 thread_exit:
+
 //          Close the port cleanly
       m_pCommMan->CloseComPort(m_gps_fd);
 
@@ -1055,6 +1085,168 @@ thread_exit:
       m_launcher->SetSecThreadInActive();             // I am dead
 
       return 0;
+
+#else                   // non-overlapped
+//    Set up read event specification
+
+      if(!SetCommMask((HANDLE)m_gps_fd, EV_RXCHAR)) // Setting Event Type
+            goto thread_exit;
+
+      not_done = true;
+      bool nl_found;
+
+#define READ_BUF_SIZE 20
+      char szBuf[READ_BUF_SIZE];
+
+      DWORD dwRead;
+      DWORD dwOneRead;
+      DWORD dwCommEvent;
+      char  chRead;
+      int ic;
+
+//    The main loop
+
+      while(not_done)
+      {
+            if(TestDestroy())
+                  not_done = false;                               // smooth exit
+
+
+            dwRead = 0;
+            ic = 0;
+
+            if (WaitCommEvent((HANDLE)m_gps_fd, &dwCommEvent, NULL))
+            {
+                do {
+                      if (ReadFile((HANDLE)m_gps_fd, &chRead, 1, &dwOneRead, NULL))
+                      {
+                            szBuf[ic] = chRead;
+                            dwRead++;
+                            if(ic++ > READ_BUF_SIZE - 1)
+                                  goto HandleASuccessfulRead;
+                      }
+                      else
+                      {            // An error occurred in the ReadFile call.
+                            goto fail_point;                               // smooth exit
+
+                      }
+                } while (dwOneRead);
+            }
+            else
+                  goto fail_point;                               // smooth exit
+
+
+
+HandleASuccessfulRead:
+
+            if(dwRead > 0)
+            {
+                  if((g_total_NMEAerror_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
+                  {
+                        g_total_NMEAerror_messages++;
+                        wxString msg;
+                        msg.Printf(_T("NMEA activity...%d bytes"), dwRead);
+                        ThreadMessage(msg);
+                  }
+
+                  int nchar = dwRead;
+                  char *pb = szBuf;
+
+                  while(nchar)
+                  {
+                        if(0x0a == *pb)
+                              nl_found = true;
+
+                        *put_ptr++ = *pb++;
+                        if((put_ptr - rx_buffer) > RX_BUFFER_SIZE)
+                              put_ptr = rx_buffer;
+
+                        nchar--;
+                  }
+                  if((g_total_NMEAerror_messages < g_nNMEADebug) && (g_nNMEADebug > 1000))
+                  {
+                        g_total_NMEAerror_messages++;
+                        wxString msg1 = _T("Buffer is: ");
+                        int nc = dwRead;
+                        char *pb = szBuf;
+                        while(nc)
+                        {
+                              msg1.Append(*pb++);
+                              nc--;
+                        }
+                        ThreadMessage(msg1);
+                  }
+            }
+
+//    Found a NL char, thus end of message?
+            if(nl_found)
+            {
+                  char *tptr;
+                  char *ptmpbuf;
+
+                  bool partial = false;
+                  while (!partial)
+                  {
+
+            //    Copy the message into a temp buffer
+
+                        tptr = tak_ptr;
+                        ptmpbuf = temp_buf;
+
+                        while((*tptr != 0x0a) && (tptr != put_ptr))
+                        {
+                              *ptmpbuf++ = *tptr++;
+
+                              if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                                    tptr = rx_buffer;
+                              wxASSERT_MSG((ptmpbuf - temp_buf) < RX_BUFFER_SIZE, "temp_buf overrun");
+                        }
+
+                        if((*tptr == 0x0a) && (tptr != put_ptr))    // well formed sentence
+                        {
+                              *ptmpbuf++ = *tptr++;
+                              if((tptr - rx_buffer) > RX_BUFFER_SIZE)
+                                    tptr = rx_buffer;
+                              wxASSERT_MSG((ptmpbuf - temp_buf) < RX_BUFFER_SIZE, "temp_buf overrun");
+
+                              *ptmpbuf = 0;
+
+                              tak_ptr = tptr;
+
+      // parse and send the message
+                              if(g_bShowOutlines)
+                              {
+                                    wxString str_temp_buf(temp_buf, wxConvUTF8);
+                                    Parse_And_Send_Posn(str_temp_buf);
+                              }
+                        }
+                        else
+                        {
+                              partial = true;
+                        }
+                  }                 // while !partial
+
+
+            }           // nl found
+      }           // the big while...
+
+
+
+fail_point:
+thread_exit:
+
+//          Close the port cleanly
+      m_pCommMan->CloseComPort(m_gps_fd);
+
+      m_launcher->SetSecThreadInActive();             // I am dead
+
+      return 0;
+
+
+
+
+
+#endif
 }
 
 #endif            // __WXMSW__
@@ -1069,6 +1261,7 @@ void OCP_NMEA_Thread::Parse_And_Send_Posn(wxString &str_temp_buf)
             msg.Append(str_temp_buf);
             ThreadMessage(msg);
       }
+
 
       OCPN_NMEAEvent Nevent(wxEVT_OCPN_NMEA, 0);
       Nevent.SetNMEAString(str_temp_buf);
@@ -1762,7 +1955,9 @@ void AutoPilotWindow::OnCloseWindow(wxCloseEvent& event)
 
 bool AutoPilotWindow::OpenPort(wxString &port)
 {
-      if ((m_ap_fd = g_pCommMan->OpenComPort(port, 4800)) < 0)
+      wxString sport = port;
+
+      if ((m_ap_fd = g_pCommMan->OpenComPort(sport, 4800)) < 0)
       {
             wxString msg(_T("Autopilot output device open failed: "));
             msg.Append(port);
@@ -1793,6 +1988,7 @@ WX_DEFINE_LIST(ListOfOpenCommPorts);
 
 ComPortManager:: ComPortManager()
 {
+      m_blog = true;
 }
 
 ComPortManager::~ComPortManager()
@@ -1815,21 +2011,40 @@ int ComPortManager::OpenComPort(wxString &com_name, int baud_rate)
             OpenCommPortElement *pocpe = new OpenCommPortElement;
             pocpe->com_name = com_name;
             pocpe->port_descriptor = port_descriptor;
+            pocpe->n_open = 1;
 
             m_port_list.Append(pocpe);
+
+            if(m_blog)
+            {
+                  wxString s;
+                  s.Printf(_T("OpenPD: %d, new_count = %d for "), port_descriptor, pocpe->n_open );
+                  s.Append(com_name);
+                  wxLogMessage(s);
+            }
+
+      }
+      else                    // port is already open, so increment its counter
+      {
+            pe->n_open++;
+            port_descriptor = pe->port_descriptor;
+
+            if(m_blog)
+            {
+                  wxString s;
+                  s.Printf(_T("Re-OpenPD: %d, new_count = %d for "), port_descriptor, pe->n_open );
+                  s.Append(com_name);
+                  wxLogMessage(s);
+            }
       }
 
-  //    wxString s;
-  //    s.Printf("OpenPD: %d", port_descriptor);
-  //    wxLogMessage(com_name);
-  //    wxLogMessage(s);
+
 
       return port_descriptor;
 }
 
 int ComPortManager::CloseComPort(int fd)
 {
-      CloseComPortPhysical(fd);
 
       for ( ListOfOpenCommPorts::Node *node = m_port_list.GetFirst(); node; node = node->GetNext() )
       {
@@ -1837,9 +2052,25 @@ int ComPortManager::CloseComPort(int fd)
 
             if(current->port_descriptor == fd)
             {
-                  m_port_list.DeleteObject(current);
-                  delete current;
-                  break;
+                  current->n_open--;
+
+                  if(m_blog)
+                  {
+                        wxString s;
+                        s.Printf(_T("ClosePD: %d, count_after_close = %d for "), fd, current->n_open );
+                        s.Append(current->com_name);
+                        wxLogMessage(s);
+                  }
+                  if(0 == current->n_open)
+                  {
+                        CloseComPortPhysical(fd);
+                        if(m_blog)
+                              wxLogMessage(_T("  and so CloseComPortPhysical"));
+
+                        m_port_list.DeleteObject(current);
+                        delete current;
+                        break;
+                  }
             }
       }
 
@@ -1996,19 +2227,25 @@ int ComPortManager::OpenComPortPhysical(wxString &com_name, int baud_rate)
       wxString xcom_name = com_name;
       xcom_name.Prepend(_T("\\\\.\\"));                  // Required for access to Serial Ports greater than COM9
 
-      HANDLE hSerialComm = CreateFile(com_name.mb_str(),      // Port Name
+#ifdef SERIAL_OVERLAPPED
+      DWORD open_flags = FILE_FLAG_OVERLAPPED;
+#else
+      DWORD open_flags = 0;
+#endif
+
+      HANDLE hSerialComm = CreateFile(xcom_name.mb_str(),      // Port Name
                                  GENERIC_READ | GENERIC_WRITE,     // Desired Access
                                  0,                               // Shared Mode
                                  NULL,                            // Security
                                  OPEN_EXISTING,             // Creation Disposition
-                                 FILE_FLAG_OVERLAPPED,
-                                 NULL);                           // Non Overlapped
+                                 open_flags,
+                                 NULL);
 
       if(hSerialComm == INVALID_HANDLE_VALUE)
-            return (::GetLastError());
+            return (-1);
 
       if(!SetupComm(hSerialComm, 1024, 1024))
-            return (::GetLastError());
+            return (-1);
 
       DCB dcbConfig;
 
@@ -2063,7 +2300,7 @@ int ComPortManager::WriteComPortPhysical(int port_descriptor, const wxString& st
       char *pszBuf = (char *)malloc((dwSize + 1) * sizeof(char));
       strncpy(pszBuf, string.mb_str(), dwSize+1);
 
-//      wxLogMessage(string);
+#ifdef SERIAL_OVERLAPPED
 
       OVERLAPPED osWrite = {0};
       DWORD dwWritten;
@@ -2101,9 +2338,19 @@ int ComPortManager::WriteComPortPhysical(int port_descriptor, const wxString& st
 
       free (pszBuf);
 
-//      wxString m;
-//      m.Printf("Result %d",fRes);
-//      wxLogMessage(m);
+#else
+      DWORD dwWritten;
+      int fRes;
+
+        // Issue write.
+      if (!WriteFile((HANDLE)port_descriptor, pszBuf, dwSize, &dwWritten, NULL))
+            fRes = 0;         // WriteFile failed, . Report error and abort.
+      else
+            fRes = dwWritten;      // WriteFile completed immediately.
+
+      free (pszBuf);
+
+#endif
 
       return fRes;
 }

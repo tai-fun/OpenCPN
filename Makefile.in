@@ -129,8 +129,14 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
 	src/nmea0183/lat.cpp src/nmea0183/expid.cpp \
 	src/nmea0183/wpl.cpp src/nmea0183/rte.cpp src/nmea0183/hdt.cpp \
-	src/nmea0183/hdg.cpp src/nmea0183/hdm.cpp \
-	src/scrollingdialog.cpp src/s52cnsy.cpp src/s52plib.cpp \
+	src/nmea0183/hdg.cpp src/nmea0183/hdm.cpp src/nmea0183/gll.cpp \
+	src/nmea0183/vtg.cpp src/scrollingdialog.cpp src/grib.cpp \
+	src/grib/GribReader.cpp src/grib/GribRecord.cpp \
+	src/grib/zuFile.cpp src/grib/IsoLine.cpp \
+	src/grib/bzip2/blocksort.c src/grib/bzip2/bzlib.c \
+	src/grib/bzip2/compress.c src/grib/bzip2/crctable.c \
+	src/grib/bzip2/decompress.c src/grib/bzip2/huffman.c \
+	src/grib/bzip2/randtable.c src/s52cnsy.cpp src/s52plib.cpp \
 	src/s52utils.cpp src/s57chart.cpp src/mygeom.cpp src/tri.c \
 	src/myiso8211/ddffielddefn.cpp src/myiso8211/ddfmodule.cpp \
 	src/myiso8211/ddfrecord.cpp src/myiso8211/ddfsubfielddefn.cpp \
@@ -204,8 +210,12 @@ am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
 	sentence.$(OBJEXT) talkerid.$(OBJEXT) rmc.$(OBJEXT) \
 	hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) wpl.$(OBJEXT) \
 	rte.$(OBJEXT) hdt.$(OBJEXT) hdg.$(OBJEXT) hdm.$(OBJEXT) \
-	scrollingdialog.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3)
+	gll.$(OBJEXT) vtg.$(OBJEXT) scrollingdialog.$(OBJEXT) \
+	grib.$(OBJEXT) GribReader.$(OBJEXT) GribRecord.$(OBJEXT) \
+	zuFile.$(OBJEXT) IsoLine.$(OBJEXT) blocksort.$(OBJEXT) \
+	bzlib.$(OBJEXT) compress.$(OBJEXT) crctable.$(OBJEXT) \
+	decompress.$(OBJEXT) huffman.$(OBJEXT) randtable.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2) $(am__objects_3)
 opencpn_OBJECTS = $(am_opencpn_OBJECTS)
 am__DEPENDENCIES_1 =
 @BUILD_WITH_GLU_TESS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
@@ -236,21 +246,22 @@ am__noinst_HEADERS_DIST = include/about.h include/ais.h include/bbox.h \
 	include/s57chart.h include/s57mgr.h include/sercomm.h \
 	include/statwin.h include/tcmgr.h include/thumbwin.h \
 	include/triangulate.h include/wificlient.h include/wvschart.h \
-	include/cm93.h src/mygdal/cpl_config.h src/mygdal/cpl_conv.h \
-	src/mygdal/cpl_csv.h src/mygdal/cpl_error.h \
-	src/mygdal/cpl_list.h src/mygdal/cpl_minixml.h \
-	src/mygdal/cpl_multiproc.h src/mygdal/cpl_odbc.h \
-	src/mygdal/cpl_port.h src/mygdal/cpl_string.h \
-	src/mygdal/cpl_vsi.h src/nmea0183/nmea0183.h \
-	src/nmea0183/LatLong.hpp src/nmea0183/nmea0183.hpp \
-	src/nmea0183/Response.hpp src/nmea0183/RMB.hpp \
-	src/nmea0183/RMC.HPP src/nmea0183/Sentence.hpp \
-	src/nmea0183/hdt.hpp src/nmea0183/hdg.hpp src/nmea0183/hdm.hpp \
-	src/mygdal/iso8211.h src/mygdal/ogr_s57.h src/mygdal/s57.h \
-	src/mygdal/ogr_feature.h src/mygdal/ogr_geometry.h \
-	src/mygdal/ogr_p.h src/mygdal/ogr_attrind.h \
-	src/mygdal/ogrsf_frmts.h src/mygdal/ogr_spatialref.h \
-	src/mygdal/gdal.h src/mygdal/ogr_api.h src/mygdal/gdal_priv.h \
+	include/cm93.h include/grib.h src/mygdal/cpl_config.h \
+	src/mygdal/cpl_conv.h src/mygdal/cpl_csv.h \
+	src/mygdal/cpl_error.h src/mygdal/cpl_list.h \
+	src/mygdal/cpl_minixml.h src/mygdal/cpl_multiproc.h \
+	src/mygdal/cpl_odbc.h src/mygdal/cpl_port.h \
+	src/mygdal/cpl_string.h src/mygdal/cpl_vsi.h \
+	src/nmea0183/nmea0183.h src/nmea0183/LatLong.hpp \
+	src/nmea0183/nmea0183.hpp src/nmea0183/Response.hpp \
+	src/nmea0183/RMB.hpp src/nmea0183/RMC.HPP \
+	src/nmea0183/Sentence.hpp src/nmea0183/hdt.hpp \
+	src/nmea0183/hdg.hpp src/nmea0183/hdm.hpp src/mygdal/iso8211.h \
+	src/mygdal/ogr_s57.h src/mygdal/s57.h src/mygdal/ogr_feature.h \
+	src/mygdal/ogr_geometry.h src/mygdal/ogr_p.h \
+	src/mygdal/ogr_attrind.h src/mygdal/ogrsf_frmts.h \
+	src/mygdal/ogr_spatialref.h src/mygdal/gdal.h \
+	src/mygdal/ogr_api.h src/mygdal/gdal_priv.h \
 	src/mygdal/gdal_frmts.h include/macsercomm.h \
 	include/macutils.h
 HEADERS = $(noinst_HEADERS)
@@ -386,7 +397,9 @@ WX_LIB_DIR = $(WX_HOME)/lib
 INCLUDES = \
 	 -I./$(srcdir)/include -I./$(srcdir)/src/nmea0183\
 	 -I/usr/X11R6/include\
-	 -I./$(srcdir)/src/mygdal
+	 -I./$(srcdir)/src/mygdal\
+	 -I./$(srcdir)/src/grib\
+	 -I./$(srcdir)/src/grib/bzip2
 
 AM_CFLAGS = -Wall -g $(am__append_1) $(am__append_3) $(am__append_5)
 AM_CXXFLAGS = -Wall -g $(am__append_2) $(am__append_4) $(am__append_6) \
@@ -407,8 +420,14 @@ opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/nmea0183/rmc.cpp src/nmea0183/hexvalue.cpp \
 	src/nmea0183/lat.cpp src/nmea0183/expid.cpp \
 	src/nmea0183/wpl.cpp src/nmea0183/rte.cpp src/nmea0183/hdt.cpp \
-	src/nmea0183/hdg.cpp src/nmea0183/hdm.cpp \
-	src/scrollingdialog.cpp $(am__append_8) $(am__append_10) \
+	src/nmea0183/hdg.cpp src/nmea0183/hdm.cpp src/nmea0183/gll.cpp \
+	src/nmea0183/vtg.cpp src/scrollingdialog.cpp src/grib.cpp \
+	src/grib/GribReader.cpp src/grib/GribRecord.cpp \
+	src/grib/zuFile.cpp src/grib/IsoLine.cpp \
+	src/grib/bzip2/blocksort.c src/grib/bzip2/bzlib.c \
+	src/grib/bzip2/compress.c src/grib/bzip2/crctable.c \
+	src/grib/bzip2/decompress.c src/grib/bzip2/huffman.c \
+	src/grib/bzip2/randtable.c $(am__append_8) $(am__append_10) \
 	$(am__append_11)
 noinst_HEADERS = include/about.h include/ais.h include/bbox.h \
 	include/chart1.h include/chartbase.h include/chartdb.h \
@@ -420,21 +439,22 @@ noinst_HEADERS = include/about.h include/ais.h include/bbox.h \
 	include/s57chart.h include/s57mgr.h include/sercomm.h \
 	include/statwin.h include/tcmgr.h include/thumbwin.h \
 	include/triangulate.h include/wificlient.h include/wvschart.h \
-	include/cm93.h src/mygdal/cpl_config.h src/mygdal/cpl_conv.h \
-	src/mygdal/cpl_csv.h src/mygdal/cpl_error.h \
-	src/mygdal/cpl_list.h src/mygdal/cpl_minixml.h \
-	src/mygdal/cpl_multiproc.h src/mygdal/cpl_odbc.h \
-	src/mygdal/cpl_port.h src/mygdal/cpl_string.h \
-	src/mygdal/cpl_vsi.h src/nmea0183/nmea0183.h \
-	src/nmea0183/LatLong.hpp src/nmea0183/nmea0183.hpp \
-	src/nmea0183/Response.hpp src/nmea0183/RMB.hpp \
-	src/nmea0183/RMC.HPP src/nmea0183/Sentence.hpp \
-	src/nmea0183/hdt.hpp src/nmea0183/hdg.hpp src/nmea0183/hdm.hpp \
-	src/mygdal/iso8211.h src/mygdal/ogr_s57.h src/mygdal/s57.h \
-	src/mygdal/ogr_feature.h src/mygdal/ogr_geometry.h \
-	src/mygdal/ogr_p.h src/mygdal/ogr_attrind.h \
-	src/mygdal/ogrsf_frmts.h src/mygdal/ogr_spatialref.h \
-	src/mygdal/gdal.h src/mygdal/ogr_api.h src/mygdal/gdal_priv.h \
+	include/cm93.h include/grib.h src/mygdal/cpl_config.h \
+	src/mygdal/cpl_conv.h src/mygdal/cpl_csv.h \
+	src/mygdal/cpl_error.h src/mygdal/cpl_list.h \
+	src/mygdal/cpl_minixml.h src/mygdal/cpl_multiproc.h \
+	src/mygdal/cpl_odbc.h src/mygdal/cpl_port.h \
+	src/mygdal/cpl_string.h src/mygdal/cpl_vsi.h \
+	src/nmea0183/nmea0183.h src/nmea0183/LatLong.hpp \
+	src/nmea0183/nmea0183.hpp src/nmea0183/Response.hpp \
+	src/nmea0183/RMB.hpp src/nmea0183/RMC.HPP \
+	src/nmea0183/Sentence.hpp src/nmea0183/hdt.hpp \
+	src/nmea0183/hdg.hpp src/nmea0183/hdm.hpp src/mygdal/iso8211.h \
+	src/mygdal/ogr_s57.h src/mygdal/s57.h src/mygdal/ogr_feature.h \
+	src/mygdal/ogr_geometry.h src/mygdal/ogr_p.h \
+	src/mygdal/ogr_attrind.h src/mygdal/ogrsf_frmts.h \
+	src/mygdal/ogr_spatialref.h src/mygdal/gdal.h \
+	src/mygdal/ogr_api.h src/mygdal/gdal_priv.h \
 	src/mygdal/gdal_frmts.h $(am__append_12)
 EXTRA_DIST = \
 	data/wvsdata/readmewvs.txt \
@@ -550,14 +570,20 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GribReader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GribRecord.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IsoLine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/about.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ais.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bbox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/blocksort.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bzlib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chart1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartdb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartimg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chcanv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cm93.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/compress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/concanv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpl_conv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpl_csv.Po@am__quote@
@@ -569,6 +595,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpl_string.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpl_vsisimple.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cplgetsymbol.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crctable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cutil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddffield.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddffielddefn.Po@am__quote@
@@ -577,13 +604,17 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddfrecordindex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddfsubfielddefn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddfutils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decompress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdal_misc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/georef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gll.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hdt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexvalue.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/huffman.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/latlong.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/long.Po@am__quote@
@@ -614,6 +645,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrs57layer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrutils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/options.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/randtable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/response.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rmb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rmc.Po@am__quote@
@@ -635,9 +667,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcmgr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thumbwin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tri.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vtg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wificlient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wvschart.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zuFile.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -680,6 +714,104 @@ georef.obj: src/georef.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/georef.c' object='georef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o georef.obj `if test -f 'src/georef.c'; then $(CYGPATH_W) 'src/georef.c'; else $(CYGPATH_W) '$(srcdir)/src/georef.c'; fi`
+
+blocksort.o: src/grib/bzip2/blocksort.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT blocksort.o -MD -MP -MF $(DEPDIR)/blocksort.Tpo -c -o blocksort.o `test -f 'src/grib/bzip2/blocksort.c' || echo '$(srcdir)/'`src/grib/bzip2/blocksort.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/blocksort.Tpo $(DEPDIR)/blocksort.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/blocksort.c' object='blocksort.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o blocksort.o `test -f 'src/grib/bzip2/blocksort.c' || echo '$(srcdir)/'`src/grib/bzip2/blocksort.c
+
+blocksort.obj: src/grib/bzip2/blocksort.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT blocksort.obj -MD -MP -MF $(DEPDIR)/blocksort.Tpo -c -o blocksort.obj `if test -f 'src/grib/bzip2/blocksort.c'; then $(CYGPATH_W) 'src/grib/bzip2/blocksort.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/blocksort.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/blocksort.Tpo $(DEPDIR)/blocksort.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/blocksort.c' object='blocksort.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o blocksort.obj `if test -f 'src/grib/bzip2/blocksort.c'; then $(CYGPATH_W) 'src/grib/bzip2/blocksort.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/blocksort.c'; fi`
+
+bzlib.o: src/grib/bzip2/bzlib.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT bzlib.o -MD -MP -MF $(DEPDIR)/bzlib.Tpo -c -o bzlib.o `test -f 'src/grib/bzip2/bzlib.c' || echo '$(srcdir)/'`src/grib/bzip2/bzlib.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/bzlib.Tpo $(DEPDIR)/bzlib.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/bzlib.c' object='bzlib.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o bzlib.o `test -f 'src/grib/bzip2/bzlib.c' || echo '$(srcdir)/'`src/grib/bzip2/bzlib.c
+
+bzlib.obj: src/grib/bzip2/bzlib.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT bzlib.obj -MD -MP -MF $(DEPDIR)/bzlib.Tpo -c -o bzlib.obj `if test -f 'src/grib/bzip2/bzlib.c'; then $(CYGPATH_W) 'src/grib/bzip2/bzlib.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/bzlib.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/bzlib.Tpo $(DEPDIR)/bzlib.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/bzlib.c' object='bzlib.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o bzlib.obj `if test -f 'src/grib/bzip2/bzlib.c'; then $(CYGPATH_W) 'src/grib/bzip2/bzlib.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/bzlib.c'; fi`
+
+compress.o: src/grib/bzip2/compress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT compress.o -MD -MP -MF $(DEPDIR)/compress.Tpo -c -o compress.o `test -f 'src/grib/bzip2/compress.c' || echo '$(srcdir)/'`src/grib/bzip2/compress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/compress.Tpo $(DEPDIR)/compress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/compress.c' object='compress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o compress.o `test -f 'src/grib/bzip2/compress.c' || echo '$(srcdir)/'`src/grib/bzip2/compress.c
+
+compress.obj: src/grib/bzip2/compress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT compress.obj -MD -MP -MF $(DEPDIR)/compress.Tpo -c -o compress.obj `if test -f 'src/grib/bzip2/compress.c'; then $(CYGPATH_W) 'src/grib/bzip2/compress.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/compress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/compress.Tpo $(DEPDIR)/compress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/compress.c' object='compress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o compress.obj `if test -f 'src/grib/bzip2/compress.c'; then $(CYGPATH_W) 'src/grib/bzip2/compress.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/compress.c'; fi`
+
+crctable.o: src/grib/bzip2/crctable.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT crctable.o -MD -MP -MF $(DEPDIR)/crctable.Tpo -c -o crctable.o `test -f 'src/grib/bzip2/crctable.c' || echo '$(srcdir)/'`src/grib/bzip2/crctable.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/crctable.Tpo $(DEPDIR)/crctable.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/crctable.c' object='crctable.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o crctable.o `test -f 'src/grib/bzip2/crctable.c' || echo '$(srcdir)/'`src/grib/bzip2/crctable.c
+
+crctable.obj: src/grib/bzip2/crctable.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT crctable.obj -MD -MP -MF $(DEPDIR)/crctable.Tpo -c -o crctable.obj `if test -f 'src/grib/bzip2/crctable.c'; then $(CYGPATH_W) 'src/grib/bzip2/crctable.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/crctable.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/crctable.Tpo $(DEPDIR)/crctable.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/crctable.c' object='crctable.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o crctable.obj `if test -f 'src/grib/bzip2/crctable.c'; then $(CYGPATH_W) 'src/grib/bzip2/crctable.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/crctable.c'; fi`
+
+decompress.o: src/grib/bzip2/decompress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT decompress.o -MD -MP -MF $(DEPDIR)/decompress.Tpo -c -o decompress.o `test -f 'src/grib/bzip2/decompress.c' || echo '$(srcdir)/'`src/grib/bzip2/decompress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/decompress.Tpo $(DEPDIR)/decompress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/decompress.c' object='decompress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o decompress.o `test -f 'src/grib/bzip2/decompress.c' || echo '$(srcdir)/'`src/grib/bzip2/decompress.c
+
+decompress.obj: src/grib/bzip2/decompress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT decompress.obj -MD -MP -MF $(DEPDIR)/decompress.Tpo -c -o decompress.obj `if test -f 'src/grib/bzip2/decompress.c'; then $(CYGPATH_W) 'src/grib/bzip2/decompress.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/decompress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/decompress.Tpo $(DEPDIR)/decompress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/decompress.c' object='decompress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o decompress.obj `if test -f 'src/grib/bzip2/decompress.c'; then $(CYGPATH_W) 'src/grib/bzip2/decompress.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/decompress.c'; fi`
+
+huffman.o: src/grib/bzip2/huffman.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT huffman.o -MD -MP -MF $(DEPDIR)/huffman.Tpo -c -o huffman.o `test -f 'src/grib/bzip2/huffman.c' || echo '$(srcdir)/'`src/grib/bzip2/huffman.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/huffman.Tpo $(DEPDIR)/huffman.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/huffman.c' object='huffman.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o huffman.o `test -f 'src/grib/bzip2/huffman.c' || echo '$(srcdir)/'`src/grib/bzip2/huffman.c
+
+huffman.obj: src/grib/bzip2/huffman.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT huffman.obj -MD -MP -MF $(DEPDIR)/huffman.Tpo -c -o huffman.obj `if test -f 'src/grib/bzip2/huffman.c'; then $(CYGPATH_W) 'src/grib/bzip2/huffman.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/huffman.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/huffman.Tpo $(DEPDIR)/huffman.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/huffman.c' object='huffman.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o huffman.obj `if test -f 'src/grib/bzip2/huffman.c'; then $(CYGPATH_W) 'src/grib/bzip2/huffman.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/huffman.c'; fi`
+
+randtable.o: src/grib/bzip2/randtable.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT randtable.o -MD -MP -MF $(DEPDIR)/randtable.Tpo -c -o randtable.o `test -f 'src/grib/bzip2/randtable.c' || echo '$(srcdir)/'`src/grib/bzip2/randtable.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/randtable.Tpo $(DEPDIR)/randtable.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/randtable.c' object='randtable.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o randtable.o `test -f 'src/grib/bzip2/randtable.c' || echo '$(srcdir)/'`src/grib/bzip2/randtable.c
+
+randtable.obj: src/grib/bzip2/randtable.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT randtable.obj -MD -MP -MF $(DEPDIR)/randtable.Tpo -c -o randtable.obj `if test -f 'src/grib/bzip2/randtable.c'; then $(CYGPATH_W) 'src/grib/bzip2/randtable.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/randtable.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/randtable.Tpo $(DEPDIR)/randtable.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/grib/bzip2/randtable.c' object='randtable.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o randtable.obj `if test -f 'src/grib/bzip2/randtable.c'; then $(CYGPATH_W) 'src/grib/bzip2/randtable.c'; else $(CYGPATH_W) '$(srcdir)/src/grib/bzip2/randtable.c'; fi`
 
 tri.o: src/tri.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tri.o -MD -MP -MF $(DEPDIR)/tri.Tpo -c -o tri.o `test -f 'src/tri.c' || echo '$(srcdir)/'`src/tri.c
@@ -1227,6 +1359,34 @@ hdm.obj: src/nmea0183/hdm.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o hdm.obj `if test -f 'src/nmea0183/hdm.cpp'; then $(CYGPATH_W) 'src/nmea0183/hdm.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/hdm.cpp'; fi`
 
+gll.o: src/nmea0183/gll.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gll.o -MD -MP -MF $(DEPDIR)/gll.Tpo -c -o gll.o `test -f 'src/nmea0183/gll.cpp' || echo '$(srcdir)/'`src/nmea0183/gll.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gll.Tpo $(DEPDIR)/gll.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/gll.cpp' object='gll.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gll.o `test -f 'src/nmea0183/gll.cpp' || echo '$(srcdir)/'`src/nmea0183/gll.cpp
+
+gll.obj: src/nmea0183/gll.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gll.obj -MD -MP -MF $(DEPDIR)/gll.Tpo -c -o gll.obj `if test -f 'src/nmea0183/gll.cpp'; then $(CYGPATH_W) 'src/nmea0183/gll.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/gll.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gll.Tpo $(DEPDIR)/gll.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/gll.cpp' object='gll.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gll.obj `if test -f 'src/nmea0183/gll.cpp'; then $(CYGPATH_W) 'src/nmea0183/gll.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/gll.cpp'; fi`
+
+vtg.o: src/nmea0183/vtg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vtg.o -MD -MP -MF $(DEPDIR)/vtg.Tpo -c -o vtg.o `test -f 'src/nmea0183/vtg.cpp' || echo '$(srcdir)/'`src/nmea0183/vtg.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/vtg.Tpo $(DEPDIR)/vtg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/vtg.cpp' object='vtg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vtg.o `test -f 'src/nmea0183/vtg.cpp' || echo '$(srcdir)/'`src/nmea0183/vtg.cpp
+
+vtg.obj: src/nmea0183/vtg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vtg.obj -MD -MP -MF $(DEPDIR)/vtg.Tpo -c -o vtg.obj `if test -f 'src/nmea0183/vtg.cpp'; then $(CYGPATH_W) 'src/nmea0183/vtg.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/vtg.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/vtg.Tpo $(DEPDIR)/vtg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/nmea0183/vtg.cpp' object='vtg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vtg.obj `if test -f 'src/nmea0183/vtg.cpp'; then $(CYGPATH_W) 'src/nmea0183/vtg.cpp'; else $(CYGPATH_W) '$(srcdir)/src/nmea0183/vtg.cpp'; fi`
+
 scrollingdialog.o: src/scrollingdialog.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT scrollingdialog.o -MD -MP -MF $(DEPDIR)/scrollingdialog.Tpo -c -o scrollingdialog.o `test -f 'src/scrollingdialog.cpp' || echo '$(srcdir)/'`src/scrollingdialog.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/scrollingdialog.Tpo $(DEPDIR)/scrollingdialog.Po
@@ -1240,6 +1400,76 @@ scrollingdialog.obj: src/scrollingdialog.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/scrollingdialog.cpp' object='scrollingdialog.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o scrollingdialog.obj `if test -f 'src/scrollingdialog.cpp'; then $(CYGPATH_W) 'src/scrollingdialog.cpp'; else $(CYGPATH_W) '$(srcdir)/src/scrollingdialog.cpp'; fi`
+
+grib.o: src/grib.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT grib.o -MD -MP -MF $(DEPDIR)/grib.Tpo -c -o grib.o `test -f 'src/grib.cpp' || echo '$(srcdir)/'`src/grib.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/grib.Tpo $(DEPDIR)/grib.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib.cpp' object='grib.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o grib.o `test -f 'src/grib.cpp' || echo '$(srcdir)/'`src/grib.cpp
+
+grib.obj: src/grib.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT grib.obj -MD -MP -MF $(DEPDIR)/grib.Tpo -c -o grib.obj `if test -f 'src/grib.cpp'; then $(CYGPATH_W) 'src/grib.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/grib.Tpo $(DEPDIR)/grib.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib.cpp' object='grib.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o grib.obj `if test -f 'src/grib.cpp'; then $(CYGPATH_W) 'src/grib.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib.cpp'; fi`
+
+GribReader.o: src/grib/GribReader.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GribReader.o -MD -MP -MF $(DEPDIR)/GribReader.Tpo -c -o GribReader.o `test -f 'src/grib/GribReader.cpp' || echo '$(srcdir)/'`src/grib/GribReader.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/GribReader.Tpo $(DEPDIR)/GribReader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib/GribReader.cpp' object='GribReader.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GribReader.o `test -f 'src/grib/GribReader.cpp' || echo '$(srcdir)/'`src/grib/GribReader.cpp
+
+GribReader.obj: src/grib/GribReader.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GribReader.obj -MD -MP -MF $(DEPDIR)/GribReader.Tpo -c -o GribReader.obj `if test -f 'src/grib/GribReader.cpp'; then $(CYGPATH_W) 'src/grib/GribReader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib/GribReader.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/GribReader.Tpo $(DEPDIR)/GribReader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib/GribReader.cpp' object='GribReader.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GribReader.obj `if test -f 'src/grib/GribReader.cpp'; then $(CYGPATH_W) 'src/grib/GribReader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib/GribReader.cpp'; fi`
+
+GribRecord.o: src/grib/GribRecord.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GribRecord.o -MD -MP -MF $(DEPDIR)/GribRecord.Tpo -c -o GribRecord.o `test -f 'src/grib/GribRecord.cpp' || echo '$(srcdir)/'`src/grib/GribRecord.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/GribRecord.Tpo $(DEPDIR)/GribRecord.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib/GribRecord.cpp' object='GribRecord.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GribRecord.o `test -f 'src/grib/GribRecord.cpp' || echo '$(srcdir)/'`src/grib/GribRecord.cpp
+
+GribRecord.obj: src/grib/GribRecord.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GribRecord.obj -MD -MP -MF $(DEPDIR)/GribRecord.Tpo -c -o GribRecord.obj `if test -f 'src/grib/GribRecord.cpp'; then $(CYGPATH_W) 'src/grib/GribRecord.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib/GribRecord.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/GribRecord.Tpo $(DEPDIR)/GribRecord.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib/GribRecord.cpp' object='GribRecord.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GribRecord.obj `if test -f 'src/grib/GribRecord.cpp'; then $(CYGPATH_W) 'src/grib/GribRecord.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib/GribRecord.cpp'; fi`
+
+zuFile.o: src/grib/zuFile.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zuFile.o -MD -MP -MF $(DEPDIR)/zuFile.Tpo -c -o zuFile.o `test -f 'src/grib/zuFile.cpp' || echo '$(srcdir)/'`src/grib/zuFile.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/zuFile.Tpo $(DEPDIR)/zuFile.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib/zuFile.cpp' object='zuFile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zuFile.o `test -f 'src/grib/zuFile.cpp' || echo '$(srcdir)/'`src/grib/zuFile.cpp
+
+zuFile.obj: src/grib/zuFile.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zuFile.obj -MD -MP -MF $(DEPDIR)/zuFile.Tpo -c -o zuFile.obj `if test -f 'src/grib/zuFile.cpp'; then $(CYGPATH_W) 'src/grib/zuFile.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib/zuFile.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/zuFile.Tpo $(DEPDIR)/zuFile.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib/zuFile.cpp' object='zuFile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zuFile.obj `if test -f 'src/grib/zuFile.cpp'; then $(CYGPATH_W) 'src/grib/zuFile.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib/zuFile.cpp'; fi`
+
+IsoLine.o: src/grib/IsoLine.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT IsoLine.o -MD -MP -MF $(DEPDIR)/IsoLine.Tpo -c -o IsoLine.o `test -f 'src/grib/IsoLine.cpp' || echo '$(srcdir)/'`src/grib/IsoLine.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/IsoLine.Tpo $(DEPDIR)/IsoLine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib/IsoLine.cpp' object='IsoLine.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o IsoLine.o `test -f 'src/grib/IsoLine.cpp' || echo '$(srcdir)/'`src/grib/IsoLine.cpp
+
+IsoLine.obj: src/grib/IsoLine.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT IsoLine.obj -MD -MP -MF $(DEPDIR)/IsoLine.Tpo -c -o IsoLine.obj `if test -f 'src/grib/IsoLine.cpp'; then $(CYGPATH_W) 'src/grib/IsoLine.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib/IsoLine.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/IsoLine.Tpo $(DEPDIR)/IsoLine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/grib/IsoLine.cpp' object='IsoLine.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o IsoLine.obj `if test -f 'src/grib/IsoLine.cpp'; then $(CYGPATH_W) 'src/grib/IsoLine.cpp'; else $(CYGPATH_W) '$(srcdir)/src/grib/IsoLine.cpp'; fi`
 
 s52cnsy.o: src/s52cnsy.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT s52cnsy.o -MD -MP -MF $(DEPDIR)/s52cnsy.Tpo -c -o s52cnsy.o `test -f 'src/s52cnsy.cpp' || echo '$(srcdir)/'`src/s52cnsy.cpp

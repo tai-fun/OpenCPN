@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.14 2009/09/29 18:29:49 bdbcat Exp $
+ * $Id: cm93.h,v 1.15 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.15  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.14  2009/09/29 18:29:49  bdbcat
  * Implement GetPixPoint
  *
@@ -100,9 +103,7 @@ WX_DECLARE_OBJARRAY(M_COVR_Desc, Array_Of_M_COVR_Desc);
       //    This value corresponds to the semi-major axis for the "International 1924" geo-standard
       //    For WGS84, it should be 6378137.0......
 
-static const double CM93_semimajor_axis_meters        = 6378388.0; //6375586.0; //6378388.0;           // CM93 semimajor axis
-//static const double WGS84_semimajor_axis_meters       = 6378137.0;           // WGS84 semimajor axis
-//static const double mercator_k0                       = 0.9996;
+static const double CM93_semimajor_axis_meters        = 6378388.0;            // CM93 semimajor axis
 
 //    CM93 Data structures
 

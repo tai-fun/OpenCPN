@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: statwin.h,v 1.9 2008/12/09 03:33:06 bdbcat Exp $
+ * $Id: statwin.h,v 1.10 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Status Window
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: statwin.h,v $
+ * Revision 1.10  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.9  2008/12/09 03:33:06  bdbcat
  * Add cm93 support
  *
@@ -36,6 +39,9 @@
  * *** empty log message ***
  *
  * $Log: statwin.h,v $
+ * Revision 1.10  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.9  2008/12/09 03:33:06  bdbcat
  * Add cm93 support
  *
@@ -122,15 +128,15 @@ private:
       int         m_nRegions;
       int         m_index_last;
 
-      wxBrush     *m_pbackBrush;
-      wxBrush     *m_ptBrush;
-      wxBrush     *m_pvBrush;
-      wxBrush     *m_psvBrush;
-      wxBrush     *m_puvBrush;
-      wxBrush     *m_pslBrush;
+      wxBrush     m_backBrush;
+      wxBrush     m_tBrush;
+      wxBrush     m_vBrush;
+      wxBrush     m_svBrush;
+      wxBrush     m_uvBrush;
+      wxBrush     m_slBrush;
 
-      wxBrush     *m_pcBrush;
-      wxBrush     *m_pscBrush;
+      wxBrush     m_cBrush;
+      wxBrush     m_scBrush;
 
       MyFrame     *gparent;
 
@@ -159,13 +165,13 @@ class WiFiStatWin: public wxWindow
         void SetColorScheme(ColorScheme cs);
 
 
-        wxBrush     *pqual_hiBrush;
-        wxBrush     *psecureBrush;
+        wxBrush     qual_hiBrush;
+        wxBrush     secureBrush;
 
-        wxBrush     *pqual_hiNewBrush;
-        wxBrush     *psecureNewBrush;
+        wxBrush     qual_hiNewBrush;
+        wxBrush     secureNewBrush;
 
-        wxBrush     *pbackBrush;
+        wxBrush     backBrush;
 
         int         m_nstations;
         int         m_quality[NSIGBARS];
@@ -205,7 +211,7 @@ public:
 #endif
 
 private:
-      wxBrush     *m_pbackBrush;
+      wxBrush     m_backBrush;
       int         m_rows;
 
 

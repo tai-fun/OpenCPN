@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.27 2009/09/30 02:28:52 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.28 2009/11/18 01:24:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.28  2009/11/18 01:24:15  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.27  2009/09/30 02:28:52  bdbcat
  * Cleanup
  *
@@ -142,7 +145,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.27 2009/09/30 02:28:52 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.28 2009/11/18 01:24:15 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -157,6 +160,7 @@ ChartDB::ChartDB(MyFrame *parent)
       pChartCache = new wxArrayPtrVoid;
 
       bValid = false;                           // until loaded or created
+      nEntry = 0;
 }
 
 
@@ -682,6 +686,9 @@ int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& file
       msg += _T(" for ");
       msg += filespec_base;
       wxLogMessage(msg);
+
+      if(!wxDir::Exists(dir_name_base))
+            return 0;
 
       wxString dir_name = dir_name_base;
       wxString filespec = filespec_base;
@@ -1972,24 +1979,18 @@ void ChartDB::ApplyColorSchemeToCachedCharts(ColorScheme cs)
 //      b) Requested Chart Type
 //-------------------------------------------------------------------
 
-ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, bool bSearchDir, ChartTypeEnum New_Type, ChartFamilyEnum New_Family_Fallback)
+ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, int index_start, bool bSearchDir, ChartTypeEnum New_Type, ChartFamilyEnum New_Family_Fallback)
 {
       int index;
+
       int delta_index;
-      int index_start;
       ChartBase *ptc = NULL;
 
-      if(bSearchDir)
-      {
-            index_start = ps->nEntry - 1;
+      if(bSearchDir == 1)
             delta_index = -1;
-      }
-      else
-      {
-            index_start = 0;
-            delta_index = 1;
-      }
 
+      else
+            delta_index = 1;
 
 
 
@@ -1998,7 +1999,7 @@ ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, bool bSearchDir, C
       while((index >= 0) && (index < ps->nEntry))
       {
             ChartTypeEnum chart_type = (ChartTypeEnum)GetCSChartType(ps, index);
-            if(chart_type == New_Type)
+            if((chart_type == New_Type) || (New_Type == CHART_TYPE_DONTCARE))
             {
                   ptc = OpenChartFromStack(ps, index);
                   if (NULL != ptc)
@@ -2028,7 +2029,7 @@ ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, bool bSearchDir, C
       }
 
 
-      ps->CurrentStackEntry = index;
+//      ps->CurrentStackEntry = index;
       return ptc;
 }
 
@@ -2052,7 +2053,6 @@ int CCW(MyFlPoint p0, MyFlPoint p1, MyFlPoint p2) ;
 
  * at the point is extended infinitely rightwards and the number of
  * polygon edges that intersect the ray are counted. If the number is odd,
-
  * the point is inside the polygon.
  *
  * RETURN VALUE
@@ -2089,8 +2089,21 @@ bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y)
    if (Intersect(pt0, pt2, *ppt, *rgpts))
       wnumintsct++ ;
 
-   return (bool)(wnumintsct&1) ;
+//   return(wnumintsct&1);
 
+   //       If result is false, check the degenerate case where test point lies on a polygon endpoint
+   if(!(wnumintsct&1))
+   {
+         for (i = 0, ppt = rgpts ; i < wnumpts ; i++, ppt++)
+         {
+               if(((*ppt).x == x) && ((*ppt).y == y))
+                     return true;
+         }
+   }
+   else
+       return true;
+
+   return false;
 }
 
 
@@ -2108,11 +2121,6 @@ bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y)
 
 
 inline bool Intersect(MyFlPoint p1, MyFlPoint p2, MyFlPoint p3, MyFlPoint p4) {
-      int i;
-      i = CCW(p1, p2, p3);
-      i = CCW(p1, p2, p4);
-      i = CCW(p3, p4, p1);
-      i = CCW(p3, p4, p2);
    return ((( CCW(p1, p2, p3) * CCW(p1, p2, p4)) <= 0)
         && (( CCW(p3, p4, p1) * CCW(p3, p4, p2)  <= 0) )) ;
 

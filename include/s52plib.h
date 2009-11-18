@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.h,v 1.18 2009/07/29 00:54:09 bdbcat Exp $
+ * $Id: s52plib.h,v 1.19 2009/11/18 01:26:42 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.h,v $
+ * Revision 1.19  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.18  2009/07/29 00:54:09  bdbcat
  * Update for gcc 4.2.4
  *
@@ -63,6 +66,9 @@
  * *** empty log message ***
  *
  * $Log: s52plib.h,v $
+ * Revision 1.19  2009/11/18 01:26:42  bdbcat
+ * 1.3.5 Beta 1117
+ *
  * Revision 1.18  2009/07/29 00:54:09  bdbcat
  * Update for gcc 4.2.4
  *
@@ -173,6 +179,8 @@ public:
 
       void SetPLIBColorScheme(wxString scheme);
       bool ObjectRenderCheck(ObjRazRules *rzRules, ViewPort *vp);
+
+      void DestroyLUP(LUPrec *pLUP);
 
 //    Temporarily save/restore the current colortable index
 //    Useful for Thumbnail rendering
@@ -289,7 +297,6 @@ public:
       void DestroyRuleNode(Rule *pR);
 
       void DestroyLUPArray(wxArrayOfLUPrec *pLUPArray);
-      void DestroyLUP(LUPrec *pLUP);
 
       bool TextRenderCheck(ObjRazRules *rzRules);
       bool inter_tri_rect(wxPoint *ptp, render_canvas_parms *pb_spec);
