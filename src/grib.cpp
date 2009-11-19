@@ -1,0 +1,1065 @@
+/******************************************************************************
+ *
+ *
+ * Project:  OpenCPN
+ * Purpose:  GRIB Manager Object
+ * Author:   David Register
+ *
+ ***************************************************************************
+ *   Copyright (C) $YEAR$ by $AUTHOR$   *
+ *   $EMAIL$   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************
+ *
+ */
+#include "wx/wx.h"
+#include "wx/tokenzr.h"
+#include "wx/datetime.h"
+#include "wx/sound.h"
+#include <wx/wfstream.h>
+#include <wx/dir.h>
+#include <wx/filename.h>
+
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+
+#include "dychart.h"
+#include "grib.h"
+#include "georef.h"
+
+
+CPL_CVSID ( "$Id: grib.cpp,v 1.1 2009/11/19 00:26:27 bdbcat Exp $" );
+
+extern FontMgr          *pFontMgr;
+extern ColorScheme      global_color_scheme;
+
+extern GRIBUIDialog     *g_pGribDialog;
+extern int              g_grib_dialog_x, g_grib_dialog_y;
+extern int              g_grib_dialog_sx, g_grib_dialog_sy;
+extern wxString         g_grib_dir;
+
+extern ChartCanvas     *cc1;
+
+#include "bitmaps/folder.xpm"
+
+
+#include <wx/arrimpl.cpp>
+WX_DEFINE_OBJARRAY ( ArrayOfGribRecordSets );
+WX_DEFINE_OBJARRAY ( ArrayOfGribRecordPtrs );
+
+static GRIBOverlayFactory   *s_pGRIBOverlayFactory;
+
+static bool GRIBOverlayFactory_RenderGribOverlay_Static_Wrapper ( wxMemoryDC *pmdc, ViewPort *vp )
+{
+      return s_pGRIBOverlayFactory->RenderGribOverlay ( pmdc, vp );
+
+}
+
+//    Sort compare function for File Modification Time
+static int CompareFileStringTime ( const wxString& first, const wxString& second )
+{
+      wxFileName f ( first );
+      wxFileName s ( second );
+      wxTimeSpan sp = f.GetModificationTime() - s.GetModificationTime();
+      return sp.IsPositive();
+
+//      return ::wxFileModificationTime(first) - ::wxFileModificationTime(second);
+}
+
+
+
+
+//---------------------------------------------------------------------------------------
+//          GRIB Selector/Control Dialog Implementation
+//---------------------------------------------------------------------------------------
+IMPLEMENT_CLASS ( GRIBUIDialog, wxDialog )
+
+BEGIN_EVENT_TABLE ( GRIBUIDialog, wxDialog )
+
+      EVT_CLOSE ( GRIBUIDialog::OnClose )
+      EVT_BUTTON ( ID_OK, GRIBUIDialog::OnIdOKClick )
+      EVT_MOVE ( GRIBUIDialog::OnMove )
+      EVT_SIZE ( GRIBUIDialog::OnSize )
+      EVT_BUTTON ( ID_CHOOSEGRIBDIR, GRIBUIDialog::OnChooseDirClick )
+
+END_EVENT_TABLE()
+
+
+GRIBUIDialog::GRIBUIDialog( )
+{
+      Init();
+}
+
+GRIBUIDialog::~GRIBUIDialog( )
+{
+      delete s_pGRIBOverlayFactory;
+}
+
+
+void GRIBUIDialog::Init( )
+{
+      s_pGRIBOverlayFactory = new GRIBOverlayFactory;
+      m_sequence_active = -1;
+      m_pCurrentGribRecordSet = NULL;
+      m_pRecordTree = NULL;
+}
+
+
+bool GRIBUIDialog::Create ( wxWindow *parent, wxWindowID id, const wxString& caption, const wxString initial_grib_dir,
+                            const wxPoint& pos, const wxSize& size, long style )
+{
+      m_currentGribDir = initial_grib_dir;
+
+      //    As a display optimization....
+      //    if current color scheme is other than DAY,
+      //    Then create the dialog ..WITHOUT.. borders and title bar.
+      //    This way, any window decorations set by external themes, etc
+      //    will not detract from night-vision
+
+      long wstyle = wxDEFAULT_FRAME_STYLE;
+      if ( ( global_color_scheme != GLOBAL_COLOR_SCHEME_DAY ) && ( global_color_scheme != GLOBAL_COLOR_SCHEME_RGB ) )
+            wstyle |= ( wxNO_BORDER );
+
+      wxSize size_min = size;
+      size_min.IncTo ( wxSize ( 500,600 ) );
+      if ( !wxDialog::Create ( parent, id, caption, pos, size_min, wstyle ) )
+            return false;
+
+
+      wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
+      SetBackgroundColour ( back_color );
+
+      m_dFont = pFontMgr->GetFont ( _T ( "GRIBUIDialog" ), 10 );
+      SetFont ( *m_dFont );
+
+      SetForegroundColour ( pFontMgr->GetFontColor ( _T ( "GRIBUIDialog" ) ) );
+
+      m_pfolder_bitmap = new wxBitmap ( folder );   // comes from XPM include
+
+      CreateControls();
+
+ //     if ( CanSetTransparent() )
+ //           SetTransparent ( 192 );
+
+// This fits the dialog to the minimum size dictated by the sizers
+      GetSizer()->Fit ( this );
+
+// This ensures that the dialog cannot be sized smaller than the minimum size
+      GetSizer()->SetSizeHints ( this );
+
+      return true;
+}
+
+
+
+
+void GRIBUIDialog::CreateControls()
+{
+      int border_size = 4;
+//      int check_spacing = 4;
+      int group_item_spacing = 1;           // use for items within one group, with Add(...wxALL)
+
+
+// A top-level sizer
+      wxBoxSizer* topSizer = new wxBoxSizer ( wxVERTICAL );
+      SetSizer ( topSizer );
+
+// A second box sizer to give more space around the controls
+      wxBoxSizer* boxSizer = new wxBoxSizer ( wxVERTICAL );
+      topSizer->Add ( boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 2 );
+
+//    The GRIB directory
+      wxStaticBox* itemStaticBoxSizer11Static = new wxStaticBox ( this, wxID_ANY,_ ( "GRIB File Directory" ) );
+      wxStaticBoxSizer *itemStaticBoxSizer11 = new wxStaticBoxSizer ( itemStaticBoxSizer11Static, wxHORIZONTAL );
+      boxSizer->Add ( itemStaticBoxSizer11, 0, wxEXPAND );
+
+      m_pitemCurrentGribDirectoryCtrl = new wxTextCtrl ( this, wxID_ANY );
+      itemStaticBoxSizer11->Add ( m_pitemCurrentGribDirectoryCtrl, 1, wxALIGN_LEFT|wxALL, 5 );
+
+      m_pitemCurrentGribDirectoryCtrl->SetValue ( m_currentGribDir );
+
+      wxButton* bChooseDir = new wxBitmapButton ( this, ID_CHOOSEGRIBDIR, *m_pfolder_bitmap );
+      itemStaticBoxSizer11->Add ( bChooseDir, 0, wxALIGN_RIGHT|wxALL, 5 );
+
+
+
+
+//  The Tree control
+      m_pRecordTree = new GribRecordTree ( this, ID_GRIBRECORDREECTRL, wxDefaultPosition, wxSize ( -1, 300 ), wxTR_HAS_BUTTONS );
+      boxSizer->Add ( m_pRecordTree, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 2 );
+
+
+      m_RecordTree_root_id = m_pRecordTree->AddRoot ( _T ( "GRIBs" ) );
+      PopulateTreeControl();
+      m_pRecordTree->Expand ( m_RecordTree_root_id );
+
+//      Data Box
+      wxStaticBox* itemStaticBoxData = new wxStaticBox(this, wxID_ANY, _T("GRIB Data"));
+      wxStaticBoxSizer* itemStaticBoxSizerData= new wxStaticBoxSizer(itemStaticBoxData, wxVERTICAL);
+      boxSizer->Add(itemStaticBoxSizerData, 0, wxALL|wxEXPAND, border_size);
+
+      wxFlexGridSizer *pDataGrid = new wxFlexGridSizer(2);
+      pDataGrid->AddGrowableCol(1);
+      itemStaticBoxSizerData->Add(pDataGrid, 0, wxALL|wxEXPAND, border_size);
+
+
+      wxStaticText *ps1 = new wxStaticText(this, wxID_ANY, _T("Wind Speed, Kts."));
+      pDataGrid->Add(ps1, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
+
+      m_pWindSpeedTextCtrl = new wxTextCtrl(this, -1);
+      pDataGrid->Add(m_pWindSpeedTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
+
+      wxStaticText *ps2 = new wxStaticText(this, wxID_ANY, _T("Wind Direction"));
+      pDataGrid->Add(ps2, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
+
+      m_pWindDirTextCtrl = new wxTextCtrl(this, -1);
+      pDataGrid->Add(m_pWindDirTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
+
+      wxStaticText *ps3 = new wxStaticText(this, wxID_ANY, _T("Pressure, mBar"));
+      pDataGrid->Add(ps3, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
+
+      m_pPressureTextCtrl = new wxTextCtrl(this, -1);
+      pDataGrid->Add(m_pPressureTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
+
+
+
+// A horizontal box sizer to contain OK
+      wxBoxSizer* AckBox = new wxBoxSizer ( wxHORIZONTAL );
+      boxSizer->Add ( AckBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+//    Button color
+      wxColour button_color = GetGlobalColor ( _T ( "UIBCK" ) );;
+
+// The OK button
+      wxButton* bOK = new wxButton ( this, ID_OK, wxT ( "&OK" ),
+                                     wxDefaultPosition, wxDefaultSize, 0 );
+      AckBox->Add ( bOK, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+      bOK->SetBackgroundColour ( button_color );
+
+}
+
+
+void GRIBUIDialog::SetCursorLatLon(double lat, double lon)
+{
+      m_cursor_lon = lon;
+      m_cursor_lat = lat;
+
+      UpdateTrackingControls();
+}
+
+void GRIBUIDialog::UpdateTrackingControls(void)
+{
+      m_pWindSpeedTextCtrl->Clear();
+      m_pWindDirTextCtrl->Clear();
+      m_pPressureTextCtrl->Clear();
+
+      if(m_pCurrentGribRecordSet)
+      {
+            //    Update the wind control
+            if((m_RS_Idx_WIND_VX != -1) && (m_RS_Idx_WIND_VY != -1))
+            {
+                  double vx = m_pCurrentGribRecordSet->m_GribRecordPtrArray.Item ( m_RS_Idx_WIND_VX )->getInterpolatedValue(m_cursor_lon, m_cursor_lat, true);
+                  double vy = m_pCurrentGribRecordSet->m_GribRecordPtrArray.Item ( m_RS_Idx_WIND_VY )->getInterpolatedValue(m_cursor_lon, m_cursor_lat, true);
+
+                  if((vx != GRIB_NOTDEF) && (vy != GRIB_NOTDEF))
+                  {
+                        double  vkn = sqrt(vx*vx+vy*vy)*3.6/1.852;
+                        double ang = 90. + (atan2(vy, -vx)  * 180. / PI);
+                        if(ang > 360.) ang -= 360.;
+                        if(ang < 0.) ang += 360.;
+
+                        wxString t;
+                        t.Printf(_T("%2d"), (int)vkn);
+                        m_pWindSpeedTextCtrl->AppendText(t);
+
+                        t.Printf(_T("%03d"), (int)(ang));
+                        m_pWindDirTextCtrl->AppendText(t);
+
+                  }
+            }
+
+            //    Update the Pressure control
+            if(m_RS_Idx_PRESS != -1)
+            {
+                  double press = m_pCurrentGribRecordSet->m_GribRecordPtrArray.Item ( m_RS_Idx_PRESS )->getInterpolatedValue(m_cursor_lon, m_cursor_lat, true);
+                  if(press != GRIB_NOTDEF)
+                  {
+                        wxString t;
+                        t.Printf(_T("%2d"), (int)(press / 100.));
+                        m_pPressureTextCtrl->AppendText(t);
+                  }
+            }
+
+      }
+}
+
+
+void GRIBUIDialog::OnClose ( wxCloseEvent& event )
+{
+      g_grib_dir = m_currentGribDir;
+
+      //    Unregister any existing GRIB overlays
+      while ( m_sequence_active != -1 )
+      {
+            cc1->UnRegisterOverlayProvider ( m_sequence_active, ( RenderOverlayCallBackFunction ) ( GRIBOverlayFactory_RenderGribOverlay_Static_Wrapper ) );
+            m_sequence_active--;
+      }
+
+      cc1->Refresh();
+
+      delete m_pRecordTree;
+
+      delete m_pfolder_bitmap;
+      delete m_pitemCurrentGribDirectoryCtrl;
+
+      Destroy();
+      g_pGribDialog = NULL;
+}
+
+
+void GRIBUIDialog::OnIdOKClick ( wxCommandEvent& event )
+{
+      Close();
+}
+
+
+void GRIBUIDialog::OnMove ( wxMoveEvent& event )
+{
+      //    Record the dialog position
+      wxPoint p = event.GetPosition();
+      g_grib_dialog_x = p.x;
+      g_grib_dialog_y = p.y;
+
+      event.Skip();
+}
+
+void GRIBUIDialog::OnSize ( wxSizeEvent& event )
+{
+      //    Record the dialog size
+      wxSize p = event.GetSize();
+      g_grib_dialog_sx = p.x;
+      g_grib_dialog_sy = p.y;
+
+      event.Skip();
+}
+
+
+
+void GRIBUIDialog::OnChooseDirClick ( wxCommandEvent& event )
+{
+      wxString new_dir  = ::wxDirSelector ( _T ( "Select GRIB Directory" ), m_currentGribDir );
+      if ( !new_dir.empty() )
+      {
+            m_currentGribDir = new_dir;
+            m_pitemCurrentGribDirectoryCtrl->SetValue ( m_currentGribDir );
+
+            if(m_pRecordTree)
+            {
+                  m_pRecordTree->DeleteAllItems();
+                  delete m_pRecordTree->m_file_id_array;
+
+                  m_RecordTree_root_id = m_pRecordTree->AddRoot ( _T ( "GRIBs" ) );
+                  PopulateTreeControl();
+                  m_pRecordTree->Expand ( m_RecordTree_root_id );
+            }
+            Refresh();
+
+            g_grib_dir = m_currentGribDir;
+      }
+}
+
+void GRIBUIDialog::PopulateTreeControl()
+{
+
+      //    Get an array of GRIB file names in the target directory, not descending into subdirs
+      wxArrayString file_array;
+
+      m_n_files = wxDir::GetAllFiles ( m_currentGribDir, &file_array, _T ( "*.grb" ), wxDIR_FILES );
+      m_n_files += wxDir::GetAllFiles ( m_currentGribDir, &file_array, _T ( "*.grb.bz2" ), wxDIR_FILES );
+
+      //    Sort the files by File Modification Date
+      file_array.Sort ( CompareFileStringTime );
+
+      //    Add the files to the tree at the root
+      m_pRecordTree->m_file_id_array = new wxTreeItemId[m_n_files];
+
+      for ( int i=0 ; i < m_n_files ; i++ )
+      {
+            GribTreeItemData *pmtid = new GribTreeItemData ( GRIB_FILE_TYPE );
+            pmtid->m_file_name = file_array[i];
+            pmtid->m_file_index = i;
+
+            wxFileName fn ( file_array[i] );
+            m_pRecordTree->m_file_id_array[i] = m_pRecordTree->AppendItem ( m_RecordTree_root_id,
+                                 fn.GetFullName(), -1, -1, pmtid );
+      }
+
+      //    Will this be too slow?
+      for ( int i=0 ; i < m_n_files ; i++ )
+      {
+            GribTreeItemData *pdata =  (GribTreeItemData *)m_pRecordTree->GetItemData(m_pRecordTree->m_file_id_array[i]);
+
+            //    Create and ingest the GRIB file object if needed
+            if ( NULL == pdata->m_pGribFile )
+            {
+                  GRIBFile *pgribfile = new GRIBFile ( pdata->m_file_name );
+                  if ( pgribfile )
+                  {
+                        if ( pgribfile->IsOK() )
+                        {
+                              pdata->m_pGribFile = pgribfile;
+                              PopulateTreeControlGRS ( pgribfile, pdata->m_file_index );
+
+                        }
+                  }
+            }
+      }
+
+}
+
+void GRIBUIDialog::PopulateTreeControlGRS ( GRIBFile *pgribfile, int file_index )
+{
+      //    Get the array of GribRecordSets, and add one-by-one to the tree,
+      //    each under the proper file item.
+      ArrayOfGribRecordSets *rsa = pgribfile->GetRecordSetArrayPtr();
+
+      if(rsa->GetCount() == 0)
+            m_pRecordTree->SetItemTextColour(m_pRecordTree->m_file_id_array[file_index], GetGlobalColor ( _T ( "DILG1")));
+
+      for ( unsigned int i=0 ; i < rsa->GetCount() ; i++ )
+      {
+            GribTreeItemData *pmtid = new GribTreeItemData ( GRIB_RECORD_SET_TYPE );
+            pmtid->m_pGribRecordSet = &rsa->Item ( i );
+
+            wxDateTime t ( rsa->Item ( i ).m_Reference_Time );
+            t.MakeFromTimezone ( wxDateTime::UTC );
+            if ( t.IsDST() )
+                  t.Subtract ( wxTimeSpan ( 1,0,0,0 ) );
+//            wxString time_string = t.Format ( "%a %d-%b-%Y %H:%M:%S %Z", wxDateTime::UTC );
+
+            // This is a hack because Windows is broke....
+            wxString time_string = t.Format ( _T("%a %d-%b-%Y %H:%M:%S "), wxDateTime::UTC );
+            time_string.Append(_T("GMT"));
+
+            m_pRecordTree->AppendItem ( m_pRecordTree->m_file_id_array[file_index],time_string, -1, -1, pmtid );
+      }
+
+}
+
+void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
+{
+      m_pCurrentGribRecordSet = pGribRecordSet;
+
+      //    Clear all the flags
+      m_RS_Idx_WIND_VX = -1;
+      m_RS_Idx_WIND_VY = -1;
+      m_RS_Idx_PRESS   = -1;
+
+      if(pGribRecordSet)
+      {
+            //    Inventory this record set
+            //          Walk thru the GribRecordSet, flagging existence of various record types
+            for ( unsigned int i=0 ; i < m_pCurrentGribRecordSet->m_GribRecordPtrArray.GetCount() ; i++ )
+            {
+                  GribRecord *pGR = m_pCurrentGribRecordSet->m_GribRecordPtrArray.Item ( i );
+
+                  // Wind
+                  //    Actually need two records to draw the wind arrows
+
+                  if ( (pGR->getDataType()==GRB_WIND_VX )
+                        && (pGR->getLevelType()==LV_ABOV_GND)
+                        && (pGR->getLevelValue()==10))
+                  {
+                        m_RS_Idx_WIND_VX = i;
+                  }
+
+
+                  else if ( (pGR->getDataType()==GRB_WIND_VY)
+                        && (pGR->getLevelType()==LV_ABOV_GND)
+                        && (pGR->getLevelValue()==10) )
+                  {
+                        m_RS_Idx_WIND_VY = i;
+                  }
+
+                  //Pressure
+                  if ( (pGR->getDataType()==GRB_PRESSURE )
+                        && (pGR->getLevelType()==LV_MSL)
+                        && (pGR->getLevelValue()==0))
+                  {
+                        m_RS_Idx_PRESS = i;
+                  }
+
+            }
+      }
+      //    Unregister any existing GRIB overlays
+      while ( m_sequence_active != -1 )
+      {
+            cc1->UnRegisterOverlayProvider ( m_sequence_active, ( RenderOverlayCallBackFunction ) ( GRIBOverlayFactory_RenderGribOverlay_Static_Wrapper ) );
+            m_sequence_active--;
+      }
+
+      if(pGribRecordSet)
+      {
+      //    Give the overlay factory the GribRecordSet
+            s_pGRIBOverlayFactory->SetGribRecordSet ( pGribRecordSet );
+
+            m_sequence_active++;
+            cc1->RegisterOverlayProvider ( m_sequence_active, ( RenderOverlayCallBackFunction ) ( GRIBOverlayFactory_RenderGribOverlay_Static_Wrapper ) );
+      }
+
+      cc1->Refresh();
+}
+
+
+
+
+
+//----------------------------------------------------------------------------------------------------------
+//    Grib Overlay Factory Implementation
+//----------------------------------------------------------------------------------------------------------
+GRIBOverlayFactory::GRIBOverlayFactory()
+{
+      m_pGribRecordSet = NULL;
+}
+
+GRIBOverlayFactory::~GRIBOverlayFactory()
+{
+}
+
+void GRIBOverlayFactory::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
+{
+      m_pGribRecordSet = pGribRecordSet;
+
+      m_IsobarArray.Clear();                            // Will need to rebuild Isobar list
+}
+
+
+bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
+{
+      if ( !m_pGribRecordSet )
+            return false;
+
+      GribRecord *pGRWindVX = NULL;
+      GribRecord *pGRWindVY = NULL;
+
+      //          Walk thru the GribRecordSet, and render each type of record on the DC
+      for ( unsigned int i=0 ; i < m_pGribRecordSet->m_GribRecordPtrArray.GetCount() ; i++ )
+      {
+            GribRecord *pGR = m_pGribRecordSet->m_GribRecordPtrArray.Item ( i );
+
+            // Wind
+            //    Actually need two records to draw the wind arrows
+
+            if ( (pGR->getDataType()==GRB_WIND_VX )
+                  && (pGR->getLevelType()==LV_ABOV_GND)
+                  && (pGR->getLevelValue()==10))
+            {
+                  if(pGRWindVY)
+                        RenderGribWind(pGR, pGRWindVY,  pmdc, vp);
+                   else
+                        pGRWindVX = pGR;
+            }
+
+
+            else if ( (pGR->getDataType()==GRB_WIND_VY)
+                  && (pGR->getLevelType()==LV_ABOV_GND)
+                  && (pGR->getLevelValue()==10) )
+            {
+                  if(pGRWindVX)
+                        RenderGribWind(pGRWindVX, pGR,  pmdc, vp);
+                  else
+                        pGRWindVY = pGR;
+            }
+
+            //Pressure
+            if ( (pGR->getDataType()==GRB_PRESSURE )
+                  && (pGR->getLevelType()==LV_MSL)
+                  && (pGR->getLevelValue()==0))
+            {
+                  RenderGribPressure(pGR,  pmdc, vp);
+            }
+
+     }
+
+      return true;
+}
+
+bool GRIBOverlayFactory::RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMemoryDC *pmdc, ViewPort *vp)
+{
+      //    Get the the grid
+      int imax = pGRX->getNi();                  // Longitude
+      int jmax = pGRX->getNj();                  // Latitude
+
+      //    Barbs?
+      bool barbs = true;
+
+      //    Set minimum spacing between wind arrows
+      int space;
+
+      if (barbs)
+            space =  30;
+      else
+            space =  20;
+
+      int oldx = -1000; int oldy = -1000;
+
+      for(int i=0 ; i < imax ; i++)
+      {
+            double  lonl = pGRX->getX(i);
+            double  latl = pGRX->getY(0);
+            wxPoint pl = GetDCPixPoint(vp, latl, lonl);
+
+            if(abs(pl.x - oldx) >= space)
+            {
+                  oldx = pl.x;
+                  for(int j=0 ; j < jmax ; j++)
+                  {
+                        double  lon = pGRX->getX(i);
+                        double  lat = pGRX->getY(j);
+                        wxPoint p = GetDCPixPoint(vp, lat, lon);
+
+                        if(abs(p.y - oldy) >= space)
+                        {
+                              oldy = p.y;
+                              double vx = pGRX->getValue(i, j);
+                              double vy = pGRY->getValue(i, j);
+
+                              if (vx != GRIB_NOTDEF && vy != GRIB_NOTDEF)
+                                    drawWindArrowWithBarbs(pmdc, p.x, p.y, vx, vy, (lat < 0.), GetGlobalColor ( _T ( "YELO2" ) ));
+                        }
+                  }
+            }
+      }
+
+      return true;
+}
+
+
+bool GRIBOverlayFactory::RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp)
+{
+      //    Initialize the array of Isobars if necessary
+      if(!m_IsobarArray.GetCount())
+      {
+            IsoLine *piso;
+            for (double press=840; press<1120; press += 2/*isobarsStep*/)
+            {
+                  piso = new IsoLine(press*100, pGR);
+                  m_IsobarArray.Add(piso);
+            }
+      }
+
+      //    Draw the Isobars
+      for(unsigned int i = 0 ; i < m_IsobarArray.GetCount() ; i++)
+      {
+            IsoLine *piso = (IsoLine *)m_IsobarArray.Item(i);
+            piso->drawIsoLine(pmdc, vp);
+
+            int gr = 80;
+            wxColour color = wxColour(gr,gr,gr);
+            int density = 10;
+            int first = 0;
+
+            double coef = .01;
+            piso->drawIsoLineLabels(pmdc, color, vp, density, first, coef);
+
+      }
+
+      return true;
+}
+
+
+
+
+wxPoint GRIBOverlayFactory::GetDCPixPoint(ViewPort *vp, double lat, double lon)
+{
+      return vp->GetMercatorPixFromLL(lat, lon);
+
+
+/*
+      //      Inline the Simple Mercator Transform for performance reasons
+      // See the code at toSM()
+      double easting, northing;
+      {
+            double s, y3, s0, y30;
+            double z = WGS84_semimajor_axis_meters * mercator_k0;
+
+            double xlon = lon;
+
+            //  Make sure lon and lon0 are same phase
+            if(xlon * vp->clon < 0.)
+            {
+                  if(xlon < 0.)
+                        xlon += 360.;
+                  else
+                        xlon -= 360.;
+            }
+
+            if(fabs(xlon - vp->clon) > 180.)
+            {
+                  if(xlon > vp->clon)
+                        xlon -= 360.;
+                  else
+                        xlon += 360.;
+            }
+            easting = (xlon - vp->clon) * DEGREE * z;
+
+            s = sin(lat * DEGREE);
+            y3 = (.5 * log((1 + s) / (1 - s))) * z;
+
+            s0 = sin(vp->clat * DEGREE);
+            y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
+            northing = y3 - y30;
+      }
+
+      double epix = easting  * vp->view_scale_ppm;
+      double npix = northing * vp->view_scale_ppm;
+
+      double dx = epix * cos ( vp->skew ) + npix * sin ( vp->skew );
+      double dy = npix * cos ( vp->skew ) - epix * sin ( vp->skew );
+
+      wxPoint r;
+      r.x = ( int ) round ( ( vp->pix_width  / 2 ) + dx );
+      r.y = ( int ) round ( ( vp->pix_height / 2 ) - dy );
+
+      return r;
+      */
+}
+
+void GRIBOverlayFactory::drawWindArrowWithBarbs(wxMemoryDC *pmdc,
+                                      int i, int j, double vx, double vy,
+                                      bool south,
+                                      wxColour arrowColor
+                                     )
+{
+      double  vkn = sqrt(vx*vx+vy*vy)*3.6/1.852;
+      double ang = atan2(vy, -vx);
+      double si=sin(ang),  co=cos(ang);
+
+      wxPen pen( arrowColor, 2);
+      pmdc->SetPen(pen);
+      pmdc->SetBrush(*wxTRANSPARENT_BRUSH);
+
+      if (vkn < 1)
+      {
+            int r = 5;     // wind is very light, draw a circle
+            pmdc->DrawCircle(i,j,r);
+      }
+      else {
+        // Arrange for arrows to be centered on origin
+            int windBarbuleSize = 26;
+            int dec = -windBarbuleSize/2;
+            drawTransformedLine(pmdc, pen, si,co, i,j,  dec,0,  dec+windBarbuleSize, 0);   // hampe
+            drawTransformedLine(pmdc, pen, si,co, i,j,  dec,0,  dec+5, 2);    // flèche
+            drawTransformedLine(pmdc, pen, si,co, i,j,  dec,0,  dec+5, -2);   // flèche
+
+            int b1 = dec+windBarbuleSize -4;  // position de la 1ère barbule
+            if (vkn >= 7.5  &&  vkn < 45 ) {
+                  b1 = dec+windBarbuleSize;  // position de la 1ère barbule si >= 10 noeuds
+            }
+
+            if (vkn < 7.5) {  // 5 ktn
+                  drawPetiteBarbule(pmdc, pen, south, si,co, i,j, b1);
+            }
+            else if (vkn < 12.5) { // 10 ktn
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1);
+            }
+            else if (vkn < 17.5) { // 15 ktn
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1);
+                  drawPetiteBarbule(pmdc, pen, south, si,co, i,j, b1-4);
+            }
+            else if (vkn < 22.5) { // 20 ktn
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-4);
+            }
+            else if (vkn < 27.5) { // 25 ktn
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-4);
+                  drawPetiteBarbule(pmdc, pen, south, si,co, i,j, b1-8);
+            }
+            else if (vkn < 32.5) { // 30 ktn
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-4);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-8);
+            }
+            else if (vkn < 37.5) { // 35 ktn
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-4);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-8);
+                  drawPetiteBarbule(pmdc, pen, south, si,co, i,j, b1-12);
+            }
+            else if (vkn < 45) { // 40 ktn
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-4);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-8);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-12);
+            }
+            else if (vkn < 55) { // 50 ktn
+                  drawTriangle(pmdc, pen, south, si,co, i,j, b1-4);
+            }
+            else if (vkn < 65) { // 60 ktn
+                  drawTriangle(pmdc, pen, south, si,co, i,j, b1-4);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-8);
+            }
+            else if (vkn < 75) { // 70 ktn
+                  drawTriangle(pmdc, pen, south, si,co, i,j, b1-4);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-8);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-12);
+            }
+            else if (vkn < 85) { // 80 ktn
+                  drawTriangle(pmdc, pen, south, si,co, i,j, b1-4);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-8);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-12);
+                  drawGrandeBarbule(pmdc, pen, south, si,co, i,j, b1-16);
+            }
+            else { // > 90 ktn
+                  drawTriangle(pmdc, pen, south, si,co, i,j, b1-4);
+                  drawTriangle(pmdc, pen, south, si,co, i,j, b1-12);
+            }
+
+      }
+}
+
+void GRIBOverlayFactory::drawTransformedLine( wxMemoryDC *pmdc, wxPen pen,
+                                    double si, double co,int di, int dj, int i,int j, int k,int l)
+{
+      int ii, jj, kk, ll;
+      ii = (int) (i*co-j*si +0.5) + di;
+      jj = (int) (i*si+j*co +0.5) + dj;
+      kk = (int) (k*co-l*si +0.5) + di;
+      ll = (int) (k*si+l*co +0.5) + dj;
+
+#if wxUSE_GRAPHICS_CONTEXT
+      wxGraphicsContext *pgc;
+      pgc = wxGraphicsContext::Create(*pmdc);
+
+      pgc->SetPen(pen);
+      pgc->StrokeLine(ii, jj, kk, ll);
+
+#else
+      pmdc->SetPen(pen);
+      pmdc->SetBrush(*wxTRANSPARENT_BRUSH);
+      pmdc->DrawLine(ii, jj, kk, ll);
+#endif
+
+}
+
+
+void GRIBOverlayFactory::drawPetiteBarbule(wxMemoryDC *pmdc, wxPen pen, bool south,
+                                 double si, double co, int di, int dj, int b)
+{
+      if (south)
+            drawTransformedLine(pmdc, pen, si,co, di,dj,  b,0,  b+2, -5);
+      else
+            drawTransformedLine(pmdc, pen, si,co, di,dj,  b,0,  b+2, 5);
+}
+
+void GRIBOverlayFactory::drawGrandeBarbule(wxMemoryDC *pmdc, wxPen pen, bool south,
+                                 double si, double co, int di, int dj, int b)
+{
+      if (south)
+            drawTransformedLine(pmdc, pen, si,co, di,dj,  b,0,  b+4,-10);
+      else
+            drawTransformedLine(pmdc, pen, si,co, di,dj,  b,0,  b+4,10);
+}
+
+
+void GRIBOverlayFactory::drawTriangle(wxMemoryDC *pmdc, wxPen pen, bool south,
+                            double si, double co, int di, int dj, int b)
+{
+      if (south) {
+            drawTransformedLine(pmdc, pen, si,co, di,dj,  b,0,  b+4,-10);
+            drawTransformedLine(pmdc, pen, si,co, di,dj,  b+8,0,  b+4,-10);
+      }
+      else {
+            drawTransformedLine(pmdc, pen, si,co, di,dj,  b,0,  b+4,10);
+            drawTransformedLine(pmdc, pen, si,co, di,dj,  b+8,0,  b+4,10);
+      }
+}
+
+//---------------------------------------------------------------------------------------
+//          GRIB File/Record selector Tree Control Implementation
+//---------------------------------------------------------------------------------------
+IMPLEMENT_CLASS ( GribRecordTree, wxTreeCtrl )
+
+
+// GribRecordTree event table definition
+
+BEGIN_EVENT_TABLE ( GribRecordTree, wxTreeCtrl )
+      EVT_TREE_ITEM_EXPANDING ( ID_GRIBRECORDREECTRL, GribRecordTree::OnItemExpanding )
+      EVT_TREE_SEL_CHANGED ( ID_GRIBRECORDREECTRL, GribRecordTree::OnItemSelectChange )
+END_EVENT_TABLE()
+
+
+GribRecordTree::GribRecordTree( )
+{
+      Init();
+}
+
+GribRecordTree::GribRecordTree ( GRIBUIDialog* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style )
+{
+      Init();
+      m_parent = parent;
+      Create ( parent, id, pos, size, style );
+}
+
+GribRecordTree::~GribRecordTree( )
+{
+      delete m_file_id_array;
+}
+
+void GribRecordTree::Init( )
+{
+      m_file_id_array = NULL;
+}
+
+void GribRecordTree::OnItemExpanding ( wxTreeEvent& event )
+{
+}
+
+void GribRecordTree::OnItemSelectChange ( wxTreeEvent& event )
+{
+      GribTreeItemData *pdata = ( GribTreeItemData * ) GetItemData ( event.GetItem() );
+
+      if ( !pdata )
+            return;
+
+      switch ( pdata->m_type )
+      {
+            case GRIB_FILE_TYPE:
+            {
+                  m_parent->SetGribRecordSet ( NULL );                  // turn off any current display
+
+                  //    Create and ingest the GRIB file object if needed
+                  if ( NULL == pdata->m_pGribFile )
+                  {
+                        GRIBFile *pgribfile = new GRIBFile ( pdata->m_file_name );
+                        if ( pgribfile )
+                        {
+                              if ( pgribfile->IsOK() )
+                              {
+                                    pdata->m_pGribFile = pgribfile;
+                                    m_parent->PopulateTreeControlGRS ( pgribfile, pdata->m_file_index );
+
+                              }
+                              else
+                              {
+                                    wxLogMessage ( pgribfile->GetLastErrorMessage() );
+                              }
+                        }
+                  }
+                  break;
+            }
+
+            case GRIB_RECORD_SET_TYPE:
+            {
+                  m_parent->SetGribRecordSet ( pdata->m_pGribRecordSet );
+                  break;
+            }
+      }
+}
+
+
+//---------------------------------------------------------------------------------------
+//          GRIB Tree Item Data Implementation
+//---------------------------------------------------------------------------------------
+
+GribTreeItemData::GribTreeItemData ( const GribTreeItemType type )
+{
+      m_pGribFile = NULL;
+      m_pGribRecordSet = NULL;
+
+      m_type = type;
+}
+
+GribTreeItemData::~GribTreeItemData ()
+{
+      delete m_pGribFile;
+}
+
+//----------------------------------------------------------------------------------------------------------
+//          GRIBFile Object Implementation
+//----------------------------------------------------------------------------------------------------------
+
+GRIBFile::GRIBFile ( const wxString file_name )
+{
+      m_bOK = true;           // Assume ok until proven otherwise
+
+      if ( !::wxFileExists ( file_name ) )
+      {
+            m_last_error_message = _T ( "   GRIBFile Error:  File does not exist." );
+            m_bOK = false;
+            return;
+      }
+
+      //    Use the zyGrib support classes, as (slightly) modified locally....
+
+      m_pGribReader = new GribReader();
+
+      //    Read and ingest the entire GRIB file.......
+      m_pGribReader->openFile ( file_name );
+
+      m_nGribRecords = m_pGribReader->getTotalNumberOfGribRecords();
+
+      //    Walk the GribReader date list to populate our array of GribRecordSets
+
+      std::set<time_t>::iterator iter;
+      std::set<time_t>  date_list =  m_pGribReader->getListDates();
+      for ( iter=date_list.begin(); iter!=date_list.end(); iter++ )
+      {
+            GribRecordSet *t = new GribRecordSet();
+            time_t reftime = *iter;
+            t->m_Reference_Time = reftime;
+            m_GribRecordSetArray.Add ( t );
+
+      }
+
+      //    Convert from zyGrib organization by data type/level to our organization by time.
+
+      GribRecord *pRec;
+
+      //    Get the map of GribRecord vectors
+      std::map < std::string, std::vector<GribRecord *>* > *p_map =  m_pGribReader->getGribMap();
+
+      //    Iterate over the map to get vectors of related GribRecords
+      std::map < std::string, std::vector<GribRecord *>* >::iterator it;
+      for ( it=p_map->begin(); it!=p_map->end(); it++ )
+      {
+            std::vector<GribRecord *> *ls = ( *it ).second;
+            for ( zuint i=0; i<ls->size(); i++ )
+            {
+                  pRec = ls->at ( i );
+
+                  time_t thistime = pRec->getRecordCurrentDate();
+
+                  //   Search the GribRecordSet array for a GribRecordSet with matching time
+                  for ( unsigned int j = 0 ; j < m_GribRecordSetArray.GetCount() ; j++ )
+                  {
+                        if ( m_GribRecordSetArray.Item ( j ).m_Reference_Time == thistime )
+                        {
+                              m_GribRecordSetArray.Item ( j ).m_GribRecordPtrArray.Add ( pRec );
+                              break;
+                        }
+                  }
+            }
+      }
+}
+
+GRIBFile::~GRIBFile ()
+{
+      delete  m_pGribReader;
+}
