@@ -43,7 +43,7 @@
 #include "georef.h"
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.1 2009/11/19 00:26:27 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.2 2009/11/19 01:46:54 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -557,6 +557,13 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
       GribRecord *pGRWindVX = NULL;
       GribRecord *pGRWindVY = NULL;
 
+
+#if wxUSE_GRAPHICS_CONTEXT
+      m_pgc = wxGraphicsContext::Create(*pmdc);
+#endif
+
+
+
       //          Walk thru the GribRecordSet, and render each type of record on the DC
       for ( unsigned int i=0 ; i < m_pGribRecordSet->m_GribRecordPtrArray.GetCount() ; i++ )
       {
@@ -595,6 +602,10 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             }
 
      }
+
+#if wxUSE_GRAPHICS_CONTEXT
+     delete m_pgc;
+#endif
 
       return true;
 }
@@ -844,12 +855,11 @@ void GRIBOverlayFactory::drawTransformedLine( wxMemoryDC *pmdc, wxPen pen,
       ll = (int) (k*si+l*co +0.5) + dj;
 
 #if wxUSE_GRAPHICS_CONTEXT
-      wxGraphicsContext *pgc;
-      pgc = wxGraphicsContext::Create(*pmdc);
-
-      pgc->SetPen(pen);
-      pgc->StrokeLine(ii, jj, kk, ll);
-
+      if(m_pgc)
+      {
+            m_pgc->SetPen(pen);
+            m_pgc->StrokeLine(ii, jj, kk, ll);
+      }
 #else
       pmdc->SetPen(pen);
       pmdc->SetBrush(*wxTRANSPARENT_BRUSH);
