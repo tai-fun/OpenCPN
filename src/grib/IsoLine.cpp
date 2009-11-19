@@ -59,6 +59,16 @@ IsoLine::~IsoLine()
 //---------------------------------------------------------------
 void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp)
 {
+      wxPen ppISO ( isoLineColor, 2 );
+
+#if wxUSE_GRAPHICS_CONTEXT
+      wxGraphicsContext *pgc = wxGraphicsContext::Create(*pmdc);
+      pgc->SetPen(ppISO);
+#else
+      pmdc->SetPen(ppISO);
+#endif
+
+
     std::list<Segment *>::iterator it;
 
     //---------------------------------------------------------
@@ -72,10 +82,19 @@ void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp)
               wxPoint ab = vp->GetMercatorPixFromLL(seg->py1, seg->px1);
               wxPoint cd = vp->GetMercatorPixFromLL(seg->py2, seg->px2);
 
+#if wxUSE_GRAPHICS_CONTEXT
+              pgc->StrokeLine(ab.x, ab.y, cd.x, cd.y);
+#else
               pmdc->DrawLine(ab.x, ab.y, cd.x, cd.y);
+#endif
 
         }
     }
+#if wxUSE_GRAPHICS_CONTEXT
+    delete pgc;
+#endif
+
+
 }
 
 //---------------------------------------------------------------
