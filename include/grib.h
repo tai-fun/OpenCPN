@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grib.h,v 1.1 2009/11/18 15:17:42 bdbcat Exp $
+ * $Id: grib.h,v 1.2 2009/11/19 01:47:49 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  GRIB Manager Object
@@ -168,6 +168,10 @@ class GRIBOverlayFactory
             void drawTriangle(wxMemoryDC *pmdc, wxPen pen, bool south, double si, double co, int di, int dj, int b);
 
             wxArrayPtrVoid          m_IsobarArray;
+
+#if wxUSE_GRAPHICS_CONTEXT
+            wxGraphicsContext       *m_pgc;
+#endif
 
 };
 
