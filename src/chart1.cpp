@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.63 2009/11/18 01:23:17 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.64 2009/11/19 01:47:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.64  2009/11/19 01:47:12  bdbcat
+ * Correct crash if cc1 NULL
+ *
  * Revision 1.63  2009/11/18 01:23:17  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -262,7 +265,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.63 2009/11/18 01:23:17 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.64 2009/11/19 01:47:12 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -1772,7 +1775,8 @@ void MyFrame::OnActivate(wxActivateEvent& event)
         Refresh(false);     // This frame Refresh() invalidates children (i.e.canvas) on MSW!!
     }
 */
-      cc1->SetFocus();              // This seems to be needed for MSW, to get key and wheel events
+      if(cc1)
+        cc1->SetFocus();            // This seems to be needed for MSW, to get key and wheel events
                                     // after minimize/maximize.
       event.Skip();
 }
