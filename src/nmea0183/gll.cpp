@@ -13,7 +13,7 @@
 
 GLL::GLL()
 {
-   Mnemonic = "GLL";
+   Mnemonic = _T("GLL");
    Empty();
 }
 
@@ -56,13 +56,13 @@ bool GLL::Parse( const SENTENCE& sentence )
 
    if ( sentence.IsChecksumBad( 7 ) == NTrue )
    {
-      SetErrorMessage( "Invalid Checksum" );
+      SetErrorMessage( _T("Invalid Checksum") );
       return( FALSE );
    }
 
    if ( sentence.GetNumberOfDataFields() != 6 )
    {
-         SetErrorMessage( "Invalid FieldCount" );
+         SetErrorMessage( _T("Invalid FieldCount") );
          return( FALSE );
    }
 

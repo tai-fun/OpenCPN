@@ -13,7 +13,7 @@
 
 VTG::VTG()
 {
-   Mnemonic = "VTG";
+   Mnemonic = _T("VTG");
    Empty();
 }
 
@@ -62,13 +62,13 @@ bool VTG::Parse( const SENTENCE& sentence )
 
    if ( sentence.IsChecksumBad( 9 ) == TRUE )
    {
-      SetErrorMessage( "Invalid Checksum" );
+      SetErrorMessage( _T("Invalid Checksum") );
       return( FALSE );
    }
 
    if ( sentence.GetNumberOfDataFields() != 8 )
    {
-         SetErrorMessage( "Invalid FieldCount" );
+         SetErrorMessage( _T("Invalid FieldCount") );
          return( FALSE );
    }
 
@@ -92,13 +92,13 @@ bool VTG::Write( SENTENCE& sentence )
    RESPONSE::Write( sentence );
 
    sentence += TrackDegreesTrue;
-   sentence += "T";
+   sentence += _T("T");
    sentence += TrackDegreesMagnetic;
-   sentence += "M";
+   sentence += _T("M");
    sentence += SpeedKnots;
-   sentence += "N";
+   sentence += _T("N");
    sentence += SpeedKilometersPerHour;
-   sentence += "K";
+   sentence += _T("K");
 
    sentence.Finish();
 
