@@ -603,7 +603,7 @@ void GribReader::openFile(const wxString fname)
     //--------------------------------------------------------
     // Open the file
     //--------------------------------------------------------
-    file = zu_open((const char *)fname.c_str(), "rb", ZU_COMPRESS_AUTO);
+    file = zu_open((const char *)fname.mb_str(), "rb", ZU_COMPRESS_AUTO);
     if (file == NULL) {
         erreur("Can't open file: %s", (char *)fname.c_str());
         return;
