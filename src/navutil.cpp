@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.53  2009/11/23 04:18:00  bdbcat
+ * Improve GPX Track logic
+ *
  * Revision 1.52  2009/11/18 01:24:54  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -208,7 +211,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.52 2009/11/18 01:24:54 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.53 2009/11/23 04:18:00 bdbcat Exp $" );
 
 //    Statics
 
@@ -321,11 +324,16 @@ extern bool             g_bUseGreenShip;
 
 extern wxString         g_grib_dir;
 extern bool             g_bShowGRIBIcon;
+extern bool             g_bGRIBUseHiDef;
+extern int              g_grib_dialog_x, g_grib_dialog_y;
+extern int              g_grib_dialog_sx, g_grib_dialog_sy;
 
 extern bool             g_b_overzoom_x;                      // Allow high overzoom
 extern bool             g_bshow_overzoom_emboss;
 extern int              g_nautosave_interval_seconds;
 extern int              g_n_ownship_meters;
+
+extern bool             g_bPreserveScaleOnX;
 
 //------------------------------------------------------------------------------
 // Some wxWidgets macros for useful classes
@@ -2116,11 +2124,19 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "GarminPersistance" ),  &g_bGarminPersistance, 0 );
 
       Read ( _T ( "ShowGRIBIcon" ),  &g_bShowGRIBIcon, 0 );
+      Read ( _T ( "GRIBUseHiDef" ),  &g_bGRIBUseHiDef, 0 );
+
+      g_grib_dialog_sx = Read ( _T ( "GRIBDialogSizeX" ), 200L );
+      g_grib_dialog_sy = Read ( _T ( "GRIBDialogSizeY" ), 200L );
+      g_grib_dialog_x =  Read ( _T ( "GRIBDialogPosX" ), 20L );
+      g_grib_dialog_y =  Read ( _T ( "GRIBDialogPosY" ), 20L );
+
 
       wxString stps;
       Read ( _T ( "PlanSpeed" ),  &stps );
       stps.ToDouble ( &g_PlanSpeed );
 
+      Read ( _T ( "PreserveScaleOnX" ),  &g_bPreserveScaleOnX, 0 );
 
       SetPath ( _T ( "/Settings/GlobalState" ) );
       Read ( _T ( "bFollow" ), &st_bFollow );
@@ -3118,6 +3134,14 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "AllowExtremeOverzoom" ), g_b_overzoom_x );
 
       Write ( _T ( "ShowGRIBIcon" ), g_bShowGRIBIcon );
+      Write ( _T ( "GRIBUseHiDef" ), g_bGRIBUseHiDef );
+
+      Write ( _T ( "GRIBDialogSizeX" ),  g_grib_dialog_sx );
+      Write ( _T ( "GRIBDialogSizeY" ),  g_grib_dialog_sy );
+      Write ( _T ( "GRIBDialogPosX" ),   g_grib_dialog_x );
+      Write ( _T ( "GRIBDialogPosY" ),   g_grib_dialog_y );
+
+      Write ( _T ( "PreserveScaleOnX" ),   g_bPreserveScaleOnX );
 
       wxString st0;
       st0.Printf ( _T ( "%g" ), g_PlanSpeed );
@@ -3349,8 +3373,15 @@ bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
 
       if ( response == wxID_OK )
       {
-
             fn.SetExt ( _T ( "gpx" ) );
+
+            if(wxFileExists(fn.GetFullPath()))
+            {
+                  int answer = wxMessageBox("Overwrite existing file?", "Confirm",
+                                            wxICON_QUESTION | wxYES_NO | wxCANCEL);
+                  if (answer != wxYES)
+                        return false;
+            }
 
             CreateExportGPXNavObj();
 
@@ -3358,7 +3389,11 @@ bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
             if ( !pRoute->m_bIsTrack )
                   CreateGPXRoute ( pRoute );
             else
-                  CreateGPXTrack ( pRoute );
+            {
+                  wxXmlNode *track_node = CreateGPXTrackStatic ( pRoute );
+                  m_XMLrootnode->AddChild ( track_node );
+//                  CreateGPXTrack ( pRoute );
+            }
 
             WriteXMLNavObj ( fn.GetFullPath() );
             return true;
@@ -3370,11 +3405,8 @@ bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
 
 
 
-// toh, 2009.02.15
 void MyConfig::ExportGPX ( wxWindow* parent )
 {
-//      wxFileDialog *saveDialog = new wxFileDialog ( parent, wxT ( "Export GPX file" ), m_gpx_path, wxT ( "" ),
-//              wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
 
       wxFileDialog saveDialog( parent, wxT ( "Export GPX file" ), m_gpx_path, wxT ( "" ),
                   wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
@@ -3390,6 +3422,14 @@ void MyConfig::ExportGPX ( wxWindow* parent )
 
             fn.SetExt ( _T ( "gpx" ) );
 
+            if(wxFileExists(fn.GetFullPath()))
+            {
+                  int answer = wxMessageBox("Overwrite existing file?", "Confirm",
+                                            wxICON_QUESTION | wxYES_NO | wxCANCEL);
+                  if (answer != wxYES)
+                        return;
+            }
+
             CreateExportGPXNavObj();
             CreateGPXWayPoints();
             CreateGPXRoutes();
@@ -3398,7 +3438,7 @@ void MyConfig::ExportGPX ( wxWindow* parent )
       }
 }
 
-// toh, 2009.02.15
+
 void MyConfig::ImportGPX ( wxWindow* parent )
 {
 
@@ -3438,9 +3478,9 @@ void MyConfig::ImportGPX ( wxWindow* parent )
                                     {
                                           GPXLoadRoute ( child );
                                     }
-                                    if ( ChildName == _T ( "trk" ) )   // For the future ;-)
+                                    if ( ChildName == _T ( "trk" ) )
                                     {
-                                          GPXLoadTrack ( child );
+                                                ::GPXLoadTrack ( child );
                                     }
                                     child = child->GetNext();
                               }
@@ -3708,45 +3748,92 @@ void MyConfig::GPXLoadRoute ( wxXmlNode* rtenode )
 }
 
 
+#if 0
 void MyConfig::GPXLoadTrack ( wxXmlNode* trknode )
 {
 //      int routenum = m_NextRouteNum;
 
-      wxString Name = trknode->GetName();
+      //    Tentatively take the Track name from the Property "name"
+      //    May be overridden later by child <name>..</name>
       wxString RouteName = trknode->GetPropVal ( _T ( "name" ),_T ( "N.N." ) );
 
+      wxString Name = trknode->GetName();
       if ( Name == _T ( "trk" ) )
       {
             Track *pTentTrack = new Track();
 
-            pTentTrack->m_RouteNameString = RouteName;
-
-            wxXmlNode *child = trknode->GetChildren();
+            wxXmlNode *tschild = trknode->GetChildren();
 
             RoutePoint *pRecentPoint = NULL;
+            RoutePoint *pWp = NULL;
 
-            while ( child )
+            while ( tschild )
             {
-                  wxString ChildName = child->GetName();
+                  wxString ChildName = tschild->GetName();
                   if ( ChildName == _T ( "trkseg" ) )
                   {
-                        RoutePoint *pWp = LoadGPXTrackpoint ( child );
-
-                        //    Don't add this point if it is geographically the same as the previous point
-                        if(pRecentPoint)
+                        //    Official GPX spec calls for trkseg to have children trkpt
+                        wxXmlNode *tpchild = tschild->GetChildren();
+                        if(tpchild)
                         {
-                              if((pRecentPoint->m_lat != pWp->m_lat) || (pRecentPoint->m_lon != pWp->m_lon))
-                                    pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
+                              while(tpchild)
+                              {
+                                    wxString tpChildName = tpchild->GetName();
+                                    if(tpChildName == _T("trkpt"))
+                                    {
+                                          pWp = LoadGPXTrackpoint ( tpchild );
 
+
+                              //    Don't add this point if it is geographically the same as the previous point
+                                          if(pRecentPoint)
+                                          {
+                                                if((pRecentPoint->m_lat != pWp->m_lat) || (pRecentPoint->m_lon != pWp->m_lon))
+                                                      pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
+
+                                          }
+                                          else
+                                                pTentTrack->AddPoint ( pWp, false );                      // add first point always
+
+                                          pRecentPoint = pWp;
+                                    }
+
+                                    //          This else clause loads opencpn tracks exported prior to v1.3.5 Build 1122
+                                    //          and can go away after release of 1.3.6
+                                    else
+                                    {
+                                          pWp = LoadGPXTrackpoint ( tschild );
+
+                              //    Don't add this point if it is geographically the same as the previous point
+                                          if(pRecentPoint)
+                                          {
+                                                if((pRecentPoint->m_lat != pWp->m_lat) || (pRecentPoint->m_lon != pWp->m_lon))
+                                                      pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
+
+                                          }
+                                          else
+                                                pTentTrack->AddPoint ( pWp, false );                      // add first point always
+
+                                          pRecentPoint = pWp;
+                                    }
+
+
+                                    tpchild = tpchild->GetNext();
+
+                              }
                         }
-                        else
-                              pTentTrack->AddPoint ( pWp, false );                      // add first point always
-
-                        pRecentPoint = pWp;
-
                   }
-                  child = child->GetNext();
+                  else if ( ChildName == _T ( "name" ) )
+                  {
+                        wxXmlNode *child1 = tschild->GetChildren();
+                        if( child1 )                                    // name will always be in first child??
+                               RouteName = child1->GetContent();
+                  }
+
+                  tschild = tschild->GetNext();
+
             }
+
+            pTentTrack->m_RouteNameString = RouteName;
 
             //    Search for an identical route/track already in place.  If found, discard this one
 
@@ -3828,8 +3915,7 @@ void MyConfig::GPXLoadTrack ( wxXmlNode* trknode )
       }
 }
 
-
-
+#endif
 
 
 //---------------------------------------------------------------------------------
@@ -3907,8 +3993,10 @@ void MyConfig::CreateGPXTracks ( void )
       {
             Route *pRoute = node1->GetData();
             if ( pRoute->m_bIsTrack )
-                  CreateGPXTrack ( pRoute );
-
+            {
+                  wxXmlNode *track_node = ::CreateGPXTrackStatic ( pRoute );
+                  m_XMLrootnode->AddChild ( track_node );
+            }
             node1 = node1->GetNext();
       }
 }
@@ -3966,19 +4054,13 @@ void MyConfig::CreateGPXRoute ( Route *pRoute )
       }
 }
 
+#if 0
 void MyConfig::CreateGPXTrack ( Route *pRoute )
 {
 
       wxXmlNode *GPXTrk_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trk" ) );
       m_XMLrootnode->AddChild ( GPXTrk_node );
 
-
-/*
-      GPXTrk_node->AddProperty ( _T ( "name" ),pRoute->m_RouteNameString );
-      wxString strnum;
-      strnum.Printf ( _T ( "%d" ),pRoute->m_ConfigRouteNum );
-      GPXTrk_node->AddProperty ( _T ( "number" ),strnum );
-*/
 
       wxXmlNode *node;
       wxXmlNode *tnode;
@@ -3995,6 +4077,9 @@ void MyConfig::CreateGPXTrack ( Route *pRoute )
       tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), strnum );
       node->AddChild ( tnode );
 
+      wxXmlNode *trkseg_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trkseg" ) );
+      GPXTrk_node->AddChild ( trkseg_node );
+
 
       RoutePointList *pRoutePointList = pRoute->pRoutePointList;
       wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
@@ -4005,14 +4090,14 @@ void MyConfig::CreateGPXTrack ( Route *pRoute )
       {
             prp = node2->GetData();
 
-            wxXmlNode *rpt_node = CreateGPXTptNode ( prp,i+1 );
-            GPXTrk_node->AddChild ( rpt_node );
+            wxXmlNode *rpt_node = ::CreateGPXTptNode ( prp,i+1 );
+            trkseg_node->AddChild ( rpt_node );
 
             node2=node2->GetNext();
             i++;
       }
 }
-
+#endif
 
 
 // toh, 2009.02.24
@@ -4265,9 +4350,10 @@ wxXmlNode *MyConfig::CreateGPXRptNode ( RoutePoint *pr,int nbr )
 }
 
 
+#if 0
 wxXmlNode *MyConfig::CreateGPXTptNode ( RoutePoint *pr,int nbr )
 {
-      wxXmlNode *GPXWpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trkseg" ) );
+      wxXmlNode *GPXWpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trkpt" ) );
 
       wxString str_lat;
       str_lat.Printf ( _T ( "%.6f" ), pr->m_lat );
@@ -4322,7 +4408,7 @@ wxXmlNode *MyConfig::CreateGPXTptNode ( RoutePoint *pr,int nbr )
 
       return ( GPXWpt_node );
 }
-
+#endif
 
 
 //-------------------------------------------------------------------------
@@ -4330,7 +4416,55 @@ wxXmlNode *MyConfig::CreateGPXTptNode ( RoutePoint *pr,int nbr )
 //          Static GPX Support Routines
 //
 //-------------------------------------------------------------------------
-static wxXmlNode *CreateGPXWptNode ( RoutePoint *pr )
+
+wxXmlNode *CreateGPXTrackStatic ( Route *pRoute )
+{
+
+      wxXmlNode *GPXTrk_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trk" ) );
+
+      wxXmlNode *node;
+      wxXmlNode *tnode;
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "name" ) );
+      GPXTrk_node->AddChild ( node );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), pRoute->m_RouteNameString );
+      node->AddChild ( tnode );
+
+      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "number" ) );
+      GPXTrk_node->AddChild ( node );
+      wxString strnum;
+      strnum.Printf ( _T ( "%d" ),pRoute->m_ConfigRouteNum );
+      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ), strnum );
+      node->AddChild ( tnode );
+
+      wxXmlNode *trkseg_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trkseg" ) );
+      GPXTrk_node->AddChild ( trkseg_node );
+
+
+      RoutePointList *pRoutePointList = pRoute->pRoutePointList;
+      wxRoutePointListNode *node2 = pRoutePointList->GetFirst();
+      RoutePoint *prp;
+
+      int i=1;
+      while ( node2 )
+      {
+            prp = node2->GetData();
+
+            wxXmlNode *rpt_node = ::CreateGPXTptNode ( prp,i+1 );
+            trkseg_node->AddChild ( rpt_node );
+
+            node2=node2->GetNext();
+            i++;
+      }
+
+      return GPXTrk_node;
+}
+
+
+
+
+
+wxXmlNode *CreateGPXWptNode ( RoutePoint *pr )
 {
       wxXmlNode *GPXWpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "wpt" ) );
 
@@ -4548,7 +4682,7 @@ wxXmlNode *CreateGPXRptNode ( RoutePoint *pr,int nbr )
 
 wxXmlNode *CreateGPXTptNode ( RoutePoint *pr,int nbr )
 {
-      wxXmlNode *GPXTpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trkseg" ) );
+      wxXmlNode *GPXTpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trkpt" ) );
 
       wxString str_lat;
       str_lat.Printf ( _T ( "%.6f" ), pr->m_lat );
@@ -4609,15 +4743,6 @@ wxXmlNode *CreateGPXTptNode ( RoutePoint *pr,int nbr )
       node->AddChild ( tnode );
 
       current_sib_node = node;
-
-            // Type (waypoint or POI)
-      node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "type" ) );
-      current_sib_node->SetNext ( node );
-      tnode = new wxXmlNode ( wxXML_TEXT_NODE, _T ( "" ),_T ( "WPT" ) /* pr->m_MarkDescription*/ );
-      node->AddChild ( tnode );
-
-      current_sib_node = node;
-
 
 
       // Hyperlinks
@@ -4684,7 +4809,7 @@ RoutePoint *LoadGPXTrackpoint ( wxXmlNode* wptnode )
       wxString ChildName  = _T ( "" );
       wxDateTime dt;
 
-      HyperlinkList *linklist = new HyperlinkList;
+      HyperlinkList *linklist = NULL;
 
       wxString HrefString = _T ( "" );
       wxString HrefTextString = _T ( "" );
@@ -4735,6 +4860,8 @@ RoutePoint *LoadGPXTrackpoint ( wxXmlNode* wptnode )
             // Read hyperlink
             if ( ChildName == _T ( "link" ) )
             {
+                  linklist = new HyperlinkList;
+
                   HrefString = child->GetPropVal ( _T ( "href" ),_T ( "" ) );
 
                   wxXmlNode *child1 = child->GetChildren();
@@ -4780,13 +4907,192 @@ RoutePoint *LoadGPXTrackpoint ( wxXmlNode* wptnode )
       if ( dt.IsValid() )
             pWP->m_CreateTime = dt;
 
-      delete pWP->m_HyperlinkList;                    // created in RoutePoint ctor
-      pWP->m_HyperlinkList = linklist;
-
-
+      if(linklist)
+      {
+            delete pWP->m_HyperlinkList;                    // created in RoutePoint ctor
+            pWP->m_HyperlinkList = linklist;
+      }
 
       return ( pWP );
 }
+
+
+
+void GPXLoadTrack ( wxXmlNode* trknode )
+{
+      //    Tentatively take the Track name from the Property "name"
+      //    May be overridden later by child <name>..</name>
+      wxString RouteName = trknode->GetPropVal ( _T ( "name" ),_T ( "N.N." ) );
+
+      wxString Name = trknode->GetName();
+      if ( Name == _T ( "trk" ) )
+      {
+            Track *pTentTrack = new Track();
+
+            wxXmlNode *tschild = trknode->GetChildren();
+
+            RoutePoint *pRecentPoint = NULL;
+            RoutePoint *pWp = NULL;
+
+            while ( tschild )
+            {
+                  wxString ChildName = tschild->GetName();
+                  if ( ChildName == _T ( "trkseg" ) )
+                  {
+                        //    Official GPX spec calls for trkseg to have children trkpt
+                        wxXmlNode *tpchild = tschild->GetChildren();
+                        if(tpchild)
+                        {
+                              while(tpchild)
+                              {
+                                    wxString tpChildName = tpchild->GetName();
+                                    if(tpChildName == _T("trkpt"))
+                                    {
+                                          pWp = ::LoadGPXTrackpoint ( tpchild );
+
+
+                              //    Don't add this point if it is geographically the same as the previous point
+                                          if(pRecentPoint)
+                                          {
+                                                if((pRecentPoint->m_lat != pWp->m_lat) || (pRecentPoint->m_lon != pWp->m_lon))
+                                                      pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
+
+                                          }
+                                          else
+                                                pTentTrack->AddPoint ( pWp, false );                      // add first point always
+
+                                          pRecentPoint = pWp;
+                                    }
+
+                                    //          This else clause loads opencpn tracks exported prior to v1.3.5 Build 1122
+                                    //          and can go away after release of 1.3.6
+                                    else
+                                    {
+                                          pWp = ::LoadGPXTrackpoint ( tschild );
+
+                              //    Don't add this point if it is geographically the same as the previous point
+                                          if(pRecentPoint)
+                                          {
+                                                if((pRecentPoint->m_lat != pWp->m_lat) || (pRecentPoint->m_lon != pWp->m_lon))
+                                                      pTentTrack->AddPoint ( pWp, false );                      // don't auto-rename numerically
+
+                                          }
+                                          else
+                                                pTentTrack->AddPoint ( pWp, false );                      // add first point always
+
+                                          pRecentPoint = pWp;
+                                    }
+
+
+                                    tpchild = tpchild->GetNext();
+
+                              }
+                        }
+                  }
+                  else if ( ChildName == _T ( "name" ) )
+                  {
+                        wxXmlNode *child1 = tschild->GetChildren();
+                        if( child1 )                                    // name will always be in first child??
+                              RouteName = child1->GetContent();
+                  }
+
+                  tschild = tschild->GetNext();
+
+            }
+
+            pTentTrack->m_RouteNameString = RouteName;
+
+            //    Search for an identical route/track already in place.  If found, discard this one
+
+            bool  bAddtrack = true;
+            wxRouteListNode *route_node = pRouteList->GetFirst();
+            while ( route_node )
+            {
+                  Route *proute = route_node->GetData();
+
+                  if ( proute->IsEqualTo ( pTentTrack ) )
+                  {
+                        bAddtrack = false;
+                        break;
+                  }
+                  route_node = route_node->GetNext();                         // next route
+            }
+
+            //    If the track has only 1 point, don't load it.
+            //    This usually occurs if some points were dscarded above as being co-incident.
+            if(pTentTrack->GetnPoints() < 2)
+                  bAddtrack = false;
+
+//    TODO  All this trouble for a tentative route.......Should make some Route methods????
+            if ( bAddtrack )
+            {
+                  pRouteList->Append ( pTentTrack );
+
+                  //    Add the selectable points and segments
+
+                  int ip = 0;
+                  float prev_rlat, prev_rlon;
+                  RoutePoint *prev_pConfPoint;
+
+                  wxRoutePointListNode *node = pTentTrack->pRoutePointList->GetFirst();
+                  while ( node )
+                  {
+
+                        RoutePoint *prp = node->GetData();
+
+                        if ( ip )
+                              pSelect->AddSelectableRouteSegment ( prev_rlat, prev_rlon, prp->m_lat, prp->m_lon,prev_pConfPoint, prp, pTentTrack );
+
+                        prev_rlat = prp->m_lat;
+                        prev_rlon = prp->m_lon;
+                        prev_pConfPoint = prp;
+
+                        ip++;
+
+                        node = node->GetNext();
+                  }
+            }
+            else
+            {
+
+                  // walk the route, deleting points used only by this route
+                  wxRoutePointListNode *pnode = ( pTentTrack->pRoutePointList )->GetFirst();
+                  while ( pnode )
+                  {
+                        RoutePoint *prp = pnode->GetData();
+
+                        // check all other routes to see if this point appears in any other route
+                        Route *pcontainer_route = pRouteMan->FindRouteContainingWaypoint ( prp );
+
+                        if ( pcontainer_route == NULL )
+                        {
+                              prp->m_bIsInRoute = false;          // Take this point out of this (and only) track/route
+                              if ( !prp->m_bKeepXRoute )
+                              {
+                                    pConfig->DeleteWayPoint ( prp );
+                                    delete prp;
+                              }
+                        }
+
+                        pnode = pnode->GetNext();
+                  }
+
+                  delete pTentTrack;
+            }
+      }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4913,6 +5219,13 @@ bool NavObjectCollection::CreateGPXTracks ( void )
                   if ( pRoute->m_bIsTrack )                            // Tracks only
                   {
 
+                        wxXmlNode *Track_Node = ::CreateGPXTrackStatic ( pRoute );
+                        if(m_proot_next == NULL)
+                              m_pXMLrootnode->AddChild ( Track_Node );
+                        else
+                              m_proot_next->SetNext( Track_Node );
+
+/*
                         wxXmlNode *GPXWpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trk" ) );
                         GPXWpt_node->AddProperty ( _T ( "name" ),pRoute->m_RouteNameString );
                         wxString strnum;
@@ -4936,7 +5249,7 @@ bool NavObjectCollection::CreateGPXTracks ( void )
                         {
                               prp = node2->GetData();
 
-                              wxXmlNode *rpt_node = CreateGPXTptNode ( prp,i+1 );
+                              wxXmlNode *rpt_node = ::CreateGPXTptNode ( prp,i+1 );
 
                               if(i == 1)
                                     GPXWpt_node->AddChild ( rpt_node );
@@ -4948,6 +5261,7 @@ bool NavObjectCollection::CreateGPXTracks ( void )
                               node2=node2->GetNext();
                               i++;
                         }
+                        */
                   }
             }
             node1 = node1->GetNext();
@@ -4972,7 +5286,7 @@ bool NavObjectCollection::LoadAllGPXTracks()
             {
                   wxString ChildName = child->GetName();
                   if ( ChildName == _T ( "trk" ) )
-                        LoadGPXTrack ( child );
+                        ::GPXLoadTrack ( child );
 
                   child = child->GetNext();
             }
@@ -5048,7 +5362,7 @@ wxXmlNode *NavObjectCollection::CreateMarkNode ( RoutePoint *pr )
       return ( mark_node );
 }
 
-
+/*
 void NavObjectCollection::LoadGPXTrack ( wxXmlNode* rtenode )
 {
       wxString Name = rtenode->GetName();
@@ -5167,7 +5481,7 @@ void NavObjectCollection::LoadGPXTrack ( wxXmlNode* rtenode )
       }
 }
 
-
+*/
 
 
 
