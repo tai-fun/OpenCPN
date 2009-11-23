@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "dychart.h"        // for some compile time fixups
 #include "chcanv.h"
+#include "cutil.h"
 
 #include "IsoLine.h"
 
@@ -57,7 +58,7 @@ IsoLine::~IsoLine()
 
 
 //---------------------------------------------------------------
-void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp)
+void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp, bool bHiDef)
 {
       wxPen ppISO ( isoLineColor, 2 );
 
@@ -82,11 +83,20 @@ void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp)
               wxPoint ab = vp->GetMercatorPixFromLL(seg->py1, seg->px1);
               wxPoint cd = vp->GetMercatorPixFromLL(seg->py2, seg->px2);
 
+
+              ClipResult res = cohen_sutherland_line_clip_i ( &ab.x, &ab.y, &cd.x, &cd.y,
+                          0, vp->pix_width, 0, vp->pix_height );
+              if ( res != Invisible )
+              {
 #if wxUSE_GRAPHICS_CONTEXT
-              pgc->StrokeLine(ab.x, ab.y, cd.x, cd.y);
+                    if(bHiDef)
+                          pgc->StrokeLine(ab.x, ab.y, cd.x, cd.y);
+                    else
+                          pmdc->DrawLine(ab.x, ab.y, cd.x, cd.y);
 #else
-              pmdc->DrawLine(ab.x, ab.y, cd.x, cd.y);
+                  pmdc->DrawLine(ab.x, ab.y, cd.x, cd.y);
 #endif
+              }
 
         }
     }
@@ -124,12 +134,19 @@ void IsoLine::drawIsoLineLabels(wxMemoryDC *pmdc, wxColour couleur,
     {
         if (nb % density == 0) {
             Segment *seg = *it;
-            wxPoint ab = vp->GetMercatorPixFromLL(seg->py1, seg->px1);
-            wxPoint cd = vp->GetMercatorPixFromLL(seg->py2, seg->px2);
 
-            int label_offset = 4;
-            pmdc->DrawRoundedRectangle((ab.x + cd.x)/2 , (ab.y + cd.y)/2, w+(label_offset * 2), h, -.25);
-            pmdc->DrawText(label, label_offset + (ab.x + cd.x)/2, (ab.y + cd.y)/2);
+            if(vp->vpBBox.PointInBox((seg->px1 + seg->px2)/2., (seg->py1 + seg->py2)/2., 0.))
+            {
+                  wxPoint ab = vp->GetMercatorPixFromLL(seg->py1, seg->px1);
+                  wxPoint cd = vp->GetMercatorPixFromLL(seg->py2, seg->px2);
+
+                  int xd = (ab.x + cd.x)/2;
+                  int yd = (ab.y + cd.y)/2;
+
+                  int label_offset = 4;
+                  pmdc->DrawRoundedRectangle(xd, yd, w+(label_offset * 2), h, -.25);
+                  pmdc->DrawText(label, label_offset + xd, yd);
+            }
 
         }
     }

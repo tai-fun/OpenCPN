@@ -69,7 +69,7 @@ class IsoLine
         ~IsoLine();
 
 
-        void drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp);
+        void drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp, bool bHiDef);
 
         void drawIsoLineLabels(wxMemoryDC *pmdc, wxColour couleur, ViewPort *vp,
                                 int density, int first, double coef);
