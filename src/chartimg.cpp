@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.32 2009/11/18 01:24:15 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.33 2009/11/23 04:13:37 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.33  2009/11/23 04:13:37  bdbcat
+ * Various for build 1122
+ *
  * Revision 1.32  2009/11/18 01:24:15  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -87,6 +90,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.33  2009/11/23 04:13:37  bdbcat
+ * Various for build 1122
+ *
  * Revision 1.32  2009/11/18 01:24:15  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -208,7 +214,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.32 2009/11/18 01:24:15 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.33 2009/11/23 04:13:37 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -1485,16 +1491,19 @@ double ChartBaseBSB::GetNormalScaleMax(double canvas_scale_factor)
 
 
 
-double ChartBaseBSB::GetClosestValidNaturalScalePPM(double target_scale)
+double ChartBaseBSB::GetClosestValidNaturalScalePPM(double target_scale, double scale_factor_min, double scale_factor_max)
 {
       double chart_1x_scale = GetPPM();
 
       double binary_scale_factor = 1.;
 
-      double binary_scale_factor_max = 8;//GetNormalScaleMax() / m_Chart_Scale;
 
+
+      //    Scaling in....
       if(chart_1x_scale > target_scale)
       {
+            double binary_scale_factor_max = 1 / scale_factor_min;
+
             while(binary_scale_factor < binary_scale_factor_max)
             {
                   if(fabs((chart_1x_scale / binary_scale_factor ) - target_scale) < (target_scale * 0.05))
@@ -1505,14 +1514,22 @@ double ChartBaseBSB::GetClosestValidNaturalScalePPM(double target_scale)
                         binary_scale_factor *= 2.;
             }
       }
+
+
+      //    Scaling out.....
       else
       {
             int ibsf = 1;
-            while(ibsf < 64)
+            int isf_max = (int)scale_factor_max;
+            while(ibsf < isf_max)
             {
-                  if(fabs((chart_1x_scale * ibsf ) - target_scale) < (target_scale * 0.05))
+                  if((chart_1x_scale * ibsf ) > target_scale)
+                  {
+                        if(ibsf > 1)
+                              ibsf /= 2;
                         break;
-                  if((chart_1x_scale * ibsf ) >= target_scale)
+                  }
+                  if(fabs((chart_1x_scale * ibsf ) - target_scale) < (target_scale * 0.05))
                         break;
                   else
                         ibsf *= 2;
@@ -1755,6 +1772,10 @@ InitReturn ChartBaseBSB::PostInit(void)
       d_str[99] = 0;
 
       m_datum_index = GetDatumIndex(d_str);
+
+      //    Establish defaults, may be overridden later
+      m_lon_datum_adjust = (-m_dtm_lon) / 3600.;
+      m_lat_datum_adjust = (-m_dtm_lat) / 3600.;
 
       bReadyToRender = true;
       return INIT_OK;
@@ -2407,10 +2428,15 @@ void ChartBaseBSB::ComputeSourceRectangle(ViewPort &vp, wxRect *pSourceRect)
                 //  Internal Georeferencing on this chart has been declared bad, so
                 //  use a Mercator estimator with eccentricity correction to get started
         double e_est, n_est;
+        double alat, alon;
+
+        alon =  pRefTable[m_i_ref_near_center].lonr - m_lon_datum_adjust;
+        alat =  pRefTable[m_i_ref_near_center].latr - m_lat_datum_adjust;
+
         if(0)
             toSM(vp.clat, vp.clon, pRefTable[m_i_ref_near_center].latr, pRefTable[m_i_ref_near_center].lonr, &e_est, &n_est);
         else
-            toSM_ECC(vp.clat, vp.clon, pRefTable[m_i_ref_near_center].latr, pRefTable[m_i_ref_near_center].lonr, &e_est, &n_est);
+            toSM_ECC(vp.clat, vp.clon, alat, alon, &e_est, &n_est);
 
         int dx = (int)/*rint*/(e_est * m_ppm_avg);
         int dy = (int)/*rint*/(n_est * m_ppm_avg);
@@ -3862,17 +3888,25 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
               {
                   bUseGeoRef = false;         // 4 REF points is too few for cubic poly match.
               }
+              else if(nRefpoint <= 12)
+              {
+                    cPoints.order = 2;      // If less than 12 points, use Polynomial curve fit to a quadratic equation
+                                            // discoveredand verified on ProblemCharts/NZ232_1 from Marco
+
+                      // force longitude fit to linear and require no cross terms if chart is un-skewed, the usual case
+                    if(Georef_Calculate_Coefficients(&cPoints, (Chart_Skew == 0)))
+                        bUseGeoRef = false;         // some error in georef calculation, usually very bad fit
+              }
               else
               {
                     cPoints.order = 3;
 
                       // force longitude fit to linear and require no cross terms if chart is un-skewed, the usual case
                     if(Georef_Calculate_Coefficients(&cPoints, (Chart_Skew == 0)))
-                        bUseGeoRef = false;         // some error in georef calculation, usually very bad fit
+                          bUseGeoRef = false;         // some error in georef calculation, usually very bad fit
               }
-
-              for(int h=0 ; h < 10 ; h++)
-                    printf(" %d  %g\n",  h, cPoints.pwy[h]);          // pix to lat
+//              for(int h=0 ; h < 10 ; h++)
+//                    printf(" %d  %g\n",  h, cPoints.pwy[h]);          // pix to lat
         }
 
 
@@ -4199,7 +4233,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.32 2009/11/18 01:24:15 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.33 2009/11/23 04:13:37 bdbcat Exp $
 *
 */
 
