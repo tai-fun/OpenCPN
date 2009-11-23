@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.26 2009/11/18 01:24:15 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.27 2009/11/23 04:16:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.27  2009/11/23 04:16:05  bdbcat
+ * Change upper scale limit
+ *
  * Revision 1.26  2009/11/18 01:24:15  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -4311,7 +4314,7 @@ double cm93compchart::GetNormalScaleMin(double canvas_scale_factor)
 
 double cm93compchart::GetNormalScaleMax(double canvas_scale_factor)
 {
-      return 1.0e8;
+      return 8.0e7;
 }
 
 
