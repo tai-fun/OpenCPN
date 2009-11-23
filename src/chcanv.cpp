@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.69 2009/11/18 01:24:15 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.70 2009/11/23 04:15:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.70  2009/11/23 04:15:06  bdbcat
+ * Grib dialog size set
+ *
  * Revision 1.69  2009/11/18 01:24:15  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -341,7 +344,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.69 2009/11/18 01:24:15 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.70 2009/11/23 04:15:06 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1091,12 +1094,14 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
 
 void ChartCanvas::ShowGribDialog(void)
 {
-
-       g_pGribDialog = new GRIBUIDialog();
-       g_pGribDialog->Create ( this, -1, _T("GRIB Display Control"), g_grib_dir,
+      if(NULL == g_pGribDialog)
+      {
+            g_pGribDialog = new GRIBUIDialog();
+            g_pGribDialog->Create ( this, -1, _T("GRIB Display Control"), g_grib_dir,
                                wxPoint( g_grib_dialog_x, g_grib_dialog_y), wxSize( g_grib_dialog_sx, g_grib_dialog_sy));
+      }
 
-       g_pGribDialog->Show();                        // Show modeless, so it stays on the screen
+      g_pGribDialog->Show();                        // Show modeless, so it stays on the screen
 }
 
 
