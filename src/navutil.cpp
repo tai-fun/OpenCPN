@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.54  2009/11/23 04:38:51  bdbcat
+ * Unicode correction
+ *
  * Revision 1.53  2009/11/23 04:18:00  bdbcat
  * Improve GPX Track logic
  *
@@ -211,7 +214,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.53 2009/11/23 04:18:00 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.54 2009/11/23 04:38:51 bdbcat Exp $" );
 
 //    Statics
 
@@ -3377,7 +3380,7 @@ bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
 
             if(wxFileExists(fn.GetFullPath()))
             {
-                  int answer = wxMessageBox("Overwrite existing file?", "Confirm",
+                  int answer = wxMessageBox(_T("Overwrite existing file?"), _T("Confirm"),
                                             wxICON_QUESTION | wxYES_NO | wxCANCEL);
                   if (answer != wxYES)
                         return false;
@@ -3424,7 +3427,7 @@ void MyConfig::ExportGPX ( wxWindow* parent )
 
             if(wxFileExists(fn.GetFullPath()))
             {
-                  int answer = wxMessageBox("Overwrite existing file?", "Confirm",
+                  int answer = wxMessageBox(_T("Overwrite existing file?"), _T("Confirm"),
                                             wxICON_QUESTION | wxYES_NO | wxCANCEL);
                   if (answer != wxYES)
                         return;
