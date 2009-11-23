@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.34 2009/11/18 01:25:31 bdbcat Exp $
+ * $Id: options.cpp,v 1.35 2009/11/23 04:18:51 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.35  2009/11/23 04:18:51  bdbcat
+ * Various for build 1122
+ *
  * Revision 1.34  2009/11/18 01:25:31  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -193,12 +196,14 @@ extern bool             g_bAIS_CPA_Alert_Audio;
 extern wxString         g_sAIS_Alert_Sound_File;
 extern bool             g_bAIS_CPA_Alert_Suppress_Moored;
 
-extern bool             g_bShowGPXIcons;                     // toh, 2009.02.14
-extern bool             g_bNavAidShowRadarRings;            // toh, 2009.02.24
-extern int              g_iNavAidRadarRingsNumberVisible;   // toh, 2009.02.24
-extern float            g_fNavAidRadarRingsStep;            // toh, 2009.02.24
-extern int              g_pNavAidRadarRingsStepUnits;       // toh, 2009.02.24
-extern bool             g_bWayPointPreventDragging;         // toh, 2009.02.24
+extern bool             g_bShowGPXIcons;
+extern bool             g_bNavAidShowRadarRings;
+extern int              g_iNavAidRadarRingsNumberVisible;
+extern float            g_fNavAidRadarRingsStep;
+extern int              g_pNavAidRadarRingsStepUnits;
+extern bool             g_bWayPointPreventDragging;
+
+extern bool             g_bPreserveScaleOnX;
 
 extern bool             g_bEnableZoomToCursor;
 extern bool             g_bShowTrackIcon;
@@ -213,6 +218,7 @@ extern CM93DSlide       *pCM93DetailSlider;
 extern bool             g_bShowCM93DetailSlider;
 
 extern bool             g_bShowGRIBIcon;
+extern bool             g_bGRIBUseHiDef;
 
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
@@ -1006,10 +1012,13 @@ void options::CreateControls()
     wxStaticBox* itemStaticBoxSizerGRIBStatic = new wxStaticBox(itemPanelGRIB, wxID_ANY, _("GRIB"));
     wxStaticBoxSizer* itemStaticBoxSizerGRIB = new wxStaticBoxSizer(itemStaticBoxSizerGRIBStatic, wxVERTICAL);
     itemBoxSizerGRIBPanel->Add(itemStaticBoxSizerGRIB, 0, wxGROW|wxALL, border_size);
+
     pGRIBShowIcon = new wxCheckBox( itemPanelGRIB, ID_GRIBCHECKBOX, _("Show GRIB icon"), wxDefaultPosition,
                                     wxSize(-1, -1), 0 );
     itemStaticBoxSizerGRIB->Add(pGRIBShowIcon, 1, wxALIGN_LEFT|wxALL, border_size);
 
+    pGRIBUseHiDef = new wxCheckBox( itemPanelGRIB, -1, _("Use High Definition Graphics"));
+    itemStaticBoxSizerGRIB->Add(pGRIBUseHiDef, 1, wxALIGN_LEFT|wxALL, border_size);
 
 
     //      Build Etc. Page
@@ -1100,10 +1109,14 @@ void options::CreateControls()
     wxStaticBox* itemStaticBoxSizerGUIOptionsStatic = new wxStaticBox(itemPanelAdvanced, wxID_ANY, _("GUI Options"));
     wxStaticBoxSizer* itemStaticBoxSizerGUIOption = new wxStaticBoxSizer(itemStaticBoxSizerGUIOptionsStatic, wxVERTICAL);
     itemBoxSizerAdvancedPanel->Add(itemStaticBoxSizerGUIOption, 0, wxGROW|wxALL, border_size);
-    pEnableZoomToCursor = new wxCheckBox( itemPanelAdvanced, ID_DRAGGINGCHECKBOX, _("Enable Wheel-Zoom-to-Cursor"),
+
+    pEnableZoomToCursor = new wxCheckBox( itemPanelAdvanced, ID_ZTCCHECKBOX, _("Enable Wheel-Zoom-to-Cursor"),
                                                wxDefaultPosition, wxSize(-1, -1), 0 );
     pEnableZoomToCursor->SetValue(FALSE);
     itemStaticBoxSizerGUIOption->Add(pEnableZoomToCursor, 1, wxALIGN_LEFT|wxALL, border_size);
+
+    pPreserveScale = new wxCheckBox( itemPanelAdvanced, ID_PRESERVECHECKBOX, _("Preserve scale when switching charts"));
+    itemStaticBoxSizerGUIOption->Add(pPreserveScale, 1, wxALIGN_LEFT|wxALL, border_size);
 
     //  Printing checkbox
 /*    wxStaticBox* itemStaticBoxSizerPrintStatic = new wxStaticBox(itemPanel5, wxID_ANY, _("Printing"));
@@ -1210,6 +1223,7 @@ void options::SetInitialSettings()
       pWayPointPreventDragging->SetValue(g_bWayPointPreventDragging);   // toh, 2009.02.24
 
       pEnableZoomToCursor->SetValue(g_bEnableZoomToCursor);
+      pPreserveScale->SetValue(g_bPreserveScaleOnX);
 
       pTrackShowIcon->SetValue(g_bShowTrackIcon);
 
@@ -1222,6 +1236,7 @@ void options::SetInitialSettings()
       m_pCheck_Trackpoint_distance->SetValue(g_bTrackDistance);
 
       pGRIBShowIcon->SetValue(g_bShowGRIBIcon);
+      pGRIBUseHiDef->SetValue(g_bGRIBUseHiDef);
 
 
 //    AIS Parameters
@@ -1502,6 +1517,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
     g_pNavAidRadarRingsStepUnits = m_itemNavAidRadarRingsStepUnitsRadioBox->GetSelection();     // toh, 2009.02.24
     g_bWayPointPreventDragging = pWayPointPreventDragging->GetValue();  // toh, 2009.02.24
 
+    g_bPreserveScaleOnX = pPreserveScale->GetValue();
+
     g_bShowTrackIcon = pTrackShowIcon->GetValue();
     m_pText_TP_Secs->GetValue().ToDouble(&g_TrackIntervalSeconds);
     m_pText_TP_Dist->GetValue().ToDouble(&g_TrackDeltaDistance);
@@ -1694,6 +1711,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
 //    GRIB
     g_bShowGRIBIcon= pGRIBShowIcon->GetValue();
+    g_bGRIBUseHiDef= pGRIBUseHiDef->GetValue();
 
 
     //      Could be a lot smarter here

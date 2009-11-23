@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.22 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: nmea.h,v 1.23 2009/11/23 04:19:58 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.23  2009/11/23 04:19:58  bdbcat
+ * Various for build 1122
+ *
  * Revision 1.22  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -93,6 +96,19 @@
 #ifndef  WX_PRECOMP
   #include "wx/wx.h"
 #endif //precompiled header
+
+//#include <gio/gio.h>
+
+#ifdef __WXGTK__
+// newer versions of glib define its own GSocket but we unfortunately use this
+// name in our own (semi-)public header and so can't change it -- rename glib
+// one instead
+//#define GSocket GlibGSocket
+//#include <gdk/gdk.h>
+//#include <glib.h>
+//#undef GSocket
+#endif
+
 
 #include "wx/socket.h"
 #include <wx/datetime.h>

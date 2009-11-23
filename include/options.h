@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.18 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: options.h,v 1.19 2009/11/23 04:19:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.19  2009/11/23 04:19:58  bdbcat
+ * Various for build 1122
+ *
  * Revision 1.18  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -148,6 +151,8 @@ enum {
         ID_PANELADVANCED,
         ID_GPXCHECKBOX,
         ID_DRAGGINGCHECKBOX,
+        ID_ZTCCHECKBOX,
+        ID_PRESERVECHECKBOX,
         ID_AISALERTDIALOG,
         ID_AISALERTAUDIO,
         ID_AISALERTSELECTSOUND,
@@ -311,6 +316,7 @@ public:
 //    For "GRIB" Page
     wxPanel*                itemPanelGRIB;
     wxCheckBox              *pGRIBShowIcon;
+    wxCheckBox              *pGRIBUseHiDef;
 
 //    For "Etc." Page
     wxPanel*                itemPanelAdvanced;
@@ -321,6 +327,7 @@ public:
     wxRadioBox              *m_itemNavAidRadarRingsStepUnitsRadioBox;
     wxCheckBox              *pWayPointPreventDragging;
     wxCheckBox              *pEnableZoomToCursor;
+    wxCheckBox              *pPreserveScale;
 
     wxCheckBox              *pTrackShowIcon;
     wxRadioButton           *m_pCheck_Trackpoint_time;

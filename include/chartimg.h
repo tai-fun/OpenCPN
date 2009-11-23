@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.18 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: chartimg.h,v 1.19 2009/11/23 04:19:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.19  2009/11/23 04:19:58  bdbcat
+ * Various for build 1122
+ *
  * Revision 1.18  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -188,7 +191,7 @@ class  ChartBaseBSB     :public ChartBase
       int GetNativeScale(){return m_Chart_Scale;}
       double GetNormalScaleMin(double canvas_scale_factor);
       double GetNormalScaleMax(double canvas_scale_factor);
-      double GetClosestValidNaturalScalePPM(double target_scale);
+      double GetClosestValidNaturalScalePPM(double target_scale, double scale_factor_min, double scale_factor_max);
 
       double GetChartSkew(){return Chart_Skew;}
       int GetSize_X(){ return Size_X;}

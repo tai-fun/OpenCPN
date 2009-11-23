@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.22 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: navutil.h,v 1.23 2009/11/23 04:19:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.23  2009/11/23 04:19:58  bdbcat
+ * Various for build 1122
+ *
  * Revision 1.22  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -338,7 +341,10 @@ DECLARE_EVENT_TABLE()
 
 
 RoutePoint *LoadGPXTrackpoint(wxXmlNode* wptnode);
+void GPXLoadTrack ( wxXmlNode* trknode );
 
+wxXmlNode *CreateGPXTptNode ( RoutePoint *pr, int nbr );
+wxXmlNode *CreateGPXTrackStatic ( Route *pRoute );
 
 
 //----------------------------------------------------------------------------
@@ -377,13 +383,12 @@ public:
 
       wxXmlNode *CreateGPXWptNode(RoutePoint *pr);
       wxXmlNode *CreateGPXRptNode(RoutePoint *pr,int nbr);
-      wxXmlNode *CreateGPXTptNode(RoutePoint *pr,int nbr);
+//      wxXmlNode *CreateGPXTptNode(RoutePoint *pr,int nbr);
       void WriteXMLNavObj(const wxString& file);
       bool WptIsInRouteList(RoutePoint *pr);
 
       RoutePoint *GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool LoadRoute=false);
       void GPXLoadRoute(wxXmlNode* rtenode);
-      void GPXLoadTrack(wxXmlNode* trknode);
 
       bool ExportGPXRoute(wxWindow* parent, Route *pRoute);
 
@@ -515,7 +520,7 @@ class NavObjectCollection : public wxXmlDocument
             bool CreateGPXTracks(void);
 
             bool LoadAllGPXTracks(void);
-            void LoadGPXTrack(wxXmlNode *trknode);
+//            void LoadGPXTrack(wxXmlNode *trknode);
 
       private:
 

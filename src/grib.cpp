@@ -43,7 +43,7 @@
 #include "georef.h"
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.2 2009/11/19 01:46:54 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.3 2009/11/23 04:18:51 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -54,6 +54,8 @@ extern int              g_grib_dialog_sx, g_grib_dialog_sy;
 extern wxString         g_grib_dir;
 
 extern ChartCanvas     *cc1;
+
+extern bool             g_bGRIBUseHiDef;
 
 #include "bitmaps/folder.xpm"
 
@@ -76,7 +78,7 @@ static int CompareFileStringTime ( const wxString& first, const wxString& second
       wxFileName f ( first );
       wxFileName s ( second );
       wxTimeSpan sp = f.GetModificationTime() - s.GetModificationTime();
-      return sp.IsPositive();
+      return sp.IsNegative();
 
 //      return ::wxFileModificationTime(first) - ::wxFileModificationTime(second);
 }
@@ -136,7 +138,7 @@ bool GRIBUIDialog::Create ( wxWindow *parent, wxWindowID id, const wxString& cap
             wstyle |= ( wxNO_BORDER );
 
       wxSize size_min = size;
-      size_min.IncTo ( wxSize ( 500,600 ) );
+//      size_min.IncTo ( wxSize ( 500,600 ) );
       if ( !wxDialog::Create ( parent, id, caption, pos, size_min, wstyle ) )
             return false;
 
@@ -156,11 +158,8 @@ bool GRIBUIDialog::Create ( wxWindow *parent, wxWindowID id, const wxString& cap
  //     if ( CanSetTransparent() )
  //           SetTransparent ( 192 );
 
-// This fits the dialog to the minimum size dictated by the sizers
-      GetSizer()->Fit ( this );
-
 // This ensures that the dialog cannot be sized smaller than the minimum size
-      GetSizer()->SetSizeHints ( this );
+//      GetSizer()->SetSizeHints ( this );
 
       return true;
 }
@@ -246,7 +245,7 @@ void GRIBUIDialog::CreateControls()
       wxColour button_color = GetGlobalColor ( _T ( "UIBCK" ) );;
 
 // The OK button
-      wxButton* bOK = new wxButton ( this, ID_OK, wxT ( "&OK" ),
+      wxButton* bOK = new wxButton ( this, ID_OK, wxT ( "&Close" ),
                                      wxDefaultPosition, wxDefaultSize, 0 );
       AckBox->Add ( bOK, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
       bOK->SetBackgroundColour ( button_color );
@@ -389,8 +388,9 @@ void GRIBUIDialog::PopulateTreeControl()
       //    Get an array of GRIB file names in the target directory, not descending into subdirs
       wxArrayString file_array;
 
-      m_n_files = wxDir::GetAllFiles ( m_currentGribDir, &file_array, _T ( "*.grb" ), wxDIR_FILES );
-      m_n_files += wxDir::GetAllFiles ( m_currentGribDir, &file_array, _T ( "*.grb.bz2" ), wxDIR_FILES );
+//      m_n_files = wxDir::GetAllFiles ( m_currentGribDir, &file_array, _T ( "*.grb" ), wxDIR_FILES );
+//      m_n_files += wxDir::GetAllFiles ( m_currentGribDir, &file_array, _T ( "*.grb.bz2" ), wxDIR_FILES );
+      m_n_files = wxDir::GetAllFiles ( m_currentGribDir, &file_array, _T ( "*" ), wxDIR_FILES );
 
       //    Sort the files by File Modification Date
       file_array.Sort ( CompareFileStringTime );
@@ -407,10 +407,16 @@ void GRIBUIDialog::PopulateTreeControl()
             wxFileName fn ( file_array[i] );
             m_pRecordTree->m_file_id_array[i] = m_pRecordTree->AppendItem ( m_RecordTree_root_id,
                                  fn.GetFullName(), -1, -1, pmtid );
+
+            m_pRecordTree->SetItemTextColour(m_pRecordTree->m_file_id_array[i], GetGlobalColor ( _T ( "UBLCK")));
       }
 
+
       //    Will this be too slow?
-      for ( int i=0 ; i < m_n_files ; i++ )
+      //    Parse and show at most "n" files, maybe move to config?
+      int n_parse = wxMin(5, m_n_files);
+
+      for ( int i=0 ; i < n_parse ; i++ )
       {
             GribTreeItemData *pdata =  (GribTreeItemData *)m_pRecordTree->GetItemData(m_pRecordTree->m_file_id_array[i]);
 
@@ -430,6 +436,9 @@ void GRIBUIDialog::PopulateTreeControl()
             }
       }
 
+      //    No GRS is selected on first building the tree
+      SetGribRecordSet ( NULL );
+
 }
 
 void GRIBUIDialog::PopulateTreeControlGRS ( GRIBFile *pgribfile, int file_index )
@@ -440,6 +449,8 @@ void GRIBUIDialog::PopulateTreeControlGRS ( GRIBFile *pgribfile, int file_index 
 
       if(rsa->GetCount() == 0)
             m_pRecordTree->SetItemTextColour(m_pRecordTree->m_file_id_array[file_index], GetGlobalColor ( _T ( "DILG1")));
+      else
+            m_pRecordTree->SetItemTextColour(m_pRecordTree->m_file_id_array[file_index], GetGlobalColor ( _T ( "BLUE2")));
 
       for ( unsigned int i=0 ; i < rsa->GetCount() ; i++ )
       {
@@ -612,6 +623,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
 
 bool GRIBOverlayFactory::RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMemoryDC *pmdc, ViewPort *vp)
 {
+
       //    Get the the grid
       int imax = pGRX->getNi();                  // Longitude
       int jmax = pGRX->getNj();                  // Latitude
@@ -647,11 +659,15 @@ bool GRIBOverlayFactory::RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMe
                         if(abs(p.y - oldy) >= space)
                         {
                               oldy = p.y;
-                              double vx = pGRX->getValue(i, j);
-                              double vy = pGRY->getValue(i, j);
 
-                              if (vx != GRIB_NOTDEF && vy != GRIB_NOTDEF)
-                                    drawWindArrowWithBarbs(pmdc, p.x, p.y, vx, vy, (lat < 0.), GetGlobalColor ( _T ( "YELO2" ) ));
+                              if(vp->vpBBox.PointInBox(lon, lat, 0.))
+                              {
+                                    double vx = pGRX->getValue(i, j);
+                                    double vy = pGRY->getValue(i, j);
+
+                                    if (vx != GRIB_NOTDEF && vy != GRIB_NOTDEF)
+                                          drawWindArrowWithBarbs(pmdc, p.x, p.y, vx, vy, (lat < 0.), GetGlobalColor ( _T ( "YELO2" ) ));
+                              }
                         }
                   }
             }
@@ -678,7 +694,7 @@ bool GRIBOverlayFactory::RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, V
       for(unsigned int i = 0 ; i < m_IsobarArray.GetCount() ; i++)
       {
             IsoLine *piso = (IsoLine *)m_IsobarArray.Item(i);
-            piso->drawIsoLine(pmdc, vp);
+            piso->drawIsoLine(pmdc, vp, g_bGRIBUseHiDef);
 
             int gr = 80;
             wxColour color = wxColour(gr,gr,gr);
@@ -699,56 +715,6 @@ bool GRIBOverlayFactory::RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, V
 wxPoint GRIBOverlayFactory::GetDCPixPoint(ViewPort *vp, double lat, double lon)
 {
       return vp->GetMercatorPixFromLL(lat, lon);
-
-
-/*
-      //      Inline the Simple Mercator Transform for performance reasons
-      // See the code at toSM()
-      double easting, northing;
-      {
-            double s, y3, s0, y30;
-            double z = WGS84_semimajor_axis_meters * mercator_k0;
-
-            double xlon = lon;
-
-            //  Make sure lon and lon0 are same phase
-            if(xlon * vp->clon < 0.)
-            {
-                  if(xlon < 0.)
-                        xlon += 360.;
-                  else
-                        xlon -= 360.;
-            }
-
-            if(fabs(xlon - vp->clon) > 180.)
-            {
-                  if(xlon > vp->clon)
-                        xlon -= 360.;
-                  else
-                        xlon += 360.;
-            }
-            easting = (xlon - vp->clon) * DEGREE * z;
-
-            s = sin(lat * DEGREE);
-            y3 = (.5 * log((1 + s) / (1 - s))) * z;
-
-            s0 = sin(vp->clat * DEGREE);
-            y30 = (.5 * log((1 + s0) / (1 - s0))) * z;
-            northing = y3 - y30;
-      }
-
-      double epix = easting  * vp->view_scale_ppm;
-      double npix = northing * vp->view_scale_ppm;
-
-      double dx = epix * cos ( vp->skew ) + npix * sin ( vp->skew );
-      double dy = npix * cos ( vp->skew ) - epix * sin ( vp->skew );
-
-      wxPoint r;
-      r.x = ( int ) round ( ( vp->pix_width  / 2 ) + dx );
-      r.y = ( int ) round ( ( vp->pix_height / 2 ) - dy );
-
-      return r;
-      */
 }
 
 void GRIBOverlayFactory::drawWindArrowWithBarbs(wxMemoryDC *pmdc,
@@ -855,11 +821,21 @@ void GRIBOverlayFactory::drawTransformedLine( wxMemoryDC *pmdc, wxPen pen,
       ll = (int) (k*si+l*co +0.5) + dj;
 
 #if wxUSE_GRAPHICS_CONTEXT
-      if(m_pgc)
+      if(g_bGRIBUseHiDef)
       {
-            m_pgc->SetPen(pen);
-            m_pgc->StrokeLine(ii, jj, kk, ll);
+            if(m_pgc)
+            {
+                  m_pgc->SetPen(pen);
+                  m_pgc->StrokeLine(ii, jj, kk, ll);
+            }
       }
+      else
+      {
+            pmdc->SetPen(pen);
+            pmdc->SetBrush(*wxTRANSPARENT_BRUSH);
+            pmdc->DrawLine(ii, jj, kk, ll);
+      }
+
 #else
       pmdc->SetPen(pen);
       pmdc->SetBrush(*wxTRANSPARENT_BRUSH);
