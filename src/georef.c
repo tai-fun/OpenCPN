@@ -56,7 +56,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.16 2009/11/18 01:24:54 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.17 2009/11/23 04:16:51 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -462,13 +462,20 @@ void toSM_ECC(double lat, double lon, double lat0, double lon0, double *x, doubl
                   xlon -= 360.;
       }
 
+      if(fabs(xlon - lon0) > 180.)
+      {
+            if(xlon > lon0)
+                  xlon -= 360.;
+            else
+                  xlon += 360.;
+      }
+
       z = WGS84_semimajor_axis_meters * mercator_k0;
 
       x1 = (xlon - lon0) * DEGREE * z;
       *x = x1;
 
-
-     // y =.5 ln( (1 + sin t) / (1 - sin t) )
+// y =.5 ln( (1 + sin t) / (1 - sin t) )
       s = sin(lat * DEGREE);
       y3 = (.5 * log((1 + s) / (1 - s))) * z;
 
