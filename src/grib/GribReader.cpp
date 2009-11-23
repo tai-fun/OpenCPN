@@ -596,7 +596,7 @@ double GribReader::computeDewPoint(double lon, double lat, time_t now)
 //-------------------------------------------------------------------------------
 void GribReader::openFile(const wxString fname)
 {
-    debug("Open file: %s", (char *)fname.c_str());
+    debug("Open file: %s", (const char *)fname.mb_str());
     fileName = fname;
     ok = false;
     clean_all_vectors();
@@ -605,7 +605,7 @@ void GribReader::openFile(const wxString fname)
     //--------------------------------------------------------
     file = zu_open((const char *)fname.mb_str(), "rb", ZU_COMPRESS_AUTO);
     if (file == NULL) {
-        erreur("Can't open file: %s", (char *)fname.c_str());
+        erreur("Can't open file: %s", (const char *)fname.mb_str());
         return;
     }
     readGribFileContent();
@@ -614,21 +614,21 @@ void GribReader::openFile(const wxString fname)
  	if (! ok) {
     	if (file != NULL)
 			zu_close(file);
-    	file = zu_open((const char *)fname.c_str(), "rb", ZU_COMPRESS_BZIP);
+    	file = zu_open((const char *)fname.mb_str(), "rb", ZU_COMPRESS_BZIP);
     	if (file != NULL)
     		readGribFileContent();
     }
  	if (! ok) {
     	if (file != NULL)
 			zu_close(file);
-      file = zu_open((const char *)fname.c_str(), "rb", ZU_COMPRESS_GZIP);
+      file = zu_open((const char *)fname.mb_str(), "rb", ZU_COMPRESS_GZIP);
     	if (file != NULL)
     		readGribFileContent();
     }
  	if (! ok) {
     	if (file != NULL)
 			zu_close(file);
-      file = zu_open((const char *)fname.c_str(), "rb", ZU_COMPRESS_NONE);
+      file = zu_open((const char *)fname.mb_str(), "rb", ZU_COMPRESS_NONE);
     	if (file != NULL)
     		readGribFileContent();
     }
