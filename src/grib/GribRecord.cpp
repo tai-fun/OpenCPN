@@ -233,7 +233,7 @@ GribRecord::~GribRecord()
         BMSbits = NULL;
     }
 
-//if (dataType==GRB_TEMP) printf("record destroyed %s   %d\n", dataKey.c_str(), (int)curDate/3600);
+//if (dataType==GRB_TEMP) printf("record destroyed %s   %d\n", dataKey.mb_str(), (int)curDate/3600);
 }
 
 //-------------------------------------------------------------------------------
@@ -282,8 +282,8 @@ bool GribRecord::readGribSection0_IS(ZUFILE* file, bool b_skip_initial_GRIB) {
             return false;
       }*/
       if (strncmp(strgrib, "GRIB", 4) != 0)  {
-            erreur("readGribSection0_IS(): Unknown file header : %c%c%c%c",
-                        strgrib[0],strgrib[1],strgrib[2],strgrib[3]);
+//            erreur("readGribSection0_IS(): Unknown file header : %c%c%c%c",
+//                        strgrib[0],strgrib[1],strgrib[2],strgrib[3]);
             ok = false;
             eof = true;
             return false;
