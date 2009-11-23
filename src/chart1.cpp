@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.64 2009/11/19 01:47:12 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.65 2009/11/23 04:10:34 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.65  2009/11/23 04:10:34  bdbcat
+ * Change scale logic on chart switch
+ *
  * Revision 1.64  2009/11/19 01:47:12  bdbcat
  * Correct crash if cc1 NULL
  *
@@ -265,7 +268,7 @@
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.64 2009/11/19 01:47:12 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.65 2009/11/23 04:10:34 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -555,6 +558,7 @@ int              g_grib_dialog_x, g_grib_dialog_y;
 int              g_grib_dialog_sx, g_grib_dialog_sy;
 wxString         g_grib_dir;
 bool             g_bShowGRIBIcon;
+bool             g_bGRIBUseHiDef;
 
 
 bool             g_b_overzoom_x;                      // Allow high overzoom
@@ -563,6 +567,8 @@ bool             g_bshow_overzoom_emboss;
 int              g_n_ownship_meters;
 
 int              g_nautosave_interval_seconds;
+
+bool             g_bPreserveScaleOnX;
 
 about             *g_pAboutDlg;
 
@@ -2062,7 +2068,7 @@ wxToolBar *MyFrame::CreateAToolbar()
     if (g_bShowGRIBIcon)
     {
           tb->AddTool( ID_GRIB, _T(""), *(*phash)[wxString(_T("grib"))], *(*phash)[wxString(_T("grib"))],
-                       wxITEM_CHECK,_T("Show GRIB dialog"));
+                       wxITEM_NORMAL,_T("Show GRIB dialog"));
           x += pitch_tool;
           x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
@@ -2863,7 +2869,10 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
     }
     case ID_GRIB:
     {
-          cc1->ShowGribDialog();
+          if(NULL == g_pGribDialog)
+               cc1->ShowGribDialog();
+          else
+                g_pGribDialog->Close();
 
           break;
     }
@@ -3703,12 +3712,11 @@ void MyFrame::SelectChartFromStack(int index, bool bDir, ChartTypeEnum New_Type,
             else
                 new_sample_mode = FORCE_SUBSAMPLE;
 
-
             double proposed_scale_onscreen = cc1->GetCanvasScaleFactor() / cc1->GetVPScale();
 
 //            printf(" current scale_onscreen: %g\n",  proposed_scale_onscreen);
 
-            if((Current_Ch->m_ChartType == CHART_TYPE_KAP) || (Current_Ch->m_ChartType == CHART_TYPE_GEO))
+            if(Current_Ch->m_ChartFamily == CHART_FAMILY_RASTER)
             {
                 //  New chart is raster type
                 // try to match new viewport scale to the previous view scale,
@@ -3717,7 +3725,23 @@ void MyFrame::SelectChartFromStack(int index, bool bDir, ChartTypeEnum New_Type,
                   ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
                   double target_scale_ppm = cc1->GetVPScale();
 
-                  double new_scale = Cur_BSB_Ch->GetClosestValidNaturalScalePPM(target_scale_ppm);
+                  double s_min, s_max;
+                  if(g_bPreserveScaleOnX)
+                  {
+                        s_min = 1./8.;
+                        s_max = 64.;
+                  }
+                  else
+                  {
+                        s_min = 1./2;
+                        s_max = 1.0;
+                  }
+
+
+//                  double new_scale = Cur_BSB_Ch->GetClosestValidNaturalScalePPM(target_scale_ppm, 1./8., 1.);     // 1.34 behaviour
+//                  double new_scale = Cur_BSB_Ch->GetClosestValidNaturalScalePPM(target_scale_ppm, 1./8., 64.);      // 1.35 Beta 1118 behaviour
+//                  double new_scale = Cur_BSB_Ch->GetClosestValidNaturalScalePPM(target_scale_ppm, 1./2., 1.);      // Proposed 1.35 behaviour
+                  double new_scale = Cur_BSB_Ch->GetClosestValidNaturalScalePPM(target_scale_ppm, s_min, s_max);      // New option 1.35 behaviour
                   proposed_scale_onscreen = cc1->GetCanvasScaleFactor() / new_scale;
             }
 
@@ -4045,7 +4069,7 @@ bool MyFrame::DoChartUpdate(void)
                     {
                       ChartBaseBSB *Cur_BSB_Ch = dynamic_cast<ChartBaseBSB *>(Current_Ch);
 
-                      double new_scale = Cur_BSB_Ch->GetClosestValidNaturalScalePPM(set_scale);
+                      double new_scale = Cur_BSB_Ch->GetClosestValidNaturalScalePPM(set_scale, 1./8., 1.);
                       set_scale = new_scale;
                     }
 
