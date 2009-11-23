@@ -88,7 +88,6 @@ RouteProp::RouteProp( wxWindow* parent, wxWindowID id,
       wxScrollingDialog::Create( parent, id, caption, pos, size,wstyle );
 */
       Create(parent, id, caption, pos, size, style);
-      CreateControls();
       GetSizer()->SetSizeHints(this);
       Centre();
 
@@ -144,14 +143,11 @@ RouteProp::~RouteProp( )
 bool RouteProp::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
 {
 
-////@begin RouteProp creation
     SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS);
     wxDialog::Create( parent, id, caption, pos, size, style );
 
     CreateControls();
-    GetSizer()->SetSizeHints(this);
-    Centre();
-////@end RouteProp creation
+
     return TRUE;
 }
 
@@ -221,7 +217,7 @@ void RouteProp::CreateControls()
     wxStaticBoxSizer* itemStaticBoxSizer14 = new wxStaticBoxSizer(itemStaticBoxSizer14Static, wxVERTICAL);
     itemBoxSizer2->Add(itemStaticBoxSizer14, 1, wxEXPAND|wxALL, 5);
 
-    m_wpList = new wxListCtrl( itemDialog1, ID_LISTCTRL, wxDefaultPosition, wxSize(-1, 100),
+    m_wpList = new wxListCtrl( itemDialog1, ID_LISTCTRL, wxDefaultPosition, wxSize(-1, 200),
                                wxLC_REPORT|wxLC_HRULES|wxLC_VRULES|wxLC_EDIT_LABELS );
     itemStaticBoxSizer14->Add(m_wpList, 2, wxEXPAND|wxALL, 5);
 
