@@ -117,12 +117,13 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
-	src/chart1.cpp src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
-	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
-	src/nmea.cpp src/routeman.cpp src/routeprop.cpp \
-	src/sercomm.cpp src/statwin.cpp src/tcmgr.cpp src/thumbwin.cpp \
-	src/options.cpp src/wvschart.cpp src/about.cpp src/ais.cpp \
-	src/cm93.cpp src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
+	src/chart1.cpp src/chartdb.cpp src/chartdbs.cpp \
+	src/chartimg.cpp src/chcanv.cpp src/concanv.cpp src/cutil.c \
+	src/georef.c src/navutil.cpp src/nmea.cpp src/routeman.cpp \
+	src/routeprop.cpp src/sercomm.cpp src/statwin.cpp \
+	src/tcmgr.cpp src/thumbwin.cpp src/options.cpp \
+	src/wvschart.cpp src/about.cpp src/ais.cpp src/cm93.cpp \
+	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
 	src/nmea0183/sentence.cpp src/nmea0183/talkerid.cpp \
@@ -199,23 +200,24 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 @BUILD_FOR_DARWIN_TRUE@am__objects_3 = macsercomm.$(OBJEXT) \
 @BUILD_FOR_DARWIN_TRUE@	macutils.$(OBJEXT)
 am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
-	chart1.$(OBJEXT) chartdb.$(OBJEXT) chartimg.$(OBJEXT) \
-	chcanv.$(OBJEXT) concanv.$(OBJEXT) cutil.$(OBJEXT) \
-	georef.$(OBJEXT) navutil.$(OBJEXT) nmea.$(OBJEXT) \
-	routeman.$(OBJEXT) routeprop.$(OBJEXT) sercomm.$(OBJEXT) \
-	statwin.$(OBJEXT) tcmgr.$(OBJEXT) thumbwin.$(OBJEXT) \
-	options.$(OBJEXT) wvschart.$(OBJEXT) about.$(OBJEXT) \
-	ais.$(OBJEXT) cm93.$(OBJEXT) latlong.$(OBJEXT) long.$(OBJEXT) \
-	nmea0183.$(OBJEXT) response.$(OBJEXT) rmb.$(OBJEXT) \
-	sentence.$(OBJEXT) talkerid.$(OBJEXT) rmc.$(OBJEXT) \
-	hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) wpl.$(OBJEXT) \
-	rte.$(OBJEXT) hdt.$(OBJEXT) hdg.$(OBJEXT) hdm.$(OBJEXT) \
-	gll.$(OBJEXT) vtg.$(OBJEXT) scrollingdialog.$(OBJEXT) \
-	grib.$(OBJEXT) GribReader.$(OBJEXT) GribRecord.$(OBJEXT) \
-	zuFile.$(OBJEXT) IsoLine.$(OBJEXT) blocksort.$(OBJEXT) \
-	bzlib.$(OBJEXT) compress.$(OBJEXT) crctable.$(OBJEXT) \
-	decompress.$(OBJEXT) huffman.$(OBJEXT) randtable.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_2) $(am__objects_3)
+	chart1.$(OBJEXT) chartdb.$(OBJEXT) chartdbs.$(OBJEXT) \
+	chartimg.$(OBJEXT) chcanv.$(OBJEXT) concanv.$(OBJEXT) \
+	cutil.$(OBJEXT) georef.$(OBJEXT) navutil.$(OBJEXT) \
+	nmea.$(OBJEXT) routeman.$(OBJEXT) routeprop.$(OBJEXT) \
+	sercomm.$(OBJEXT) statwin.$(OBJEXT) tcmgr.$(OBJEXT) \
+	thumbwin.$(OBJEXT) options.$(OBJEXT) wvschart.$(OBJEXT) \
+	about.$(OBJEXT) ais.$(OBJEXT) cm93.$(OBJEXT) latlong.$(OBJEXT) \
+	long.$(OBJEXT) nmea0183.$(OBJEXT) response.$(OBJEXT) \
+	rmb.$(OBJEXT) sentence.$(OBJEXT) talkerid.$(OBJEXT) \
+	rmc.$(OBJEXT) hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) \
+	wpl.$(OBJEXT) rte.$(OBJEXT) hdt.$(OBJEXT) hdg.$(OBJEXT) \
+	hdm.$(OBJEXT) gll.$(OBJEXT) vtg.$(OBJEXT) \
+	scrollingdialog.$(OBJEXT) grib.$(OBJEXT) GribReader.$(OBJEXT) \
+	GribRecord.$(OBJEXT) zuFile.$(OBJEXT) IsoLine.$(OBJEXT) \
+	blocksort.$(OBJEXT) bzlib.$(OBJEXT) compress.$(OBJEXT) \
+	crctable.$(OBJEXT) decompress.$(OBJEXT) huffman.$(OBJEXT) \
+	randtable.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
+	$(am__objects_3)
 opencpn_OBJECTS = $(am_opencpn_OBJECTS)
 am__DEPENDENCIES_1 =
 @BUILD_WITH_GLU_TESS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
@@ -338,7 +340,7 @@ PKG_CONFIG = @PKG_CONFIG@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-VERSION = 1.3.4
+VERSION = 1.3.6
 WX_HOME = @WX_HOME@
 WX_LIBS = @WX_LIBS@
 WX_RELEASE = @WX_RELEASE@
@@ -408,12 +410,13 @@ opencpn_LDFLAGS =
 opencpn_LDADD = $(WX_LIBS) $(am__append_7)
 wxhome = $(WX_HOME)
 opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
-	src/chartdb.cpp src/chartimg.cpp src/chcanv.cpp \
-	src/concanv.cpp src/cutil.c src/georef.c src/navutil.cpp \
-	src/nmea.cpp src/routeman.cpp src/routeprop.cpp \
-	src/sercomm.cpp src/statwin.cpp src/tcmgr.cpp src/thumbwin.cpp \
-	src/options.cpp src/wvschart.cpp src/about.cpp src/ais.cpp \
-	src/cm93.cpp src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
+	src/chartdb.cpp src/chartdbs.cpp src/chartimg.cpp \
+	src/chcanv.cpp src/concanv.cpp src/cutil.c src/georef.c \
+	src/navutil.cpp src/nmea.cpp src/routeman.cpp \
+	src/routeprop.cpp src/sercomm.cpp src/statwin.cpp \
+	src/tcmgr.cpp src/thumbwin.cpp src/options.cpp \
+	src/wvschart.cpp src/about.cpp src/ais.cpp src/cm93.cpp \
+	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
 	src/nmea0183/sentence.cpp src/nmea0183/talkerid.cpp \
@@ -580,6 +583,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bzlib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chart1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartdb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartdbs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chartimg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chcanv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cm93.Po@am__quote@
@@ -910,6 +914,20 @@ chartdb.obj: src/chartdb.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/chartdb.cpp' object='chartdb.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o chartdb.obj `if test -f 'src/chartdb.cpp'; then $(CYGPATH_W) 'src/chartdb.cpp'; else $(CYGPATH_W) '$(srcdir)/src/chartdb.cpp'; fi`
+
+chartdbs.o: src/chartdbs.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT chartdbs.o -MD -MP -MF $(DEPDIR)/chartdbs.Tpo -c -o chartdbs.o `test -f 'src/chartdbs.cpp' || echo '$(srcdir)/'`src/chartdbs.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/chartdbs.Tpo $(DEPDIR)/chartdbs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/chartdbs.cpp' object='chartdbs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o chartdbs.o `test -f 'src/chartdbs.cpp' || echo '$(srcdir)/'`src/chartdbs.cpp
+
+chartdbs.obj: src/chartdbs.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT chartdbs.obj -MD -MP -MF $(DEPDIR)/chartdbs.Tpo -c -o chartdbs.obj `if test -f 'src/chartdbs.cpp'; then $(CYGPATH_W) 'src/chartdbs.cpp'; else $(CYGPATH_W) '$(srcdir)/src/chartdbs.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/chartdbs.Tpo $(DEPDIR)/chartdbs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/chartdbs.cpp' object='chartdbs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o chartdbs.obj `if test -f 'src/chartdbs.cpp'; then $(CYGPATH_W) 'src/chartdbs.cpp'; else $(CYGPATH_W) '$(srcdir)/src/chartdbs.cpp'; fi`
 
 chartimg.o: src/chartimg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT chartimg.o -MD -MP -MF $(DEPDIR)/chartimg.Tpo -c -o chartimg.o `test -f 'src/chartimg.cpp' || echo '$(srcdir)/'`src/chartimg.cpp

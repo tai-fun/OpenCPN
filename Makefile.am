@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-VERSION=1.3.4
+VERSION=1.3.6
 COPYRIGHT_YEAR=2009
 WX_LIB_DIR=$(WX_HOME)/lib
 
@@ -50,7 +50,6 @@ opencpn_LDADD += $(GL_LIBS)
 endif
 
 
-#opencpn_LDADD += ./$(srcdir)/src/grib/bzip2/libbz2.a
 
 bin_PROGRAMS = opencpn
 
@@ -58,6 +57,7 @@ opencpn_SOURCES = 	src/bbox.cpp \
  			src/ocpn_pixel.cpp \
 			src/chart1.cpp \
 			src/chartdb.cpp \
+			src/chartdbs.cpp \
 			src/chartimg.cpp \
 			src/chcanv.cpp \
 			src/concanv.cpp \

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.40 2009/11/23 04:09:21 bdbcat Exp $
+ * $Id: about.cpp,v 1.41 2009/12/10 21:31:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.41  2009/12/10 21:31:47  bdbcat
+ * Beta 1210
+ *
  * Revision 1.40  2009/11/23 04:09:21  bdbcat
  * 1122
  *
@@ -154,12 +157,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.40 2009/11/23 04:09:21 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.41 2009/12/10 21:31:47 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n           Version 1.3.5 Build 1122"};
+char OpenCPNVersion[] = {"\n\n           Version 1.3.5 Build 1210"};
 
 
 char AboutText[] =
@@ -173,67 +176,70 @@ char AuthorText[] =
 "   David S Register\n\
       bdbcat@yahoo.com\n\
       OpenCPN Lead Developer\n\n\
+    Mark A Sikes\n\
+      markasikes@gmail.com\n\
+      OpenCPN CoDeveloper\n\n\
     Thomas Haller\n\
       thomasmartin.haller@web.de\n\
       GPX Import/Export Implementation\n\n\
     Will Kamp\n\
       will@matrixmariner.com\n\
       Toolbar Icon design\n\n\
-   Richard Smith\n\
+    Richard Smith\n\
       smithstrawler@hotmail.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
-   David Herring\n\
+    David Herring\n\
       dherring@dherring.com\n\
       OpenCPN CoDeveloper, MacOSX\n\n\
-   Philip Lange\n\
+    Philip Lange\n\
       philip.lange@albemarleweb.com\n\
       OpenCPN Documentation\n\n\
-   Ron Kuris\n\
+    Ron Kuris\n\
       swcafe@gmail.com\n\
       wxWidgets Support\n\n\
-  Julian Smart, Robert Roebling et al\n\
+    Julian Smart, Robert Roebling et al\n\
       wxwidgets.org\n\
       wxWidgets Authors\n\n\
-   Sylvain Duclos\n\
+    Sylvain Duclos\n\
       sylvain_duclos@yahoo.com\n\
       S52 Presentation Library code\n\n\
-   Manish P. Pagey\n\
+    Manish P. Pagey\n\
       pagey@san.rr.com\n\
       Serial Port Library\n\n\
-   David Flater\n\
+    David Flater\n\
       software@flaterco.com\n\
       XTIDE tide and current code\n\n\
-   Frank Warmerdam\n\
+    Frank Warmerdam\n\
       warmerdam@pobox.com\n\
       GDAL Class Library\n\n\
-   Mike Higgins\n\
+    Mike Higgins\n\
       higgins@monitor.net\n\
       BSB Chart Format Detail\n\n\
-   Samuel R. Blackburn\n\
+    Samuel R. Blackburn\n\
       sammy@sed.csc.com\n\
       NMEA0183 Class Library\n\n\
-   Atul Narkhede\n\
+    Atul Narkhede\n\
       narkhede@cs.unc.edu\n\
       Polygon Graphics utilities\n\n\
-   Jan C. Depner\n\
+    Jan C. Depner\n\
       depnerj@navo.navy.mil\n\
       WVS Chart Library\n\n\
-   Stuart Cunningham, et al\n\
+    Stuart Cunningham, et al\n\
       stuart_hc@users.sourceforge.net\n\
       BSB Chart Georeferencing Algorithms\n\n\
-   John F. Waers\n\
+    John F. Waers\n\
       jfwaers@csn.net\n\
       UTM Conversion Algorithms\n\n\
-   Carsten Tschach\n\
+    Carsten Tschach\n\
       tschach@zedat.fu-berlin.de\n\
       UTM Conversion Algorithms\n\n\
-   Ed Williams\n\
+    Ed Williams\n\
       http://williams.best.vwh.net/avform.htm\n\
       Great Circle Formulary\n\n\
-   Philippe Bekaert\n\
+    Philippe Bekaert\n\
                    \n\
       CIE->RGB Color Conversion Matrix\n\n\
-   Robert Lipe\n\
+    Robert Lipe\n\
       robertlipe@usa.net\n\
       Garmin USB GPS Interface\n"
 
@@ -254,7 +260,6 @@ char AuthorText[] =
       triangles                         Public Domain see tri.c, compatible with GPL
       wvschart                          Public Domain see wvschart.cpp, compatible with GPL
 
-      sercomm ??? Possible rewrite\
 */
 
 
