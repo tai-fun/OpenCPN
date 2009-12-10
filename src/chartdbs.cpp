@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.cpp,v 1.1 2009/12/10 21:19:12 bdbcat Exp $
+* $Id: chartdbs.cpp,v 1.2 2009/12/10 22:16:54 bdbcat Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.cpp,v $
+* Revision 1.2  2009/12/10 22:16:54  bdbcat
+* Unicode correction
+*
 * Revision 1.1  2009/12/10 21:19:12  bdbcat
 * Beta 1210
 *
@@ -297,7 +300,7 @@ bool ChartTableEntry::Read(const ChartDatabase *pDb, wxInputStream &is)
      // TODO: optimize prepended dir
       pFullPath = (char *)malloc(cp - path + 1);
       strncpy(pFullPath, path, cp - path + 1);
-      wxLogVerbose("  Chart %s", pFullPath);
+      wxLogVerbose(_T("  Chart %s"), pFullPath);
 
       // Read the table entry
       ChartTableEntry_onDisk_15 cte;
@@ -346,7 +349,7 @@ bool ChartTableEntry::Read(const ChartDatabase *pDb, wxInputStream &is)
           for (cp = path; (*cp = (char)is.GetC()) != 0; cp++);
           pFullPath = (char *)malloc(cp - path + 1);
           strncpy(pFullPath, path, cp - path + 1);
-          wxLogVerbose("  Chart %s", pFullPath);
+          wxLogVerbose(_T("  Chart %s"), pFullPath);
 
       // Read the table entry
           ChartTableEntry_onDisk_14 cte;
@@ -419,7 +422,7 @@ bool ChartTableEntry::Write(const ChartDatabase *pDb, wxOutputStream &os)
     cte.bValid = bValid;
 
     os.Write(&cte, sizeof(ChartTableEntry_onDisk_15));
-    wxLogVerbose("  Wrote Chart %s", pFullPath);
+    wxLogVerbose(_T("  Wrote Chart %s"), pFullPath);
 
     //      Write out the tables
     if (nPlyEntries) {
@@ -494,7 +497,7 @@ bool ChartDatabase::Read(const wxString &filePath)
             ifs.Read(&dirbuf, alen);
             dirbuf[alen] = 0;
             dirlen -= alen;
-            dir.Append(dirbuf);
+            dir.Append(wxString(dirbuf, wxConvUTF8));
         }
         wxString msg = wxT("Chart directory ");
         msg.Append(dir);
@@ -697,7 +700,7 @@ int ChartDatabase::TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDia
             for(int ic=0 ; ic<nEntries ; ic++)
             {
 
-                  wxFileName fn(chartTable[ic].GetpFullPath());
+                  wxFileName fn(wxString(chartTable[ic].GetpFullPath(), wxConvUTF8));
                   wxString t = fn.GetPath();
 
 
@@ -1023,7 +1026,7 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
                         //  Look at the chart file name for a further check
                         //  This catches the case in which the "same" chart is in different locations,
                         //  and one may be newer than the other.  Need to open the chart to check it
-                              wxFileName table_file(chartTable[isearch].GetpFullPath());
+                              wxFileName table_file(wxString(chartTable[isearch].GetpFullPath(), wxConvUTF8));
 
                               if( table_file.GetFullName() == file_name )
                               {
