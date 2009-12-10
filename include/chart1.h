@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.h,v 1.32 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: chart1.h,v 1.33 2009/12/10 21:20:30 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  OpenCP Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.h,v $
+ * Revision 1.33  2009/12/10 21:20:30  bdbcat
+ * Beta 1210
+ *
  * Revision 1.32  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -166,9 +169,7 @@ const int ID_TOOLBAR = 500;
 
 enum
 {
-      ID_WEST = 1550,
-      ID_EAST,
-      ID_ZOOMIN,
+      ID_ZOOMIN = 1550,
       ID_ZOOMOUT,
       ID_STKUP,
       ID_STKDN,
@@ -214,14 +215,14 @@ enum
 //    ChartType constants
 typedef enum ChartTypeEnum
 {
-      CHART_TYPE_KAP = 0,
+      CHART_TYPE_UNKNOWN = 0,
+      CHART_TYPE_DUMMY,
+      CHART_TYPE_DONTCARE,
+      CHART_TYPE_KAP,
       CHART_TYPE_GEO,
       CHART_TYPE_S57,
       CHART_TYPE_CM93,
       CHART_TYPE_CM93COMP,
-      CHART_TYPE_DUMMY,
-      CHART_TYPE_UNKNOWN,
-      CHART_TYPE_DONTCARE
 }_ChartTypeEnum;
 
 //    ChartFamily constants
@@ -273,6 +274,19 @@ WX_DECLARE_STRING_HASH_MAP(wxBitmap*, string_to_pbitmap_hash);
 WX_DECLARE_STRING_HASH_MAP(wxString*, string_to_string_hash);
 
 
+
+//    A small class used in an array to describe chart directories
+class ChartDirInfo
+{
+      public:
+      wxString    fullpath;
+      wxString    magic_number;
+};
+
+WX_DECLARE_OBJARRAY(ChartDirInfo, ArrayOfCDI);
+
+
+
 class MyApp: public wxApp
 {
   public:
@@ -308,7 +322,6 @@ class MyFrame: public wxFrame
     void ClearRouteTool();
     void DoStackUp(void);
     void DoStackDown(void);
-    void UpdateChartStatusField(int i);
     void UpdateToolbarStatusWindow(ChartBase *pchart, bool bSendSize = true);
     void MouseEvent(wxMouseEvent& event);
     void SelectChartFromStack(int index,  bool bDir = false,  ChartTypeEnum New_Type = CHART_TYPE_DONTCARE, ChartFamilyEnum New_Family = CHART_FAMILY_DONTCARE);
@@ -361,6 +374,8 @@ class MyFrame: public wxFrame
     void BuildToolBitmap(wxImage *pimg, unsigned char back_color, wxString &index,
                          string_to_pbitmap_hash &hash);
     void DeleteToolbarBitmaps();
+    void EnableToolbar(bool newstate);
+
     void ApplyGlobalColorSchemetoStatusBar(void);
     void PostProcessNNEA(bool brx_rmc, wxString &sfixtime);
 

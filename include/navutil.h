@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.23 2009/11/23 04:19:58 bdbcat Exp $
+ * $Id: navutil.h,v 1.24 2009/12/10 21:22:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.24  2009/12/10 21:22:09  bdbcat
+ * Beta 1210
+ *
  * Revision 1.23  2009/11/23 04:19:58  bdbcat
  * Various for build 1122
  *
@@ -134,8 +137,6 @@
 #include "chcanv.h"
 
 
-
-extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 extern bool LogMessageOnce(wxString &msg);
 extern wxString toSDMM(int NEflag, double a);
 
@@ -367,7 +368,7 @@ public:
       virtual bool UpdateWayPoint(RoutePoint *pWP);
       virtual bool DeleteWayPoint(RoutePoint *pWP);
 
-      virtual bool UpdateChartDirs(wxArrayString *pdirlist);
+      virtual bool UpdateChartDirs(ArrayOfCDI& dirarray);
       virtual void UpdateSettings();
 
       void ExportGPX(wxWindow* parent);   // toh, 2009.02.15
@@ -672,6 +673,73 @@ class WXDLLEXPORT X11FontPicker : public wxFontDialogBase
             DECLARE_EVENT_TABLE()
                         DECLARE_DYNAMIC_CLASS(X11FontPicker)
 };
+
+
+//    TTYScroll and TTYWindow Definition
+//    Scrolled TTY-like window for logging, etc....
+class TTYScroll : public wxScrolledWindow
+{
+      public:
+            TTYScroll(wxWindow *parent, int n_lines)
+      : wxScrolledWindow(parent), m_nLines( n_lines )
+            {
+                  wxClientDC dc(this);
+                  dc.GetTextExtent(_T("Line Height"), NULL, &m_hLine);
+
+                  SetScrollRate( 0, m_hLine );
+                  SetVirtualSize( -1, ( m_nLines + 1 ) * m_hLine );
+                  m_plineArray = new wxArrayString;
+                  for(unsigned int i=0 ; i < m_nLines ; i++)
+                        m_plineArray->Add(_T(""));
+            }
+
+            virtual ~TTYScroll()
+            {
+                  delete m_plineArray;
+            }
+
+            virtual void OnDraw(wxDC& dc);
+            virtual void Add(wxString &line);
+            void OnSize(wxSizeEvent& event);
+
+      protected:
+
+            wxCoord m_hLine;        // the height of one line on screen
+            size_t m_nLines;        // the number of lines we draw
+
+            wxArrayString     *m_plineArray;
+};
+
+
+
+class TTYWindow : public wxDialog
+{
+      DECLARE_DYNAMIC_CLASS( TTYWindow )
+      DECLARE_EVENT_TABLE()
+
+      public:
+            TTYWindow();
+            TTYWindow(wxWindow *parent, int n_lines)
+      : wxDialog(parent, -1, _T("Title"), wxDefaultPosition, wxDefaultSize,
+                 wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+                 {
+                       m_pScroll = new TTYScroll(this, n_lines);
+                       m_pScroll->Scroll(-1, 1000);        // start with full scroll down
+                 }
+
+                 ~TTYWindow();
+
+                 void Add(wxString &line);
+                 void OnCloseWindow(wxCloseEvent& event);
+                 void Close();
+                 void OnSize( wxSizeEvent& event );
+                 void OnMove( wxMoveEvent& event );
+
+
+      protected:
+            TTYScroll   *m_pScroll;
+};
+
 
 
 

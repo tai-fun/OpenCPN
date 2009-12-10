@@ -54,24 +54,48 @@ bool GLL::Parse( const SENTENCE& sentence )
    ** First we check the checksum...
    */
 
-   if ( sentence.IsChecksumBad( 7 ) == NTrue )
-   {
-      SetErrorMessage( _T("Invalid Checksum") );
-      return( FALSE );
-   }
+      int target_field_count = 6;
 
-   if ( sentence.GetNumberOfDataFields() != 6 )
-   {
+      NMEA0183_BOOLEAN check = sentence.IsChecksumBad( 7 );
+
+      if ( check == NTrue )
+      {
+
+  /*
+            ** This may be an NMEA Version 2.3 sentence, with "Mode" field
+  */
+            wxString checksum_in_sentence = sentence.Field( 7 );
+            if(checksum_in_sentence.StartsWith(_T("*")))       // Field is a valid erroneous checksum
+            {
+                  SetErrorMessage( _T("Invalid Checksum") );
+                  return( FALSE );
+            }
+
+            else
+            {
+                  target_field_count = 7;
+                  check = sentence.IsChecksumBad( 8 );
+                  if( check == NTrue)
+                  {
+                        SetErrorMessage( _T("Invalid Checksum") );
+                        return( FALSE );
+                  }
+            }
+      }
+
+
+      if ( sentence.GetNumberOfDataFields() != target_field_count )
+      {
          SetErrorMessage( _T("Invalid FieldCount") );
          return( FALSE );
-   }
+      }
 
 
-   Position.Parse( 1, 2, 3, 4, sentence );
-   UTCTime     = sentence.Field( 5 );
-   IsDataValid = sentence.Boolean( 6 );
+      Position.Parse( 1, 2, 3, 4, sentence );
+      UTCTime     = sentence.Field( 5 );
+      IsDataValid = sentence.Boolean( 6 );
 
-   return( TRUE );
+      return( TRUE );
 }
 
 

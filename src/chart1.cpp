@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.65 2009/11/23 04:10:34 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.66 2009/12/10 21:17:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.66  2009/12/10 21:17:38  bdbcat
+ * Beta 1210
+ *
  * Revision 1.65  2009/11/23 04:10:34  bdbcat
  * Change scale logic on chart switch
  *
@@ -204,6 +207,7 @@
 #include "wx/artprov.h"
 #include "wx/stdpaths.h"
 #include "scrollingdialog.h"
+#include <wx/intl.h>
 
 
 
@@ -265,10 +269,15 @@
 #endif
 #endif
 
+
+
+#include <wx/arrimpl.cpp>
+WX_DEFINE_OBJARRAY(ArrayOfCDI);
+
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.65 2009/11/23 04:10:34 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.66 2009/12/10 21:17:38 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -311,7 +320,9 @@ double          gLat, gLon, gCog, gSog, gHdt, gHDg, gVar;
 double          vLat, vLon;
 double          initial_scale_ppm;
 
-wxArrayString   *pChartDirArray;
+//wxArrayString   *pChartDirArray;
+ArrayOfCDI      g_ChartDirArray;
+
 bool            bDBUpdateInProgress;
 
 ThumbWin        *pthumbwin;
@@ -460,9 +471,11 @@ FILE             *s_fpdebug;
 bool             bAutoOpen;
 bool             bFirstAuto;
 
+bool             g_bUseRMC;
+bool             g_bUseGLL;
+
 int              g_nCacheLimit;
 bool             g_bGDAL_Debug;
-
 //-----------------------------------------------------------------------------------------------------
 //      OCP_NMEA_Thread Static data store
 //-----------------------------------------------------------------------------------------------------
@@ -534,6 +547,7 @@ wxString         g_CM93DictDir;
 
 bool             g_bShowTrackIcon;
 bool             g_bTrackActive;
+bool             g_bTrackCarryOver;
 Track            *g_pActiveTrack;
 double           g_TrackIntervalSeconds;
 double           g_TrackDeltaDistance;
@@ -571,6 +585,13 @@ int              g_nautosave_interval_seconds;
 bool             g_bPreserveScaleOnX;
 
 about             *g_pAboutDlg;
+
+wxPlatformInfo    *g_pPlatform;
+wxLocale         locale_def_lang;
+
+TTYWindow        *g_NMEALogWindow;
+int              g_NMEALogWindow_x, g_NMEALogWindow_y;
+int              g_NMEALogWindow_sx, g_NMEALogWindow_sy;
 
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
@@ -677,30 +698,8 @@ catch_signals(int signo)
 }
 #endif
 
-/*
-#include "DbgHeap.h"
-// Enable invalid memory access detection mode
-DbgHeap g_Heap; // the global debug heap object.
 
-void* operator new (size_t nSize)
-{
-    // the last parameter - allocation alignment method
-    void* pPtr = g_Heap.Allocate(nSize, true);
-    // you may run your program with both methods to ensure everything's ok
 
-    if (!pPtr)
-    {
-        // do whatever you want if no memory. Either return NULL pointer
-        // or throw an exception. This is flexible.
-    }
-    return pPtr;
-}
-
-void operator delete (void* pPtr)
-{
-    g_Heap.Free(pPtr);
-}
-*/
 
 
 // `Main program' equivalent, creating windows and returning main app frame
@@ -717,7 +716,7 @@ bool MyApp::OnInit()
       if (!wxApp::OnInit())
             return false;
 
-      wxPlatformInfo Platform = wxPlatformInfo::Get();
+      g_pPlatform = new wxPlatformInfo;
 
       //    On MSW, force the entire process to run on one CPU core only
       //    This resolves some difficulty with wxThread syncronization
@@ -755,6 +754,38 @@ bool MyApp::OnInit()
 #endif
 
 
+      //    Manage internationalization of embedded messages
+      //    using wxWidgets/gettext methodology....
+
+         wxString    loc_lang_canonical;
+         wxString    loc_lang_filename;
+
+      // Add a new prefix for search order. New prefix = .\lang,
+      // where '.' refers to the opencpn.exe directory
+         wxLocale::AddCatalogLookupPathPrefix(wxT(".\\lang"));
+
+      // Set default language
+      // i.e. : Set programer's language as default language
+      // because of trouble encoutered with wxLANGUAGE_DEFAULT
+      // and wxLANGUAGE_FRENCH
+      //        locale_def_lang.Init( wxLANGUAGE_DEFAULT, wxLOCALE_CONV_ENCODING );
+         locale_def_lang.Init( wxLANGUAGE_ENGLISH_US, wxLOCALE_CONV_ENCODING );
+
+      // Set filename without extension (exemple : opencpn_fr_FR)
+      // i.e. : Set-up the filename needed for translation
+      //        sprintf(loc_lang_filename, "opencpn_%s", def_lang->GetCanonicalName());
+         loc_lang_canonical = wxLocale::GetLanguageInfo(wxLANGUAGE_DEFAULT)->CanonicalName;
+         loc_lang_filename = _T("opencpn_") + loc_lang_canonical;
+
+      // Get translation file (example : opencpn_fr_FR.mo)
+      // No problem if the file doesn't exist
+      // as this case is handled by wxWidgets
+         locale_def_lang.AddCatalog(loc_lang_filename);
+
+
+
+
+
 
 
 #ifdef __MSVC__LEAK
@@ -785,7 +816,7 @@ bool MyApp::OnInit()
       //    processes.  The exception filter is in cutil.c
       //    Seems to only happen for W98
 
-      if(Platform.GetOperatingSystemId() == wxOS_WINDOWS_9X)
+      if(g_pPlatform->GetOperatingSystemId() == wxOS_WINDOWS_9X)
             SetUnhandledExceptionFilter( &MyUnhandledExceptionFilter );
 #endif
 
@@ -944,7 +975,7 @@ bool MyApp::OnInit()
         pMessageOnceArray = new wxArrayString;
 
 //      Init the Chart Dir Array(s)
-        pChartDirArray = new wxArrayString();
+//        pChartDirArray = new wxArrayString();
 
 //      Init the Selectable Route Items List
         pSelect = new Select();
@@ -1382,16 +1413,27 @@ bool MyApp::OnInit()
         {
                 bDBUpdateInProgress = true;
 
-                if(pChartDirArray->GetCount())
+                if(g_ChartDirArray.GetCount())
                 {
 //              Create and Save a new Chart Database based on the hints given in the config file
+
+                        wxString msg1(_T("OpenCPN needs to update the chart database from config file entries...."));
+
+                        wxMessageDialog mdlg(gFrame, msg1, wxString(_T("OpenCPN Info")),wxICON_INFORMATION | wxOK );
+                        int dlg_ret;
+                        dlg_ret = mdlg.ShowModal();
 
                         delete ChartData;
                         ChartData = new ChartDB(gFrame);
 
-                        ChartData->Create(pChartDirArray, true);
-                        ChartData->SaveBinary(pChartListFileName, pChartDirArray);
+                        wxString line(_T("Example of a long line which will make the dialog big enough to show chart paths"));
+                        wxProgressDialog *pprog = new wxProgressDialog (  _T("OpenCPN Chart Update"), line, 100, NULL,
+                                    wxPD_SMOOTH | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME);
 
+                        ChartData->Create(g_ChartDirArray, pprog);
+                        ChartData->SaveBinary(pChartListFileName);
+
+                        delete pprog;
                 }
 
                 else                                            // No chart database, no config hints, so bail....
@@ -1401,7 +1443,7 @@ bool MyApp::OnInit()
 
                   wxString msg1(_T("           No Charts Installed.\nPlease select chart folders in ToolBox->Charts."));
 
-                  wxMessageDialog mdlg(gFrame, msg1, wxString(_T("OpenCPN")),wxICON_INFORMATION | wxOK );
+                  wxMessageDialog mdlg(gFrame, msg1, wxString(_T("OpenCPN Info")),wxICON_INFORMATION | wxOK );
                   int dlg_ret;
                   dlg_ret = mdlg.ShowModal();
 
@@ -1454,10 +1496,16 @@ bool MyApp::OnInit()
         gGPS_Watchdog = 2;
         gHDx_Watchdog = 2;
 
+
+//  Start up a new track if enabled in config file
+//        test this
+        if(g_bTrackCarryOver)
+              gFrame->TrackOn();
+
 //      Start up the ticker....
         gFrame->FrameTimer1.Start(TIMER_GFRAME_1, wxTIMER_CONTINUOUS);
 
-   return TRUE;
+        return TRUE;
 }
 
 
@@ -1473,7 +1521,7 @@ int MyApp::OnExit()
         delete pRouteMan;
         delete pWayPointMan;
 
-        delete pChartDirArray;
+//        delete pChartDirArray;
 
 #ifdef USE_S57
         delete ps52plib;
@@ -1542,7 +1590,9 @@ int MyApp::OnExit()
     DeInitAllocCheck();
 #endif
 
-        return TRUE;
+    delete g_pPlatform;
+
+    return TRUE;
 }
 
 
@@ -1697,7 +1747,7 @@ MyFrame::MyFrame(wxFrame *frame, const wxString& title, const wxPoint& pos, cons
 //wxGTK 2.8.0 enables gnomeprint by default.  No workee under KDevelop....
 
 #ifdef __WXDEBUG
-        if( wxPORT_GTK != pPlatform->GetPortId())
+        if( wxPORT_GTK != g_pPlatform->GetPortId())
         {
             g_printData = new wxPrintData;
             g_printData->SetOrientation(wxLANDSCAPE);
@@ -2415,6 +2465,32 @@ void MyFrame::DeleteToolbarBitmaps()
 #endif
 }
 
+void MyFrame::EnableToolbar(bool newstate)
+{
+      if(toolBar)
+      {
+            toolBar-> EnableTool(ID_ZOOMIN, newstate);
+            toolBar-> EnableTool(ID_ZOOMOUT, newstate);
+            toolBar-> EnableTool(ID_STKUP, newstate);
+            toolBar-> EnableTool(ID_STKDN, newstate);
+            toolBar-> EnableTool(ID_ROUTE, newstate);
+            toolBar-> EnableTool(ID_FOLLOW, newstate);
+            toolBar-> EnableTool(ID_SETTINGS, newstate);
+            toolBar-> EnableTool(ID_TEXT, newstate);
+            toolBar-> EnableTool(ID_CURRENT, newstate);
+            toolBar-> EnableTool(ID_TIDE, newstate);
+            toolBar-> EnableTool(ID_HELP, newstate);
+            toolBar-> EnableTool(ID_TBEXIT, newstate);
+            toolBar-> EnableTool(ID_TBSTAT, newstate);
+            toolBar-> EnableTool(ID_PRINT, newstate);
+            toolBar-> EnableTool(ID_COLSCHEME, newstate);
+            toolBar-> EnableTool(ID_GPXIMPORT, newstate);
+            toolBar-> EnableTool(ID_GPXEXPORT, newstate);
+            toolBar-> EnableTool(ID_TRACK, newstate);
+            toolBar-> EnableTool(ID_GRIB, newstate);
+      }
+}
+
 
 
 // Intercept menu commands
@@ -2433,8 +2509,6 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
       quitflag++ ;
 
       FrameTimer1.Stop();
-
-      TrackOff();
 
     /*
           Automatically drop an anchorage waypoint, if enabled
@@ -2488,6 +2562,11 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
       FrameTimer1.Stop();
 
       g_bframemax = IsMaximized();
+
+      //    Record the current state of tracking
+      g_bTrackCarryOver = g_bTrackActive;
+
+      TrackOff();
 
       pConfig->UpdateSettings();
 
@@ -3051,8 +3130,8 @@ int MyFrame::DoOptionsDialog()
       pSetDlg->SetInitChartDir(*pInit_Chart_Dir);
 
 //      Pass two working pointers for Chart Dir Dialog
-      pSetDlg->SetCurrentDirListPtr(pChartDirArray);
-      wxArrayString *pWorkDirArray = new wxArrayString;
+      pSetDlg->SetCurrentDirListPtr(&g_ChartDirArray);
+      ArrayOfCDI *pWorkDirArray = new ArrayOfCDI;
       pSetDlg->SetWorkDirListPtr(pWorkDirArray);
 
 //  Grab a copy of the current NMEA source and AP Port and AIS Port
@@ -3085,28 +3164,63 @@ int MyFrame::DoOptionsDialog()
       if(g_pnmea)
             g_pnmea->Pause();
 
+
 // And here goes the (modal) dialog
       int rr = pSetDlg->ShowModal();
+
+
+
       if(rr)
       {
-            if(*pChartDirArray != *pWorkDirArray)
+            if(rr & VISIT_CHARTS)
             {
                   FrameTimer1.Stop();                  // stop other asynchronous activity
 
-                  cc1->SetCursor(wxCURSOR_WAIT);
+
                   Current_Ch = NULL;
 
                   delete pCurrentStack;
                   pCurrentStack = NULL;
 
-                  *pChartDirArray = *pWorkDirArray;
+                  g_ChartDirArray = *pWorkDirArray;
 
-                  delete ChartData;
-                  ChartData = new ChartDB(gFrame);
-                  ChartData->Update(pChartDirArray);
-                  ChartData->SaveBinary(pChartListFileName, pChartDirArray);
+                  bool b_force = false;
+                  if(rr & FORCE_UPDATE)
+                        b_force = true;
 
-                  pConfig->UpdateChartDirs(pChartDirArray);
+                  //    Disable Toolbar
+                  EnableToolbar(false);
+
+                  ::wxBeginBusyCursor();
+
+                  pSetDlg->Hide();
+
+                  wxProgressDialog *pprog = new wxProgressDialog (  _T("OpenCPN Chart Update"),
+                              _T(""), 100, this,
+                              wxPD_SMOOTH | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME);
+
+
+                  //    Make sure the dialog is big enough to be readable
+                  pprog->Hide();
+                  wxSize sz = pprog->GetSize();
+                  wxSize csz = GetClientSize();
+                  sz.x = csz.x * 7 / 10;
+                  pprog->SetSize(sz);
+                  pprog->Centre();
+                  pprog->Show();
+
+
+                  ChartData->Update(g_ChartDirArray, b_force, pprog );           // with progress dialog
+                  ChartData->SaveBinary(pChartListFileName);
+
+                  delete pprog;
+
+                  ::wxEndBusyCursor();
+
+                  //    Re Enable Toolbar
+                  EnableToolbar(true);
+
+                  pConfig->UpdateChartDirs(g_ChartDirArray);
 
                   cc1->SetCursor(wxCURSOR_ARROW);
                   FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
@@ -3404,24 +3518,6 @@ void MyFrame::OnFrameTCTimer(wxTimerEvent& event)
 }
 
 
-void MyFrame::UpdateChartStatusField(int i)
-{
-        char buf[80], buf1[80];
-        ChartData->GetChartID(pCurrentStack, pCurrentStack->CurrentStackEntry, buf, sizeof(buf));
-        sprintf (buf1, "  %d/%d", pCurrentStack->CurrentStackEntry, pCurrentStack->nEntry-1);
-        strcat(buf, "  ");
-        strcat(buf, buf1);
-        strcat(buf, "  ");
-
-        ChartData->GetStackChartScale(pCurrentStack, pCurrentStack->CurrentStackEntry, buf1, sizeof(buf1));
-        strcat(buf, buf1);
-
-        if(m_pStatusBar)
-            SetStatusText(wxString(buf, wxConvUTF8), i);
-
-        stats->Refresh(false);
-}
-
 
 void RenderShadowText(wxDC *pdc, wxFont *pFont, wxString& str, int x, int y)
 {
@@ -3551,16 +3647,14 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
               FALSE, wxString(_T("")), wxFONTENCODING_SYSTEM );
       dc.SetFont(*pSWFont2);
 
-//   Get and show the Chart FullPath
-      wxString full_path = pchart->GetFullPath();
+//   Get and show the Chart Description String
+      wxString desc = pchart->GetDescription();
 
       int height_font_2;
-      GetTextExtent(full_path, &w, &height_font_2, NULL, NULL, pSWFont2);
+      GetTextExtent(desc, &w, &height_font_2, NULL, NULL, pSWFont2);
 
-      dc.DrawText(full_path, 4, 0);
+      dc.DrawText(desc, 4, 0);
 
-
-//    Show Chart Nice Name
 
 //   Get and show the Chart Nice Name
       wxFont *pSWFont3;
@@ -3684,7 +3778,7 @@ void MyFrame::SelectChartFromStack(int index, bool bDir, ChartTypeEnum New_Type,
                   Current_Ch = pTentative_Chart;
                   Current_Ch->Activate();
 
-                  pCurrentStack->CurrentStackEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->m_pFullPath);
+                  pCurrentStack->CurrentStackEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->GetFullPath());
             }
             else
                 SetChartThumbnail(index);       // need to reset thumbnail on failed chart open
@@ -3770,6 +3864,9 @@ void MyFrame::SetChartThumbnail(int index)
             return;
 
         if(NULL == pthumbwin)
+            return;
+
+        if(NULL == cc1)
             return;
 
         if(index == -1)
@@ -3967,7 +4064,7 @@ bool MyFrame::DoChartUpdate(void)
 
                 int tEntry = -1;
                 if(NULL != Current_Ch)                                  // this handles startup case
-                        tEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->m_pFullPath);
+                        tEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->GetFullPath());
 
                 if(tEntry != -1)                // Current_Ch is in the new stack
                 {
@@ -4045,7 +4142,7 @@ bool MyFrame::DoChartUpdate(void)
                    if(Current_Ch)
                    {
                          Current_Ch->Activate();
-                         pCurrentStack->CurrentStackEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->m_pFullPath);
+                         pCurrentStack->CurrentStackEntry = ChartData->GetStackEntry(pCurrentStack, Current_Ch->GetFullPath());
                    }
 
                 }   // need new chart
@@ -4391,10 +4488,21 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
             wxLogMessage(msg);
       }
 
+      if(g_NMEALogWindow)
+      {
+            wxDateTime now = wxDateTime::Now();
+            wxString ss = now.FormatISOTime();
+            ss.Append(_T("  "));
+            ss.Append(str_buf);
+            g_NMEALogWindow->Add(ss);
+            g_NMEALogWindow->Refresh(false);
+      }
+
+
       m_NMEA0183 << str_buf;
       if(m_NMEA0183.PreParse())
       {
-                  if(m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
+                  if(g_bUseRMC && m_NMEA0183.LastSentenceIDReceived == _T("RMC"))
                   {
                         if(m_NMEA0183.Parse())
                         {
@@ -4510,8 +4618,11 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
                   {
                         if(m_NMEA0183.Parse())
                         {
-                              gSog = m_NMEA0183.Vtg.SpeedKnots;
-                              gCog = m_NMEA0183.Vtg.TrackDegreesTrue;
+                              //    Special check for unintialized values, as opposed to zero values
+                              if(m_NMEA0183.Vtg.SpeedKnots < 999.)
+                                    gSog = m_NMEA0183.Vtg.SpeedKnots;
+                              if(m_NMEA0183.Vtg.TrackDegreesTrue < 999.)
+                                    gCog = m_NMEA0183.Vtg.TrackDegreesTrue;
                         }
                         else if(g_nNMEADebug)
                         {
@@ -4523,31 +4634,34 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
                         }
                   }
 
-                  else if(m_NMEA0183.LastSentenceIDReceived == _T("GLL"))
+                  else if(g_bUseGLL && m_NMEA0183.LastSentenceIDReceived == _T("GLL"))
                   {
                         if(m_NMEA0183.Parse())
                         {
-                              float llt = m_NMEA0183.Gll.Position.Latitude.Latitude;
-                              int lat_deg_int = (int)(llt / 100);
-                              float lat_deg = lat_deg_int;
-                              float lat_min = llt - (lat_deg * 100);
-                              gLat = lat_deg + (lat_min/60.);
-                              if(m_NMEA0183.Gll.Position.Latitude.Northing == South)
-                                    gLat = -gLat;
+                              if(m_NMEA0183.Gll.IsDataValid == NTrue)
+                              {
+                                    float llt = m_NMEA0183.Gll.Position.Latitude.Latitude;
+                                    int lat_deg_int = (int)(llt / 100);
+                                    float lat_deg = lat_deg_int;
+                                    float lat_min = llt - (lat_deg * 100);
+                                    gLat = lat_deg + (lat_min/60.);
+                                    if(m_NMEA0183.Gll.Position.Latitude.Northing == South)
+                                          gLat = -gLat;
 
-                              float lln = m_NMEA0183.Gll.Position.Longitude.Longitude;
-                              int lon_deg_int = (int)(lln / 100);
-                              float lon_deg = lon_deg_int;
-                              float lon_min = lln - (lon_deg * 100);
-                              gLon = lon_deg + (lon_min/60.);
-                              if(m_NMEA0183.Gll.Position.Longitude.Easting == West)
-                                    gLon = -gLon;
+                                    float lln = m_NMEA0183.Gll.Position.Longitude.Longitude;
+                                    int lon_deg_int = (int)(lln / 100);
+                                    float lon_deg = lon_deg_int;
+                                    float lon_min = lln - (lon_deg * 100);
+                                    gLon = lon_deg + (lon_min/60.);
+                                    if(m_NMEA0183.Gll.Position.Longitude.Easting == West)
+                                          gLon = -gLon;
 
-                              sfixtime = m_NMEA0183.Gll.UTCTime;
+                                    sfixtime = m_NMEA0183.Gll.UTCTime;
 
-                              gGPS_Watchdog = gsp_watchdog_timeout_ticks;
+                                    gGPS_Watchdog = gsp_watchdog_timeout_ticks;
 
-                              bshow_tick = true;
+                                    bshow_tick = true;
+                              }
                         }
                         else if(g_nNMEADebug)
                         {
@@ -5704,5 +5818,3 @@ void SetSystemColors ( ColorScheme cs )
         }
 #endif
 }
-
-

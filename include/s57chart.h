@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.h,v 1.24 2009/08/22 01:23:49 bdbcat Exp $
+ * $Id: s57chart.h,v 1.25 2009/12/10 21:22:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s57chart.h,v $
+ * Revision 1.25  2009/12/10 21:22:25  bdbcat
+ * Beta 1210
+ *
  * Revision 1.24  2009/08/22 01:23:49  bdbcat
  * More virtual methods
  *
@@ -174,7 +177,7 @@ public:
       s57chart();
       ~s57chart();
 
-      virtual InitReturn Init( const wxString& name, ChartInitFlag flags, ColorScheme cs );
+      virtual InitReturn Init( const wxString& name, ChartInitFlag flags );
 
 //    Accessors
 
@@ -209,7 +212,7 @@ public:
       void SetFullExtent(Extent& ext);
       bool GetChartExtent(Extent *pext);
 
-      void SetColorScheme(ColorScheme cs, bool bApplyImmediate);
+      void SetColorScheme(ColorScheme cs, bool bApplyImmediate = true);
       virtual void UpdateLUPs(s57chart *pOwner);
 
       int _insertRules(S57Obj *obj, LUPrec *LUP, s57chart *pOwner);

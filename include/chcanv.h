@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.36 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: chcanv.h,v 1.37 2009/12/10 21:21:37 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.37  2009/12/10 21:21:37  bdbcat
+ * Beta 1210
+ *
  * Revision 1.36  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -203,6 +206,7 @@ class ViewPort
     ViewPort()  { bValid = false; skew = 0; view_scale_ppm = 1;}
 
     wxPoint GetMercatorPixFromLL(double lat, double lon);
+    void GetMercatorLLFromPix(const wxPoint &p, double *lat, double *lon);
 
 //  Accessors
     bool IsValid() { return bValid; }
@@ -278,6 +282,7 @@ public:
       void CanvasPopupMenu(int x, int y, int seltype);
       void PopupMenuHandler(wxCommandEvent& event);
       void SetMyCursor(wxCursor *c);
+      void LostMouseCapture(wxMouseCaptureLostEvent& event);
 
       bool Do_Hotkeys(wxKeyEvent &event);
 
@@ -403,8 +408,8 @@ private:
       bool CheckEdgePan(int x, int y);
       void OnCursorTrackTimerEvent(wxTimerEvent& event);
 
-      void DrawAllRoutesInBBox(wxDC& dc, wxBoundingBox& BltBBox);
-      void DrawAllWaypointsInBBox(wxDC& dc, wxBoundingBox& BltBBox, bool bDrawMarksOnly);
+      void DrawAllRoutesInBBox(wxDC& dc, wxBoundingBox& BltBBox, const wxRegion& clipregion);
+      void DrawAllWaypointsInBBox(wxDC& dc, wxBoundingBox& BltBBox, const wxRegion& clipregion, bool bDrawMarksOnly);
 
       void DrawAllTidesInBBox(wxDC& dc, wxBoundingBox& BBox, bool bRebuildSelList,
                         bool bdraw_mono = false);

@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.55  2009/12/10 21:12:54  bdbcat
+ * Beta 1210
+ *
  * Revision 1.54  2009/11/23 04:38:51  bdbcat
  * Unicode correction
  *
@@ -214,7 +217,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.54 2009/11/23 04:38:51 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.55 2009/12/10 21:12:54 bdbcat Exp $" );
 
 //    Statics
 
@@ -227,7 +230,7 @@ extern FontMgr          *pFontMgr;
 extern RouteList        *pRouteList;
 extern Select           *pSelect;
 extern MyConfig         *pConfig;
-extern wxArrayString    *pChartDirArray;
+extern ArrayOfCDI       g_ChartDirArray;
 extern double           vLat, vLon, gLat, gLon;
 extern double           kLat, kLon;
 extern double           initial_scale_ppm;
@@ -281,6 +284,7 @@ extern double           g_RemoveLost_Mins;
 extern bool             g_bShowCOG;
 extern double           g_ShowCOG_Mins;
 extern bool             g_bShowTracks;
+extern bool             g_bTrackCarryOver;
 extern double           g_ShowTracks_Mins;
 extern bool             g_bShowMoored;
 extern double           g_ShowMoored_Kts;
@@ -337,6 +341,13 @@ extern int              g_nautosave_interval_seconds;
 extern int              g_n_ownship_meters;
 
 extern bool             g_bPreserveScaleOnX;
+
+extern bool             g_bUseRMC;
+extern bool             g_bUseGLL;
+
+extern TTYWindow        *g_NMEALogWindow;
+extern int              g_NMEALogWindow_x, g_NMEALogWindow_y;
+extern int              g_NMEALogWindow_sx, g_NMEALogWindow_sy;
 
 //------------------------------------------------------------------------------
 // Some wxWidgets macros for useful classes
@@ -740,7 +751,7 @@ SelectItem *Select::FindSelection ( float slat, float slon, int fseltype, float 
                               {
                                     //    Arrange for points to be increasing longitude, c to d
                                     double dist, brg;
-                                    DistanceBearing ( a, c, b, d, &brg, &dist );
+                                    DistanceBearingMercator ( a, c, b, d, &brg, &dist );
                                     if ( brg < 180. )             // swap points?
                                     {
                                           double tmp;
@@ -930,6 +941,10 @@ void RoutePoint::Draw ( wxDC& dc, wxPoint *rpn )
       unsigned char transparency = 200;
 
       cc1->GetCanvasPointPix ( m_lat, m_lon, &r );
+//      printf(" x: %d     y: %d\n", r.x, r.y);
+
+//      r = cc1->VPoint.GetMercatorPixFromLL(m_lat, m_lon);
+//      printf("      vpx: %d     vpy: %d\n", r.x, r.y);
 
       //  return the home point in this dc to allow "connect the dots"
       if ( NULL != rpn )
@@ -1148,11 +1163,8 @@ void Route::AddPoint ( RoutePoint *pNewPoint, bool b_rename_in_sequence )
 
       m_nPoints++;
 
-//      CalculateBBox();
       RBBox.Expand(pNewPoint->m_lon, pNewPoint->m_lat);
 
-
-//      UpdateSegmentDistances();
 
       if(m_pLastAddedPoint)
             pNewPoint->m_seg_len = DistGreatCircle(m_pLastAddedPoint->m_lat, m_pLastAddedPoint->m_lon, pNewPoint->m_lat, pNewPoint->m_lon);
@@ -1683,22 +1695,13 @@ void Route::UpdateSegmentDistances()
 
 //    Calculate the absolute distance from 1->2
 
-                  double lon1 = slon1 * PI / 180.;
-                  double lon2 = slon2 * PI / 180.;
-                  double lat1 = slat1 * PI / 180.;
-                  double lat2 = slat2 * PI / 180.;
-
-                  double v = sin ( ( lon1 - lon2 ) /2.0 );
-                  double w = cos ( lat1 ) * cos ( lat2 ) * v * v;
-                  double x = sin ( ( lat1 - lat2 ) /2.0 );
-                  double d4 = 2.0 * asin ( sqrt ( x*x + w ) );
-
-                  float d5 = ( 180. * 60. / PI ) * d4;
+                  double brg, dd;
+                  DistanceBearingMercator(slat1, slon1, slat2, slon2, &brg, &dd);
 
 //    And store in Point 2
-                  prp->m_seg_len = d5;
+                  prp->m_seg_len = dd;
 
-                  route_len += d5;
+                  route_len += dd;
 
                   slat1 = slat2;
                   slon1 = slon2;
@@ -1935,6 +1938,9 @@ Track::Track ( void )
       m_prev_time = wxDateTime::Now();
       m_prev_time.ResetTime();            // set to midnight this morning.
 
+      wxDateTime now = wxDateTime::Now();
+      m_ConfigRouteNum = now.GetTicks();        // a unique number....
+
       m_track_run = 0;
 }
 
@@ -2102,7 +2108,8 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "ShowOverzoomEmbossWarning" ),  &g_bshow_overzoom_emboss, 1 );
       Read ( _T ( "AutosaveIntervalSeconds" ),  &g_nautosave_interval_seconds, 300 );
       Read ( _T ( "OwnshipLengthMeters" ),  &g_n_ownship_meters, 12 );
-
+      Read ( _T ( "UseNMEA_RMC" ),  &g_bUseRMC, 1 );
+      Read ( _T ( "UseNMEA_GLL" ),  &g_bUseGLL, 1 );
 
       Read ( _T ( "CM93DetailFactor" ),  &g_cm93_zoom_factor, 0 );
       g_cm93_zoom_factor = wxMin(g_cm93_zoom_factor,CM93_ZOOM_FACTOR_MAX_RANGE);
@@ -2113,27 +2120,21 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "ShowCM93DetailSlider" ),  &g_bShowCM93DetailSlider, 0 );
 
       Read ( _T ( "SetSystemTime" ), &s_bSetSystemTime, 0 );
-
       Read ( _T ( "ShowDebugWindows" ), &m_bShowDebugWindows, 1 );
-
       Read ( _T ( "ShowPrintIcon" ), &g_bShowPrintIcon, 0 );
-
       Read ( _T ( "ShowDepthUnits" ), &g_bShowDepthUnits, 1 );
-
       Read ( _T ( "AutoAnchorDrop" ),  &g_bAutoAnchorMark, 0 );
-
       Read ( _T ( "ShowChartOutlines" ),  &g_bShowOutlines, 0 );
-
       Read ( _T ( "GarminPersistance" ),  &g_bGarminPersistance, 0 );
-
       Read ( _T ( "ShowGRIBIcon" ),  &g_bShowGRIBIcon, 0 );
       Read ( _T ( "GRIBUseHiDef" ),  &g_bGRIBUseHiDef, 0 );
 
-      g_grib_dialog_sx = Read ( _T ( "GRIBDialogSizeX" ), 200L );
-      g_grib_dialog_sy = Read ( _T ( "GRIBDialogSizeY" ), 200L );
+      g_grib_dialog_sx = Read ( _T ( "GRIBDialogSizeX" ), 300L );
+      g_grib_dialog_sy = Read ( _T ( "GRIBDialogSizeY" ), 530L );
       g_grib_dialog_x =  Read ( _T ( "GRIBDialogPosX" ), 20L );
       g_grib_dialog_y =  Read ( _T ( "GRIBDialogPosY" ), 20L );
 
+      Read ( _T ( "StartWithTrackActive" ),  &g_bTrackCarryOver, 0 );
 
       wxString stps;
       Read ( _T ( "PlanSpeed" ),  &stps );
@@ -2205,6 +2206,11 @@ int MyConfig::LoadMyConfig ( int iteration )
       g_ais_alert_dialog_y = Read ( _T ( "AlertDialogPosY" ), 200L );
       g_ais_query_dialog_x = Read ( _T ( "QueryDialogPosX" ), 200L );
       g_ais_query_dialog_y = Read ( _T ( "QueryDialogPosY" ), 200L );
+
+      g_NMEALogWindow_sx = Read ( _T ( "NMEALogWindowSizeX" ), 400L );
+      g_NMEALogWindow_sy = Read ( _T ( "NMEALogWindowSizeY" ), 100L );
+      g_NMEALogWindow_x = Read ( _T ( "NMEALogWindowPosX" ), 10L );
+      g_NMEALogWindow_y = Read ( _T ( "NMEALogWindowPosY" ), 10L );
 
 
 #ifdef USE_S57
@@ -2450,7 +2456,7 @@ int MyConfig::LoadMyConfig ( int iteration )
       int iDirMax = GetNumberOfEntries();
       if ( iDirMax )
       {
-            pChartDirArray->Empty();
+            g_ChartDirArray.Empty();
             wxString str, val;
             long dummy;
             int nAdjustChartDirs = 0;
@@ -2487,18 +2493,20 @@ int MyConfig::LoadMyConfig ( int iteration )
                               dirname=new_dir;
                         }
 
-                        if ( NULL != pChartDirArray )
-                        {
-                              pChartDirArray->Add ( dirname );
-                              iDir++;
-                        }
+
+                        ChartDirInfo cdi;
+                        cdi.fullpath = dirname.BeforeFirst('^');
+                        cdi.magic_number = dirname.AfterFirst('^');
+
+                        g_ChartDirArray.Add ( cdi );
+                        iDir++;
                   }
 
                   bCont = pConfig->GetNextEntry ( str, dummy );
             }
 
             if ( nAdjustChartDirs )
-                  pConfig->UpdateChartDirs ( pChartDirArray );
+                  pConfig->UpdateChartDirs ( g_ChartDirArray );
       }
 
 
@@ -2813,7 +2821,6 @@ int MyConfig::LoadMyConfig ( int iteration )
       }
       */
 
-      // XML, toh, 2009.02.10
       SetPath ( _T ( "/Settings/Others" ) );
       g_bShowGPXIcons = false;
       Read ( _T ( "ShowGPXIcons" ), &g_bShowGPXIcons );
@@ -2845,18 +2852,20 @@ int MyConfig::LoadMyConfig ( int iteration )
       g_bShowTrackIcon = false;;
       Read ( _T ( "ShowTrackIcon" ), &g_bShowTrackIcon );
 
-      g_TrackIntervalSeconds = 10.0;
+      g_TrackIntervalSeconds = 60.0;
+      val.Clear();
       Read ( _T ( "TrackIntervalSeconds" ), &val );
       if ( val.Length() > 0 )
             g_TrackIntervalSeconds = atof ( val.mb_str() );
 
-      g_TrackDeltaDistance = 0.0;
+      g_TrackDeltaDistance = 0.10;
+      val.Clear();
       Read ( _T ( "TrackDeltaDistance" ), &val );
       if ( val.Length() > 0 )
             g_TrackDeltaDistance = atof ( val.mb_str() );
 
-      Read ( _T ( "EnableTrackByTime" ), &g_bTrackTime );
-      Read ( _T ( "EnableTrackByDistance" ), &g_bTrackDistance );
+      Read ( _T ( "EnableTrackByTime" ), &g_bTrackTime, 1 );
+      Read ( _T ( "EnableTrackByDistance" ), &g_bTrackDistance, 0 );
 
       Read ( _T ( "NavObjectFileName" ), m_sNavObjSetFile );
 
@@ -3081,7 +3090,7 @@ bool MyConfig::DeleteWayPoint ( RoutePoint *pWP )
 }
 
 
-bool MyConfig::UpdateChartDirs ( wxArrayString *pdirlist )
+bool MyConfig::UpdateChartDirs ( ArrayOfCDI& dir_array )
 {
       wxString key, dir;
       wxString str_buf;
@@ -3100,11 +3109,16 @@ bool MyConfig::UpdateChartDirs ( wxArrayString *pdirlist )
             }
       }
 
-      iDirMax = pdirlist->GetCount();
+      iDirMax = dir_array.GetCount();
 
       for ( int iDir = 0 ; iDir <iDirMax ; iDir++ )
       {
-            wxString dirn = pdirlist->Item ( iDir );
+            ChartDirInfo cdi = dir_array.Item ( iDir );
+
+            wxString dirn = cdi.fullpath;
+            dirn.Append(_T("^"));
+            dirn.Append(cdi.magic_number);
+
             str_buf.Printf ( _T ( "ChartDir%d" ), iDir+1 );
 
             Write ( str_buf, dirn );
@@ -3144,7 +3158,14 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "GRIBDialogPosX" ),   g_grib_dialog_x );
       Write ( _T ( "GRIBDialogPosY" ),   g_grib_dialog_y );
 
+      Write ( _T ( "NMEALogWindowSizeX" ),  g_NMEALogWindow_sx );
+      Write ( _T ( "NMEALogWindowSizeY" ),  g_NMEALogWindow_sy );
+      Write ( _T ( "NMEALogWindowPosX" ),   g_NMEALogWindow_x );
+      Write ( _T ( "NMEALogWindowPosY" ),   g_NMEALogWindow_y );
+
       Write ( _T ( "PreserveScaleOnX" ),   g_bPreserveScaleOnX );
+
+      Write ( _T ( "StartWithTrackActive" ),   g_bTrackCarryOver );
 
       wxString st0;
       st0.Printf ( _T ( "%g" ), g_PlanSpeed );
@@ -5228,6 +5249,8 @@ bool NavObjectCollection::CreateGPXTracks ( void )
                         else
                               m_proot_next->SetNext( Track_Node );
 
+                        m_proot_next = Track_Node;
+
 /*
                         wxXmlNode *GPXWpt_node = new wxXmlNode ( wxXML_ELEMENT_NODE, _T ( "trk" ) );
                         GPXWpt_node->AddProperty ( _T ( "name" ),pRoute->m_RouteNameString );
@@ -6652,5 +6675,100 @@ wxString toSDMM ( int NEflag, double a )
       return s;
 }
 
+//    TTYScroll and TTYWindow Implemetation
+
+IMPLEMENT_DYNAMIC_CLASS( TTYWindow, wxDialog )
+
+            BEGIN_EVENT_TABLE( TTYWindow, wxDialog )
+            EVT_CLOSE(TTYWindow::OnCloseWindow)
+            EVT_MOVE( TTYWindow::OnMove )
+            EVT_SIZE( TTYWindow::OnSize )
+            END_EVENT_TABLE()
+
+
+TTYWindow::TTYWindow()
+{
+}
+
+TTYWindow::~TTYWindow()
+{
+      delete m_pScroll;
+      g_NMEALogWindow = NULL;
+}
+
+void TTYWindow::OnCloseWindow(wxCloseEvent& event)
+{
+      Destroy();
+}
+
+void TTYWindow::OnSize(wxSizeEvent& event)
+{
+      //    Record the dialog size
+      wxSize p = event.GetSize();
+      g_NMEALogWindow_sx = p.x;
+      g_NMEALogWindow_sy = p.y;
+
+      event.Skip();
+}
+
+void TTYWindow::OnMove( wxMoveEvent& event )
+{
+      //    Record the dialog position
+      wxPoint p = event.GetPosition();
+      g_NMEALogWindow_x = p.x;
+      g_NMEALogWindow_y = p.y;
+
+      event.Skip();
+}
+
+
+void TTYScroll::Add(wxString &line)
+{
+      if(m_plineArray->GetCount() > m_nLines-1)
+      {                                         // shuffle the arraystring
+            wxArrayString *p_newArray = new wxArrayString;
+
+            for(unsigned int i=1 ; i < m_plineArray->GetCount() ; i++)
+            {
+                  p_newArray->Add(m_plineArray->Item(i));
+            }
+            delete m_plineArray;
+            m_plineArray = p_newArray;
+      }
+
+      m_plineArray->Add(line);
+}
+
+void TTYScroll::OnDraw(wxDC& dc)
+{
+    // update region is always in device coords, translate to logical ones
+      wxRect rectUpdate = GetUpdateRegion().GetBox();
+      CalcUnscrolledPosition(rectUpdate.x, rectUpdate.y,
+                             &rectUpdate.x, &rectUpdate.y);
+
+
+      size_t lineFrom = rectUpdate.y / m_hLine,
+      lineTo = rectUpdate.GetBottom() / m_hLine;
+
+      if ( lineTo > m_nLines - 1)
+            lineTo = m_nLines - 1;
+
+      wxCoord y = lineFrom*m_hLine;
+      for ( size_t line = lineFrom; line <= lineTo; line++ )
+      {
+            wxCoord yPhys;
+            CalcScrolledPosition(0, y, NULL, &yPhys);
+
+            dc.DrawText(m_plineArray->Item(line), 0, y);
+            y += m_hLine;
+      }
+}
+
+
+void TTYWindow::Add(wxString &line)
+{
+      if(m_pScroll)
+            m_pScroll->Add(line);
+}
 
 

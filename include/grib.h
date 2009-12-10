@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grib.h,v 1.2 2009/11/19 01:47:49 bdbcat Exp $
+ * $Id: grib.h,v 1.3 2009/12/10 21:22:09 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  GRIB Manager Object
@@ -120,6 +120,7 @@ class GRIBUIDialog: public wxDialog
             wxTextCtrl        *m_pWindSpeedTextCtrl;
             wxTextCtrl        *m_pWindDirTextCtrl;
             wxTextCtrl        *m_pPressureTextCtrl;
+            wxTextCtrl        *m_pSigWHTextCtrl;
 
             int               m_n_files;
 
@@ -135,6 +136,7 @@ class GRIBUIDialog: public wxDialog
             int               m_RS_Idx_WIND_VX;             // These are indexes into the m_pCurrentGribRecordSet
             int               m_RS_Idx_WIND_VY;
             int               m_RS_Idx_PRESS;
+            int               m_RS_Idx_HTSIGW;
 
 
 };
@@ -156,8 +158,11 @@ class GRIBOverlayFactory
       private:
             bool RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMemoryDC *pmdc, ViewPort *vp);
             bool RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp);
+            bool RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp);
+            bool RenderGribWvDir(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp);
 
             void drawWindArrowWithBarbs(wxMemoryDC *pmdc, int x, int y, double vx, double vy, bool south, wxColour arrowColor);
+            void drawWaveArrow(wxMemoryDC *pmdc, int i, int j, double dir, wxColour arrowColor);
 
             wxPoint GetDCPixPoint(ViewPort *vp, double lat, double lon);
 
@@ -167,7 +172,12 @@ class GRIBOverlayFactory
             void drawGrandeBarbule(wxMemoryDC *pmdc, wxPen pen, bool south, double si, double co, int di, int dj, int b);
             void drawTriangle(wxMemoryDC *pmdc, wxPen pen, bool south, double si, double co, int di, int dj, int b);
 
+            wxColour GetGraphicColor(double val, double val_max);
+
+            double                  m_last_vp_scale;
             wxArrayPtrVoid          m_IsobarArray;
+
+            wxBitmap                *m_pbm_sigwh;
 
 #if wxUSE_GRAPHICS_CONTEXT
             wxGraphicsContext       *m_pgc;

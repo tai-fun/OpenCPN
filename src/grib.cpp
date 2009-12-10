@@ -43,7 +43,7 @@
 #include "georef.h"
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.3 2009/11/23 04:18:51 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.4 2009/12/10 21:10:35 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -77,8 +77,8 @@ static int CompareFileStringTime ( const wxString& first, const wxString& second
 {
       wxFileName f ( first );
       wxFileName s ( second );
-      wxTimeSpan sp = f.GetModificationTime() - s.GetModificationTime();
-      return sp.IsNegative();
+      wxTimeSpan sp = s.GetModificationTime() - f.GetModificationTime();
+      return sp.GetMinutes();
 
 //      return ::wxFileModificationTime(first) - ::wxFileModificationTime(second);
 }
@@ -220,21 +220,26 @@ void GRIBUIDialog::CreateControls()
       wxStaticText *ps1 = new wxStaticText(this, wxID_ANY, _T("Wind Speed, Kts."));
       pDataGrid->Add(ps1, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
-      m_pWindSpeedTextCtrl = new wxTextCtrl(this, -1);
+      m_pWindSpeedTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pWindSpeedTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
       wxStaticText *ps2 = new wxStaticText(this, wxID_ANY, _T("Wind Direction"));
       pDataGrid->Add(ps2, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
-      m_pWindDirTextCtrl = new wxTextCtrl(this, -1);
+      m_pWindDirTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pWindDirTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
       wxStaticText *ps3 = new wxStaticText(this, wxID_ANY, _T("Pressure, mBar"));
       pDataGrid->Add(ps3, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
-      m_pPressureTextCtrl = new wxTextCtrl(this, -1);
+      m_pPressureTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pPressureTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
+      wxStaticText *ps4 = new wxStaticText(this, wxID_ANY, _T("Significant Wave Height, m"));
+      pDataGrid->Add(ps4, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
+
+      m_pSigWHTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
+      pDataGrid->Add(m_pSigWHTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
 
 // A horizontal box sizer to contain OK
@@ -266,6 +271,7 @@ void GRIBUIDialog::UpdateTrackingControls(void)
       m_pWindSpeedTextCtrl->Clear();
       m_pWindDirTextCtrl->Clear();
       m_pPressureTextCtrl->Clear();
+      m_pSigWHTextCtrl->Clear();
 
       if(m_pCurrentGribRecordSet)
       {
@@ -301,6 +307,18 @@ void GRIBUIDialog::UpdateTrackingControls(void)
                         wxString t;
                         t.Printf(_T("%2d"), (int)(press / 100.));
                         m_pPressureTextCtrl->AppendText(t);
+                  }
+            }
+
+            //    Update the Sig Wave Height
+            if(m_RS_Idx_HTSIGW != -1)
+            {
+                  double height = m_pCurrentGribRecordSet->m_GribRecordPtrArray.Item ( m_RS_Idx_HTSIGW )->getInterpolatedValue(m_cursor_lon, m_cursor_lat, true);
+                  if(height != GRIB_NOTDEF)
+                  {
+                        wxString t;
+                        t.Printf(_T("%4.1f"), height);
+                        m_pSigWHTextCtrl->AppendText(t);
                   }
             }
 
@@ -481,6 +499,7 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
       m_RS_Idx_WIND_VY = -1;
       m_RS_Idx_PRESS   = -1;
 
+
       if(pGribRecordSet)
       {
             //    Inventory this record set
@@ -515,6 +534,11 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
                         m_RS_Idx_PRESS = i;
                   }
 
+
+                  // Significant Wave Height
+                  if (pGR->getDataType()==GRB_HTSGW )
+                        m_RS_Idx_HTSIGW = i;
+
             }
       }
       //    Unregister any existing GRIB overlays
@@ -546,10 +570,16 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
 GRIBOverlayFactory::GRIBOverlayFactory()
 {
       m_pGribRecordSet = NULL;
+      m_last_vp_scale = 0.;
+
+      m_pbm_sigwh = NULL;
+
 }
 
 GRIBOverlayFactory::~GRIBOverlayFactory()
 {
+      delete m_pbm_sigwh;
+
 }
 
 void GRIBOverlayFactory::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
@@ -557,6 +587,11 @@ void GRIBOverlayFactory::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
       m_pGribRecordSet = pGribRecordSet;
 
       m_IsobarArray.Clear();                            // Will need to rebuild Isobar list
+
+      //    Clear out the cached bitmaps
+      delete m_pbm_sigwh;
+      m_pbm_sigwh = NULL;
+
 }
 
 
@@ -564,6 +599,15 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
 {
       if ( !m_pGribRecordSet )
             return false;
+
+      //    If the scale has changed, clear out the cached bitmaps
+      if(vp->view_scale_ppm != m_last_vp_scale)
+      {
+            delete m_pbm_sigwh;
+            m_pbm_sigwh = NULL;
+      }
+
+      m_last_vp_scale = vp->view_scale_ppm;
 
       GribRecord *pGRWindVX = NULL;
       GribRecord *pGRWindVY = NULL;
@@ -574,6 +618,8 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
 #endif
 
 
+      //    This could take a while....
+      ::wxBeginBusyCursor();
 
       //          Walk thru the GribRecordSet, and render each type of record on the DC
       for ( unsigned int i=0 ; i < m_pGribRecordSet->m_GribRecordPtrArray.GetCount() ; i++ )
@@ -612,7 +658,18 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
                   RenderGribPressure(pGR,  pmdc, vp);
             }
 
+            // Significant Wave Height
+            if ( pGR->getDataType()==GRB_HTSGW )
+                  RenderGribSigWh(pGR, pmdc, vp);
+
+            // Wind wave direction
+            if ( pGR->getDataType()==GRB_WVDIR )
+                  RenderGribWvDir(pGR, pmdc, vp);
+
+
      }
+
+      ::wxEndBusyCursor();
 
 #if wxUSE_GRAPHICS_CONTEXT
      delete m_pgc;
@@ -660,7 +717,7 @@ bool GRIBOverlayFactory::RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMe
                         {
                               oldy = p.y;
 
-                              if(vp->vpBBox.PointInBox(lon, lat, 0.))
+                              if(vp->vpBBox.PointInBox(lon, lat, 0.) || vp->vpBBox.PointInBox(lon - 360., lat, 0.))
                               {
                                     double vx = pGRX->getValue(i, j);
                                     double vy = pGRY->getValue(i, j);
@@ -672,9 +729,192 @@ bool GRIBOverlayFactory::RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMe
                   }
             }
       }
-
       return true;
 }
+
+
+bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp)
+{
+      wxPoint porg = GetDCPixPoint(vp,  pGR->getLatMax(), pGR->getLonMin());
+      wxBoundingBox grib_bb(pGR->getLonMin(), pGR->getLatMin(), pGR->getLonMax(), pGR->getLatMax());
+
+      if(vp->vpBBox.Intersect(grib_bb) != _OUT)
+      {
+      // If needed, create the bitmap
+            if(m_pbm_sigwh == NULL)
+            {
+                  wxPoint pmin = GetDCPixPoint(vp,  pGR->getLatMin(), pGR->getLonMin());
+                  wxPoint pmax = GetDCPixPoint(vp,  pGR->getLatMax(), pGR->getLonMax());
+
+                  int width = abs(pmax.x - pmin.x);
+                  int height = abs(pmax.y - pmin.y);
+
+
+                  //    Dont try to create enormous GRIB bitmaps
+                  if((width < 2000)  && (height < 2000))
+                  {
+                        wxImage gr_image(width, height);
+
+                        int grib_pixel_size = 4;
+
+                        wxPoint p;
+                        for(int ipix = 0 ; ipix < (width-grib_pixel_size + 1) ; ipix += grib_pixel_size)
+                        {
+                              for(int jpix = 0 ; jpix < (height-grib_pixel_size + 1) ; jpix += grib_pixel_size)
+                              {
+                                    double lat, lon;
+                                    p.x = ipix + porg.x;
+                                    p.y = jpix + porg.y;
+                                    vp->GetMercatorLLFromPix( p, &lat, &lon);
+
+                                    double  vh = pGR->getInterpolatedValue(lon, lat);
+
+                                    if (vh != GRIB_NOTDEF)
+                                    {
+                                          wxColour c = GetGraphicColor(vh, 12.);
+                                          unsigned char r = c.Red();
+                                          unsigned char g = c.Green();
+                                          unsigned char b = c.Blue();
+
+                                          for(int xp=0 ; xp < grib_pixel_size ; xp++)
+                                                for(int yp=0 ; yp < grib_pixel_size ; yp++)
+                                                      gr_image.SetRGB(ipix + xp, jpix + yp, r,g,b);
+                                    }
+                              }
+                        }
+
+                        wxImage bl_image = (gr_image.Blur(4));
+
+                        //    Create a Bitmap
+                        m_pbm_sigwh = new wxBitmap(bl_image);
+                        wxMask *gr_mask = new wxMask(*m_pbm_sigwh, wxColour(0,0,0));
+                        m_pbm_sigwh->SetMask(gr_mask);
+                  }
+            }
+
+
+            if(m_pbm_sigwh)
+            {
+                  //    Select bm into a memory dc
+                  wxMemoryDC mdc(*m_pbm_sigwh);
+
+                  //    Blit it onto the dc
+                  pmdc->Blit(porg.x, porg.y, m_pbm_sigwh->GetWidth(), m_pbm_sigwh->GetHeight(), &mdc, 0, 0, wxCOPY, true);          // with mask
+            }
+            else
+            {
+                  wxFont sfont = pmdc->GetFont();
+                  wxFont mfont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
+                  pmdc->SetFont(mfont);
+
+                  wxString msg = _T("Please Zoom or Scale Out to view suppressed HTSGW GRIB");
+                  int w;
+                  pmdc->GetTextExtent(msg, &w, NULL);
+                  pmdc->DrawText(msg, vp->pix_width/2 - w/2, vp->pix_height/2);
+
+                  pmdc->SetFont(sfont);
+            }
+      }
+
+      return true;
+
+}
+
+bool GRIBOverlayFactory::RenderGribWvDir(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp)
+{
+
+      //    Get the the grid
+      int imax = pGR->getNi();                  // Longitude
+      int jmax = pGR->getNj();                  // Latitude
+
+
+      //    Set minimum spacing between wave arrows
+      int space;
+      space =  60;
+
+      int oldx = -1000; int oldy = -1000;
+
+      for(int i=0 ; i < imax ; i++)
+      {
+            double  lonl = pGR->getX(i);
+            double  latl = pGR->getY(0);
+            wxPoint pl = GetDCPixPoint(vp, latl, lonl);
+
+            if(abs(pl.x - oldx) >= space)
+            {
+                  oldx = pl.x;
+                  for(int j=0 ; j < jmax ; j++)
+                  {
+                        double  lon = pGR->getX(i);
+                        double  lat = pGR->getY(j);
+                        wxPoint p = GetDCPixPoint(vp, lat, lon);
+
+                        if(abs(p.y - oldy) >= space)
+                        {
+                              oldy = p.y;
+
+                              if(vp->vpBBox.PointInBox(lon, lat, 0.) || vp->vpBBox.PointInBox(lon - 360., lat, 0.))
+                              {
+                                    double dir = pGR->getValue(i, j);
+
+                                    if (dir != GRIB_NOTDEF)
+                                          drawWaveArrow(pmdc, p.x, p.y, dir-90., GetGlobalColor ( _T ( "UBLCK" ) ));
+                              }
+                        }
+                  }
+            }
+      }
+      return true;
+}
+
+
+
+
+
+
+wxColour GRIBOverlayFactory::GetGraphicColor(double val, double val_max)
+{
+/*
+      double valm = wxMin(val_max, val);
+
+      unsigned char green = (unsigned char)(255 * (1 - (valm/val_max)));
+      unsigned char red   = (unsigned char)(255 * (valm/val_max));
+
+      wxImage::HSVValue hv = wxImage::RGBtoHSV(wxImage::RGBValue(red, green, 0));
+
+      hv.saturation = 1.0;
+      hv.value = 1.0;
+
+      wxImage::RGBValue rv = wxImage::HSVtoRGB(hv);
+      return wxColour(rv.red, rv.green, rv.blue);
+*/
+
+      //    HTML colors taken from NOAA WW3 Web representation
+
+      wxColour c;
+      if((val > 0) && (val < 1))         c.Set(_T("#002ad9"));
+      else if((val > 1)  && (val < 2))   c.Set(_T("#006ed9"));
+      else if((val > 2)  && (val < 3))   c.Set(_T("#00b2d9"));
+      else if((val > 3)  && (val < 4))   c.Set(_T("#00d4d4"));
+      else if((val > 4)  && (val < 5))   c.Set(_T("#00d9a6"));
+      else if((val > 5)  && (val < 7))   c.Set(_T("#00d900"));
+      else if((val > 7)  && (val < 9))   c.Set(_T("#95d900"));
+      else if((val > 9)  && (val < 12))  c.Set(_T("#d9d900"));
+      else if((val > 12) && (val < 15))  c.Set(_T("#d9ae00"));
+      else if((val > 15) && (val < 18))  c.Set(_T("#d98300"));
+      else if((val > 18) && (val < 21))  c.Set(_T("#d95700"));
+      else if((val > 21) && (val < 24))  c.Set(_T("#d90000"));
+      else if((val > 24) && (val < 27))  c.Set(_T("#ae0000"));
+      else if((val > 27) && (val < 30))  c.Set(_T("#8c0000"));
+      else if((val > 30) && (val < 36))  c.Set(_T("#870000"));
+      else if((val > 36) && (val < 42))  c.Set(_T("#690000"));
+      else if((val > 42) && (val < 48))  c.Set(_T("#550000"));
+      else if( val > 48)                 c.Set(_T("#410000"));
+
+      return c;
+}
+
+
 
 
 bool GRIBOverlayFactory::RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp)
@@ -698,7 +938,7 @@ bool GRIBOverlayFactory::RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, V
 
             int gr = 80;
             wxColour color = wxColour(gr,gr,gr);
-            int density = 10;
+            int density = 40;
             int first = 0;
 
             double coef = .01;
@@ -707,6 +947,28 @@ bool GRIBOverlayFactory::RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, V
       }
 
       return true;
+}
+
+
+
+void GRIBOverlayFactory::drawWaveArrow(wxMemoryDC *pmdc, int i, int j, double ang, wxColour arrowColor)
+{
+      double si=sin(ang * PI / 180.),  co=cos(ang * PI/ 180.);
+
+      wxPen pen( arrowColor, 1);
+      pmdc->SetPen(pen);
+      pmdc->SetBrush(*wxTRANSPARENT_BRUSH);
+
+      int arrowSize = 26;
+      int dec = -arrowSize/2;
+
+
+      drawTransformedLine(pmdc, pen, si,co, i,j,  dec,-2,  dec + arrowSize, -2);
+      drawTransformedLine(pmdc, pen, si,co, i,j,  dec, 2,  dec + arrowSize, +2);
+
+      drawTransformedLine(pmdc, pen, si,co, i,j,  dec-2,  0,  dec+5,  6);    // flèche
+      drawTransformedLine(pmdc, pen, si,co, i,j,  dec-2,  0,  dec+5, -6);   // flèche
+
 }
 
 

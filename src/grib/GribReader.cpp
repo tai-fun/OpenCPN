@@ -201,21 +201,29 @@ void GribReader::readAllGribRecords()
 
                            )
 
-				{
-					storeRecordInMap(rec);
-				}
-				else
                         {
-					/*
+                              storeRecordInMap(rec);
+
+                        }
+
+                        else if( rec->getDataType() == GRB_HTSGW )                // Significant Wave Height
+                              storeRecordInMap(rec);
+
+                        else if( rec->getDataType() == GRB_WVDIR )                // Wind Wave Direction
+                              storeRecordInMap(rec);
+
+                        else
+                        {
+/*
                               fprintf(stderr,
                                       "GribReader: unknown record type: dataType=%d levelType=%d levelValue=%d idCenter==%d && idModel==%d && idGrid==%d\n",
                                       rec->getDataType(), rec->getLevelType(), rec->getLevelValue(),
-						rec->getIdCenter(), rec->getIdModel(), rec->getIdGrid()
-						);
+                              rec->getIdCenter(), rec->getIdModel(), rec->getIdGrid()
+                              );
                               */
                               delete rec;
-				}
-			}
+                        }
+                  }
         }
         else {    // ! rec-isOk
             delete rec;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.19 2009/11/23 04:19:58 bdbcat Exp $
+ * $Id: options.h,v 1.20 2009/12/10 21:22:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.20  2009/12/10 21:22:25  bdbcat
+ * Beta 1210
+ *
  * Revision 1.19  2009/11/23 04:19:58  bdbcat
  * Various for build 1122
  *
@@ -160,7 +163,9 @@ enum {
         ID_TRACKCHECKBOX,
         ID_CM93ZOOM,
         ID_PANELGRIB,
-        ID_GRIBCHECKBOX
+        ID_GRIBCHECKBOX,
+        ID_UPDCHECKBOX,
+        ID_SHOWGPSWINDOW
 
 };
 
@@ -169,6 +174,8 @@ enum {
 #define     GENERIC_CHANGED   1
 #define     S52_CHANGED       2
 #define     FONT_CHANGED      4
+#define     FORCE_UPDATE      8
+#define     VISIT_CHARTS      16
 
 
 #ifndef wxCLOSE_BOX
@@ -201,8 +208,8 @@ public:
     void SetInitChartDir(wxString &dir){ m_init_chart_dir = dir;}
     void SetInitialSettings();
 
-    void SetCurrentDirListPtr(wxArrayString *p)  {m_pCurrentDirList = p;}
-    void SetWorkDirListPtr(wxArrayString *p)  {m_pWorkDirList = p;}
+    void SetCurrentDirListPtr(ArrayOfCDI *p)  {m_pCurrentDirList = p;}
+    void SetWorkDirListPtr(ArrayOfCDI *p)  {m_pWorkDirList = p;}
 
     void SetConfigPtr(MyConfig *p)  {m_pConfig = p;}
     void OnDebugcheckbox1Click( wxCommandEvent& event );
@@ -220,8 +227,11 @@ public:
     void OnNMEASourceChoice(wxCommandEvent& event);
     void OnButtonSelectSound(wxCommandEvent& event);
     void OnButtonTestSound(wxCommandEvent& event);
+    void OnShowGpsWindowCheckboxClick( wxCommandEvent& event );
 
     void SetControlColors(wxWindow *ctrl, ColorScheme cs);
+
+    void UpdateWorkArrayFromTextCtl();
 
 // Should we show tooltips?
     static bool ShowToolTips();
@@ -237,6 +247,10 @@ public:
     wxCheckBox              *pCDOOutlines;
     wxCheckBox              *pSDepthUnits;
     wxCheckBox              *pAutoAnchorMark;
+
+//    For GPS Page
+    wxPanel*                itemPanelGPS;
+    wxCheckBox              *pShowGPSWin;
 
 //    For "S57" page
     wxPanel                 *ps57Ctl;
@@ -268,6 +282,8 @@ public:
     wxTextCtrl                *pSelCtl;
     wxTextCtrl                *pTextCtl;
     wxStaticBox               *itemActiveChartStaticBox;
+    wxCheckBox                *pUpdateCheckBox;
+    int                       k_charts;
 
 //    For "NMEA Options" Box
     wxStaticBox             *m_itemNMEA_TCPIP_StaticBox;
@@ -337,8 +353,8 @@ public:
 
     wxCheckBox*             pSettingsCB1;
 
-    wxArrayString           *m_pCurrentDirList;
-    wxArrayString           *m_pWorkDirList;
+    ArrayOfCDI              *m_pCurrentDirList;
+    ArrayOfCDI              *m_pWorkDirList;
 
     MyConfig                *m_pConfig;
 

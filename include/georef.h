@@ -101,27 +101,28 @@ extern "C" void fromSM_ECC(double x, double y, double lat0, double lon0, double 
 
 extern "C" void ll_gc_ll(double lat, double lon, double crs, double dist, double *dlat, double *dlon);
 
-extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
-extern "C" void DistanceBearing(double lat0, double lon0, double lat1, double lon1, double *brg, double *dist);
+extern "C" double DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
 extern "C" int GetDatumIndex(const char *str);
 extern "C" void MolodenskyTransform (double lat, double lon, double *to_lat, double *to_lon, int from_datum_index, int to_datum_index);
 
+extern "C" void DistanceBearingMercator(double lat0, double lon0, double lat1, double lon1, double *brg, double *dist);
+
+extern "C" int Georef_Calculate_Coefficients(struct GeoRef *cp, int nlin_lon);
 
 #else
 void toDMS(double a, char *bufp, int bufplen);
 void toDMM(double a, char *bufp, int bufplen);
 int GetDatumIndex(const char *str);
 void MolodenskyTransform (double lat, double lon, double *to_lat, double *to_lon, int from_datum_index, int to_datum_index);
-#endif
 
 double fromDMM(char *dms);
 double fromDMS(char *dms);
 
 
-#ifdef __cplusplus
-extern "C" int Georef_Calculate_Coefficients(struct GeoRef *cp, int nlin_lon);
 #endif
+
+
 
 
 

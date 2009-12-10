@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.h,v 1.15 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: cm93.h,v 1.16 2009/12/10 21:21:37 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  CM93 Chart Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cm93.h,v $
+ * Revision 1.16  2009/12/10 21:21:37  bdbcat
+ * Beta 1210
+ *
  * Revision 1.15  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -328,9 +331,7 @@ class cm93chart : public s57chart
             ~cm93chart();
 
             cm93chart(int scale_index);
-            InitReturn Init( const wxString& name, ChartInitFlag flags, ColorScheme cs );
-
-            wxString GetName();
+            InitReturn Init( const wxString& name, ChartInitFlag flags );
 
             double GetNormalScaleMin(double canvas_scale_factor);
             double GetNormalScaleMax(double canvas_scale_factor);
@@ -409,7 +410,7 @@ class cm93compchart : public s57chart
             ~cm93compchart();
 
 
-            InitReturn Init( const wxString& name, ChartInitFlag flags, ColorScheme cs );
+            InitReturn Init( const wxString& name, ChartInitFlag flags );
 
             void Activate(void);
             void Deactivate(void);
@@ -418,8 +419,6 @@ class cm93compchart : public s57chart
             double GetNormalScaleMax(double canvas_scale_factor);
             int GetNativeScale(void);
 
-            wxString GetFullPath();
-            wxString GetName();
             wxString GetPubDate();
 
             void SetVPParms(ViewPort *vpt);

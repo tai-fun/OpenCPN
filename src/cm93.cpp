@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.27 2009/11/23 04:16:05 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.28 2009/12/10 21:11:53 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.28  2009/12/10 21:11:53  bdbcat
+ * Beta 1210
+ *
  * Revision 1.27  2009/11/23 04:16:05  bdbcat
  * Change upper scale limit
  *
@@ -1581,15 +1584,6 @@ double cm93chart::GetNormalScaleMax(double canvas_scale_factor)
       return 1.0e7;
 }
 
-wxString cm93chart::GetName()
-{
-      wxString data = _T("CM93Chart ");
-      data.Append(m_scalechar);
-      wxString s;
-      s.Printf(_T("  1/%d"), m_Chart_Scale);
-      data.Append(s);
-      return data;
-}
 
 void cm93chart::GetPointPix(ObjRazRules *rzRules, float north, float east, wxPoint *r)
 {
@@ -1962,14 +1956,17 @@ int cm93chart::CreateObjChain()
 
 
 
-InitReturn cm93chart::Init( const wxString& name, ChartInitFlag flags, ColorScheme cs )
+InitReturn cm93chart::Init( const wxString& name, ChartInitFlag flags )
 {
 
-      m_pFullPath = new wxString(name);
+      m_FullPath = name;
+      m_Description = m_FullPath;
 
       wxFileName fn(name);
 
       m_scalechar = fn.GetExt();
+
+
 
       //    Figure out the scale from the file name
 
@@ -2003,12 +2000,18 @@ InitReturn cm93chart::Init( const wxString& name, ChartInitFlag flags, ColorSche
             default: m_dval =   1; break;
       }
 
-
+      //    Set the nice name
+      wxString data = _T("CM93Chart ");
+      data.Append(m_scalechar);
+      wxString s;
+      s.Printf(_T("  1/%d"), m_Chart_Scale);
+      data.Append(s);
+      m_Name = data;
 
 
       if(flags == THUMB_ONLY)
       {
-            SetColorScheme(cs, false);
+//            SetColorScheme(cs, false);
 
             return INIT_OK;
       }
@@ -2033,8 +2036,8 @@ InitReturn cm93chart::Init( const wxString& name, ChartInitFlag flags, ColorSche
 
 
 //    Set the color scheme
-      m_global_color_scheme = cs;
-      SetColorScheme(cs, false);
+//      m_global_color_scheme = cs;
+//      SetColorScheme(cs, false);
 
 
       bReadyToRender = true;
@@ -3378,7 +3381,7 @@ InitReturn cm93chart::CreateHeaderDataFromCM93Cell(void)
 {
 
       //    Figure out the scale from the file name
-      wxFileName fn(*m_pFullPath);
+      wxFileName fn(m_FullPath);
       wxString ext = fn.GetExt();
 
       int scale;
@@ -3447,8 +3450,8 @@ InitReturn cm93chart::CreateHeaderDataFromCM93Cell(void)
 
       //    Populate one (huge) M_COVR Entry
       m_nCOVREntries = 1;
-      m_pCOVRContourTable = (int *)malloc(sizeof(int));
-      *m_pCOVRContourTable = 4;
+      m_pCOVRTablePoints = (int *)malloc(sizeof(int));
+      *m_pCOVRTablePoints = 4;
       m_pCOVRTable = (float **)malloc(sizeof(float *));
       float *pf = (float *)malloc(2 * 4 * sizeof(float));
       *m_pCOVRTable = pf;
@@ -3862,7 +3865,11 @@ cm93compchart::cm93compchart()
       m_pDict = NULL;
 
       //    Supply a default name for status bar field
-      m_pFullPath = new wxString(_T("CM93"));
+      m_FullPath = _T("CM93");
+
+      //    Set the "Description", so that it paints nice on the screen
+      m_Description = _T("CM93Composite");
+
 
       for(int i = 0 ; i < 8 ; i++)
             m_pcm93chart_array[i] = NULL;
@@ -3885,11 +3892,9 @@ cm93compchart::~cm93compchart()
 }
 
 
-InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, ColorScheme cs )
+InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags )
 {
-      //    Update the FullPath with the exact value
-      m_pFullPath->Clear();
-      m_pFullPath->Append(name);
+      m_FullPath = name;
 
       wxFileName fn(name);
 
@@ -3913,25 +3918,6 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
 
       wxString target = file_path.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
 
-/*
-      //    Search for the directory called 00300000 all along the path of the passed parameter filename
-      wxString target;
-      unsigned int i = 0;
-
-      while(i < path.Len())
-      {
-            target.Append(path[i]);
-            if(path[i] == fn.GetPathSeparator())
-            {
-                  wxString dirtest = target;
-                  dirtest << _T("00300000");
-                  if(wxFileName::DirExists(dirtest))
-                        break;
-            }
-            i++;
-      }
-
-*/
       m_prefix = target;
 
       wxString msg(_T("CM93Composite Chart Root is "));
@@ -3941,7 +3927,7 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
 
       if(flags == THUMB_ONLY)
       {
-            SetColorScheme(cs, false);
+//            SetColorScheme(cs, false);
 
             return INIT_OK;
       }
@@ -3982,8 +3968,7 @@ InitReturn cm93compchart::Init( const wxString& name, ChartInitFlag flags, Color
 
 
 //    Set the color scheme
-      m_global_color_scheme = cs;
-      SetColorScheme(cs, false);
+      SetColorScheme(m_global_color_scheme, false);
 
       bReadyToRender = true;
 
@@ -4107,7 +4092,8 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
                         m_pcm93chart_array[cmscale]->SetCM93Dict(m_pDict);
                         m_pcm93chart_array[cmscale]->SetCM93Prefix(m_prefix);
 
-                        m_pcm93chart_array[cmscale]->Init( file_dummy, FULL_INIT, m_global_color_scheme );
+                        m_pcm93chart_array[cmscale]->SetColorScheme(m_global_color_scheme);
+                        m_pcm93chart_array[cmscale]->Init( file_dummy, FULL_INIT);
                   }
                   else if(cmscale == 0)
                   {
@@ -4134,6 +4120,7 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 
 
             m_pcm93chart_current = m_pcm93chart_array[cmscale];
+            m_Name = m_pcm93chart_current->GetName();
 
             if(b_nochart)
             {
@@ -4229,27 +4216,7 @@ void cm93compchart::FillScaleArray(double lat, double lon)
 }
 
 //    These methods simply pass the called parameters to the currently active cm93chart
-wxString cm93compchart::GetFullPath()
-{
-      //TODO this doesnt work since method is called only once on composite chart load,
-      // and the particular CM93Chart to be used is unknown, and the scale is unknown....
-/*
-      if(NULL != m_pcm93chart_current)
-            return m_pcm93chart_current->GetFullPath(data);
-      else
-            return;
-*/
-      return _T("CM93Composite");
-}
 
-wxString cm93compchart::GetName()
-{
-
-      if(NULL != m_pcm93chart_current)
-            return m_pcm93chart_current->GetName();
-      else
-            return _T("CM93CompositeName");
-}
 
 wxString cm93compchart::GetPubDate()
 {
@@ -4552,7 +4519,8 @@ bool cm93compchart::RenderNextSmallerCellOutlines( wxDC *pdc, ViewPort& vp, bool
                         psc->SetCM93Dict(m_pDict);
                         psc->SetCM93Prefix(m_prefix);
 
-                        psc->Init( file_dummy, FULL_INIT, m_global_color_scheme );
+                        psc->SetColorScheme(m_global_color_scheme);
+                        psc->Init( file_dummy, FULL_INIT );
                   }
 
                   if((psc) && (nss != 1))       // skip rendering the A scale outlines
@@ -4743,8 +4711,8 @@ InitReturn cm93compchart::CreateHeaderData()
 
       //    Populate one (huge) M_COVR Entry
       m_nCOVREntries = 1;
-      m_pCOVRContourTable = (int *)malloc(sizeof(int));
-      *m_pCOVRContourTable = 4;
+      m_pCOVRTablePoints = (int *)malloc(sizeof(int));
+      *m_pCOVRTablePoints = 4;
       m_pCOVRTable = (float **)malloc(sizeof(float *));
       float *pf = (float *)malloc(2 * 4 * sizeof(float));
       *m_pCOVRTable = pf;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.h,v 1.19 2009/11/23 04:19:58 bdbcat Exp $
+ * $Id: chartimg.h,v 1.20 2009/12/10 21:21:37 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.h,v $
+ * Revision 1.20  2009/12/10 21:21:37  bdbcat
+ * Beta 1210
+ *
  * Revision 1.19  2009/11/23 04:19:58  bdbcat
  * Various for build 1122
  *
@@ -140,13 +143,6 @@ public:
 };
 
 
-class Plypoint
-{
-public:
-      float ltp;
-      float lnp;
-};
-
 
 
 
@@ -202,7 +198,7 @@ class  ChartBaseBSB     :public ChartBase
       void GetSourceRect(wxRect *rect);
 
 
-      virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
+      virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags );
       virtual void InvalidateLineCache();
       virtual bool CreateLineIndex(void);
 
@@ -380,7 +376,7 @@ public:
       ChartKAP();
       ~ChartKAP();
 
-      InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
+      InitReturn Init( const wxString& name, ChartInitFlag init_flags );
 
 
 };
@@ -396,7 +392,7 @@ public:
       ChartGEO();
       ~ChartGEO();
 
-      InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
+      InitReturn Init( const wxString& name, ChartInitFlag init_flags );
 
 
 };

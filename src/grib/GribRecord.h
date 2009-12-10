@@ -57,6 +57,18 @@ Elément de base d'un fichier GRIB
 #define GRB_PRECIP_TOT     61   /* l/m2   */
 #define GRB_SNOW_DEPTH     66   /* m      */
 #define GRB_CLOUD_TOT      71   /* %      */
+#define GRB_HTSGW         100   /* m      */
+#define GRB_WVDIR         101
+#define GRB_WVHGT         102
+#define GRB_WVPER         103
+#define GRB_SWDIR         104
+#define GRB_SWELL         105
+#define GRB_SWPER         106
+#define GRB_DIRPW         107
+#define GRB_PERPW         108
+#define GRB_DIRSW         109
+#define GRB_PERSW         110
+
 #define GRB_FRZRAIN_CATEG 141   /* 1=yes 0=no */
 #define GRB_SNOW_CATEG    143   /* 1=yes 0=no */
 #define GRB_CAPE 		  157   /* J/kg   */

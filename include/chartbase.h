@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartbase.h,v 1.17 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: chartbase.h,v 1.18 2009/12/10 21:20:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase Definition
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartbase.h,v $
+ * Revision 1.18  2009/12/10 21:20:46  bdbcat
+ * Beta 1210
+ *
  * Revision 1.17  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -154,6 +157,15 @@ typedef enum ChartDepthUnitType
 }_ChartDepthUnitType;
 
 
+
+class Plypoint
+{
+      public:
+            float ltp;
+            float lnp;
+};
+
+
 // ----------------------------------------------------------------------------
 // ChartBase
 // ----------------------------------------------------------------------------
@@ -165,7 +177,7 @@ public:
       ChartBase();
       virtual ~ChartBase() = 0;
 
-      virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs) = 0;
+      virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags) = 0;
 
       virtual void Activate(void) {};
       virtual void Deactivate(void) {};
@@ -182,11 +194,17 @@ public:
       virtual double GetChartSkew() = 0;
       virtual bool GetChartExtent(Extent *pext) = 0;
 
-      virtual wxString GetPubDate(){ return *pPubYear;}
+      virtual wxString GetPubDate(){ return m_PubYear;}
       virtual wxDateTime GetEditionDate(void){ return m_EdDate;}
 
-      virtual wxString GetFullPath(){ return *m_pFullPath;}
-      virtual wxString GetName(){ return *m_pName;}
+      wxString GetFullPath() const { return m_FullPath;}
+      wxString GetName(){ return m_Name;}
+      wxString GetDescription() { return m_Description;}
+      ChartTypeEnum GetChartType(){ return m_ChartType;}
+
+      int GetCOVREntries(){ return  m_nCOVREntries; }
+      int GetCOVRTablePoints(int iTable) const { return m_pCOVRTablePoints[iTable]; }
+
       virtual ChartDepthUnitType GetDepthUnitType(void) { return m_depth_unit_id;}
 
       virtual bool IsReadyToRender(){ return bReadyToRender;}
@@ -202,21 +220,22 @@ public:
 
       virtual void GetValidCanvasRegion(const ViewPort& VPoint, wxRegion *pValidRegion) = 0;
 
-      virtual void SetColorScheme(ColorScheme cs, bool bApplyImmediate) = 0;
+      virtual void SetColorScheme(ColorScheme cs, bool bApplyImmediate = true ) = 0;
 
       virtual bool IsCacheValid(void) = 0;
 
-      virtual int  GetCOVRTablenPoints(int iTable){ return m_pCOVRContourTable[iTable]; }
+      virtual int  GetCOVRTablenPoints(int iTable){ return m_pCOVRTablePoints[iTable]; }
       virtual float *GetCOVRTableHead(int iTable){ return m_pCOVRTable[iTable]; }
 
       ChartTypeEnum     m_ChartType;
       ChartFamilyEnum   m_ChartFamily;
 
-      wxString          *m_pFullPath;
-      wxString          *m_pName;
+      wxString          m_FullPath;
+      wxString          m_Name;
+      wxString          m_Description;
 
-      wxString          *pPubYear;
-      wxString          *pDepthUnits;
+      wxString          m_PubYear;
+      wxString          m_DepthUnits;
 
       wxBitmap          *pcached_bitmap;
 
@@ -237,7 +256,7 @@ public:
       //    ENC charts often contain multiple entries
 
       int         m_nCOVREntries;                       // number of coverage table entries
-      int         *m_pCOVRContourTable;                 // int table of number of points in each coverage table entry
+      int         *m_pCOVRTablePoints;                  // int table of number of points in each coverage table entry
       float       **m_pCOVRTable;                       // table of pointers to list of floats describing valid COVR
 
       //    Todo  Define invalid COVR regions
@@ -264,7 +283,7 @@ public:
       ChartDummy();
       virtual ~ChartDummy();
 
-      virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs );
+      virtual InitReturn Init( const wxString& name, ChartInitFlag init_flags );
 
 //    Accessors
       virtual ThumbData *GetThumbData(int tnx, int tny, float lat, float lon);

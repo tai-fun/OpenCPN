@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.h,v 1.8 2009/08/22 01:22:04 bdbcat Exp $
+ * $Id: routeman.h,v 1.9 2009/12/10 21:22:25 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.h,v $
+ * Revision 1.9  2009/12/10 21:22:25  bdbcat
+ * Beta 1210
+ *
  * Revision 1.8  2009/08/22 01:22:04  bdbcat
  * Tracks
  *
@@ -149,11 +152,11 @@ public:
 
       Route *GetpActiveRoute(){ return pActiveRoute;}
       RoutePoint *GetpActivePoint(){ return pActivePoint;}
-      float GetCurrentRngToActivePoint(){ return CurrentRngToActivePoint;}          //TODO all these need to be doubles
-      float GetCurrentBrgToActivePoint(){ return CurrentBrgToActivePoint;}
-      float GetCurrentRngToActiveNormalArrival(){ return CurrentRangeToActiveNormalCrossing;}
-      float GetCurrentXTEToActivePoint(){ return CurrentXTEToActivePoint;}
-      float GetCurrentSegmentCourse(){ return CurrentSegmentCourse;}
+      double GetCurrentRngToActivePoint(){ return CurrentRngToActivePoint;}
+      double GetCurrentBrgToActivePoint(){ return CurrentBrgToActivePoint;}
+      double GetCurrentRngToActiveNormalArrival(){ return CurrentRangeToActiveNormalCrossing;}
+      double GetCurrentXTEToActivePoint(){ return CurrentXTEToActivePoint;}
+      double GetCurrentSegmentCourse(){ return CurrentSegmentCourse;}
       int   GetXTEDir(){ return XTEDir;}
 
       wxPen   * GetRoutePen(void){return m_pRoutePen;}
@@ -172,17 +175,17 @@ public:
 private:
       Route       *pActiveRoute;
       RoutePoint  *pActivePoint;
-      float       RouteBrgToActivePoint;        //TODO all these need to be doubles
-      float       CurrentSegmentBeginLat;
-      float       CurrentSegmentBeginLon;
-      float       CurrentRngToActivePoint;
-      float       CurrentBrgToActivePoint;
-      float       CurrentXTEToActivePoint;
-      float       CourseToRouteSegment;
-      float       CurrentRangeToActiveNormalCrossing;
+      double       RouteBrgToActivePoint;        //TODO all these need to be doubles
+      double       CurrentSegmentBeginLat;
+      double       CurrentSegmentBeginLon;
+      double       CurrentRngToActivePoint;
+      double       CurrentBrgToActivePoint;
+      double       CurrentXTEToActivePoint;
+      double       CourseToRouteSegment;
+      double       CurrentRangeToActiveNormalCrossing;
       RoutePoint  *pActiveRouteSegmentBeginPoint;
       RoutePoint  *pRouteActivatePoint;
-      float       CurrentSegmentCourse;
+      double       CurrentSegmentCourse;
       int         XTEDir;
       bool        m_bArrival;
       wxPen       *m_pRoutePen;

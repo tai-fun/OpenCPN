@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.17 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: chartdb.h,v 1.18 2009/12/10 21:20:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.18  2009/12/10 21:20:58  bdbcat
+ * Beta 1210
+ *
  * Revision 1.17  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -88,7 +91,8 @@
 #include "wx/tokenzr.h"
 #include "wx/dir.h"
 #include "wx/filename.h"
-#include "chartbase.h"        // for enum ChartInitFlag
+#include "chartbase.h"
+#include "chartdbs.h"
 
 #define     MAXSTACK          20
 
@@ -98,9 +102,6 @@
 // ----------------------------------------------------------------------------
 //    Constants, etc.
 // ----------------------------------------------------------------------------
-
-#define           DB_VERSION  14
-
 
 typedef struct  {
     float y;
@@ -116,28 +117,6 @@ class ChartBase;
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-class ChartTableEntry
-{
-public:
-      int         EntryOffset;
-      int         ChartType;
-      char        ChartID[16];
-      float       LatMax;
-      float       LatMin;
-      float       LonMax;
-      float       LonMin;
-      char        *pFullPath;
-      int         Scale;
-      time_t      edition_date;
-      float       *pPlyTable;
-      int         nPlyEntries;
-      int         nAuxPlyEntries;
-      float       **pAuxPlyTable;
-      int         *pAuxCntTable;
-      bool        bValid;
-
-};
-
 class ChartStack
 {
 public:
@@ -146,14 +125,6 @@ public:
       int         nEntry;
       int         CurrentStackEntry;
       int         DBIndex[MAXSTACK];
-};
-
-class ChartTableHeader
-{
-public:
-      char        dbVersion[4];
-      int         nTableEntries;
-      int         nDirEntries;
 };
 
 class CacheEntry
@@ -170,72 +141,50 @@ public:
 // Chart Database
 // ----------------------------------------------------------------------------
 
-class ChartDB
+class ChartDB: public ChartDatabase
 {
 public:
 
       ChartDB(MyFrame *parent);
       virtual ~ChartDB();
 
-      bool Create(wxArrayString *dir_list, bool show_prog = true);
-      bool Update(wxArrayString *dir_list, bool show_prog = true);
 
+      bool LoadBinary(wxString *filename) { return ChartDatabase::Read(*filename); }
+      bool SaveBinary(wxString *filename) { return ChartDatabase::Write(*filename); }
 
-      bool LoadBinary(wxString *filename);
-      bool SaveBinary(wxString *filename, wxArrayString *pChartDirArray);
       int  BuildChartStack(ChartStack * cstk, float lat, float lon);
       bool EqualStacks(ChartStack *, ChartStack *);
       bool CopyStack(ChartStack *pa, ChartStack *pb);
       wxString GetFullPath(ChartStack *ps, int stackindex);
-      bool GetChartID(ChartStack *ps, int stackindex, char *buf, int nbuf);
       int  GetStackChartScale(ChartStack *ps, int stackindex, char *buf, int nbuf);
       int  GetCSPlyPoint(ChartStack *ps, int stackindex, int plyindex, float *lat, float *lon);
-      int  GetCSChartType(ChartStack *ps, int stackindex);
+      ChartTypeEnum GetCSChartType(ChartStack *ps, int stackindex);
       ChartFamilyEnum GetCSChartFamily(ChartStack *ps, int stackindex);
-      int  GetDBChartType(int dbIndex);
-      bool GetDBFullPath(int dbIndex, char *buf);
-      bool GetDBBoundingBox(int dbindex, wxBoundingBox *box);
       bool SearchForChartDir(wxString &dir);
       ChartBase *OpenStackChartConditional(ChartStack *ps, int start_index, bool bLargest, ChartTypeEnum New_Type, ChartFamilyEnum New_Family_Fallback);
 
-      int  GetnAuxPlyEntries(int dbIndex){ return pChartTable[dbIndex].nAuxPlyEntries; }
-      int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);
-      int  GetDBAuxPlyPoint(int dbIndex, int plyindex, int iAuxPly, float *lat, float *lon);
 
 
-      virtual int  GetStackEntry(ChartStack *ps, wxString *pfp);
+      int GetStackEntry(ChartStack *ps, wxString fp);
       ChartBase *OpenChartFromStack(ChartStack *pStack, int StackEntry, ChartInitFlag iflag = FULL_INIT);
-      int DisableChart(wxString& PathToDisable);
       void ApplyColorSchemeToCachedCharts(ColorScheme cs);
 
-      bool DetectDirChange(wxString dir_path, wxString magic, wxString &new_magic);
-      bool GetCentroidOfLargestScaleChart(double *clat, double *clon, ChartFamilyEnum family);
 
-
-      // Public data
       //Todo build accessors
-      int   nEntry;
-
       wxArrayPtrVoid    *pChartCache;
 
-private:
+protected:
+        virtual ChartBase *GetChart(const wxChar *theFilePath) const;
 
+private:
       InitReturn CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry);
-      int TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate, wxString& dir_magic);
-      int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, bool bshow_prog, bool bupdate, bool bCheckBothCases = false);
 
       int SearchDirAndAddSENC(wxString& dir, bool bshow_prog, bool bupdate);
       bool CreateS57SENCChartTableEntry(wxString full_name, ChartTableEntry *pEntry, Extent *pext);
       bool CheckPositionWithinChart(int index, float lat, float lon);
 
-      ChartFamilyEnum GetChartFamily(int charttype);
 
       MyFrame           *pParent;
-      wxFileInputStream *ifs;
-
-      bool              bValid;
-      ChartTableEntry   *pChartTable;
-
 };
 
 

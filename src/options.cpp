@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.35 2009/11/23 04:18:51 bdbcat Exp $
+ * $Id: options.cpp,v 1.36 2009/12/10 21:12:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.36  2009/12/10 21:12:41  bdbcat
+ * Beta 1210
+ *
  * Revision 1.35  2009/11/23 04:18:51  bdbcat
  * Various for build 1122
  *
@@ -147,7 +150,7 @@
 
 #include "wx/generic/progdlgg.h"
 #include "wx/sound.h"
-
+#include <wx/radiobox.h>
 
 #include "dychart.h"
 #include "chart1.h"
@@ -220,6 +223,10 @@ extern bool             g_bShowCM93DetailSlider;
 extern bool             g_bShowGRIBIcon;
 extern bool             g_bGRIBUseHiDef;
 
+extern TTYWindow        *g_NMEALogWindow;
+extern int              g_NMEALogWindow_x, g_NMEALogWindow_y;
+extern int              g_NMEALogWindow_sx, g_NMEALogWindow_sy;
+
 #ifdef USE_WIFI_CLIENT
 extern wxString         *pWIFIServerName;
 #endif
@@ -244,7 +251,6 @@ BEGIN_EVENT_TABLE( options, wxDialog )
     EVT_TREE_SEL_CHANGED( ID_DIRCTRL, options::OnDirctrlSelChanged )
     EVT_BUTTON( ID_BUTTONADD, options::OnButtonaddClick )
     EVT_BUTTON( ID_BUTTONDELETE, options::OnButtondeleteClick )
-    EVT_RADIOBOX( ID_RADIOBOX, options::OnRadioboxSelected )
     EVT_BUTTON( xID_OK, options::OnXidOkClick )
     EVT_BUTTON( wxID_CANCEL, options::OnCancelClick )
     EVT_BUTTON( ID_BUTTONFONTCHOOSE, options::OnChooseFont )
@@ -256,6 +262,7 @@ BEGIN_EVENT_TABLE( options, wxDialog )
     EVT_BUTTON( ID_SELECTLIST, options::OnButtonSelectClick )
     EVT_BUTTON( ID_AISALERTSELECTSOUND, options::OnButtonSelectSound )
     EVT_BUTTON( ID_AISALERTTESTSOUND, options::OnButtonTestSound )
+    EVT_CHECKBOX( ID_SHOWGPSWINDOW, options::OnShowGpsWindowCheckboxClick )
 
 END_EVENT_TABLE()
 
@@ -309,6 +316,8 @@ void options::Init()
     ps57CtlListBox = NULL;
     pDispCat = NULL;
     m_pSerialArray = NULL;
+    pUpdateCheckBox = NULL;
+    k_charts = 0;
 
     itemStaticBoxSizer11 = NULL;
     pDirCtl = NULL;;
@@ -399,7 +408,6 @@ void options::CreateControls()
                                        wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
     wxBoxSizer* itemBoxSizer6 = new wxBoxSizer(wxVERTICAL);
     itemPanel5->SetSizer(itemBoxSizer6);
-
     itemNotebook4->AddPage(itemPanel5, _("Settings"));
 
 
@@ -449,6 +457,9 @@ void options::CreateControls()
     itemStaticBoxSizerCDO->Add(pAutoAnchorMark, 1, wxALIGN_LEFT|wxALL, 2);
 ///
 
+
+
+#if 0
 //    Add NMEA Options Box
     wxStaticBox* itemNMEAStaticBox = new wxStaticBox(itemPanel5, wxID_ANY, _("NMEA Options"));
     wxStaticBoxSizer* itemNMEAStaticBoxSizer = new wxStaticBoxSizer(itemNMEAStaticBox, wxVERTICAL);
@@ -583,7 +594,7 @@ void options::CreateControls()
       m_itemNMEAAutoListBox->SetSelection(sidx);
 
       itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxEXPAND|wxALL, border_size);
-
+#endif
 
 #ifdef USE_WIFI_CLIENT
 //    Add WiFi Options Box
@@ -606,6 +617,158 @@ void options::CreateControls()
       ip = pWIFIServerName->Mid(7);
       m_itemWIFI_TCPIP_Source->WriteText(ip);
 #endif
+
+
+
+    //  Create "GPS" panel
+
+
+      itemPanelGPS = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+      wxBoxSizer* itemBoxSizerGPS = new wxBoxSizer(wxVERTICAL);
+      itemPanelGPS->SetSizer(itemBoxSizerGPS);
+      itemNotebook4->AddPage(itemPanelGPS, _("GPS"));
+
+
+
+//    Add NMEA Options Box
+      wxStaticBox* itemNMEAStaticBox = new wxStaticBox(itemPanelGPS, wxID_ANY, _("NMEA Options"));
+      wxStaticBoxSizer* itemNMEAStaticBoxSizer = new wxStaticBoxSizer(itemNMEAStaticBox, wxVERTICAL);
+      itemBoxSizerGPS->Add(itemNMEAStaticBoxSizer, 0, wxEXPAND|wxALL, 4);
+
+
+//    Add NMEA data source controls
+      wxStaticBox* itemNMEASourceStaticBox = new wxStaticBox(itemPanelGPS, wxID_ANY, _("NMEA Data Source"));
+      wxStaticBoxSizer* itemNMEASourceStaticBoxSizer = new wxStaticBoxSizer(itemNMEASourceStaticBox, wxVERTICAL);
+      itemNMEAStaticBoxSizer->Add(itemNMEASourceStaticBoxSizer, 0, wxEXPAND|wxALL, 4);
+
+      m_itemNMEAListBox = new wxComboBox(itemPanelGPS, ID_CHOICE_NMEA);
+      m_itemNMEAListBox->Append( _T("None"));
+
+      //    Fill in the listbox with all detected serial ports
+      for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+            m_itemNMEAListBox->Append( m_pSerialArray->Item(iPortIndex) );
+
+
+//    Search the string array looking for "GARMIN"
+      bool bfound_garmin_string = false;
+      for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+      {
+            if(   m_pSerialArray->Item(iPortIndex).Contains(_T("GARMIN")))
+            {
+                  bfound_garmin_string = true;
+                  break;
+            }
+      }
+
+        //  Garmin persistence logic:
+        //  Make sure "GARMIN" is in the list if the persistence flag is set.
+        //  This covers the situation where Garmin is desired, but the
+        //  device is not connected yet.
+        //  n.b. Hot-plugging is not supported.  Opencpn must be
+        //  restarted with device inserted to enable this option.
+      if(g_bGarminPersistance && !bfound_garmin_string)
+            m_itemNMEAListBox->Append( _T("GARMIN"));
+
+
+#ifndef OCPN_DISABLE_SOCKETS
+      m_itemNMEAListBox->Append( _T("Network GPSD"));
+#endif
+
+      m_itemNMEAListBox->Append( _T("AIS Port (Shared)"));
+
+
+//    Activate the proper selections
+//    n.b. Hard coded indices
+      int scidx;
+      bool tcp_en = false;
+      wxString source;
+      source = (*pNMEADataSource);
+      if(source.Upper().Contains(_T("SERIAL")))
+      {
+            wxString sourcex = source.Mid(7);
+            scidx = m_itemNMEAListBox->FindString(sourcex);
+      }
+      else if(source.Upper().Contains(_T("NONE")))
+            scidx = 0;
+
+      else if(source.Upper().Contains(_("GARMIN")))
+            scidx = m_itemNMEAListBox->FindString(_T("GARMIN"));
+
+      else if(source.Upper().Contains(_("AIS")))
+            scidx = m_itemNMEAListBox->FindString(_T("AIS Port (Shared)"));
+
+#ifndef OCPN_DISABLE_SOCKETS
+      else if(source.Upper().Contains(_T("GPSD")))
+      {
+            scidx = m_itemNMEAListBox->FindString(_T("Network GPSD"));
+            tcp_en = true;
+      }
+#endif
+      else
+            scidx = 0;                                 // malformed selection
+
+
+      if(scidx ==  wxNOT_FOUND)                  // user specified in ComboBox
+      {
+            wxString nsource = source.AfterFirst(':');
+            m_itemNMEAListBox->Append( nsource );
+            scidx = m_itemNMEAListBox->FindString(nsource);
+      }
+
+
+      m_itemNMEAListBox->SetSelection(scidx);
+      itemNMEASourceStaticBoxSizer->Add(m_itemNMEAListBox, 0, wxEXPAND|wxALL, border_size);
+
+#ifndef OCPN_DISABLE_SOCKETS
+
+//    Add NMEA TCP/IP Server address
+      m_itemNMEA_TCPIP_StaticBox = new wxStaticBox(itemPanelGPS, wxID_ANY, _T("GPSD Data Server"));
+      m_itemNMEA_TCPIP_StaticBoxSizer = new wxStaticBoxSizer(m_itemNMEA_TCPIP_StaticBox, wxVERTICAL);
+      itemNMEAStaticBoxSizer->Add(m_itemNMEA_TCPIP_StaticBoxSizer, 0, wxEXPAND|wxALL, 4);
+
+      m_itemNMEA_TCPIP_Source = new wxTextCtrl(itemPanelGPS, wxID_ANY);
+      m_itemNMEA_TCPIP_StaticBoxSizer->Add(m_itemNMEA_TCPIP_Source, 0, wxEXPAND|wxALL, border_size);
+
+      m_itemNMEA_TCPIP_StaticBox->Enable(tcp_en);
+      m_itemNMEA_TCPIP_Source->Enable(tcp_en);
+
+      if(tcp_en)
+      {
+            wxString ip;
+            ip = source.Mid(5);
+            m_itemNMEA_TCPIP_Source->WriteText(ip);
+      }
+#endif
+
+
+      pShowGPSWin = new wxCheckBox( itemPanelGPS, ID_SHOWGPSWINDOW, _("Show GPS/NMEA data stream window"));
+      itemNMEAStaticBoxSizer->Add(pShowGPSWin, 1, wxALIGN_LEFT|wxALL, 2);
+
+
+//    Add Autopilot serial output port controls
+      wxStaticBox* itemNMEAAutoStaticBox = new wxStaticBox(itemPanelGPS, wxID_ANY, _T("Autopilot Output Port"));
+      wxStaticBoxSizer* itemNMEAAutoStaticBoxSizer = new wxStaticBoxSizer(itemNMEAAutoStaticBox, wxVERTICAL);
+      itemNMEAStaticBoxSizer->Add(itemNMEAAutoStaticBoxSizer, 0, wxEXPAND|wxALL, 10);
+
+      m_itemNMEAAutoListBox = new wxComboBox(itemPanelGPS, ID_CHOICE_AP);
+      m_itemNMEAAutoListBox->Append( _T("None"));
+
+      //    Fill in the listbox with all detected serial ports
+      for (iPortIndex=0 ; iPortIndex < m_pSerialArray->GetCount() ; iPortIndex++)
+            m_itemNMEAAutoListBox->Append( m_pSerialArray->Item(iPortIndex) );
+
+      wxString ap_com;
+      if(pNMEA_AP_Port->Contains(_T("Serial")))
+            ap_com = pNMEA_AP_Port->Mid(7);
+      else
+            ap_com = _T("None");
+
+      int sapidx = m_itemNMEAAutoListBox->FindString(ap_com);
+      m_itemNMEAAutoListBox->SetSelection(sapidx);
+
+      itemNMEAAutoStaticBoxSizer->Add(m_itemNMEAAutoListBox, 0, wxEXPAND|wxALL, border_size);
+
+
 
 
 
@@ -820,6 +983,7 @@ void options::CreateControls()
           m_itemAISListBox->Append( m_pSerialArray->Item(iPortIndex) );
 
 
+    int sidx;
     if(pAIS_Port->Upper().Contains(_T("SERIAL")))
     {
           wxString ais_com = pAIS_Port->Mid(7);
@@ -1190,7 +1354,7 @@ void options::SetInitialSettings()
 
             for(int i=0 ; i<nDir ; i++)
             {
-                  dirname = m_pCurrentDirList->Item(i);
+                  dirname = m_pCurrentDirList->Item(i).fullpath;
                   if(!dirname.IsEmpty())
                   {
                       if (pTextCtl)
@@ -1206,6 +1370,9 @@ void options::SetInitialSettings()
 
       if(m_pConfig)
             pSettingsCB1->SetValue(m_pConfig->m_bShowDebugWindows);
+
+      if(g_NMEALogWindow)
+            pShowGPSWin->SetValue(true);
 
       pPrintShowIcon->SetValue(g_bShowPrintIcon);
       pCDOOutlines->SetValue(g_bShowOutlines);
@@ -1378,6 +1545,24 @@ void options::SetInitialSettings()
 }
 
 
+void options::OnShowGpsWindowCheckboxClick( wxCommandEvent& event )
+{
+      if(!pShowGPSWin->GetValue())
+      {
+            if(g_NMEALogWindow)
+                  g_NMEALogWindow->Destroy();
+      }
+      else
+      {
+            g_NMEALogWindow = new TTYWindow(pParent, 35);
+            wxString com_string(m_itemNMEAListBox->GetValue());
+            g_NMEALogWindow->SetTitle(com_string);
+            g_NMEALogWindow->SetSize(g_NMEALogWindow_x,  g_NMEALogWindow_y,
+                                     g_NMEALogWindow_sx, g_NMEALogWindow_sy);
+            g_NMEALogWindow->Show();
+      }
+}
+
 void options::OnDisplayCategoryRadioButton( wxCommandEvent& event)
 {
    int select = pDispCat->GetSelection();
@@ -1453,6 +1638,52 @@ void options::OnButtonaddClick( wxCommandEvent& event )
 }
 
 
+void options::UpdateWorkArrayFromTextCtl()
+{
+      wxString dirname;
+      int n = pTextCtl->GetNumberOfLines();
+      if(m_pWorkDirList)
+      {
+            m_pWorkDirList->Clear();
+            for(int i=0 ; i<n ; i++)
+            {
+                  dirname = pTextCtl->GetLineText(i);
+                  if(!dirname.IsEmpty())
+                  {
+                              //    This is a fix for OSX, which appends EOL to results of GetLineText()
+                        while (( dirname.Last() == wxChar(_T('\n')) ) || ( dirname.Last()  == wxChar(_T('\r')) ))
+                              dirname.RemoveLast() ;
+
+                              //    scan the current array to find a match
+                              //    if found, add the info to the work list, preserving the magic number
+                              //    If not found, make a new ChartDirInfo, and add it
+                        bool b_added = false;
+                        if(m_pCurrentDirList)
+                        {
+                              int nDir = m_pCurrentDirList->GetCount();
+
+                              for(int i=0 ; i<nDir ; i++)
+                              {
+                                    if(m_pCurrentDirList->Item(i).fullpath == dirname)
+                                    {
+                                          ChartDirInfo cdi = m_pCurrentDirList->Item(i);
+                                          m_pWorkDirList->Add(cdi);
+                                          b_added = true;
+                                          break;
+                                    }
+                              }
+                        }
+                        if(!b_added)
+                        {
+                              ChartDirInfo cdin;
+                              cdin.fullpath = dirname;
+                              m_pWorkDirList->Add(cdin);
+                        }
+                  }
+            }
+      }
+}
+
 
 void options::OnXidOkClick( wxCommandEvent& event )
 {
@@ -1462,6 +1693,8 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
       if(pTextCtl)
       {
+            UpdateWorkArrayFromTextCtl();
+/*
             int n = pTextCtl->GetNumberOfLines();
             if(m_pWorkDirList)
             {
@@ -1475,10 +1708,35 @@ void options::OnXidOkClick( wxCommandEvent& event )
                               while (( dirname.Last() == wxChar(_T('\n')) ) || ( dirname.Last()  == wxChar(_T('\r')) ))
                                    dirname.RemoveLast() ;
 
-                              m_pWorkDirList->Add(dirname);
+                              //    scan the current array to find a match
+                              //    if found, add the info to the work list, preserving the magic number
+
+                              bool b_added = false;
+                              if(m_pCurrentDirList)
+                              {
+                                    int nDir = m_pCurrentDirList->GetCount();
+
+                                    for(int i=0 ; i<nDir ; i++)
+                                    {
+                                          if(m_pCurrentDirList->Item(i).fullpath == dirname)
+                                          {
+                                                ChartDirInfo cdi = m_pCurrentDirList->Item(i);
+                                                m_pWorkDirList->Add(cdi);
+                                                b_added = true;
+                                                break;
+                                          }
+                                    }
+                              }
+                              if(!b_added)
+                              {
+                                    ChartDirInfo cdin;
+                                    cdin.fullpath = dirname;
+                                    m_pWorkDirList->Add(cdin);
+                              }
                         }
                     }
             }
+*/
       }
       else
       {
@@ -1489,12 +1747,20 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
               for(int i=0 ; i<nDir ; i++)
               {
-                  dirname = m_pCurrentDirList->Item(i);
-                  if(!dirname.IsEmpty())
-                      m_pWorkDirList->Add(dirname);
+                    ChartDirInfo cdi = m_pCurrentDirList->Item(i);
+                    m_pWorkDirList->Add(cdi);
               }
           }
       }
+
+      int k_force = FORCE_UPDATE;
+      if(pUpdateCheckBox)
+      {
+            if(!pUpdateCheckBox->GetValue())
+                  k_force = 0;
+      }
+      else
+            k_force = 0;
 
 
 //    Handle Settings Tab
@@ -1715,7 +1981,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
 
 
     //      Could be a lot smarter here
-    EndModal(GENERIC_CHANGED | S52_CHANGED);
+    EndModal(GENERIC_CHANGED | S52_CHANGED | k_force | k_charts);
 
 
 }
@@ -1728,7 +1994,9 @@ void options::OnButtondeleteClick( wxCommandEvent& event )
 
       pTextCtl->Cut();
 
-      int n = pTextCtl->GetNumberOfLines();
+      UpdateWorkArrayFromTextCtl();
+
+/*      int n = pTextCtl->GetNumberOfLines();
       if(m_pWorkDirList)
       {
             m_pWorkDirList->Clear();
@@ -1740,13 +2008,15 @@ void options::OnButtondeleteClick( wxCommandEvent& event )
                   if(!dirname.IsEmpty())
                         m_pWorkDirList->Add(dirname);
             }
-
+*/
+      if(m_pWorkDirList)
+      {
             pTextCtl->Clear();
 
             int nDir = m_pWorkDirList->GetCount();
             for(int id=0 ; id<nDir ; id++)
             {
-                  dirname = m_pWorkDirList->Item(id);
+                  dirname = m_pWorkDirList->Item(id).fullpath;
                   if(!dirname.IsEmpty())
                   {
                         pTextCtl->AppendText(dirname);
@@ -1771,10 +2041,6 @@ void options::OnCancelClick( wxCommandEvent& event )
       EndModal(0);
 }
 
-void options::OnRadioboxSelected( wxCommandEvent& event )
-{
-    event.Skip();
-}
 
 void options::OnChooseFont( wxCommandEvent& event )
 {
@@ -1821,9 +2087,10 @@ void options::OnPageChange(wxNotebookEvent& event)
       //    If so, build the "Charts" page variants
       //    Also, show a progress dialog, since getting the GenericTreeCtrl may be slow
       //    and the user needs feedback
-      if(1 == i)                        // 1 is the index of "Charts" page
+      if(2 == i)                        // 2 is the index of "Charts" page
       {
 
+          k_charts = VISIT_CHARTS;
 
           itemBoxSizer10->Clear(true);
           pSelCtl = NULL;
@@ -1840,7 +2107,7 @@ void options::OnPageChange(wxNotebookEvent& event)
           itemStaticBoxSizer11->Add(pDirCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
 
 
-          pSelCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL1, _T(""), wxDefaultPosition, wxSize(-1, -1), 0 );
+          pSelCtl = new wxTextCtrl( itemPanel9, ID_TEXTCTRL1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
           itemStaticBoxSizer11->Add(pSelCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
 
           wxBoxSizer* itemBoxSizer14 = new wxBoxSizer(wxHORIZONTAL);
@@ -1871,6 +2138,24 @@ void options::OnPageChange(wxNotebookEvent& event)
           wxButton* itemButton18 = new wxButton( itemPanel9, ID_BUTTONDELETE, _("Delete Selection"), wxDefaultPosition, wxDefaultSize, 0 );
           itemStaticBoxSizer16->Add(itemButton18, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 
+
+/*
+          wxArrayString rba;
+          rba.Add(_T("Auto Update"));
+          rba.Add(_T("Force Full Reload"));
+
+          pUpdateCheckBox = new wxRadioBox(itemPanel9, -1, _T("Update Control"), wxDefaultPosition, wxDefaultSize, rba);
+          itemBoxSizer10->Add(pUpdateRadioBox, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
+          pUpdateRadioBox->Show();
+*/
+          wxStaticBox* itemStaticBoxUpdateStatic = new wxStaticBox(itemPanel9, wxID_ANY, _("Update Control"));
+          wxStaticBoxSizer* itemStaticBoxSizerUpdate = new wxStaticBoxSizer(itemStaticBoxUpdateStatic, wxVERTICAL);
+          itemBoxSizer10->Add(itemStaticBoxSizerUpdate, 0, wxGROW|wxALL, 5);
+          pUpdateCheckBox = new wxCheckBox( itemPanel9, ID_UPDCHECKBOX, _("Force Full Database Rebuild"), wxDefaultPosition,
+                                          wxSize(-1, -1), 0 );
+          itemStaticBoxSizerUpdate->Add(pUpdateCheckBox, 1, wxALIGN_LEFT|wxALL, 5);
+
+
           //      Establish control colors on deferred creation
           SetControlColors(pDirCtl, (ColorScheme)0);
           SetControlColors(pSelCtl, (ColorScheme)0);
@@ -1885,7 +2170,7 @@ void options::OnPageChange(wxNotebookEvent& event)
               int nDir = m_pCurrentDirList->GetCount();
               for(int i=0 ; i<nDir ; i++)
               {
-                  dirname = m_pCurrentDirList->Item(i);
+                  dirname = m_pCurrentDirList->Item(i).fullpath;
                   if(!dirname.IsEmpty())
                   {
                       if (pTextCtl)
@@ -1905,7 +2190,8 @@ void options::OnPageChange(wxNotebookEvent& event)
 
           itemBoxSizer10->Layout();
       }
-//#endif
+
+
 }
 
 

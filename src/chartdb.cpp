@@ -1,9 +1,9 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.28 2009/11/18 01:24:15 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.29 2009/12/10 21:18:50 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
- * Author:   David Register
+ * Author:   David Register, Mark A Sikes
  *
  ***************************************************************************
  *   Copyright (C) $YEAR$ by $AUTHOR$   *
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.29  2009/12/10 21:18:50  bdbcat
+ * Beta 1210
+ *
  * Revision 1.28  2009/11/18 01:24:15  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -118,6 +121,7 @@
 #endif //precompiled headers
 
 #include <wx/stopwatch.h>
+#include <wx/regex.h>
 
 #include "chartdb.h"
 #include "chartimg.h"
@@ -145,7 +149,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.28 2009/11/18 01:24:15 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.29 2009/12/10 21:18:50 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -154,42 +158,14 @@ CPL_CVSID("$Id: chartdb.cpp,v 1.28 2009/11/18 01:24:15 bdbcat Exp $");
 ChartDB::ChartDB(MyFrame *parent)
 {
       pParent = parent;
-      ifs = 0;
-      pChartTable = 0;
-
       pChartCache = new wxArrayPtrVoid;
 
-      bValid = false;                           // until loaded or created
-      nEntry = 0;
+      SetValid(false);                           // until loaded or created
 }
 
 
 ChartDB::~ChartDB()
 {
-      if(pChartTable)
-      {
-            for(int i=0 ; i<nEntry ; i++)
-            {
-                  if(pChartTable[i].pFullPath)
-                        free(pChartTable[i].pFullPath);
-                  if(pChartTable[i].pPlyTable)
-                        free(pChartTable[i].pPlyTable);
-
-                  if(pChartTable[i].nAuxPlyEntries)
-                  {
-                      for(int j=0 ; j<pChartTable[i].nAuxPlyEntries ; j++)
-                          free ( (pChartTable[i].pAuxPlyTable)[j] );
-                      free( pChartTable[i].pAuxPlyTable );
-                      free( pChartTable[i].pAuxCntTable );
-                  }
-            }
-
-            free(pChartTable);
-      }
-
-      if(ifs)
-            delete ifs;
-
 //    Empty the cache
       unsigned int nCache = pChartCache->GetCount();
       for(unsigned int i=0 ; i<nCache ; i++)
@@ -204,1125 +180,62 @@ ChartDB::~ChartDB()
 }
 
 
-// ----------------------------------------------------------------------------
-// Load Chart Table Database from binary .DAT file
-// ----------------------------------------------------------------------------
-bool ChartDB::LoadBinary(wxString *filename)
+//-------------------------------------------------------------------------------------------------------
+//      Create a Chart
+//      This version creates a fully functional UI-capable chart.
+//-------------------------------------------------------------------------------------------------------
+
+ChartBase *ChartDB::GetChart(const wxChar *theFilePath) const
 {
-      unsigned char buf[200];
-      wxFileInputStream *ifs;
+      wxFileName fn(theFilePath);
 
-      wxFile test;
-      if (!test.Exists(*filename))
-             return false;
-
-      ifs = new wxFileInputStream(*filename);         // open the file as a read-only stream
-
-      if(!ifs->Ok())
-      {
-            delete ifs;
-            return false;
+      if(!fn.FileExists()) {
+            wxLogMessage(wxT("   ...file does not exist: %s"), theFilePath);
+            return NULL;
       }
 
-
-      ifs->Read(buf, sizeof(ChartTableHeader));
-      ChartTableHeader *pcth = (ChartTableHeader *)buf;
-      int n_entries = pcth->nTableEntries;
-
-
-      char vb[5];
-      sprintf(vb, "V%03d", DB_VERSION);
-      if(strncmp((const char *)buf, vb, 4))
-      {
-            wxString msg = _T("   Warning: Chartdb LoadBinary() found incorrect database version");
-            wxLogMessage(msg);
-
-            return false;
-      }
-
-//    Read source directory names
-      for(int iDir = 0 ; iDir < pcth->nDirEntries ; iDir++)
-      {
-            int ldir;
-            ifs->Read(&ldir, sizeof(int));
-
-            wxString dir;
-            dir.Clear();
-            for(int ic=0 ; ic<ldir ; ic++)
-            {
-                  char c;
-                  ifs->Read(&c, 1);
-                  dir.Append(c);
-            }
-
-      }
-
-      pChartTable = (ChartTableEntry *)calloc(n_entries * sizeof(ChartTableEntry), 1);
-
-      ChartTableEntry *pe = pChartTable;
-      for(int iEntry = 0 ; iEntry < n_entries ; iEntry++)
-      {
-            char *s = (char *)buf;
-
-            int ifp = 0;
-            while((*s = (char)ifs->GetC()) != 0)
-            {
-                  s++;
-                  ifp++;
-            }
-            ifp++;
-            char *pfp = (char *)malloc(ifp);
-
-            s = (char *)buf;
-            char *t = pfp;
-            for(int ic = 0 ; ic < ifp ; ic++)
-                  *t++ = *s++;
-
-            ifs->Read(pe, sizeof(ChartTableEntry));
-            pe->pFullPath = pfp;
-
-            int nplies = pe->nPlyEntries;
-
-            float *pfe = (float *)malloc(nplies * sizeof(float) * 2);
-            ifs->Read(pfe, nplies * sizeof(float) * 2);
-            pe->pPlyTable = pfe;
-
-            //  Read Aux Ply Table Entries
-            if(pe->nAuxPlyEntries)
-            {
-                pe->pAuxCntTable = (int *)malloc(pe->nAuxPlyEntries * sizeof(int));
-                ifs->Read(pe->pAuxCntTable, pe->nAuxPlyEntries * sizeof(int));
-
-                float **pfp = (float **)malloc(pe->nAuxPlyEntries * sizeof(float *));
-
-                for(int j=0 ; j<pe->nAuxPlyEntries ; j++)
-                {
-                    float *pfl = (float *)malloc(pe->pAuxCntTable[j] * 2 * sizeof(float));
-                    pfp[j] = pfl;
-                    ifs->Read(pfl, pe->pAuxCntTable[j] * 2 * sizeof(float));
-                }
-                pe->pAuxPlyTable = pfp;
-            }
-
-
-
-            pe++;
-      }
-
-      nEntry = n_entries;
-
-
-      delete ifs;
-
-      bValid = true;
-      return true;
-}
-
-
-// ----------------------------------------------------------------------------
-// Save Chart Table Database to binary .DAT file
-// ----------------------------------------------------------------------------
-bool ChartDB::SaveBinary(wxString *filename, wxArrayString *pChartDirArray)
-{
-      wxFileOutputStream *ofs;
-
-//    Verify that the target directory exists, make it if not
-      wxFileName file(*filename);
-//    Note the explicit cast on GetPath argument, required by MSVC???
-      wxFileName dir(file.GetPath((int)(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME), wxPATH_NATIVE));
-
-      if( ! dir.DirExists() )
-      {
-            if(! dir.Mkdir())
-                  return false;
-      }
-
-
-
-      ofs = new wxFileOutputStream(*filename);        // open the file as write only
-
-      if(!ofs->Ok())
-            return false;
-
-      ChartTableHeader cth;
-      cth.nTableEntries = nEntry;
-      cth.nDirEntries = pChartDirArray->GetCount();
-
-      char *ctp = (char *)(&cth.dbVersion[0]);
-      char vb[5];
-      sprintf(vb, "V%03d", DB_VERSION);
-      for(int i = 0 ; i<4 ; i++)
-        *ctp++ = vb[i];
-
-
-      ofs->Write(&cth, sizeof(ChartTableHeader));
-
-//    Write source directory names
-      for(int iDir = 0 ; iDir < cth.nDirEntries ; iDir++)
-      {
-            wxString dir = pChartDirArray->Item(iDir);
-            int ldir = dir.Len();
-            ofs->Write(&ldir, sizeof(int));                 // length
-            ofs->Write(dir.mb_str(), ldir);                  // name
-      }
-
-
-
-      ChartTableEntry *pe = pChartTable;
-      for(int iEntry = 0 ; iEntry < nEntry ; iEntry++)
-      {
-            char *s = pe->pFullPath;
-
-            while(*s)
-            {
-                  ofs->PutC(*s);
-                  s++;
-            }
-            ofs->PutC(0);
-
-            ofs->Write(pe, sizeof(ChartTableEntry));
-
-            int nplies = pe->nPlyEntries;
-            float *pfe = pe->pPlyTable;
-            ofs->Write(pfe, nplies * sizeof(float) * 2);
-
-            //  Write Aux Ply Table Entries
-            if(pe->nAuxPlyEntries)
-            {
-                ofs->Write(pe->pAuxCntTable, pe->nAuxPlyEntries * sizeof(int));
-                for(int j=0 ; j<pe->nAuxPlyEntries ; j++)
-                {
-                    float *pfl = pe->pAuxPlyTable[j];
-                    ofs->Write(pfl, pe->pAuxCntTable[j] * 2 * sizeof(float));
-                }
-            }
-
-
-            pe++;
-      }
-
-      delete ofs;
-
-      return true;
-}
-
-// ----------------------------------------------------------------------------
-// Create Chart Table Database by directory search
-//    resulting in valid pChartTable in (this)
-// ----------------------------------------------------------------------------
-bool ChartDB::Create(wxArrayString *dir_list, bool bshow_prog)
-{
-      pChartTable = (ChartTableEntry *)malloc(sizeof(ChartTableEntry));
-      nEntry = 0;
-
-      Update(dir_list, bshow_prog);
-
-      bValid = true;
-      return true;
-}
-
-// ----------------------------------------------------------------------------
-// Update existing ChartTable Database by directory search
-//    resulting in valid pChartTable in (this)
-// ----------------------------------------------------------------------------
-bool ChartDB::Update(wxArrayString *dir_list, bool bshow_prog)
-{
-    int i;
-
-    if(NULL == pChartTable)
-    {
-        pChartTable = (ChartTableEntry *)malloc(sizeof(ChartTableEntry));
-        nEntry = 0;
-    }
-
-    //  Mark all charts provisionally invalid
-    for(i=0 ; i<nEntry ; i++)
-    {
-        pChartTable[i].bValid = false;
-    }
-
-
-    //  Get the new charts
-
-    for(unsigned int j=0 ; j<dir_list->GetCount() ; j++)
-    {
-        wxString dir_name = dir_list->Item(j);
-
-        wxString dir_magic;
-        TraverseDirAndAddCharts(dir_name, bshow_prog, true, dir_magic);
-
-#if 0
-        //  Update the dir_list entry, even if the magic values are the same
-        wxString dir_path = dir_name.BeforeFirst('^');
-
-        dir_path.Append('^');
-        dir_path.Append(dir_magic);
-
-        dir_list->RemoveAt(j);
-        dir_list->Insert(dir_path, j);
-#endif
-    }           //for
-
-    //  It is likely that there are duplicate charts in the list now.
-    //  These occur as identical large area charts are included in multiple
-    //  Maptech Regions.  For example, the GreatLakes overview chart NOAA 14500
-    //  is found in Maptech Regions 81 (Lake Superior), 82 (Lake Huron), 83
-    //  (Lake Erie), etc....
-
-    //  So, look for identical charts and mark older charts as invalid
-    int iremove, ikeep;;
-    for(int ic=0 ; ic<nEntry - 1 ; ic++)
-    {
-        if(pChartTable[ic].bValid)
-        {
-            for(int jc=ic + 1 ; jc<nEntry ; jc++)
-            {
-                if(pChartTable[jc].bValid)
-                {
-                    if(!strcmp(pChartTable[ic].ChartID, pChartTable[jc].ChartID))
-                    {
-                          wxDateTime first_chart(pChartTable[ic].edition_date);
-                          wxDateTime second_chart(pChartTable[jc].edition_date);
-                          if(first_chart.IsEarlierThan(second_chart))
-                          {
-                                iremove = ic;
-                                ikeep = jc;
-                          }
-                          else
-                          {
-                                iremove = jc;
-                                ikeep = ic;
-                          }
-
-                          pChartTable[iremove].bValid = false;
-
-//          printf("Removing duplicate %s, %s and keeping %s \n",pChartTable[iremove].ChartID, pChartTable[iremove].pFullPath, pChartTable[ikeep].pFullPath);
-                    }
-                }
-            }
-        }
-     }
-
-
-
-    //  Count the valid charts
-    int iValid = 0;
-    for(i=0 ; i<nEntry ; i++)
-    {
-        if(pChartTable[i].bValid)
-            iValid++;
-    }
-
-    // Allocate a new chart table
-    ChartTableEntry *pTempChartTable = (ChartTableEntry *)malloc((iValid) * sizeof(ChartTableEntry));
-    ChartTableEntry *pEntry = pTempChartTable;
-
-    // compress the existing table into the new table, and while we are at it
-    // free the imbedded pointers in invalid entries
-
-    int nNewEntry = 0;
-    for(i=0 ; i<nEntry ; i++)
-    {
-        if(pChartTable[i].bValid)
-        {
-            memcpy(pEntry, (const void *)(&pChartTable[i]), sizeof(ChartTableEntry));
-
-            pEntry++;
-            nNewEntry++;
-        }
-
-        if(!pChartTable[i].bValid)
-        {
-            free (pChartTable[i].pPlyTable);
-            free (pChartTable[i].pFullPath);
-
-            //  Free Aux Ply Table Entries
-            if(pChartTable[i].nAuxPlyEntries)
-            {
-                float **pfp = pChartTable[i].pAuxPlyTable;
-
-                for(int j=0 ; j<pChartTable[i].nAuxPlyEntries ; j++)
-                {
-                    free (pfp[j]);
-                }
-
-                free(pChartTable[i].pAuxPlyTable);
-                free(pChartTable[i].pAuxCntTable);
-             }
-        }
-    }
-
-
-    free(pChartTable);
-    pChartTable = pTempChartTable;
-    nEntry = nNewEntry;
-
-    bValid = true;
-    return true;
-}
-
-
-
-
-
-
-// ----------------------------------------------------------------------------
-//  Traverse the given directory looking for charts
-//  If bupdate is true, also search the existing database for a name match.
-//  If target chart is already in database, mark the entry valid and skip additional processing
-// ----------------------------------------------------------------------------
-
-int ChartDB::TraverseDirAndAddCharts(wxString dir_name, bool bshow_prog, bool bupdate, wxString &dir_magic)
-{
-      //    Extract the true dir name and magic number from the compound string
-      wxString dir_path = dir_name.BeforeFirst('^');
-      wxString old_magic = dir_name.AfterFirst('^');
-      wxString new_magic = old_magic;
-      dir_magic = old_magic;              // provisionally the same
-
-      //    Quick scan the directory to see if it has changed
-      //    If not, there is no need to scan again.....
-
-/*
-this logic is busted.... We need a true update method, and some good struct to hold dirs.....
-            current problem is that old database is deleted and recreated from scratch always
-      if(!DetectDirChange(dir_path, old_magic, new_magic))
-      {
-            wxString msg(_T("   No change detected on directory "));
-            msg.Append(dir_path);
-            wxLogMessage(msg);
-
-            return 0;
-      }
-*/
-      //    There presumably was a change in the directory contents.  Return the new magic number
-      dir_magic = new_magic;
-
-    int nAdd = 0;
-
-    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), bshow_prog, bupdate);
-
-   nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), bshow_prog, bupdate, true);
-
-#ifdef USE_S57
-    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.000")), bshow_prog, bupdate);
-
-    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.S57")), bshow_prog, bupdate);
-
-#endif
-
-#ifdef USE_CM93
-    nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("00300000.A")), bshow_prog, bupdate);     // for cm93
-#endif
-
-    return nAdd;
-
-
-// TODO Add code to prevent duplicate charts coming into the database
-//          Duplicate meaning "the SAME FILE", considering VFAT's file naming conventions
-//          For now, though, just assume file extensions are upper case "KAP"
-
-//          wxString filespec_kap("*.kap");
-//          SearchDirAndAddBSB(dir_name, filespec_kap);
-
-//          SearchDirAndAddBSB(dir_name,  (const wxString &)wxString("*.KAP"), bshow_prog);
-
-}
-
-bool ChartDB::DetectDirChange(wxString dir_path, wxString magic, wxString &new_magic)
-{
-      //    parse the magic number
-      long long unsigned int nmagic;
-      wxULongLong nacc = 0;
-
-      magic.ToULongLong(&nmagic, 10);
-
-      //    Get an arraystring of all files
-      wxArrayString FileList;
-      wxDir dir(dir_path);
-      int n_files = dir.GetAllFiles(dir_path, &FileList);
-
-      //Traverse the list of files, getting their interesting stuff to add to accumulator
-      for(int ifile=0 ; ifile < n_files ; ifile++)
-      {
-            wxFileName file(FileList.Item(ifile));
-
-            //    File Size;
-            wxULongLong size = file.GetSize();
-            if(wxInvalidSize != size)
-                  nacc = nacc + size;
-
-            //    Mod time, in ticks
-            wxDateTime t = file.GetModificationTime();
-            nacc += t.GetTicks();
-
-      }
-
-      //    Return the calculated magic number
-      new_magic = nacc.ToString();
-
-      //    And do the test
-      if(new_magic != magic)
-            return true;
-      else
-            return false;
-}
-
-#include <wx/encconv.h>
-#include <wx/regex.h>
-
-// ----------------------------------------------------------------------------
-// Populate Chart Table by directory search for specified file type
-// If bupdate flag is true, search the Chart Table for matching chart.
-//  if target chart is already in table, mark it valid and skip chart processing
-// ----------------------------------------------------------------------------
-
-int ChartDB::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& filespec_base,
-                                                      bool bshow_prog, bool bupdate,
-                                                      bool bCheckBothCases)
-{
-      wxString msg(_T("Search directory: "));
-      msg += dir_name_base;
-      msg += _T(" for ");
-      msg += filespec_base;
-      wxLogMessage(msg);
-
-      if(!wxDir::Exists(dir_name_base))
-            return 0;
-
-      wxString dir_name = dir_name_base;
-      wxString filespec = filespec_base;
-
-      wxString filename;
-
-      wxProgressDialog *pprog = NULL;
-
-//    Count the files
-      wxArrayString FileList;
-      int gaf_flags = wxDIR_DEFAULT;                  // as default, recurse into subdirs
-
-      //    An optimization, peephole-wise, especially for __WXMSW__....
-      //    If the dir seems to be cm93 root, optimize the directory searching.
-      //    If the filespec is not looking for the base cm93 cell,
-      //    then clip the search by making the search flags parameter empty....
-      //    Otherwise, for instance, .KAP searches will have to traverse the entire cm93 tree.
-      //    Very slow on MSW, and clearly unproductive.
-      //    If the target filespec is the CM93 reference file, search only its directory
-
-/*
-      wxString cm93_test = dir_name;
-      cm93_test += _T("/00300000/A/00300000.A");
-      if(wxFile::Exists(cm93_test))                   // The target dir probably is cm93
-      {
-            gaf_flags =  wxDIR_FILES;                 // dont recurse
-
-            if(filespec.IsSameAs(_T("00300000.A")))
-                dir_name += _T("/00300000/A");              // Manage the directory search
-      }
-*/
-
-      wxRegEx test(_T("[0-9]+"));
-
-      wxDir dirt(dir_name);
-      wxString candidate;
-
-      bool b_maybe_found_cm93 = false;
-      bool b_cont = dirt.GetFirst(&candidate);
-
-      while(b_cont)
-      {
-            if(test.Matches(candidate)&& (candidate.Len() == 8))
-            {
-                  b_maybe_found_cm93 = true;
-                  break;
-            }
-
-            b_cont = dirt.GetNext(&candidate);
-
-      }
-
-      if(b_maybe_found_cm93)
-      {
-            wxString dir_next = dir_name;
-            dir_next += _T("/");
-            dir_next += candidate;
-            if(wxDir::Exists(dir_next))
-            {
-                  wxDir dir_n(dir_next);
-                  wxString candidate_n;
-
-                  wxRegEx test_n(_T("^[A-G]"));
-                  bool b_probably_found_cm93 = false;
-                  bool b_cont_n = dir_n.GetFirst(&candidate_n);
-                  while(b_cont_n)
-                  {
-                        if(test_n.Matches(candidate_n) && (candidate_n.Len() == 1))
-                        {
-                              b_probably_found_cm93 = true;
-                              break;
-                        }
-                         b_cont_n = dir_n.GetNext(&candidate_n);
-                  }
-
-                  if(b_probably_found_cm93)           // found a directory that looks like {dir_name}/12345678/A   probably cm93
-                  {                                   // and we want to try and shorten the recursive search
-                        // make sure the dir exists
-                        wxString dir_luk = dir_next;
-                        dir_luk += _T("/");
-                        dir_luk += candidate_n;
-                        if(wxDir::Exists(dir_luk))
-                        {
-                              dir_name = dir_luk;                 // be very specific about the dir_name, to shorten GatAllFiles()
-                              gaf_flags =  wxDIR_FILES;                 // dont recurse
-
-                              wxLogMessage(_T("Found probable CM93 database"));
-                        }
-
-                        if(filespec.IsSameAs(_T("00300000.A")))         // I am actually looking for cm93
-                        {
-                              wxDir dir_get(dir_name);
-                              wxString one_file;
-                              dir_get.GetFirst(&one_file);
-                              filespec = one_file;                       // so adjust the filespec
-                        }
-
-                  }
-            }
-      }
-
-
-
-      wxDir dir(dir_name);
-
-      if(bCheckBothCases)
-      {
-            wxString fs_upper = filespec.Upper();
-            dir.GetAllFiles(dir_name, &FileList, fs_upper, gaf_flags);
-
-            wxString fs_lower = filespec.Lower();
-            dir.GetAllFiles(dir_name, &FileList, fs_lower, gaf_flags);
-      }
-      else
-            dir.GetAllFiles(dir_name, &FileList, filespec, gaf_flags);
-
-
-      int nFile = FileList.GetCount();
-
-      if(!nFile)
-          return false;
-
-
-      InitReturn rc;
-
-      ChartTableEntry *pTempChartTable = (ChartTableEntry *)calloc((nFile ) * sizeof(ChartTableEntry), 1);
-      ChartTableEntry *pEntry = pTempChartTable;
-      int nDirEntry = 0;
-
-      //    Check to see if there are any charts in the DB which refer to this directory
-      //    If none at all, there is no need to scan the DB for each potential addition
-      //    and bneed_full_search is false.
-      bool bneed_full_search = SearchForChartDir(dir_name);
-
-      int isearch = 0;              // create a smarter search index
-                                          // indexing the DB starting from the last found item
-
-      for(int ifile=0 ; ifile < nFile ; ifile++)
-      {
-            wxFileName file(FileList.Item(ifile));
-            wxString full_name = file.GetFullPath(); //dir_name;
-
-            if(bshow_prog)
-            {
-                  if(NULL == pprog)
-                        pprog = new wxProgressDialog (  _T("OpenCPN Add Chart"), full_name, nFile, NULL,
-                              wxPD_AUTO_HIDE | wxPD_SMOOTH | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME);
-
-                  pprog->Update(ifile, full_name);
-            }
-
-
-            //    As a speed optimization, use strcmp instead of wxString::IsSameAs()
-            char test_str[512];
-            strncpy(test_str, full_name.mb_str(), 511);
-
-            //    Create a string equal to what the chart name (ID) would be if it was created
-            char test_str_ID[512];
-            wxFileName base(full_name);
-            strncpy(test_str_ID, base.GetFullName().mb_str(), 511);
-
-
-            bool bDuplicateName = false;
-            bool bDuplicatePath = false;
-            int iDuplicate;
-            if(bupdate)
-            {
-                if(bneed_full_search)
-                {
-                      for(int i=0 ; i<nEntry ; i++)
-                      {
-                            if(!strcmp(test_str, pChartTable[isearch].pFullPath))
-                            {
-                              bDuplicatePath = true;
-                              pChartTable[isearch].bValid = true;
-                              break;
-                            }
-
-                    //  Look at the chart name (ID) itself for a further check
-                    //  This catches the case in which the "same" chart is in different locations,
-                    //  and one may be newer than the other, which we will later check for.
-                            if(!strcmp(pChartTable[isearch].ChartID, test_str_ID))
-                            {
-                               bDuplicateName = true;
-                               iDuplicate = isearch;
-                               break;
-                            }
-
-                            isearch++;
-                            if(nEntry == isearch)
-                                  isearch = 0;
-                     }
-                }
-            }
-
-
-            pEntry->bValid = false;
-            bool bAddFinal = true;
-
-            //      If updating the database, and this is a duplicate chart, need to check the Edition date of the candidate chart
-            if(bupdate && bDuplicateName)
-            {
-                  rc = CreateChartTableEntry(full_name, pEntry);
-                  if(rc == INIT_OK)
-                  {
-                        wxDateTime candidate_ed(pEntry->edition_date);
-                        wxDateTime existing_chart_ed(pChartTable[iDuplicate].edition_date);
-                        ChartTableEntry t = pChartTable[iDuplicate];
-                        if(candidate_ed.IsEarlierThan(existing_chart_ed))
-                        {
-                              pChartTable[iDuplicate].bValid = true;
-                              bAddFinal = false;
-                        }
-                  }
-                  else
-                  {
-                        bAddFinal = false;
-
-                        if(rc != INIT_FAIL_NOERROR)
-                        {
-                              wxString msg = _T("   CreateChartTableEntry() failed for file: ");
-                              msg.Append(full_name);
-                              wxLogMessage(msg);
-                        }
-                  }
-            }
-            else if(bupdate && bDuplicatePath)                // exactly the same chart
-                  bAddFinal = false;
-
-
-            if(bAddFinal)
-            {
-                  if(!pEntry->bValid)
-                  {
-                        rc = CreateChartTableEntry(full_name, pEntry);
-                        if(rc != INIT_OK)
-                        {
-                              bAddFinal = false;
-                              if(rc != INIT_FAIL_NOERROR)
-                              {
-                                    wxString msg = _T("   CreateChartTableEntry() failed for file: ");
-                                    msg.Append(full_name);
-                                    wxLogMessage(msg);
-                              }
-                        }
-                  }
-
-
-                  if(bAddFinal)
-                  {
-                        nDirEntry++;
-                        pEntry++;
-                  }
-            }
-      }
-
-      ChartTableEntry *pt = (ChartTableEntry *)malloc( (nEntry + nDirEntry)*sizeof(ChartTableEntry));
-      memcpy(pt, pChartTable, nEntry * sizeof(ChartTableEntry));
-      memcpy((char *)pt + (nEntry * sizeof(ChartTableEntry)), pTempChartTable, nDirEntry * sizeof(ChartTableEntry));
-
-      free(pChartTable);
-      free(pTempChartTable);
-
-      pChartTable = pt;
-      nEntry += nDirEntry;
-
-      if(pprog)                     // looks nicer
-            pprog->Hide();
-      delete pprog;
-      return nDirEntry;
-}
-
-
-
-
-
-// ----------------------------------------------------------------------------
-// Create Chart Table entry by reading chart header info, etc.
-// ----------------------------------------------------------------------------
-InitReturn ChartDB::CreateChartTableEntry(wxString full_name, ChartTableEntry *pEntry)
-{
-      wxFileName fn(full_name);
-
-//    Quick sanity check for file existence
-      if(!fn.FileExists())
-            return INIT_FAIL_REMOVE;
-
-      wxString msg(_T("Create ChartTable Entry for "));
-      msg.Append(full_name);
-      wxLogMessage(msg);
-
-      wxString charttype = fn.GetExt();
       ChartBase *pch = NULL;
 
-      if(charttype.Upper() == _T("KAP"))
-      {
+      wxString chartExt = fn.GetExt().Upper();
+      if (chartExt == wxT("KAP")) {
             pch = new ChartKAP;
-            pEntry->ChartType = CHART_TYPE_KAP;
       }
-      else if(charttype.Upper() == _T("GEO"))
-      {
+      else if (chartExt == wxT("GEO")) {
             pch = new ChartGEO;
-            pEntry->ChartType = CHART_TYPE_GEO;
       }
-
-      else if(charttype.Upper() == _T("000"))
-      {
+      else if (chartExt == wxT("000") || chartExt == wxT("S57")) {
             pch = new s57chart;
-            pEntry->ChartType = CHART_TYPE_S57;
       }
-
-      else if(charttype.Upper() == _T("S57"))
-      {
-            pch = new s57chart;
-            pEntry->ChartType = CHART_TYPE_S57;
-      }
-
-
 #ifdef USE_CM93
-      else
-      {
-            wxRegEx t(_T("[0-9]+"));
-            wxRegEx te(_T("[A-G]"));
-            if(t.Matches(fn.GetName()) && te.Matches(fn.GetExt()))
-            {
+      else {
+            wxRegEx rxName(wxT("[0-9]+"));
+            wxRegEx rxExt(wxT("[A-G]"));
+            if (rxName.Matches(fn.GetName()) && rxExt.Matches(fn.GetExt())) {
                   pch = new cm93compchart;
-                  pEntry->ChartType = CHART_TYPE_CM93COMP;
             }
       }
 #endif
 
-      if(NULL == pch)
-            return INIT_FAIL_REMOVE;
-
-      InitReturn rc = pch->Init(full_name, HEADER_ONLY, GLOBAL_COLOR_SCHEME_DAY);
-      if(rc != INIT_OK)
-      {
-            delete pch;
-            return rc;
-      }
-
-      char *pt = (char *)malloc(full_name.Length() + 1);
-      strcpy(pt, full_name.mb_str( wxConvUTF8));
-      pEntry->pFullPath = pt;
-
-      strncpy(pEntry->ChartID, fn.GetFullName().mb_str( wxConvUTF8), sizeof(pEntry->ChartID));
-      pEntry->ChartID[sizeof(pEntry->ChartID)-1] = 0;
-
-      pEntry->Scale = pch->GetNativeScale();
-
-      if(pch->GetEditionDate().IsValid())
-            pEntry->edition_date = pch->GetEditionDate().GetTicks();
-      else
-            pEntry->edition_date = 0;
-
-      Extent ext;
-      pch->GetChartExtent(&ext);
-
-      pEntry->LatMax = ext.NLAT;
-      pEntry->LatMin = ext.SLAT;
-      pEntry->LonMin = ext.WLON;
-      pEntry->LonMax = ext.ELON;
-
-//          Fill in the PLY information
-//          If  COVR table has only one entry, us it for the primary Ply Table
-      if(pch->m_nCOVREntries == 1)
-      {
-
-            pEntry->nPlyEntries = pch->GetCOVRTablenPoints(0);
-
-            float *pf = (float *)malloc(2 * pEntry->nPlyEntries * sizeof(float));
-
-            pEntry->pPlyTable = pf;
-
-            float *pfe = pf;
-            Plypoint *ppp = (Plypoint *)pch->GetCOVRTableHead(0);
-
-            for(int i=0 ; i<pEntry->nPlyEntries ; i++)
-            {
-                  *pfe++ = ppp->ltp;
-                  *pfe++ = ppp->lnp;
-
-                  ppp++;
-            }
-      }
-//    Else create a rectangular primary Ply Table from the chart extents
-//    and create AuxPly table from the COVR tables
-      else
-      {
-            //    Create new artificial Ply table from chart extents
-            pEntry->nPlyEntries = 4;
-            float *pf1 = (float *)malloc(2 * 4 * sizeof(float));
-//            free (pEntry->pPlyTable);
-            pEntry->pPlyTable = pf1;
-
-            float *pfe = pf1;
-            Extent fext;
-            pch->GetChartExtent(&fext);
-
-            *pfe++ = fext.NLAT; //LatMax;
-            *pfe++ = fext.WLON; //LonMin;
-
-            *pfe++ = fext.NLAT; //LatMax;
-            *pfe++ = fext.ELON; //LonMax;
-
-            *pfe++ = fext.SLAT; //LatMin;
-            *pfe++ = fext.ELON; //LonMax;
-
-            *pfe++ = fext.SLAT; //LatMin;
-            *pfe++ = fext.WLON; //LonMin;
-
-
-//    Fill in the structure for pAuxPlyTable
-
-            unsigned int nAuxPlyEntries = pch->m_nCOVREntries;
-            float **pfp = (float **)malloc(nAuxPlyEntries * sizeof(float *));
-            float **pft0 = pfp;
-            int *pip = (int *)malloc(nAuxPlyEntries * sizeof(int));
-
-            for(unsigned int j=0 ; j<nAuxPlyEntries ; j++)
-            {
-                  float *pf_entry = (float *)malloc(pch->m_pCOVRContourTable[j] * 2 * sizeof(float));
-                  memcpy(pf_entry, pch->m_pCOVRTable[j], pch->m_pCOVRContourTable[j] * 2 * sizeof(float));
-                  pft0[j] = pf_entry;
-                  pip[j] = pch->m_pCOVRContourTable[j];
-            }
-
-            pEntry->pAuxPlyTable = pfp;
-            pEntry->pAuxCntTable = pip;
-            pEntry->nAuxPlyEntries = nAuxPlyEntries;
-      }
-
-
-
-      delete pch;
-
-      pEntry->bValid = true;
-      return INIT_OK;
+      return pch;
 }
 
 
-//-------------------------------------------------------------------------------------------------------
-//
-//      Database access methods
-//
-//-------------------------------------------------------------------------------------------------------
 
-bool ChartDB::GetCentroidOfLargestScaleChart(double *clat, double *clon, ChartFamilyEnum family)
-{
-      int cur_max_i = -1;
-      int cur_max_scale = 0;
-
-      for(int i=0 ; i<nEntry ; i++)
-      {
-            if(GetChartFamily(pChartTable[i].ChartType) == family)
-            {
-                  if(pChartTable[i].Scale > cur_max_scale)
-                  {
-                        cur_max_scale = pChartTable[i].Scale;
-                        cur_max_i = i;
-                  }
-            }
-      }
-
-      if(cur_max_i == -1)
-            return false;                             // nothing found
-      else
-      {
-            *clat = (pChartTable[cur_max_i].LatMax + pChartTable[cur_max_i].LatMin) / 2.;
-            *clon = (pChartTable[cur_max_i].LonMin + pChartTable[cur_max_i].LonMax) /2.;
-      }
-      return true;
-}
-
-
-ChartFamilyEnum ChartDB::GetChartFamily(int charttype)
-{
-      ChartFamilyEnum cf;
-
-      switch( charttype)
-      {
-            case        CHART_TYPE_KAP:      cf = CHART_FAMILY_RASTER; break;
-            case        CHART_TYPE_GEO:      cf = CHART_FAMILY_RASTER; break;
-            case        CHART_TYPE_S57:      cf = CHART_FAMILY_VECTOR; break;
-            case        CHART_TYPE_CM93:     cf = CHART_FAMILY_VECTOR; break;
-            case        CHART_TYPE_CM93COMP: cf = CHART_FAMILY_VECTOR; break;
-            case        CHART_TYPE_DUMMY:    cf = CHART_FAMILY_RASTER; break;
-            case        CHART_TYPE_UNKNOWN:  cf = CHART_FAMILY_UNKNOWN; break;
-            default:                         cf = CHART_FAMILY_UNKNOWN; break;
-      }
-      return cf;
-}
-
-//-------------------------------------------------------------------------------------------------------
-//    Search database for any chart entries pointing to specified directory
-//     (with or without trailing path separator)
-//-------------------------------------------------------------------------------------------------------
-
-bool ChartDB::SearchForChartDir(wxString &dir)
-{
-      wxString dir_copy(dir);
-      if((dir_copy.Last() == wxFileName::GetPathSeparator()) || (dir_copy.Last() == '/'))
-            dir_copy.RemoveLast();
-
-      dir_copy.Append(_T("*"));           // make match string
-      for(int i=0 ; i<nEntry ; i++)
-      {
-            wxString entry_name(pChartTable[i].pFullPath, wxConvUTF8);
-            if(entry_name.Matches(dir_copy))
-               return true;
-
-      }
-      return false;
-}
-
-//-------------------------------------------------------------------
-//    Get Full Path from db
-//-------------------------------------------------------------------
-bool ChartDB::GetDBFullPath(int dbIndex, char *buf)
-{
-      strcpy(buf, pChartTable[dbIndex].pFullPath);
-      return true;
-}
-
-//-------------------------------------------------------------------
-//    Get Lat/Lon Bounding Box from db
-//-------------------------------------------------------------------
-bool ChartDB::GetDBBoundingBox(int dbIndex, wxBoundingBox *box)
-{
-    box->SetMax(pChartTable[dbIndex].LonMax, pChartTable[dbIndex].LatMax);
-    box->SetMin(pChartTable[dbIndex].LonMin, pChartTable[dbIndex].LatMin);
-
-    return true;
-}
-
-
-//-------------------------------------------------------------------
-//    Build Chart stack
-//-------------------------------------------------------------------
-/*
-int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
-{
-      int i=0;
-      int j=0;
-
-      if(!bValid)
-            return 0;                           // Database is not properly initialized
-
-      for(i=0 ; i<nEntry ; i++)
-      {
-
-            ChartTableEntry *pt = &pChartTable[i];
-//    First check on rough Bounding box
-
-            if((lat < pChartTable[i].LatMax) &&
-               (lat > pChartTable[i].LatMin) &&
-               (lon > pChartTable[i].LonMin) &&
-               (lon < pChartTable[i].LonMax) &&
-               (j < MAXSTACK))
-
-            {
-//    Double check on Ply points polygon
-
-                  bool bInside = G_FloatPtInPolygon((MyFlPoint *)pChartTable[i].pPlyTable,
-                                                             pChartTable[i].nPlyEntries,
-                                                             lon, lat);
-
-                  if(bInside )
-                  {
-                      if(pChartTable[i].nAuxPlyEntries)
-                      {
-                          for(int k=0 ; k<pChartTable[i].nAuxPlyEntries ; k++)
-                          {
-                              bool bAuxInside = G_FloatPtInPolygon((MyFlPoint *)pChartTable[i].pAuxPlyTable[k],
-                                                        pChartTable[i].pAuxCntTable[k],lon, lat);
-                              if(bAuxInside)
-                              {
-                                  cstk->DBIndex[j] = i;
-                                  j++;
-                                  break;
-                              }
-                          }
-
-                      }
-                      else
-                      {
-                            cstk->DBIndex[j] = i;
-                            j++;
-                      }
-                  }
-
-            }
-      }
-
-      cstk->nEntry = j;
-
-//    Sort the stack on scale
-      int swap = 1;
-      int n,m,ti;
-      while(swap == 1)
-      {
-            swap = 0;
-            for(i=0 ; i<j-1 ; i++)
-            {
-                  m = cstk->DBIndex[i];
-                  n = cstk->DBIndex[i+1];
-
-                  if(pChartTable[n].Scale < pChartTable[m].Scale)
-                  {
-                        ti = cstk->DBIndex[i];
-                        cstk->DBIndex[i] = cstk->DBIndex[i+1];
-                        cstk->DBIndex[i+1] = ti;
-                        swap = 1;
-                  }
-            }
-      }
-
-
-      return j;
-}
-*/
 
 int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
 {
       int i=0;
       int j=0;
 
-      if(!bValid)
+      if(!IsValid())
             return 0;                           // Database is not properly initialized
+
+      int nEntry = GetChartTableEntries();
 
       for(i=0 ; i<nEntry ; i++)
       {
 
-            ChartTableEntry *pt = &pChartTable[i];
+            ChartTableEntry *pt = (ChartTableEntry *)&GetChartTableEntry(i);
 
             if(CheckPositionWithinChart(i, lat, lon)  &&  (j < MAXSTACK) )
             {
@@ -1331,7 +244,7 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
             }
 
             //    Check the special case where chart spans the international dateline
-            else if( (pt->LonMax > 180.) && (pt->LonMin < 180.) )
+            else if( (pt->GetLonMax() > 180.) && (pt->GetLonMin() < 180.) )
             {
                   if(CheckPositionWithinChart(i, lat, lon + 360.)  &&  (j < MAXSTACK) )
                   {
@@ -1347,16 +260,17 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
 
 //    Sort the stack on scale
       int swap = 1;
-      int n,m,ti;
+      int ti;
       while(swap == 1)
       {
             swap = 0;
             for(i=0 ; i<j-1 ; i++)
             {
-                  m = cstk->DBIndex[i];
-                  n = cstk->DBIndex[i+1];
+                  const ChartTableEntry &m = GetChartTableEntry(cstk->DBIndex[i]);
+                  const ChartTableEntry &n = GetChartTableEntry(cstk->DBIndex[i+1]);
 
-                  if(pChartTable[n].Scale < pChartTable[m].Scale)
+
+                  if(n.GetScale() < m.GetScale())
                   {
                         ti = cstk->DBIndex[i];
                         cstk->DBIndex[i] = cstk->DBIndex[i+1];
@@ -1377,28 +291,30 @@ int ChartDB::BuildChartStack(ChartStack * cstk, float lat, float lon)
 //-------------------------------------------------------------------
 bool ChartDB::CheckPositionWithinChart(int index, float lat, float lon)
 {
-            ChartTableEntry *pt = &pChartTable[index];
+//           ChartTableEntry *pt = &pChartTable[index];
+            const ChartTableEntry *pt = &GetChartTableEntry(index);
+
 //    First check on rough Bounding box
 
-            if((lat < pt->LatMax) &&
-                (lat > pt->LatMin) &&
-                (lon > pt->LonMin) &&
-                (lon < pt->LonMax))
+            if((lat < pt->GetLatMax()) &&
+                (lat > pt->GetLatMin()) &&
+                (lon > pt->GetLonMin()) &&
+                (lon < pt->GetLonMax()))
             {
 //    Double check on Primary Ply points polygon
 
-                  bool bInside = G_FloatPtInPolygon((MyFlPoint *)pt->pPlyTable,
-                              pt->nPlyEntries,
+                  bool bInside = G_FloatPtInPolygon((MyFlPoint *)pt->GetpPlyTable(),
+                              pt->GetnPlyEntries(),
                               lon, lat);
 
                   if(bInside )
                   {
-                        if(pt->nAuxPlyEntries)
+                        if(pt->GetnAuxPlyEntries())
                         {
-                              for(int k=0 ; k<pt->nAuxPlyEntries ; k++)
+                              for(int k=0 ; k<pt->GetnAuxPlyEntries() ; k++)
                               {
-                                    bool bAuxInside = G_FloatPtInPolygon((MyFlPoint *)pt->pAuxPlyTable[k],
-                                                pt->pAuxCntTable[k],lon, lat);
+                                    bool bAuxInside = G_FloatPtInPolygon((MyFlPoint *)pt->GetpAuxPlyTableEntry(k),
+                                                                                    pt->GetAuxCntTableEntry(k),lon, lat);
                                     if(bAuxInside)
                                           return true;;
                               }
@@ -1452,101 +368,56 @@ bool ChartDB::CopyStack(ChartStack *pa, ChartStack *pb)
       return true;
 }
 
-//-------------------------------------------------------------------
-//    Get Full Path
-//-------------------------------------------------------------------
+
 wxString ChartDB::GetFullPath(ChartStack *ps, int stackindex)
 {
       int dbIndex = ps->DBIndex[stackindex];
-      return wxString(pChartTable[dbIndex].pFullPath,  wxConvUTF8);
+      return wxString(GetChartTableEntry(dbIndex).GetpFullPath(),  wxConvUTF8);
 }
 
 //-------------------------------------------------------------------
 //    Get PlyPoint from stack
 //-------------------------------------------------------------------
+
 int ChartDB::GetCSPlyPoint(ChartStack *ps, int stackindex, int plyindex, float *lat, float *lon)
 {
-      int dbIndex = ps->DBIndex[stackindex];
-      if(pChartTable[dbIndex].nPlyEntries)
+      const ChartTableEntry &entry = GetChartTableEntry(ps->DBIndex[stackindex]);
+      if(entry.GetnPlyEntries())
       {
-            float *fp = pChartTable[dbIndex].pPlyTable;
+            float *fp = entry.GetpPlyTable();
             fp += plyindex*2;
             *lat = *fp;
             fp++;
             *lon = *fp;
       }
 
-      return pChartTable[dbIndex].nPlyEntries;
-}
-
-//-------------------------------------------------------------------
-//    Get PlyPoint from Database
-//-------------------------------------------------------------------
-int ChartDB::GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon)
-{
-      if(pChartTable[dbIndex].nPlyEntries)
-      {
-            float *fp = pChartTable[dbIndex].pPlyTable;
-            fp += plyindex*2;
-            *lat = *fp;
-            fp++;
-            *lon = *fp;
-      }
-
-      return pChartTable[dbIndex].nPlyEntries;
-}
-
-//-------------------------------------------------------------------
-//    Get AuxPlyPoint from Database
-//-------------------------------------------------------------------
-int ChartDB::GetDBAuxPlyPoint(int dbIndex, int plyindex, int ply, float *lat, float *lon)
-{
-      if(pChartTable[dbIndex].nAuxPlyEntries)
-      {
-            float *fp = pChartTable[dbIndex].pAuxPlyTable[ply];
-
-            fp += plyindex*2;
-            *lat = *fp;
-            fp++;
-            *lon = *fp;
-      }
-
-      return pChartTable[dbIndex].pAuxCntTable[ply];
+      return entry.GetnPlyEntries();
 }
 
 
 
-//-------------------------------------------------------------------
-//    Get Chart ID
-//-------------------------------------------------------------------
-bool ChartDB::GetChartID(ChartStack *ps, int stackindex, char *buf, int nbuf)
-{
-      int dbIndex = ps->DBIndex[stackindex];
-      strncpy(buf, pChartTable[dbIndex].ChartID, nbuf);
-      buf[nbuf-1] = 0;
 
-      return true;
-}
 //-------------------------------------------------------------------
 //    Get Chart Scale
 //-------------------------------------------------------------------
 int ChartDB::GetStackChartScale(ChartStack *ps, int stackindex, char *buf, int nbuf)
 {
-      int dbIndex = ps->DBIndex[stackindex];
-      int sc = pChartTable[dbIndex].Scale;
+      const ChartTableEntry &entry = GetChartTableEntry(ps->DBIndex[stackindex]);
+      int sc = entry.GetScale();
       sprintf(buf, "%d", sc);
 
       return sc;
 }
+
 //-------------------------------------------------------------------
 //    Find ChartStack entry index corresponding to Full Path name, if present
 //-------------------------------------------------------------------
-int ChartDB::GetStackEntry(ChartStack *ps, wxString *pfp)
+int ChartDB::GetStackEntry(ChartStack *ps, wxString fp)
 {
       for(int i=0 ; i<ps->nEntry ; i++)
       {
-            int dbIndex = ps->DBIndex[i];
-            if(pfp->IsSameAs( wxString(pChartTable[dbIndex].pFullPath,  wxConvUTF8)) )
+            const ChartTableEntry &entry = GetChartTableEntry(ps->DBIndex[i]);
+            if(fp.IsSameAs( wxString(entry.GetpFullPath(),  wxConvUTF8)) )
                   return i;
       }
 
@@ -1556,31 +427,22 @@ int ChartDB::GetStackEntry(ChartStack *ps, wxString *pfp)
 //-------------------------------------------------------------------
 //    Get CSChart Type
 //-------------------------------------------------------------------
-int ChartDB::GetCSChartType(ChartStack *ps, int stackindex)
+ChartTypeEnum ChartDB::GetCSChartType(ChartStack *ps, int stackindex)
 {
-      if((bValid) && (stackindex < nEntry))
-      {
-            int dbIndex = ps->DBIndex[stackindex];
-            ChartTableEntry *pct = &pChartTable[dbIndex];
-
-            return pct->ChartType;
-      }
+      if((IsValid()) && (stackindex >= 0) && (stackindex < GetChartTableEntries()))
+            return (ChartTypeEnum)GetChartTableEntry(ps->DBIndex[stackindex]).GetChartType();
       else
-            return 0;
+            return CHART_TYPE_UNKNOWN;
 }
 
 
-//-------------------------------------------------------------------
-//    Get CSChart Family
-//-------------------------------------------------------------------
 ChartFamilyEnum ChartDB::GetCSChartFamily(ChartStack *ps, int stackindex)
 {
-      if((bValid) && (stackindex < nEntry))
+      if((IsValid()) && (stackindex < GetChartTableEntries()))
       {
-            int dbIndex = ps->DBIndex[stackindex];
-            ChartTableEntry *pct = &pChartTable[dbIndex];
+            const ChartTableEntry &entry = GetChartTableEntry(ps->DBIndex[stackindex]);
 
-            ChartTypeEnum type = (ChartTypeEnum)pct->ChartType;
+            ChartTypeEnum type = (ChartTypeEnum)entry.GetChartType();
             switch(type)
             {
                   case  CHART_TYPE_KAP:          return CHART_FAMILY_RASTER;
@@ -1598,19 +460,10 @@ ChartFamilyEnum ChartDB::GetCSChartFamily(ChartStack *ps, int stackindex)
 
 
 
-//-------------------------------------------------------------------
-//    Get DBChart Type
-//-------------------------------------------------------------------
-int ChartDB::GetDBChartType(int dbIndex)
-{
-      if(bValid)
-      {
-            ChartTableEntry *pct = &pChartTable[dbIndex];
-            return pct->ChartType;
-      }
-      else
-            return 0;
-}
+
+
+
+
 
 //-------------------------------------------------------------------
 //    Open Chart
@@ -1806,20 +659,26 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 #ifdef USE_S57
             else if(GetCSChartType(pStack, StackEntry) == CHART_TYPE_S57)
             {
-                  Ch = new s57chart();
-                  int dbIndex = pStack->DBIndex[StackEntry];
+//                  Ch = new s57chart();
+//                  int dbIndex = pStack->DBIndex[StackEntry];
 
+//                  s57chart *Chs57 = dynamic_cast<s57chart*>(Ch);
+
+//                  Chs57->SetNativeScale(pChartTable[dbIndex].Scale);
+
+                  Ch = new s57chart();
+                  const ChartTableEntry &entry = GetChartTableEntry(pStack->DBIndex[StackEntry]);
                   s57chart *Chs57 = dynamic_cast<s57chart*>(Ch);
 
-                  Chs57->SetNativeScale(pChartTable[dbIndex].Scale);
+                  Chs57->SetNativeScale(entry.GetScale());
 
                   //    Explicitely set the chart extents from the database to
                   //    support the case wherein the SENC file has not yet been built
                   Extent ext;
-                  ext.NLAT = pChartTable[dbIndex].LatMax;
-                  ext.SLAT = pChartTable[dbIndex].LatMin;
-                  ext.WLON = pChartTable[dbIndex].LonMin;
-                  ext.ELON = pChartTable[dbIndex].LonMax;
+                  ext.NLAT = entry.GetLatMax();
+                  ext.SLAT = entry.GetLatMin();
+                  ext.WLON = entry.GetLonMin();
+                  ext.ELON = entry.GetLonMax();
                   Chs57->SetFullExtent(ext);
             }
 #endif
@@ -1827,39 +686,53 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
 #ifdef USE_CM93
             else if(GetCSChartType(pStack, StackEntry) == CHART_TYPE_CM93)
             {
+//                  Ch = new cm93chart();
+//                  int dbIndex = pStack->DBIndex[StackEntry];
+
+//                  cm93chart *Chcm93 = dynamic_cast<cm93chart*>(Ch);
+
+//                  Chcm93->SetNativeScale(pChartTable[dbIndex].Scale);
+
                   Ch = new cm93chart();
-                  int dbIndex = pStack->DBIndex[StackEntry];
+                  const ChartTableEntry &entry = GetChartTableEntry(pStack->DBIndex[StackEntry]);
 
                   cm93chart *Chcm93 = dynamic_cast<cm93chart*>(Ch);
 
-                  Chcm93->SetNativeScale(pChartTable[dbIndex].Scale);
+                  Chcm93->SetNativeScale(entry.GetScale());
 
                   //    Explicitely set the chart extents from the database to
                   //    support the case wherein the SENC file has not yet been built
                   Extent ext;
-                  ext.NLAT = pChartTable[dbIndex].LatMax;
-                  ext.SLAT = pChartTable[dbIndex].LatMin;
-                  ext.WLON = pChartTable[dbIndex].LonMin;
-                  ext.ELON = pChartTable[dbIndex].LonMax;
+                  ext.NLAT = entry.GetLatMax();
+                  ext.SLAT = entry.GetLatMin();
+                  ext.WLON = entry.GetLonMin();
+                  ext.ELON = entry.GetLonMax();
                   Chcm93->SetFullExtent(ext);
             }
 
             else if(GetCSChartType(pStack, StackEntry) == CHART_TYPE_CM93COMP)
             {
+//                  Ch = new cm93compchart();
+//                  int dbIndex = pStack->DBIndex[StackEntry];
+
+//                  cm93compchart *Chcm93 = dynamic_cast<cm93compchart*>(Ch);
+
+//                  Chcm93->SetNativeScale(pChartTable[dbIndex].Scale);
+
                   Ch = new cm93compchart();
-                  int dbIndex = pStack->DBIndex[StackEntry];
+                  const ChartTableEntry &entry = GetChartTableEntry(pStack->DBIndex[StackEntry]);
 
                   cm93compchart *Chcm93 = dynamic_cast<cm93compchart*>(Ch);
 
-                  Chcm93->SetNativeScale(pChartTable[dbIndex].Scale);
+                  Chcm93->SetNativeScale(entry.GetScale());
 
                   //    Explicitely set the chart extents from the database to
                   //    support the case wherein the SENC file has not yet been built
                   Extent ext;
-                  ext.NLAT = pChartTable[dbIndex].LatMax;
-                  ext.SLAT = pChartTable[dbIndex].LatMin;
-                  ext.WLON = pChartTable[dbIndex].LonMin;
-                  ext.ELON = pChartTable[dbIndex].LonMax;
+                  ext.NLAT = entry.GetLatMax();
+                  ext.SLAT = entry.GetLatMin();
+                  ext.WLON = entry.GetLonMin();
+                  ext.ELON = entry.GetLonMax();
                   Chcm93->SetFullExtent(ext);
             }
 
@@ -1879,10 +752,12 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                   msg.Append(ChartFullPath);
                   wxLogMessage(msg);
 
-                  ir = Ch->Init(ChartFullPath, init_flag, pParent->GetColorScheme());    // using the passed flag
+                  Ch->SetColorScheme(pParent->GetColorScheme());
+                  ir = Ch->Init(ChartFullPath, init_flag);    // using the passed flag
 
                   if(INIT_OK == ir)
                   {
+
 //    Only add to cache if requesting a full init
                         if(FULL_INIT == init_flag)
                         {
@@ -1900,9 +775,14 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
                         Ch = NULL;
 
 //          Mark this chart in the database, so that it will not be seen during this run, but will stay in the database
-                        int dbIndex = pStack->DBIndex[StackEntry];
-                        wxString ChartToDisable = wxString(pChartTable[dbIndex].pFullPath,  wxConvUTF8);
+//                        int dbIndex = pStack->DBIndex[StackEntry];
+//                        wxString ChartToDisable = wxString(pChartTable[dbIndex].pFullPath,  wxConvUTF8);
+//                        DisableChart(ChartToDisable);
+
+                        const ChartTableEntry &entry = GetChartTableEntry(pStack->DBIndex[StackEntry]);
+                        wxString ChartToDisable = wxString(entry.GetpFullPath(),  wxConvUTF8);
                         DisableChart(ChartToDisable);
+
 
 
                   }
@@ -1932,30 +812,8 @@ ChartBase *ChartDB::OpenChartFromStack(ChartStack *pStack, int StackEntry, Chart
       return NULL;
 }
 
-//-------------------------------------------------------------------
-//    Disable Chart
-//-------------------------------------------------------------------
-
-int ChartDB::DisableChart(wxString& PathToDisable)
-{
-      //    Find the chart
-      for(int i=0 ; i<nEntry ; i++)
-      {
-          if(PathToDisable.IsSameAs(wxString(pChartTable[i].pFullPath, wxConvUTF8)))
-            {
-//          Mark this chart in the database, so that it will not be seen during this run
-//          How?  By setting the chart bounding box to an absurd value
-//          Todo... Fix this heinous hack
-                  pChartTable[i].LatMax = 0;
-                  pChartTable[i].LatMin = (float).0001;
-
-                  return 1;
-            }
-      }
-
-      return 0;
-}
-
+/*
+*/
 void ChartDB::ApplyColorSchemeToCachedCharts(ColorScheme cs)
 {
       ChartBase *Ch;
@@ -2028,8 +886,6 @@ ChartBase *ChartDB::OpenStackChartConditional(ChartStack *ps, int index_start, b
             }
       }
 
-
-//      ps->CurrentStackEntry = index;
       return ptc;
 }
 

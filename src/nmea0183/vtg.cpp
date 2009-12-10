@@ -60,13 +60,38 @@ bool VTG::Parse( const SENTENCE& sentence )
    ** First we check the checksum...
    */
 
-   if ( sentence.IsChecksumBad( 9 ) == TRUE )
-   {
-      SetErrorMessage( _T("Invalid Checksum") );
-      return( FALSE );
-   }
+      int target_field_count = 8;
 
-   if ( sentence.GetNumberOfDataFields() != 8 )
+      NMEA0183_BOOLEAN check = sentence.IsChecksumBad( 9 );
+
+      if ( check == NTrue )
+      {
+
+  /*
+      ** This may be an NMEA Version 2.3 sentence, with "Mode" field
+  */
+            wxString checksum_in_sentence = sentence.Field( 9 );
+            if(checksum_in_sentence.StartsWith(_T("*")))       // Field is a valid erroneous checksum
+            {
+                  SetErrorMessage( _T("Invalid Checksum") );
+                  return( FALSE );
+            }
+
+           else
+           {
+                  target_field_count = 9;
+                  check = sentence.IsChecksumBad( 10 );
+                  if( check == NTrue)
+                  {
+                        SetErrorMessage( _T("Invalid Checksum") );
+                        return( FALSE );
+                  }
+            }
+      }
+
+
+
+   if ( sentence.GetNumberOfDataFields() != target_field_count )
    {
          SetErrorMessage( _T("Invalid FieldCount") );
          return( FALSE );
