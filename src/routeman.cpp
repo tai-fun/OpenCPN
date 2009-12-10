@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.21 2009/11/18 01:25:31 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.22 2009/12/10 21:01:46 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.22  2009/12/10 21:01:46  bdbcat
+ * Beta 1210
+ *
  * Revision 1.21  2009/11/18 01:25:31  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -75,6 +78,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.22  2009/12/10 21:01:46  bdbcat
+ * Beta 1210
+ *
  * Revision 1.21  2009/11/18 01:25:31  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -228,8 +234,6 @@
 #include "bitmaps/diamond.xpm"
 #include "bitmaps/activepoint.xpm"
 
-extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
-
 
 extern ConsoleCanvas    *console;
 
@@ -256,7 +260,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.21 2009/11/18 01:25:31 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.22 2009/12/10 21:01:46 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -472,7 +476,7 @@ bool Routeman::UpdateProgress()
 
 //      Calculate range using Great Circle Formula
 
-                float d5 = DistGreatCircle(gLat, gLon, pActivePoint->m_lat, pActivePoint->m_lon );
+                double d5 = DistGreatCircle(gLat, gLon, pActivePoint->m_lat, pActivePoint->m_lon );
                 CurrentRngToActivePoint = d5;
 
 //      Get the XTE vector, normal to current segment
@@ -494,7 +498,7 @@ bool Routeman::UpdateProgress()
 
 //                CurrentRangeToActiveNormalCrossing = vVectorMagnitude(&vToArriveNormal) * 60;
 
-                float d6 = DistGreatCircle(gLat, gLon,
+                double d6 = DistGreatCircle(gLat, gLon,
                                            gLat + vToArriveNormal.y, gLon + vToArriveNormal.x );
                 CurrentRangeToActiveNormalCrossing = d6;
 

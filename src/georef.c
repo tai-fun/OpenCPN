@@ -56,7 +56,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.17 2009/11/23 04:16:51 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.18 2009/12/10 21:03:15 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -218,7 +218,6 @@ struct ELLIPSOID const gEllipsoid[] = {
 };
 
 /* define constants */
-static const double WGSa     = 6378137.0;           /* WGS84 semimajor axis */
 static const double WGSinvf  = 298.257223563;                  /* WGS84 1/f */
 
 void datumParams(short datum, double *a, double *es)
@@ -732,7 +731,7 @@ resultantLatLong[lat1, lon1, dist, bearing] :=
 
 */
 
-float DistGreatCircle(double slat, double slon, double dlat, double dlon)
+double DistGreatCircle(double slat, double slon, double dlat, double dlon)
 {
 //    Calculate distance using Great Circle Formula
 //  d=2*asin(sqrt((sin((lat1-lat2)/2))^2 +
@@ -755,12 +754,13 @@ float DistGreatCircle(double slat, double slon, double dlat, double dlon)
 
 
 
-void DistanceBearing(double lat0, double lon0, double lat1, double lon1, double *brg, double *dist)
-{
-      double east, north, brgt;
-      double lon0x, lon1x;
 
-      *dist = DistGreatCircle(lat0, lon0, lat1, lon1);
+
+void DistanceBearingMercator(double lat0, double lon0, double lat1, double lon1, double *brg, double *dist)
+{
+      double east, north, brgt, C;
+      double lon0x, lon1x, dlat;
+
 
       //    Calculate bearing by conversion to SM (Mercator) coordinates, then simple trigonometry
 
@@ -789,15 +789,48 @@ void DistanceBearing(double lat0, double lon0, double lat1, double lon1, double 
             lon0x += 360.;
       }
 
-      toSM(lat1, lon1x, lat0, lon0x, &east, &north);
+      toSM_ECC(lat1, lon1x, lat0, lon0x, &east, &north);
 
-      brgt = 270. - (atan2(north, east) * 180. / PI);
+
+
+      C = atan2(east, north);
+      brgt = 180. + (C * 180. / PI);
       if (brgt < 0)
             brgt += 360.;
       if (brgt > 360.)
             brgt -= 360;
 
-      *brg = brgt;
+      if(brg)
+            *brg = brgt;
+
+      dlat = (lat1 - lat0) * 60.;              // in minutes
+
+      //    Classic formula, which fails for due east/west courses....
+
+      if(dist)
+      {
+            if(cos(C))
+                  *dist = (dlat /cos(C));
+            else
+                  *dist = DistGreatCircle(lat0, lon0, lat1, lon1);
+
+      }
+
+
+      //    Alternative formulary
+      //  From Roy Williams, "Geometry of Navigation", we have p = Dlo (Dlat/DMP) where p is the departure.
+      // Then distance is then:D = sqrt(Dlat^2 + p^2)
+
+/*
+          double dlo =  (lon1x - lon0x) * 60.;
+          double departure = dlo * dlat / ((north/1852.));
+
+          if(dist)
+             *dist = sqrt((dlat*dlat) + (departure * departure));
+*/
+
+
+
 }
 
 
@@ -829,7 +862,10 @@ void DistanceBearing(double lat0, double lon0, double lat1, double lon1, double 
 double my_fit_function( double tx, double ty, int n_par, double* p )
 {
 
-    double ret = p[0] + p[1]*tx + p[2]*ty;
+    double ret = p[0] + p[1]*tx;
+
+    if(n_par > 2)
+          ret += p[2]*ty;
     if(n_par > 3)
     {
         ret += p[3]*tx*tx;
@@ -940,7 +976,7 @@ int Georef_Calculate_Coefficients(struct GeoRef *cp, int nlin_lon)
     //      Force linear fit for longitude if nlin_lon > 0
     mp_lon = mp;
     if(nlin_lon)
-          mp_lon = 3;
+          mp_lon = 2;
 
     //      Make a dummay double array
     pnull = (double *)calloc(cp->count * sizeof(double), 1);

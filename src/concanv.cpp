@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.18 2009/11/18 01:24:54 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.19 2009/12/10 21:03:54 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.19  2009/12/10 21:03:54  bdbcat
+ * Beta 1210
+ *
  * Revision 1.18  2009/11/18 01:24:54  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -63,6 +66,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.19  2009/12/10 21:03:54  bdbcat
+ * Beta 1210
+ *
  * Revision 1.18  2009/11/18 01:24:54  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -165,7 +171,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.18 2009/11/18 01:24:54 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.19 2009/12/10 21:03:54 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -431,6 +437,7 @@ void ConsoleCanvas::OnLegRouteButton(wxCommandEvent& event)
 
 void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
 {
+      m_pParent->SetCursor ( wxCURSOR_ARROW );
 
       int x,y;
       event.GetPosition(&x, &y);
@@ -453,10 +460,13 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
             }
       }
 
-      ///TODO  Why is this necessary???
-      wxRegion rr(GetRect());
-      if(rr.Contains(x,y)  != wxInRegion)
+///  Why is this necessary???
+//    Because of the CaptureMouse call in chcanv.cpp when mouse enters concanv region
+
+      wxRect rr = GetRect();
+      if(!rr.Contains(x + rr.x, y + rr.y) )
             ReleaseMouse();
+
 #endif
 
 

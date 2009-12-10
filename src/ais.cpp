@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.34 2009/11/18 01:22:44 bdbcat Exp $
+ * $Id: ais.cpp,v 1.35 2009/12/10 21:08:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.35  2009/12/10 21:08:35  bdbcat
+ * Beta 1210
+ *
  * Revision 1.34  2009/11/18 01:22:44  bdbcat
  * Move all buffers to heap
  *
@@ -201,7 +204,7 @@ extern int              g_total_NMEAerror_messages;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.34 2009/11/18 01:22:44 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.35 2009/12/10 21:08:35 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -1590,7 +1593,7 @@ void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
 
       //    Compute the current Range/Brg to the target
       double brg, dist;
-      DistanceBearing(ptarget->Lat, ptarget->Lon, gLat, gLon, &brg, &dist);
+      DistanceBearingMercator(ptarget->Lat, ptarget->Lon, gLat, gLon, &brg, &dist);
       ptarget->Range_NM = dist;
       ptarget->Brg = brg;
 }

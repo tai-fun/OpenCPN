@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.21 2009/11/18 01:25:31 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.22 2009/12/10 20:58:44 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.22  2009/12/10 20:58:44  bdbcat
+ * Beta 1210
+ *
  * Revision 1.21  2009/11/18 01:25:31  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -134,7 +137,7 @@ bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.21 2009/11/18 01:25:31 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.22 2009/12/10 20:58:44 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -2213,6 +2216,12 @@ static void *SLCONS03(void *param)
 
     if (NULL != cmdw)
         slcons03.Append(wxString(cmdw,  wxConvUTF8));
+
+    //      Match CM93 CMAPECS presentation?
+/*
+    if (GEO_AREA == obj->Primitive_type)
+          slcons03.Append(_T(";AC(LANDA)"));
+*/
 
     slcons03.Append('\037');
 

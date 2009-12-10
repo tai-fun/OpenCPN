@@ -28,7 +28,6 @@
 #include "chcanv.h"
 
 
-extern "C" float DistGreatCircle(double slat, double slon, double dlat, double dlon);
 
 extern double           gLat, gLon;
 extern double           g_PlanSpeed;
@@ -373,6 +372,9 @@ void RouteProp::SetRouteAndUpdate(Route *pR)
 
 bool RouteProp::UpdateProperties()
 {
+    m_TotalDistCtl->SetValue(_T(""));
+    m_TimeEnrouteCtl->SetValue(_T(""));
+
     if(m_pRoute)
     {
         m_pRoute->UpdateSegmentDistances();           // get segment and total distance
@@ -433,7 +435,7 @@ bool RouteProp::UpdateProperties()
                 }
 
                 double brg, leg_dist;
-                DistanceBearing(prp->m_lat, prp->m_lon, slat, slon, &brg, &leg_dist);
+                DistanceBearingMercator(prp->m_lat, prp->m_lon, slat, slon, &brg, &leg_dist);
 
                 t.Printf(_T("%6.2f nm"),leg_dist);
                 m_wpList->SetItem(item_line_index, 2, t);
@@ -500,16 +502,18 @@ bool RouteProp::SaveChanges(void)
 //  Save the current planning speed
     g_PlanSpeed = m_planspeed;
 
-//  Get User input Text Fields
-    m_pRoute->m_RouteNameString = m_RouteNameCtl->GetValue();
-    m_pRoute->m_RouteStartString = m_RouteStartCtl->GetValue();
-    m_pRoute->m_RouteEndString = m_RouteDestCtl->GetValue();
+    if(m_pRoute)
+    {
+      //  Get User input Text Fields
+      m_pRoute->m_RouteNameString = m_RouteNameCtl->GetValue();
+      m_pRoute->m_RouteStartString = m_RouteStartCtl->GetValue();
+      m_pRoute->m_RouteEndString = m_RouteDestCtl->GetValue();
 
-    pConfig->UpdateRoute(m_pRoute);
-    pConfig->UpdateSettings();
+      pConfig->UpdateRoute(m_pRoute);
+      pConfig->UpdateSettings();
+    }
 
     return true;
-
 }
 
 
@@ -794,15 +798,22 @@ void MarkProp::SetRoutePoint(RoutePoint *pRP)
 {
       m_pRoutePoint = pRP;
 
-      m_lat_save = m_pRoutePoint->m_lat;
-      m_lon_save = m_pRoutePoint->m_lon;
-      m_IconName_save = m_pRoutePoint->m_IconName;
-      m_bShowName_save = m_pRoutePoint->m_bShowName;
+      if(m_pRoutePoint)
+      {
+            m_lat_save = m_pRoutePoint->m_lat;
+           m_lon_save = m_pRoutePoint->m_lon;
+            m_IconName_save = m_pRoutePoint->m_IconName;
+            m_bShowName_save = m_pRoutePoint->m_bShowName;
+      }
 }
 
 
 bool MarkProp::UpdateProperties()
 {
+      m_MarkLatCtl->SetValue(_T(""));
+      m_MarkLonCtl->SetValue(_T(""));
+      m_MarkNameCtl->SetValue(_T(""));
+
       wxString t;
       if(m_pRoutePoint)
       {
@@ -832,42 +843,44 @@ bool MarkProp::UpdateProperties()
 
 bool MarkProp::SaveChanges(void)
 {
-//  Get User input Text Fields
-      m_pRoutePoint->m_MarkName = m_MarkNameCtl->GetValue();
-
-      //    Here is some logic....
-      //    If the Markname is completely numeric, and is part of a route,
-      //    Then declare it to be of attribute m_bDynamicName = true
-      //    This is later used for re-numbering points on actions like
-      //    Insert Point, Delete Point, Append Point, etc
-
-      if(m_pRoutePoint->m_bIsInRoute)
+      if(m_pRoutePoint)
       {
-            bool b_name_is_numeric = true;
-            for(unsigned int i=0 ; i<m_pRoutePoint->m_MarkName.Len() ; i++)
+            //  Get User input Text Fields
+            m_pRoutePoint->m_MarkName = m_MarkNameCtl->GetValue();
+
+            //    Here is some logic....
+            //    If the Markname is completely numeric, and is part of a route,
+            //    Then declare it to be of attribute m_bDynamicName = true
+            //    This is later used for re-numbering points on actions like
+            //    Insert Point, Delete Point, Append Point, etc
+
+            if(m_pRoutePoint->m_bIsInRoute)
             {
-                  if(wxChar('0') > m_pRoutePoint->m_MarkName[i])
-                        b_name_is_numeric = false;
-                  if(wxChar('9') < m_pRoutePoint->m_MarkName[i])
-                        b_name_is_numeric = false;
+                  bool b_name_is_numeric = true;
+                  for(unsigned int i=0 ; i<m_pRoutePoint->m_MarkName.Len() ; i++)
+                  {
+                        if(wxChar('0') > m_pRoutePoint->m_MarkName[i])
+                              b_name_is_numeric = false;
+                        if(wxChar('9') < m_pRoutePoint->m_MarkName[i])
+                              b_name_is_numeric = false;
+                  }
+
+                  m_pRoutePoint->m_bDynamicName = b_name_is_numeric;
             }
+            else
+                  m_pRoutePoint->m_bDynamicName = false;
 
-            m_pRoutePoint->m_bDynamicName = b_name_is_numeric;
+
+            if(m_pRoutePoint->m_bIsInRoute)
+            {
+                  Route *pRoute = pRouteMan->FindRouteContainingWaypoint(m_pRoutePoint);
+                  pConfig->UpdateRoute(pRoute);
+            }
+            else
+                  pConfig->UpdateWayPoint(m_pRoutePoint);
+
+            pConfig->UpdateSettings();
       }
-      else
-            m_pRoutePoint->m_bDynamicName = false;
-
-
-      if(m_pRoutePoint->m_bIsInRoute)
-      {
-            Route *pRoute = pRouteMan->FindRouteContainingWaypoint(m_pRoutePoint);
-            pConfig->UpdateRoute(pRoute);
-      }
-      else
-            pConfig->UpdateWayPoint(m_pRoutePoint);
-
-      pConfig->UpdateSettings();
-
     return true;
 }
 

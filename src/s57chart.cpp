@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.42 2009/11/18 01:26:13 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.43 2009/12/10 21:00:21 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.43  2009/12/10 21:00:21  bdbcat
+ * Beta 1210
+ *
  * Revision 1.42  2009/11/18 01:26:13  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -112,6 +115,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.43  2009/12/10 21:00:21  bdbcat
+ * Beta 1210
+ *
  * Revision 1.42  2009/11/18 01:26:13  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -262,7 +268,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.42 2009/11/18 01:26:13 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.43 2009/12/10 21:00:21 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -303,6 +309,8 @@ WX_DEFINE_OBJARRAY(ArrayOfVC_Elements);
 
 #define S57_THUMB_SIZE  200
 
+static int              s_bInS57;         // Exclusion flag to prvent recursion in this class init call.
+                                          // Init() is not reentrant due to static wxProgressDialog callback....
 
 wxProgressDialog *s_ProgDialog;
 int s_cnt;
@@ -1236,9 +1244,6 @@ s57chart::s57chart()
 
     pDIB = NULL;
 
-    m_pFullPath = NULL;
-
-
 // Create ATON arrays, needed by S52PLIB
     pFloatingATONArray = new wxArrayPtrVoid;
     pRigidATONArray = new wxArrayPtrVoid;
@@ -1247,7 +1252,7 @@ s57chart::s57chart()
     m_tmpup_array = NULL;
     m_pcsv_locn = new wxString(*g_pcsv_locn);
 
-    pDepthUnits->Append(_T("METERS"));
+    m_DepthUnits = _T("METERS");
     m_depth_unit_id = DEPTH_UNIT_METERS;
 
     bGLUWarningSent = false;
@@ -2108,11 +2113,18 @@ bool s57chart::DCRenderLPB(wxMemoryDC& dcinput, ViewPort& vp, wxRect* rect)
 }
 
 
-InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorScheme cs )
+InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags )
 {
+      //    Use a static semaphore flag to prevent recursion
+    if(s_bInS57)
+          return INIT_FAIL_RETRY;
+    s_bInS57++;
+
+
     InitReturn ret_value;
 
-    m_pFullPath = new wxString(name);
+    m_FullPath = name;
+    m_Description = m_FullPath;
 
     wxFileName fn(name);
 
@@ -2147,8 +2159,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                 m_pDIBThumbDay = pBMP;
         }
 
-        SetColorScheme(cs, false);
-
+        s_bInS57--;
         return INIT_OK;
     }
 
@@ -2157,18 +2168,22 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
           if(fn.GetExt() == _T("000"))
           {
                 if(!CreateHeaderDataFromENC())
-                  return INIT_FAIL_REMOVE;
+                      ret_value = INIT_FAIL_REMOVE;
                 else
-                  return INIT_OK;
+                      ret_value = INIT_OK;
           }
           else if(fn.GetExt() == _T("S57"))
           {
                 m_SENCFileName = name;
                 if(!CreateHeaderDataFromSENC())
-                      return INIT_FAIL_REMOVE;
+                      ret_value = INIT_FAIL_REMOVE;
                 else
-                      return INIT_OK;
+                      ret_value = INIT_OK;
           }
+
+          s_bInS57--;
+          return ret_value;
+
     }
 
 
@@ -2187,7 +2202,7 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
                             ret_value = INIT_FAIL_REMOVE;
                 }
                 else
-                      ret_value = PostInit(flags, cs);
+                      ret_value = PostInit(flags, m_global_color_scheme);
           }
           else
                 ret_value = INIT_FAIL_REMOVE;
@@ -2197,9 +2212,10 @@ InitReturn s57chart::Init( const wxString& name, ChartInitFlag flags, ColorSchem
     else if(fn.GetExt() == _T("S57"))
     {
           m_SENCFileName = name;
-          ret_value = PostInit(flags, cs);
+          ret_value = PostInit(flags, m_global_color_scheme);
     }
 
+    s_bInS57--;
     return ret_value;
 
 }
@@ -2677,10 +2693,10 @@ WX_DEFINE_ARRAY(float*, MyFloatPtrArray);
 //    Read the .000 ENC file and create required Chartbase data structures
 bool s57chart::CreateHeaderDataFromENC(void)
 {
-      if(!InitENCMinimal(*m_pFullPath))
+      if(!InitENCMinimal(m_FullPath))
       {
             wxString msg(_T("   Cannot initialize ENC file "));
-            msg.Append(*m_pFullPath);
+            msg.Append(m_FullPath);
             wxLogMessage(msg);
 
             return false;
@@ -2788,8 +2804,8 @@ bool s57chart::CreateHeaderDataFromENC(void)
 
                   if(m_nCOVREntries == 1)
                   {
-                        m_pCOVRContourTable = (int *)malloc(sizeof(int));
-                        *m_pCOVRContourTable = pAuxCntArray->Item(0);
+                        m_pCOVRTablePoints = (int *)malloc(sizeof(int));
+                        *m_pCOVRTablePoints = pAuxCntArray->Item(0);
                         m_pCOVRTable = (float **)malloc(sizeof(float *));
                         *m_pCOVRTable = (float *)malloc(pAuxCntArray->Item(0) * 2 * sizeof(float));
                         memcpy(*m_pCOVRTable, pAuxPtrArray->Item(0), pAuxCntArray->Item(0) * 2 * sizeof(float));
@@ -2800,12 +2816,12 @@ bool s57chart::CreateHeaderDataFromENC(void)
                   else if(m_nCOVREntries > 1)
                   {
                         //    Create new COVR entries
-                        m_pCOVRContourTable = (int *)malloc(m_nCOVREntries * sizeof(int));
+                        m_pCOVRTablePoints = (int *)malloc(m_nCOVREntries * sizeof(int));
                         m_pCOVRTable = (float **)malloc(m_nCOVREntries * sizeof(float *));
 
                         for(unsigned int j=0 ; j<(unsigned int)m_nCOVREntries ; j++)
                         {
-                              m_pCOVRContourTable[j] = pAuxCntArray->Item(j);
+                              m_pCOVRTablePoints[j] = pAuxCntArray->Item(j);
                               m_pCOVRTable[j] = (float *)malloc(pAuxCntArray->Item(j) * 2 * sizeof(float));
                               memcpy(m_pCOVRTable[j], pAuxPtrArray->Item(j), pAuxCntArray->Item(j) * 2 * sizeof(float));
                         }
@@ -2814,8 +2830,8 @@ bool s57chart::CreateHeaderDataFromENC(void)
                   else                                     // strange case, found no CATCOV=1 M_COVR objects
                   {
                         m_nCOVREntries = 1;
-                        m_pCOVRContourTable = (int *)malloc(sizeof(int));
-                        *m_pCOVRContourTable = 4;
+                        m_pCOVRTablePoints = (int *)malloc(sizeof(int));
+                        *m_pCOVRTablePoints = 4;
                         m_pCOVRTable = (float **)malloc(sizeof(float *));
                         float *pf = (float *)malloc(2 * 4 * sizeof(float));
                         *m_pCOVRTable = pf;
@@ -2862,8 +2878,8 @@ bool s57chart::CreateHeaderDataFromENC(void)
                         LonMin = Env.MinX;
 
                         m_nCOVREntries = 1;
-                        m_pCOVRContourTable = (int *)malloc(sizeof(int));
-                        *m_pCOVRContourTable = 4;
+                        m_pCOVRTablePoints = (int *)malloc(sizeof(int));
+                        *m_pCOVRTablePoints = 4;
                         m_pCOVRTable = (float **)malloc(sizeof(float *));
                         float *pf = (float *)malloc(2 * 4 * sizeof(float));
                         *m_pCOVRTable = pf;
@@ -2885,7 +2901,7 @@ bool s57chart::CreateHeaderDataFromENC(void)
                   else
                   {
                         wxString msg(_T("   Cannot calculate Extents for ENC:  "));
-                        msg.Append(*m_pFullPath);
+                        msg.Append(m_FullPath);
                         wxLogMessage(msg);
 
                         return false;                     // chart is completely unusable
@@ -2901,6 +2917,11 @@ bool s57chart::CreateHeaderDataFromENC(void)
 
             //    Set the chart scale
             m_Chart_Scale = GetENCScale();
+
+            wxString nice_name;
+            GetChartNameFromTXT(m_FullPath, nice_name);
+            m_Name = nice_name;
+
 
       return true;
 }
@@ -2985,7 +3006,7 @@ bool s57chart::CreateHeaderDataFromSENC(void)
 
             else if(!strncmp(buf, "NAME", 4))
             {
-                  m_pName->Append(wxString(&buf[5], wxConvUTF8).BeforeFirst('\n'));
+                  m_Name = wxString(&buf[5], wxConvUTF8).BeforeFirst('\n');
             }
 
             else if(!strncmp(buf, "Chart Extents:", 14))
@@ -3009,8 +3030,8 @@ bool s57chart::CreateHeaderDataFromSENC(void)
 
             if(m_nCOVREntries == 1)
             {
-                  m_pCOVRContourTable = (int *)malloc(sizeof(int));
-                  *m_pCOVRContourTable = 4;
+                  m_pCOVRTablePoints = (int *)malloc(sizeof(int));
+                  *m_pCOVRTablePoints = 4;
                   m_pCOVRTable = (float **)malloc(sizeof(float *));
 
                   float *pf = (float *)malloc(2 * 4 * sizeof(float));
@@ -3041,9 +3062,9 @@ bool s57chart::CreateHeaderDataFromSENC(void)
       int dupd = atoi((wxString(date_upd, wxConvUTF8).Mid(0,4)).mb_str());
 
       if(dupd > d000)
-           *pPubYear = wxString(date_upd, wxConvUTF8).Mid(0,4);
+           m_PubYear = wxString(date_upd, wxConvUTF8).Mid(0,4);
       else
-           *pPubYear = wxString(date_000, wxConvUTF8).Mid(0,4);
+           m_PubYear = wxString(date_000, wxConvUTF8).Mid(0,4);
 
       wxDateTime dt;
       dt.ParseDate(date_000);
@@ -3397,7 +3418,7 @@ int s57chart::ValidateAndCountUpdates( const wxFileName file000, const wxString 
 
             for(int iff=0 ; iff < retval+1 ; iff++)
             {
-                wxFileName ufile(*m_pFullPath);
+                wxFileName ufile(m_FullPath);
                 wxString sext;
                 sext.Printf(_T("%03d"), iff);
                 ufile.SetExt(sext);
@@ -4379,7 +4400,7 @@ int s57chart::BuildRAZFromSENCFile( const wxString& FullPath )
 
             else if(!strncmp(buf, "NAME", 4))
             {
-                m_pName->Append(wxString(&buf[5], wxConvUTF8).BeforeFirst('\n'));
+                m_Name = wxString(&buf[5], wxConvUTF8).BeforeFirst('\n');
             }
 
             else if(!strncmp(buf, "NOGR", 4))
@@ -4417,9 +4438,9 @@ int s57chart::BuildRAZFromSENCFile( const wxString& FullPath )
       int dupd = atoi((wxString(date_upd, wxConvUTF8).Mid(0,4)).mb_str());
 
       if(dupd > d000)
-          pPubYear->Append(wxString(date_upd, wxConvUTF8).Mid(0,4));
+          m_PubYear = wxString(date_upd, wxConvUTF8).Mid(0,4);
       else
-          pPubYear->Append(wxString(date_000, wxConvUTF8).Mid(0,4));
+          m_PubYear = wxString(date_000, wxConvUTF8).Mid(0,4);
 
       return ret_val;
 }
@@ -6160,7 +6181,8 @@ bool s57chart::InitFromSENCMinimal(const wxString &FullPath)
       bool  ret_val = true;
       int check_val = 0;
 
-      m_pFullPath = new wxString(FullPath);
+      m_FullPath = FullPath;
+      m_Description = m_FullPath;
 
       wxFileName S57FileName(FullPath);
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.33 2009/11/23 04:13:37 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.34 2009/12/10 21:10:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.34  2009/12/10 21:10:13  bdbcat
+ * Beta 1210
+ *
  * Revision 1.33  2009/11/23 04:13:37  bdbcat
  * Various for build 1122
  *
@@ -90,6 +93,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.34  2009/12/10 21:10:13  bdbcat
+ * Beta 1210
+ *
  * Revision 1.33  2009/11/23 04:13:37  bdbcat
  * Various for build 1122
  *
@@ -214,7 +220,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.33 2009/11/23 04:13:37 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.34 2009/12/10 21:10:13 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -264,18 +270,9 @@ ChartBase::ChartBase()
 {
       pcached_bitmap = NULL;
 
-      pPubYear = new wxString;
-      pPubYear->Clear();
-
-      pDepthUnits = new wxString;
-      pDepthUnits->Clear();
       m_depth_unit_id = DEPTH_UNIT_UNKNOWN;
 
-
       pThumbData = new ThumbData;
-
-      m_pName = new wxString;
-      m_pName->Clear();
 
       m_global_color_scheme = GLOBAL_COLOR_SCHEME_DAY;
 
@@ -287,7 +284,7 @@ ChartBase::ChartBase()
 
       m_nCOVREntries = 0;
       m_pCOVRTable = NULL;
-      m_pCOVRContourTable = NULL;
+      m_pCOVRTablePoints = NULL;
 
       m_EdDate.Set(1, wxDateTime::Jan, 2000);
 
@@ -300,13 +297,7 @@ ChartBase::~ChartBase()
       if(pcached_bitmap)
              delete pcached_bitmap;
 
-      delete pPubYear;
-      delete pDepthUnits;
-
       delete pThumbData;
-      delete m_pFullPath;
-
-      delete m_pName;
 
       //    Free the COVR tables
 
@@ -314,7 +305,7 @@ ChartBase::~ChartBase()
             free( m_pCOVRTable[j] );
 
       free( m_pCOVRTable );
-      free( m_pCOVRContourTable );
+      free( m_pCOVRTablePoints );
 
 }
 
@@ -330,7 +321,8 @@ ChartDummy::ChartDummy()
       m_ChartFamily = CHART_FAMILY_UNKNOWN;
 
 
-      m_pFullPath = new wxString(_T("No Chart Available"));
+      m_FullPath = _T("No Chart Available");
+      m_Description = m_FullPath;
 
 }
 
@@ -340,7 +332,7 @@ ChartDummy::~ChartDummy()
 }
 
 
-InitReturn ChartDummy::Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs )
+InitReturn ChartDummy::Init( const wxString& name, ChartInitFlag init_flags )
 {
       return INIT_OK;
 }
@@ -448,11 +440,11 @@ ChartGEO::~ChartGEO()
 {
 }
 
-InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs )
+InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags)
 {
       #define BUF_LEN_MAX 4000
 
-      PreInit(name, init_flags, cs);
+      PreInit(name, init_flags, GLOBAL_COLOR_SCHEME_DAY);
 
       char buffer[BUF_LEN_MAX];
 
@@ -464,9 +456,10 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
       int nPlypoint = 0;
       Plypoint *pPlyTable = (Plypoint *)x_malloc(sizeof(Plypoint));
 
-      m_pFullPath = new wxString(name);
+      m_FullPath = name;
+      m_Description = m_FullPath;
 
-      wxFileName GEOFile(*m_pFullPath);
+      wxFileName GEOFile(m_FullPath);
 
       wxString Path;
       Path = GEOFile.GetPath(wxPATH_GET_SEPARATOR | wxPATH_GET_VOLUME);
@@ -522,7 +515,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
                     int i;
                     i = tkz.GetPosition();
                     wxString str(&buffer[i],  wxConvUTF8);
-                    pDepthUnits->Append(str.Trim());
+                    m_DepthUnits = str.Trim();
                 }
             }
 
@@ -571,7 +564,7 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
                   {
                         sscanf(date_string, "%s", date_buf);
                   }
-                  pPubYear->Append(wxString(date_buf, wxConvUTF8));
+                  m_PubYear = wxString(date_buf, wxConvUTF8);
             }
 
             else if (!strncmp(buffer, "Skew", 4))
@@ -637,11 +630,10 @@ InitReturn ChartGEO::Init( const wxString& name, ChartInitFlag init_flags, Color
               {
                 int i;
                 i = tkz.GetPosition();
+                m_Name.Clear();
                 while(isprint(buffer[i]) && (i < 80))
-                {
-                  m_pName->Append(buffer[i++]);
-                }
-              }
+                      m_Name.Append(buffer[i++]);
+               }
             }
       }     //while
 
@@ -823,8 +815,8 @@ found_uclc_file:
 
 //    Convert captured plypoint information into chart COVR structures
       m_nCOVREntries = 1;
-      m_pCOVRContourTable = (int *)malloc(sizeof(int));
-      *m_pCOVRContourTable = nPlypoint;
+      m_pCOVRTablePoints = (int *)malloc(sizeof(int));
+      *m_pCOVRTablePoints = nPlypoint;
       m_pCOVRTable = (float **)malloc(sizeof(float *));
       *m_pCOVRTable = (float *)malloc(nPlypoint * 2 * sizeof(float));
       memcpy(*m_pCOVRTable, pPlyTable, nPlypoint * 2 * sizeof(float));
@@ -881,14 +873,14 @@ ChartKAP::~ChartKAP()
 }
 
 
-InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs )
+InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags )
 {
       #define BUF_LEN_MAX 4000
 
       int nPlypoint = 0;
       Plypoint *pPlyTable = (Plypoint *)x_malloc(sizeof(Plypoint));
 
-      PreInit(name, init_flags, cs);
+      PreInit(name, init_flags, GLOBAL_COLOR_SCHEME_DAY);
 
       char buffer[BUF_LEN_MAX];
 
@@ -897,7 +889,8 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
       if(!ifs_hdr->Ok())
             return INIT_FAIL_REMOVE;
 
-      m_pFullPath = new wxString(name);
+      m_FullPath = name;
+      m_Description = m_FullPath;
 
       ifss_bitmap = new wxFileInputStream(name); // Open again, as the bitmap
       ifs_bitmap = new wxBufferedInputStream(*ifss_bitmap);
@@ -1004,7 +997,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                                 nbuf[j++] = buffer[i++];
                           nbuf[j] = 0;
                           wxString n_str(nbuf,  iso_conv);
-                          *m_pName = n_str;
+                          m_Name = n_str;
 
                         }
                         if(token.IsSameAs(_T("DU"), TRUE))                  // extract DU=n
@@ -1043,7 +1036,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                             int i;
                             i = tkz.GetPosition();
                             wxString str(&buffer[i], wxConvUTF8);
-                            pDepthUnits->Append(str.BeforeFirst(','));
+                            m_DepthUnits = str.BeforeFirst(',');
                         }
                         if(token.IsSameAs(_T("GD"), TRUE))                  // extract Datum
                         {
@@ -1262,7 +1255,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
                                  m_EdDate.Set(1, wxDateTime::Jan, 2000);                    //Todo this could be smarter
                               }
 
-                              pPubYear->Append(wxString(date_buf,  wxConvUTF8));
+                              m_PubYear = wxString(date_buf,  wxConvUTF8);
                         }
                   }
             }
@@ -1289,8 +1282,8 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
 
 //    Convert captured plypoint information into chart COVR structures
       m_nCOVREntries = 1;
-      m_pCOVRContourTable = (int *)malloc(sizeof(int));
-      *m_pCOVRContourTable = nPlypoint;
+      m_pCOVRTablePoints = (int *)malloc(sizeof(int));
+      *m_pCOVRTablePoints = nPlypoint;
       m_pCOVRTable = (float **)malloc(sizeof(float *));
       *m_pCOVRTable = (float *)malloc(nPlypoint * 2 * sizeof(float));
       memcpy(*m_pCOVRTable, pPlyTable, nPlypoint * 2 * sizeof(float));
@@ -1333,7 +1326,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags, Color
       if(bcorrupt)
       {
             wxString msg(_T("   Chart File RLL data corrupt on chart "));
-            msg.Append(*m_pFullPath);
+            msg.Append(m_FullPath);
             wxLogMessage(msg);
 
             return INIT_FAIL_REMOVE;
@@ -1365,7 +1358,6 @@ ChartBaseBSB::ChartBaseBSB()
       //    Init some private data
       m_ChartFamily = CHART_FAMILY_RASTER;
 
-      m_pFullPath = NULL;
       pBitmapFilePath = NULL;
 
       pline_table = NULL;
@@ -1543,9 +1535,9 @@ double ChartBaseBSB::GetClosestValidNaturalScalePPM(double target_scale, double 
 
 
 
-InitReturn ChartBaseBSB::Init( const wxString& name, ChartInitFlag init_flags, ColorScheme cs )
+InitReturn ChartBaseBSB::Init( const wxString& name, ChartInitFlag init_flags )
 {
-      m_global_color_scheme = cs;
+      m_global_color_scheme = GLOBAL_COLOR_SCHEME_DAY;
       return INIT_OK;
 }
 
@@ -1612,7 +1604,6 @@ InitReturn ChartBaseBSB::PostInit(void)
       // Establish the palette type and default palette
       palette_direction = GetPaletteDir();
 
-//      pPalette = GetPalettePtr(m_global_color_scheme);
       SetColorScheme(m_global_color_scheme, false);
 
       //    Allocate memory for ifs file buffering
@@ -1657,7 +1648,7 @@ InitReturn ChartBaseBSB::PostInit(void)
             if( wxInvalidOffset == ifs_bitmap->SeekI(pline_table[iplt], wxFromStart))
             {
                   wxString msg(_T("   Chart File corrupt in PostInit() on chart "));
-                  msg.Append(*m_pFullPath);
+                  msg.Append(m_FullPath);
                   wxLogMessage(msg);
 
                   return INIT_FAIL_REMOVE;
@@ -1668,7 +1659,7 @@ InitReturn ChartBaseBSB::PostInit(void)
             if(thisline_size < 0)
             {
                   wxString msg(_T("   Chart File corrupt in PostInit() on chart "));
-                  msg.Append(*m_pFullPath);
+                  msg.Append(m_FullPath);
                   wxLogMessage(msg);
 
                   return INIT_FAIL_REMOVE;
@@ -1677,7 +1668,7 @@ InitReturn ChartBaseBSB::PostInit(void)
             if(thisline_size > ifs_bufsize)
             {
                   wxString msg(_T("   ifs_bufsize too small PostInit() on chart "));
-                  msg.Append(*m_pFullPath);
+                  msg.Append(m_FullPath);
                   wxLogMessage(msg);
 
                   return INIT_FAIL_REMOVE;
@@ -1715,12 +1706,12 @@ InitReturn ChartBaseBSB::PostInit(void)
       if(!bline_index_ok)
       {
           wxString msg(_T("   Line Index corrupt, recreating Index for chart "));
-          msg.Append(*m_pFullPath);
+          msg.Append(m_FullPath);
           wxLogMessage(msg);
           if(!CreateLineIndex())
           {
                 wxString msg(_T("   Error creating Line Index for chart "));
-                msg.Append(*m_pFullPath);
+                msg.Append(m_FullPath);
                 wxLogMessage(msg);
                 return INIT_FAIL_REMOVE;
           }
@@ -1748,7 +1739,7 @@ InitReturn ChartBaseBSB::PostInit(void)
 
 
       //    Validate/Set Depth Unit Type
-      wxString test_str = pDepthUnits->Upper();
+      wxString test_str = m_DepthUnits.Upper();
       if(test_str.IsSameAs(_T("FEET"), FALSE))
           m_depth_unit_id = DEPTH_UNIT_FEET;
       else if(test_str.IsSameAs(_T("METERS"), FALSE))
@@ -1801,7 +1792,7 @@ bool ChartBaseBSB::CreateLineIndex()
         if(iscan > Size_Y)
         {
             wxString msg(_T("CreateLineIndex() failed on chart "));
-            msg.Append(*m_pFullPath);
+            msg.Append(m_FullPath);
             wxLogMessage(msg);
            return false;
         }
@@ -2033,7 +2024,6 @@ void ChartBaseBSB::SetColorScheme(ColorScheme cs, bool bApplyImmediate)
             m_mapped_color_index = DAY;
             break;
     }
-
 
     pPalette = GetPalettePtr(m_mapped_color_index);
 
@@ -3727,11 +3717,16 @@ int   ChartBaseBSB::BSBGetScanline( unsigned char *pLineBuf, int y, int xs, int 
 
 int  *ChartBaseBSB::GetPalettePtr(BSB_Color_Capability color_index)
 {
+      if(pPalettes[color_index])
+      {
 
-      if(palette_direction == PaletteFwd)
-          return (int *)(pPalettes[color_index]->FwdPalette);
+            if(palette_direction == PaletteFwd)
+                  return (int *)(pPalettes[color_index]->FwdPalette);
+            else
+                  return (int *)(pPalettes[color_index]->RevPalette);
+      }
       else
-          return (int *)(pPalettes[color_index]->RevPalette);
+            return NULL;
  }
 
 
@@ -3886,12 +3881,12 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
         {
               if(nRefpoint == 4)          // typical old BSB chart, or manually scanned/converted TIFF image
               {
-                  bUseGeoRef = false;         // 4 REF points is too few for cubic poly match.
+                  bUseGeoRef = false;         // 4 REF points is too few for poly match.
               }
-              else if(nRefpoint <= 12)
+              else if(nRefpoint <= 20)
               {
-                    cPoints.order = 2;      // If less than 12 points, use Polynomial curve fit to a quadratic equation
-                                            // discoveredand verified on ProblemCharts/NZ232_1 from Marco
+                    cPoints.order = 2;      // If less than n points, use Polynomial curve fit to a quadratic equation
+                                            // discovered and verified on ProblemCharts/NZ232_1 from Marco
 
                       // force longitude fit to linear and require no cross terms if chart is un-skewed, the usual case
                     if(Georef_Calculate_Coefficients(&cPoints, (Chart_Skew == 0)))
@@ -3942,7 +3937,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
                 if(!bGeoErrorSent)
                 {
                       wxString msg = _T("   Georeference Chart_Error_Factor on chart ");
-                      msg.Append(*m_pFullPath);
+                      msg.Append(m_FullPath);
                       wxString msg1;
                       msg1.Printf(_T(" is %5g"), Chart_Error_Factor);
                       msg.Append(msg1);
@@ -4202,7 +4197,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
             if(fabs(1.0 - calc_latpix / latpix) > .005)
             {
                   wxString msg = _T("   Georeference Square_Factor on chart ");
-                  msg.Append(*m_pFullPath);
+                  msg.Append(m_FullPath);
                   wxString msg1;
                   msg1.Printf(_T(" is %5g"), calc_latpix / latpix);
                   msg.Append(msg1);
@@ -4233,7 +4228,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.33 2009/11/23 04:13:37 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.34 2009/12/10 21:10:13 bdbcat Exp $
 *
 */
 
