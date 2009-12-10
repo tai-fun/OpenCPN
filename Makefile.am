@@ -67,7 +67,6 @@ opencpn_SOURCES = 	src/bbox.cpp \
 			src/nmea.cpp \
 			src/routeman.cpp \
 			src/routeprop.cpp \
-			src/sercomm.cpp \
 			src/statwin.cpp \
 			src/tcmgr.cpp \
 			src/thumbwin.cpp \

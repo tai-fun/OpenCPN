@@ -120,9 +120,9 @@ am__opencpn_SOURCES_DIST = src/bbox.cpp src/ocpn_pixel.cpp \
 	src/chart1.cpp src/chartdb.cpp src/chartdbs.cpp \
 	src/chartimg.cpp src/chcanv.cpp src/concanv.cpp src/cutil.c \
 	src/georef.c src/navutil.cpp src/nmea.cpp src/routeman.cpp \
-	src/routeprop.cpp src/sercomm.cpp src/statwin.cpp \
-	src/tcmgr.cpp src/thumbwin.cpp src/options.cpp \
-	src/wvschart.cpp src/about.cpp src/ais.cpp src/cm93.cpp \
+	src/routeprop.cpp src/statwin.cpp src/tcmgr.cpp \
+	src/thumbwin.cpp src/options.cpp src/wvschart.cpp \
+	src/about.cpp src/ais.cpp src/cm93.cpp \
 	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
@@ -204,20 +204,19 @@ am_opencpn_OBJECTS = bbox.$(OBJEXT) ocpn_pixel.$(OBJEXT) \
 	chartimg.$(OBJEXT) chcanv.$(OBJEXT) concanv.$(OBJEXT) \
 	cutil.$(OBJEXT) georef.$(OBJEXT) navutil.$(OBJEXT) \
 	nmea.$(OBJEXT) routeman.$(OBJEXT) routeprop.$(OBJEXT) \
-	sercomm.$(OBJEXT) statwin.$(OBJEXT) tcmgr.$(OBJEXT) \
-	thumbwin.$(OBJEXT) options.$(OBJEXT) wvschart.$(OBJEXT) \
-	about.$(OBJEXT) ais.$(OBJEXT) cm93.$(OBJEXT) latlong.$(OBJEXT) \
-	long.$(OBJEXT) nmea0183.$(OBJEXT) response.$(OBJEXT) \
-	rmb.$(OBJEXT) sentence.$(OBJEXT) talkerid.$(OBJEXT) \
-	rmc.$(OBJEXT) hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) \
-	wpl.$(OBJEXT) rte.$(OBJEXT) hdt.$(OBJEXT) hdg.$(OBJEXT) \
-	hdm.$(OBJEXT) gll.$(OBJEXT) vtg.$(OBJEXT) \
-	scrollingdialog.$(OBJEXT) grib.$(OBJEXT) GribReader.$(OBJEXT) \
-	GribRecord.$(OBJEXT) zuFile.$(OBJEXT) IsoLine.$(OBJEXT) \
-	blocksort.$(OBJEXT) bzlib.$(OBJEXT) compress.$(OBJEXT) \
-	crctable.$(OBJEXT) decompress.$(OBJEXT) huffman.$(OBJEXT) \
-	randtable.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3)
+	statwin.$(OBJEXT) tcmgr.$(OBJEXT) thumbwin.$(OBJEXT) \
+	options.$(OBJEXT) wvschart.$(OBJEXT) about.$(OBJEXT) \
+	ais.$(OBJEXT) cm93.$(OBJEXT) latlong.$(OBJEXT) long.$(OBJEXT) \
+	nmea0183.$(OBJEXT) response.$(OBJEXT) rmb.$(OBJEXT) \
+	sentence.$(OBJEXT) talkerid.$(OBJEXT) rmc.$(OBJEXT) \
+	hexvalue.$(OBJEXT) lat.$(OBJEXT) expid.$(OBJEXT) wpl.$(OBJEXT) \
+	rte.$(OBJEXT) hdt.$(OBJEXT) hdg.$(OBJEXT) hdm.$(OBJEXT) \
+	gll.$(OBJEXT) vtg.$(OBJEXT) scrollingdialog.$(OBJEXT) \
+	grib.$(OBJEXT) GribReader.$(OBJEXT) GribRecord.$(OBJEXT) \
+	zuFile.$(OBJEXT) IsoLine.$(OBJEXT) blocksort.$(OBJEXT) \
+	bzlib.$(OBJEXT) compress.$(OBJEXT) crctable.$(OBJEXT) \
+	decompress.$(OBJEXT) huffman.$(OBJEXT) randtable.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2) $(am__objects_3)
 opencpn_OBJECTS = $(am_opencpn_OBJECTS)
 am__DEPENDENCIES_1 =
 @BUILD_WITH_GLU_TESS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
@@ -413,9 +412,9 @@ opencpn_SOURCES = src/bbox.cpp src/ocpn_pixel.cpp src/chart1.cpp \
 	src/chartdb.cpp src/chartdbs.cpp src/chartimg.cpp \
 	src/chcanv.cpp src/concanv.cpp src/cutil.c src/georef.c \
 	src/navutil.cpp src/nmea.cpp src/routeman.cpp \
-	src/routeprop.cpp src/sercomm.cpp src/statwin.cpp \
-	src/tcmgr.cpp src/thumbwin.cpp src/options.cpp \
-	src/wvschart.cpp src/about.cpp src/ais.cpp src/cm93.cpp \
+	src/routeprop.cpp src/statwin.cpp src/tcmgr.cpp \
+	src/thumbwin.cpp src/options.cpp src/wvschart.cpp \
+	src/about.cpp src/ais.cpp src/cm93.cpp \
 	src/nmea0183/latlong.cpp src/nmea0183/long.cpp \
 	src/nmea0183/nmea0183.cpp src/nmea0183/nmea0183.hpp \
 	src/nmea0183/response.cpp src/nmea0183/rmb.cpp \
@@ -665,7 +664,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s57reader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingdialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sentence.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sercomm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statwin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/talkerid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcmgr.Po@am__quote@
@@ -1026,20 +1024,6 @@ routeprop.obj: src/routeprop.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/routeprop.cpp' object='routeprop.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o routeprop.obj `if test -f 'src/routeprop.cpp'; then $(CYGPATH_W) 'src/routeprop.cpp'; else $(CYGPATH_W) '$(srcdir)/src/routeprop.cpp'; fi`
-
-sercomm.o: src/sercomm.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sercomm.o -MD -MP -MF $(DEPDIR)/sercomm.Tpo -c -o sercomm.o `test -f 'src/sercomm.cpp' || echo '$(srcdir)/'`src/sercomm.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/sercomm.Tpo $(DEPDIR)/sercomm.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/sercomm.cpp' object='sercomm.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sercomm.o `test -f 'src/sercomm.cpp' || echo '$(srcdir)/'`src/sercomm.cpp
-
-sercomm.obj: src/sercomm.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sercomm.obj -MD -MP -MF $(DEPDIR)/sercomm.Tpo -c -o sercomm.obj `if test -f 'src/sercomm.cpp'; then $(CYGPATH_W) 'src/sercomm.cpp'; else $(CYGPATH_W) '$(srcdir)/src/sercomm.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/sercomm.Tpo $(DEPDIR)/sercomm.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/sercomm.cpp' object='sercomm.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sercomm.obj `if test -f 'src/sercomm.cpp'; then $(CYGPATH_W) 'src/sercomm.cpp'; else $(CYGPATH_W) '$(srcdir)/src/sercomm.cpp'; fi`
 
 statwin.o: src/statwin.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT statwin.o -MD -MP -MF $(DEPDIR)/statwin.Tpo -c -o statwin.o `test -f 'src/statwin.cpp' || echo '$(srcdir)/'`src/statwin.cpp
