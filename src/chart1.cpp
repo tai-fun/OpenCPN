@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.66 2009/12/10 21:17:38 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.67 2009/12/11 00:15:48 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.67  2009/12/11 00:15:48  bdbcat
+ * Beta 1210
+ *
  * Revision 1.66  2009/12/10 21:17:38  bdbcat
  * Beta 1210
  *
@@ -277,7 +280,7 @@ WX_DEFINE_OBJARRAY(ArrayOfCDI);
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.66 2009/12/10 21:17:38 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.67 2009/12/11 00:15:48 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -3207,6 +3210,7 @@ int MyFrame::DoOptionsDialog()
                   sz.x = csz.x * 7 / 10;
                   pprog->SetSize(sz);
                   pprog->Centre();
+                  pprog->Update(1, _T(""));
                   pprog->Show();
 
 

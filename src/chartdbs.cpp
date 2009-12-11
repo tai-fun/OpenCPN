@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.cpp,v 1.2 2009/12/10 22:16:54 bdbcat Exp $
+* $Id: chartdbs.cpp,v 1.3 2009/12/11 00:15:52 bdbcat Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.cpp,v $
+* Revision 1.3  2009/12/11 00:15:52  bdbcat
+* Beta 1210
+*
 * Revision 1.2  2009/12/10 22:16:54  bdbcat
 * Unicode correction
 *
@@ -964,9 +967,9 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
       int nDirEntry = 0;
 
       //    Check to see if there are any charts in the DB which refer to this directory
-      //    If none at all, there is no need to scan the DB for each potential addition
-      //    and bneed_full_search is false.
-      bool bneed_full_search = IsChartDirUsed(dir_name);
+      //    If none at all, there is no need to scan the DB for fullpath match of each potential addition
+      //    and bthis_dir_in_dB is false.
+      bool bthis_dir_in_dB = IsChartDirUsed(dir_name);
 
       int isearch = 0;              // create a smarter search index
                                           // indexing the DB starting from the last found item
@@ -988,20 +991,15 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
             char path_test_str[512];
             strncpy(path_test_str, full_name.mb_str(), 511);
 
-//            char file_test_str[512];
-//            strncpy(file_test_str, file_name.mb_str(), 511);
-
 
             ChartTableEntry *pnewChart = NULL;
             bool bAddFinal = true;
-            {
-                  if(bneed_full_search)
-                  {
+
                         int nEntry = chartTable.GetCount();
                         for(int i=0 ; i<nEntry ; i++)
                         {
                               //    If the chart file paths are exactly the same, select the newer one
-                              if(!strcmp(path_test_str, chartTable[isearch].GetpFullPath()))
+                              if(bthis_dir_in_dB && !strcmp(path_test_str, chartTable[isearch].GetpFullPath()))
                               {
                                     //    Check the file modification time
                                     time_t t_oldFile = chartTable[isearch].GetFileTime();
@@ -1023,7 +1021,7 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
                                     break;
                               }
 
-                        //  Look at the chart file name for a further check
+                        //  Look at the chart file name for a further check for duplicates
                         //  This catches the case in which the "same" chart is in different locations,
                         //  and one may be newer than the other.  Need to open the chart to check it
                               wxFileName table_file(wxString(chartTable[isearch].GetpFullPath(), wxConvUTF8));
@@ -1052,11 +1050,7 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
                               isearch++;
                               if(nEntry == isearch)
                                     isearch = 0;
-                        }
-                  }
-            }
-
-
+                        }     // for
 
 
 
