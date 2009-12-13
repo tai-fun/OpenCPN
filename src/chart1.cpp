@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.67 2009/12/11 00:15:48 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.68 2009/12/13 02:44:11 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.68  2009/12/13 02:44:11  bdbcat
+ * _() translatablel strings
+ *
  * Revision 1.67  2009/12/11 00:15:48  bdbcat
  * Beta 1210
  *
@@ -280,7 +283,7 @@ WX_DEFINE_OBJARRAY(ArrayOfCDI);
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.67 2009/12/11 00:15:48 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.68 2009/12/13 02:44:11 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -765,14 +768,16 @@ bool MyApp::OnInit()
 
       // Add a new prefix for search order. New prefix = .\lang,
       // where '.' refers to the opencpn.exe directory
-         wxLocale::AddCatalogLookupPathPrefix(wxT(".\\lang"));
+         wxLocale::AddCatalogLookupPathPrefix(wxT("./lang"));
 
       // Set default language
       // i.e. : Set programer's language as default language
       // because of trouble encoutered with wxLANGUAGE_DEFAULT
       // and wxLANGUAGE_FRENCH
       //        locale_def_lang.Init( wxLANGUAGE_DEFAULT, wxLOCALE_CONV_ENCODING );
-         locale_def_lang.Init( wxLANGUAGE_ENGLISH_US, wxLOCALE_CONV_ENCODING );
+ //        locale_def_lang.Init( wxLANGUAGE_ENGLISH_US, wxLOCALE_CONV_ENCODING );
+         locale_def_lang.Init( wxLANGUAGE_DEFAULT, wxLOCALE_CONV_ENCODING );
+
 
       // Set filename without extension (exemple : opencpn_fr_FR)
       // i.e. : Set-up the filename needed for translation
@@ -899,7 +904,7 @@ bool MyApp::OnInit()
         if(true != wxHomeFiledir.DirExists(wxHomeFiledir.GetPath()))
             if(!wxHomeFiledir.Mkdir(wxHomeFiledir.GetPath()))
                   {
-                        wxASSERT_MSG(false,_T("Cannot create opencpn home directory"));
+                        wxASSERT_MSG(false,_("Cannot create opencpn home directory"));
                         return false ;
                   }
 
@@ -919,11 +924,11 @@ bool MyApp::OnInit()
         if(true != wxLogFiledir.DirExists(wxLogFiledir.GetPath()))
               if(!wxLogFiledir.Mkdir(wxLogFiledir.GetPath()))
         {
-              wxASSERT_MSG(false,_T("Cannot create opencpn log directory"));
+              wxASSERT_MSG(false,_("Cannot create opencpn log directory"));
               return false ;
         }
 
-        log.Append(_T("opencpn.log"));
+        log.Append(_("opencpn.log"));
 
         //  Constrain the size of the log file
         if(wxFileName::GetSize(log) > 1000000)
@@ -938,16 +943,18 @@ bool MyApp::OnInit()
 //        wxLog::AddTraceMask("timer");               // verbose message traces to log output
 
 //      Send init message
-        wxLogMessage(_T("\n\n"));
+        wxLogMessage(_("\n\n"));
+
+        wxLogMessage(loc_lang_filename);
 
         wxDateTime now = wxDateTime::Now();
         now.MakeGMT(true);                    // no DST
 
         wxString imsg = now.FormatISODate();
-        imsg += _T("  ");
+        imsg += _("  ");
         imsg += now.FormatISOTime();
 
-        imsg += _T(" -------Starting opencpn-------");
+        imsg += _(" -------Starting opencpn-------");
         wxLogMessage(imsg);
 
 #ifdef USE_CPL
@@ -1046,7 +1053,7 @@ bool MyApp::OnInit()
 
         wxFileName config_test_file_name(Config_File);
         if(config_test_file_name.FileExists())
-            wxLogMessage(_T("Using existing Config_File: ") + Config_File);
+            wxLogMessage(_("Using existing Config_File: ") + Config_File);
         else
         {
 /*
@@ -1058,14 +1065,14 @@ bool MyApp::OnInit()
               if(mdlg.ShowModal() == wxID_YES)
 */
               {
-                  wxLogMessage(_T("Creating new Config_File: ") + Config_File);
+                  wxLogMessage(_("Creating new Config_File: ") + Config_File);
 
                   //    Flag to preset some options for initial config file creation
                   b_novicemode = true;
 
                   if(true != config_test_file_name.DirExists(config_test_file_name.GetPath()))
                        if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
-                               wxLogMessage(_T("Cannot create config file directory for ") + Config_File);
+                               wxLogMessage(_("Cannot create config file directory for ") + Config_File);
               }
 /*
               else
@@ -1222,7 +1229,7 @@ bool MyApp::OnInit()
             appendOSDirSlash(&plib_data) ;
             plib_data.Append(_T("S52RAZDS.RLE"));
 
-            wxLogMessage(_T("Looking for s57data in ") + look_data_dir);
+            wxLogMessage(_("Looking for s57data in ") + look_data_dir);
             ps52plib = new s52plib(plib_data);
 
             if(ps52plib->m_bOK)
@@ -1247,7 +1254,7 @@ bool MyApp::OnInit()
               appendOSDirSlash(&plib_data) ;
               plib_data.Append(_T("S52RAZDS.RLE"));
 
-              wxLogMessage(_T("Looking for s57data in ") + look_data_dir);
+              wxLogMessage(_("Looking for s57data in ") + look_data_dir);
               ps52plib = new s52plib(plib_data);
 
               if(ps52plib->m_bOK)
@@ -1259,9 +1266,9 @@ bool MyApp::OnInit()
 
 
         if(ps52plib->m_bOK)
-            wxLogMessage(_T("Using s57data in ") + *g_pcsv_locn);
+            wxLogMessage(_("Using s57data in ") + *g_pcsv_locn);
         else
-            wxLogMessage(_T("   S52PLIB Initialization failed, disabling S57 charts."));
+            wxLogMessage(_("   S52PLIB Initialization failed, disabling S57 charts."));
 
 
 // Todo Maybe initialize only when an s57 chart is actually opened???
@@ -1294,7 +1301,7 @@ bool MyApp::OnInit()
         pTC_Dir->Prepend(g_SData_Locn);
         pTC_Dir->Append(wxFileName::GetPathSeparator());
 
-        wxLogMessage(_T("Using Tide/Current data from:  ") + *pTC_Dir);
+        wxLogMessage(_("Using Tide/Current data from:  ") + *pTC_Dir);
 
 
 
@@ -1420,9 +1427,9 @@ bool MyApp::OnInit()
                 {
 //              Create and Save a new Chart Database based on the hints given in the config file
 
-                        wxString msg1(_T("OpenCPN needs to update the chart database from config file entries...."));
+                        wxString msg1(_("OpenCPN needs to update the chart database from config file entries...."));
 
-                        wxMessageDialog mdlg(gFrame, msg1, wxString(_T("OpenCPN Info")),wxICON_INFORMATION | wxOK );
+                        wxMessageDialog mdlg(gFrame, msg1, wxString(_("OpenCPN Info")),wxICON_INFORMATION | wxOK );
                         int dlg_ret;
                         dlg_ret = mdlg.ShowModal();
 
@@ -1430,7 +1437,7 @@ bool MyApp::OnInit()
                         ChartData = new ChartDB(gFrame);
 
                         wxString line(_T("Example of a long line which will make the dialog big enough to show chart paths"));
-                        wxProgressDialog *pprog = new wxProgressDialog (  _T("OpenCPN Chart Update"), line, 100, NULL,
+                        wxProgressDialog *pprog = new wxProgressDialog (  _("OpenCPN Chart Update"), line, 100, NULL,
                                     wxPD_SMOOTH | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME);
 
                         ChartData->Create(g_ChartDirArray, pprog);
@@ -1441,12 +1448,12 @@ bool MyApp::OnInit()
 
                 else                                            // No chart database, no config hints, so bail....
                 {
-                  wxLogMessage(_T("Chartlist file not found, config chart dir array is empty.  Chartlist target file is:") +
+                  wxLogMessage(_("Chartlist file not found, config chart dir array is empty.  Chartlist target file is:") +
                               *pChartListFileName);
 
-                  wxString msg1(_T("           No Charts Installed.\nPlease select chart folders in ToolBox->Charts."));
+                  wxString msg1(_("           No Charts Installed.\nPlease select chart folders in ToolBox->Charts."));
 
-                  wxMessageDialog mdlg(gFrame, msg1, wxString(_T("OpenCPN Info")),wxICON_INFORMATION | wxOK );
+                  wxMessageDialog mdlg(gFrame, msg1, wxString(_("OpenCPN Info")),wxICON_INFORMATION | wxOK );
                   int dlg_ret;
                   dlg_ret = mdlg.ShowModal();
 
@@ -1493,7 +1500,7 @@ bool MyApp::OnInit()
             gsp_watchdog_timeout_ticks = (GPS_TIMEOUT_SECONDS * 1000) / TIMER_GFRAME_1;
 
         wxString dogmsg;
-        dogmsg.Printf(_T("GPS Watchdog Timeout is: %d sec."), gsp_watchdog_timeout_ticks);
+        dogmsg.Printf(_("GPS Watchdog Timeout is: %d sec."), gsp_watchdog_timeout_ticks);
         wxLogMessage(dogmsg);
 
         gGPS_Watchdog = 2;
@@ -1515,7 +1522,7 @@ bool MyApp::OnInit()
 
 int MyApp::OnExit()
 {
-      wxLogMessage(_T("opencpn::MyApp exiting cleanly...\n"));
+      wxLogMessage(_("opencpn::MyApp exiting cleanly...\n"));
         delete pConfig;
         delete pSelect;
         delete pSelectTC;
@@ -2059,33 +2066,33 @@ wxToolBar *MyFrame::CreateAToolbar()
 //    tb->AddSeparator();
 //    x += pitch_sep;
 
-    tb->AddTool( ID_STKDN, _T(""), *(*phash)[wxString(_T("scin"))], _T("Shift to Larger Scale Chart"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKDN, _T(""), *(*phash)[wxString(_T("scin"))], _("Shift to Larger Scale Chart"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_STKUP, _T(""),*(*phash)[wxString(_T("scout"))], _T("Shift to Smaller Scale Chart"), wxITEM_NORMAL);
+    tb->AddTool( ID_STKUP, _T(""),*(*phash)[wxString(_T("scout"))], _("Shift to Smaller Scale Chart"), wxITEM_NORMAL);
     x += pitch_tool;
 
 //    tb->AddSeparator();
 //    x += pitch_sep;
 
-    tb->AddTool( ID_ROUTE, _T(""), *(*phash)[wxString(_T("route"))], _T("Create Route"), wxITEM_NORMAL);
+    tb->AddTool( ID_ROUTE, _T(""), *(*phash)[wxString(_T("route"))], _("Create Route"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_FOLLOW, _T(""), *(*phash)[wxString(_T("follow"))], _T("Auto Follow"), wxITEM_CHECK);
+    tb->AddTool( ID_FOLLOW, _T(""), *(*phash)[wxString(_T("follow"))], _("Auto Follow"), wxITEM_CHECK);
     x += pitch_tool;
 
 //    tb->AddSeparator();
  //   x += pitch_sep;
 
-    tb->AddTool( ID_SETTINGS, _T(""), *(*phash)[wxString(_T("settings"))], _T("ToolBox"), wxITEM_NORMAL);
+    tb->AddTool( ID_SETTINGS, _T(""), *(*phash)[wxString(_T("settings"))], _("ToolBox"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_TEXT, _T(""), *(*phash)[wxString(_T("text"))], _T("Show ENC Text"), wxITEM_CHECK);
+    tb->AddTool( ID_TEXT, _T(""), *(*phash)[wxString(_T("text"))], _("Show ENC Text"), wxITEM_CHECK);
     x += pitch_tool;
 
 //    tb->AddSeparator();
 //    x += pitch_sep;
 
-    tb->AddTool( ID_CURRENT, _T(""), *(*phash)[wxString(_T("current"))], _T("Show Currents"), wxITEM_CHECK);
+    tb->AddTool( ID_CURRENT, _T(""), *(*phash)[wxString(_T("current"))], _("Show Currents"), wxITEM_CHECK);
     x += pitch_tool;
-    tb->AddTool( ID_TIDE, _T(""), *(*phash)[wxString(_T("tide"))], _T("Show Tides"), wxITEM_CHECK);
+    tb->AddTool( ID_TIDE, _T(""), *(*phash)[wxString(_T("tide"))], _("Show Tides"), wxITEM_CHECK);
     x += pitch_tool;
 
 //    tb->AddSeparator();
@@ -2093,7 +2100,7 @@ wxToolBar *MyFrame::CreateAToolbar()
 
     if(g_bShowPrintIcon)
     {
-        tb->AddTool( ID_PRINT, _T(""), *(*phash)[wxString(_T("print"))], _T("Print Chart"), wxITEM_NORMAL);
+        tb->AddTool( ID_PRINT, _T(""), *(*phash)[wxString(_T("print"))], _("Print Chart"), wxITEM_NORMAL);
         x += pitch_tool;
         x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
@@ -2101,11 +2108,11 @@ wxToolBar *MyFrame::CreateAToolbar()
        // toh, 2009.02.14
     if (g_bShowGPXIcons)
     {
-          tb->AddTool( ID_GPXIMPORT, _T(""), *(*phash)[wxString(_T("gpx_import"))], _T("Import GPX file"), wxITEM_NORMAL);
+          tb->AddTool( ID_GPXIMPORT, _T(""), *(*phash)[wxString(_T("gpx_import"))], _("Import GPX file"), wxITEM_NORMAL);
           x += pitch_tool;
           x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
 
-          tb->AddTool( ID_GPXEXPORT, _T(""), *(*phash)[wxString(_T("gpx_export"))], _T("Export GPX file"), wxITEM_NORMAL);
+          tb->AddTool( ID_GPXEXPORT, _T(""), *(*phash)[wxString(_T("gpx_export"))], _("Export GPX file"), wxITEM_NORMAL);
           x += pitch_tool;
           x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
@@ -2113,7 +2120,7 @@ wxToolBar *MyFrame::CreateAToolbar()
     if (g_bShowTrackIcon)
     {
           tb->AddTool( ID_TRACK, _T(""), *(*phash)[wxString(_T("track"))], *(*phash)[wxString(_T("track"))],
-                       wxITEM_CHECK,_T("Toggle Tracking"));
+                       wxITEM_CHECK,_("Toggle Tracking"));
           x += pitch_tool;
           x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
@@ -2121,16 +2128,16 @@ wxToolBar *MyFrame::CreateAToolbar()
     if (g_bShowGRIBIcon)
     {
           tb->AddTool( ID_GRIB, _T(""), *(*phash)[wxString(_T("grib"))], *(*phash)[wxString(_T("grib"))],
-                       wxITEM_NORMAL,_T("Show GRIB dialog"));
+                       wxITEM_NORMAL,_("Show GRIB dialog"));
           x += pitch_tool;
           x += 1;                     // now why in the heck is this necessary?????? Grrrrrrrr.
     }
 
 
 
-    tb->AddTool( ID_COLSCHEME, _T(""), *(*phash)[wxString(_T("colorscheme"))], _T("Change Color Scheme"), wxITEM_NORMAL);
+    tb->AddTool( ID_COLSCHEME, _T(""), *(*phash)[wxString(_T("colorscheme"))], _("Change Color Scheme"), wxITEM_NORMAL);
     x += pitch_tool;
-    tb->AddTool( ID_HELP, _T(""), *(*phash)[wxString(_T("help"))], _T("About OpenCPN"), wxITEM_NORMAL);
+    tb->AddTool( ID_HELP, _T(""), *(*phash)[wxString(_T("help"))], _("About OpenCPN"), wxITEM_NORMAL);
     x += pitch_tool;
 
     // The status tool will be here
@@ -2167,7 +2174,7 @@ wxToolBar *MyFrame::CreateAToolbar()
     tb->AddControl(m_ptool_ct_dummy);
 
 //      And add the "Exit" tool
-    tb->AddTool( ID_TBEXIT, _T(""), *(*phash)[wxString(_T("exitt"))], _T("Exit OpenCPN"), wxITEM_NORMAL);
+    tb->AddTool( ID_TBEXIT, _T(""), *(*phash)[wxString(_T("exitt"))], _("Exit OpenCPN"), wxITEM_NORMAL);
 
 // Realize() the toolbar
     tb->Realize();
@@ -2507,7 +2514,7 @@ void MyFrame::OnExit(wxCommandEvent& event)
 
 void MyFrame::OnCloseWindow(wxCloseEvent& event)
 {
-      wxLogMessage(_T("opencpn::MyFrame exiting cleanly..."));
+      wxLogMessage(_("opencpn::MyFrame exiting cleanly..."));
 
       quitflag++ ;
 
@@ -2851,7 +2858,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             }
             else
             {
-                wxLogMessage(_T("Chart1::Event...TCMgr Not Available"));
+                wxLogMessage(_("Chart1::Event...TCMgr Not Available"));
                 cc1->SetbShowCurrent(false);
                 toolBar->ToggleTool(ID_CURRENT, false);
             }
@@ -2883,7 +2890,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
                 }
                 else
                 {
-                    wxLogMessage(_T("Chart1::Event...TCMgr Not Available"));
+                    wxLogMessage(_("Chart1::Event...TCMgr Not Available"));
                     cc1->SetbShowTide(false);
                     toolBar->ToggleTool(ID_TIDE, false);
                 }
@@ -3127,7 +3134,7 @@ void MyFrame::ApplyGlobalSettings(bool bFlyingUpdate, bool bnewtoolbar)
 
 int MyFrame::DoOptionsDialog()
 {
-      options *pSetDlg = new options(this, -1, _T("ToolBox") );
+      options *pSetDlg = new options(this, -1, _("ToolBox") );
 
 //    Set initial Chart Dir
       pSetDlg->SetInitChartDir(*pInit_Chart_Dir);
@@ -3198,7 +3205,7 @@ int MyFrame::DoOptionsDialog()
 
                   pSetDlg->Hide();
 
-                  wxProgressDialog *pprog = new wxProgressDialog (  _T("OpenCPN Chart Update"),
+                  wxProgressDialog *pprog = new wxProgressDialog (  _("OpenCPN Chart Update"),
                               _T(""), 100, this,
                               wxPD_SMOOTH | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME);
 
@@ -3395,7 +3402,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 //      Listen for quitflag to be set, requesting application close
       if(quitflag)
       {
-          wxLogMessage(_T("Got quitflag from SIGUSR1"));
+          wxLogMessage(_("Got quitflag from SIGUSR1"));
           FrameTimer1.Stop();
           Close();
           return;
@@ -3412,7 +3419,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
       {
           bGPSValid = false;
           if(g_nNMEADebug && (gGPS_Watchdog == 0))
-                wxLogMessage(_T("   ***GPS Watchdog timeout..."));
+                wxLogMessage(_("   ***GPS Watchdog timeout..."));
       }
 
 //  Update and check watchdog timer for Heading data source
@@ -3421,7 +3428,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
       {
             g_bHDxValid = false;
             if(g_nNMEADebug && (gHDx_Watchdog == 0))
-                  wxLogMessage(_T("   ***HDx Watchdog timeout..."));
+                  wxLogMessage(_("   ***HDx Watchdog timeout..."));
       }
 
 
@@ -3750,7 +3757,7 @@ void MyFrame::UpdateToolbarStatusWindow(ChartBase *pchart, bool bUpdate)
       toolBar->InsertControl(m_statTool_pos, m_ptool_ct_dummy);
 
 //      Re-insert the EXIT tool
-      toolBar->AddTool( ID_TBEXIT, _T(""), *(*m_phash)[wxString(_T("exitt"))], _T("Exit OpenCPN"), wxITEM_NORMAL);
+      toolBar->AddTool( ID_TBEXIT, _T(""), *(*m_phash)[wxString(_T("exitt"))], _("Exit OpenCPN"), wxITEM_NORMAL);
 
  //     Realize the toolbar to reflect changes
       toolBar->Realize();
@@ -3905,15 +3912,14 @@ void MyFrame::SetChartThumbnail(int index)
                                 else
                                 {
                                         wxString fp = ChartData->GetFullPath(pCurrentStack, index);
-                                        wxString msg(_T("Chart file corrupt.. disabling this chart \n"));
+                                        wxString msg(_("Chart file corrupt.. disabling this chart \n"));
                                         msg.Append(fp);
                                         wxLogMessage(msg);
-                                        wxMessageDialog dlg(gFrame, msg, _T("OpenCPN Message"), wxOK);
+                                        wxMessageDialog dlg(gFrame, msg, _("OpenCPN Message"), wxOK);
                                         dlg.ShowModal();
                                         ChartData->DisableChart(fp);
 
-                                        wxLogMessage(_T("chart1.cpp:SetChartThumbnail...\
-                                                Could not create thumbnail"));
+                                        wxLogMessage(_("chart1.cpp:SetChartThumbnail...Could not create thumbnail"));
                                         pthumbwin->pThumbChart = NULL;
                                         pthumbwin->Show(false);
                                         cc1->Refresh(FALSE);
@@ -3923,7 +3929,7 @@ void MyFrame::SetChartThumbnail(int index)
                         else                            // some problem opening chart
                         {
                                 wxString fp = ChartData->GetFullPath(pCurrentStack, index);
-                                fp.Prepend(_T("chart1.cpp:SetChartThumbnail...Could not open chart "));
+                                fp.Prepend(_("chart1.cpp:SetChartThumbnail...Could not open chart "));
                                 wxLogMessage(fp);
                                 pthumbwin->pThumbChart = NULL;
                                 pthumbwin->Show(false);
@@ -4361,11 +4367,11 @@ void MyFrame::DoPrint(void)
 
     wxPrinter printer(& printDialogData);
 
-    MyPrintout printout(_T("Chart Print"));
+    MyPrintout printout(_("Chart Print"));
     if (!printer.Print(this, &printout, true ))
     {
         if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
-            wxMessageBox(_T("There was a problem printing.\nPerhaps your current printer is not set correctly?"), _T("OpenCPN"), wxOK);
+            wxMessageBox(_("There was a problem printing.\nPerhaps your current printer is not set correctly?"), _T("OpenCPN"), wxOK);
 //        else
 //            wxMessageBox(_T("Print Cancelled"), _T("OpenCPN"), wxOK);
     }
@@ -4487,7 +4493,7 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
       if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
       {
             g_total_NMEAerror_messages++;
-            wxString msg(_T("MEH.NMEA Sentence received..."));
+            wxString msg(_("MEH.NMEA Sentence received..."));
             msg.Append(str_buf);
             wxLogMessage(msg);
       }
@@ -4682,7 +4688,7 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
             if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
             {
                   g_total_NMEAerror_messages++;
-                  wxString msg(_T("   Unrecognized NMEA Sentence..."));
+                  wxString msg(_("   Unrecognized NMEA Sentence..."));
                   msg.Append(str_buf);
                   wxLogMessage(msg);
             }
@@ -4776,7 +4782,7 @@ void MyFrame::PostProcessNNEA(bool brx_rmc, wxString &sfixtime)
             tick_buf[1] = 0;
 
             wxString s1(tick_buf, wxConvUTF8);
-            s1 += _T(" Ship: ");
+            s1 += _(" Ship: ");
             s1 += toSDMM(1, gLat);
             s1 += _T("   ");
             s1 += toSDMM(2, gLon);
@@ -4863,7 +4869,7 @@ void MyFrame::PostProcessNNEA(bool brx_rmc, wxString &sfixtime)
       //          nav ALL=NOPASSWD:/bin/date -s *
 
                         wxString msg;
-                        msg.Printf(_T("Setting system time, delta t is %d seconds"), b);
+                        msg.Printf(_("Setting system time, delta t is %d seconds"), b);
                         wxLogMessage(msg);
 
                         wxString sdate(Fix_Time.Format(_T("%D")));
@@ -4874,7 +4880,7 @@ void MyFrame::PostProcessNNEA(bool brx_rmc, wxString &sfixtime)
                         sdate.Append(stime);
                         sdate.Append(_T("\""));
 
-                        msg.Printf(_T("Linux command is:"));
+                        msg.Printf(_("Linux command is:"));
                         msg += sdate;
                         wxLogMessage(msg);
                         wxExecute(sdate, wxEXEC_ASYNC);
@@ -5134,7 +5140,7 @@ FILE *f;
 //  Return to user privileges
             seteuid(user_user_id);
 
-            wxLogMessage(_T("Warning: ocpnhelper failed...."));
+            wxLogMessage(_("Warning: ocpnhelper failed...."));
             _exit(0); // If exec fails then exit forked process.
        }
 
@@ -5150,7 +5156,7 @@ FILE *f;
 
       if (f != NULL)
       {
-            wxLogMessage(_T("Parsing copy of /proc/tty/driver/serial..."));
+            wxLogMessage(_("Parsing copy of /proc/tty/driver/serial..."));
 
             /* read in each line of the file */
             while(fgets(buf, sizeof(buf), f) != NULL)
@@ -5203,7 +5209,7 @@ FILE *f;
 
       if (f != NULL)
       {
-            wxLogMessage(_T("Parsing copy of /proc/tty/driver/usbserial..."));
+            wxLogMessage(_("Parsing copy of /proc/tty/driver/usbserial..."));
 
             /* read in each line of the file */
             while(fgets(buf, sizeof(buf), f) != NULL)
@@ -5371,7 +5377,7 @@ FILE *f;
                                                       DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
 
       if (hdeviceinfo != INVALID_HANDLE_VALUE)
-            wxLogMessage(_T("Found Garmin USB Driver."));
+            wxLogMessage(_("Found Garmin USB Driver."));
 
 
     deviceinterface.cbSize = sizeof(deviceinterface);
@@ -5382,7 +5388,7 @@ FILE *f;
                                                       0,
                                                       &deviceinterface))
       {
-            wxLogMessage(_T("Found Garmin Device."));
+            wxLogMessage(_("Found Garmin Device."));
 
             preturn->Add(_T("GARMIN"));         // Add generic Garmin selectable device
             g_bGarminPersistance = true;        // And record the existance
