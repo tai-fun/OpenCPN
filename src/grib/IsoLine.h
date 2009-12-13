@@ -34,6 +34,10 @@ Dessin des données GRIB (avec QT)
 class ViewPort;
 class wxMemoryDC;
 
+class Segment;
+WX_DECLARE_LIST(Segment, MySegList);
+
+
 // TODO: join segments and draw a spline
 
 //===============================================================
@@ -52,6 +56,7 @@ class Segment
         double px1,  py1;   // Coordonées de l'intersection (i,j)-(k,l)
         int m,n, o,p;      // arête 2
         double px2,  py2;   // Coordonées de l'intersection (m,n)-(o,p)
+        bool  bUsed;
 
     private:
         void traduitCode(int I, int J, char c1, int &i, int &j);
@@ -92,6 +97,8 @@ class IsoLine
         // Les coordonnées sont les indices dans la grille du GribRecord
         //---------------------------------------------------------
         void extractIsoLine(const GribRecord *rec);
+
+        MySegList       m_listsort;
 };
 
 
