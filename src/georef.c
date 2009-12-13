@@ -56,7 +56,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.18 2009/12/10 21:03:15 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.19 2009/12/13 03:07:02 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -789,8 +789,16 @@ void DistanceBearingMercator(double lat0, double lon0, double lat1, double lon1,
             lon0x += 360.;
       }
 
-      toSM_ECC(lat1, lon1x, lat0, lon0x, &east, &north);
+      //    In the case of exactly east or west courses
+      //    we must make an adjustment if we want true Mercator diatances
 
+      //    This idea comes from Thomas(Cagney)
+      //    We simply require the dlat to be (slightly) non-zero, and carry on.
+      double mlat0 = lat0;
+      if(fabs(lat1 - lat0) < 1e-4)
+            mlat0 += .001;
+
+      toSM_ECC(lat1, lon1x, mlat0, lon0x, &east, &north);
 
 
       C = atan2(east, north);
@@ -803,7 +811,7 @@ void DistanceBearingMercator(double lat0, double lon0, double lat1, double lon1,
       if(brg)
             *brg = brgt;
 
-      dlat = (lat1 - lat0) * 60.;              // in minutes
+      dlat = (lat1 - mlat0) * 60.;              // in minutes
 
       //    Classic formula, which fails for due east/west courses....
 
