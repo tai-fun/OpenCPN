@@ -43,7 +43,7 @@
 #include "georef.h"
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.4 2009/12/10 21:10:35 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.5 2009/12/13 03:08:20 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -498,7 +498,7 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
       m_RS_Idx_WIND_VX = -1;
       m_RS_Idx_WIND_VY = -1;
       m_RS_Idx_PRESS   = -1;
-
+      m_RS_Idx_HTSIGW  = -1;
 
       if(pGribRecordSet)
       {
