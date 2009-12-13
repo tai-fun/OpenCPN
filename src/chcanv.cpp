@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.71 2009/12/10 21:14:07 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.72 2009/12/13 02:52:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.72  2009/12/13 02:52:15  bdbcat
+ * Convert Measure tool to Mercator Sailing
+ *
  * Revision 1.71  2009/12/10 21:14:07  bdbcat
  * Beta 1210
  *
@@ -349,7 +352,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.71 2009/12/10 21:14:07 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.72 2009/12/13 02:52:15 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -5003,8 +5006,8 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
 
 
               double brg, dist;
-              DistanceBearingMercator(m_cursor_lat, m_cursor_lon, m_prev_rlat, m_prev_rlon, &brg, NULL);   // for brg only
-              dist = DistGreatCircle(m_cursor_lat, m_cursor_lon, m_prev_rlat, m_prev_rlon);
+              DistanceBearingMercator(m_cursor_lat, m_cursor_lon, m_prev_rlat, m_prev_rlon, &brg, &dist);   // for brg only
+//              dist = DistGreatCircle(m_cursor_lat, m_cursor_lon, m_prev_rlat, m_prev_rlon);
 
               if((m_cursor_lat == m_prev_rlat) && (m_cursor_lon ==  m_prev_rlon))               // special optimization
                     brg = 90.;
