@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.30 2009/12/14 03:57:51 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.31 2009/12/14 04:58:28 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.31  2009/12/14 04:58:28  bdbcat
+ * Leaks
+ *
  * Revision 1.30  2009/12/14 03:57:51  bdbcat
  * PurgeChache()
  *
@@ -152,7 +155,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.30 2009/12/14 03:57:51 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.31 2009/12/14 04:58:28 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -184,6 +187,7 @@ void ChartDB::PurgeCache()
             CacheEntry *pce = (CacheEntry *)(pChartCache->Item(i));
             ChartBase *Ch = (ChartBase *)pce->pChart;
             delete Ch;
+            delete pce;
       }
       pChartCache->Clear();
 }
