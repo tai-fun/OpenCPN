@@ -56,7 +56,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.19 2009/12/13 03:07:02 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.20 2009/12/14 03:58:41 bdbcat Exp $");
 
 
 /* For NAD27 shift table */
@@ -760,7 +760,7 @@ void DistanceBearingMercator(double lat0, double lon0, double lat1, double lon1,
 {
       double east, north, brgt, C;
       double lon0x, lon1x, dlat;
-
+      double mlat0;
 
       //    Calculate bearing by conversion to SM (Mercator) coordinates, then simple trigonometry
 
@@ -794,23 +794,13 @@ void DistanceBearingMercator(double lat0, double lon0, double lat1, double lon1,
 
       //    This idea comes from Thomas(Cagney)
       //    We simply require the dlat to be (slightly) non-zero, and carry on.
-      double mlat0 = lat0;
+      mlat0 = lat0;
       if(fabs(lat1 - lat0) < 1e-4)
             mlat0 += .001;
 
       toSM_ECC(lat1, lon1x, mlat0, lon0x, &east, &north);
 
-
       C = atan2(east, north);
-      brgt = 180. + (C * 180. / PI);
-      if (brgt < 0)
-            brgt += 360.;
-      if (brgt > 360.)
-            brgt -= 360;
-
-      if(brg)
-            *brg = brgt;
-
       dlat = (lat1 - mlat0) * 60.;              // in minutes
 
       //    Classic formula, which fails for due east/west courses....
@@ -822,6 +812,21 @@ void DistanceBearingMercator(double lat0, double lon0, double lat1, double lon1,
             else
                   *dist = DistGreatCircle(lat0, lon0, lat1, lon1);
 
+      }
+
+      //    Calculate the bearing using the un-adjusted original latitudes and Mercator Sailing
+      if(brg)
+      {
+            toSM_ECC(lat1, lon1x, lat0, lon0x, &east, &north);
+
+            C = atan2(east, north);
+            brgt = 180. + (C * 180. / PI);
+            if (brgt < 0)
+                  brgt += 360.;
+            if (brgt > 360.)
+                  brgt -= 360;
+
+            *brg = brgt;
       }
 
 
