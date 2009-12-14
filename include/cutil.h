@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.h,v 1.3 2007/05/03 13:31:19 dsr Exp $
+ * $Id: cutil.h,v 1.4 2009/12/14 23:32:46 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Extern C Linked Utilities
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cutil.h,v $
+ * Revision 1.4  2009/12/14 23:32:46  bdbcat
+ * Correct "C" definitions
+ *
  * Revision 1.3  2007/05/03 13:31:19  dsr
  * Major refactor for 1.2.0
  *
@@ -78,8 +81,12 @@ typedef enum { Visible, Invisible } ClipResult;
 #ifdef __cplusplus
 extern "C"  ClipResult cohen_sutherland_line_clip_d (double *x0, double *y0, double *x1, double *y1,
                                          double xmin_, double xmax_, double ymin_, double ymax_);
+
 extern "C"  ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
                                              int xmin_, int xmax_, int ymin_, int ymax_);
+
+extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
+
 #endif
 
 

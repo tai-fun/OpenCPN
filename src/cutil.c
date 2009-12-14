@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.12 2009/09/18 01:22:14 bdbcat Exp $
+ * $Id: cutil.c,v 1.13 2009/12/14 23:32:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Extern C Linked Utilities
@@ -27,6 +27,9 @@
  *
  *
  * $Log: cutil.c,v $
+ * Revision 1.13  2009/12/14 23:32:35  bdbcat
+ * Correct "C" definitions
+ *
  * Revision 1.12  2009/09/18 01:22:14  bdbcat
  * MSVC Fix
  *
@@ -97,7 +100,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: cutil.c,v 1.12 2009/09/18 01:22:14 bdbcat Exp $");
+CPL_CVSID("$Id: cutil.c,v 1.13 2009/12/14 23:32:35 bdbcat Exp $");
 
 /*************************************************************************
 
@@ -336,7 +339,7 @@ double      round_msvc (double x)
 #include <windows.h>
 #include <float.h>            // for _clear87()
 
-long __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
+extern long __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
 //    return EXCEPTION_EXECUTE_HANDLER ;        // terminates the app
 
