@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static void GenerateSpline(int n, wxPoint points[]);
 static void ClearSplineList();
-wxList wx_spline_point_list;
+wxList ocpn_wx_spline_point_list;
 
 #include <wx/listimpl.cpp>
 WX_DEFINE_LIST(MySegList);
@@ -299,10 +299,10 @@ void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp, bool bHiDef)
             GenerateSpline(np, pPoints);
 
 // Test code
-//            pmdc->DrawLines(&wx_spline_point_list, 0, 0 );
+//            pmdc->DrawLines(&ocpn_wx_spline_point_list, 0, 0 );
 //            pmdc->DrawLines(np, pPoints);
 
-            wxList::compatibility_iterator snode = wx_spline_point_list.GetFirst();
+            wxList::compatibility_iterator snode = ocpn_wx_spline_point_list.GetFirst();
             wxPoint *point0 = (wxPoint *)snode->GetData();
             snode=snode->GetNext();
 
@@ -516,14 +516,14 @@ void IsoLine::extractIsoLine(const GribRecord *rec)
 
 // ----------------------------------- spline code ----------------------------------------
 
-void wx_quadratic_spline(double a1, double b1, double a2, double b2,
+void ocpn_wx_quadratic_spline(double a1, double b1, double a2, double b2,
                          double a3, double b3, double a4, double b4);
-void wx_clear_stack();
-int wx_spline_pop(double *x1, double *y1, double *x2, double *y2, double *x3,
+void ocpn_wx_clear_stack();
+int ocpn_wx_spline_pop(double *x1, double *y1, double *x2, double *y2, double *x3,
                   double *y3, double *x4, double *y4);
-void wx_spline_push(double x1, double y1, double x2, double y2, double x3, double y3,
+void ocpn_wx_spline_push(double x1, double y1, double x2, double y2, double x3, double y3,
                     double x4, double y4);
-static bool wx_spline_add_point(double x, double y);
+static bool ocpn_wx_spline_add_point(double x, double y);
 
 
 #define                half(z1, z2)        ((z1+z2)/2.0)
@@ -531,26 +531,26 @@ static bool wx_spline_add_point(double x, double y);
 
 /* iterative version */
 
-void wx_quadratic_spline(double a1, double b1, double a2, double b2, double a3, double b3, double a4,
+void ocpn_wx_quadratic_spline(double a1, double b1, double a2, double b2, double a3, double b3, double a4,
                          double b4)
 {
       register double  xmid, ymid;
       double           x1, y1, x2, y2, x3, y3, x4, y4;
 
-      wx_clear_stack();
-      wx_spline_push(a1, b1, a2, b2, a3, b3, a4, b4);
+      ocpn_wx_clear_stack();
+      ocpn_wx_spline_push(a1, b1, a2, b2, a3, b3, a4, b4);
 
-      while (wx_spline_pop(&x1, &y1, &x2, &y2, &x3, &y3, &x4, &y4)) {
+      while (ocpn_wx_spline_pop(&x1, &y1, &x2, &y2, &x3, &y3, &x4, &y4)) {
             xmid = (double)half(x2, x3);
             ymid = (double)half(y2, y3);
             if (fabs(x1 - xmid) < THRESHOLD && fabs(y1 - ymid) < THRESHOLD &&
                 fabs(xmid - x4) < THRESHOLD && fabs(ymid - y4) < THRESHOLD) {
-                  wx_spline_add_point( x1, y1 );
-                  wx_spline_add_point( xmid, ymid );
+                  ocpn_wx_spline_add_point( x1, y1 );
+                  ocpn_wx_spline_add_point( xmid, ymid );
                 } else {
-                      wx_spline_push(xmid, ymid, (double)half(xmid, x3), (double)half(ymid, y3),
+                      ocpn_wx_spline_push(xmid, ymid, (double)half(xmid, x3), (double)half(ymid, y3),
                                      (double)half(x3, x4), (double)half(y3, y4), x4, y4);
-                      wx_spline_push(x1, y1, (double)half(x1, x2), (double)half(y1, y2),
+                      ocpn_wx_spline_push(x1, y1, (double)half(x1, x2), (double)half(y1, y2),
                                      (double)half(x2, xmid), (double)half(y2, ymid), xmid, ymid);
                 }
       }
@@ -558,59 +558,59 @@ void wx_quadratic_spline(double a1, double b1, double a2, double b2, double a3, 
 
 /* utilities used by spline drawing routines */
 
-typedef struct wx_spline_stack_struct {
+typedef struct ocpn_wx_spline_stack_struct {
       double           x1, y1, x2, y2, x3, y3, x4, y4;
 } Stack;
 
 #define         SPLINE_STACK_DEPTH             20
-static Stack    wx_spline_stack[SPLINE_STACK_DEPTH];
-static Stack   *wx_stack_top;
-static int      wx_stack_count;
+static Stack    ocpn_wx_spline_stack[SPLINE_STACK_DEPTH];
+static Stack   *ocpn_wx_stack_top;
+static int      ocpn_wx_stack_count;
 
-void wx_clear_stack()
+void ocpn_wx_clear_stack()
 {
-      wx_stack_top = wx_spline_stack;
-      wx_stack_count = 0;
+      ocpn_wx_stack_top = ocpn_wx_spline_stack;
+      ocpn_wx_stack_count = 0;
 }
 
-void wx_spline_push(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+void ocpn_wx_spline_push(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
-      wx_stack_top->x1 = x1;
-      wx_stack_top->y1 = y1;
-      wx_stack_top->x2 = x2;
-      wx_stack_top->y2 = y2;
-      wx_stack_top->x3 = x3;
-      wx_stack_top->y3 = y3;
-      wx_stack_top->x4 = x4;
-      wx_stack_top->y4 = y4;
-      wx_stack_top++;
-      wx_stack_count++;
+      ocpn_wx_stack_top->x1 = x1;
+      ocpn_wx_stack_top->y1 = y1;
+      ocpn_wx_stack_top->x2 = x2;
+      ocpn_wx_stack_top->y2 = y2;
+      ocpn_wx_stack_top->x3 = x3;
+      ocpn_wx_stack_top->y3 = y3;
+      ocpn_wx_stack_top->x4 = x4;
+      ocpn_wx_stack_top->y4 = y4;
+      ocpn_wx_stack_top++;
+      ocpn_wx_stack_count++;
 }
 
-int wx_spline_pop(double *x1, double *y1, double *x2, double *y2,
+int ocpn_wx_spline_pop(double *x1, double *y1, double *x2, double *y2,
                   double *x3, double *y3, double *x4, double *y4)
 {
-      if (wx_stack_count == 0)
+      if (ocpn_wx_stack_count == 0)
             return (0);
-      wx_stack_top--;
-      wx_stack_count--;
-      *x1 = wx_stack_top->x1;
-      *y1 = wx_stack_top->y1;
-      *x2 = wx_stack_top->x2;
-      *y2 = wx_stack_top->y2;
-      *x3 = wx_stack_top->x3;
-      *y3 = wx_stack_top->y3;
-      *x4 = wx_stack_top->x4;
-      *y4 = wx_stack_top->y4;
+      ocpn_wx_stack_top--;
+      ocpn_wx_stack_count--;
+      *x1 = ocpn_wx_stack_top->x1;
+      *y1 = ocpn_wx_stack_top->y1;
+      *x2 = ocpn_wx_stack_top->x2;
+      *y2 = ocpn_wx_stack_top->y2;
+      *x3 = ocpn_wx_stack_top->x3;
+      *y3 = ocpn_wx_stack_top->y3;
+      *x4 = ocpn_wx_stack_top->x4;
+      *y4 = ocpn_wx_stack_top->y4;
       return (1);
 }
 
-static bool wx_spline_add_point(double x, double y)
+static bool ocpn_wx_spline_add_point(double x, double y)
 {
       wxPoint *point = new wxPoint ;
       point->x = (int) x;
       point->y = (int) y;
-      wx_spline_point_list.Append((wxObject*)point);
+      ocpn_wx_spline_point_list.Append((wxObject*)point);
       return true;
 }
 
@@ -717,7 +717,7 @@ void GenSpline( wxList *points )
       cx2 = (double)((cx1 + x2) / 2);
       cy2 = (double)((cy1 + y2) / 2);
 
-      wx_spline_add_point(x1, y1);
+      ocpn_wx_spline_add_point(x1, y1);
 
       while ((node = node->GetNext())
 #if !wxUSE_STL
@@ -735,7 +735,7 @@ void GenSpline( wxList *points )
             cx3 = (double)(x1 + cx4) / 2;
             cy3 = (double)(y1 + cy4) / 2;
 
-            wx_quadratic_spline(cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4);
+            ocpn_wx_quadratic_spline(cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4);
 
             cx1 = cx4;
             cy1 = cy4;
@@ -743,8 +743,8 @@ void GenSpline( wxList *points )
             cy2 = (double)(cy1 + y2) / 2;
       }
 
-      wx_spline_add_point( cx1, cy1 );
-      wx_spline_add_point( x2, y2 );
+      ocpn_wx_spline_add_point( cx1, cy1 );
+      ocpn_wx_spline_add_point( x2, y2 );
 
 }
 
@@ -762,13 +762,13 @@ static void GenerateSpline(int n, wxPoint points[])
 
 static void ClearSplineList()
 {
-      wxList::compatibility_iterator node = wx_spline_point_list.GetFirst();
+      wxList::compatibility_iterator node = ocpn_wx_spline_point_list.GetFirst();
       while (node)
       {
             wxPoint *point = (wxPoint *)node->GetData();
             delete point;
-            wx_spline_point_list.Erase(node);
-            node = wx_spline_point_list.GetFirst();
+            ocpn_wx_spline_point_list.Erase(node);
+            node = ocpn_wx_spline_point_list.GetFirst();
       }
 }
 
