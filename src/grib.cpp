@@ -43,7 +43,7 @@
 #include "georef.h"
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.5 2009/12/13 03:08:20 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.6 2009/12/14 04:58:01 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -155,6 +155,7 @@ bool GRIBUIDialog::Create ( wxWindow *parent, wxWindowID id, const wxString& cap
 
       CreateControls();
 
+
  //     if ( CanSetTransparent() )
  //           SetTransparent ( 192 );
 
@@ -187,10 +188,10 @@ void GRIBUIDialog::CreateControls()
       wxStaticBoxSizer *itemStaticBoxSizer11 = new wxStaticBoxSizer ( itemStaticBoxSizer11Static, wxHORIZONTAL );
       boxSizer->Add ( itemStaticBoxSizer11, 0, wxEXPAND );
 
-      m_pitemCurrentGribDirectoryCtrl = new wxTextCtrl ( this, wxID_ANY );
+      m_pitemCurrentGribDirectoryCtrl = new wxTextCtrl (this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       itemStaticBoxSizer11->Add ( m_pitemCurrentGribDirectoryCtrl, 1, wxALIGN_LEFT|wxALL, 5 );
 
-      m_pitemCurrentGribDirectoryCtrl->SetValue ( m_currentGribDir );
+      m_pitemCurrentGribDirectoryCtrl->AppendText( m_currentGribDir );
 
       wxButton* bChooseDir = new wxBitmapButton ( this, ID_CHOOSEGRIBDIR, *m_pfolder_bitmap );
       itemStaticBoxSizer11->Add ( bChooseDir, 0, wxALIGN_RIGHT|wxALL, 5 );
@@ -206,6 +207,7 @@ void GRIBUIDialog::CreateControls()
       m_RecordTree_root_id = m_pRecordTree->AddRoot ( _T ( "GRIBs" ) );
       PopulateTreeControl();
       m_pRecordTree->Expand ( m_RecordTree_root_id );
+      m_pRecordTree->SelectItem(m_RecordTree_root_id);
 
 //      Data Box
       wxStaticBox* itemStaticBoxData = new wxStaticBox(this, wxID_ANY, _T("GRIB Data"));
@@ -254,7 +256,6 @@ void GRIBUIDialog::CreateControls()
                                      wxDefaultPosition, wxDefaultSize, 0 );
       AckBox->Add ( bOK, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
       bOK->SetBackgroundColour ( button_color );
-
 }
 
 
@@ -384,6 +385,7 @@ void GRIBUIDialog::OnChooseDirClick ( wxCommandEvent& event )
       {
             m_currentGribDir = new_dir;
             m_pitemCurrentGribDirectoryCtrl->SetValue ( m_currentGribDir );
+            m_pitemCurrentGribDirectoryCtrl->SetInsertionPoint(0);
 
             if(m_pRecordTree)
             {
@@ -618,8 +620,6 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
 #endif
 
 
-      //    This could take a while....
-      ::wxBeginBusyCursor();
 
       //          Walk thru the GribRecordSet, and render each type of record on the DC
       for ( unsigned int i=0 ; i < m_pGribRecordSet->m_GribRecordPtrArray.GetCount() ; i++ )
@@ -668,8 +668,6 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
 
 
      }
-
-      ::wxEndBusyCursor();
 
 #if wxUSE_GRAPHICS_CONTEXT
      delete m_pgc;
@@ -740,6 +738,7 @@ bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, View
 
       if(vp->vpBBox.Intersect(grib_bb) != _OUT)
       {
+
       // If needed, create the bitmap
             if(m_pbm_sigwh == NULL)
             {
@@ -753,7 +752,11 @@ bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, View
                   //    Dont try to create enormous GRIB bitmaps
                   if((width < 2000)  && (height < 2000))
                   {
+                        //    This could take a while....
+                        ::wxBeginBusyCursor();
+
                         wxImage gr_image(width, height);
+                        gr_image.InitAlpha();
 
                         int grib_pixel_size = 4;
 
@@ -778,7 +781,21 @@ bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, View
 
                                           for(int xp=0 ; xp < grib_pixel_size ; xp++)
                                                 for(int yp=0 ; yp < grib_pixel_size ; yp++)
+                                                {
                                                       gr_image.SetRGB(ipix + xp, jpix + yp, r,g,b);
+                                                      gr_image.SetAlpha(ipix + xp, jpix + yp, 128);
+
+                                                }
+                                    }
+                                    else
+                                    {
+                                          for(int xp=0 ; xp < grib_pixel_size ; xp++)
+                                                for(int yp=0 ; yp < grib_pixel_size ; yp++)
+                                                {
+//                                                       gr_image.SetRGB(ipix + xp, jpix + yp, 0,0,0);
+                                                       gr_image.SetAlpha(ipix + xp, jpix + yp, 0);
+
+                                                }
                                     }
                               }
                         }
@@ -789,6 +806,9 @@ bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, View
                         m_pbm_sigwh = new wxBitmap(bl_image);
                         wxMask *gr_mask = new wxMask(*m_pbm_sigwh, wxColour(0,0,0));
                         m_pbm_sigwh->SetMask(gr_mask);
+
+                        ::wxEndBusyCursor();
+
                   }
             }
 
@@ -796,10 +816,11 @@ bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, View
             if(m_pbm_sigwh)
             {
                   //    Select bm into a memory dc
-                  wxMemoryDC mdc(*m_pbm_sigwh);
+//                  wxMemoryDC mdc(*m_pbm_sigwh);
 
                   //    Blit it onto the dc
-                  pmdc->Blit(porg.x, porg.y, m_pbm_sigwh->GetWidth(), m_pbm_sigwh->GetHeight(), &mdc, 0, 0, wxCOPY, true);          // with mask
+ //                 pmdc->Blit(porg.x, porg.y, m_pbm_sigwh->GetWidth(), m_pbm_sigwh->GetHeight(), &mdc, 0, 0, wxCOPY, true);          // with mask
+                  pmdc->DrawBitmap(*m_pbm_sigwh, porg.x, porg.y, true);
             }
             else
             {
@@ -814,10 +835,10 @@ bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, View
 
                   pmdc->SetFont(sfont);
             }
+
       }
 
       return true;
-
 }
 
 bool GRIBOverlayFactory::RenderGribWvDir(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp)
