@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.72 2009/12/13 02:52:15 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.73 2009/12/14 23:32:07 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.73  2009/12/14 23:32:07  bdbcat
+ * DrawSplines
+ *
  * Revision 1.72  2009/12/13 02:52:15  bdbcat
  * Convert Measure tool to Mercator Sailing
  *
@@ -352,7 +355,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.72 2009/12/13 02:52:15 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.73 2009/12/14 23:32:07 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -6389,8 +6392,11 @@ void TCWin::OnPaint ( wxPaintEvent& event )
                 //    Draw the Value curve
 
                 dc.SetPen ( *pblack_2 );
+#if wxUSE_SPLINES
                 dc.DrawSpline ( ( wxList * ) psList );
-
+#else
+                dc.DrawLines ( ( wxList * ) psList );
+#endif
                 //  More Info
 
                 dc.SetFont ( *pSFont );
