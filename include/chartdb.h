@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.h,v 1.18 2009/12/10 21:20:58 bdbcat Exp $
+ * $Id: chartdb.h,v 1.19 2009/12/14 03:56:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.h,v $
+ * Revision 1.19  2009/12/14 03:56:05  bdbcat
+ * PurgeChache()
+ *
  * Revision 1.18  2009/12/10 21:20:58  bdbcat
  * Beta 1210
  *
@@ -168,6 +171,7 @@ public:
       int GetStackEntry(ChartStack *ps, wxString fp);
       ChartBase *OpenChartFromStack(ChartStack *pStack, int StackEntry, ChartInitFlag iflag = FULL_INIT);
       void ApplyColorSchemeToCachedCharts(ColorScheme cs);
+      void PurgeCache();
 
 
       //Todo build accessors

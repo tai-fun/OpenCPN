@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.68 2009/12/13 02:44:11 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.69 2009/12/14 03:57:51 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.69  2009/12/14 03:57:51  bdbcat
+ * PurgeChache()
+ *
  * Revision 1.68  2009/12/13 02:44:11  bdbcat
  * _() translatablel strings
  *
@@ -283,7 +286,7 @@ WX_DEFINE_OBJARRAY(ArrayOfCDI);
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.68 2009/12/13 02:44:11 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.69 2009/12/14 03:57:51 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -3192,6 +3195,7 @@ int MyFrame::DoOptionsDialog()
                   delete pCurrentStack;
                   pCurrentStack = NULL;
 
+
                   g_ChartDirArray = *pWorkDirArray;
 
                   bool b_force = false;
@@ -3232,6 +3236,8 @@ int MyFrame::DoOptionsDialog()
                   EnableToolbar(true);
 
                   pConfig->UpdateChartDirs(g_ChartDirArray);
+
+                  ChartData->PurgeCache();
 
                   cc1->SetCursor(wxCURSOR_ARROW);
                   FrameTimer1.Start(TIMER_GFRAME_1,wxTIMER_CONTINUOUS);
