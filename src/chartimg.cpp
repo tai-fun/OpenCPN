@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.34 2009/12/10 21:10:13 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.35 2009/12/17 02:49:16 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.35  2009/12/17 02:49:16  bdbcat
+ * Correct IDL again
+ *
  * Revision 1.34  2009/12/10 21:10:13  bdbcat
  * Beta 1210
  *
@@ -93,6 +96,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.35  2009/12/17 02:49:16  bdbcat
+ * Correct IDL again
+ *
  * Revision 1.34  2009/12/10 21:10:13  bdbcat
  * Beta 1210
  *
@@ -220,7 +226,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.34 2009/12/10 21:10:13 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.35 2009/12/17 02:49:16 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -3752,8 +3758,8 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 
 //    Calculate the max/min reference points
 
-      float lonmin = 179;
-      float lonmax = -179;
+      float lonmin = 1000;
+      float lonmax = -1000;
       float latmin = 90.;
       float latmax = -90.;
 
@@ -3805,15 +3811,41 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
                         if(pRefTable[n].lonr < 0.0)
                               pRefTable[n].lonr += 360.;
                   }
-                  //    Correct max and min
-                  float t = lonmax;
-                  lonmax = lonmin + 360.;
-                  lonmin = t;
 
-                  int tp = plonmax;
-                  plonmax = plonmin;
-                  plonmin = tp;
+                  //    And recalculate the  min/max
+                  lonmin = 1000;
+                  lonmax = -1000;
 
+                  for(n=0 ; n<nRefpoint ; n++)
+                  {
+            //    Longitude
+                        if(pRefTable[n].lonr > lonmax)
+                        {
+                              lonmax = pRefTable[n].lonr;
+                              plonmax = (int)pRefTable[n].xr;
+                              nlonmax = n;
+                        }
+                        if(pRefTable[n].lonr < lonmin)
+                        {
+                              lonmin = pRefTable[n].lonr;
+                              plonmin = (int)pRefTable[n].xr;
+                              nlonmin = n;
+                        }
+
+            //    Latitude
+                        if(pRefTable[n].latr < latmin)
+                        {
+                              latmin = pRefTable[n].latr;
+                              platmin = (int)pRefTable[n].yr;
+                              nlatmin = n;
+                        }
+                        if(pRefTable[n].latr > latmax)
+                        {
+                              latmax = pRefTable[n].latr;
+                              platmax = (int)pRefTable[n].yr;
+                              nlatmax = n;
+                        }
+                  }
                   m_bIDLcross = true;
             }
       }
@@ -3918,7 +3950,18 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
                     pix_to_latlong((int)pRefTable[i].xr, (int)pRefTable[i].yr,
                                 &elt, &elg);
                     pRefTable[i].ypl_error = elt - pRefTable[i].latr;
-                    pRefTable[i].xpl_error = elg - pRefTable[i].lonr;
+
+                    double lon_error = elg - pRefTable[i].lonr;
+                    //  Longitude errors could be compunded by prior adjustment to ref points
+                    if(fabs(lon_error) > 180.)
+                    {
+                          if(lon_error > 0.)
+                              lon_error -= 360.;
+                          else if(lon_error < 0.)
+                              lon_error += 360.;
+                    }
+
+                    pRefTable[i].xpl_error = lon_error;
 
                     if(fabs(pRefTable[i].ypl_error) > fabs(ypl_err_max))
                         ypl_err_max = pRefTable[i].ypl_error;
@@ -4228,7 +4271,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.34 2009/12/10 21:10:13 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.35 2009/12/17 02:49:16 bdbcat Exp $
 *
 */
 
