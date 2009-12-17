@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.28 2009/12/10 21:11:53 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.29 2009/12/17 03:34:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.29  2009/12/17 03:34:06  bdbcat
+ * Correct crash above Lat 80
+ *
  * Revision 1.28  2009/12/10 21:11:53  bdbcat
  * Beta 1210
  *
@@ -4120,7 +4123,6 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 
 
             m_pcm93chart_current = m_pcm93chart_array[cmscale];
-            m_Name = m_pcm93chart_current->GetName();
 
             if(b_nochart)
             {
@@ -4136,6 +4138,8 @@ void cm93compchart::SetVPParms(ViewPort *vpt)
 
             if(m_pcm93chart_current)
             {
+
+                  m_Name = m_pcm93chart_current->GetName();
 
                   //    Pass the parameters to the proper scale chart
                   //    Which will also load the needed cell(s)
