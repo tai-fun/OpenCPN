@@ -351,6 +351,7 @@ uninstall-local:
 	rmdir $(DESTDIR)$(pkgdatadir)/tcdata 
 	rmdir $(DESTDIR)$(pkgdatadir)
 
-
-
+messages:
+	mkdir -p ./po
+	xgettext --package-name opencpn --package-version 1.3.6  -o ./po/opencpn.pot  ./src/*.cpp --keyword=_ --width=80
 
