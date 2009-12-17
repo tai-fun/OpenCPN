@@ -25,6 +25,7 @@
 #include <ctype.h>
 
 #include "georef.h"
+#include "cutil.h"
 
 
 //      Fix up CPL_CVSID if not available
@@ -53,10 +54,9 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 
 #ifdef __MSVC__
 #define snprintf mysnprintf
-extern int mysnprintf( char *buffer, int count, const char *format, ... );
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.20 2009/12/14 03:58:41 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.21 2009/12/17 02:50:09 bdbcat Exp $");
 
 
 /* For NAD27 shift table */

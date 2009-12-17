@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.c,v 1.13 2009/12/14 23:32:35 bdbcat Exp $
+ * $Id: cutil.c,v 1.14 2009/12/17 02:49:29 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Extern C Linked Utilities
@@ -27,6 +27,9 @@
  *
  *
  * $Log: cutil.c,v $
+ * Revision 1.14  2009/12/17 02:49:29  bdbcat
+ * Cleanup definitions
+ *
  * Revision 1.13  2009/12/14 23:32:35  bdbcat
  * Correct "C" definitions
  *
@@ -100,7 +103,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #endif
 
 
-CPL_CVSID("$Id: cutil.c,v 1.13 2009/12/14 23:32:35 bdbcat Exp $");
+CPL_CVSID("$Id: cutil.c,v 1.14 2009/12/17 02:49:29 bdbcat Exp $");
 
 /*************************************************************************
 
@@ -134,7 +137,7 @@ CPL_CVSID("$Id: cutil.c,v 1.13 2009/12/14 23:32:35 bdbcat Exp $");
    pt0.y = y;
 
    pt1 = pt2 = pt0 ;
-   pt2.x = 1.e6;
+   pt2.x = 1.e8;
 
    // Now go through each of the lines in the polygon and see if it
    // intersects

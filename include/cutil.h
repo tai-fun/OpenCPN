@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cutil.h,v 1.4 2009/12/14 23:32:46 bdbcat Exp $
+ * $Id: cutil.h,v 1.5 2009/12/17 02:45:42 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  Extern C Linked Utilities
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: cutil.h,v $
+ * Revision 1.5  2009/12/17 02:45:42  bdbcat
+ * Cleanup definitions
+ *
  * Revision 1.4  2009/12/14 23:32:46  bdbcat
  * Correct "C" definitions
  *
@@ -57,8 +60,22 @@ typedef struct  {
 } MyPoint;
 
 #ifdef __cplusplus
-extern "C" int G_PtInPolygon(MyPoint *, int, float, float) ;
-#endif /* __cplusplus */
+      extern "C" int G_PtInPolygon(MyPoint *, int, float, float) ;
+      extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
+#else /* __cplusplus */
+      extern int G_PtInPolygon(MyPoint *, int, float, float) ;
+      extern int mysnprintf( char *buffer, int count, const char *format, ... );
+#endif
+
+
+#ifdef __MSVC__
+#ifdef __cplusplus
+     extern  "C" long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
+#else
+     extern  long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
+#endif
+#endif
+
 
 int Intersect(MyPoint, MyPoint, MyPoint, MyPoint) ;
 int CCW(MyPoint, MyPoint, MyPoint) ;
@@ -84,8 +101,6 @@ extern "C"  ClipResult cohen_sutherland_line_clip_d (double *x0, double *y0, dou
 
 extern "C"  ClipResult cohen_sutherland_line_clip_i (int *x0, int *y0, int *x1, int *y1,
                                              int xmin_, int xmax_, int ymin_, int ymax_);
-
-extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
 
 #endif
 

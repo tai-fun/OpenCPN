@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.69 2009/12/14 03:57:51 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.70 2009/12/17 02:47:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.70  2009/12/17 02:47:05  bdbcat
+ * Cleanup definitions
+ *
  * Revision 1.69  2009/12/14 03:57:51  bdbcat
  * PurgeChache()
  *
@@ -251,6 +254,7 @@
 #include "routeprop.h"
 #include "cm93.h"
 #include "grib.h"
+#include "cutil.h"
 
 
 #include <wx/image.h>
@@ -286,7 +290,7 @@ WX_DEFINE_OBJARRAY(ArrayOfCDI);
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.69 2009/12/14 03:57:51 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.70 2009/12/17 02:47:05 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -625,7 +629,7 @@ DEFINE_GUID(GARMIN_DETECT_GUID, 0x2c9c45c2L, 0x8e7d, 0x4c08, 0xa1, 0x2d, 0x81, 0
 */
 
 #ifdef __MSVC__
-     extern  "C" long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
+//     extern  "C" long  __stdcall MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo );
 #endif
 
 //    Some static helpers

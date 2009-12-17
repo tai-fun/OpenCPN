@@ -55,10 +55,9 @@
 #define notdef 1
 
 #ifdef __MSVC__
-#define snprintf mysnprintf
 //    __MSVC__ randomly does not link snprintf, or _snprintf
 //    Replace it with a local version, code is in cutil.c
-extern "C" int mysnprintf( char *buffer, int count, const char *format, ... );
+#define snprintf mysnprintf
 #endif
 
 //------------------------------------------------------------------------------
