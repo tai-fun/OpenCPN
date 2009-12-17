@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.43 2009/12/10 21:00:21 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.44 2009/12/17 02:51:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.44  2009/12/17 02:51:41  bdbcat
+ * Correct UWTROC symbolization
+ *
  * Revision 1.43  2009/12/10 21:00:21  bdbcat
  * Beta 1210
  *
@@ -115,6 +118,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.44  2009/12/17 02:51:41  bdbcat
+ * Correct UWTROC symbolization
+ *
  * Revision 1.43  2009/12/10 21:00:21  bdbcat
  * Beta 1210
  *
@@ -268,7 +274,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.43 2009/12/10 21:00:21 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.44 2009/12/17 02:51:41 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -3142,9 +3148,10 @@ ListOfS57Obj *s57chart::GetAssociatedObjects(S57Obj *obj)
                         {
                               if(!strncmp(top->obj->FeatureName, "DEPARE", 6) || !strncmp(top->obj->FeatureName, "DRGARE", 6))
                               {
-                                    if(IsPointInObjArea(lat, lon, 0.0, top->obj))
+                                    if(obj->BBObj.PointInBox( lon, lat, 0.0))
                                     {
-                                          pobj_list->Append(top->obj);
+                                          if(IsPointInObjArea(lat, lon, 0.0, top->obj))
+                                              pobj_list->Append(top->obj);
                                     }
                               }
 
@@ -6115,7 +6122,7 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
                 double ymax = segs[lseg].y;
                 double ymin = segs[lseg+1].y;
 
-                double xt, yt;
+                double xt, yt, xca, xcb;
 
                 if(ymax < ymin)
                 {
@@ -6123,15 +6130,22 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
                       yt = ymin; ymin = ymax; ymax = yt;
                 }
 
-                double slope = (ymax - ymin) / (xmax - xmin);
-                double xc = (ptraps->loy - ymin) / slope;
-                xc += xmin;
-                pvert_list[0].x = (xc * obj->x_rate) + obj->x_origin;
+                if(xmin == xmax)
+                {
+                      xca = xmin;
+                      xcb = xmin;
+                }
+                else
+                {
+                  double slope = (ymax - ymin) / (xmax - xmin);
+                  xca = xmin + (ptraps->loy - ymin) / slope;
+                  xcb = xmin + (ptraps->hiy - ymin) / slope;
+                }
+
+                pvert_list[0].x = (xca * obj->x_rate) + obj->x_origin;
                 pvert_list[0].y = loy;
 
-                xc = (ptraps->hiy - ymin) / slope;
-                xc += xmin;
-                pvert_list[1].x = (xc * obj->x_rate) + obj->x_origin;
+                pvert_list[1].x = (xcb * obj->x_rate) + obj->x_origin;
                 pvert_list[1].y = hiy;
 
 
@@ -6147,15 +6161,22 @@ bool s57chart::IsPointInObjArea(float lat, float lon, float select_radius, S57Ob
                       yt = ymin; ymin = ymax; ymax = yt;
                 }
 
-                slope = (ymax - ymin) / (xmax - xmin);
-                xc = (ptraps->hiy - ymin) / slope;
-                xc += xmin;
-                pvert_list[2].x = (xc * obj->x_rate) + obj->x_origin;
+                if(xmin == xmax)
+                {
+                      xca = xmin;
+                      xcb = xmin;
+                }
+                else
+                {
+                      double slope = (ymax - ymin) / (xmax - xmin);
+                      xca = xmin + (ptraps->hiy - ymin) / slope;
+                      xcb = xmin + (ptraps->loy - ymin) / slope;
+                }
+
+                pvert_list[2].x = (xca * obj->x_rate) + obj->x_origin;
                 pvert_list[2].y = hiy;
 
-                xc = (ptraps->loy - ymin) / slope;
-                xc += xmin;
-                pvert_list[3].x = (xc * obj->x_rate) + obj->x_origin;
+                pvert_list[3].x = (xcb * obj->x_rate) + obj->x_origin;
                 pvert_list[3].y = loy;
 
                 if(G_PtInPolygon((MyPoint *)pvert_list, 4, easting, northing))
