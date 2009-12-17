@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.cpp,v 1.3 2009/12/11 00:15:52 bdbcat Exp $
+* $Id: chartdbs.cpp,v 1.4 2009/12/17 02:48:10 bdbcat Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.cpp,v $
+* Revision 1.4  2009/12/17 02:48:10  bdbcat
+* Optimize update
+*
 * Revision 1.3  2009/12/11 00:15:52  bdbcat
 * Beta 1210
 *
@@ -679,10 +682,25 @@ int ChartDatabase::TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDia
 
       int nAdd = 0;
 
+      bool b_skipDetectDirChange = false;
+      bool b_dirchange = false;
+
+      // Check to see if this is a cm93 directory root
+      // If so, skip the DetectDirChange since it may be very slow
+      // and give no information
+      // Assume a change has happened, and process accordingly
+      wxString cm93_cell_name = Check_CM93_Structure(dir_path);
+      if(cm93_cell_name.Len())
+      {
+            b_skipDetectDirChange = true;
+            b_dirchange = true;
+      }
+
       //    Quick scan the directory to see if it has changed
       //    If not, there is no need to scan again.....
+      if(!b_skipDetectDirChange)
+            b_dirchange = DetectDirChange(dir_path, old_magic, new_magic, pprog);
 
-      bool b_dirchange = DetectDirChange(dir_path, old_magic, new_magic, pprog);
       if( !bForce && !b_dirchange)
       {
             wxString msg(_T("   No change detected on directory "));
@@ -713,8 +731,8 @@ int ChartDatabase::TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDia
                         if(fn.GetPath() == dir_path)
                         {
                               chartTable[ic].SetValid(true);
-                              if(pprog)
-                                    pprog->Update((ic * 100) /nEntries, fn.GetFullPath());
+ //                             if(pprog)
+ //                                  pprog->Update((ic * 100) /nEntries, fn.GetFullPath());
 
                               break;
                         }
@@ -728,8 +746,6 @@ int ChartDatabase::TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDia
       //    There presumably was a change in the directory contents.  Return the new magic number
       dir_magic = new_magic;
 
-      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), pprog);
-
       //    MSW file system considers upper and lower case names to be the same for simple 8.3 file names
       //    So we don't have to check both cases for MSW
 #ifdef  __WXMSW__
@@ -738,17 +754,24 @@ int ChartDatabase::TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDia
       bool b_check_both_cases = true;
 #endif
 
-      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), pprog, b_check_both_cases);
+
+      //    It has been determined that this is not a cm93 directory
+      if(!cm93_cell_name.Len())
+      {
+            nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), pprog);
+
+            nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), pprog, b_check_both_cases);
 
 #ifdef USE_S57
-      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.000")), pprog);
+            nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.000")), pprog);
 
-      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.S57")), pprog);
-
+            nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.S57")), pprog);
 #endif
+      }
 
 #ifdef USE_CM93
-      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("00300000.A")), pprog);     // for cm93
+      if(cm93_cell_name.Len())
+            nAdd += SearchDirAndAddCharts(dir_path, cm93_cell_name/*wxString(_T("00300000.A"))*/, pprog);     // for cm93
 #endif
 
       return nAdd;
@@ -825,53 +848,14 @@ bool ChartDatabase::IsChartDirUsed(const wxString &theDir)
 }
 
 
-// ----------------------------------------------------------------------------
-// Populate Chart Table by directory search for specified file type
-// If bupdate flag is true, search the Chart Table for matching chart.
-//  if target chart is already in table, mark it valid and skip chart processing
-// ----------------------------------------------------------------------------
-
-int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& filespec_base,
-                                         wxProgressDialog *pprog, bool bCheckBothCases)
+//-----------------------------------------------------------------------------
+// Validate a given directory as a cm93 database
+// If it appears to be a cm93 database, then return the name of an existing cell file
+// If not cm93, return empty string
+//-----------------------------------------------------------------------------
+wxString ChartDatabase::Check_CM93_Structure(wxString dir_name)
 {
-      wxString msg(_T("Search directory: "));
-      msg += dir_name_base;
-      msg += _T(" for ");
-      msg += filespec_base;
-      wxLogMessage(msg);
-
-      if(!wxDir::Exists(dir_name_base))
-            return 0;
-
-      wxString dir_name = dir_name_base;
-      wxString filespec = filespec_base;
-
-      wxString filename;
-
-
-//    Count the files
-      wxArrayString FileList;
-      int gaf_flags = wxDIR_DEFAULT;                  // as default, recurse into subdirs
-
-      //    An optimization, peephole-wise, especially for __WXMSW__....
-      //    If the dir seems to be cm93 root, optimize the directory searching.
-      //    If the filespec is not looking for the base cm93 cell,
-      //    then clip the search by making the search flags parameter empty....
-      //    Otherwise, for instance, .KAP searches will have to traverse the entire cm93 tree.
-      //    Very slow on MSW, and clearly unproductive.
-      //    If the target filespec is the CM93 reference file, search only its directory
-
-/*
-      wxString cm93_test = dir_name;
-      cm93_test += _T("/00300000/A/00300000.A");
-      if(wxFile::Exists(cm93_test))                   // The target dir probably is cm93
-      {
-            gaf_flags =  wxDIR_FILES;                 // dont recurse
-
-            if(filespec.IsSameAs(_T("00300000.A")))
-            dir_name += _T("/00300000/A");              // Manage the directory search
-      }
-*/
+      wxString filespec;
 
       wxRegEx test(_T("[0-9]+"));
 
@@ -924,15 +908,14 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
                         dir_luk += candidate_n;
                         if(wxDir::Exists(dir_luk))
                         {
-                              dir_name = dir_luk;                 // be very specific about the dir_name, to shorten GatAllFiles()
-                              gaf_flags =  wxDIR_FILES;                 // dont recurse
+                              wxString msg(_T("Found probable CM93 database in "));
+                              msg += dir_name;
+                              wxLogMessage(msg);
 
-                              wxLogMessage(_T("Found probable CM93 database"));
-                        }
+                              wxString dir_name_plus = dir_luk;                 // be very specific about the dir_name, to shorten GatAllFiles()
+//                              gaf_flags =  wxDIR_FILES;                 // dont recurse
 
-                        if(filespec.IsSameAs(_T("00300000.A")))         // I am actually looking for cm93
-                        {
-                              wxDir dir_get(dir_name);
+                              wxDir dir_get(dir_name_plus);
                               wxString one_file;
                               dir_get.GetFirst(&one_file);
                               filespec = one_file;                       // so adjust the filespec
@@ -942,7 +925,38 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
             }
       }
 
+      return filespec;
+}
 
+
+
+
+// ----------------------------------------------------------------------------
+// Populate Chart Table by directory search for specified file type
+// If bupdate flag is true, search the Chart Table for matching chart.
+//  if target chart is already in table, mark it valid and skip chart processing
+// ----------------------------------------------------------------------------
+
+int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& filespec_base,
+                                         wxProgressDialog *pprog, bool bCheckBothCases)
+{
+      wxString msg(_T("Searching directory: "));
+      msg += dir_name_base;
+      msg += _T(" for ");
+      msg += filespec_base;
+      wxLogMessage(msg);
+
+      if(!wxDir::Exists(dir_name_base))
+            return 0;
+
+      wxString dir_name = dir_name_base;
+      wxString filespec = filespec_base;
+
+      wxString filename;
+
+//    Count the files
+      wxArrayString FileList;
+      int gaf_flags = wxDIR_DEFAULT;                  // as default, recurse into subdirs
 
       wxDir dir(dir_name);
 
