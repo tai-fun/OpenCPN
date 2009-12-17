@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.h,v 1.1 2009/12/10 21:21:20 bdbcat Exp $
+* $Id: chartdbs.h,v 1.2 2009/12/17 02:45:00 bdbcat Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.h,v $
+* Revision 1.2  2009/12/17 02:45:00  bdbcat
+* Beta 1216
+*
 * Revision 1.1  2009/12/10 21:21:20  bdbcat
 * Beta 1210
 *
@@ -198,6 +201,7 @@ private:
     int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, wxProgressDialog *pprog, bool bCheckBothCases = false);
     int TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDialog *pprog, wxString& dir_magic, bool bForce);
     bool DetectDirChange(wxString dir_path, wxString magic, wxString &new_magic, wxProgressDialog *pprog);
+    wxString Check_CM93_Structure(wxString dir_name);
 
     bool          bValid;
     wxArrayString chartDirs;
