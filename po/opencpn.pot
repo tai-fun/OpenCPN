@@ -1,0 +1,600 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: opencpn 1.3.6\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-12-14 00:07-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/about.cpp:426
+msgid "Close"
+msgstr ""
+
+#: src/ais.cpp:500
+msgid " UTC\n"
+msgstr ""
+
+#: src/chart1.cpp:910
+msgid "Cannot create opencpn home directory"
+msgstr ""
+
+#: src/chart1.cpp:930
+msgid "Cannot create opencpn log directory"
+msgstr ""
+
+#: src/chart1.cpp:934
+msgid "opencpn.log"
+msgstr ""
+
+#: src/chart1.cpp:949
+msgid ""
+"\n"
+"\n"
+msgstr ""
+
+#: src/chart1.cpp:957
+msgid "  "
+msgstr ""
+
+#: src/chart1.cpp:960
+msgid " -------Starting opencpn-------"
+msgstr ""
+
+#: src/chart1.cpp:1059
+msgid "Using existing Config_File: "
+msgstr ""
+
+#: src/chart1.cpp:1071
+msgid "Creating new Config_File: "
+msgstr ""
+
+#: src/chart1.cpp:1078
+msgid "Cannot create config file directory for "
+msgstr ""
+
+#: src/chart1.cpp:1235 src/chart1.cpp:1260
+msgid "Looking for s57data in "
+msgstr ""
+
+#: src/chart1.cpp:1272
+msgid "Using s57data in "
+msgstr ""
+
+#: src/chart1.cpp:1274
+msgid "   S52PLIB Initialization failed, disabling S57 charts."
+msgstr ""
+
+#: src/chart1.cpp:1307
+msgid "Using Tide/Current data from:  "
+msgstr ""
+
+#: src/chart1.cpp:1433
+msgid "OpenCPN needs to update the chart database from config file entries...."
+msgstr ""
+
+#: src/chart1.cpp:1435 src/chart1.cpp:1459
+msgid "OpenCPN Info"
+msgstr ""
+
+#: src/chart1.cpp:1443 src/chart1.cpp:3212
+msgid "OpenCPN Chart Update"
+msgstr ""
+
+#: src/chart1.cpp:1454
+msgid ""
+"Chartlist file not found, config chart dir array is empty.  Chartlist target "
+"file is:"
+msgstr ""
+
+#: src/chart1.cpp:1457
+msgid ""
+"           No Charts Installed.\n"
+"Please select chart folders in ToolBox->Charts."
+msgstr ""
+
+#: src/chart1.cpp:1506
+#, c-format
+msgid "GPS Watchdog Timeout is: %d sec."
+msgstr ""
+
+#: src/chart1.cpp:1528
+msgid "opencpn::MyApp exiting cleanly...\n"
+msgstr ""
+
+#: src/chart1.cpp:2072
+msgid "Shift to Larger Scale Chart"
+msgstr ""
+
+#: src/chart1.cpp:2074
+msgid "Shift to Smaller Scale Chart"
+msgstr ""
+
+#: src/chart1.cpp:2080
+msgid "Create Route"
+msgstr ""
+
+#: src/chart1.cpp:2082
+msgid "Auto Follow"
+msgstr ""
+
+#: src/chart1.cpp:2088 src/chart1.cpp:3140
+msgid "ToolBox"
+msgstr ""
+
+#: src/chart1.cpp:2090
+msgid "Show ENC Text"
+msgstr ""
+
+#: src/chart1.cpp:2096
+msgid "Show Currents"
+msgstr ""
+
+#: src/chart1.cpp:2098
+msgid "Show Tides"
+msgstr ""
+
+#: src/chart1.cpp:2106
+msgid "Print Chart"
+msgstr ""
+
+#: src/chart1.cpp:2114
+msgid "Import GPX file"
+msgstr ""
+
+#: src/chart1.cpp:2118
+msgid "Export GPX file"
+msgstr ""
+
+#: src/chart1.cpp:2126
+msgid "Toggle Tracking"
+msgstr ""
+
+#: src/chart1.cpp:2134
+msgid "Show GRIB dialog"
+msgstr ""
+
+#: src/chart1.cpp:2141
+msgid "Change Color Scheme"
+msgstr ""
+
+#: src/chart1.cpp:2143
+msgid "About OpenCPN"
+msgstr ""
+
+#: src/chart1.cpp:2180 src/chart1.cpp:3766
+msgid "Exit OpenCPN"
+msgstr ""
+
+#: src/chart1.cpp:2520
+msgid "opencpn::MyFrame exiting cleanly..."
+msgstr ""
+
+#: src/chart1.cpp:2864 src/chart1.cpp:2896
+msgid "Chart1::Event...TCMgr Not Available"
+msgstr ""
+
+#: src/chart1.cpp:3411
+msgid "Got quitflag from SIGUSR1"
+msgstr ""
+
+#: src/chart1.cpp:3428
+msgid "   ***GPS Watchdog timeout..."
+msgstr ""
+
+#: src/chart1.cpp:3437
+msgid "   ***HDx Watchdog timeout..."
+msgstr ""
+
+#: src/chart1.cpp:3921
+msgid "Chart file corrupt.. disabling this chart \n"
+msgstr ""
+
+#: src/chart1.cpp:3924
+msgid "OpenCPN Message"
+msgstr ""
+
+#: src/chart1.cpp:3928
+msgid "chart1.cpp:SetChartThumbnail...Could not create thumbnail"
+msgstr ""
+
+#: src/chart1.cpp:3938
+msgid "chart1.cpp:SetChartThumbnail...Could not open chart "
+msgstr ""
+
+#: src/chart1.cpp:4376
+msgid "Chart Print"
+msgstr ""
+
+#: src/chart1.cpp:4380
+msgid ""
+"There was a problem printing.\n"
+"Perhaps your current printer is not set correctly?"
+msgstr ""
+
+#: src/chart1.cpp:4502
+msgid "MEH.NMEA Sentence received..."
+msgstr ""
+
+#: src/chart1.cpp:4697
+msgid "   Unrecognized NMEA Sentence..."
+msgstr ""
+
+#: src/chart1.cpp:4791
+msgid " Ship: "
+msgstr ""
+
+#: src/chart1.cpp:4878
+#, c-format
+msgid "Setting system time, delta t is %d seconds"
+msgstr ""
+
+#: src/chart1.cpp:4889
+msgid "Linux command is:"
+msgstr ""
+
+#: src/chart1.cpp:5149
+msgid "Warning: ocpnhelper failed...."
+msgstr ""
+
+#: src/chart1.cpp:5165
+msgid "Parsing copy of /proc/tty/driver/serial..."
+msgstr ""
+
+#: src/chart1.cpp:5218
+msgid "Parsing copy of /proc/tty/driver/usbserial..."
+msgstr ""
+
+#: src/chart1.cpp:5386
+msgid "Found Garmin USB Driver."
+msgstr ""
+
+#: src/chart1.cpp:5397
+msgid "Found Garmin Device."
+msgstr ""
+
+#: src/chcanv.cpp:4065
+msgid "Are you sure you want to delete <ALL> waypoints?"
+msgstr ""
+
+#: src/chcanv.cpp:4401
+msgid "Are you sure you want to delete <ALL> routes?"
+msgstr ""
+
+#: src/chcanv.cpp:6891 src/chcanv.cpp:6926
+msgid "Failed to create ocpCursor."
+msgstr ""
+
+#: src/concanv.cpp:207
+msgid "Leg/Route"
+msgstr ""
+
+#: src/concanv.cpp:402
+msgid "---"
+msgstr ""
+
+#: src/concanv.cpp:431
+msgid "Route"
+msgstr ""
+
+#: src/concanv.cpp:433
+msgid "This Leg"
+msgstr ""
+
+#: src/grib.cpp:187
+msgid "GRIB File Directory"
+msgstr ""
+
+#: src/navutil.cpp:6057
+msgid "&Font family:"
+msgstr ""
+
+#: src/navutil.cpp:6063 src/navutil.cpp:6065
+msgid "The font family."
+msgstr ""
+
+#: src/navutil.cpp:6070
+msgid "&Style:"
+msgstr ""
+
+#: src/navutil.cpp:6074 src/navutil.cpp:6076
+msgid "The font style."
+msgstr ""
+
+#: src/navutil.cpp:6081
+msgid "&Weight:"
+msgstr ""
+
+#: src/navutil.cpp:6085 src/navutil.cpp:6087
+msgid "The font weight."
+msgstr ""
+
+#: src/navutil.cpp:6094
+msgid "C&olour:"
+msgstr ""
+
+#: src/navutil.cpp:6104 src/navutil.cpp:6106
+msgid "The font colour."
+msgstr ""
+
+#: src/navutil.cpp:6112
+msgid "&Point size:"
+msgstr ""
+
+#: src/navutil.cpp:6117 src/navutil.cpp:6119
+msgid "The font point size."
+msgstr ""
+
+#: src/navutil.cpp:6126
+msgid "&Underline"
+msgstr ""
+
+#: src/navutil.cpp:6129 src/navutil.cpp:6131
+msgid "Whether the font is underlined."
+msgstr ""
+
+#: src/navutil.cpp:6138
+msgid "Preview:"
+msgstr ""
+
+#: src/navutil.cpp:6143 src/navutil.cpp:6145
+msgid "Shows the font preview."
+msgstr ""
+
+#: src/navutil.cpp:6152 src/options.cpp:401
+msgid "&Cancel"
+msgstr ""
+
+#: src/navutil.cpp:6154
+msgid "Click to cancel the font selection."
+msgstr ""
+
+#: src/navutil.cpp:6157
+msgid "&OK"
+msgstr ""
+
+#: src/navutil.cpp:6159 src/navutil.cpp:6161
+msgid "Click to confirm the font selection."
+msgstr ""
+
+#: src/navutil.cpp:6195 src/navutil.cpp:6462
+msgid "ABCDEFGabcdefg12345"
+msgstr ""
+
+#: src/options.cpp:397
+msgid "Ok"
+msgstr ""
+
+#: src/options.cpp:411
+msgid "Settings"
+msgstr ""
+
+#: src/options.cpp:416
+msgid "Navigation Data"
+msgstr ""
+
+#: src/options.cpp:419
+msgid "Show Status Bar"
+msgstr ""
+
+#: src/options.cpp:425
+msgid "Printing"
+msgstr ""
+
+#: src/options.cpp:428
+msgid "Show Printing Icon"
+msgstr ""
+
+#: src/options.cpp:435
+msgid "Chart Display Options"
+msgstr ""
+
+#: src/options.cpp:440
+msgid "Show Chart Outlines"
+msgstr ""
+
+#: src/options.cpp:447
+msgid "Show DepthUnits"
+msgstr ""
+
+#: src/options.cpp:454
+msgid "Automatic Anchor Mark"
+msgstr ""
+
+#: src/options.cpp:464 src/options.cpp:634
+msgid "NMEA Options"
+msgstr ""
+
+#: src/options.cpp:470 src/options.cpp:640
+msgid "NMEA Data Source"
+msgstr ""
+
+#: src/options.cpp:524 src/options.cpp:694
+msgid "GARMIN"
+msgstr ""
+
+#: src/options.cpp:527 src/options.cpp:697
+msgid "AIS"
+msgstr ""
+
+#: src/options.cpp:629
+msgid "GPS"
+msgstr ""
+
+#: src/options.cpp:744
+msgid "Show GPS/NMEA data stream window"
+msgstr ""
+
+#: src/options.cpp:1116
+msgid "Select Alert Sound"
+msgstr ""
+
+#: src/options.cpp:1164
+msgid "Fonts"
+msgstr ""
+
+#: src/options.cpp:1173 src/options.cpp:1176
+msgid "GRIB"
+msgstr ""
+
+#: src/options.cpp:1180
+msgid "Show GRIB icon"
+msgstr ""
+
+#: src/options.cpp:1184
+msgid "Use High Definition Graphics"
+msgstr ""
+
+#: src/options.cpp:1195
+msgid "Etc."
+msgstr ""
+
+#: src/options.cpp:1198
+msgid "GPX"
+msgstr ""
+
+#: src/options.cpp:1201
+msgid "Show GPX icons"
+msgstr ""
+
+#: src/options.cpp:1207
+msgid "Tracks"
+msgstr ""
+
+#: src/options.cpp:1210
+msgid "Show Track icon"
+msgstr ""
+
+#: src/options.cpp:1234
+msgid "Radar rings"
+msgstr ""
+
+#: src/options.cpp:1237
+msgid "Show radar rings"
+msgstr ""
+
+#: src/options.cpp:1242
+msgid "Number of radar rings shown"
+msgstr ""
+
+#: src/options.cpp:1248
+msgid "Distance between rings"
+msgstr ""
+
+#: src/options.cpp:1263
+msgid "Waypoint Locking"
+msgstr ""
+
+#: src/options.cpp:1266
+msgid "Lock all waypoints unless a waypoint property dialog is visible"
+msgstr ""
+
+#: src/options.cpp:1273
+msgid "GUI Options"
+msgstr ""
+
+#: src/options.cpp:1277
+msgid "Enable Wheel-Zoom-to-Cursor"
+msgstr ""
+
+#: src/options.cpp:1282
+msgid "Preserve scale when switching charts"
+msgstr ""
+
+#: src/options.cpp:2101
+msgid "Available Chart Directories"
+msgstr ""
+
+#: src/options.cpp:2115
+msgid "Add Selection"
+msgstr ""
+
+#: src/options.cpp:2120
+msgid "Active Chart Directories"
+msgstr ""
+
+#: src/options.cpp:2138
+msgid "Delete Selection"
+msgstr ""
+
+#: src/options.cpp:2151
+msgid "Update Control"
+msgstr ""
+
+#: src/options.cpp:2154
+msgid "Force Full Database Rebuild"
+msgstr ""
+
+#: src/routeman.cpp:899 src/routeprop.cpp:226 src/routeprop.cpp:713
+#: src/routeprop.cpp:1108
+msgid "Cancel"
+msgstr ""
+
+#: src/routeman.cpp:902
+msgid "Send"
+msgstr ""
+
+#: src/routeprop.cpp:166 src/routeprop.cpp:670
+msgid "Properties"
+msgstr ""
+
+#: src/routeprop.cpp:170 src/routeprop.cpp:1062
+msgid "Name"
+msgstr ""
+
+#: src/routeprop.cpp:180
+msgid "Depart From"
+msgstr ""
+
+#: src/routeprop.cpp:183
+msgid "Destination"
+msgstr ""
+
+#: src/routeprop.cpp:196
+msgid "Total Distance"
+msgstr ""
+
+#: src/routeprop.cpp:215
+msgid "Waypoints"
+msgstr ""
+
+#: src/routeprop.cpp:229 src/routeprop.cpp:716 src/routeprop.cpp:1111
+msgid "OK"
+msgstr ""
+
+#: src/routeprop.cpp:675
+msgid "Mark Name"
+msgstr ""
+
+#: src/routeprop.cpp:681
+msgid "Show Name"
+msgstr ""
+
+#: src/routeprop.cpp:684
+msgid "Mark Icon"
+msgstr ""
+
+#: src/routeprop.cpp:692 src/routeprop.cpp:1070
+msgid "Position"
+msgstr ""
+
+#: src/routeprop.cpp:697 src/routeprop.cpp:1075
+msgid "Latitude"
+msgstr ""
+
+#: src/routeprop.cpp:704 src/routeprop.cpp:1081
+msgid "Longitude"
+msgstr ""
+
+#: src/routeprop.cpp:1088
+msgid "Links"
+msgstr ""
