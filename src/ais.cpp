@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.35 2009/12/10 21:08:35 bdbcat Exp $
+ * $Id: ais.cpp,v 1.36 2009/12/22 21:40:22 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.36  2009/12/22 21:40:22  bdbcat
+ * Cleanup Messages
+ *
  * Revision 1.35  2009/12/10 21:08:35  bdbcat
  * Beta 1210
  *
@@ -204,7 +207,7 @@ extern int              g_total_NMEAerror_messages;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.35 2009/12/10 21:08:35 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.36 2009/12/22 21:40:22 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -367,7 +370,7 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       while((*tp) && (*tp != '@'))
             ts.Append(*tp++);
 
-      line.Printf(_T("ShipName:  "));
+      line.Printf(_("ShipName:  "));
       line.Append( ts );
       line.Append(_T("\n\n"));
       result.Append(line);
@@ -381,7 +384,7 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       while((*tp) && (*tp != '@'))
             ts.Append(*tp++);
 
-      line.Printf(_T("CallSign:  "));
+      line.Printf(_("CallSign:  "));
       line.Append( ts );
       line.Append(_T("\n"));
       result.Append(line);
@@ -393,9 +396,9 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       result.Append(line);
 
       if(AIS_CLASS_A == Class)
-            line.Printf(_T("Class:     A\n\n"));
+            line.Printf(_("Class:     A\n\n"));
       else
-            line.Printf(_T("Class:     B\n\n"));
+            line.Printf(_("Class:     B\n\n"));
       result.Append(line);
 
     //      Nav Status
@@ -407,7 +410,7 @@ wxString AIS_Target_Data::BuildQueryResult( void )
                   ts.Append(*tp++);
       }
 
-      line.Printf(_T("Navigational Status:  "));
+      line.Printf(_("Navigational Status:  "));
       line.Append( ts );
       line.Append(_T("\n"));
       result.Append(line);
@@ -419,7 +422,7 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       while(*tp)
             ts.Append(*tp++);
 
-      line.Printf(_T("Ship Type:            "));
+      line.Printf(_("Ship Type:            "));
       line.Append( ts );
       line.Append(_T("\n"));
       result.Append(line);
@@ -430,7 +433,7 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       while((*tp) && (*tp != '@'))
             ts.Append(*tp++);
 
-      line.Printf(_T("Destination:          "));
+      line.Printf(_("Destination:          "));
       line.Append( ts );
       line.Append(_T("\n"));
       result.Append(line);
@@ -441,7 +444,7 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       if((ETA_Mo) && (ETA_Hr < 24))
       {
             wxDateTime eta(ETA_Day, wxDateTime::Month(ETA_Mo), now.GetYear(), ETA_Hr, ETA_Min);
-            line.Printf(_T("ETA:                  "));
+            line.Printf(_("ETA:                  "));
             line.Append( eta.FormatISODate());
             line.Append(_T("  "));
             line.Append( eta.FormatISOTime());
@@ -449,7 +452,7 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       }
       else
       {
-            line.Printf(_T("ETA:                  Unknown"));
+            line.Printf(_("ETA:                  Unknown"));
             line.Append(_T("\n"));
       }
 
@@ -459,31 +462,31 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       if((DimA + DimB + DimC + DimD) == 0)
       {
             if(Draft > 0.01)
-                  line.Printf(_T("Size:                ---m x ---m x %4.1fm\n\n"),  Draft);
+                  line.Printf(_("Size:                ---m x ---m x %4.1fm\n\n"),  Draft);
             else
-                  line.Printf(_T("Size:                ---m x ---m x ---m\n\n"));
+                  line.Printf(_("Size:                ---m x ---m x ---m\n\n"));
       }
       else if(Draft < 0.01)
-            line.Printf(_T("Size:                %5dm x %dm x ---m\n\n"), (DimA + DimB), (DimC + DimD));
+            line.Printf(_("Size:                %5dm x %dm x ---m\n\n"), (DimA + DimB), (DimC + DimD));
       else
-            line.Printf(_T("Size:                %5dm x %dm x %4.1fm\n\n"), (DimA + DimB), (DimC + DimD), Draft);
+            line.Printf(_("Size:                %5dm x %dm x %4.1fm\n\n"), (DimA + DimB), (DimC + DimD), Draft);
 
 
       result.Append(line);
 
-      line.Printf(_T("Course:               %5.0f Deg.\n"), COG);
+      line.Printf(_("Course:               %5.0f Deg.\n"), COG);
       result.Append(line);
 
-      line.Printf(_T("Speed:                %5.2f Kts.\n"), SOG);
+      line.Printf(_("Speed:                %5.2f Kts.\n"), SOG);
       result.Append(line);
 
-      line.Printf(_T("Range:                %5.1f NM\n"), Range_NM);
+      line.Printf(_("Range:                %5.1f NM\n"), Range_NM);
       result.Append(line);
 
-      line.Printf(_T("Bearing:              %5.0f Deg.\n"), Brg);
+      line.Printf(_("Bearing:              %5.0f Deg.\n"), Brg);
       result.Append(line);
 
-      line.Printf(_T("Position:              "));
+      line.Printf(_("Position:              "));
 
       wxString pos_st;
       pos_st += toSDMM(1, Lat);
@@ -495,9 +498,11 @@ wxString AIS_Target_Data::BuildQueryResult( void )
 
 
       wxDateTime rt(ReportTicks);
-      line.Printf(_T("Latest Report Time:       "));
+      line.Printf(_("Latest Report Time:       "));
       line << rt.FormatISOTime();
-      line << _(" UTC\n");
+      line << _T(" ");
+      line << _("UTC");
+      line << _T("\n");
       result.Append(line);
 
 
@@ -505,25 +510,25 @@ wxString AIS_Target_Data::BuildQueryResult( void )
       int target_age = now.GetTicks() - ReportTicks;
 
 
-      line.Printf(_T("Report Age:               %3d Sec.\n"), target_age);
+      line.Printf(_("Report Age:               %3d Sec.\n"), target_age);
       result.Append(line);
 
-      line.Printf(_T("Recent Report Period:     %3d Sec.\n\n"), RecentPeriod);
+      line.Printf(_("Recent Report Period:     %3d Sec.\n\n"), RecentPeriod);
       result.Append(line);
 
       double hours = floor(TCPA / 60.);
       double mins = TCPA - (hours * 60);
 
       if(bCPA_Valid)
-            line.Printf(_T("TCPA:                 %02d:%02d Hr:Min\n"), (int)hours, (int)mins);
+            line.Printf(_("TCPA:                 %02d:%02d Hr:Min\n"), (int)hours, (int)mins);
       else
-            line.Printf(_T("TCPA:  \n"));
+            line.Printf(_("TCPA:  \n"));
       result.Append(line);
 
       if(bCPA_Valid)
-            line.Printf(_T("CPA:                 %6.1f NM\n"), CPA);
+            line.Printf(_("CPA:                 %6.1f NM\n"), CPA);
       else
-            line.Printf(_T("CPA:       \n"));
+            line.Printf(_("CPA:       \n"));
       result.Append(line);
 /*
       //    Count lines and characters
@@ -1686,9 +1691,9 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
             {
 
                   wxString msg(AIS_data_ip);
-                  msg.Prepend(_T("Could not resolve TCP/IP host '"));
-                  msg.Append(_T("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation"));
-                  wxMessageDialog md(pParent, msg, _T("OpenCPN Message"), wxICON_ERROR );
+                  msg.Prepend(_("Could not resolve TCP/IP host '"));
+                  msg.Append(_("'\n Suggestion: Try 'xxx.xxx.xxx.xxx' notation"));
+                  wxMessageDialog md(pParent, msg, _("OpenCPN Message"), wxICON_ERROR );
                   md.ShowModal();
 
                   m_sock->Notify(FALSE);
@@ -1730,9 +1735,9 @@ AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataS
             if(m_hSerialComm == INVALID_HANDLE_VALUE)
             {
                   wxString msg(comx);
-                  msg.Prepend(_T("  Could not open AIS serial port '"));
-                  msg.Append(_T("'\nSuggestion: Try closing other applications."));
-                  wxMessageDialog md(pParent, msg, _T("OpenCPN Message"), wxICON_ERROR );
+                  msg.Prepend(_("  Could not open AIS serial port '"));
+                  msg.Append(_("'\nSuggestion: Try closing other applications."));
+                  wxMessageDialog md(pParent, msg, _("OpenCPN Message"), wxICON_ERROR );
                   md.ShowModal();
 
                   return AIS_NO_SERIAL;
@@ -2017,7 +2022,7 @@ void AIS_Decoder::OnTimerAIS(wxTimerEvent& event)
                   //    Show the alert
 
                         AISTargetAlertDialog *pAISAlertDialog = new AISTargetAlertDialog();
-                        pAISAlertDialog->Create ( palarm_target->MMSI, m_parent_frame, this, -1, _T("AIS Alert"),
+                        pAISAlertDialog->Create ( palarm_target->MMSI, m_parent_frame, this, -1, _("AIS Alert"),
                                                 wxPoint( g_ais_alert_dialog_x, g_ais_alert_dialog_y),
                                                 wxSize( g_ais_alert_dialog_sx, g_ais_alert_dialog_sy));
 

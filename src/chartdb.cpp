@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.31 2009/12/14 04:58:28 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.32 2009/12/22 21:42:02 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.32  2009/12/22 21:42:02  bdbcat
+ * Cleanup Messages
+ *
  * Revision 1.31  2009/12/14 04:58:28  bdbcat
  * Leaks
  *
@@ -155,7 +158,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.31 2009/12/14 04:58:28 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.32 2009/12/22 21:42:02 bdbcat Exp $");
 
 // ============================================================================
 // implementation
@@ -202,11 +205,11 @@ ChartBase *ChartDB::GetChart(const wxChar *theFilePath) const
 {
       wxFileName fn(theFilePath);
 
+ 
       if(!fn.FileExists()) {
             wxLogMessage(wxT("   ...file does not exist: %s"), theFilePath);
             return NULL;
       }
-
       ChartBase *pch = NULL;
 
       wxString chartExt = fn.GetExt().Upper();

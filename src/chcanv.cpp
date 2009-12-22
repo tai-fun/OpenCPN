@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.73 2009/12/14 23:32:07 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.74 2009/12/22 21:37:15 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.74  2009/12/22 21:37:15  bdbcat
+ * Cleanup Messages
+ *
  * Revision 1.73  2009/12/14 23:32:07  bdbcat
  * DrawSplines
  *
@@ -355,7 +358,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.73 2009/12/14 23:32:07 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.74 2009/12/22 21:37:15 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -772,6 +775,7 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         VPoint.clat = 0;
         VPoint.clon = 0;
         VPoint.view_scale_ppm = 1;
+        VPoint.bValid = false;
 
         m_canvas_scale_factor = 1.;
 
@@ -1144,7 +1148,7 @@ void ChartCanvas::ShowGribDialog(void)
       if(NULL == g_pGribDialog)
       {
             g_pGribDialog = new GRIBUIDialog();
-            g_pGribDialog->Create ( this, -1, _T("GRIB Display Control"), g_grib_dir,
+            g_pGribDialog->Create ( this, -1, _("GRIB Display Control"), g_grib_dir,
                                wxPoint( g_grib_dialog_x, g_grib_dialog_y), wxSize( g_grib_dialog_sx, g_grib_dialog_sy));
       }
 
@@ -1328,7 +1332,7 @@ void ChartCanvas::OnCursorTrackTimerEvent ( wxTimerEvent& event )
 
                               if ( parent_frame->m_pStatusBar )
                               {
-                                    wxString s1 = _T("Cursor: ");
+                                    wxString s1 = _("Cursor: ");
                                     s1 += toSDMM(1, cursor_lat);
                                     s1 += _T(" ");
                                     s1 += toSDMM(2, cursor_lon);
@@ -1337,7 +1341,7 @@ void ChartCanvas::OnCursorTrackTimerEvent ( wxTimerEvent& event )
                                     double brg, dist;
                                     DistanceBearingMercator(cursor_lat, cursor_lon, gLat, gLon, &brg, &dist);
                                     wxString s;
-                                    s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
+                                    s.Printf(_("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
                                     parent_frame->SetStatusText ( s, STAT_FIELD_CURSOR_BRGRNG );
                               }
                        }
@@ -1754,9 +1758,9 @@ void ChartCanvas::SetViewPoint ( double lat, double lon, double scale_ppm, doubl
 
               double scale_factor = scale_ppm / chart_native_ppm;
               if(scale_factor > 1.0)
-                    text.Printf(_T("TrueScale: %8.0f  Zoom %4.0fx"), true_scale_display, scale_factor);
+                    text.Printf(_("TrueScale: %8.0f  Zoom %4.0fx"), true_scale_display, scale_factor);
               else
-                    text.Printf(_T("TrueScale: %8.0f  Zoom %4.2fx"), true_scale_display, scale_factor);
+                    text.Printf(_("TrueScale: %8.0f  Zoom %4.2fx"), true_scale_display, scale_factor);
 
               parent_frame->SetStatusText ( text, STAT_FIELD_SCALE );
 
@@ -3069,7 +3073,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         while(show_cursor_lon > 180.)
                               show_cursor_lon -= 360.;
 
-                        wxString s1 = _T("Cursor: ");
+                        wxString s1 = _("Cursor: ");
                         s1 += toSDMM(1, show_cursor_lat);
                         s1 += _T(" ");
                         s1 += toSDMM(2, show_cursor_lon);
@@ -3078,7 +3082,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         double brg, dist;
                         DistanceBearingMercator(m_cursor_lat, m_cursor_lon, gLat, gLon, &brg, &dist);
                         wxString s;
-                        s.Printf(_T("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
+                        s.Printf(_("From Ownship: %03d Deg  %6.2f NMi"), (int)brg, dist);
                         parent_frame->SetStatusText ( s, STAT_FIELD_CURSOR_BRGRNG );
                       }
                 }
@@ -3277,7 +3281,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         RoutePoint *pNearbyPoint = pWayPointMan->GetNearbyWaypoint(rlat, rlon, nearby_radius_meters);
                         if(pNearbyPoint && (pNearbyPoint != m_prev_pMousePoint))
                         {
-                              wxMessageDialog near_point_dlg(this, _T("Use nearby waypoint?"), _T("OpenCPN Route Create"), (long)wxYES_NO | wxCANCEL | wxYES_DEFAULT);
+                              wxMessageDialog near_point_dlg(this, _("Use nearby waypoint?"), _("OpenCPN Route Create"), (long)wxYES_NO | wxCANCEL | wxYES_DEFAULT);
                               int dlg_return = near_point_dlg.ShowModal();
 
                               if(dlg_return == wxID_YES)
@@ -3939,7 +3943,7 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
 
                         if (( Current_Ch->m_ChartType == CHART_TYPE_CM93COMP ))
                         {
-                              pdef_menu->AppendCheckItem(ID_DEF_MENU_CM93ZOOM, _T("Enable CM93 Detail Slider"));
+                              pdef_menu->AppendCheckItem(ID_DEF_MENU_CM93ZOOM, _("Enable CM93 Detail Slider"));
                               if(pCM93DetailSlider)
                                      pdef_menu->Check(ID_DEF_MENU_CM93ZOOM, pCM93DetailSlider->IsShown());
                         }
@@ -4065,7 +4069,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
                 case ID_WP_MENU_DELETEALL:
                 {
-                        wxMessageDialog mdlg(this, _("Are you sure you want to delete <ALL> waypoints?"), wxString(_T("OpenCPN Alert")),wxYES_NO  );
+                        wxMessageDialog mdlg(this, _("Are you sure you want to delete <ALL> waypoints?"), wxString(_("OpenCPN Alert")),wxYES_NO  );
                         if(mdlg.ShowModal() == wxID_YES)
                         {
                             pWayPointMan->DeleteAllWaypoints(false);          // only delete unused waypoints
@@ -4106,7 +4110,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                               if(!pCM93DetailSlider)
                               {
                                     pCM93DetailSlider = new CM93DSlide(this, -1 , 0, -CM93_ZOOM_FACTOR_MAX_RANGE, CM93_ZOOM_FACTOR_MAX_RANGE,
-                                                wxPoint(g_cm93detail_dialog_x, g_cm93detail_dialog_y), wxDefaultSize, wxSIMPLE_BORDER , _T("cm93 Detail") );
+                                                wxPoint(g_cm93detail_dialog_x, g_cm93detail_dialog_y), wxDefaultSize, wxSIMPLE_BORDER , _("cm93 Detail") );
                               }
 
             //    Here is an ugly piece of code which prevents the slider from taking the keyboard focus
@@ -4392,7 +4396,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
                         pRoutePropDialog->SetRouteAndUpdate ( m_pSelectedRoute );
                         pRoutePropDialog->UpdateProperties();
-                        pRoutePropDialog->SetDialogTitle(_T("Route Properties"));
+                        pRoutePropDialog->SetDialogTitle(_("Route Properties"));
 
                         pRoutePropDialog->Show();
 
@@ -4401,7 +4405,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
                 case ID_RT_MENU_DELETEALL:
                 {
-                       wxMessageDialog mdlg(this, _("Are you sure you want to delete <ALL> routes?"), wxString(_T("OpenCPN Alert")),wxYES_NO  );
+                       wxMessageDialog mdlg(this, _("Are you sure you want to delete <ALL> routes?"), wxString(_("OpenCPN Alert")),wxYES_NO  );
                        if(mdlg.ShowModal() == wxID_YES)
                        {
                             if ( pRouteMan->GetpActiveRoute() )
@@ -4442,7 +4446,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
 
                     pRoutePropDialog->SetRouteAndUpdate ( m_pSelectedRoute );
                     pRoutePropDialog->UpdateProperties();
-                    pRoutePropDialog->SetDialogTitle(_T("Track Properties"));
+                    pRoutePropDialog->SetDialogTitle(_("Track Properties"));
 
                     pRoutePropDialog->Show();
 
@@ -5386,7 +5390,7 @@ void ChartCanvas::CreateOZEmbossMapData(ColorScheme cs)
       wxFont font ( 40, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD );
       wxClientDC dc(this);
       dc.SetFont(font);
-      dc.GetTextExtent(_T("OverZoom"), &w, &h);
+      dc.GetTextExtent(_("OverZoom"), &w, &h);
 
       m_pEM_OverZoom    = CreateEmbossMapData ( font, w + 10, h + 10, "OverZoom", cs);
 }
@@ -6894,7 +6898,7 @@ ocpCursor::ocpCursor ( const wxString& cursorName, long type,
                                               hotSpotX, hotSpotY );
         if ( !hcursor )
         {
-                wxLogWarning ( _ ( "Failed to create ocpCursor." ) );
+                wxLogWarning ( _T( "Failed to create ocpCursor." ) );
                 return;
         }
 
@@ -7066,7 +7070,7 @@ void AISInfoWin::OnPaint(wxPaintEvent& event)
  //     dc.SetTextForeground(GetForegroundColour());
       dc.SetBackgroundMode(wxTRANSPARENT);
 
-      dc.SetTextForeground(pFontMgr->GetFontColor(_T("AISTargetQuery")));
+      dc.SetTextForeground(pFontMgr->GetFontColor(_("AISTargetQuery")));
 
       dc.Clear();
 
@@ -7490,7 +7494,7 @@ void S57QueryDialog::CreateControls()
 
 //  The Tree control
         m_pTree = new S57ObjectTree(this, ID_S57QUERYTREECTRL, wxDefaultPosition, wxSize ( -1, 500 ), wxTR_HAS_BUTTONS);
-        m_root_id = m_pTree->AddRoot(_T("Chart"));
+        m_root_id = m_pTree->AddRoot(_("Chart"));
 
         m_id_array = new wxTreeItemId[m_n_items];
 

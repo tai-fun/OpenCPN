@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.19 2009/12/10 21:03:54 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.20 2009/12/22 21:34:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.20  2009/12/22 21:34:05  bdbcat
+ * Cleanup Messages
+ *
  * Revision 1.19  2009/12/10 21:03:54  bdbcat
  * Beta 1210
  *
@@ -66,6 +69,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.20  2009/12/22 21:34:05  bdbcat
+ * Cleanup Messages
+ *
  * Revision 1.19  2009/12/10 21:03:54  bdbcat
  * Beta 1210
  *
@@ -171,7 +177,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.19 2009/12/10 21:03:54 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.20 2009/12/22 21:34:05 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -399,7 +405,7 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                         if(gSog > 0.)
                               seta = eta.Format(_T("%H:%M"));
                         else
-                              seta = _("---");
+                              seta = _T("---");
 
                         pXTE->SetAValue(seta);
                         pXTE->SetALabel(wxString(_T("ETA          ")));
