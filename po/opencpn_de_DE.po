@@ -3,940 +3,864 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-12-21 19:58-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2009-12-17 12:25+0100\n"
+"Last-Translator: max stirner <idpnd@yahoo.co.uk>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: src/about.cpp:323
+#
 msgid "OpenCPN...A Nice Little Open Source Chart Plotter/Navigator"
 msgstr ""
-
-#: src/about.cpp:332
+#
+#, fuzzy
 msgid "About"
-msgstr ""
-
-#: src/about.cpp:351
+msgstr "Route"
+#
 msgid "Authors"
 msgstr ""
-
-#: src/about.cpp:367
+#
+#, fuzzy
 msgid "License"
-msgstr ""
-
-#: src/about.cpp:414
+msgstr "Verbindung"
+#
 msgid "Help"
 msgstr ""
-
-#: src/about.cpp:429
+#
 msgid "Close"
-msgstr ""
-
-#: src/ais.cpp:370
+msgstr "Schließen"
+#
+#, fuzzy
 msgid "ShipName:  "
-msgstr ""
-
-#: src/ais.cpp:384
+msgstr " Ship: "
+#
 msgid "CallSign:  "
 msgstr ""
-
-#: src/ais.cpp:396
+#
 msgid ""
 "Class:     A\n"
 "\n"
 msgstr ""
-
-#: src/ais.cpp:398
+#
 msgid ""
 "Class:     B\n"
 "\n"
 msgstr ""
-
-#: src/ais.cpp:410
+#
+#, fuzzy
 msgid "Navigational Status:  "
-msgstr ""
-
-#: src/ais.cpp:422
+msgstr "Navigationsdaten"
+#
 msgid "Ship Type:            "
 msgstr ""
-
-#: src/ais.cpp:433
+#
+#, fuzzy
 msgid "Destination:          "
-msgstr ""
-
-#: src/ais.cpp:444
+msgstr "Ziel"
+#
 msgid "ETA:                  "
 msgstr ""
-
-#: src/ais.cpp:452
+#
 msgid "ETA:                  Unknown"
 msgstr ""
-
-#: src/ais.cpp:462
+#
 #, c-format
 msgid ""
 "Size:                ---m x ---m x %4.1fm\n"
 "\n"
 msgstr ""
-
-#: src/ais.cpp:464
+#
 msgid ""
 "Size:                ---m x ---m x ---m\n"
 "\n"
 msgstr ""
-
-#: src/ais.cpp:467
+#
 #, c-format
 msgid ""
 "Size:                %5dm x %dm x ---m\n"
 "\n"
 msgstr ""
-
-#: src/ais.cpp:469
+#
 #, c-format
 msgid ""
 "Size:                %5dm x %dm x %4.1fm\n"
 "\n"
 msgstr ""
-
-#: src/ais.cpp:474
+#
 #, c-format
 msgid "Course:               %5.0f Deg.\n"
 msgstr ""
-
-#: src/ais.cpp:477
+#
 #, c-format
 msgid "Speed:                %5.2f Kts.\n"
 msgstr ""
-
-#: src/ais.cpp:480
+#
 #, c-format
 msgid "Range:                %5.1f NM\n"
 msgstr ""
-
-#: src/ais.cpp:483
+#
 #, c-format
 msgid "Bearing:              %5.0f Deg.\n"
 msgstr ""
-
-#: src/ais.cpp:486
+#
 msgid "Position:              "
 msgstr ""
-
-#: src/ais.cpp:498
+#
 msgid "Latest Report Time:       "
 msgstr ""
-
-#: src/ais.cpp:501
+#
 msgid "UTC"
-msgstr ""
-
-#: src/ais.cpp:510
+msgstr "UTC"
+#
 #, c-format
 msgid "Report Age:               %3d Sec.\n"
 msgstr ""
-
-#: src/ais.cpp:513
+#
 #, c-format
 msgid ""
 "Recent Report Period:     %3d Sec.\n"
 "\n"
 msgstr ""
-
-#: src/ais.cpp:520
+#
 #, c-format
 msgid "TCPA:                 %02d:%02d Hr:Min\n"
 msgstr ""
-
-#: src/ais.cpp:522
+#
 msgid "TCPA:  \n"
 msgstr ""
-
-#: src/ais.cpp:526
+#
 #, c-format
 msgid "CPA:                 %6.1f NM\n"
 msgstr ""
-
-#: src/ais.cpp:528
+#
 msgid "CPA:       \n"
 msgstr ""
-
-#: src/ais.cpp:1691
+#
 msgid "Could not resolve TCP/IP host '"
 msgstr ""
-
-#: src/ais.cpp:1692
+#
 msgid ""
 "'\n"
 " Suggestion: Try 'xxx.xxx.xxx.xxx' notation"
 msgstr ""
-
-#: src/ais.cpp:1693 src/ais.cpp:1737 src/chart1.cpp:3962
+#
 msgid "OpenCPN Message"
-msgstr ""
-
-#: src/ais.cpp:1735
+msgstr "OpenCPN-Meldung"
+#
 msgid "  Could not open AIS serial port '"
 msgstr ""
-
-#: src/ais.cpp:1736
+#
 msgid ""
 "'\n"
 "Suggestion: Try closing other applications."
 msgstr ""
-
-#: src/ais.cpp:2022
+#
 msgid "AIS Alert"
 msgstr ""
-
-#: src/chart1.cpp:1471
+#
 msgid "OpenCPN needs to update the chart database from config file entries...."
 msgstr ""
-
-#: src/chart1.cpp:1473 src/chart1.cpp:1497
+"Aktualisierung der Kartendatenbank aus den Konfigurationseinstellungen "
+"erforderlich...."
+#
 msgid "OpenCPN Info"
-msgstr ""
-
-#: src/chart1.cpp:1481 src/chart1.cpp:3250
+msgstr "OpenCPN Infos"
+#
 msgid "OpenCPN Chart Update"
-msgstr ""
-
-#: src/chart1.cpp:1495
+msgstr "OpenCPN Karten-Aktualisierung"
+#
 msgid ""
 "           No Charts Installed.\n"
 "Please select chart folders in ToolBox->Charts."
 msgstr ""
-
-#: src/chart1.cpp:2110
+"           Es sind keine Karten installiert.\n"
+"Bitte wähle unter Werkzeuge->Karten die Verzeichnisse an."
+#
 msgid "Shift to Larger Scale Chart"
-msgstr ""
-
-#: src/chart1.cpp:2112
+msgstr "Wechsel auf Karte mit größerem Maßstab"
+#
 msgid "Shift to Smaller Scale Chart"
-msgstr ""
-
-#: src/chart1.cpp:2118
+msgstr "Wechsel auf Karte mit kleinerem Maßstab"
+#
 msgid "Create Route"
-msgstr ""
-
-#: src/chart1.cpp:2120
+msgstr "Erstellung einer Route"
+#
 msgid "Auto Follow"
-msgstr ""
-
-#: src/chart1.cpp:2126 src/chart1.cpp:3178
+msgstr "Autom. zentrieren"
+#
 msgid "ToolBox"
-msgstr ""
-
-#: src/chart1.cpp:2128
+msgstr "Werkzeuge"
+#
 msgid "Show ENC Text"
-msgstr ""
-
-#: src/chart1.cpp:2134
+msgstr "ENC-Text anzeigen"
+#
 msgid "Show Currents"
-msgstr ""
-
-#: src/chart1.cpp:2136
+msgstr "Strömung anzeigen"
+#
 msgid "Show Tides"
-msgstr ""
-
-#: src/chart1.cpp:2144
+msgstr "Tiden anzeigen"
+#
 msgid "Print Chart"
-msgstr ""
-
-#: src/chart1.cpp:2152
+msgstr "Karte drucken"
+#
 msgid "Import GPX file"
-msgstr ""
-
-#: src/chart1.cpp:2156
+msgstr "GPX-Datei importieren"
+#
 msgid "Export GPX file"
-msgstr ""
-
-#: src/chart1.cpp:2164
+msgstr "GPX-Datei exportieren"
+#
 msgid "Toggle Tracking"
-msgstr ""
-
-#: src/chart1.cpp:2172
+msgstr "Tracking aktivieren"
+#
 msgid "Show GRIB dialog"
-msgstr ""
-
-#: src/chart1.cpp:2179
+msgstr "GRIB-Fenster anzeigen"
+#
 msgid "Change Color Scheme"
-msgstr ""
-
-#: src/chart1.cpp:2181
+msgstr "Farbschema umstellen"
+#
 msgid "About OpenCPN"
-msgstr ""
-
-#: src/chart1.cpp:2218 src/chart1.cpp:3804
+msgstr "Über OpenCPN"
+#
 msgid "Exit OpenCPN"
-msgstr ""
-
-#: src/chart1.cpp:2934
+msgstr "OpenCPN verlassen"
+#
 msgid "Chart1::Event...TCMgr Not Available"
-msgstr ""
-
-#: src/chart1.cpp:3959
+msgstr "Chart1::Event...TCMgr Nicht vorhanden"
+#
 msgid "Chart file corrupt.. disabling this chart \n"
-msgstr ""
-
-#: src/chart1.cpp:4414
+msgstr "Kartendatei fehlerhaft.. deaktiviere diese Karte \n"
+#
 msgid "Chart Print"
-msgstr ""
-
-#: src/chart1.cpp:4418
+msgstr "Karte drucken"
+#
 msgid ""
 "There was a problem printing.\n"
 "Perhaps your current printer is not set correctly?"
 msgstr ""
-
-#: src/chart1.cpp:4830
+"Drucken hat nicht funktioniert.\n"
+"Vielleicht ist der Drucker nicht richtig konfiguriert?"
+#
 msgid " Ship: "
-msgstr ""
-
-#: src/chcanv.cpp:1148
+msgstr " Ship: "
+#
 msgid "GRIB Display Control"
 msgstr ""
-
-#: src/chcanv.cpp:1332 src/chcanv.cpp:3073
+#
 msgid "Cursor: "
 msgstr ""
-
-#: src/chcanv.cpp:1341 src/chcanv.cpp:3082
+#
 #, c-format
 msgid "From Ownship: %03d Deg  %6.2f NMi"
 msgstr ""
-
-#: src/chcanv.cpp:1758
+#
 #, c-format
 msgid "TrueScale: %8.0f  Zoom %4.0fx"
 msgstr ""
-
-#: src/chcanv.cpp:1760
+#
 #, c-format
 msgid "TrueScale: %8.0f  Zoom %4.2fx"
 msgstr ""
-
-#: src/chcanv.cpp:3281
+#
 msgid "Use nearby waypoint?"
 msgstr ""
-
-#: src/chcanv.cpp:3281
+#
+#, fuzzy
 msgid "OpenCPN Route Create"
-msgstr ""
-
-#: src/chcanv.cpp:3943
+msgstr "OpenCPN Karten-Aktualisierung"
+#
 msgid "Enable CM93 Detail Slider"
 msgstr ""
-
-#: src/chcanv.cpp:4069
+#
 msgid "Are you sure you want to delete <ALL> waypoints?"
-msgstr ""
-
-#: src/chcanv.cpp:4069 src/chcanv.cpp:4405
+msgstr "Sollen wirklich <ALLE> Wegpunkte gelöscht werden?"
+#
+#, fuzzy
 msgid "OpenCPN Alert"
-msgstr ""
-
-#: src/chcanv.cpp:4110
+msgstr "OpenCPN-Meldung"
+#
 msgid "cm93 Detail"
 msgstr ""
-
-#: src/chcanv.cpp:4396
+#
+#, fuzzy
 msgid "Route Properties"
-msgstr ""
-
-#: src/chcanv.cpp:4405
+msgstr "Eigenschaften"
+#
 msgid "Are you sure you want to delete <ALL> routes?"
-msgstr ""
-
-#: src/chcanv.cpp:4446
+msgstr "Sollen wirklich <ALLE> Routen gelöscht werden?"
+#
+#, fuzzy
 msgid "Track Properties"
-msgstr ""
-
-#: src/chcanv.cpp:5390
+msgstr "Eigenschaften"
+#
 msgid "OverZoom"
 msgstr ""
-
-#: src/chcanv.cpp:6933
+#
 msgid "Failed to create ocpCursor."
-msgstr ""
-
-#: src/chcanv.cpp:7070
+msgstr "Erstellen von ocpCursor versagt."
+#
 msgid "AISTargetQuery"
 msgstr ""
-
-#: src/chcanv.cpp:7494
+#
+#, fuzzy
 msgid "Chart"
-msgstr ""
-
-#: src/concanv.cpp:207
+msgstr "Karte drucken"
+#
 msgid "Leg/Route"
-msgstr ""
-
-#: src/concanv.cpp:431
+msgstr "Abschnitt/Route"
+#
 msgid "Route"
-msgstr ""
-
-#: src/concanv.cpp:433
+msgstr "Route"
+#
 msgid "This Leg"
-msgstr ""
-
-#: src/grib.cpp:195
+msgstr "Dieser Abschnitt"
+#
 msgid "GRIB File Directory"
-msgstr ""
-
-#: src/grib.cpp:221
+msgstr "GRIB-Verzeichnis"
+#
+#, fuzzy
 msgid "GRIB Data"
-msgstr ""
-
-#: src/grib.cpp:230
+msgstr "GRIB"
+#
 msgid "Wind Speed, Kts."
 msgstr ""
-
-#: src/grib.cpp:236
+#
 msgid "Wind Direction"
 msgstr ""
-
-#: src/grib.cpp:242
+#
 msgid "Pressure, mBar"
 msgstr ""
-
-#: src/grib.cpp:248
+#
 msgid "Significant Wave Height, m"
 msgstr ""
-
-#: src/grib.cpp:976
+#
 msgid "Please Zoom or Scale Out to view suppressed HTSGW GRIB"
 msgstr ""
-
-#: src/grib.cpp:1132
+#
 msgid "Please Zoom or Scale Out to view suppressed CRAIN GRIB"
 msgstr ""
-
-#: src/navutil.cpp:6072
+#
 msgid "&Font family:"
-msgstr ""
-
-#: src/navutil.cpp:6078 src/navutil.cpp:6080
+msgstr "&Schrift-Familie:"
+#
 msgid "The font family."
-msgstr ""
-
-#: src/navutil.cpp:6085
+msgstr "Die Schriftarten-Familie"
+#
 msgid "&Style:"
-msgstr ""
-
-#: src/navutil.cpp:6089 src/navutil.cpp:6091
+msgstr "&Stil:"
+#
 msgid "The font style."
-msgstr ""
-
-#: src/navutil.cpp:6096
+msgstr "Der Schriftstil"
+#
 msgid "&Weight:"
-msgstr ""
-
-#: src/navutil.cpp:6100 src/navutil.cpp:6102
+msgstr "Schnitt:"
+#
 msgid "The font weight."
-msgstr ""
-
-#: src/navutil.cpp:6109
+msgstr "Der Schriftschnitt"
+#
 msgid "C&olour:"
-msgstr ""
-
-#: src/navutil.cpp:6119 src/navutil.cpp:6121
+msgstr "&Farbe"
+#
 msgid "The font colour."
-msgstr ""
-
-#: src/navutil.cpp:6127
+msgstr "Die Schriftfarbe."
+#
 msgid "&Point size:"
-msgstr ""
-
-#: src/navutil.cpp:6132 src/navutil.cpp:6134
+msgstr "Schriftgröße"
+#
 msgid "The font point size."
-msgstr ""
-
-#: src/navutil.cpp:6141
+msgstr "Die Schriftgröße."
+#
 msgid "&Underline"
-msgstr ""
-
-#: src/navutil.cpp:6144 src/navutil.cpp:6146
+msgstr "&Unterstrichen"
+#
 msgid "Whether the font is underlined."
-msgstr ""
-
-#: src/navutil.cpp:6153
+msgstr "Ob die Schrift unterstrichen ist."
+#
 msgid "Preview:"
-msgstr ""
-
-#: src/navutil.cpp:6158 src/navutil.cpp:6160
+msgstr "Vorschau:"
+#
 msgid "Shows the font preview."
-msgstr ""
-
-#: src/navutil.cpp:6167 src/options.cpp:401
+msgstr "Zeigt die Schriftvorschau."
+#
 msgid "&Cancel"
-msgstr ""
-
-#: src/navutil.cpp:6169
+msgstr "&Abbrechen"
+#
 msgid "Click to cancel the font selection."
-msgstr ""
-
-#: src/navutil.cpp:6172
+msgstr "Hier klicken um die Schriftauswahl abzubrechen."
+#
 msgid "&OK"
-msgstr ""
-
-#: src/navutil.cpp:6174 src/navutil.cpp:6176
+msgstr "&OK"
+#
 msgid "Click to confirm the font selection."
-msgstr ""
-
-#: src/options.cpp:397
+msgstr "Hier klicken um die Schriftauswahl anzunehmen."
+#
 msgid "Ok"
-msgstr ""
-
-#: src/options.cpp:411
+msgstr "Ok"
+#
 msgid "Settings"
-msgstr ""
-
-#: src/options.cpp:416
+msgstr "Einstellungen"
+#
 msgid "Navigation Data"
-msgstr ""
-
-#: src/options.cpp:419
+msgstr "Navigationsdaten"
+#
 msgid "Show Status Bar"
-msgstr ""
-
-#: src/options.cpp:425
+msgstr "Statusleiste anzeigen"
+#
 msgid "Printing"
-msgstr ""
-
-#: src/options.cpp:428
+msgstr "Drucken"
+#
 msgid "Show Printing Icon"
-msgstr ""
-
-#: src/options.cpp:435
+msgstr "Druck-Symbol anzeigen"
+#
 msgid "Chart Display Options"
-msgstr ""
-
-#: src/options.cpp:440
+msgstr "Einstellungen zur Kartendarstellung"
+#
 msgid "Show Chart Outlines"
-msgstr ""
-
-#: src/options.cpp:447
+msgstr "Umrisse der Karte anzeigen"
+#
 msgid "Show DepthUnits"
-msgstr ""
-
-#: src/options.cpp:454
+msgstr "Tiefeneinheit anzeigen"
+#
 msgid "Automatic Anchor Mark"
-msgstr ""
-
-#: src/options.cpp:464 src/options.cpp:634
+msgstr "Automatische Ankermarkierung"
+#
 msgid "NMEA Options"
-msgstr ""
-
-#: src/options.cpp:470 src/options.cpp:640
+msgstr "NMEA-Einstellungen"
+#
 msgid "NMEA Data Source"
-msgstr ""
-
-#: src/options.cpp:601
+msgstr "NMEA-Datenquelle"
+#
+#, fuzzy
 msgid "WiFi Options"
-msgstr ""
-
-#: src/options.cpp:606
+msgstr "GUI-Einstellungen"
+#
 msgid "TCP/IP WiFi Data Server"
 msgstr ""
-
-#: src/options.cpp:629
+#
 msgid "GPS"
-msgstr ""
-
-#: src/options.cpp:725
+msgstr "GPS"
+#
 msgid "GPSD Data Server"
 msgstr ""
-
-#: src/options.cpp:744
+#
 msgid "Show GPS/NMEA data stream window"
-msgstr ""
-
-#: src/options.cpp:749
+msgstr "Fenster mit GPS/NMEA-Datenfluss anzeigen"
+#
 msgid "Autopilot Output Port"
 msgstr ""
-
-#: src/options.cpp:790
+#
 msgid "Charts"
 msgstr ""
-
-#: src/options.cpp:802
+#
+#, fuzzy
 msgid "Chart Display Filters"
-msgstr ""
-
-#: src/options.cpp:806
+msgstr "Einstellungen zur Kartendarstellung"
+#
 msgid "Mariner's Standard"
 msgstr ""
-
-#: src/options.cpp:818
+#
 msgid "Clear All"
 msgstr ""
-
-#: src/options.cpp:822
+#
+#, fuzzy
 msgid "Select All"
-msgstr ""
-
-#: src/options.cpp:838
+msgstr "Warnton auswählen"
+#
 msgid "Display Category"
 msgstr ""
-
-#: src/options.cpp:844
+#
+#, fuzzy
 msgid "ShowSoundings"
-msgstr ""
-
-#: src/options.cpp:849
+msgstr "Radar-Ringe anzeigen"
+#
 msgid "META Objects"
 msgstr ""
-
-#: src/options.cpp:854
+#
 msgid "Show Important Text Only"
 msgstr ""
-
-#: src/options.cpp:859
+#
 msgid "Use SCAMIN"
 msgstr ""
-
-#: src/options.cpp:864
+#
+#, fuzzy
 msgid "Show ATON labels"
-msgstr ""
-
-#: src/options.cpp:869
+msgstr "Name anzeigen"
+#
 msgid "Show Light Descriptions"
 msgstr ""
-
-#: src/options.cpp:874
+#
 msgid "De-Clutter Text (exp.)"
 msgstr ""
-
-#: src/options.cpp:879
+#
+#, fuzzy
 msgid "Chart Display Style"
-msgstr ""
-
-#: src/options.cpp:887
+msgstr "Einstellungen zur Kartendarstellung"
+#
+#, fuzzy
 msgid "Points"
-msgstr ""
-
-#: src/options.cpp:895
+msgstr "Schriftarten"
+#
 msgid "Boundaries"
 msgstr ""
-
-#: src/options.cpp:903
+#
+#, fuzzy
 msgid "Colors"
-msgstr ""
-
-#: src/options.cpp:909
+msgstr "Schließen"
+#
 msgid "CM93 Zoom Detail"
 msgstr ""
-
-#: src/options.cpp:917
+#
+#, fuzzy
 msgid "Depth Settings"
-msgstr ""
-
-#: src/options.cpp:921
+msgstr "Einstellungen"
+#
+#, fuzzy
 msgid "Depth Settings(m)"
-msgstr ""
-
-#: src/options.cpp:925
+msgstr "Einstellungen"
+#
+#, fuzzy
 msgid "Shallow Depth"
-msgstr ""
-
-#: src/options.cpp:931
+msgstr "Tiefeneinheit anzeigen"
+#
 msgid "Safety Depth"
 msgstr ""
-
-#: src/options.cpp:937
+#
 msgid "Deep Depth"
 msgstr ""
-
-#: src/options.cpp:951
+#
+#, fuzzy
 msgid "Chart Depth Units"
-msgstr ""
-
-#: src/options.cpp:956
+msgstr "Tiefeneinheit anzeigen"
+#
 msgid "Vector Charts"
 msgstr ""
-
-#: src/options.cpp:966
+#
 msgid "AIS"
-msgstr ""
-
-#: src/options.cpp:969
+msgstr "AIS"
+#
 msgid "AIS General"
 msgstr ""
-
-#: src/options.cpp:974
+#
+#, fuzzy
 msgid "AIS Data Port"
-msgstr ""
-
-#: src/options.cpp:1010
+msgstr "NMEA-Datenquelle"
+#
 msgid "CPA Calculation"
 msgstr ""
-
-#: src/options.cpp:1018
+#
 msgid "No CPA Calculation if target range is greater than (NMi):"
 msgstr ""
-
-#: src/options.cpp:1024
+#
 msgid "Warn if CPA less than (NMi):"
 msgstr ""
-
-#: src/options.cpp:1030
+#
 msgid "  ..And TCPA is less than (Minutes):"
 msgstr ""
-
-#: src/options.cpp:1037
+#
 msgid "Lost Targets"
 msgstr ""
-
-#: src/options.cpp:1045
+#
 msgid "Mark targets as lost after (Minutes:):"
 msgstr ""
-
-#: src/options.cpp:1051
+#
 msgid "Remove lost targets after (Minutes:):"
 msgstr ""
-
-#: src/options.cpp:1058
+#
 msgid "Display"
 msgstr ""
-
-#: src/options.cpp:1066
+#
 msgid "Show target COG arrows"
 msgstr ""
-
-#: src/options.cpp:1072
+#
 msgid "      COG arrow predictor length (Minutes):"
 msgstr ""
-
-#: src/options.cpp:1079
+#
+#, fuzzy
 msgid "Show target tracks"
-msgstr ""
-
-#: src/options.cpp:1085
+msgstr "Statusleiste anzeigen"
+#
 msgid "      Target track length (Minutes):"
 msgstr ""
-
-#: src/options.cpp:1092
+#
 msgid "Supress anchored/moored targets"
 msgstr ""
-
-#: src/options.cpp:1098
+#
 msgid "      Max moored target speed (Kts.):"
 msgstr ""
-
-#: src/options.cpp:1105
+#
 msgid "CPA/TCPA Alerts"
 msgstr ""
-
-#: src/options.cpp:1113
+#
 msgid "Show CPA/TCPA Alert Dialog"
 msgstr ""
-
-#: src/options.cpp:1116
+#
 msgid "Select Alert Sound"
-msgstr ""
-
-#: src/options.cpp:1119
+msgstr "Warnton auswählen"
+#
 msgid "Play Sound on CPA/TCPA Alerts"
 msgstr ""
-
-#: src/options.cpp:1122
+#
+#, fuzzy
 msgid "Test Alert Sound"
-msgstr ""
-
-#: src/options.cpp:1125
+msgstr "Warnton auswählen"
+#
 msgid "Supress Alerts for anchored/moored targets"
 msgstr ""
-
-#: src/options.cpp:1137
+#
+#, fuzzy
 msgid "Font Options"
-msgstr ""
-
-#: src/options.cpp:1141
+msgstr "GUI-Einstellungen"
+#
 msgid "Text Element"
 msgstr ""
-
-#: src/options.cpp:1159
+#
 msgid "Choose Font..."
 msgstr ""
-
-#: src/options.cpp:1164
+#
 msgid "Fonts"
-msgstr ""
-
-#: src/options.cpp:1173 src/options.cpp:1176
+msgstr "Schriftarten"
+#
 msgid "GRIB"
-msgstr ""
-
-#: src/options.cpp:1180
+msgstr "GRIB"
+#
 msgid "Show GRIB icon"
-msgstr ""
-
-#: src/options.cpp:1184
+msgstr "GRIB-Symbol anzeigen"
+#
 msgid "Use High Definition Graphics"
-msgstr ""
-
-#: src/options.cpp:1195
+msgstr "Hochäuflösende Graphik verwenden"
+#
 msgid "Etc."
-msgstr ""
-
-#: src/options.cpp:1198
+msgstr "Usw."
+#
 msgid "GPX"
-msgstr ""
-
-#: src/options.cpp:1201
+msgstr "GPX"
+#
 msgid "Show GPX icons"
-msgstr ""
-
-#: src/options.cpp:1207
+msgstr "GPX-Symbole anzeigen"
+#
 msgid "Tracks"
-msgstr ""
-
-#: src/options.cpp:1210
+msgstr "Verlauf"
+#
 msgid "Show Track icon"
-msgstr ""
-
-#: src/options.cpp:1220
+msgstr "Verlauf-Symbol anzeigen"
+#
 msgid "Place Trackpoints at time interval (Seconds):"
 msgstr ""
-
-#: src/options.cpp:1227
+#
 msgid "Place Trackpoints at distance interval (NMi):"
 msgstr ""
-
-#: src/options.cpp:1234
+#
 msgid "Radar rings"
-msgstr ""
-
-#: src/options.cpp:1237
+msgstr "Radar-Ringe"
+#
 msgid "Show radar rings"
-msgstr ""
-
-#: src/options.cpp:1242
+msgstr "Radar-Ringe anzeigen"
+#
 msgid "Number of radar rings shown"
-msgstr ""
-
-#: src/options.cpp:1248
+msgstr "Anzahl der angezeigten Radar-Ringe"
+#
 msgid "Distance between rings"
-msgstr ""
-
-#: src/options.cpp:1258
+msgstr "Abstand zwischen den Radar-Ringen"
+#
+#, fuzzy
 msgid "Units"
-msgstr ""
-
-#: src/options.cpp:1263
+msgstr "Schriftarten"
+#
 msgid "Waypoint Locking"
-msgstr ""
-
-#: src/options.cpp:1266
+msgstr "Wegpunkte arretieren"
+#
 msgid "Lock all waypoints unless a waypoint property dialog is visible"
 msgstr ""
-
-#: src/options.cpp:1273
+"Alle Wegpunkte arretieren, außer wenn ein Wegpunkte-Dialog angezeigt wird"
+#
 msgid "GUI Options"
-msgstr ""
-
-#: src/options.cpp:1277
+msgstr "GUI-Einstellungen"
+#
 msgid "Enable Wheel-Zoom-to-Cursor"
-msgstr ""
-
-#: src/options.cpp:1282
+msgstr "Mausrad-am-Zeiger-Zoom aktivieren"
+#
 msgid "Preserve scale when switching charts"
-msgstr ""
-
-#: src/options.cpp:2101
+msgstr "Maßstab bei Kartenwechsel beibehalten"
+#
 msgid "Available Chart Directories"
-msgstr ""
-
-#: src/options.cpp:2115
+msgstr "Verfügbare Kartenverzeichnisse"
+#
 msgid "Add Selection"
-msgstr ""
-
-#: src/options.cpp:2120
+msgstr "Auswahl hinzufügen"
+#
 msgid "Active Chart Directories"
-msgstr ""
-
-#: src/options.cpp:2138
+msgstr "Aktive Kartenverzeichnisse"
+#
 msgid "Delete Selection"
-msgstr ""
-
-#: src/options.cpp:2151
+msgstr "Auswahl löschen"
+#
 msgid "Update Control"
-msgstr ""
-
-#: src/options.cpp:2154
+msgstr "Aktualisierungseinstellung"
+#
 msgid "Force Full Database Rebuild"
-msgstr ""
-
-#: src/routeman.cpp:910 src/routeprop.cpp:226 src/routeprop.cpp:713
-#: src/routeprop.cpp:1108
+msgstr "Gesamte Datenbank neu aufbauen"
+#
 msgid "Cancel"
-msgstr ""
-
-#: src/routeman.cpp:913
+msgstr "Abbrechen"
+#
 msgid "Send"
-msgstr ""
-
-#: src/routeprop.cpp:166 src/routeprop.cpp:670
+msgstr "Senden"
+#
 msgid "Properties"
-msgstr ""
-
-#: src/routeprop.cpp:170 src/routeprop.cpp:1062
+msgstr "Eigenschaften"
+#
 msgid "Name"
-msgstr ""
-
-#: src/routeprop.cpp:180
+msgstr "Name"
+#
 msgid "Depart From"
-msgstr ""
-
-#: src/routeprop.cpp:183
+msgstr "Ursprungsort"
+#
 msgid "Destination"
-msgstr ""
-
-#: src/routeprop.cpp:196
+msgstr "Ziel"
+#
 msgid "Total Distance"
-msgstr ""
-
-#: src/routeprop.cpp:215
+msgstr "Gesamtentfernung"
+#
 msgid "Waypoints"
-msgstr ""
-
-#: src/routeprop.cpp:229 src/routeprop.cpp:716 src/routeprop.cpp:1111
+msgstr "Wegpunkte"
+#
 msgid "OK"
-msgstr ""
-
-#: src/routeprop.cpp:675
+msgstr "OK"
+#
 msgid "Mark Name"
-msgstr ""
-
-#: src/routeprop.cpp:681
+msgstr "Name der Markierung"
+#
 msgid "Show Name"
-msgstr ""
-
-#: src/routeprop.cpp:684
+msgstr "Name anzeigen"
+#
 msgid "Mark Icon"
-msgstr ""
-
-#: src/routeprop.cpp:692 src/routeprop.cpp:1070
+msgstr "Symbol der Markierung"
+#
 msgid "Position"
-msgstr ""
-
-#: src/routeprop.cpp:697 src/routeprop.cpp:1075
+msgstr "Position"
+#
 msgid "Latitude"
-msgstr ""
-
-#: src/routeprop.cpp:704 src/routeprop.cpp:1081
+msgstr "Längengrad"
+#
 msgid "Longitude"
-msgstr ""
-
-#: src/routeprop.cpp:1088
+msgstr "Breitengrad"
+#
 msgid "Links"
-msgstr ""
+msgstr "Verbindung"
+#
+#
+#~ msgid "Cannot create opencpn home directory"
+#~ msgstr "Kann das Opencpn Home-Verzeichnis nicht erstellen"
+#
+#
+#~ msgid "Cannot create opencpn log directory"
+#~ msgstr "Kann das Opencpn Log-Verzeichnis nicht erstellen"
+#
+#
+#~ msgid " -------Starting opencpn-------"
+#~ msgstr "-------opencpn startet-------"
+#
+#
+#~ msgid "Using existing Config_File: "
+#~ msgstr "Verwende bestehende Konfigurationsdatei:"
+#
+#
+#~ msgid "Creating new Config_File: "
+#~ msgstr "Erstelle neue Konfigurationsdatei:"
+#
+#
+#~ msgid "Cannot create config file directory for "
+#~ msgstr "Kann das Verzeichnis für die Konfigurationsdatei nicht erstellen für"
+#
+#
+#~ msgid "Looking for s57data in "
+#~ msgstr "Suche s57Daten in"
+#
+#
+#~ msgid "Using s57data in "
+#~ msgstr "Verwende s57Daten in"
+#
+#
+#~ msgid "   S52PLIB Initialization failed, disabling S57 charts."
+#~ msgstr ""
+#~ "   Initialisierung von S52PLIB nicht möglich, deaktiviere S57-Karten."
+#
+#
+#~ msgid "Using Tide/Current data from:  "
+#~ msgstr "Verwende Tiden-/Strömungsdaten aus:  "
+#
+#
+#~ msgid ""
+#~ "Chartlist file not found, config chart dir array is empty.  Chartlist "
+#~ "target file is:"
+#~ msgstr ""
+#~ "Kartenliste-Datei nciht gefunden, Kartenverzeichnis in der "
+#~ "Konfigurationsdatei nicht vorhanden.  Kartenliste-Datei ist:"
+#
+#
+#~ msgid "GPS Watchdog Timeout is: %d sec."
+#~ msgstr "Zeitlimit der GPS-Überwachung ist: %d Sek."
+#
+#
+#~ msgid "opencpn::MyApp exiting cleanly...\n"
+#~ msgstr "opencpn::MyApp wird runtergefahren...\n"
+#
+#
+#~ msgid "opencpn::MyFrame exiting cleanly..."
+#~ msgstr "opencpn::MyFrame wird runtergefahren..."
+#
+#
+#~ msgid "Got quitflag from SIGUSR1"
+#~ msgstr " quitflag von SIGUSR1 empfangen"
+#
+#
+#~ msgid "   ***GPS Watchdog timeout..."
+#~ msgstr "   ***GPS-Überwachung meldet Zeitüberschreitung..."
+#
+#
+#~ msgid "   ***HDx Watchdog timeout..."
+#~ msgstr "   ***HDx-Überwachung meldet Zeitüberschreitung..."
+#
+#
+#~ msgid "chart1.cpp:SetChartThumbnail...Could not create thumbnail"
+#~ msgstr "chart1.cpp:SetChartThumbnail... Konnte Thumbnail nicht erstellen"
+#
+#
+#~ msgid "chart1.cpp:SetChartThumbnail...Could not open chart "
+#~ msgstr "chart1.cpp:SetChartThumbnail...Konnte Karte nicht öffnen"
+#
+#
+#~ msgid "   Unrecognized NMEA Sentence..."
+#~ msgstr "   Unbekannter NMEA-Datensatz..."
+#
+#
+#~ msgid "Setting system time, delta t is %d seconds"
+#~ msgstr "Systemzeit wird eingestellt, delta t beträgt %d Sekunden"
+#
+#
+#~ msgid "Linux command is:"
+#~ msgstr "Der Linux-Befehl ist:"
+#
+#
+#~ msgid "Warning: ocpnhelper failed...."
+#~ msgstr "Achtung: Ocpnhelper versagt...."
+#
+#
+#~ msgid "Parsing copy of /proc/tty/driver/serial..."
+#~ msgstr "Analyse der Kopie von /proc/tty/driver/serial..."
+#
+#
+#~ msgid "Parsing copy of /proc/tty/driver/usbserial..."
+#~ msgstr "Analyse der Kopie von /proc/tty/driver/usbserial..."
+#
+#
+#~ msgid "Found Garmin USB Driver."
+#~ msgstr "Garmin USB Treiber gefunden."
+#
+#
+#~ msgid "Found Garmin Device."
+#~ msgstr "Garmin Einheit erkannt."
