@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.29 2009/12/17 03:34:06 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.30 2009/12/22 21:56:57 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.30  2009/12/22 21:56:57  bdbcat
+ * Cleanup Leaks
+ *
  * Revision 1.29  2009/12/17 03:34:06  bdbcat
  * Correct crash above Lat 80
  *
@@ -1327,7 +1330,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
                   if(!read_and_decode_ushort(stream, &nrelated))
                         return false;
 
-                  pobj->n_related_objects = nrelated;
+                  pobj->n_related_objects = (unsigned char)(nrelated & 0xFF);
                   obj_desc_bytes -= 2;
             }
 
@@ -2100,10 +2103,10 @@ Extended_Geometry *cm93chart::BuildGeom(Object *pobject, wxFileOutputStream *pos
                         n_maxvertex += pgd->n_points;
                   }
 
-                  n_maxvertex += 2;       // fluff
+                  //TODO  May not need this fluff adder....
+                  n_maxvertex += 1;       // fluff
 
-
-                  wxPoint2DDouble *pPoints = (wxPoint2DDouble *)malloc(n_maxvertex * sizeof(wxPoint2DDouble));
+                  wxPoint2DDouble *pPoints = (wxPoint2DDouble *)calloc((n_maxvertex) * sizeof(wxPoint2DDouble), 1);
 
                   int ip = 1;
                   int n_prev_vertex_index = 1;
@@ -3364,7 +3367,7 @@ S57Obj *cm93chart::CreateS57Obj( int iobject, Object *pobject, cm93_dictionary *
       // Everything in Xgeom that is needed later has been given to the object
       // So, the xgeom object can be deleted
       if(bDeleteGeomInline)
-          free(xgeom);
+          delete xgeom;
 
       return pobj;
 }
@@ -3608,7 +3611,7 @@ bool cm93chart::LoadM_COVRSet(ViewPort *vpt)
                                                       free( xgeom->pvector_index );
                                                       free( xgeom->contour_array );
                                                       free( xgeom->vertex_array );
-                                                      free(xgeom);
+                                                      delete xgeom;
                                           }
                                      }
                               }
