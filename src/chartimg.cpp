@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.35 2009/12/17 02:49:16 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.36 2009/12/22 22:01:40 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.36  2009/12/22 22:01:40  bdbcat
+ * Improve Georef
+ *
  * Revision 1.35  2009/12/17 02:49:16  bdbcat
  * Correct IDL again
  *
@@ -96,6 +99,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.36  2009/12/22 22:01:40  bdbcat
+ * Improve Georef
+ *
  * Revision 1.35  2009/12/17 02:49:16  bdbcat
  * Correct IDL again
  *
@@ -226,7 +232,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.35 2009/12/17 02:49:16 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.36 2009/12/22 22:01:40 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -2522,6 +2528,40 @@ bool ChartBaseBSB::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
 
             ret_val = true;
       }
+      else
+      {
+            if(vp_last.bValid)
+            {
+                  latlong_to_pix_vp(vp_proposed.clat, vp_proposed.clon, pixxd, pixyd, vp_last);
+                  pixx = pixxd;
+                  pixy = pixyd;
+
+
+                  int xmod = ( pixx - ( int ) ( vp_proposed.pix_width  * binary_scale_factor / 2 ) ) /4;
+                  xmod *= 4;
+                  int newx = xmod;
+
+                  int ymod = ( pixy - ( int ) ( vp_proposed.pix_height * binary_scale_factor / 2 ) ) /4;
+                  ymod *= 4;
+                  int newy = ymod;
+
+                  SetVPParms ( &vp_proposed );     // preset here for next adjustment
+
+                  //    Possible adjustment to clat/clon
+                  double alat, alon;
+                  vp_pix_to_latlong(vp_last, ( int ) ( ( ( vp_proposed.pix_width /2 ) * binary_scale_factor ) + newx ),
+                                    ( int ) ( ( ( vp_proposed.pix_height/2 ) * binary_scale_factor ) + newy ),
+                                                &alat, &alon );
+
+                  //    Do not adjust the proposed latitude,
+                  //    since charts without internal georef have poor ypixel/lat registration typically
+      //            vp_proposed.clat = alat;
+                  vp_proposed.clon = alon;
+
+                  ret_val = true;
+            }
+      }
+
       return ret_val;
 }
 
@@ -4271,7 +4311,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.35 2009/12/17 02:49:16 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.36 2009/12/22 22:01:40 bdbcat Exp $
 *
 */
 
