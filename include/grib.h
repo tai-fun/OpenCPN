@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grib.h,v 1.3 2009/12/10 21:22:09 bdbcat Exp $
+ * $Id: grib.h,v 1.4 2009/12/22 22:07:56 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  GRIB Manager Object
@@ -137,7 +137,8 @@ class GRIBUIDialog: public wxDialog
             int               m_RS_Idx_WIND_VY;
             int               m_RS_Idx_PRESS;
             int               m_RS_Idx_HTSIGW;
-
+            int               m_RS_Idx_WINDSCAT_VY;
+            int               m_RS_Idx_WINDSCAT_VX;
 
 };
 
@@ -160,6 +161,8 @@ class GRIBOverlayFactory
             bool RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp);
             bool RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp);
             bool RenderGribWvDir(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp);
+            bool RenderGribScatWind(GribRecord *pGRX, GribRecord *pGRY, wxMemoryDC *pmdc, ViewPort *vp);
+            bool RenderGribCRAIN(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp);
 
             void drawWindArrowWithBarbs(wxMemoryDC *pmdc, int x, int y, double vx, double vy, bool south, wxColour arrowColor);
             void drawWaveArrow(wxMemoryDC *pmdc, int i, int j, double dir, wxColour arrowColor);
@@ -173,11 +176,14 @@ class GRIBOverlayFactory
             void drawTriangle(wxMemoryDC *pmdc, wxPen pen, bool south, double si, double co, int di, int dj, int b);
 
             wxColour GetGraphicColor(double val, double val_max);
+            wxColour GetQuickscatColor(double val);
+            void ClearCachedData(void);
 
             double                  m_last_vp_scale;
             wxArrayPtrVoid          m_IsobarArray;
 
             wxBitmap                *m_pbm_sigwh;
+            wxBitmap                *m_pbm_crain;
 
 #if wxUSE_GRAPHICS_CONTEXT
             wxGraphicsContext       *m_pgc;

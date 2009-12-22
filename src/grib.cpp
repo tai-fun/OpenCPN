@@ -42,8 +42,16 @@
 #include "grib.h"
 #include "georef.h"
 
+#ifdef __MSVC__
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__ )
+#define new DEBUG_NEW
+#endif
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.6 2009/12/14 04:58:01 bdbcat Exp $" );
+
+CPL_CVSID ( "$Id: grib.cpp,v 1.7 2009/12/22 22:07:43 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -210,7 +218,7 @@ void GRIBUIDialog::CreateControls()
       m_pRecordTree->SelectItem(m_RecordTree_root_id);
 
 //      Data Box
-      wxStaticBox* itemStaticBoxData = new wxStaticBox(this, wxID_ANY, _T("GRIB Data"));
+      wxStaticBox* itemStaticBoxData = new wxStaticBox(this, wxID_ANY, _("GRIB Data"));
       wxStaticBoxSizer* itemStaticBoxSizerData= new wxStaticBoxSizer(itemStaticBoxData, wxVERTICAL);
       boxSizer->Add(itemStaticBoxSizerData, 0, wxALL|wxEXPAND, border_size);
 
@@ -219,25 +227,25 @@ void GRIBUIDialog::CreateControls()
       itemStaticBoxSizerData->Add(pDataGrid, 0, wxALL|wxEXPAND, border_size);
 
 
-      wxStaticText *ps1 = new wxStaticText(this, wxID_ANY, _T("Wind Speed, Kts."));
+      wxStaticText *ps1 = new wxStaticText(this, wxID_ANY, _("Wind Speed, Kts."));
       pDataGrid->Add(ps1, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       m_pWindSpeedTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pWindSpeedTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
-      wxStaticText *ps2 = new wxStaticText(this, wxID_ANY, _T("Wind Direction"));
+      wxStaticText *ps2 = new wxStaticText(this, wxID_ANY, _("Wind Direction"));
       pDataGrid->Add(ps2, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       m_pWindDirTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pWindDirTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
-      wxStaticText *ps3 = new wxStaticText(this, wxID_ANY, _T("Pressure, mBar"));
+      wxStaticText *ps3 = new wxStaticText(this, wxID_ANY, _("Pressure, mBar"));
       pDataGrid->Add(ps3, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       m_pPressureTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pPressureTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
-      wxStaticText *ps4 = new wxStaticText(this, wxID_ANY, _T("Significant Wave Height, m"));
+      wxStaticText *ps4 = new wxStaticText(this, wxID_ANY, _("Significant Wave Height, m"));
       pDataGrid->Add(ps4, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       m_pSigWHTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
@@ -323,6 +331,31 @@ void GRIBUIDialog::UpdateTrackingControls(void)
                   }
             }
 
+            //    Update the QuickScat (aka Wind) control
+            if((m_RS_Idx_WINDSCAT_VX != -1) && (m_RS_Idx_WINDSCAT_VY != -1))
+            {
+                  double vx = m_pCurrentGribRecordSet->m_GribRecordPtrArray.Item ( m_RS_Idx_WINDSCAT_VX )->getInterpolatedValue(m_cursor_lon, m_cursor_lat, true);
+                  double vy = m_pCurrentGribRecordSet->m_GribRecordPtrArray.Item ( m_RS_Idx_WINDSCAT_VY )->getInterpolatedValue(m_cursor_lon, m_cursor_lat, true);
+
+                  if((vx != GRIB_NOTDEF) && (vy != GRIB_NOTDEF))
+                  {
+                        double  vkn = sqrt(vx*vx+vy*vy)*3.6/1.852;
+                        double ang = 90. + (atan2(vy, -vx)  * 180. / PI);
+                        if(ang > 360.) ang -= 360.;
+                        if(ang < 0.) ang += 360.;
+
+                        wxString t;
+                        t.Printf(_T("%2d"), (int)vkn);
+                        m_pWindSpeedTextCtrl->AppendText(t);
+
+                        t.Printf(_T("%03d"), (int)(ang));
+                        m_pWindDirTextCtrl->AppendText(t);
+
+                  }
+            }
+
+
+
       }
 }
 
@@ -404,6 +437,8 @@ void GRIBUIDialog::OnChooseDirClick ( wxCommandEvent& event )
 
 void GRIBUIDialog::PopulateTreeControl()
 {
+      if(!wxDir::Exists(m_currentGribDir))
+            return;
 
       //    Get an array of GRIB file names in the target directory, not descending into subdirs
       wxArrayString file_array;
@@ -501,6 +536,8 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
       m_RS_Idx_WIND_VY = -1;
       m_RS_Idx_PRESS   = -1;
       m_RS_Idx_HTSIGW  = -1;
+      m_RS_Idx_WINDSCAT_VX = -1;
+      m_RS_Idx_WINDSCAT_VY = -1;
 
       if(pGribRecordSet)
       {
@@ -521,7 +558,7 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
                   }
 
 
-                  else if ( (pGR->getDataType()==GRB_WIND_VY)
+                  if ( (pGR->getDataType()==GRB_WIND_VY)
                         && (pGR->getLevelType()==LV_ABOV_GND)
                         && (pGR->getLevelValue()==10) )
                   {
@@ -540,6 +577,13 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
                   // Significant Wave Height
                   if (pGR->getDataType()==GRB_HTSGW )
                         m_RS_Idx_HTSIGW = i;
+
+                  // QuickScat Winds
+                  if (pGR->getDataType()==GRB_USCT )
+                        m_RS_Idx_WINDSCAT_VX = i;
+
+                  if (pGR->getDataType()==GRB_VSCT )
+                        m_RS_Idx_WINDSCAT_VY = i;
 
             }
       }
@@ -575,12 +619,22 @@ GRIBOverlayFactory::GRIBOverlayFactory()
       m_last_vp_scale = 0.;
 
       m_pbm_sigwh = NULL;
+      m_pbm_crain = NULL;
 
 }
 
 GRIBOverlayFactory::~GRIBOverlayFactory()
 {
       delete m_pbm_sigwh;
+      delete m_pbm_crain;
+
+      for(unsigned int i = 0 ; i < m_IsobarArray.GetCount() ; i++)
+      {
+            IsoLine *piso = (IsoLine *)m_IsobarArray.Item(i);
+            delete piso;
+      }
+
+      m_IsobarArray.Empty();
 
 }
 
@@ -588,14 +642,26 @@ void GRIBOverlayFactory::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
 {
       m_pGribRecordSet = pGribRecordSet;
 
+      ClearCachedData();
+
+      //    Clear out the cached isobars
+      for(unsigned int i = 0 ; i < m_IsobarArray.GetCount() ; i++)
+      {
+            IsoLine *piso = (IsoLine *)m_IsobarArray.Item(i);
+            delete piso;
+      }
       m_IsobarArray.Clear();                            // Will need to rebuild Isobar list
 
+}
+void GRIBOverlayFactory::ClearCachedData(void)
+{
       //    Clear out the cached bitmaps
       delete m_pbm_sigwh;
       m_pbm_sigwh = NULL;
 
+      delete m_pbm_crain;
+      m_pbm_crain = NULL;
 }
-
 
 bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
 {
@@ -604,10 +670,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
 
       //    If the scale has changed, clear out the cached bitmaps
       if(vp->view_scale_ppm != m_last_vp_scale)
-      {
-            delete m_pbm_sigwh;
-            m_pbm_sigwh = NULL;
-      }
+            ClearCachedData();
 
       m_last_vp_scale = vp->view_scale_ppm;
 
@@ -667,6 +730,32 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
                   RenderGribWvDir(pGR, pmdc, vp);
 
 
+            // QuickScat Wind
+            //    Actually need two records to draw the wind arrows
+
+            if (pGR->getDataType()==GRB_USCT )
+            {
+                  if(pGRWindVY)
+                        RenderGribScatWind(pGR, pGRWindVY,  pmdc, vp);
+                  else
+                        pGRWindVX = pGR;
+            }
+
+
+            else if (pGR->getDataType()==GRB_VSCT)
+            {
+                  if(pGRWindVX)
+                        RenderGribScatWind(pGRWindVX, pGR,  pmdc, vp);
+                  else
+                        pGRWindVY = pGR;
+            }
+
+            // Catagorical Rain, seen with QuickScat Gribs
+            if ( pGR->getDataType()==GRB_CRAIN )
+                  RenderGribCRAIN(pGR, pmdc, vp);
+
+
+
      }
 
 #if wxUSE_GRAPHICS_CONTEXT
@@ -678,8 +767,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
 
 bool GRIBOverlayFactory::RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMemoryDC *pmdc, ViewPort *vp)
 {
-
-      //    Get the the grid
+       //    Get the the grid
       int imax = pGRX->getNi();                  // Longitude
       int jmax = pGRX->getNj();                  // Latitude
 
@@ -722,6 +810,63 @@ bool GRIBOverlayFactory::RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMe
 
                                     if (vx != GRIB_NOTDEF && vy != GRIB_NOTDEF)
                                           drawWindArrowWithBarbs(pmdc, p.x, p.y, vx, vy, (lat < 0.), GetGlobalColor ( _T ( "YELO2" ) ));
+                              }
+                        }
+                  }
+            }
+      }
+      return true;
+}
+
+bool GRIBOverlayFactory::RenderGribScatWind(GribRecord *pGRX, GribRecord *pGRY, wxMemoryDC *pmdc, ViewPort *vp)
+{
+       //    Get the the grid
+      int imax = pGRX->getNi();                  // Longitude
+      int jmax = pGRX->getNj();                  // Latitude
+
+      //    Barbs?
+      bool barbs = true;
+
+      //    Set minimum spacing between wind arrows
+      int space;
+
+      if (barbs)
+            space =  10;
+      else
+            space =  10;
+
+      int oldx = -1000; int oldy = -1000;
+
+      for(int i=0 ; i < imax ; i++)
+      {
+            double  lonl = pGRX->getX(i);
+            double  latl = pGRX->getY(0);
+            wxPoint pl = GetDCPixPoint(vp, latl, lonl);
+
+            if(abs(pl.x - oldx) >= space)
+            {
+                  oldx = pl.x;
+                  for(int j=0 ; j < jmax ; j++)
+                  {
+                        double  lon = pGRX->getX(i);
+                        double  lat = pGRX->getY(j);
+                        wxPoint p = GetDCPixPoint(vp, lat, lon);
+
+                        if(abs(p.y - oldy) >= space)
+                        {
+                              oldy = p.y;
+
+                              if(vp->vpBBox.PointInBox(lon, lat, 0.) || vp->vpBBox.PointInBox(lon - 360., lat, 0.))
+                              {
+                                    double vx = pGRX->getValue(i, j);
+                                    double vy = pGRY->getValue(i, j);
+                                    double  vkn = sqrt(vx*vx+vy*vy)*3.6/1.852;
+                                    wxColour c = GetQuickscatColor(vkn);
+
+
+
+                                    if (vx != GRIB_NOTDEF && vy != GRIB_NOTDEF)
+                                          drawWindArrowWithBarbs(pmdc, p.x, p.y, vx, vy, (lat < 0.), c);
                               }
                         }
                   }
@@ -828,7 +973,7 @@ bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, View
                   wxFont mfont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
                   pmdc->SetFont(mfont);
 
-                  wxString msg = _T("Please Zoom or Scale Out to view suppressed HTSGW GRIB");
+                  wxString msg = _("Please Zoom or Scale Out to view suppressed HTSGW GRIB");
                   int w;
                   pmdc->GetTextExtent(msg, &w, NULL);
                   pmdc->DrawText(msg, vp->pix_width/2 - w/2, vp->pix_height/2);
@@ -889,6 +1034,113 @@ bool GRIBOverlayFactory::RenderGribWvDir(GribRecord *pGR, wxMemoryDC *pmdc, View
 }
 
 
+bool GRIBOverlayFactory::RenderGribCRAIN(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp)
+{
+      wxPoint porg = GetDCPixPoint(vp,  pGR->getLatMax(), pGR->getLonMin());
+      wxBoundingBox grib_bb(pGR->getLonMin(), pGR->getLatMin(), pGR->getLonMax(), pGR->getLatMax());
+
+      if(vp->vpBBox.Intersect(grib_bb) != _OUT)
+      {
+
+      // If needed, create the bitmap
+            if(m_pbm_crain == NULL)
+            {
+                  wxPoint pmin = GetDCPixPoint(vp,  pGR->getLatMin(), pGR->getLonMin());
+                  wxPoint pmax = GetDCPixPoint(vp,  pGR->getLatMax(), pGR->getLonMax());
+
+                  int width = abs(pmax.x - pmin.x);
+                  int height = abs(pmax.y - pmin.y);
+
+
+                  //    Dont try to create enormous GRIB bitmaps
+                  if((width < 2000)  && (height < 2000))
+                  {
+                        //    This could take a while....
+                              ::wxBeginBusyCursor();
+
+                              wxImage gr_image(width, height);
+                              gr_image.InitAlpha();
+
+                              int grib_pixel_size = 4;
+
+                              wxPoint p;
+                              for(int ipix = 0 ; ipix < (width-grib_pixel_size + 1) ; ipix += grib_pixel_size)
+                              {
+                                    for(int jpix = 0 ; jpix < (height-grib_pixel_size + 1) ; jpix += grib_pixel_size)
+                                    {
+                                          double lat, lon;
+                                          p.x = ipix + porg.x;
+                                          p.y = jpix + porg.y;
+                                          vp->GetMercatorLLFromPix( p, &lat, &lon);
+
+                                          double  vh = pGR->getInterpolatedValue(lon, lat);
+
+                                          if (vh == GRIB_NOTDEF)
+                                          {
+                                                wxColour c(vh * 255, 0, 0);
+                                                unsigned char r = c.Red();
+                                                unsigned char g = c.Green();
+                                                unsigned char b = c.Blue();
+
+                                                for(int xp=0 ; xp < grib_pixel_size ; xp++)
+                                                      for(int yp=0 ; yp < grib_pixel_size ; yp++)
+                                                {
+                                                      gr_image.SetRGB(ipix + xp, jpix + yp, r,g,b);
+                                                      gr_image.SetAlpha(ipix + xp, jpix + yp, 128);
+
+                                                }
+                                          }
+                                          else
+                                          {
+                                                for(int xp=0 ; xp < grib_pixel_size ; xp++)
+                                                      for(int yp=0 ; yp < grib_pixel_size ; yp++)
+                                                {
+                                                      gr_image.SetAlpha(ipix + xp, jpix + yp, 0);
+                                                }
+                                          }
+                                    }
+                              }
+
+                              wxImage bl_image = (gr_image.Blur(4));
+
+                        //    Create a Bitmap
+                              m_pbm_crain = new wxBitmap(bl_image);
+                              wxMask *gr_mask = new wxMask(*m_pbm_crain, wxColour(0,0,0));
+                              m_pbm_crain->SetMask(gr_mask);
+
+                              ::wxEndBusyCursor();
+
+                  }
+            }
+
+
+            if(m_pbm_crain)
+            {
+                  //    Select bm into a memory dc
+//                  wxMemoryDC mdc(*m_pbm_sigwh);
+
+                  //    Blit it onto the dc
+ //                 pmdc->Blit(porg.x, porg.y, m_pbm_sigwh->GetWidth(), m_pbm_sigwh->GetHeight(), &mdc, 0, 0, wxCOPY, true);          // with mask
+                  pmdc->DrawBitmap(*m_pbm_crain, porg.x, porg.y, true);
+            }
+            else
+            {
+                  wxFont sfont = pmdc->GetFont();
+                  wxFont mfont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
+                  pmdc->SetFont(mfont);
+
+                  wxString msg = _("Please Zoom or Scale Out to view suppressed CRAIN GRIB");
+                  int w;
+                  pmdc->GetTextExtent(msg, &w, NULL);
+                  pmdc->DrawText(msg, vp->pix_width/2 - w/2, vp->pix_height/2);
+
+                  pmdc->SetFont(sfont);
+            }
+
+      }
+
+      return true;
+}
 
 
 
@@ -914,27 +1166,52 @@ wxColour GRIBOverlayFactory::GetGraphicColor(double val, double val_max)
 
       wxColour c;
       if((val > 0) && (val < 1))         c.Set(_T("#002ad9"));
-      else if((val > 1)  && (val < 2))   c.Set(_T("#006ed9"));
-      else if((val > 2)  && (val < 3))   c.Set(_T("#00b2d9"));
-      else if((val > 3)  && (val < 4))   c.Set(_T("#00d4d4"));
-      else if((val > 4)  && (val < 5))   c.Set(_T("#00d9a6"));
-      else if((val > 5)  && (val < 7))   c.Set(_T("#00d900"));
-      else if((val > 7)  && (val < 9))   c.Set(_T("#95d900"));
-      else if((val > 9)  && (val < 12))  c.Set(_T("#d9d900"));
-      else if((val > 12) && (val < 15))  c.Set(_T("#d9ae00"));
-      else if((val > 15) && (val < 18))  c.Set(_T("#d98300"));
-      else if((val > 18) && (val < 21))  c.Set(_T("#d95700"));
-      else if((val > 21) && (val < 24))  c.Set(_T("#d90000"));
-      else if((val > 24) && (val < 27))  c.Set(_T("#ae0000"));
-      else if((val > 27) && (val < 30))  c.Set(_T("#8c0000"));
-      else if((val > 30) && (val < 36))  c.Set(_T("#870000"));
-      else if((val > 36) && (val < 42))  c.Set(_T("#690000"));
-      else if((val > 42) && (val < 48))  c.Set(_T("#550000"));
-      else if( val > 48)                 c.Set(_T("#410000"));
+      else if((val >= 1)  && (val < 2))   c.Set(_T("#006ed9"));
+      else if((val >= 2)  && (val < 3))   c.Set(_T("#00b2d9"));
+      else if((val >= 3)  && (val < 4))   c.Set(_T("#00d4d4"));
+      else if((val >= 4)  && (val < 5))   c.Set(_T("#00d9a6"));
+      else if((val >= 5)  && (val < 7))   c.Set(_T("#00d900"));
+      else if((val >= 7)  && (val < 9))   c.Set(_T("#95d900"));
+      else if((val >= 9)  && (val < 12))  c.Set(_T("#d9d900"));
+      else if((val >= 12) && (val < 15))  c.Set(_T("#d9ae00"));
+      else if((val >= 15) && (val < 18))  c.Set(_T("#d98300"));
+      else if((val >= 18) && (val < 21))  c.Set(_T("#d95700"));
+      else if((val >= 21) && (val < 24))  c.Set(_T("#d90000"));
+      else if((val >= 24) && (val < 27))  c.Set(_T("#ae0000"));
+      else if((val >= 27) && (val < 30))  c.Set(_T("#8c0000"));
+      else if((val >= 30) && (val < 36))  c.Set(_T("#870000"));
+      else if((val >= 36) && (val < 42))  c.Set(_T("#690000"));
+      else if((val >= 42) && (val < 48))  c.Set(_T("#550000"));
+      else if( val >= 48)                 c.Set(_T("#410000"));
 
       return c;
 }
 
+wxColour GRIBOverlayFactory::GetQuickscatColor(double val)
+{
+
+      wxColour c;
+      if((val > 0) && (val < 5))         c.Set(_T("#000000"));
+//      else if((val > 1)  && (val < 2))   c.Set(_T("#006ed9"));
+      else if((val >= 5)  && (val < 10))   c.Set(_T("#00b2d9"));
+      else if((val >= 10)  && (val < 20))   c.Set(_T("#00d4d4"));
+//      else if((val > 4)  && (val < 5))   c.Set(_T("#00d9a6"));
+      else if((val >= 15)  && (val < 20))   c.Set(_T("#00d900"));
+//      else if((val > 7)  && (val < 9))   c.Set(_T("#95d900"));
+      else if((val >=20)  && (val < 25))  c.Set(_T("#d9d900"));
+//      else if((val > 12) && (val < 15))  c.Set(_T("#d9ae00"));
+//      else if((val > 15) && (val < 18))  c.Set(_T("#d98300"));
+      else if((val >=25) && (val < 30))  c.Set(_T("#d95700"));
+//      else if((val >=30) && (val < 35))  c.Set(_T("#d90000"));
+      else if((val >=30) && (val < 35))  c.Set(_T("#ae0000"));
+//      else if((val > 27) && (val < 30))  c.Set(_T("#8c0000"));
+      else if((val >= 35) && (val < 40))  c.Set(_T("#870000"));
+//      else if((val > 36) && (val < 42))  c.Set(_T("#690000"));
+//      else if((val >=40) && (val < 48))  c.Set(_T("#550000"));
+      else if( val >= 40)                 c.Set(_T("#414100"));
+
+      return c;
+}
 
 
 
@@ -955,8 +1232,9 @@ bool GRIBOverlayFactory::RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, V
       for(unsigned int i = 0 ; i < m_IsobarArray.GetCount() ; i++)
       {
             IsoLine *piso = (IsoLine *)m_IsobarArray.Item(i);
-            piso->drawIsoLine(pmdc, vp, g_bGRIBUseHiDef);
+            piso->drawIsoLine(pmdc, vp, true, g_bGRIBUseHiDef);
 
+            /*
             int gr = 80;
             wxColour color = wxColour(gr,gr,gr);
             int density = 40;
@@ -964,6 +1242,7 @@ bool GRIBOverlayFactory::RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, V
 
             double coef = .01;
             piso->drawIsoLineLabels(pmdc, color, vp, density, first, coef);
+            */
 
       }
 
