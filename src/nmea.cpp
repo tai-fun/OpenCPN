@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.46 2009/11/18 01:24:54 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.47 2009/12/22 22:02:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define SERIAL_OVERLAPPED
 
-CPL_CVSID("$Id: nmea.cpp,v 1.46 2009/11/18 01:24:54 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.47 2009/12/22 22:02:05 bdbcat Exp $");
 
 extern int             g_nNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -662,8 +662,8 @@ OCP_NMEA_Thread::OCP_NMEA_Thread(NMEAWindow *Launcher, wxWindow *MessageTarget, 
 
 OCP_NMEA_Thread::~OCP_NMEA_Thread(void)
 {
-      delete rx_buffer;
-      delete temp_buf;
+      delete[] rx_buffer;
+      delete[] temp_buf;
       delete m_pPortName;
 }
 
