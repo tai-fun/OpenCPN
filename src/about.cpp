@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.43 2009/12/17 02:45:58 bdbcat Exp $
+ * $Id: about.cpp,v 1.44 2009/12/22 22:29:38 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.44  2009/12/22 22:29:38  bdbcat
+ * Beta 1220
+ *
  * Revision 1.43  2009/12/17 02:45:58  bdbcat
  * Beta 1216
  *
@@ -163,12 +166,12 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.43 2009/12/17 02:45:58 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.44 2009/12/22 22:29:38 bdbcat Exp $");
 
 
 //    Some constants
 
-char OpenCPNVersion[] = {"\n\n           Version 1.3.5 Build 1216"};
+char OpenCPNVersion[] = {"\n\n           Version 1.3.5 Build 1222"};
 
 
 char AboutText[] =
@@ -320,7 +323,7 @@ void about::CreateControls()
 
 
   wxStaticText *pST1 = new wxStaticText(this, -1, _T("Label"), wxDefaultPosition, wxSize(400, 100));
-  pST1->SetLabel(_T("OpenCPN...A Nice Little Open Source Chart Plotter/Navigator"));
+  pST1->SetLabel(_("OpenCPN...A Nice Little Open Source Chart Plotter/Navigator"));
   itemBoxSizer2->Add(pST1);
 
 
@@ -329,7 +332,7 @@ void about::CreateControls()
 
   //    About Panel
   wxPanel* itemPanelAbout = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-  itemNotebook4->AddPage(itemPanelAbout, _T("About"));
+  itemNotebook4->AddPage(itemPanelAbout, _("About"));
 
   wxBoxSizer* itemBoxSizer6 = new wxBoxSizer(wxVERTICAL);
   itemPanelAbout->SetSizer(itemBoxSizer6);
@@ -348,7 +351,7 @@ void about::CreateControls()
 
   //     Authors Panel
   wxPanel* itemPanelAuthors = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-  itemNotebook4->AddPage(itemPanelAuthors, _T("Authors"));
+  itemNotebook4->AddPage(itemPanelAuthors, _("Authors"));
 
   wxBoxSizer* itemBoxSizer7 = new wxBoxSizer(wxVERTICAL);
   itemPanelAuthors->SetSizer(itemBoxSizer7);
@@ -364,7 +367,7 @@ void about::CreateControls()
 
   //  License Panel
   wxPanel* itemPanelLicense = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-  itemNotebook4->AddPage(itemPanelLicense, _T("License"));
+  itemNotebook4->AddPage(itemPanelLicense, _("License"));
 
   wxBoxSizer* itemBoxSizer8 = new wxBoxSizer(wxVERTICAL);
   itemPanelLicense->SetSizer(itemBoxSizer8);
@@ -411,7 +414,7 @@ void about::CreateControls()
 
     //     Tips Panel
   wxPanel* itemPanelTips = new wxPanel( itemNotebook4, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-  itemNotebook4->AddPage(itemPanelTips, _T("Help"));
+  itemNotebook4->AddPage(itemPanelTips, _("Help"));
 
   wxBoxSizer* itemBoxSizer9 = new wxBoxSizer(wxVERTICAL);
   itemPanelTips->SetSizer(itemBoxSizer9);
