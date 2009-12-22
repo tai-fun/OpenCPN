@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.56  2009/12/22 21:45:17  bdbcat
+ * Cleanup
+ *
  * Revision 1.55  2009/12/10 21:12:54  bdbcat
  * Beta 1210
  *
@@ -217,7 +220,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.55 2009/12/10 21:12:54 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.56 2009/12/22 21:45:17 bdbcat Exp $" );
 
 //    Statics
 
@@ -348,6 +351,8 @@ extern bool             g_bUseGLL;
 extern TTYWindow        *g_NMEALogWindow;
 extern int              g_NMEALogWindow_x, g_NMEALogWindow_y;
 extern int              g_NMEALogWindow_sx, g_NMEALogWindow_sy;
+
+extern wxString         g_locale;
 
 //------------------------------------------------------------------------------
 // Some wxWidgets macros for useful classes
@@ -2130,7 +2135,7 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "GRIBUseHiDef" ),  &g_bGRIBUseHiDef, 0 );
 
       g_grib_dialog_sx = Read ( _T ( "GRIBDialogSizeX" ), 300L );
-      g_grib_dialog_sy = Read ( _T ( "GRIBDialogSizeY" ), 530L );
+      g_grib_dialog_sy = Read ( _T ( "GRIBDialogSizeY" ), 540L );
       g_grib_dialog_x =  Read ( _T ( "GRIBDialogPosX" ), 20L );
       g_grib_dialog_y =  Read ( _T ( "GRIBDialogPosY" ), 20L );
 
@@ -2141,6 +2146,9 @@ int MyConfig::LoadMyConfig ( int iteration )
       stps.ToDouble ( &g_PlanSpeed );
 
       Read ( _T ( "PreserveScaleOnX" ),  &g_bPreserveScaleOnX, 0 );
+
+      g_locale = _T("en_US");
+      Read ( _T ( "Locale" ), &g_locale );
 
       SetPath ( _T ( "/Settings/GlobalState" ) );
       Read ( _T ( "bFollow" ), &st_bFollow );
@@ -2371,11 +2379,9 @@ int MyConfig::LoadMyConfig ( int iteration )
 
             if ( fabs ( st_lat ) < 90.0 )
                   vLat = st_lat;
-
-            wxString s;
-            s.Printf ( _T ( "Setting Viewpoint Lat/Lon %g, %g" ), vLat, vLon );
-            wxLogMessage ( s );
       }
+      s.Printf ( _T ( "Setting Viewpoint Lat/Lon %g, %g" ), vLat, vLon );
+      wxLogMessage ( s );
 
 
       if ( Read ( wxString ( _T ( "VPScale" ) ), &st ) )
@@ -2393,9 +2399,26 @@ int MyConfig::LoadMyConfig ( int iteration )
       if ( Read ( _T ( "OwnShipLatLon" ), &sll ) )
       {
             sscanf ( sll.mb_str ( wxConvUTF8 ), "%f,%f", &lat, &lon );
-            gLat = lat;
-            gLon = lon;
+//            gLat = lat;
+//            gLon = lon;
+
+            //    Sanity check the lat/lon...both have to be reasonable.
+            if ( fabs ( lon ) < 360. )
+            {
+                  while ( lon < -180. )
+                        lon += 360.;
+
+                  while ( lon > 180. )
+                        lon -= 360.;
+
+                  gLon = lon;
+            }
+
+            if ( fabs ( lat ) < 90.0 )
+                  gLat = st_lat;
       }
+      s.Printf ( _T ( "Setting Ownship Lat/Lon %g, %g" ), gLat, gLon );
+      wxLogMessage ( s );
 
 
 #ifdef USE_S57
@@ -3170,6 +3193,8 @@ void MyConfig::UpdateSettings()
       wxString st0;
       st0.Printf ( _T ( "%g" ), g_PlanSpeed );
       Write ( _T ( "PlanSpeed" ), st0 );
+
+      Write ( _T ( "Locale" ), g_locale );
 
 
 //    S57 Object Filter Settings
@@ -6192,7 +6217,7 @@ void X11FontPicker::CreateWidgets()
       pointSizeChoice->SetStringSelection ( pointsize );
 
       m_previewer->SetFont ( dialogFont );
-      m_previewer->SetName ( _ ( "ABCDEFGabcdefg12345" ) );
+      m_previewer->SetName ( _T( "ABCDEFGabcdefg12345" ) );
 
 //    m_previewer->Refresh();
 
@@ -6459,7 +6484,7 @@ void X11FontPicker::DoFontChange ( void )
                   char* x = XGetAtomName((Display *)wxGetDisplay(), ret);
                   printf("Got %s\n", x);
             */
-            m_previewer->SetName ( _ ( "ABCDEFGabcdefg12345" ) );
+            m_previewer->SetName ( _T( "ABCDEFGabcdefg12345" ) );
             m_previewer->SetFont ( *pPreviewFont );
             m_previewer->Refresh();
       }

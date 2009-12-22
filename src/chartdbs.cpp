@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.cpp,v 1.4 2009/12/17 02:48:10 bdbcat Exp $
+* $Id: chartdbs.cpp,v 1.5 2009/12/22 21:43:22 bdbcat Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.cpp,v $
+* Revision 1.5  2009/12/22 21:43:22  bdbcat
+* Cleanup
+*
 * Revision 1.4  2009/12/17 02:48:10  bdbcat
 * Optimize update
 *
@@ -748,30 +751,26 @@ int ChartDatabase::TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDia
 
       //    MSW file system considers upper and lower case names to be the same for simple 8.3 file names
       //    So we don't have to check both cases for MSW
-#ifdef  __WXMSW__
-      bool b_check_both_cases = false;
-#else
-      bool b_check_both_cases = true;
+
+
+      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), pprog);
+
+      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), pprog);
+#ifndef  __WXMSW__
+      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.kap")), pprog);
 #endif
 
 
-      //    It has been determined that this is not a cm93 directory
-      if(!cm93_cell_name.Len())
-      {
-            nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), pprog);
-
-            nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), pprog, b_check_both_cases);
 
 #ifdef USE_S57
-            nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.000")), pprog);
+      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.000")), pprog);
 
-            nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.S57")), pprog);
+      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.S57")), pprog);
 #endif
-      }
+
 
 #ifdef USE_CM93
-      if(cm93_cell_name.Len())
-            nAdd += SearchDirAndAddCharts(dir_path, cm93_cell_name/*wxString(_T("00300000.A"))*/, pprog);     // for cm93
+      nAdd += SearchDirAndAddCharts(dir_path, _T("00300000.A"), pprog);     // for cm93
 #endif
 
       return nAdd;
@@ -792,6 +791,15 @@ bool ChartDatabase::DetectDirChange(wxString dir_path, wxString magic, wxString 
       wxArrayString FileList;
       wxDir dir(dir_path);
       int n_files = dir.GetAllFiles(dir_path, &FileList);
+
+      //    Arbitrarily, we decide if the dir has more than a specified number of files
+      //    then don't scan it.  Takes too long....
+
+      if(n_files > 10000)
+      {
+            new_magic = _T("");
+            return true;
+      }
 
       //Traverse the list of files, getting their interesting stuff to add to accumulator
       for(int ifile=0 ; ifile < n_files ; ifile++)
@@ -849,7 +857,7 @@ bool ChartDatabase::IsChartDirUsed(const wxString &theDir)
 
 
 //-----------------------------------------------------------------------------
-// Validate a given directory as a cm93 database
+// Validate a given directory as a cm93 root database
 // If it appears to be a cm93 database, then return the name of an existing cell file
 // If not cm93, return empty string
 //-----------------------------------------------------------------------------
@@ -958,18 +966,24 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
       wxArrayString FileList;
       int gaf_flags = wxDIR_DEFAULT;                  // as default, recurse into subdirs
 
+
+      //    Here is an optimization for MSW/cm93 especially
+      //    If this directory seems to be a cm93, and we are not explicitely looking for cm93, then abort
+      //    Otherwise, we will be looking thru entire cm93 tree for non-existent .KAP files, etc.
+
+      wxString cm93_cell_name = Check_CM93_Structure(dir_name);
+      if(cm93_cell_name.Len())
+      {
+            if(filespec != _T("00300000.A"))
+                  return false;
+            else
+                  filespec = cm93_cell_name;
+      }
+
+
       wxDir dir(dir_name);
 
-      if(bCheckBothCases)
-      {
-            wxString fs_upper = filespec.Upper();
-            dir.GetAllFiles(dir_name, &FileList, fs_upper, gaf_flags);
-
-            wxString fs_lower = filespec.Lower();
-            dir.GetAllFiles(dir_name, &FileList, fs_lower, gaf_flags);
-      }
-      else
-            dir.GetAllFiles(dir_name, &FileList, filespec, gaf_flags);
+      dir.GetAllFiles(dir_name, &FileList, filespec, gaf_flags);
 
 
       int nFile = FileList.GetCount();
@@ -996,6 +1010,13 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
             wxFileName file(FileList.Item(ifile));
             wxString full_name = file.GetFullPath();
             wxString file_name = file.GetFullName();
+
+            //    Validate the file name again, considering MSW's semi-random treatment of case....
+            wxString fs_upper = filespec.Upper();
+            wxString fs_lower = filespec.Lower();
+
+            if(!file_name.Matches(fs_lower) && !file_name.Matches(fs_upper))
+                continue;
 
             if(pprog)
                   pprog->Update((ifile * 100) /nFile, full_name);
