@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.37 2009/11/18 01:26:12 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.38 2009/12/22 21:31:31 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.38  2009/12/22 21:31:31  bdbcat
+ * Cleanup Leaks
+ *
  * Revision 1.37  2009/11/18 01:26:12  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -99,6 +102,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.38  2009/12/22 21:31:31  bdbcat
+ * Cleanup Leaks
+ *
  * Revision 1.37  2009/11/18 01:26:12  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -237,7 +243,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, const char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.37 2009/11/18 01:26:12 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.38 2009/12/22 21:31:31 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -337,8 +343,8 @@ s52plib::~s52plib()
       delete pOBJLArray;
 
 
-      delete ledge;
-      delete redge;
+      delete[] ledge;
+      delete[] redge;
 
 }
 
@@ -6158,6 +6164,12 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, S
 
       else if ( obj->pPolyTrapGeo )
       {
+            S52color cs;
+            cs.R = 255;
+            cs.G = 0;
+            cs.B = 0;
+
+
             if ( obj->pPolyTrapGeo->IsOk()  /*&& (obj->Index == 7) && ( obj->pPolyTrapGeo->GetnVertexMax() < 1000)*/)
             {
                   PolyTrapGroup *ptg = obj->pPolyTrapGeo->Get_PolyTrapGroup_head();
@@ -6171,11 +6183,6 @@ void s52plib::RenderToBufferFilledPolygon ( ObjRazRules *rzRules, S57Obj *obj, S
                   //  Render the trapezoids
                   int ntraps = ptg->ntrap_count;
                   trapz_t *ptraps = ptg->trap_array;
-
-                  S52color cs;
-                  cs.R = 255;
-                  cs.G = 0;
-                  cs.B = 0;
 
                   for ( int i=0 ; i < ntraps ; i++ )
                   {

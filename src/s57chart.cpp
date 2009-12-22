@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57chart.cpp,v 1.44 2009/12/17 02:51:41 bdbcat Exp $
+ * $Id: s57chart.cpp,v 1.45 2009/12/22 21:29:20 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S57 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: s57chart.cpp,v $
+ * Revision 1.45  2009/12/22 21:29:20  bdbcat
+ * Cleanup Leaks
+ *
  * Revision 1.44  2009/12/17 02:51:41  bdbcat
  * Correct UWTROC symbolization
  *
@@ -118,6 +121,9 @@
  * Improve messages
  *
  * $Log: s57chart.cpp,v $
+ * Revision 1.45  2009/12/22 21:29:20  bdbcat
+ * Cleanup Leaks
+ *
  * Revision 1.44  2009/12/17 02:51:41  bdbcat
  * Correct UWTROC symbolization
  *
@@ -274,7 +280,7 @@
 
 #include "mygdal/ogr_s57.h"
 
-CPL_CVSID("$Id: s57chart.cpp,v 1.44 2009/12/17 02:51:41 bdbcat Exp $");
+CPL_CVSID("$Id: s57chart.cpp,v 1.45 2009/12/22 21:29:20 bdbcat Exp $");
 
 extern bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);      // found in s52cnsy
 
@@ -1463,7 +1469,7 @@ void s57chart::FreeObjectsAndRules()
                         delete ctop->LUP;
 
                         ObjRazRules *cnxx = ctop->next;
-                        free(ctop);
+                        delete ctop;
                         ctop = cnxx;
                       }
                 }
