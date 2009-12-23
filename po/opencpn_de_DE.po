@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-21 19:58-0500\n"
+"POT-Creation-Date: 2009-12-22 20:53-0500\n"
 "PO-Revision-Date: 2009-12-17 12:25+0100\n"
 "Last-Translator: max stirner <idpnd@yahoo.co.uk>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -231,6 +231,9 @@ msgstr "OpenCPN verlassen"
 #
 msgid "Chart1::Event...TCMgr Not Available"
 msgstr "Chart1::Event...TCMgr Nicht vorhanden"
+#
+msgid "Please restart OpenCPN to activate new language selection."
+msgstr ""
 #
 msgid "Chart file corrupt.. disabling this chart \n"
 msgstr "Kartendatei fehlerhaft.. deaktiviere diese Karte \n"
@@ -611,6 +614,9 @@ msgstr "Warnton auswählen"
 msgid "Supress Alerts for anchored/moored targets"
 msgstr ""
 #
+msgid "Language"
+msgstr ""
+#
 #, fuzzy
 msgid "Font Options"
 msgstr "GUI-Einstellungen"
@@ -621,8 +627,8 @@ msgstr ""
 msgid "Choose Font..."
 msgstr ""
 #
-msgid "Fonts"
-msgstr "Schriftarten"
+msgid "Language/Fonts"
+msgstr ""
 #
 msgid "GRIB"
 msgstr "GRIB"
@@ -753,36 +759,49 @@ msgid "Links"
 msgstr "Verbindung"
 #
 #
+#~ msgid "Fonts"
+#~ msgstr "Schriftarten"
+#
+#
+#
 #~ msgid "Cannot create opencpn home directory"
 #~ msgstr "Kann das Opencpn Home-Verzeichnis nicht erstellen"
+#
 #
 #
 #~ msgid "Cannot create opencpn log directory"
 #~ msgstr "Kann das Opencpn Log-Verzeichnis nicht erstellen"
 #
 #
+#
 #~ msgid " -------Starting opencpn-------"
 #~ msgstr "-------opencpn startet-------"
+#
 #
 #
 #~ msgid "Using existing Config_File: "
 #~ msgstr "Verwende bestehende Konfigurationsdatei:"
 #
 #
+#
 #~ msgid "Creating new Config_File: "
 #~ msgstr "Erstelle neue Konfigurationsdatei:"
+#
 #
 #
 #~ msgid "Cannot create config file directory for "
 #~ msgstr "Kann das Verzeichnis für die Konfigurationsdatei nicht erstellen für"
 #
 #
+#
 #~ msgid "Looking for s57data in "
 #~ msgstr "Suche s57Daten in"
 #
 #
+#
 #~ msgid "Using s57data in "
 #~ msgstr "Verwende s57Daten in"
+#
 #
 #
 #~ msgid "   S52PLIB Initialization failed, disabling S57 charts."
@@ -790,8 +809,10 @@ msgstr "Verbindung"
 #~ "   Initialisierung von S52PLIB nicht möglich, deaktiviere S57-Karten."
 #
 #
+#
 #~ msgid "Using Tide/Current data from:  "
 #~ msgstr "Verwende Tiden-/Strömungsdaten aus:  "
+#
 #
 #
 #~ msgid ""
@@ -802,64 +823,80 @@ msgstr "Verbindung"
 #~ "Konfigurationsdatei nicht vorhanden.  Kartenliste-Datei ist:"
 #
 #
+#
 #~ msgid "GPS Watchdog Timeout is: %d sec."
 #~ msgstr "Zeitlimit der GPS-Überwachung ist: %d Sek."
+#
 #
 #
 #~ msgid "opencpn::MyApp exiting cleanly...\n"
 #~ msgstr "opencpn::MyApp wird runtergefahren...\n"
 #
 #
+#
 #~ msgid "opencpn::MyFrame exiting cleanly..."
 #~ msgstr "opencpn::MyFrame wird runtergefahren..."
+#
 #
 #
 #~ msgid "Got quitflag from SIGUSR1"
 #~ msgstr " quitflag von SIGUSR1 empfangen"
 #
 #
+#
 #~ msgid "   ***GPS Watchdog timeout..."
 #~ msgstr "   ***GPS-Überwachung meldet Zeitüberschreitung..."
+#
 #
 #
 #~ msgid "   ***HDx Watchdog timeout..."
 #~ msgstr "   ***HDx-Überwachung meldet Zeitüberschreitung..."
 #
 #
+#
 #~ msgid "chart1.cpp:SetChartThumbnail...Could not create thumbnail"
 #~ msgstr "chart1.cpp:SetChartThumbnail... Konnte Thumbnail nicht erstellen"
+#
 #
 #
 #~ msgid "chart1.cpp:SetChartThumbnail...Could not open chart "
 #~ msgstr "chart1.cpp:SetChartThumbnail...Konnte Karte nicht öffnen"
 #
 #
+#
 #~ msgid "   Unrecognized NMEA Sentence..."
 #~ msgstr "   Unbekannter NMEA-Datensatz..."
+#
 #
 #
 #~ msgid "Setting system time, delta t is %d seconds"
 #~ msgstr "Systemzeit wird eingestellt, delta t beträgt %d Sekunden"
 #
 #
+#
 #~ msgid "Linux command is:"
 #~ msgstr "Der Linux-Befehl ist:"
+#
 #
 #
 #~ msgid "Warning: ocpnhelper failed...."
 #~ msgstr "Achtung: Ocpnhelper versagt...."
 #
 #
+#
 #~ msgid "Parsing copy of /proc/tty/driver/serial..."
 #~ msgstr "Analyse der Kopie von /proc/tty/driver/serial..."
+#
 #
 #
 #~ msgid "Parsing copy of /proc/tty/driver/usbserial..."
 #~ msgstr "Analyse der Kopie von /proc/tty/driver/usbserial..."
 #
 #
+#
 #~ msgid "Found Garmin USB Driver."
 #~ msgstr "Garmin USB Treiber gefunden."
+#
 #
 #
 #~ msgid "Found Garmin Device."

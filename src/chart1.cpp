@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.70 2009/12/17 02:47:05 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.71 2009/12/23 01:50:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.71  2009/12/23 01:50:27  bdbcat
+ * Update messages
+ *
  * Revision 1.70  2009/12/17 02:47:05  bdbcat
  * Cleanup definitions
  *
@@ -290,7 +293,7 @@ WX_DEFINE_OBJARRAY(ArrayOfCDI);
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.70 2009/12/17 02:47:05 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.71 2009/12/23 01:50:27 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -601,6 +604,7 @@ about             *g_pAboutDlg;
 
 wxPlatformInfo    *g_pPlatform;
 wxLocale         locale_def_lang;
+wxString          g_locale;
 
 TTYWindow        *g_NMEALogWindow;
 int              g_NMEALogWindow_x, g_NMEALogWindow_y;
@@ -608,6 +612,8 @@ int              g_NMEALogWindow_sx, g_NMEALogWindow_sy;
 
 static char nmea_tick_chars[] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
 static int tick_idx;
+
+extern char     OpenCPNVersion[];
 
 #ifndef __WXMSW__
 jmp_buf           env;                    // the context saved by setjmp();
@@ -767,38 +773,13 @@ bool MyApp::OnInit()
 #endif
 
 
-      //    Manage internationalization of embedded messages
-      //    using wxWidgets/gettext methodology....
-
-         wxString    loc_lang_canonical;
-         wxString    loc_lang_filename;
-
-      // Add a new prefix for search order. New prefix = .\lang,
-      // where '.' refers to the opencpn.exe directory
-         wxLocale::AddCatalogLookupPathPrefix(wxT("./lang"));
-
-      // Set default language
-      // i.e. : Set programer's language as default language
-      // because of trouble encoutered with wxLANGUAGE_DEFAULT
-      // and wxLANGUAGE_FRENCH
-      //        locale_def_lang.Init( wxLANGUAGE_DEFAULT, wxLOCALE_CONV_ENCODING );
- //        locale_def_lang.Init( wxLANGUAGE_ENGLISH_US, wxLOCALE_CONV_ENCODING );
-         locale_def_lang.Init( wxLANGUAGE_DEFAULT, wxLOCALE_CONV_ENCODING );
 
 
-      // Set filename without extension (exemple : opencpn_fr_FR)
-      // i.e. : Set-up the filename needed for translation
-      //        sprintf(loc_lang_filename, "opencpn_%s", def_lang->GetCanonicalName());
-         loc_lang_canonical = wxLocale::GetLanguageInfo(wxLANGUAGE_DEFAULT)->CanonicalName;
-         loc_lang_filename = _T("opencpn_") + loc_lang_canonical;
-
-      // Get translation file (example : opencpn_fr_FR.mo)
-      // No problem if the file doesn't exist
-      // as this case is handled by wxWidgets
-         locale_def_lang.AddCatalog(loc_lang_filename);
-
-
-
+//Fulup: force floating point to use dot as separation.
+// This needs to be set early to catch numerics in config file.
+//#ifdef __POSIX__
+         setlocale(LC_NUMERIC,"C");
+//#endif
 
 
 
@@ -813,15 +794,9 @@ bool MyApp::OnInit()
 #endif
 
 
-//      _CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
 
 //      CALLGRIND_STOP_INSTRUMENTATION
 
-//      Establish the locale
-//Fulup: force floating point to use dot as separation.
-#ifdef __POSIX__
-      setlocale(LC_NUMERIC,"C");
-#endif
 
       g_start_time = wxDateTime::Now();
 
@@ -836,7 +811,7 @@ bool MyApp::OnInit()
 #endif
 
 #ifdef __WXMSW__
-//     _CrtSetBreakAlloc(1409);
+//     _CrtSetBreakAlloc(205141);
 #endif
 
 
@@ -900,6 +875,8 @@ bool MyApp::OnInit()
         pHome_Locn->Append(std_path.GetUserConfigDir());          // on w98, produces "/windows/Application Data"
         appendOSDirSlash(pHome_Locn) ;
 
+//        wxString loc = std_path.GetLocalizedResourcesDir(loc_lang_canonical, wxStandardPaths::ResourceCat_Messages);
+//        wxLogMessage(loc);
 
 #if defined( __WXMAC__) || defined ( __WXMSW__ )
         pHome_Locn->Append(_T("opencpn"));
@@ -911,7 +888,7 @@ bool MyApp::OnInit()
         if(true != wxHomeFiledir.DirExists(wxHomeFiledir.GetPath()))
             if(!wxHomeFiledir.Mkdir(wxHomeFiledir.GetPath()))
                   {
-                        wxASSERT_MSG(false,_("Cannot create opencpn home directory"));
+                        wxASSERT_MSG(false,_T("Cannot create opencpn home directory"));
                         return false ;
                   }
 
@@ -931,11 +908,11 @@ bool MyApp::OnInit()
         if(true != wxLogFiledir.DirExists(wxLogFiledir.GetPath()))
               if(!wxLogFiledir.Mkdir(wxLogFiledir.GetPath()))
         {
-              wxASSERT_MSG(false,_("Cannot create opencpn log directory"));
+              wxASSERT_MSG(false,_T("Cannot create opencpn log directory"));
               return false ;
         }
 
-        log.Append(_("opencpn.log"));
+        log.Append(_T("opencpn.log"));
 
         //  Constrain the size of the log file
         if(wxFileName::GetSize(log) > 1000000)
@@ -950,19 +927,24 @@ bool MyApp::OnInit()
 //        wxLog::AddTraceMask("timer");               // verbose message traces to log output
 
 //      Send init message
-        wxLogMessage(_("\n\n"));
+        wxLogMessage(_T("\n\n"));
 
-        wxLogMessage(loc_lang_filename);
 
         wxDateTime now = wxDateTime::Now();
         now.MakeGMT(true);                    // no DST
 
         wxString imsg = now.FormatISODate();
-        imsg += _("  ");
-        imsg += now.FormatISOTime();
-
-        imsg += _(" -------Starting opencpn-------");
         wxLogMessage(imsg);
+
+        imsg = _T(" -------Starting opencpn-------");
+        wxLogMessage(imsg);
+
+        wxString version(OpenCPNVersion,  wxConvUTF8);
+        wxString vs = version.Trim(true);
+        vs = vs.Trim(false);
+        wxLogMessage(vs);
+
+
 
 #ifdef USE_CPL
 //      Set up a useable CPL library error handler
@@ -1060,7 +1042,7 @@ bool MyApp::OnInit()
 
         wxFileName config_test_file_name(Config_File);
         if(config_test_file_name.FileExists())
-            wxLogMessage(_("Using existing Config_File: ") + Config_File);
+            wxLogMessage(_T("Using existing Config_File: ") + Config_File);
         else
         {
 /*
@@ -1072,14 +1054,14 @@ bool MyApp::OnInit()
               if(mdlg.ShowModal() == wxID_YES)
 */
               {
-                  wxLogMessage(_("Creating new Config_File: ") + Config_File);
+                  wxLogMessage(_T("Creating new Config_File: ") + Config_File);
 
                   //    Flag to preset some options for initial config file creation
                   b_novicemode = true;
 
                   if(true != config_test_file_name.DirExists(config_test_file_name.GetPath()))
                        if(!config_test_file_name.Mkdir(config_test_file_name.GetPath()))
-                               wxLogMessage(_("Cannot create config file directory for ") + Config_File);
+                               wxLogMessage(_T("Cannot create config file directory for ") + Config_File);
               }
 /*
               else
@@ -1094,6 +1076,57 @@ bool MyApp::OnInit()
         MyConfig *pCF = new MyConfig(wxString(_T("")), wxString(_T("")), Config_File);
         pConfig = (MyConfig *)pCF;
         pConfig->LoadMyConfig(0);
+
+        //  Now we can set the locale
+
+        //    Manage internationalization of embedded messages
+        //    using wxWidgets/gettext methodology....
+
+        if(lang_list[0]){};                 // silly way to avoid compiler warnings
+
+      // Add a new prefix for search order. New prefix = .\lang,
+      // where '.' refers to the opencpn.exe directory
+        wxLocale::AddCatalogLookupPathPrefix(wxT("./lang"));
+
+        //  Get the default for info
+        wxString def_lang_canonical = wxLocale::GetLanguageInfo(wxLANGUAGE_DEFAULT)->CanonicalName;
+        imsg = _T("System default Language:  ");
+        imsg += def_lang_canonical;
+        wxLogMessage(imsg);
+
+
+        //  Find the language specified by the config file
+        const wxLanguageInfo *pli = wxLocale::FindLanguageInfo(g_locale);
+        wxString loc_lang_canonical;
+        bool b_initok;
+
+        if(pli)
+        {
+              b_initok = locale_def_lang.Init( pli->Language, wxLOCALE_CONV_ENCODING );
+              loc_lang_canonical = pli->CanonicalName;
+        }
+
+        if(!pli || !b_initok)
+        {
+              locale_def_lang.Init( wxLANGUAGE_ENGLISH_US, wxLOCALE_CONV_ENCODING );
+              loc_lang_canonical = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US)->CanonicalName;
+        }
+
+        imsg = _T("Opencpn language set to:  ");
+        imsg += loc_lang_canonical;
+        wxLogMessage(imsg);
+
+      // Set filename without extension (example : opencpn_fr_FR)
+      // i.e. : Set-up the filename needed for translation
+        wxString loc_lang_filename = _T("opencpn_") + loc_lang_canonical;
+
+      // Get translation file (example : opencpn_fr_FR.mo)
+      // No problem if the file doesn't exist
+      // as this case is handled by wxWidgets
+        locale_def_lang.AddCatalog(loc_lang_filename);
+
+      //    Always use dot as decimal
+        setlocale(LC_NUMERIC,"C");
 
 
         //        A special case for windows, which has some trouble finding the data files....
@@ -1156,6 +1189,7 @@ bool MyApp::OnInit()
 
               bool tflag = true;          // assume true
               wxFileName f1;
+/*
               f1 = wxFileName(fd); fd.Append(_T("s57attributes.csv"));
               tflag &= f1.FileExists();
               f1 = wxFileName(fd); fd.Append(_T("attdecode.csv"));
@@ -1163,6 +1197,30 @@ bool MyApp::OnInit()
               f1 = wxFileName(fd); fd.Append(_T("s57expectedinput.csv"));
               tflag &= f1.FileExists();
               f1 = wxFileName(fd); fd.Append(_T("s57objectclasses.csv"));
+              tflag &= f1.FileExists();
+*/
+              fd = *g_pcsv_locn; //PL
+              appendOSDirSlash(&fd); //PL
+              fd.Append(_T("s57attributes.csv"));
+              f1 = wxFileName(fd);
+              tflag &= f1.FileExists();
+
+              fd = *g_pcsv_locn; //PL
+              appendOSDirSlash(&fd); //PL
+              fd.Append(_T("attdecode.csv"));
+              f1 = wxFileName(fd);
+              tflag &= f1.FileExists();
+
+              fd = *g_pcsv_locn; //PL
+              appendOSDirSlash(&fd); //PL
+              fd.Append(_T("s57expectedinput.csv"));
+              f1 = wxFileName(fd);
+              tflag &= f1.FileExists();
+
+              fd = *g_pcsv_locn; //PL
+              appendOSDirSlash(&fd); //PL
+              fd.Append(_T("s57objectclasses.csv"));
+              f1 = wxFileName(fd);
               tflag &= f1.FileExists();
 
               if(!tflag)
@@ -1236,7 +1294,7 @@ bool MyApp::OnInit()
             appendOSDirSlash(&plib_data) ;
             plib_data.Append(_T("S52RAZDS.RLE"));
 
-            wxLogMessage(_("Looking for s57data in ") + look_data_dir);
+            wxLogMessage(_T("Looking for s57data in ") + look_data_dir);
             ps52plib = new s52plib(plib_data);
 
             if(ps52plib->m_bOK)
@@ -1261,7 +1319,7 @@ bool MyApp::OnInit()
               appendOSDirSlash(&plib_data) ;
               plib_data.Append(_T("S52RAZDS.RLE"));
 
-              wxLogMessage(_("Looking for s57data in ") + look_data_dir);
+              wxLogMessage(_T("Looking for s57data in ") + look_data_dir);
               ps52plib = new s52plib(plib_data);
 
               if(ps52plib->m_bOK)
@@ -1273,9 +1331,9 @@ bool MyApp::OnInit()
 
 
         if(ps52plib->m_bOK)
-            wxLogMessage(_("Using s57data in ") + *g_pcsv_locn);
+            wxLogMessage(_T("Using s57data in ") + *g_pcsv_locn);
         else
-            wxLogMessage(_("   S52PLIB Initialization failed, disabling S57 charts."));
+            wxLogMessage(_T("   S52PLIB Initialization failed, disabling S57 charts."));
 
 
 // Todo Maybe initialize only when an s57 chart is actually opened???
@@ -1308,7 +1366,7 @@ bool MyApp::OnInit()
         pTC_Dir->Prepend(g_SData_Locn);
         pTC_Dir->Append(wxFileName::GetPathSeparator());
 
-        wxLogMessage(_("Using Tide/Current data from:  ") + *pTC_Dir);
+        wxLogMessage(_T("Using Tide/Current data from:  ") + *pTC_Dir);
 
 
 
@@ -1455,7 +1513,7 @@ bool MyApp::OnInit()
 
                 else                                            // No chart database, no config hints, so bail....
                 {
-                  wxLogMessage(_("Chartlist file not found, config chart dir array is empty.  Chartlist target file is:") +
+                  wxLogMessage(_T("Chartlist file not found, config chart dir array is empty.  Chartlist target file is:") +
                               *pChartListFileName);
 
                   wxString msg1(_("           No Charts Installed.\nPlease select chart folders in ToolBox->Charts."));
@@ -1507,7 +1565,7 @@ bool MyApp::OnInit()
             gsp_watchdog_timeout_ticks = (GPS_TIMEOUT_SECONDS * 1000) / TIMER_GFRAME_1;
 
         wxString dogmsg;
-        dogmsg.Printf(_("GPS Watchdog Timeout is: %d sec."), gsp_watchdog_timeout_ticks);
+        dogmsg.Printf(_T("GPS Watchdog Timeout is: %d sec."), gsp_watchdog_timeout_ticks);
         wxLogMessage(dogmsg);
 
         gGPS_Watchdog = 2;
@@ -1529,7 +1587,7 @@ bool MyApp::OnInit()
 
 int MyApp::OnExit()
 {
-      wxLogMessage(_("opencpn::MyApp exiting cleanly...\n"));
+      wxLogMessage(_T("opencpn::MyApp exiting cleanly...\n"));
         delete pConfig;
         delete pSelect;
         delete pSelectTC;
@@ -2521,7 +2579,7 @@ void MyFrame::OnExit(wxCommandEvent& event)
 
 void MyFrame::OnCloseWindow(wxCloseEvent& event)
 {
-      wxLogMessage(_("opencpn::MyFrame exiting cleanly..."));
+      wxLogMessage(_T("opencpn::MyFrame exiting cleanly..."));
 
       quitflag++ ;
 
@@ -2865,7 +2923,7 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             }
             else
             {
-                wxLogMessage(_("Chart1::Event...TCMgr Not Available"));
+                wxLogMessage(_T("Chart1::Event...TCMgr Not Available"));
                 cc1->SetbShowCurrent(false);
                 toolBar->ToggleTool(ID_CURRENT, false);
             }
@@ -3019,7 +3077,8 @@ void MyFrame::TrackOff(void)
 
       g_bTrackActive = false;
 
-      toolBar->ToggleTool(ID_TRACK, g_bTrackActive);
+      if(toolBar)
+            toolBar->ToggleTool(ID_TRACK, g_bTrackActive);
 }
 
 
@@ -3169,6 +3228,7 @@ int MyFrame::DoOptionsDialog()
       bool bPrevTrackIcon = g_bShowTrackIcon;
       bool bPrevGRIBIcon = g_bShowGRIBIcon;
 
+      wxString prev_locale = g_locale;
 
 //    Pause all of the async classes
 #ifdef USE_WIFI_CLIENT
@@ -3300,6 +3360,16 @@ int MyFrame::DoOptionsDialog()
             }
 #endif
 
+            if(rr & LOCALE_CHANGED)
+            {
+                  if(prev_locale != g_locale)
+                  {
+                        ::wxMessageBox(_("Please restart OpenCPN to activate new language selection."), _("OpenCPN Info"), wxOK | wxICON_INFORMATION);
+
+                  }
+            }
+
+
             pConfig->UpdateSettings();
 
             if(g_pActiveTrack)
@@ -3412,7 +3482,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
 //      Listen for quitflag to be set, requesting application close
       if(quitflag)
       {
-          wxLogMessage(_("Got quitflag from SIGUSR1"));
+          wxLogMessage(_T("Got quitflag from SIGUSR1"));
           FrameTimer1.Stop();
           Close();
           return;
@@ -3429,7 +3499,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
       {
           bGPSValid = false;
           if(g_nNMEADebug && (gGPS_Watchdog == 0))
-                wxLogMessage(_("   ***GPS Watchdog timeout..."));
+                wxLogMessage(_T("   ***GPS Watchdog timeout..."));
       }
 
 //  Update and check watchdog timer for Heading data source
@@ -3438,7 +3508,7 @@ This version of wxWidgets cannot process TCP/IP socket traffic.\n\
       {
             g_bHDxValid = false;
             if(g_nNMEADebug && (gHDx_Watchdog == 0))
-                  wxLogMessage(_("   ***HDx Watchdog timeout..."));
+                  wxLogMessage(_T("   ***HDx Watchdog timeout..."));
       }
 
 
@@ -3929,7 +3999,7 @@ void MyFrame::SetChartThumbnail(int index)
                                         dlg.ShowModal();
                                         ChartData->DisableChart(fp);
 
-                                        wxLogMessage(_("chart1.cpp:SetChartThumbnail...Could not create thumbnail"));
+                                        wxLogMessage(_T("chart1.cpp:SetChartThumbnail...Could not create thumbnail"));
                                         pthumbwin->pThumbChart = NULL;
                                         pthumbwin->Show(false);
                                         cc1->Refresh(FALSE);
@@ -3939,7 +4009,7 @@ void MyFrame::SetChartThumbnail(int index)
                         else                            // some problem opening chart
                         {
                                 wxString fp = ChartData->GetFullPath(pCurrentStack, index);
-                                fp.Prepend(_("chart1.cpp:SetChartThumbnail...Could not open chart "));
+                                fp.Prepend(_T("chart1.cpp:SetChartThumbnail...Could not open chart "));
                                 wxLogMessage(fp);
                                 pthumbwin->pThumbChart = NULL;
                                 pthumbwin->Show(false);
@@ -4497,13 +4567,14 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
 {
       wxString sfixtime;
       bool bshow_tick = false;
+      bool bis_recognized_sentence = true; //PL
 
       wxString str_buf = event.GetNMEAString();
 
       if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
       {
             g_total_NMEAerror_messages++;
-            wxString msg(_("MEH.NMEA Sentence received..."));
+            wxString msg(_T("MEH.NMEA Sentence received..."));
             msg.Append(str_buf);
             wxLogMessage(msg);
       }
@@ -4517,7 +4588,6 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
             g_NMEALogWindow->Add(ss);
             g_NMEALogWindow->Refresh(false);
       }
-
 
       m_NMEA0183 << str_buf;
       if(m_NMEA0183.PreParse())
@@ -4695,17 +4765,18 @@ void MyFrame::OnEvtOCPN_NMEA(OCPN_NMEAEvent & event)
       }
       else
       {
+            bis_recognized_sentence = false;
             if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
             {
                   g_total_NMEAerror_messages++;
-                  wxString msg(_("   Unrecognized NMEA Sentence..."));
+                  wxString msg(_T("   Unrecognized NMEA Sentence..."));
                   msg.Append(str_buf);
                   wxLogMessage(msg);
             }
       }
 
-
-      PostProcessNNEA(bshow_tick, sfixtime);
+      if(bis_recognized_sentence)
+            PostProcessNNEA(bshow_tick, sfixtime);
 }
 
 
@@ -4879,7 +4950,7 @@ void MyFrame::PostProcessNNEA(bool brx_rmc, wxString &sfixtime)
       //          nav ALL=NOPASSWD:/bin/date -s *
 
                         wxString msg;
-                        msg.Printf(_("Setting system time, delta t is %d seconds"), b);
+                        msg.Printf(_T("Setting system time, delta t is %d seconds"), b);
                         wxLogMessage(msg);
 
                         wxString sdate(Fix_Time.Format(_T("%D")));
@@ -4890,7 +4961,7 @@ void MyFrame::PostProcessNNEA(bool brx_rmc, wxString &sfixtime)
                         sdate.Append(stime);
                         sdate.Append(_T("\""));
 
-                        msg.Printf(_("Linux command is:"));
+                        msg.Printf(_T("Linux command is:"));
                         msg += sdate;
                         wxLogMessage(msg);
                         wxExecute(sdate, wxEXEC_ASYNC);
@@ -5150,7 +5221,7 @@ FILE *f;
 //  Return to user privileges
             seteuid(user_user_id);
 
-            wxLogMessage(_("Warning: ocpnhelper failed...."));
+            wxLogMessage(_T("Warning: ocpnhelper failed...."));
             _exit(0); // If exec fails then exit forked process.
        }
 
@@ -5166,7 +5237,7 @@ FILE *f;
 
       if (f != NULL)
       {
-            wxLogMessage(_("Parsing copy of /proc/tty/driver/serial..."));
+            wxLogMessage(_T("Parsing copy of /proc/tty/driver/serial..."));
 
             /* read in each line of the file */
             while(fgets(buf, sizeof(buf), f) != NULL)
@@ -5219,7 +5290,7 @@ FILE *f;
 
       if (f != NULL)
       {
-            wxLogMessage(_("Parsing copy of /proc/tty/driver/usbserial..."));
+            wxLogMessage(_T("Parsing copy of /proc/tty/driver/usbserial..."));
 
             /* read in each line of the file */
             while(fgets(buf, sizeof(buf), f) != NULL)
@@ -5387,7 +5458,7 @@ FILE *f;
                                                       DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
 
       if (hdeviceinfo != INVALID_HANDLE_VALUE)
-            wxLogMessage(_("Found Garmin USB Driver."));
+            wxLogMessage(_T("Found Garmin USB Driver."));
 
 
     deviceinterface.cbSize = sizeof(deviceinterface);
@@ -5398,7 +5469,7 @@ FILE *f;
                                                       0,
                                                       &deviceinterface))
       {
-            wxLogMessage(_("Found Garmin Device."));
+            wxLogMessage(_T("Found Garmin Device."));
 
             preturn->Add(_T("GARMIN"));         // Add generic Garmin selectable device
             g_bGarminPersistance = true;        // And record the existance

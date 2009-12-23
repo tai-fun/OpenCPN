@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open CPN 1.3.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-21 19:58-0500\n"
+"POT-Creation-Date: 2009-12-22 20:53-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Ole E. Mikkelsen <oem@live.dk>\n"
 "Language-Team: \n"
@@ -230,6 +230,9 @@ msgstr "Afslut OpenCPN"
 # TCMgr --? chart1 (reference to program ?)
 msgid "Chart1::Event...TCMgr Not Available"
 msgstr "'Chart1':: Hændelse...'TCMgr' er ikke tilgængelig"
+#
+msgid "Please restart OpenCPN to activate new language selection."
+msgstr ""
 #
 msgid "Chart file corrupt.. disabling this chart \n"
 msgstr "Kortfilen er ikke valid..Kortet bliver inaktiveret \n"
@@ -620,6 +623,9 @@ msgstr "Vælg lydsignal for alarm"
 msgid "Supress Alerts for anchored/moored targets"
 msgstr ""
 #
+msgid "Language"
+msgstr ""
+#
 #, fuzzy
 msgid "Font Options"
 msgstr "Valgmuligheder for brugerinterface"
@@ -630,8 +636,8 @@ msgstr ""
 msgid "Choose Font..."
 msgstr ""
 #
-msgid "Fonts"
-msgstr "Skrifttyper"
+msgid "Language/Fonts"
+msgstr ""
 #
 msgid "GRIB"
 msgstr "Meteorologi (GRIB)"
@@ -767,28 +773,39 @@ msgid "Links"
 msgstr ""
 #
 #
+#~ msgid "Fonts"
+#~ msgstr "Skrifttyper"
+#
+#
+#
 #~ msgid "Cannot create opencpn home directory"
 #~ msgstr "Kan ikke oprette opencpn 'home' folder"
+#
 #
 #
 #~ msgid "Cannot create opencpn log directory"
 #~ msgstr "Kan ikke oprette opencpn 'log' folder"
 #
 #
+#
 #~ msgid " -------Starting opencpn-------"
 #~ msgstr "------- OpenCPN starter -------"
+#
 #
 #
 #~ msgid "Using existing Config_File: "
 #~ msgstr "Anvender allerede oprettet konfigurationsfil: "
 #
 #
+#
 #~ msgid "Creating new Config_File: "
 #~ msgstr "Opretter ny konfigurationsfil: "
 #
 #
+#
 #~ msgid "Cannot create config file directory for "
 #~ msgstr "Kan ikke oprette konfigurationsfil for: "
+#
 #
 #
 # S57data - better expression? Vector map data? ENC data?
@@ -796,9 +813,11 @@ msgstr ""
 #~ msgstr "Søger efter S57data i "
 #
 #
+#
 # S57data - better expression? Vector map data? ENC data?
 #~ msgid "Using s57data in "
 #~ msgstr "Bruger S57data fra "
+#
 #
 #
 # S52PLIB - better expression?
@@ -808,8 +827,10 @@ msgstr ""
 #~ "baserede kort ikke kan vises"
 #
 #
+#
 #~ msgid "Using Tide/Current data from:  "
 #~ msgstr "Anvender tidevands- og strømdata fra: "
+#
 #
 #
 #~ msgid ""
@@ -820,8 +841,10 @@ msgstr ""
 #~ "konfigurationsfil er tom. Kortdatabase fil er:"
 #
 #
+#
 #~ msgid "GPS Watchdog Timeout is: %d sec."
 #~ msgstr "GPS overvågning timer ud efter: %d sek."
+#
 #
 #
 # 'MyAPp' - better expression? What is it?
@@ -829,9 +852,11 @@ msgstr ""
 #~ msgstr "OpenCPN: 'MyApp' afsluttes normalt...\n"
 #
 #
+#
 # 'MyFrame' --?
 #~ msgid "opencpn::MyFrame exiting cleanly..."
 #~ msgstr "OpenCPN:: 'MyFrame' afslutter normalt..."
+#
 #
 #
 # More explanatory?
@@ -839,8 +864,10 @@ msgstr ""
 #~ msgstr "Modtog meddelelse 'quitflag' fra 'SIGUSR1'"
 #
 #
+#
 #~ msgid "   ***GPS Watchdog timeout..."
 #~ msgstr " ***GPS overvågning er timet ud"
+#
 #
 #
 # HDX ...???
@@ -848,17 +875,21 @@ msgstr ""
 #~ msgstr " ***HDx overvågning er timet ud"
 #
 #
+#
 # Translation OK?
 #~ msgid "chart1.cpp:SetChartThumbnail...Could not create thumbnail"
 #~ msgstr "'chart1.cpp:SetChartThumbnail'...Kunne ikke oprette tommelfingerikon"
+#
 #
 #
 #~ msgid "chart1.cpp:SetChartThumbnail...Could not open chart "
 #~ msgstr "'chart1.cpp:SetChartThumbnail'...Kort kunne ikke åbnes"
 #
 #
+#
 #~ msgid "   Unrecognized NMEA Sentence..."
 #~ msgstr " Ukendt NMEA datasætning"
+#
 #
 #
 # 'delta t' , what is it?
@@ -866,8 +897,10 @@ msgstr ""
 #~ msgstr "Systemets ur sættes, delta t er %d sekunder"
 #
 #
+#
 #~ msgid "Linux command is:"
 #~ msgstr "Linux kommando er:"
+#
 #
 #
 # ocpnhelper - explanation?
@@ -875,9 +908,11 @@ msgstr ""
 #~ msgstr "Advarsel: 'ocpnhelper' fejlede...."
 #
 #
+#
 # Better message?
 #~ msgid "Parsing copy of /proc/tty/driver/serial..."
 #~ msgstr "Indlæser seriel driver (/proc/tty/driver/serial)"
+#
 #
 #
 # Better message?
@@ -885,12 +920,15 @@ msgstr ""
 #~ msgstr "Indlæser USB seriel driver (/proc/tty/driver/usbserial)"
 #
 #
+#
 #~ msgid "Found Garmin USB Driver."
 #~ msgstr "Garmin USB-enhed fundet"
 #
 #
+#
 #~ msgid "Found Garmin Device."
 #~ msgstr "Garmin enhed fundet"
+#
 #
 #
 #~ msgid "MEH.NMEA Sentence received..."

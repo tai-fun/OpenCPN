@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-21 19:58-0500\n"
+"POT-Creation-Date: 2009-12-22 20:53-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Marco Certelli <marco_certelli@yahoo.it>\n"
 "Language-Team: \n"
@@ -226,6 +226,9 @@ msgid "Exit OpenCPN"
 msgstr "Chiudi OpenCPN"
 #
 msgid "Chart1::Event...TCMgr Not Available"
+msgstr ""
+#
+msgid "Please restart OpenCPN to activate new language selection."
 msgstr ""
 #
 msgid "Chart file corrupt.. disabling this chart \n"
@@ -607,6 +610,9 @@ msgstr "Seleziona il suono di allarme"
 msgid "Supress Alerts for anchored/moored targets"
 msgstr ""
 #
+msgid "Language"
+msgstr ""
+#
 #, fuzzy
 msgid "Font Options"
 msgstr "Opzioni speciali dell'interfaccia Utente"
@@ -617,8 +623,8 @@ msgstr ""
 msgid "Choose Font..."
 msgstr ""
 #
-msgid "Fonts"
-msgstr "Caratteri"
+msgid "Language/Fonts"
+msgstr ""
 #
 msgid "GRIB"
 msgstr "GRIB"
@@ -749,12 +755,19 @@ msgid "Links"
 msgstr "Links"
 #
 #
+#~ msgid "Fonts"
+#~ msgstr "Caratteri"
+#
+#
+#
 #~ msgid "Cannot create opencpn home directory"
 #~ msgstr "La creazione della home directory è fallita"
 #
 #
+#
 #~ msgid "Cannot create opencpn log directory"
 #~ msgstr "La creazione della log directory è fallita"
+#
 #
 #
 #~ msgid ""
@@ -763,6 +776,7 @@ msgstr "Links"
 #~ msgstr ""
 #~ "Il Chartlist file non è stato trovato; la lista delle cartelle con le "
 #~ "carte è vuota. Il Chartlist file è:"
+#
 #
 #
 #~ msgid "GPS Watchdog Timeout is: %d sec."
