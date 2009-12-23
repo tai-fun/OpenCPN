@@ -51,7 +51,7 @@
 #endif
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.7 2009/12/22 22:07:43 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.8 2009/12/23 01:49:17 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -101,11 +101,17 @@ IMPLEMENT_CLASS ( GRIBUIDialog, wxDialog )
 
 BEGIN_EVENT_TABLE ( GRIBUIDialog, wxDialog )
 
-      EVT_CLOSE ( GRIBUIDialog::OnClose )
-      EVT_BUTTON ( ID_OK, GRIBUIDialog::OnIdOKClick )
-      EVT_MOVE ( GRIBUIDialog::OnMove )
-      EVT_SIZE ( GRIBUIDialog::OnSize )
-      EVT_BUTTON ( ID_CHOOSEGRIBDIR, GRIBUIDialog::OnChooseDirClick )
+            EVT_CLOSE ( GRIBUIDialog::OnClose )
+            EVT_BUTTON ( ID_OK, GRIBUIDialog::OnIdOKClick )
+            EVT_MOVE ( GRIBUIDialog::OnMove )
+            EVT_SIZE ( GRIBUIDialog::OnSize )
+            EVT_BUTTON ( ID_CHOOSEGRIBDIR, GRIBUIDialog::OnChooseDirClick )
+            EVT_CHECKBOX(ID_CB_WINDSPEED, GRIBUIDialog::OnCBWindspeedClick)
+            EVT_CHECKBOX(ID_CB_WINDDIR, GRIBUIDialog::OnCBWinddirClick)
+            EVT_CHECKBOX(ID_CB_PRESS, GRIBUIDialog::OnCBPressureClick)
+            EVT_CHECKBOX(ID_CB_SIGHW, GRIBUIDialog::OnCBSigHwClick)
+            EVT_CHECKBOX(ID_CB_SEATMP, GRIBUIDialog::OnCBSeatempClick)
+
 
 END_EVENT_TABLE()
 
@@ -222,10 +228,14 @@ void GRIBUIDialog::CreateControls()
       wxStaticBoxSizer* itemStaticBoxSizerData= new wxStaticBoxSizer(itemStaticBoxData, wxVERTICAL);
       boxSizer->Add(itemStaticBoxSizerData, 0, wxALL|wxEXPAND, border_size);
 
-      wxFlexGridSizer *pDataGrid = new wxFlexGridSizer(2);
+      wxFlexGridSizer *pDataGrid = new wxFlexGridSizer(3);
       pDataGrid->AddGrowableCol(1);
       itemStaticBoxSizerData->Add(pDataGrid, 0, wxALL|wxEXPAND, border_size);
 
+
+      m_cbWindSpeed.Create(this, ID_CB_WINDSPEED, _T(""));
+      m_cbWindSpeed.SetValue(true);
+      pDataGrid->Add(&m_cbWindSpeed, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       wxStaticText *ps1 = new wxStaticText(this, wxID_ANY, _("Wind Speed, Kts."));
       pDataGrid->Add(ps1, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
@@ -233,11 +243,19 @@ void GRIBUIDialog::CreateControls()
       m_pWindSpeedTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pWindSpeedTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
+      m_cbWindDir.Create(this, ID_CB_WINDDIR, _T(""));
+      m_cbWindDir.SetValue(true);
+      pDataGrid->Add(&m_cbWindDir, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
+
       wxStaticText *ps2 = new wxStaticText(this, wxID_ANY, _("Wind Direction"));
       pDataGrid->Add(ps2, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       m_pWindDirTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pWindDirTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
+
+      m_cbPress.Create(this, ID_CB_PRESS, _T(""));
+      m_cbPress.SetValue(true);
+      pDataGrid->Add(&m_cbPress, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       wxStaticText *ps3 = new wxStaticText(this, wxID_ANY, _("Pressure, mBar"));
       pDataGrid->Add(ps3, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
@@ -245,12 +263,27 @@ void GRIBUIDialog::CreateControls()
       m_pPressureTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pPressureTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
+      m_cbSigHw.Create(this, ID_CB_SIGHW, _T(""));
+      m_cbSigHw.SetValue(true);
+      pDataGrid->Add(&m_cbSigHw, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
+
       wxStaticText *ps4 = new wxStaticText(this, wxID_ANY, _("Significant Wave Height, m"));
       pDataGrid->Add(ps4, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       m_pSigWHTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
       pDataGrid->Add(m_pSigWHTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
 
+/*
+      m_cbSeaTmp.Create(this, ID_CB_SEATMP, _T(""));
+      m_cbSeaTmp.SetValue(true);
+      pDataGrid->Add(&m_cbSeaTmp, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
+
+      wxStaticText *ps5 = new wxStaticText(this, wxID_ANY, _("Sea Surface Tmep, C"));
+      pDataGrid->Add(ps5, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
+
+      m_pSeaTmpTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
+      pDataGrid->Add(m_pSeaTmpTextCtrl, 0, wxALIGN_RIGHT, group_item_spacing);
+*/
 
 // A horizontal box sizer to contain OK
       wxBoxSizer* AckBox = new wxBoxSizer ( wxHORIZONTAL );
@@ -435,6 +468,35 @@ void GRIBUIDialog::OnChooseDirClick ( wxCommandEvent& event )
       }
 }
 
+void GRIBUIDialog::OnCBWindspeedClick ( wxCommandEvent& event )
+{
+      m_cbWindDir.SetValue(event.IsChecked());
+      SetFactoryOptions();                     // Reload the visibility options
+}
+
+void GRIBUIDialog::OnCBWinddirClick ( wxCommandEvent& event )
+{
+      m_cbWindSpeed.SetValue(event.IsChecked());
+      SetFactoryOptions();                     // Reload the visibility options
+}
+
+void GRIBUIDialog::OnCBPressureClick ( wxCommandEvent& event )
+{
+      SetFactoryOptions();                     // Reload the visibility options
+}
+
+void GRIBUIDialog::OnCBSigHwClick ( wxCommandEvent& event )
+{
+      SetFactoryOptions();                     // Reload the visibility options
+}
+
+void GRIBUIDialog::OnCBSeatempClick ( wxCommandEvent& event )
+{
+      SetFactoryOptions();                     // Reload the visibility options
+}
+
+
+
 void GRIBUIDialog::PopulateTreeControl()
 {
       if(!wxDir::Exists(m_currentGribDir))
@@ -599,6 +661,8 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
       //    Give the overlay factory the GribRecordSet
             s_pGRIBOverlayFactory->SetGribRecordSet ( pGribRecordSet );
 
+            SetFactoryOptions();
+
             m_sequence_active++;
             cc1->RegisterOverlayProvider ( m_sequence_active, ( RenderOverlayCallBackFunction ) ( GRIBOverlayFactory_RenderGribOverlay_Static_Wrapper ) );
       }
@@ -606,6 +670,18 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
       cc1->Refresh();
 }
 
+
+void GRIBUIDialog::SetFactoryOptions()
+{
+            //    Set the visibility options
+      s_pGRIBOverlayFactory->EnableRenderWind(m_cbWindSpeed.GetValue());
+      s_pGRIBOverlayFactory->EnableRenderPressure(m_cbPress.GetValue());
+      s_pGRIBOverlayFactory->EnableRenderSigHw(m_cbSigHw.GetValue());
+      s_pGRIBOverlayFactory->EnableRenderQuickscat(m_cbWindSpeed.GetValue());           // Note that Quickscat display shares with Wind Speed/Dir forecast
+      s_pGRIBOverlayFactory->EnableRenderSeatmp(m_cbSeaTmp.GetValue());
+
+      cc1->Refresh();
+}
 
 
 
@@ -692,7 +768,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             // Wind
             //    Actually need two records to draw the wind arrows
 
-            if ( (pGR->getDataType()==GRB_WIND_VX )
+            if ( m_ben_Wind && (pGR->getDataType()==GRB_WIND_VX )
                   && (pGR->getLevelType()==LV_ABOV_GND)
                   && (pGR->getLevelValue()==10))
             {
@@ -703,7 +779,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             }
 
 
-            else if ( (pGR->getDataType()==GRB_WIND_VY)
+            else if ( m_ben_Wind && (pGR->getDataType()==GRB_WIND_VY)
                   && (pGR->getLevelType()==LV_ABOV_GND)
                   && (pGR->getLevelValue()==10) )
             {
@@ -714,7 +790,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             }
 
             //Pressure
-            if ( (pGR->getDataType()==GRB_PRESSURE )
+            if ( m_ben_Pressure && (pGR->getDataType()==GRB_PRESSURE )
                   && (pGR->getLevelType()==LV_MSL)
                   && (pGR->getLevelValue()==0))
             {
@@ -722,18 +798,18 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             }
 
             // Significant Wave Height
-            if ( pGR->getDataType()==GRB_HTSGW )
+            if ( m_ben_SigHw && (pGR->getDataType()==GRB_HTSGW ))
                   RenderGribSigWh(pGR, pmdc, vp);
 
             // Wind wave direction
-            if ( pGR->getDataType()==GRB_WVDIR )
+            if ( m_ben_SigHw && (pGR->getDataType()==GRB_WVDIR ))
                   RenderGribWvDir(pGR, pmdc, vp);
 
 
             // QuickScat Wind
             //    Actually need two records to draw the wind arrows
 
-            if (pGR->getDataType()==GRB_USCT )
+            if (m_ben_Quickscat && (pGR->getDataType()==GRB_USCT ))
             {
                   if(pGRWindVY)
                         RenderGribScatWind(pGR, pGRWindVY,  pmdc, vp);
@@ -742,17 +818,13 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             }
 
 
-            else if (pGR->getDataType()==GRB_VSCT)
+            else if (m_ben_Quickscat && (pGR->getDataType()==GRB_VSCT))
             {
                   if(pGRWindVX)
                         RenderGribScatWind(pGRWindVX, pGR,  pmdc, vp);
                   else
                         pGRWindVY = pGR;
             }
-
-            // Catagorical Rain, seen with QuickScat Gribs
-            if ( pGR->getDataType()==GRB_CRAIN )
-                  RenderGribCRAIN(pGR, pmdc, vp);
 
 
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grib.h,v 1.4 2009/12/22 22:07:56 bdbcat Exp $
+ * $Id: grib.h,v 1.5 2009/12/23 01:50:42 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  GRIB Manager Object
@@ -48,6 +48,13 @@
 #define ID_GRIBRECORDREECTRL        10002
 #define ID_CHOOSEGRIBDIR            10003
 
+enum {
+      ID_CB_WINDSPEED = 11000,
+      ID_CB_WINDDIR,
+      ID_CB_PRESS,
+      ID_CB_SIGHW,
+      ID_CB_SEATMP
+};
 
 class GRIBFile;
 class GRIBRecord;
@@ -109,6 +116,13 @@ class GRIBUIDialog: public wxDialog
             void OnChooseDirClick( wxCommandEvent& event );
             void UpdateTrackingControls(void);
             void PopulateTreeControl(void);
+            void SetFactoryOptions();
+
+            void OnCBWindspeedClick ( wxCommandEvent& event );
+            void OnCBWinddirClick ( wxCommandEvent& event );
+            void OnCBPressureClick ( wxCommandEvent& event );
+            void OnCBSigHwClick ( wxCommandEvent& event );
+            void OnCBSeatempClick ( wxCommandEvent& event );
 
 
             //    Data
@@ -121,6 +135,14 @@ class GRIBUIDialog: public wxDialog
             wxTextCtrl        *m_pWindDirTextCtrl;
             wxTextCtrl        *m_pPressureTextCtrl;
             wxTextCtrl        *m_pSigWHTextCtrl;
+            wxTextCtrl        *m_pSeaTmpTextCtrl;
+
+            wxCheckBox        m_cbWindSpeed;
+            wxCheckBox        m_cbWindDir;
+            wxCheckBox        m_cbPress;
+            wxCheckBox        m_cbSigHw;
+            wxCheckBox        m_cbSeaTmp;
+
 
             int               m_n_files;
 
@@ -156,6 +178,12 @@ class GRIBOverlayFactory
 
             GribRecordSet           *m_pGribRecordSet;
 
+            void EnableRenderWind(bool b_rend){ m_ben_Wind = b_rend; }
+            void EnableRenderPressure(bool b_rend){ m_ben_Pressure = b_rend; }
+            void EnableRenderSigHw(bool b_rend){ m_ben_SigHw = b_rend; }
+            void EnableRenderQuickscat(bool b_rend){ m_ben_Quickscat = b_rend; }
+            void EnableRenderSeatmp(bool b_rend){ m_ben_Seatmp = b_rend; }
+
       private:
             bool RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMemoryDC *pmdc, ViewPort *vp);
             bool RenderGribPressure(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp);
@@ -188,6 +216,12 @@ class GRIBOverlayFactory
 #if wxUSE_GRAPHICS_CONTEXT
             wxGraphicsContext       *m_pgc;
 #endif
+
+            bool              m_ben_Wind;
+            bool              m_ben_Pressure;
+            bool              m_ben_SigHw;
+            bool              m_ben_Quickscat;
+            bool              m_ben_Seatmp;
 
 };
 
