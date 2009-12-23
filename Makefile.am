@@ -341,6 +341,10 @@ install-data-local:
 	cp -p ./$(srcdir)/data/tips.html  $(DESTDIR)$(pkgdatadir)
 	cp -p ./$(srcdir)/data/opencpn.png  /usr/share/icons
 	cp -p ./$(srcdir)/data/opencpn.desktop  /usr/share/applications
+	cp -p ./$(srcdir)/po/opencpn_de_DE.mo /usr/local/share/locale/de/LC_MESSAGES
+	cp -p ./$(srcdir)/po/opencpn_da_DK.mo /usr/local/share/locale/da/LC_MESSAGES
+	cp -p ./$(srcdir)/po/opencpn_it_IT.mo /usr/local/share/locale/it/LC_MESSAGES
+	cp -p ./$(srcdir)/po/opencpn_pl_PL.mo /usr/local/share/locale/pl/LC_MESSAGES
 
 uninstall-local:
 	rm -fr $(DESTDIR)$(pkgdatadir)/wvsdata/*
@@ -351,7 +355,20 @@ uninstall-local:
 	rmdir $(DESTDIR)$(pkgdatadir)/tcdata 
 	rmdir $(DESTDIR)$(pkgdatadir)
 
-messages:
+$(srcdir)/po/opencpn.pot: opencpn
 	mkdir -p ./po
 	xgettext --package-name opencpn --package-version 1.3.6  -o ./po/opencpn.pot  ./src/*.cpp --keyword=_ --width=80
+
+messages: $(srcdir)/po/opencpn.pot
+	msgmerge ./po/opencpn_de_DE.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
+	msgfmt --check --output-file ./po/opencpn_de_DE.mo ./po/opencpn_de_DE.po 
+	msgmerge ./po/opencpn_da_DK.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
+	msgfmt --check --output-file ./po/opencpn_da_DK.mo ./po/opencpn_da_DK.po 
+	msgmerge ./po/opencpn_it_IT.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
+	msgfmt --check --output-file ./po/opencpn_it_IT.mo ./po/opencpn_it_IT.po 
+	msgmerge ./po/opencpn_pl_PL.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
+	msgfmt --check --output-file ./po/opencpn_pl_PL.mo ./po/opencpn_pl_PL.po 
+
+
+
 
