@@ -36,6 +36,7 @@ class wxMemoryDC;
 
 class Segment;
 WX_DECLARE_LIST(Segment, MySegList);
+WX_DECLARE_LIST(MySegList, MySegListList);
 
 
 // TODO: join segments and draw a spline
@@ -74,7 +75,7 @@ class IsoLine
         ~IsoLine();
 
 
-        void drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp, bool bHiDef);
+        void drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp, bool bShowLabels, bool bHiDef);
 
         void drawIsoLineLabels(wxMemoryDC *pmdc, wxColour couleur, ViewPort *vp,
                                 int density, int first, double coef);
@@ -97,8 +98,10 @@ class IsoLine
         // Les coordonnées sont les indices dans la grille du GribRecord
         //---------------------------------------------------------
         void extractIsoLine(const GribRecord *rec);
+        MySegList *BuildContinuousSegment(void);
 
-        MySegList       m_listsort;
+        MySegList       m_seglist;
+        MySegListList   m_SegListList;
 };
 
 

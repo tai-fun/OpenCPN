@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "dychart.h"        // for some compile time fixups
 #include "chcanv.h"
 #include "cutil.h"
+#include "georef.h"
 
 #include "IsoLine.h"
 
@@ -34,11 +35,13 @@ wxList ocpn_wx_spline_point_list;
 
 #include <wx/listimpl.cpp>
 WX_DEFINE_LIST(MySegList);
+WX_DEFINE_LIST(MySegListList);
 
 //---------------------------------------------------------------
 IsoLine::IsoLine(double val, const GribRecord *rec_)
 {
     value = val;
+
     rec = rec_;
     W = rec->getNi();
     H = rec->getNj();
@@ -54,39 +57,94 @@ IsoLine::IsoLine(double val, const GribRecord *rec_)
     //      Join the isoline segments into a nice list
     //      Which is end-to-end continuous and unidirectional
 
-    //      Create a wxList of the trace list
-    MySegList seglist;
+    //      Create a master wxList of the trace list
     std::list<Segment *>::iterator it;
     for (it=trace.begin(); it!=trace.end(); it++)
     {
           Segment *seg = *it;
           seg->bUsed = false;
-          seglist.Append(*it);
+          m_seglist.Append(*it);
     }
 
-    MySegList::Node *node;
-    Segment *seg;
+    //      Isoline may be discontinuous....
+    //      So build a list of continuous segments
+    bool bdone = false;
+    while(!bdone)
+    {
+          MySegList *ps = BuildContinuousSegment();
+
+          m_SegListList.Append(ps);
+
+          MySegList::Node *node;
+          Segment *seg;
+
+          // recreate the master list, removing used segs
+
+          node = m_seglist.GetFirst();
+          while(node)
+          {
+                seg = node->GetData();
+                if(seg->bUsed)
+                {
+                      m_seglist.Erase(node);
+                      node = m_seglist.GetFirst();
+                }
+                else
+                      node = node->GetNext();
+          }
+
+          if(0 == m_seglist.GetCount())
+                bdone = true;
+    }
+
+///printf("create Isobar : press=%4.0f long=%d\n", pressure/100, trace.size());
+}
+//---------------------------------------------------------------
+IsoLine::~IsoLine()
+{
+//printf("delete Isobar : press=%4.0f long=%d\n", pressure/100, trace.size());
+
+    std::list<Segment *>::iterator it;
+    for (it=trace.begin(); it!=trace.end(); it++) {
+        delete *it;
+        *it = NULL;
+    }
+    trace.clear();
+
+    m_SegListList.DeleteContents(true);
+    m_SegListList.Clear();
+
+}
+
+
+MySegList *IsoLine::BuildContinuousSegment(void)
+{
+      MySegList::Node *node;
+      Segment *seg;
+
+      MySegList *ret_list = new MySegList;
 
     //     Build a chain extending from the "2" end of the target segment
     //      The joined list, side 2...
-    MySegList segjoin2;
+      MySegList segjoin2;
 
     //      Add any first segment to the list
-     node = seglist.GetFirst();
-     Segment *seg0 = node->GetData();
-     seg0->bUsed = true;
-     segjoin2.Append(seg0);
+      node = m_seglist.GetFirst();
+      Segment *seg0 = node->GetData();
+      seg0->bUsed = true;
+      segjoin2.Append(seg0);
 
-     Segment *tseg = seg0;
+      Segment *tseg = seg0;
 
-     while(tseg)
-     {
+      while(tseg)
+      {
             bool badded = false;
             Segment *seg;
-            node = seglist.GetFirst();
+            node = m_seglist.GetFirst();
             while (node)
             {
                   seg = node->GetData();
+
                   if((!seg->bUsed) && (seg->py1 == tseg->py2) && (seg->px1 == tseg->px2))              // fits without reverse
                   {
                         seg->bUsed = true;
@@ -110,114 +168,109 @@ IsoLine::IsoLine(double val, const GribRecord *rec_)
                   tseg = seg;
             else
                   tseg = NULL;
-     }
+      }
+
+
 
     //     Build a chain extending from the "1" end of the target segment
     //      The joined list, side 1...
-     MySegList segjoin1;
+      MySegList segjoin1;
 
     //      Add the same first segment to the list
-     node = seglist.GetFirst();
-     seg0 = node->GetData();
-     seg0->bUsed = true;
-     segjoin1.Append(seg0);
+      node = m_seglist.GetFirst();
+      seg0 = node->GetData();
+      seg0->bUsed = true;
+      segjoin1.Append(seg0);
 
-     tseg = seg0;
+      tseg = seg0;
 
-     while(tseg)
-     {
-           bool badded = false;
-           node = seglist.GetFirst();
-           while (node)
-           {
-                 seg = node->GetData();
-                 if((!seg->bUsed) && (seg->py2 == tseg->py1) && (seg->px2 == tseg->px1))              // fits without reverse
-                 {
-                       seg->bUsed = true;
-                       segjoin1.Append(seg);
-                       badded = true;
-                       break;
-                 }
-                 else if((!seg->bUsed) && (seg->py1 == tseg->py1) && (seg->px1 == tseg->px1))         // fits, needs reverse
-                 {
-                       seg->bUsed = true;
-                       double a = seg->px2; seg->px2 = seg->px1; seg->px1 = a;
-                       double b = seg->py2; seg->py2 = seg->py1; seg->py1 = b;
-                       segjoin1.Append(seg);
-                       badded = true;
-                       break;
-                 }
+      while(tseg)
+      {
+            bool badded = false;
+            node = m_seglist.GetFirst();
+            while (node)
+            {
+                  seg = node->GetData();
 
-                 node = node->GetNext();
-           }
-           if(badded == true)
-                 tseg = seg;
-           else
-                 tseg = NULL;
-     }
+                  if((!seg->bUsed) && (seg->py2 == tseg->py1) && (seg->px2 == tseg->px1))              // fits without reverse
+                  {
+                        seg->bUsed = true;
+                        segjoin1.Append(seg);
+                        badded = true;
+                        break;
+                  }
+                  else if((!seg->bUsed) && (seg->py1 == tseg->py1) && (seg->px1 == tseg->px1))         // fits, needs reverse
+                  {
+                        seg->bUsed = true;
+                        double a = seg->px2; seg->px2 = seg->px1; seg->px1 = a;
+                        double b = seg->py2; seg->py2 = seg->py1; seg->py1 = b;
+                        segjoin1.Append(seg);
+                        badded = true;
+                        break;
+                  }
+
+                  node = node->GetNext();
+            }
+            if(badded == true)
+                  tseg = seg;
+            else
+                  tseg = NULL;
+      }
+
 
      //     Now have two lists...
 
      //     Start with "1" side list,
      //    starting from the end, and skipping the first segment
 
-     int n1 = segjoin1.GetCount();
-     for(int i=n1 - 1 ; i > 0 ; i--)
-     {
-           node = segjoin1.Item( i );
-           seg = node->GetData();
+      int n1 = segjoin1.GetCount();
+      for(int i=n1 - 1 ; i > 0 ; i--)
+      {
+            node = segjoin1.Item( i );
+            seg = node->GetData();
 //           double a = seg->px2; seg->px2 = seg->px1; seg->px1 = a;
 //           double b = seg->py2; seg->py2 = seg->py1; seg->py1 = b;
-           m_listsort.Append(seg);
+            ret_list->Append(seg);
 
 //           printf("C-Appending seg: %g %g %g %g\n", seg->px1, seg->py1, seg->px2, seg->py2);
-     }
+      }
 
      //     Now add the "2"side list
-     int n2 = segjoin2.GetCount();
-     for(int i=0 ; i < n2 ; i++)
-     {
-           node = segjoin2.Item(i);
-           seg = node->GetData();
-           m_listsort.Append(seg);
-     }
+      int n2 = segjoin2.GetCount();
+      for(int i=0 ; i < n2 ; i++)
+      {
+            node = segjoin2.Item(i);
+            seg = node->GetData();
+            ret_list->Append(seg);
+      }
 
      //     And there it is
 
-
-
-///printf("create Isobar : press=%4.0f long=%d\n", pressure/100, trace.size());
-}
-//---------------------------------------------------------------
-IsoLine::~IsoLine()
-{
-//printf("delete Isobar : press=%4.0f long=%d\n", pressure/100, trace.size());
-
-    std::list<Segment *>::iterator it;
-    for (it=trace.begin(); it!=trace.end(); it++) {
-        delete *it;
-        *it = NULL;
-    }
-    trace.clear();
+      return ret_list;
 }
 
 
-
 //---------------------------------------------------------------
-void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp, bool bHiDef)
+void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp, bool bShowLabels, bool bHiDef)
 {
+      int nsegs = trace.size();
+      if(nsegs < 1)
+            return;
+
       wxPen ppISO ( isoLineColor, 2 );
 
 #if wxUSE_GRAPHICS_CONTEXT
       wxGraphicsContext *pgc = wxGraphicsContext::Create(*pmdc);
       pgc->SetPen(ppISO);
-#else
-      pmdc->SetPen(ppISO);
 #endif
+
+      pmdc->SetPen(ppISO);
+
+
 
 #if 0
 
-    std::list<Segment *>::iterator it;
+      std::list<Segment *>::iterator it;
 
     //---------------------------------------------------------
     // Dessine les segments
@@ -252,88 +305,139 @@ void IsoLine::drawIsoLine(wxMemoryDC *pmdc, ViewPort *vp, bool bHiDef)
 #endif
 #endif
 
-      std::list<Segment *>::iterator it;
-
-      //    Get max segment count
-      int n = trace.size();
-
-      if(n < 1)
-            return;
-
-      pmdc->SetPen(ppISO);
+      int text_sx, text_sy;
+      pmdc->GetTextExtent(_T("10000"), &text_sx, &text_sy);
+      double m = text_sy / 2;
+      int label_size = text_sx;
+      int label_space = 400;
+      double coef = .01;
+      int len = label_space/4;
 
       //    Allocate an array big enough
-      wxPoint *pPoints = new wxPoint[n+1];
+      wxPoint *pPoints = new wxPoint[nsegs+1];
 
-      //    Fill in the array
-      MySegList::Node *node;
-      Segment *seg;
-
-      node = m_listsort.GetFirst();
-      if(node)
+      MySegListList::Node *listnode;
+      listnode = m_SegListList.GetFirst();
+      while(listnode)
       {
-            seg = node->GetData();
-            wxPoint ab = vp->GetMercatorPixFromLL(seg->py1, seg->px1);
-            pPoints[0] = ab;
-      }
-      int ip=1;
+            MySegList *listsort = listnode->GetData();
 
-      while (node)
-      {
-            seg = node->GetData();
-            wxPoint cd = vp->GetMercatorPixFromLL(seg->py2, seg->px2);
-            pPoints[ip++] = cd;
+            //    Fill in the array
+            MySegList::Node *node;
+            Segment *seg;
 
-            node=node->GetNext();
-      }
-
-
-
-//      wxPen ppISO1 ( wxColour(255,0,0), 2 );
-//      pmdc->SetPen(ppISO1);
-
-      int np = m_listsort.GetCount() + 1;
-
-      if(np > 1)
-      {
-            GenerateSpline(np, pPoints);
-
-// Test code
-//            pmdc->DrawLines(&ocpn_wx_spline_point_list, 0, 0 );
-//            pmdc->DrawLines(np, pPoints);
-
-            wxList::compatibility_iterator snode = ocpn_wx_spline_point_list.GetFirst();
-            wxPoint *point0 = (wxPoint *)snode->GetData();
-            snode=snode->GetNext();
-
-            while (snode)
+            node = listsort->GetFirst();
+            if(node)
             {
-                  wxPoint *point = (wxPoint *)snode->GetData();
+                  seg = node->GetData();
+                  wxPoint ab = vp->GetMercatorPixFromLL(seg->py1, seg->px1);
+                  pPoints[0] = ab;
+            }
+            int ip=1;
 
-                  ClipResult res = cohen_sutherland_line_clip_i ( &point0->x, &point0->y, &point->x, &point->y,
-                              0, vp->pix_width, 0, vp->pix_height );
-                  if ( res != Invisible )
-                  {
-#if wxUSE_GRAPHICS_CONTEXT
-                        if(bHiDef)
-                              pgc->StrokeLine(point0->x, point0->y, point->x, point->y);
-                        else
-                              pmdc->DrawLine(point0->x, point0->y, point->x, point->y);
-#else
-                        pmdc->DrawLine(point0->x, point0->y, point->x, point->y);
-#endif
-                  }
+            while (node)
+            {
+                  seg = node->GetData();
+                  wxPoint cd = vp->GetMercatorPixFromLL(seg->py2, seg->px2);
+                  pPoints[ip++] = cd;
 
-                  *point0 = *point;
-                  snode=snode->GetNext();
+                  node=node->GetNext();
             }
 
+            int np = listsort->GetCount() + 1;
 
-            ClearSplineList();
+
+            if(np > 1)
+            {
+
+      // Test code
+      //          pmdc->DrawLines(np, pPoints);
+
+                  GenerateSpline(np, pPoints);
+
+      //    Test Code
+      //            pmdc->DrawLines(&ocpn_wx_spline_point_list, 0, 0 );
+
+                  bool bDrawing = true;
+                  wxPoint lstart;
+
+                  wxList::compatibility_iterator snode = ocpn_wx_spline_point_list.GetFirst();
+                  wxPoint *point0 = (wxPoint *)snode->GetData();
+                  snode=snode->GetNext();
+
+                  while (snode)
+                  {
+                        wxPoint *point = (wxPoint *)snode->GetData();
+
+                        ClipResult res = cohen_sutherland_line_clip_i ( &point0->x, &point0->y, &point->x, &point->y,
+                                    0, vp->pix_width, 0, vp->pix_height );
+                        if ( res != Invisible )
+                        {
+                              int dl = (int)sqrt(
+                                            (double)((point0->x - point->x) * (point0->x - point->x))
+                                          +(double)((point0->y - point->y) * (point0->y - point->y)));
+                              if(bDrawing)
+                              {
+                                    len += dl;
+                                    if(len > label_space)
+                                    {
+                                          bDrawing = false;
+                                          len = 0;
+                                          lstart = *point;
+                                    }
+                              }
+                              else
+                              {
+                                    len += dl;
+                                    if(len > label_size)
+                                    {
+                                          bDrawing = true;
+                                          len = 0;
+
+                                          if(bShowLabels)
+                                          {
+                                                double label_angle = atan2((double)(lstart.y - point->y),
+                                                    (double)(point->x - lstart.x)) * 180. / PI;
+                                                wxString label;
+                                                label.Printf(_T("%d"), (int)(value*coef+0.5));
+
+                                                double xs = lstart.x - (m * sin(label_angle * PI / 180.));
+                                                double ys = lstart.y - (m * cos(label_angle * PI / 180.));
+                                                pmdc->DrawRotatedText(label, (int)xs, (int)ys, label_angle);
+                                          }
+                                    }
+                              }
+
+
+                              if(bDrawing || !bShowLabels)
+                              {
+      #if wxUSE_GRAPHICS_CONTEXT
+                                    if(bHiDef)
+                                          pgc->StrokeLine(point0->x, point0->y, point->x, point->y);
+                                    else
+                                          pmdc->DrawLine(point0->x, point0->y, point->x, point->y);
+      #else
+                                    pmdc->DrawLine(point0->x, point0->y, point->x, point->y);
+      #endif
+                              }
+                        }
+
+                        *point0 = *point;
+                        snode=snode->GetNext();
+                  }
+
+                  ClearSplineList();
+            }
+
+            listnode = listnode->GetNext();             // Next continuous chain
+
       }
 
-      delete pPoints;
+      delete[] pPoints;
 
+#if wxUSE_GRAPHICS_CONTEXT
+      delete pgc;
+#endif
 
 }
 
@@ -614,81 +718,6 @@ static bool ocpn_wx_spline_add_point(double x, double y)
       return true;
 }
 
-/*
-static void wx_spline_draw_point_array(wxDCBase *dc)
-{
-      dc->DrawLines(&wx_spline_point_list, 0, 0 );
-      wxList::compatibility_iterator node = wx_spline_point_list.GetFirst();
-      while (node)
-      {
-            wxPoint *point = (wxPoint *)node->GetData();
-            delete point;
-            wx_spline_point_list.Erase(node);
-            node = wx_spline_point_list.GetFirst();
-      }
-}
-*/
-/*
-void DoDrawSpline( wxList *points )
-{
-
-      wxPoint *p;
-      double           cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4;
-      double           x1, y1, x2, y2;
-
-      wxList::compatibility_iterator node = points->GetFirst();
-      if (!node)
-        // empty list
-            return;
-
-      p = (wxPoint *)node->GetData();
-
-      x1 = p->x;
-      y1 = p->y;
-
-      node = node->GetNext();
-      p = (wxPoint *)node->GetData();
-
-      x2 = p->x;
-      y2 = p->y;
-      cx1 = (double)((x1 + x2) / 2);
-      cy1 = (double)((y1 + y2) / 2);
-      cx2 = (double)((cx1 + x2) / 2);
-      cy2 = (double)((cy1 + y2) / 2);
-
-      wx_spline_add_point(x1, y1);
-
-      while ((node = node->GetNext())
-#if !wxUSE_STL
-              != NULL
-#endif // !wxUSE_STL
-            )
-      {
-            p = (wxPoint *)node->GetData();
-            x1 = x2;
-            y1 = y2;
-            x2 = p->x;
-            y2 = p->y;
-            cx4 = (double)(x1 + x2) / 2;
-            cy4 = (double)(y1 + y2) / 2;
-            cx3 = (double)(x1 + cx4) / 2;
-            cy3 = (double)(y1 + cy4) / 2;
-
-            wx_quadratic_spline(cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4);
-
-            cx1 = cx4;
-            cy1 = cy4;
-            cx2 = (double)(cx1 + x2) / 2;
-            cy2 = (double)(cy1 + y2) / 2;
-      }
-
-      wx_spline_add_point( cx1, cy1 );
-      wx_spline_add_point( x2, y2 );
-
-      wx_spline_draw_point_array( this );
-}
-
-*/
 
 void GenSpline( wxList *points )
 {
