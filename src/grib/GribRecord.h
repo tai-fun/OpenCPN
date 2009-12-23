@@ -69,9 +69,15 @@ Elément de base d'un fichier GRIB
 #define GRB_DIRSW         109
 #define GRB_PERSW         110
 
+#define GRB_CRAIN         140   /* "Categorical rain", "yes=1;no=0" */
 #define GRB_FRZRAIN_CATEG 141   /* 1=yes 0=no */
 #define GRB_SNOW_CATEG    143   /* 1=yes 0=no */
 #define GRB_CAPE 		  157   /* J/kg   */
+
+#define GRB_TSEC          171   /* "Seconds prior to initial reference time (defined in bytes 18-20)" */
+
+#define GRB_USCT          190   /* Scatterometer estimated U Wind, NCEP Center 7  */
+#define GRB_VSCT          191   /* Scatterometer estimated V Wind, NCEP Center 7  */
 
 #define GRB_WIND_XY2D      250   /* private : GRB_WIND_VX+GRB_WIND_VX */
 #define GRB_DIFF_TEMPDEW   251   /* private : GRB_TEMP-GRB_DEWPOINT */
