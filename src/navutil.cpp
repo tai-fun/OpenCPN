@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.57  2009/12/23 01:41:39  bdbcat
+ * Lower bounds on track parameters
+ *
  * Revision 1.56  2009/12/22 21:45:17  bdbcat
  * Cleanup
  *
@@ -220,7 +223,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.56 2009/12/22 21:45:17 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.57 2009/12/23 01:41:39 bdbcat Exp $" );
 
 //    Statics
 
@@ -2879,13 +2882,21 @@ int MyConfig::LoadMyConfig ( int iteration )
       val.Clear();
       Read ( _T ( "TrackIntervalSeconds" ), &val );
       if ( val.Length() > 0 )
-            g_TrackIntervalSeconds = atof ( val.mb_str() );
+      {
+            double tval= atof ( val.mb_str() );
+            if(tval >= 2.)
+                   g_TrackIntervalSeconds = tval;
+      }
 
       g_TrackDeltaDistance = 0.10;
       val.Clear();
       Read ( _T ( "TrackDeltaDistance" ), &val );
       if ( val.Length() > 0 )
-            g_TrackDeltaDistance = atof ( val.mb_str() );
+      {
+            double tval= atof ( val.mb_str() );
+            if(tval >= 0.05)
+                  g_TrackDeltaDistance = tval;
+      }
 
       Read ( _T ( "EnableTrackByTime" ), &g_bTrackTime, 1 );
       Read ( _T ( "EnableTrackByDistance" ), &g_bTrackDistance, 0 );
