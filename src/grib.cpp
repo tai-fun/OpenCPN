@@ -51,7 +51,7 @@
 #endif
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.8 2009/12/23 01:49:17 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.9 2009/12/23 01:50:10 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -278,7 +278,7 @@ void GRIBUIDialog::CreateControls()
       m_cbSeaTmp.SetValue(true);
       pDataGrid->Add(&m_cbSeaTmp, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
-      wxStaticText *ps5 = new wxStaticText(this, wxID_ANY, _("Sea Surface Tmep, C"));
+      wxStaticText *ps5 = new wxStaticText(this, wxID_ANY, _("Sea Surface Temp, C"));
       pDataGrid->Add(ps5, 0, wxALIGN_LEFT|wxALL, group_item_spacing);
 
       m_pSeaTmpTextCtrl = new wxTextCtrl(this, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
