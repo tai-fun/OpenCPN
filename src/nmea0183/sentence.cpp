@@ -119,8 +119,10 @@ unsigned char SENTENCE::ComputeChecksum( void ) const
 double SENTENCE::Double( int field_number ) const
 {
  //  ASSERT_VALID( this );
+      if(Field( field_number ).Len() == 0)
+            return 999.;
 
-    return( ::atof( Field( field_number ).mb_str() ) );
+      return( ::atof( Field( field_number ).mb_str() ) );
 }
 
 
@@ -151,7 +153,6 @@ const wxString& SENTENCE::Field( int desired_field_number ) const
 //   ASSERT_VALID( this );
 
    static wxString return_string;
-
    return_string.Empty();
 
    int index                = 1; // Skip over the $ at the begining of the sentence
@@ -181,6 +182,7 @@ const wxString& SENTENCE::Field( int desired_field_number ) const
          index++;
       }
    }
+
 
    return( return_string );
 }
