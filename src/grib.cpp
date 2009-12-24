@@ -51,7 +51,7 @@
 #endif
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.9 2009/12/23 01:50:10 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.10 2009/12/24 19:20:24 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -133,6 +133,12 @@ void GRIBUIDialog::Init( )
       m_sequence_active = -1;
       m_pCurrentGribRecordSet = NULL;
       m_pRecordTree = NULL;
+
+      m_pWindSpeedTextCtrl = NULL;
+      m_pWindDirTextCtrl   = NULL;
+      m_pPressureTextCtrl  = NULL;
+      m_pSigWHTextCtrl     = NULL;
+
 }
 
 
@@ -310,10 +316,14 @@ void GRIBUIDialog::SetCursorLatLon(double lat, double lon)
 
 void GRIBUIDialog::UpdateTrackingControls(void)
 {
-      m_pWindSpeedTextCtrl->Clear();
-      m_pWindDirTextCtrl->Clear();
-      m_pPressureTextCtrl->Clear();
-      m_pSigWHTextCtrl->Clear();
+      if(m_pWindSpeedTextCtrl)
+            m_pWindSpeedTextCtrl->Clear();
+      if(m_pWindDirTextCtrl)
+            m_pWindDirTextCtrl->Clear();
+      if(m_pPressureTextCtrl)
+            m_pPressureTextCtrl->Clear();
+      if(m_pSigWHTextCtrl)
+            m_pSigWHTextCtrl->Clear();
 
       if(m_pCurrentGribRecordSet)
       {
@@ -332,10 +342,12 @@ void GRIBUIDialog::UpdateTrackingControls(void)
 
                         wxString t;
                         t.Printf(_T("%2d"), (int)vkn);
-                        m_pWindSpeedTextCtrl->AppendText(t);
+                        if(m_pWindSpeedTextCtrl)
+                              m_pWindSpeedTextCtrl->AppendText(t);
 
                         t.Printf(_T("%03d"), (int)(ang));
-                        m_pWindDirTextCtrl->AppendText(t);
+                        if(m_pWindDirTextCtrl)
+                              m_pWindDirTextCtrl->AppendText(t);
 
                   }
             }
@@ -348,7 +360,8 @@ void GRIBUIDialog::UpdateTrackingControls(void)
                   {
                         wxString t;
                         t.Printf(_T("%2d"), (int)(press / 100.));
-                        m_pPressureTextCtrl->AppendText(t);
+                        if(m_pPressureTextCtrl)
+                              m_pPressureTextCtrl->AppendText(t);
                   }
             }
 
@@ -360,7 +373,8 @@ void GRIBUIDialog::UpdateTrackingControls(void)
                   {
                         wxString t;
                         t.Printf(_T("%4.1f"), height);
-                        m_pSigWHTextCtrl->AppendText(t);
+                        if(m_pSigWHTextCtrl)
+                              m_pSigWHTextCtrl->AppendText(t);
                   }
             }
 
@@ -379,10 +393,12 @@ void GRIBUIDialog::UpdateTrackingControls(void)
 
                         wxString t;
                         t.Printf(_T("%2d"), (int)vkn);
-                        m_pWindSpeedTextCtrl->AppendText(t);
+                        if(m_pWindSpeedTextCtrl)
+                              m_pWindSpeedTextCtrl->AppendText(t);
 
                         t.Printf(_T("%03d"), (int)(ang));
-                        m_pWindDirTextCtrl->AppendText(t);
+                        if(m_pWindDirTextCtrl)
+                              m_pWindDirTextCtrl->AppendText(t);
 
                   }
             }
@@ -668,6 +684,8 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
       }
 
       cc1->Refresh();
+
+      UpdateTrackingControls();
 }
 
 
@@ -678,7 +696,7 @@ void GRIBUIDialog::SetFactoryOptions()
       s_pGRIBOverlayFactory->EnableRenderPressure(m_cbPress.GetValue());
       s_pGRIBOverlayFactory->EnableRenderSigHw(m_cbSigHw.GetValue());
       s_pGRIBOverlayFactory->EnableRenderQuickscat(m_cbWindSpeed.GetValue());           // Note that Quickscat display shares with Wind Speed/Dir forecast
-      s_pGRIBOverlayFactory->EnableRenderSeatmp(m_cbSeaTmp.GetValue());
+//      s_pGRIBOverlayFactory->EnableRenderSeatmp(m_cbSeaTmp.GetValue());
 
       cc1->Refresh();
 }
@@ -951,9 +969,13 @@ bool GRIBOverlayFactory::RenderGribScatWind(GribRecord *pGRX, GribRecord *pGRY, 
 bool GRIBOverlayFactory::RenderGribSigWh(GribRecord *pGR, wxMemoryDC *pmdc, ViewPort *vp)
 {
       wxPoint porg = GetDCPixPoint(vp,  pGR->getLatMax(), pGR->getLonMin());
-      wxBoundingBox grib_bb(pGR->getLonMin(), pGR->getLatMin(), pGR->getLonMax(), pGR->getLatMax());
 
-      if(vp->vpBBox.Intersect(grib_bb) != _OUT)
+      //    Check two BBoxes....
+      //    TODO Make a better Intersect method
+      wxBoundingBox grib_bb(pGR->getLonMin(), pGR->getLatMin(), pGR->getLonMax(), pGR->getLatMax());
+      wxBoundingBox grib_bb1(pGR->getLonMin()-360., pGR->getLatMin(), pGR->getLonMax()-360., pGR->getLatMax());
+
+      if((vp->vpBBox.Intersect(grib_bb) != _OUT) || (vp->vpBBox.Intersect(grib_bb1) != _OUT))
       {
 
       // If needed, create the bitmap
