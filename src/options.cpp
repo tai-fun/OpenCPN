@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.cpp,v 1.37 2009/12/22 22:06:54 bdbcat Exp $
+ * $Id: options.cpp,v 1.38 2009/12/26 21:15:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.cpp,v $
+ * Revision 1.38  2009/12/26 21:15:03  bdbcat
+ * Messages
+ *
  * Revision 1.37  2009/12/22 22:06:54  bdbcat
  * Update Language
  *
@@ -327,6 +330,9 @@ void options::Init()
     itemStaticBoxSizer11 = NULL;
     pDirCtl = NULL;;
     itemActiveChartStaticBox = NULL;
+
+    m_bVisitLang = false;
+    m_itemFontElementListBox = NULL;
 
     m_pSerialArray = EnumerateSerialPorts();
 
@@ -835,10 +841,10 @@ void options::CreateControls()
     itemStaticBoxSizer26->Add(itemBoxSizer75, 1, wxALL, border_size);
 
     wxString pDispCatStrings[] = {
-        _T("&Base"),
-        _T("&Standard"),
-        _T("&Other"),
-        _T("&MarinersStandard")
+        _("Base"),
+        _("Standard"),
+        _("Other"),
+        _("MarinersStandard")
     };
     pDispCat = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Display Category"), wxDefaultPosition, wxDefaultSize,
                                4, pDispCatStrings, 1, wxRA_SPECIFY_COLS );
@@ -886,24 +892,24 @@ void options::CreateControls()
     itemStaticBoxSizer26->Add(itemStaticBoxSizer83, 1, wxALL|wxEXPAND, 2);
 
     wxString pPointStyleStrings[] = {
-        _T("&Paper Chart"),
-        _T("&Simplified"),
+        _("Paper Chart"),
+        _("Simplified"),
     };
     pPointStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Points"), wxDefaultPosition, wxDefaultSize,
                                   2, pPointStyleStrings, 1, wxRA_SPECIFY_COLS );
     itemStaticBoxSizer83->Add(pPointStyle, 0, wxALL|wxEXPAND, border_size);
 
     wxString pBoundStyleStrings[] = {
-        _T("&Plain"),
-        _T("&Symbolized"),
+        _("Plain"),
+        _("Symbolized"),
     };
     pBoundStyle = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Boundaries"), wxDefaultPosition, wxDefaultSize,
                                               2, pBoundStyleStrings, 1, wxRA_SPECIFY_COLS );
     itemStaticBoxSizer83->Add(pBoundStyle, 0, wxALL|wxEXPAND, border_size);
 
     wxString pColorNumStrings[] = {
-          _T("&2 Color"),
-          _T("&4 Color"),
+          _("2 Color"),
+          _("4 Color"),
     };
     p24Color = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Colors"), wxDefaultPosition, wxDefaultSize,
                                2, pColorNumStrings, 1, wxRA_SPECIFY_COLS );
@@ -948,9 +954,9 @@ void options::CreateControls()
 
 
     wxString pDepthUnitStrings[] = {
-             _T("&Feet"),
-             _T("&Metres"),
-             _T("&Fathoms"),
+             _("Feet"),
+             _("Metres"),
+             _("Fathoms"),
     };
 
     pDepthUnitSelect = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Chart Depth Units"), wxDefaultPosition, wxDefaultSize,
@@ -1134,11 +1140,14 @@ void options::CreateControls()
 
 
     //      Build Language/Fonts panel
+
+
     itemPanelFont = new wxPanel( itemNotebook4, ID_PANELFONT, wxDefaultPosition, wxDefaultSize,
                                           wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
-    wxBoxSizer* itemBoxSizerFontPanel = new wxBoxSizer(wxVERTICAL);
-    itemPanelFont->SetSizer(itemBoxSizerFontPanel);
+    m_itemBoxSizerFontPanel = new wxBoxSizer(wxVERTICAL);
+    itemPanelFont->SetSizer(m_itemBoxSizerFontPanel);
 
+/*
     wxStaticBox* itemLangStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _("Language"));
     wxStaticBoxSizer* itemLangStaticBoxSizer = new wxStaticBoxSizer(itemLangStaticBox, wxVERTICAL);
     itemBoxSizerFontPanel->Add(itemLangStaticBoxSizer, 0, wxEXPAND|wxALL, border_size);
@@ -1148,7 +1157,8 @@ void options::CreateControls()
     int nLang = sizeof(lang_list)/sizeof(int);
     for( int it = 0 ; it < nLang ; it++)
     {
-          if(wxLocale::GetLanguageInfo(lang_list[it]))
+//          if(wxLocale::GetLanguageInfo(lang_list[it]))
+          if(wxLocale::IsAvailable(lang_list[it]))
           {
                 wxString sl = wxLocale::GetLanguageName(lang_list[it]);
                 m_itemLangListBox->Append( sl );
@@ -1186,7 +1196,7 @@ void options::CreateControls()
                 wxDefaultPosition, wxDefaultSize, 0 );
     itemFontElementStaticBoxSizer->Add(itemFontChooseButton, 0, wxEXPAND|wxALL, border_size);
 
-
+*/
     itemNotebook4->AddPage(itemPanelFont, _("Language/Fonts"));
 
     //      Build GRIB. Page
@@ -1278,8 +1288,8 @@ void options::CreateControls()
     itemStaticBoxSizerRadarRings->Add(pNavAidRadarRingsStep, 0, wxALIGN_LEFT|wxLEFT|wxRIGHT|wxBOTTOM, border_size);
 
     wxString pDistUnitsStrings[] = {
-          _T("&Nautical miles"),
-             _T("&Kilometers"),
+          _("&Nautical miles"),
+             _("&Kilometers"),
     };
     m_itemNavAidRadarRingsStepUnitsRadioBox = new wxRadioBox( itemPanelAdvanced, ID_RADIOBOX, _("Units"), wxDefaultPosition, wxDefaultSize,
                 2, pDistUnitsStrings, 1, wxRA_SPECIFY_COLS );
@@ -1569,13 +1579,6 @@ void options::SetInitialSettings()
     }
 #endif
 
-    //      Language tab
-    const wxLanguageInfo *pli = wxLocale::FindLanguageInfo(g_locale);
-    if(pli)
-    {
-      wxString clang = pli->Description;
-      m_itemLangListBox->SetValue(clang);
-    }
 
 }
 
@@ -2017,15 +2020,17 @@ void options::OnXidOkClick( wxCommandEvent& event )
 //    Language Tab
     int k_lang = 0;
 
-    wxString lang_sel = m_itemLangListBox->GetValue();
-    const wxLanguageInfo *pli = wxLocale::FindLanguageInfo(lang_sel);
+    if(m_bVisitLang)
+    {
+            wxString lang_sel = m_itemLangListBox->GetValue();
+            const wxLanguageInfo *pli = wxLocale::FindLanguageInfo(lang_sel);
 
-    wxString locale_old = g_locale;
-    g_locale = pli->CanonicalName;
+            wxString locale_old = g_locale;
+            g_locale = pli->CanonicalName;
 
-    if(g_locale != locale_old)
-          k_lang = LOCALE_CHANGED;
-
+            if(g_locale != locale_old)
+                  k_lang = LOCALE_CHANGED;
+    }
 
     //      Could be a lot smarter here
     EndModal(GENERIC_CHANGED | S52_CHANGED | k_force | k_charts | k_lang);
@@ -2132,8 +2137,6 @@ void options::OnPageChange(wxNotebookEvent& event)
 
       //    User selected Chart Page?
       //    If so, build the "Charts" page variants
-      //    Also, show a progress dialog, since getting the GenericTreeCtrl may be slow
-      //    and the user needs feedback
       if(2 == i)                        // 2 is the index of "Charts" page
       {
 
@@ -2149,7 +2152,7 @@ void options::OnPageChange(wxNotebookEvent& event)
           itemStaticBoxSizer11 = new wxStaticBoxSizer(itemStaticBoxSizer11Static, wxVERTICAL);
           itemBoxSizer10->Add(itemStaticBoxSizer11, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
           pDirCtl = new wxGenericDirCtrl( itemPanel9, ID_DIRCTRL, m_init_chart_dir, wxDefaultPosition,
-                                          wxDefaultSize, 0, _T("All files (*.*)|*.*"), 0 );
+                                          wxDefaultSize, 0, _("All files (*.*)|*.*"), 0 );
           pDirCtl->SetMinSize(wxSize(-1, 160));
           itemStaticBoxSizer11->Add(pDirCtl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5);
 
@@ -2239,6 +2242,78 @@ void options::OnPageChange(wxNotebookEvent& event)
       }
 
 
+      else if(5 == i)                        // 5 is the index of "Language/Fonts" page
+      {
+            if(!m_bVisitLang)
+            {
+                 ::wxBeginBusyCursor();
+
+                  int border_size = 4;
+
+                  wxStaticBox* itemLangStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _("Language"));
+                  wxStaticBoxSizer* itemLangStaticBoxSizer = new wxStaticBoxSizer(itemLangStaticBox, wxVERTICAL);
+                  m_itemBoxSizerFontPanel->Add(itemLangStaticBoxSizer, 0, wxEXPAND|wxALL, border_size);
+
+                  m_itemLangListBox = new wxComboBox(itemPanelFont, ID_CHOICE_LANG);
+
+                  int nLang = sizeof(lang_list)/sizeof(int);
+                  for( int it = 0 ; it < nLang ; it++)
+                  {
+      //          if(wxLocale::GetLanguageInfo(lang_list[it]))
+                        if(wxLocale::IsAvailable(lang_list[it]))
+                        {
+                              wxString sl = wxLocale::GetLanguageName(lang_list[it]);
+                              m_itemLangListBox->Append( sl );
+                        }
+                  }
+
+                  m_itemLangListBox->SetSelection(0);
+
+                  itemLangStaticBoxSizer->Add(m_itemLangListBox, 0, wxALL, border_size);
+
+
+                  wxStaticBox* itemFontStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _("Font Options"));
+                  wxStaticBoxSizer* itemFontStaticBoxSizer = new wxStaticBoxSizer(itemFontStaticBox, wxVERTICAL);
+                  m_itemBoxSizerFontPanel->Add(itemFontStaticBoxSizer, 0, wxEXPAND|wxALL, border_size);
+
+                  wxStaticBox* itemFontElementStaticBox = new wxStaticBox(itemPanelFont, wxID_ANY, _("Text Element"));
+                  wxStaticBoxSizer* itemFontElementStaticBoxSizer = new wxStaticBoxSizer(itemFontElementStaticBox, wxVERTICAL);
+                  itemFontStaticBoxSizer->Add(itemFontElementStaticBoxSizer, 0, wxEXPAND|wxALL, border_size);
+
+                  m_itemFontElementListBox = new wxComboBox(itemPanelFont, ID_CHOICE_FONTELEMENT);
+
+                  int nFonts = pFontMgr->GetNumFonts();
+                  for( int it = 0 ; it < nFonts ; it++)
+                  {
+                        wxString *t = pFontMgr->GetDialogString(it);
+                        m_itemFontElementListBox->Append( *t );
+                  }
+
+                  if(nFonts)
+                        m_itemFontElementListBox->SetSelection(0);
+
+                  itemFontElementStaticBoxSizer->Add(m_itemFontElementListBox, 0, wxEXPAND|wxALL, border_size);
+
+                  wxButton* itemFontChooseButton = new wxButton( itemPanelFont, ID_BUTTONFONTCHOOSE, _("Choose Font..."),
+                              wxDefaultPosition, wxDefaultSize, 0 );
+                  itemFontElementStaticBoxSizer->Add(itemFontChooseButton, 0, wxEXPAND|wxALL, border_size);
+
+                  //      Initialize Language tab
+                  const wxLanguageInfo *pli = wxLocale::FindLanguageInfo(g_locale);
+                  if(pli)
+                  {
+                        wxString clang = pli->Description;
+                        m_itemLangListBox->SetValue(clang);
+                  }
+
+                  m_bVisitLang = true;
+
+                  ::wxEndBusyCursor();
+
+                  m_itemBoxSizerFontPanel->Layout();
+
+            }
+      }
 }
 
 
@@ -2317,7 +2392,7 @@ void options::OnButtonSelectSound(wxCommandEvent& event)
       sound_dir.Append(_T("sounds"));
 
       wxFileDialog *openDialog = new wxFileDialog(this, wxT("Select Sound File"), sound_dir, wxT(""),
-                  wxT("WAV files (*.wav)|*.wav|All files (*.*)|*.*"), wxFD_OPEN);
+                  _("WAV files (*.wav)|*.wav|All files (*.*)|*.*"), wxFD_OPEN);
       int response = openDialog->ShowModal();
       if (response == wxID_OK)
       {

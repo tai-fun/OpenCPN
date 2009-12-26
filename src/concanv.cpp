@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: concanv.cpp,v 1.20 2009/12/22 21:34:05 bdbcat Exp $
+ * $Id: concanv.cpp,v 1.21 2009/12/26 21:15:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Console Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.21  2009/12/26 21:15:03  bdbcat
+ * Messages
+ *
  * Revision 1.20  2009/12/22 21:34:05  bdbcat
  * Cleanup Messages
  *
@@ -69,6 +72,9 @@
  * Cleanup
  *
  * $Log: concanv.cpp,v $
+ * Revision 1.21  2009/12/26 21:15:03  bdbcat
+ * Messages
+ *
  * Revision 1.20  2009/12/22 21:34:05  bdbcat
  * Cleanup Messages
  *
@@ -177,7 +183,7 @@ extern                  double gCog;
 extern                  double gSog;
 
 
-CPL_CVSID("$Id: concanv.cpp,v 1.20 2009/12/22 21:34:05 bdbcat Exp $");
+CPL_CVSID("$Id: concanv.cpp,v 1.21 2009/12/26 21:15:03 bdbcat Exp $");
 
 
 //------------------------------------------------------------------------------
@@ -197,7 +203,7 @@ ConsoleCanvas::ConsoleCanvas(wxFrame *frame):
 {
       m_pParent = frame;
 
-      pThisLegBox = new wxStaticBox(this, -1, _T("This Leg"), wxPoint(1,1),
+      pThisLegBox = new wxStaticBox(this, -1, _("This Leg"), wxPoint(1,1),
                                     wxSize(170,200), 0, _T("staticBox"));
 
       m_pitemStaticBoxSizerLeg = new wxStaticBoxSizer(pThisLegBox, wxVERTICAL);
@@ -328,9 +334,9 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                   str_buf.Printf(_T("%6.2f"), pRouteMan->GetCurrentXTEToActivePoint());
                   pXTE->SetAValue(str_buf);
                   if(pRouteMan->GetXTEDir() < 0)
-                      pXTE->SetALabel(wxString(_T("XTE         L")));
+                      pXTE->SetALabel(wxString(_("XTE         L")));
                   else
-                      pXTE->SetALabel(wxString(_T("XTE         R")));
+                      pXTE->SetALabel(wxString(_("XTE         R")));
 
 //    TTG
                   wxString ttg_s;
@@ -408,7 +414,7 @@ void ConsoleCanvas::OnPaint(wxPaintEvent& event)
                               seta = _T("---");
 
                         pXTE->SetAValue(seta);
-                        pXTE->SetALabel(wxString(_T("ETA          ")));
+                        pXTE->SetALabel(wxString(_("ETA          ")));
                   }
             }
       }
@@ -458,9 +464,9 @@ void ConsoleCanvas::MouseEvent(wxMouseEvent& event)
             {
                   m_bShowRouteTotal = !m_bShowRouteTotal;
                   if(m_bShowRouteTotal)
-                        pThisLegBox->SetLabel(_T("Route"));
+                        pThisLegBox->SetLabel(_("Route"));
                   else
-                        pThisLegBox->SetLabel(_T("This Leg"));
+                        pThisLegBox->SetLabel(_("This Leg"));
 
                   pThisLegBox->Refresh(true);
             }

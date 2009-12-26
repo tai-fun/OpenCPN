@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.23 2009/12/22 21:32:13 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.24 2009/12/26 21:15:03 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.24  2009/12/26 21:15:03  bdbcat
+ * Messages
+ *
  * Revision 1.23  2009/12/22 21:32:13  bdbcat
  * Cleanup Leaks
  *
@@ -81,6 +84,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.24  2009/12/26 21:15:03  bdbcat
+ * Messages
+ *
  * Revision 1.23  2009/12/22 21:32:13  bdbcat
  * Cleanup Leaks
  *
@@ -266,7 +272,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.23 2009/12/22 21:32:13 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.24 2009/12/26 21:15:03 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -869,9 +875,9 @@ void SendToGpsDlg::CreateControls()
       wxBoxSizer* itemBoxSizer2 = new wxBoxSizer(wxVERTICAL);
       itemDialog1->SetSizer(itemBoxSizer2);
 
-//      Create the ScrollBox list of available com ports in a labeled staic box
+//      Create the ScrollBox list of available com ports in a labeled static box
 
-      wxStaticBox* comm_box = new wxStaticBox(this, wxID_ANY, _T("GPS/Plotter Port"));
+      wxStaticBox* comm_box = new wxStaticBox(this, wxID_ANY, _("GPS/Plotter Port"));
 
       wxStaticBoxSizer* comm_box_sizer = new wxStaticBoxSizer(comm_box, wxVERTICAL);
       itemBoxSizer2->Add(comm_box_sizer, 0, wxEXPAND|wxALL, 5);
@@ -896,11 +902,11 @@ void SendToGpsDlg::CreateControls()
       //    Add a reminder text box
       itemBoxSizer2->AddSpacer(20);
 
-      wxStaticText *premtext = new wxStaticText(this, -1, _T("Prepare GPS for Route/Waypoint upload and press Send..."));
+      wxStaticText *premtext = new wxStaticText(this, -1, _("Prepare GPS for Route/Waypoint upload and press Send..."));
       itemBoxSizer2->Add(premtext, 0, wxEXPAND|wxALL, 10);
 
       //    Create a progress gauge
-      wxStaticBox* prog_box = new wxStaticBox(this, wxID_ANY, _T("Progress..."));
+      wxStaticBox* prog_box = new wxStaticBox(this, wxID_ANY, _("Progress..."));
 
       wxStaticBoxSizer* prog_box_sizer = new wxStaticBoxSizer(prog_box, wxVERTICAL);
       itemBoxSizer2->Add(prog_box_sizer, 0, wxEXPAND|wxALL, 5);

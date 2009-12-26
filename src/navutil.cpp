@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.58  2009/12/26 21:15:03  bdbcat
+ * Messages
+ *
  * Revision 1.57  2009/12/23 01:41:39  bdbcat
  * Lower bounds on track parameters
  *
@@ -223,7 +226,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.57 2009/12/23 01:41:39 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.58 2009/12/26 21:15:03 bdbcat Exp $" );
 
 //    Statics
 
@@ -2418,7 +2421,7 @@ int MyConfig::LoadMyConfig ( int iteration )
             }
 
             if ( fabs ( lat ) < 90.0 )
-                  gLat = st_lat;
+                  gLat = lat;
       }
       s.Printf ( _T ( "Setting Ownship Lat/Lon %g, %g" ), gLat, gLon );
       wxLogMessage ( s );

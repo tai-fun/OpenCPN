@@ -196,10 +196,10 @@ void RouteProp::CreateControls()
     wxStaticText* itemStaticText11 = new wxStaticText( itemDialog1, wxID_STATIC, _("Total Distance"), wxDefaultPosition, wxDefaultSize, 0 );
     itemFlexGridSizer6a->Add(itemStaticText11, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
-    wxStaticText* itemStaticText12 = new wxStaticText( itemDialog1, wxID_STATIC, _T("Plan Speed"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText* itemStaticText12 = new wxStaticText( itemDialog1, wxID_STATIC, _("Plan Speed"), wxDefaultPosition, wxDefaultSize, 0 );
     itemFlexGridSizer6a->Add(itemStaticText12, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
-    wxStaticText* itemStaticText12a = new wxStaticText( itemDialog1, wxID_STATIC, _T("Time Enroute"),wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText* itemStaticText12a = new wxStaticText( itemDialog1, wxID_STATIC, _("Time Enroute"),wxDefaultPosition, wxDefaultSize, 0 );
     itemFlexGridSizer6a->Add(itemStaticText12a, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP|wxADJUST_MINSIZE, 5);
 
     m_TotalDistCtl = new wxTextCtrl( itemDialog1, ID_TEXTCTRL3, _T(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
@@ -240,36 +240,36 @@ void RouteProp::CreateControls()
     wxListItem itemCol;
     itemCol.SetImage(-1);
 
-    itemCol.SetText(_T("Leg"));
+    itemCol.SetText(_("Leg"));
     m_wpList->InsertColumn(0, itemCol);
     m_wpList->SetColumnWidth( 0,  50 );
 
-    itemCol.SetText(_T("To Waypoint"));
+    itemCol.SetText(_("To Waypoint"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(1, itemCol);
     m_wpList->SetColumnWidth( 1,   150 );
 
-    itemCol.SetText(_T("Distance"));
+    itemCol.SetText(_("Distance"));
     itemCol.SetAlign(wxLIST_FORMAT_RIGHT);
     m_wpList->InsertColumn(2, itemCol);
     m_wpList->SetColumnWidth( 2,   100 );
 
-    itemCol.SetText(_T("Bearing"));
+    itemCol.SetText(_("Bearing"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(3, itemCol);
     m_wpList->SetColumnWidth( 3,   80 );
 
-    itemCol.SetText(_T("Latitude"));
+    itemCol.SetText(_("Latitude"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(4, itemCol);
     m_wpList->SetColumnWidth( 4,  95 );
 
-    itemCol.SetText(_T("Longitude"));
+    itemCol.SetText(_("Longitude"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(5, itemCol);
     m_wpList->SetColumnWidth( 5,   95 );
 
-    itemCol.SetText(_T("ETE"));
+    itemCol.SetText(_("ETE"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_wpList->InsertColumn(6, itemCol);
     m_wpList->SetColumnWidth( 6,  120 );
@@ -395,9 +395,9 @@ bool RouteProp::UpdateProperties()
 
         wxTimeSpan time(0,0, (int)total_seconds, 0);
         if(total_seconds > 3600. * 24.)
-              time_form = time.Format(_T(" %D Days  %H Hours  %M Minutes"));
+              time_form = time.Format(_(" %D Days  %H Hours  %M Minutes"));
         else
-              time_form = time.Format(_T(" %H Hours  %M Minutes"));
+              time_form = time.Format(_(" %H Hours  %M Minutes"));
 
         m_TimeEnrouteCtl->SetValue(time_form);
 
@@ -454,7 +454,7 @@ bool RouteProp::UpdateProperties()
     // Time to each waypoint
                 if ( i == 0 )
                 {
-                      time_form.Printf(_T("Start"));
+                      time_form.Printf(_("Start"));
                       tdis = 0;
                 }
                 else
@@ -728,13 +728,13 @@ void MarkProp::CreateControls()
 
     wxListItem itemCol0;
     itemCol0.SetImage(-1);
-    itemCol0.SetText(_T("Icon"));
+    itemCol0.SetText(_("Icon"));
 
     m_IconList->InsertColumn(0, itemCol0);
     m_IconList->SetColumnWidth( 0, 40 );
 
     wxListItem itemCol;
-    itemCol.SetText(_T("Description"));
+    itemCol.SetText(_("Description"));
     itemCol.SetImage(-1);
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     m_IconList->InsertColumn(1, itemCol);
