@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.30 2009/12/22 21:56:57 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.31 2009/12/26 21:14:30 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.31  2009/12/26 21:14:30  bdbcat
+ * Update per Pierre
+ *
  * Revision 1.30  2009/12/22 21:56:57  bdbcat
  * Cleanup Leaks
  *
@@ -1290,7 +1293,7 @@ bool read_feature_record_table(FILE *stream, int n_features, Cell_Info_Block *pC
 
             if((pobj->geotype & 0x10) == 0x10)             // children/related
             {
-                  unsigned short nrelated;
+                  unsigned char nrelated;
                   if(!read_and_decode_bytes(stream, &nrelated, 1))
                         return false;
 
