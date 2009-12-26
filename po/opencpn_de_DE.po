@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-26 00:00-0500\n"
-"PO-Revision-Date: 2009-12-23 12:26+0100\n"
+"POT-Creation-Date: 2009-12-26 16:09-0500\n"
+"PO-Revision-Date: 2009-12-26 11:37+0100\n"
 "Last-Translator: max stirner <idpnd@yahoo.co.uk>\n"
 "Language-Team: OpenCPN <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -21,16 +21,14 @@ msgid "OpenCPN...A Nice Little Open Source Chart Plotter/Navigator"
 msgstr ""
 "OpenCPN...Ein nettes kleines Open-Source Kartenplotter-/Navigationsprogramm"
 #
-#, fuzzy
 msgid "About"
-msgstr "Route"
+msgstr "Über"
 #
 msgid "Authors"
 msgstr "Entwickler"
 #
-#, fuzzy
 msgid "License"
-msgstr "Verbindung"
+msgstr "Lizenz"
 #
 msgid "Help"
 msgstr "Hilfe"
@@ -38,9 +36,8 @@ msgstr "Hilfe"
 msgid "Close"
 msgstr "Schließen"
 #
-#, fuzzy
 msgid "ShipName:  "
-msgstr " Ship: "
+msgstr " Schiffsname: "
 #
 msgid "CallSign:  "
 msgstr "Rufzeichen:"
@@ -59,16 +56,14 @@ msgstr ""
 "Klasse:     B\n"
 "\n"
 #
-#, fuzzy
 msgid "Navigational Status:  "
-msgstr "Navigationsdaten"
+msgstr "Navigationsstatus:"
 #
 msgid "Ship Type:            "
 msgstr "Schiffstyp:"
 #
-#, fuzzy
 msgid "Destination:          "
-msgstr "Ziel"
+msgstr "Ziel:"
 #
 msgid "ETA:                  "
 msgstr "ETA:                  "
@@ -273,13 +268,13 @@ msgid " Ship: "
 msgstr " Ship: "
 #
 msgid "No Chart Available"
-msgstr ""
+msgstr "Keine Karte verfügbar"
 #
 msgid "New Mark"
-msgstr ""
+msgstr "Neue Markierung"
 #
 msgid "MAN OVERBOARD"
-msgstr ""
+msgstr "PERSON ÜBER BORD"
 #
 msgid "GRIB Display Control"
 msgstr "GRIB-Darstellungskontrolle"
@@ -302,128 +297,113 @@ msgstr "Skalierung: %8.0f  Zoom %4.2fx"
 msgid "Use nearby waypoint?"
 msgstr "Nächsten Wegpunkt benutzen?"
 #
-#, fuzzy
 msgid "OpenCPN Route Create"
-msgstr "OpenCPN Karten-Aktualisierung"
+msgstr "OpenCPN Route erstellen"
 #
-#, fuzzy
 msgid "Track Properties"
-msgstr "Eigenschaften"
+msgstr "Track-Eigenschaften"
 #
 msgid "Delete Track"
-msgstr ""
+msgstr "Track entfernen"
 #
 msgid "Export...."
-msgstr ""
+msgstr "Exportieren..."
 #
-#, fuzzy
 msgid "Activate Route"
-msgstr "Erstellung einer Route"
+msgstr "Route aktivieren"
 #
-#, fuzzy
 msgid "Deactivate Route"
-msgstr "Erstellung einer Route"
+msgstr "Route deaktivieren"
 #
-#, fuzzy
 msgid "Insert Waypoint"
-msgstr "Wegpunkte"
+msgstr "Wegpunkt einfügen"
 #
-#, fuzzy
 msgid "Append Waypoint"
-msgstr "Wegpunkte"
+msgstr "Wegpunkt hinzufügen"
 #
-#, fuzzy
 msgid "Delete Route"
-msgstr "Erstellung einer Route"
+msgstr "Route löschen"
 #
-#, fuzzy
 msgid "Reverse Route"
-msgstr "Erstellung einer Route"
+msgstr "Route umdrehen"
 #
-#, fuzzy
 msgid "Route Properties"
-msgstr "Eigenschaften"
+msgstr "Routen-Eigenschaften"
 #
 msgid "Delete All Routes..."
-msgstr ""
+msgstr "Alle Routen löschen..."
 #
 msgid "Send To GPS..."
-msgstr ""
+msgstr "An GPS senden..."
 #
-#, fuzzy
 msgid "Activate Waypoint"
-msgstr "Wegpunkte"
+msgstr "Wegpunkt aktivieren"
 #
 msgid "Activate Next in Route"
-msgstr ""
+msgstr "Nächster in Route"
 #
 msgid "Remove Waypoint from Route"
-msgstr ""
+msgstr "Wegpunkt aus Route entfernen"
 #
-#, fuzzy
 msgid "Delete Waypoint"
-msgstr "Wegpunkte"
+msgstr "Wegpunkt löschen"
 #
-#, fuzzy
 msgid "Mark/WP Properties"
-msgstr "Eigenschaften"
+msgstr "Markierung/WP-Eigenschaften"
 #
 msgid "Additional information"
-msgstr ""
+msgstr "Zusätzliche Informationen"
 #
 msgid "Delete Mark"
-msgstr ""
+msgstr "Markierung löschen"
 #
 msgid "Delete All Waypoints..."
-msgstr ""
+msgstr "Alle Wegpunkte löschen"
 #
 msgid "Max Detail Here"
-msgstr ""
+msgstr "Max Detail hier"
 #
 msgid "Scale In"
-msgstr ""
+msgstr "Maßstab hoch"
 #
 msgid "Scale Out"
-msgstr ""
+msgstr "Maßstab runter"
 #
 msgid "Drop Mark Here"
-msgstr ""
+msgstr "Markierung legen"
 #
 msgid "Move Boat Here"
-msgstr ""
+msgstr "Bootsposition hier"
 #
 msgid "Measure....."
-msgstr ""
+msgstr "Messen....."
 #
 msgid "Measure Off"
-msgstr ""
+msgstr "Messen aus"
 #
 msgid "Enable CM93 Detail Slider"
-msgstr "CM93-Auflösungsschieber aktivieren"
+msgstr "CM93-Auflösungsschieber an"
 #
 msgid "Object Query"
-msgstr ""
+msgstr "Objekt bestimmen"
 #
 msgid "Zoom In"
-msgstr ""
+msgstr "Hereinzoomen"
 #
 msgid "Zoom Out"
-msgstr ""
+msgstr "Herauszoomen"
 #
-#, fuzzy
 msgid "End Route"
-msgstr "Route"
+msgstr "Route beenden"
 #
-#, fuzzy
 msgid "AIS Target Query"
-msgstr "AIS Zielanfrage"
+msgstr "AIS-Zielanfrage"
 #
 msgid "Are you sure you want to delete <ALL> waypoints?"
 msgstr "Sollen wirklich <ALLE> Wegpunkte gelöscht werden?"
 #
-#, fuzzy
 msgid "OpenCPN Alert"
-msgstr "OpenCPN-Meldung"
+msgstr "OpenCPN-Alarm"
 #
 msgid "cm93 Detail"
 msgstr "CM93-Auflösung"
@@ -435,30 +415,28 @@ msgid "OverZoom"
 msgstr "Überzoom"
 #
 msgid "Tide"
-msgstr ""
+msgstr "Tiden"
 #
-#, fuzzy
 msgid "Current"
-msgstr "Strömung anzeigen"
+msgstr "Strömung"
 #
 msgid "OK"
 msgstr "OK"
 #
-#, fuzzy
 msgid "Prev"
-msgstr "Vorschau:"
+msgstr "Vorherig"
 #
 msgid "Next"
-msgstr ""
+msgstr "Nächste:"
 #
 msgid "Reference Station:"
-msgstr ""
+msgstr "Bezugsort:"
 #
 msgid "Today"
-msgstr ""
+msgstr "Heute"
 #
 msgid "Tomorrow"
-msgstr ""
+msgstr "Morgen"
 #
 msgid "AISTargetQuery"
 msgstr "AIS Zielanfrage"
@@ -466,9 +444,8 @@ msgstr "AIS Zielanfrage"
 msgid "&OK"
 msgstr "&OK"
 #
-#, fuzzy
 msgid "Chart"
-msgstr "Karte drucken"
+msgstr "Seekarte"
 #
 msgid "This Leg"
 msgstr "Dieser Abschnitt"
@@ -477,14 +454,13 @@ msgid "Leg/Route"
 msgstr "Abschnitt/Route"
 #
 msgid "XTE         L"
-msgstr ""
+msgstr "XTE         L"
 #
 msgid "XTE         R"
-msgstr ""
+msgstr "XTE         R"
 #
-#, fuzzy
 msgid "ETA          "
-msgstr "ETA:                  "
+msgstr "ETA:                 "
 #
 msgid "Route"
 msgstr "Route"
@@ -492,9 +468,8 @@ msgstr "Route"
 msgid "GRIB File Directory"
 msgstr "GRIB-Verzeichnis"
 #
-#, fuzzy
 msgid "GRIB Data"
-msgstr "GRIB"
+msgstr "GRIB-Daten"
 #
 msgid "Wind Speed, Kts."
 msgstr "Windgeschwindigkeit, kn."
@@ -506,7 +481,11 @@ msgid "Pressure, mBar"
 msgstr "Druck, mBar"
 #
 msgid "Significant Wave Height, m"
-msgstr "Signifikante Wellenhöhe, m"
+msgstr "Signifik. Wellenhöhe, m"
+#
+#, c-format
+msgid "WARNING:  QuickScat GRIB data is %d hours old."
+msgstr ""
 #
 msgid "Please Zoom or Scale Out to view suppressed HTSGW GRIB"
 msgstr ""
@@ -605,9 +584,8 @@ msgstr "NMEA-Einstellungen"
 msgid "NMEA Data Source"
 msgstr "NMEA-Datenquelle"
 #
-#, fuzzy
 msgid "WiFi Options"
-msgstr "GUI-Einstellungen"
+msgstr "WLAN-Optionen"
 #
 msgid "TCP/IP WiFi Data Server"
 msgstr "TCP/IP-WLAN-Datenserver"
@@ -627,9 +605,8 @@ msgstr "Port für den Autopilot-Ausgang"
 msgid "Charts"
 msgstr "Seekarten"
 #
-#, fuzzy
 msgid "Chart Display Filters"
-msgstr "Einstellungen zur Kartendarstellung"
+msgstr "Kartendarstellungs-Filter"
 #
 msgid "Mariner's Standard"
 msgstr "Mariner-Standarddarstellung"
@@ -637,30 +614,26 @@ msgstr "Mariner-Standarddarstellung"
 msgid "Clear All"
 msgstr "Alle aufheben"
 #
-#, fuzzy
 msgid "Select All"
-msgstr "Warnton auswählen"
+msgstr "Alle auswählen"
 #
 msgid "Base"
-msgstr ""
+msgstr "Basis"
 #
-#, fuzzy
 msgid "Standard"
-msgstr "Mariner-Standarddarstellung"
+msgstr "Standard"
 #
 msgid "Other"
-msgstr ""
+msgstr "Andere"
 #
-#, fuzzy
 msgid "MarinersStandard"
-msgstr "Mariner-Standarddarstellung"
+msgstr "Mariner-Standard"
 #
 msgid "Display Category"
 msgstr "Darstellungskategorie"
 #
-#, fuzzy
 msgid "ShowSoundings"
-msgstr "Radar-Ringe anzeigen"
+msgstr "Tiefe anzeigen"
 #
 msgid "META Objects"
 msgstr "META-Objekte"
@@ -671,9 +644,8 @@ msgstr "Nur wichtigen Text anzeigen"
 msgid "Use SCAMIN"
 msgstr "SCAMIN verwenden"
 #
-#, fuzzy
 msgid "Show ATON labels"
-msgstr "Name anzeigen"
+msgstr "ATON-Name anzeigen"
 #
 msgid "Show Light Descriptions"
 msgstr "Helle Beschreibungen zeigen"
@@ -681,56 +653,47 @@ msgstr "Helle Beschreibungen zeigen"
 msgid "De-Clutter Text (exp.)"
 msgstr "Text aufräumen (exp.)"
 #
-#, fuzzy
 msgid "Chart Display Style"
-msgstr "Einstellungen zur Kartendarstellung"
+msgstr "Kartendarstellungs-Stil"
 #
-#, fuzzy
 msgid "Paper Chart"
-msgstr "Karte drucken"
+msgstr "Papierkarte"
 #
 msgid "Simplified"
-msgstr ""
+msgstr "Vereinfacht"
 #
-#, fuzzy
 msgid "Points"
-msgstr "Schriftarten"
+msgstr "Punkte"
 #
 msgid "Plain"
-msgstr ""
+msgstr "Schlicht"
 #
 msgid "Symbolized"
-msgstr ""
+msgstr "Symbolisch"
 #
 msgid "Boundaries"
 msgstr "Kartengrenzen"
 #
-#, fuzzy
 msgid "2 Color"
-msgstr "Schließen"
+msgstr "2-farbig"
 #
-#, fuzzy
 msgid "4 Color"
-msgstr "Schließen"
+msgstr "4-farbig"
 #
-#, fuzzy
 msgid "Colors"
-msgstr "Schließen"
+msgstr "Farben"
 #
 msgid "CM93 Zoom Detail"
 msgstr "CM93-Zoomauflösung"
 #
-#, fuzzy
 msgid "Depth Settings"
-msgstr "Einstellungen"
+msgstr "Tiefeneinstellung"
 #
-#, fuzzy
 msgid "Depth Settings(m)"
-msgstr "Einstellungen"
+msgstr "Tiefeneinstellung (m)"
 #
-#, fuzzy
 msgid "Shallow Depth"
-msgstr "Tiefeneinheit anzeigen"
+msgstr "Flaches Wasser"
 #
 msgid "Safety Depth"
 msgstr "Sicherheitstiefe"
@@ -739,15 +702,14 @@ msgid "Deep Depth"
 msgstr "Tiefes Wasser"
 #
 msgid "Feet"
-msgstr ""
+msgstr "Fuß"
 #
 msgid "Metres"
-msgstr ""
+msgstr "Meter"
 #
 msgid "Fathoms"
-msgstr ""
+msgstr "Faden"
 #
-#, fuzzy
 msgid "Chart Depth Units"
 msgstr "Tiefeneinheit anzeigen"
 #
@@ -760,9 +722,8 @@ msgstr "AIS"
 msgid "AIS General"
 msgstr "AIS-Allgemein"
 #
-#, fuzzy
 msgid "AIS Data Port"
-msgstr "NMEA-Datenquelle"
+msgstr "Port AIS-Daten"
 #
 msgid "CPA Calculation"
 msgstr "CPA-Berechnung"
@@ -794,9 +755,8 @@ msgstr "KüG-Pfeil für Ziel anzeigen:"
 msgid "      COG arrow predictor length (Minutes):"
 msgstr "      KüG-Pfeil angezeigte Länge (Minuten):"
 #
-#, fuzzy
 msgid "Show target tracks"
-msgstr "Statusleiste anzeigen"
+msgstr "Tracking für Ziele anzeigen"
 #
 msgid "      Target track length (Minutes):"
 msgstr "      Target track length (Minutes):"
@@ -819,9 +779,8 @@ msgstr "Warnton auswählen"
 msgid "Play Sound on CPA/TCPA Alerts"
 msgstr "Warnton bei CPA/TCPA-Alarm abspielen"
 #
-#, fuzzy
 msgid "Test Alert Sound"
-msgstr "Warnton auswählen"
+msgstr "Warnton testen"
 #
 msgid "Supress Alerts for anchored/moored targets"
 msgstr "Alarm für verankerte Ziele unterdrücken"
@@ -872,14 +831,13 @@ msgid "Distance between rings"
 msgstr "Abstand zwischen den Radar-Ringen"
 #
 msgid "&Nautical miles"
-msgstr ""
+msgstr "&Seemeilen"
 #
 msgid "&Kilometers"
-msgstr ""
+msgstr "&Kilometer"
 #
-#, fuzzy
 msgid "Units"
-msgstr "Schriftarten"
+msgstr "Einheiten"
 #
 msgid "Waypoint Locking"
 msgstr "Wegpunkte arretieren"
@@ -901,7 +859,7 @@ msgid "Available Chart Directories"
 msgstr "Verfügbare Kartenverzeichnisse"
 #
 msgid "All files (*.*)|*.*"
-msgstr ""
+msgstr "Alle Dateien (*.*)|*.*"
 #
 msgid "Add Selection"
 msgstr "Auswahl hinzufügen"
@@ -921,9 +879,8 @@ msgstr "Gesamte Datenbank neu aufbauen"
 msgid "Language"
 msgstr "Sprache"
 #
-#, fuzzy
 msgid "Font Options"
-msgstr "GUI-Einstellungen"
+msgstr "Schriftoptionen"
 #
 msgid "Text Element"
 msgstr "Textelement"
@@ -932,16 +889,16 @@ msgid "Choose Font..."
 msgstr "Schriftart wählen..."
 #
 msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
-msgstr ""
+msgstr "WAV-Dateien (*.wav)|*.wav|All files (*.*)|*.*"
 #
 msgid "GPS/Plotter Port"
-msgstr ""
+msgstr "GPS/Plotter-Port"
 #
 msgid "Prepare GPS for Route/Waypoint upload and press Send..."
-msgstr ""
+msgstr "GPS-Upload der Route/Wegpunkt vorbereiten und Senden drücken..."
 #
 msgid "Progress..."
-msgstr ""
+msgstr "Fortschritt..."
 #
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -965,27 +922,25 @@ msgid "Total Distance"
 msgstr "Gesamtentfernung"
 #
 msgid "Plan Speed"
-msgstr ""
+msgstr "Geplante Geschwindigkeit"
 #
 msgid "Time Enroute"
-msgstr ""
+msgstr "Reisezeit"
 #
 msgid "Waypoints"
 msgstr "Wegpunkte"
 #
 msgid "Leg"
-msgstr ""
+msgstr "Abschnitt"
 #
-#, fuzzy
 msgid "To Waypoint"
-msgstr "Wegpunkte"
+msgstr "Zum Wegpunkt"
 #
-#, fuzzy
 msgid "Distance"
-msgstr "Gesamtentfernung"
+msgstr "Entfernung"
 #
 msgid "Bearing"
-msgstr ""
+msgstr "Kurs"
 #
 msgid "Latitude"
 msgstr "Längengrad"
@@ -994,17 +949,16 @@ msgid "Longitude"
 msgstr "Breitengrad"
 #
 msgid "ETE"
-msgstr ""
+msgstr "ETE"
 #
 msgid " %D Days  %H Hours  %M Minutes"
-msgstr ""
+msgstr " %D Tage  %H Stunden  %M Minuten"
 #
 msgid " %H Hours  %M Minutes"
-msgstr ""
+msgstr " %H Stunden  %M Minuten"
 #
-#, fuzzy
 msgid "Start"
-msgstr "Karte drucken"
+msgstr "Start"
 #
 msgid "Mark Name"
 msgstr "Name der Markierung"
@@ -1018,18 +972,11 @@ msgstr "Symbol der Markierung"
 msgid "Position"
 msgstr "Position"
 #
-#, fuzzy
 msgid "Icon"
-msgstr "Symbol der Markierung"
+msgstr "Symbol"
 #
-#, fuzzy
 msgid "Description"
-msgstr "Ziel"
+msgstr "Beschreibung"
 #
 msgid "Links"
 msgstr "Verbindung"
-#
-#
-#
-#~ msgid "Failed to create ocpCursor."
-#~ msgstr "Erstellen von ocpCursor versagt."

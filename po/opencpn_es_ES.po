@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-26 00:00-0500\n"
-"PO-Revision-Date: 2009-12-24 18:05+0100\n"
+"POT-Creation-Date: 2009-12-26 16:09-0500\n"
+"PO-Revision-Date: 2009-12-26 13:59+0100\n"
 "Last-Translator: Jesus <jsio@gmx.com>\n"
-"Language-Team: Spanish\n"
+"Language-Team: Spanish <opencpn.es@gmx.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,7 +19,7 @@ msgstr ""
 #
 msgid "OpenCPN...A Nice Little Open Source Chart Plotter/Navigator"
 msgstr ""
-"OpenCPN...Un programa pequeño y útil de cartografía/navegación Open Source"
+"OpenCPN... Sencillo y útil programa Open Source de Cartografía/Navegación"
 #
 msgid "About"
 msgstr "Acerca de"
@@ -268,13 +268,13 @@ msgid " Ship: "
 msgstr " Nave: "
 #
 msgid "No Chart Available"
-msgstr ""
+msgstr "No Hay Carta Disponible"
 #
 msgid "New Mark"
-msgstr ""
+msgstr "Nueva Marca"
 #
 msgid "MAN OVERBOARD"
-msgstr ""
+msgstr "HOMBRE AL AGUA"
 #
 msgid "GRIB Display Control"
 msgstr "Control Visualización GRIB"
@@ -304,111 +304,100 @@ msgid "Track Properties"
 msgstr "Propiedades Track"
 #
 msgid "Delete Track"
-msgstr ""
+msgstr "Borrar Rumbo"
 #
 msgid "Export...."
-msgstr ""
+msgstr "Exportar...."
 #
-#, fuzzy
 msgid "Activate Route"
-msgstr "Crear Ruta"
+msgstr "Activar Ruta"
 #
-#, fuzzy
 msgid "Deactivate Route"
-msgstr "Crear Ruta"
+msgstr "Desactivar Ruta"
 #
-#, fuzzy
 msgid "Insert Waypoint"
-msgstr "Waypoints"
+msgstr "Insertar Waypoints"
 #
-#, fuzzy
 msgid "Append Waypoint"
-msgstr "Waypoints"
+msgstr "Añadir Waypoints"
 #
-#, fuzzy
 msgid "Delete Route"
-msgstr "Crear Ruta"
+msgstr "Borrar Ruta"
 #
-#, fuzzy
 msgid "Reverse Route"
-msgstr "Crear Ruta"
+msgstr "Ruta Inversa"
 #
 msgid "Route Properties"
 msgstr "Propiedades Ruta"
 #
 msgid "Delete All Routes..."
-msgstr ""
+msgstr "Borrar Todas Las Rutas..."
 #
 msgid "Send To GPS..."
-msgstr ""
+msgstr "Enviar A GPS..."
 #
-#, fuzzy
 msgid "Activate Waypoint"
-msgstr "Waypoints"
+msgstr "Activar Waypoint"
 #
 msgid "Activate Next in Route"
-msgstr ""
+msgstr "Activar Siguiente en Ruta"
 #
 msgid "Remove Waypoint from Route"
-msgstr ""
+msgstr "Eliminar Waypoint de Ruta"
 #
-#, fuzzy
 msgid "Delete Waypoint"
-msgstr "Waypoints"
+msgstr "Eliminar Waypoint"
 #
-#, fuzzy
 msgid "Mark/WP Properties"
-msgstr "Propiedades Track"
+msgstr "Propiedades Marca/WP"
 #
 msgid "Additional information"
-msgstr ""
+msgstr "Información adicional"
 #
 msgid "Delete Mark"
-msgstr ""
+msgstr "Eliminar Marca"
 #
 msgid "Delete All Waypoints..."
-msgstr ""
+msgstr "Eliminar Todos los Waypoints..."
 #
 msgid "Max Detail Here"
-msgstr ""
+msgstr "Max Detalle Aquí"
 #
 msgid "Scale In"
-msgstr ""
+msgstr "Escala Superior"
 #
 msgid "Scale Out"
-msgstr ""
+msgstr "Escala Inferior"
 #
 msgid "Drop Mark Here"
-msgstr ""
+msgstr "Poner Marca Aquí"
 #
 msgid "Move Boat Here"
-msgstr ""
+msgstr "Mover Barco Aquí"
 #
 msgid "Measure....."
-msgstr ""
+msgstr "Medir....."
 #
 msgid "Measure Off"
-msgstr ""
+msgstr "Finalizar Medir"
 #
 msgid "Enable CM93 Detail Slider"
 msgstr "Habilitar Desplazamiento Detallado CM93"
 #
 msgid "Object Query"
-msgstr ""
+msgstr "Consulta Objetos"
 #
 msgid "Zoom In"
-msgstr ""
+msgstr "Zoom Mayor"
 #
 msgid "Zoom Out"
-msgstr ""
+msgstr "Zoom Menor"
 #
-#, fuzzy
 msgid "End Route"
-msgstr "Ruta"
+msgstr "Finalizar Ruta"
 #
-#, fuzzy
 msgid "AIS Target Query"
-msgstr "Búsqueda Destino AIS"
+msgstr "Consulta Destino AIS"
 #
 msgid "Are you sure you want to delete <ALL> waypoints?"
 msgstr "¿Seguro que desea borrar <TODOS> waypoints?"
@@ -426,30 +415,28 @@ msgid "OverZoom"
 msgstr "OverZoom"
 #
 msgid "Tide"
-msgstr ""
+msgstr "Marea"
 #
-#, fuzzy
 msgid "Current"
-msgstr "Mostrar Corrientes"
+msgstr ""
 #
 msgid "OK"
 msgstr "OK"
 #
-#, fuzzy
 msgid "Prev"
-msgstr "Vista previa:"
+msgstr "Anterior"
 #
 msgid "Next"
-msgstr ""
+msgstr "Siguiente"
 #
 msgid "Reference Station:"
-msgstr ""
+msgstr "Estación de Referencia:"
 #
 msgid "Today"
-msgstr ""
+msgstr "Hoy"
 #
 msgid "Tomorrow"
-msgstr ""
+msgstr "Mañana"
 #
 msgid "AISTargetQuery"
 msgstr "Búsqueda Destino AIS"
@@ -461,20 +448,19 @@ msgid "Chart"
 msgstr "Carta"
 #
 msgid "This Leg"
-msgstr "Este Leg"
+msgstr "Esta Etapa"
 #
 msgid "Leg/Route"
-msgstr "Leg/Ruta"
+msgstr "Etapa/Ruta"
 #
 msgid "XTE         L"
-msgstr ""
+msgstr "XTE         Izq"
 #
 msgid "XTE         R"
-msgstr ""
+msgstr "XTE         Der"
 #
-#, fuzzy
 msgid "ETA          "
-msgstr "ETA:                  "
+msgstr "ETA          "
 #
 msgid "Route"
 msgstr "Ruta"
@@ -496,6 +482,10 @@ msgstr "Presión, mBar"
 #
 msgid "Significant Wave Height, m"
 msgstr "Altura de Ola Significativa, m"
+#
+#, c-format
+msgid "WARNING:  QuickScat GRIB data is %d hours old."
+msgstr ""
 #
 msgid "Please Zoom or Scale Out to view suppressed HTSGW GRIB"
 msgstr "Ajuste Zoom o Escala para ver HTSGW GRIB eliminado"
@@ -624,16 +614,14 @@ msgid "Select All"
 msgstr "Seleccionar Todo"
 #
 msgid "Base"
-msgstr ""
+msgstr "Base"
 #
-#, fuzzy
 msgid "Standard"
-msgstr "Estándar Marino"
+msgstr "Estándar"
 #
 msgid "Other"
-msgstr ""
+msgstr "Otro"
 #
-#, fuzzy
 msgid "MarinersStandard"
 msgstr "Estándar Marino"
 #
@@ -664,18 +652,17 @@ msgstr "De-Clutter Texto (exp.)"
 msgid "Chart Display Style"
 msgstr "Estilo Visualización Carta"
 #
-#, fuzzy
 msgid "Paper Chart"
-msgstr "Imprimir Carta"
+msgstr "Carta en Papel"
 #
 msgid "Simplified"
-msgstr ""
+msgstr "Simplificado"
 #
 msgid "Points"
 msgstr "Puntos"
 #
 msgid "Plain"
-msgstr ""
+msgstr "Plano"
 #
 msgid "Symbolized"
 msgstr ""
@@ -683,13 +670,11 @@ msgstr ""
 msgid "Boundaries"
 msgstr "Límites"
 #
-#, fuzzy
 msgid "2 Color"
-msgstr "Colores"
+msgstr "2 Colores"
 #
-#, fuzzy
 msgid "4 Color"
-msgstr "Colores"
+msgstr "4 Colores"
 #
 msgid "Colors"
 msgstr "Colores"
@@ -713,13 +698,13 @@ msgid "Deep Depth"
 msgstr "Gran Profundidad"
 #
 msgid "Feet"
-msgstr ""
+msgstr "Pies"
 #
 msgid "Metres"
-msgstr ""
+msgstr "Metros"
 #
 msgid "Fathoms"
-msgstr ""
+msgstr "Brazas"
 #
 msgid "Chart Depth Units"
 msgstr "Unidades Profundidad Carta"
@@ -842,10 +827,10 @@ msgid "Distance between rings"
 msgstr "Distancia entre marcas"
 #
 msgid "&Nautical miles"
-msgstr ""
+msgstr "Millas &Náuticas"
 #
 msgid "&Kilometers"
-msgstr ""
+msgstr "&Kilómetros"
 #
 msgid "Units"
 msgstr "Unidades"
@@ -871,7 +856,7 @@ msgid "Available Chart Directories"
 msgstr "Carpetas de Cartas disponibles"
 #
 msgid "All files (*.*)|*.*"
-msgstr ""
+msgstr "Todos los archivos (*.*)|*.*"
 #
 msgid "Add Selection"
 msgstr "Añadir Selección"
@@ -901,16 +886,16 @@ msgid "Choose Font..."
 msgstr "Elegir Fuente..."
 #
 msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
-msgstr ""
+msgstr "Archivos WAV (*.wav)|*.wav|Todos los archivos (*.*)|*.*"
 #
 msgid "GPS/Plotter Port"
-msgstr ""
+msgstr "Puerto GPS/Plotter"
 #
 msgid "Prepare GPS for Route/Waypoint upload and press Send..."
-msgstr ""
+msgstr "Prepare GPS para actualizar Route/Waypoint y pulse Enviar..."
 #
 msgid "Progress..."
-msgstr ""
+msgstr "Progreso..."
 #
 msgid "Cancel"
 msgstr "Cancelar"
@@ -937,21 +922,19 @@ msgid "Plan Speed"
 msgstr ""
 #
 msgid "Time Enroute"
-msgstr ""
+msgstr "Tiempo en ruta"
 #
 msgid "Waypoints"
 msgstr "Waypoints"
 #
 msgid "Leg"
-msgstr ""
+msgstr "Etapa"
 #
-#, fuzzy
 msgid "To Waypoint"
-msgstr "Waypoints"
+msgstr "Hacia Waypoint"
 #
-#, fuzzy
 msgid "Distance"
-msgstr "Distancia Total"
+msgstr "Distancia"
 #
 msgid "Bearing"
 msgstr ""
@@ -966,14 +949,13 @@ msgid "ETE"
 msgstr ""
 #
 msgid " %D Days  %H Hours  %M Minutes"
-msgstr ""
+msgstr " %D Días  %H Horas  %M Minutos"
 #
 msgid " %H Hours  %M Minutes"
-msgstr ""
+msgstr " %H Horas  %M Minutos"
 #
-#, fuzzy
 msgid "Start"
-msgstr "Carta"
+msgstr "Inicio"
 #
 msgid "Mark Name"
 msgstr "Nombre Marca"
@@ -987,18 +969,11 @@ msgstr "Icono Marca"
 msgid "Position"
 msgstr "Posición"
 #
-#, fuzzy
 msgid "Icon"
-msgstr "Icono Marca"
+msgstr "Icono"
 #
-#, fuzzy
 msgid "Description"
-msgstr "Destino"
+msgstr "Descripción"
 #
 msgid "Links"
 msgstr "Enlaces"
-#
-#
-#
-#~ msgid "Failed to create ocpCursor."
-#~ msgstr "Fallo al crear ocpCursor."

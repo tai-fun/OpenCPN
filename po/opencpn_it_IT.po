@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-26 00:00-0500\n"
+"POT-Creation-Date: 2009-12-26 16:09-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Marco Certelli <marco_certelli@yahoo.it>\n"
 "Language-Team: \n"
@@ -473,6 +473,10 @@ msgstr "Pressione, hPa"
 #
 msgid "Significant Wave Height, m"
 msgstr "Altezza Significativa d'Onda, m"
+#
+#, c-format
+msgid "WARNING:  QuickScat GRIB data is %d hours old."
+msgstr ""
 #
 msgid "Please Zoom or Scale Out to view suppressed HTSGW GRIB"
 msgstr "Zoom out o riduci scala per vedere HTSGW GRIB soppressi"

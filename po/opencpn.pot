@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-26 00:00-0500\n"
+"POT-Creation-Date: 2009-12-26 16:09-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -521,27 +521,27 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: src/chcanv.cpp:6388
+#: src/chcanv.cpp:6394
 msgid "Reference Station:"
 msgstr ""
 
-#: src/chcanv.cpp:6440
+#: src/chcanv.cpp:6446
 msgid "Today"
 msgstr ""
 
-#: src/chcanv.cpp:6442
+#: src/chcanv.cpp:6448
 msgid "Tomorrow"
 msgstr ""
 
-#: src/chcanv.cpp:7073 src/chcanv.cpp:7240 src/chcanv.cpp:7243
+#: src/chcanv.cpp:7079 src/chcanv.cpp:7246 src/chcanv.cpp:7249
 msgid "AISTargetQuery"
 msgstr ""
 
-#: src/chcanv.cpp:7322 src/chcanv.cpp:7557 src/navutil.cpp:6193
+#: src/chcanv.cpp:7328 src/chcanv.cpp:7563 src/navutil.cpp:6193
 msgid "&OK"
 msgstr ""
 
-#: src/chcanv.cpp:7497
+#: src/chcanv.cpp:7503
 msgid "Chart"
 msgstr ""
 
@@ -593,11 +593,16 @@ msgstr ""
 msgid "Significant Wave Height, m"
 msgstr ""
 
-#: src/grib.cpp:1070
+#: src/grib.cpp:958
+#, c-format
+msgid "WARNING:  QuickScat GRIB data is %d hours old."
+msgstr ""
+
+#: src/grib.cpp:1069
 msgid "Please Zoom or Scale Out to view suppressed HTSGW GRIB"
 msgstr ""
 
-#: src/grib.cpp:1226
+#: src/grib.cpp:1225
 msgid "Please Zoom or Scale Out to view suppressed CRAIN GRIB"
 msgstr ""
 

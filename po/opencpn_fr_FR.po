@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-26 00:00-0500\n"
+"POT-Creation-Date: 2009-12-26 16:09-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Serge <serge.diradourian@free.fr>\n"
 "Language-Team: \n"
@@ -40,11 +40,15 @@ msgid ""
 "Class:     A\n"
 "\n"
 msgstr ""
+"Classe:     A\n"
+"\n"
 #
 msgid ""
 "Class:     B\n"
 "\n"
 msgstr ""
+"Classe:     B\n"
+"\n"
 #
 msgid "Navigational Status:  "
 msgstr "Données de Navigation"
@@ -66,27 +70,35 @@ msgid ""
 "Size:                ---m x ---m x %4.1fm\n"
 "\n"
 msgstr ""
+"Taille:                ---m x ---m x %4.1fm\n"
+"\n"
 #
 msgid ""
 "Size:                ---m x ---m x ---m\n"
 "\n"
 msgstr ""
+"Taille:                ---m x ---m x ---m\n"
+"\n"
 #
 #, c-format
 msgid ""
 "Size:                %5dm x %dm x ---m\n"
 "\n"
 msgstr ""
+"Taille:                %5dm x %dm x ---m\n"
+"\n"
 #
 #, c-format
 msgid ""
 "Size:                %5dm x %dm x %4.1fm\n"
 "\n"
 msgstr ""
+"Taille:                %5dm x %dm x %4.1fm\n"
+"\n"
 #
 #, c-format
 msgid "Course:               %5.0f Deg.\n"
-msgstr ""
+msgstr "Course:               %5.0f Deg.\n"
 #
 #, c-format
 msgid "Speed:                %5.2f Kts.\n"
@@ -94,7 +106,7 @@ msgstr "Vitesse:               %5.2f Kts.\n"
 #
 #, c-format
 msgid "Range:                %5.1f NM\n"
-msgstr ""
+msgstr "Champ:                %5.1f NM\n"
 #
 #, c-format
 msgid "Bearing:              %5.0f Deg.\n"
@@ -104,42 +116,44 @@ msgid "Position:              "
 msgstr "Position:                                            "
 #
 msgid "Latest Report Time:       "
-msgstr ""
+msgstr "Heure dernier rapport"
 #
 msgid "UTC"
 msgstr "UTC"
 #
 #, c-format
 msgid "Report Age:               %3d Sec.\n"
-msgstr ""
+msgstr "Age du rapport:               %3d Sec.\n"
 #
 #, c-format
 msgid ""
 "Recent Report Period:     %3d Sec.\n"
 "\n"
-msgstr ""
+msgstr "Frequence     rapport:     %3d Sec.\n"
 #
 #, c-format
 msgid "TCPA:                 %02d:%02d Hr:Min\n"
-msgstr ""
+msgstr "TCPA:                 %02d:%02d Hr:Min\n"
 #
 msgid "TCPA:  \n"
-msgstr ""
+msgstr "TCPA:  \n"
 #
 #, c-format
 msgid "CPA:                 %6.1f NM\n"
-msgstr ""
+msgstr "CPA:                 %6.1f NM\n"
 #
 msgid "CPA:       \n"
-msgstr ""
+msgstr "CPA:       \n"
 #
 msgid "Could not resolve TCP/IP host '"
-msgstr ""
+msgstr "Résolution hôte TCP/IP impossible"
 #
 msgid ""
 "'\n"
 " Suggestion: Try 'xxx.xxx.xxx.xxx' notation"
 msgstr ""
+"'\n"
+"Suggestion: Essayer 'xxx.xxx.xxx.xxx' notation"
 #
 msgid "OpenCPN Message"
 msgstr "Message OpenCPN"
@@ -151,6 +165,8 @@ msgid ""
 "'\n"
 "Suggestion: Try closing other applications."
 msgstr ""
+"'\n"
+"Suggestion: Essayer de fermer les autres applications"
 #
 msgid "AIS Alert"
 msgstr "Alarme AIS"
@@ -205,7 +221,7 @@ msgid "Export GPX file"
 msgstr "Exporter fichier GPX"
 #
 msgid "Toggle Tracking"
-msgstr "Active/désactive le mode trace"
+msgstr "Activer/désactiver le mode trace"
 #
 msgid "Show GRIB dialog"
 msgstr "Afficher la fenêtre GRIB"
@@ -365,7 +381,7 @@ msgid "Measure Off"
 msgstr ""
 #
 msgid "Enable CM93 Detail Slider"
-msgstr "Active le curseur de détails pour CM93"
+msgstr "Activer le curseur de détails pour CM93"
 #
 msgid "Object Query"
 msgstr ""
@@ -385,16 +401,16 @@ msgid "AIS Target Query"
 msgstr "Recherche de la cible AIS"
 #
 msgid "Are you sure you want to delete <ALL> waypoints?"
-msgstr "Êtes vous sur d'effacer <TOUS> les waypoints ?"
+msgstr "Êtes vous sûr de vouloir effacer <TOUS> les waypoints ?"
 #
 msgid "OpenCPN Alert"
-msgstr "Message OpenCPN"
+msgstr "Alerte OpenCPN"
 #
 msgid "cm93 Detail"
 msgstr "Détail des CM93"
 #
 msgid "Are you sure you want to delete <ALL> routes?"
-msgstr "Êtes vous sûr d'effacer <TOUTES> les routes ?"
+msgstr "Êtes vous sûr de vouloir effacer <TOUTES> les routes ?"
 #
 msgid "OverZoom"
 msgstr "Over zoom! données non fiables"
@@ -471,11 +487,17 @@ msgstr "Pression, Millibars"
 msgid "Significant Wave Height, m"
 msgstr "Hauteur significative des vagues"
 #
+#, c-format
+msgid "WARNING:  QuickScat GRIB data is %d hours old."
+msgstr ""
+#
 msgid "Please Zoom or Scale Out to view suppressed HTSGW GRIB"
 msgstr ""
+"Veuillez diminuer le zoom ou l'echelle pour afficher les HTSGW GRIB supprimés"
 #
 msgid "Please Zoom or Scale Out to view suppressed CRAIN GRIB"
 msgstr ""
+"Veuillez diminuer le zoom ou l'echelle pour afficher les CRAIN GRIB supprimés"
 #
 msgid "&Font family:"
 msgstr "&Catégorie de polices :"
@@ -508,7 +530,7 @@ msgid "The font point size."
 msgstr "Police: taille"
 #
 msgid "&Underline"
-msgstr ""
+msgstr "&Souligner"
 #
 msgid "Whether the font is underlined."
 msgstr ""
@@ -538,31 +560,31 @@ msgid "Navigation Data"
 msgstr "Données de Navigation"
 #
 msgid "Show Status Bar"
-msgstr "Affiche Barre de Statut"
+msgstr "Afficher Barre de Statut"
 #
 msgid "Printing"
 msgstr "Impression"
 #
 msgid "Show Printing Icon"
-msgstr "Affiche icône d'impression"
+msgstr "Afficher icône d'impression"
 #
 msgid "Chart Display Options"
 msgstr "Options d'affichage des Cartes"
 #
 msgid "Show Chart Outlines"
-msgstr "Affiche la Bordure des Cartes"
+msgstr "Afficher la Bordure des Cartes"
 #
 msgid "Show DepthUnits"
-msgstr "Affiche Unité de Profondeur"
+msgstr "Afficher Unité de Profondeur"
 #
 msgid "Automatic Anchor Mark"
 msgstr "Marqueur automatique de mouillage"
 #
 msgid "NMEA Options"
-msgstr "NMEA Options"
+msgstr "Options NMEA "
 #
 msgid "NMEA Data Source"
-msgstr "NMEA Source Données"
+msgstr "Source de données NMEA "
 #
 msgid "WiFi Options"
 msgstr "Options Wifi"
@@ -615,10 +637,10 @@ msgid "Display Category"
 msgstr "Type d'affichage"
 #
 msgid "ShowSoundings"
-msgstr "Afficher sons"
+msgstr "Afficher sondes"
 #
 msgid "META Objects"
-msgstr ""
+msgstr "Objets META"
 #
 msgid "Show Important Text Only"
 msgstr "Texte important seulement"
@@ -627,13 +649,13 @@ msgid "Use SCAMIN"
 msgstr "Utilser l'échelle minimale pour l'affichage"
 #
 msgid "Show ATON labels"
-msgstr "Afficher les marques AtoN"
+msgstr "Afficher les marques Aide à la Navigation"
 #
 msgid "Show Light Descriptions"
 msgstr "Montrer les descriptions des feux"
 #
 msgid "De-Clutter Text (exp.)"
-msgstr "moins de textes"
+msgstr "Moins de textes"
 #
 msgid "Chart Display Style"
 msgstr "Options d'affichage des Cartes"
@@ -684,7 +706,7 @@ msgid "Safety Depth"
 msgstr "Profondeur de sécurité"
 #
 msgid "Deep Depth"
-msgstr "Alarme bas fond"
+msgstr "Eaux profondes"
 #
 msgid "Feet"
 msgstr ""
@@ -696,7 +718,7 @@ msgid "Fathoms"
 msgstr ""
 #
 msgid "Chart Depth Units"
-msgstr "Affiche Unité de Profondeur"
+msgstr "Afficher Unité de Profondeur"
 #
 msgid "Vector Charts"
 msgstr "Cartes vectorielles"
@@ -735,13 +757,13 @@ msgid "Display"
 msgstr "Affichage"
 #
 msgid "Show target COG arrows"
-msgstr "Affiche des flèches pour les cibles COG"
+msgstr "Afficher des flèches pour les cibles COG"
 #
 msgid "      COG arrow predictor length (Minutes):"
-msgstr ""
+msgstr "      Taille des flèches de prediction COG(Min):   "
 #
 msgid "Show target tracks"
-msgstr "Afficher les tracés cibles"
+msgstr "Afficher les routes des cibles"
 #
 msgid "      Target track length (Minutes):"
 msgstr ""
@@ -759,7 +781,7 @@ msgid "Show CPA/TCPA Alert Dialog"
 msgstr "Montrer boite de dialogue pour alarmes CPA/TCPA"
 #
 msgid "Select Alert Sound"
-msgstr "Sélectionnez l'alarme sonore"
+msgstr "Sélectionner l'alarme sonore"
 #
 msgid "Play Sound on CPA/TCPA Alerts"
 msgstr "Alarmes sonores pour CPA/TCPA"
@@ -771,13 +793,13 @@ msgid "Supress Alerts for anchored/moored targets"
 msgstr "Supprimer les alarmes pour les cibles mouillées ou amarrées"
 #
 msgid "Language/Fonts"
-msgstr "Langage/police"
+msgstr "Langues / polices"
 #
 msgid "GRIB"
 msgstr "GRIB"
 #
 msgid "Show GRIB icon"
-msgstr "Affiche l'icône GRIB "
+msgstr "Afficher l'icône GRIB "
 #
 msgid "Use High Definition Graphics"
 msgstr "Graphisme HD"
@@ -789,7 +811,7 @@ msgid "GPX"
 msgstr "GPX"
 #
 msgid "Show GPX icons"
-msgstr "Affiche icônes GPX"
+msgstr "Afficher icônes GPX"
 #
 msgid "Tracks"
 msgstr "Routes"
@@ -829,15 +851,16 @@ msgstr "Blocage du waypoint"
 #
 msgid "Lock all waypoints unless a waypoint property dialog is visible"
 msgstr ""
+"Bloquer tous les Waypoints sauf si une fenetre de propriétés est ouverte"
 #
 msgid "GUI Options"
 msgstr "Options interface graphique utilisateur "
 #
 msgid "Enable Wheel-Zoom-to-Cursor"
-msgstr "Active le zoom centré sur le curseur"
+msgstr "Activer le zoom centré sur le curseur"
 #
 msgid "Preserve scale when switching charts"
-msgstr "Conserve l'échelle lors d'un changement de carte"
+msgstr "Conserver l'échelle lors d'un changement de carte"
 #
 msgid "Available Chart Directories"
 msgstr "Répertoires de Cartes Disponibles"
@@ -846,16 +869,16 @@ msgid "All files (*.*)|*.*"
 msgstr ""
 #
 msgid "Add Selection"
-msgstr "Ajout Sélection"
+msgstr "Ajouter Sélection"
 #
 msgid "Active Chart Directories"
 msgstr "Répertoires de Cartes actifs"
 #
 msgid "Delete Selection"
-msgstr "Efface Sélection"
+msgstr "Effacer Sélection"
 #
 msgid "Update Control"
-msgstr "Contrôle Mise à Jour"
+msgstr "Contrôler Mise à Jour"
 #
 msgid "Force Full Database Rebuild"
 msgstr "Forcer la reconstruction de la base de donnée"
@@ -885,10 +908,10 @@ msgid "Progress..."
 msgstr ""
 #
 msgid "Cancel"
-msgstr "Arret"
+msgstr "Annuler"
 #
 msgid "Send"
-msgstr "Envoie"
+msgstr "Envoyer"
 #
 msgid "Properties"
 msgstr "Propriétés"
@@ -951,17 +974,17 @@ msgid "Mark Name"
 msgstr "Nom Marque"
 #
 msgid "Show Name"
-msgstr "Affiche Nom"
+msgstr "Afficher Nom"
 #
 msgid "Mark Icon"
-msgstr "Marque Icône"
+msgstr "Marquer Icône"
 #
 msgid "Position"
 msgstr "Position"
 #
 #, fuzzy
 msgid "Icon"
-msgstr "Marque Icône"
+msgstr "Marquer Icône"
 #
 #, fuzzy
 msgid "Description"
@@ -970,46 +993,35 @@ msgstr "Destination"
 msgid "Links"
 msgstr "Liens"
 #
-#
 #~ msgid "Failed to create ocpCursor."
 #~ msgstr "Echec de création ocpCursor."
-#
 #
 #~ msgid "opencpn.log"
 #~ msgstr "opencpn.log"
 #
-#
 #~ msgid "Cannot create config file directory for "
 #~ msgstr "Ne peut créer de fichier de configuration pour"
-#
 #
 #~ msgid "MEH.NMEA Sentence received..."
 #~ msgstr "Phrase MEH.NMEA reçue..."
 #
-#
 #~ msgid "   Unrecognized NMEA Sentence..."
 #~ msgstr "Phrase NMEA non reconnue..."
-#
 #
 #~ msgid "Linux command is:"
 #~ msgstr "La commande Linux est:"
 #
-#
 #~ msgid "Warning: ocpnhelper failed...."
 #~ msgstr "ATTENTION: Echec de l'aide Opencpn...."
-#
 #
 #~ msgid "Found Garmin USB Driver."
 #~ msgstr "Pilote USB Garmin trouvé."
 #
-#
 #~ msgid "Found Garmin Device."
 #~ msgstr "Matériel Garmin trouvé."
 #
-#
 #~ msgid "ABCDEFGabcdefg12345"
 #~ msgstr "ABCDEFGabcdefg12345"
-#
 #
 #~ msgid "GARMIN"
 #~ msgstr "GARMIN"

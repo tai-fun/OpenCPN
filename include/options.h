@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: options.h,v 1.21 2009/12/22 22:08:05 bdbcat Exp $
+ * $Id: options.h,v 1.22 2009/12/26 21:11:05 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Options Dialog
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: options.h,v $
+ * Revision 1.22  2009/12/26 21:11:05  bdbcat
+ * Update.
+ *
  * Revision 1.21  2009/12/22 22:08:05  bdbcat
  * Update Language
  *
@@ -329,8 +332,10 @@ public:
 
 //    For Fonts page
     wxPanel*                itemPanelFont;
+    wxBoxSizer              *m_itemBoxSizerFontPanel;
     wxComboBox              *m_itemFontElementListBox;
     wxComboBox              *m_itemLangListBox;
+    bool                    m_bVisitLang;
 
 //    For "AIS Options"
     wxComboBox              *m_itemAISListBox;
@@ -492,7 +497,7 @@ static int lang_list[] = {
             wxLANGUAGE_KINYARWANDA,
             wxLANGUAGE_KIRGHIZ,
             wxLANGUAGE_KIRUNDI,
-            wxLANGUAGE_KONKANI,
+//            wxLANGUAGE_KONKANI,
             wxLANGUAGE_KOREAN,
             wxLANGUAGE_KURDISH,
             wxLANGUAGE_LAOTHIAN,
@@ -507,7 +512,7 @@ static int lang_list[] = {
             wxLANGUAGE_MALAY_BRUNEI_DARUSSALAM,
             wxLANGUAGE_MALAY_MALAYSIA,
             wxLANGUAGE_MALTESE,
-            wxLANGUAGE_MANIPURI,
+//            wxLANGUAGE_MANIPURI,
             wxLANGUAGE_MAORI,
             wxLANGUAGE_MARATHI,
             wxLANGUAGE_MOLDAVIAN,
