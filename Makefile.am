@@ -341,10 +341,23 @@ install-data-local:
 	cp -p ./$(srcdir)/data/tips.html  $(DESTDIR)$(pkgdatadir)
 	cp -p ./$(srcdir)/data/opencpn.png  /usr/share/icons
 	cp -p ./$(srcdir)/data/opencpn.desktop  /usr/share/applications
+	mkdir -p /usr/local/share/locale/de/LC_MESSAGES
+	mkdir -p /usr/local/share/locale/da/LC_MESSAGES
+	mkdir -p /usr/local/share/locale/it/LC_MESSAGES
+	mkdir -p /usr/local/share/locale/pl/LC_MESSAGES
+	mkdir -p /usr/local/share/locale/fr/LC_MESSAGES
+	mkdir -p /usr/local/share/locale/es/LC_MESSAGES
+	mkdir -p /usr/local/share/locale/nl/LC_MESSAGES
+	mkdir -p /usr/local/share/locale/sv/LC_MESSAGES
 	cp -p ./$(srcdir)/po/opencpn_de_DE.mo /usr/local/share/locale/de/LC_MESSAGES
 	cp -p ./$(srcdir)/po/opencpn_da_DK.mo /usr/local/share/locale/da/LC_MESSAGES
 	cp -p ./$(srcdir)/po/opencpn_it_IT.mo /usr/local/share/locale/it/LC_MESSAGES
 	cp -p ./$(srcdir)/po/opencpn_pl_PL.mo /usr/local/share/locale/pl/LC_MESSAGES
+	cp -p ./$(srcdir)/po/opencpn_fr_FR.mo /usr/local/share/locale/fr/LC_MESSAGES
+	cp -p ./$(srcdir)/po/opencpn_es_ES.mo /usr/local/share/locale/es/LC_MESSAGES
+	cp -p ./$(srcdir)/po/opencpn_nl_NL.mo /usr/local/share/locale/nl/LC_MESSAGES
+	cp -p ./$(srcdir)/po/opencpn_sv_SE.mo /usr/local/share/locale/sv/LC_MESSAGES
+
 
 uninstall-local:
 	rm -fr $(DESTDIR)$(pkgdatadir)/wvsdata/*
@@ -368,7 +381,13 @@ messages: $(srcdir)/po/opencpn.pot
 	msgfmt --check --output-file ./po/opencpn_it_IT.mo ./po/opencpn_it_IT.po 
 	msgmerge ./po/opencpn_pl_PL.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
 	msgfmt --check --output-file ./po/opencpn_pl_PL.mo ./po/opencpn_pl_PL.po 
-
-
+	msgmerge ./po/opencpn_fr_FR.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
+	msgfmt --check --output-file ./po/opencpn_fr_FR.mo ./po/opencpn_fr_FR.po 
+	msgmerge ./po/opencpn_es_ES.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
+	msgfmt --check --output-file ./po/opencpn_es_ES.mo ./po/opencpn_es_ES.po 
+	msgmerge ./po/opencpn_nl_NL.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
+	msgfmt --check --output-file ./po/opencpn_nl_NL.mo ./po/opencpn_nl_NL.po 
+	msgmerge ./po/opencpn_sv_SE.po ./po/opencpn.pot --width=80 --strict -U --backup=none --no-location
+	msgfmt --check --output-file ./po/opencpn_sv_SE.mo ./po/opencpn_sv_SE.po 
 
 
