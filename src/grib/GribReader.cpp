@@ -206,6 +206,10 @@ void GribReader::readAllGribRecords()
 
                         }
 
+                        else if( (rec->getDataType()==GRB_WIND_VX || rec->getDataType()==GRB_WIND_VY)
+                                  && rec->getLevelType()==LV_GND_SURF)
+                              storeRecordInMap(rec);
+
                         else if( rec->getDataType() == GRB_HTSGW )                // Significant Wave Height
                               storeRecordInMap(rec);
 
