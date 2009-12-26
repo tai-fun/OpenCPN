@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open CPN 1.3.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-22 20:53-0500\n"
+"POT-Creation-Date: 2009-12-25 23:44-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Ole E. Mikkelsen <oem@live.dk>\n"
 "Language-Team: \n"
@@ -251,6 +251,15 @@ msgstr ""
 msgid " Ship: "
 msgstr " Fartøj:"
 #
+msgid "No Chart Available"
+msgstr ""
+#
+msgid "New Mark"
+msgstr ""
+#
+msgid "MAN OVERBOARD"
+msgstr ""
+#
 msgid "GRIB Display Control"
 msgstr ""
 #
@@ -276,7 +285,115 @@ msgstr ""
 msgid "OpenCPN Route Create"
 msgstr "OpenCPN kort opdatering"
 #
+#, fuzzy
+msgid "Track Properties"
+msgstr "Egenskaber"
+#
+msgid "Delete Track"
+msgstr ""
+#
+msgid "Export...."
+msgstr ""
+#
+#, fuzzy
+msgid "Activate Route"
+msgstr "Opret rute"
+#
+#, fuzzy
+msgid "Deactivate Route"
+msgstr "Opret rute"
+#
+#, fuzzy
+msgid "Insert Waypoint"
+msgstr "Waypoints/mærker"
+#
+#, fuzzy
+msgid "Append Waypoint"
+msgstr "Waypoints/mærker"
+#
+#, fuzzy
+msgid "Delete Route"
+msgstr "Opret rute"
+#
+#, fuzzy
+msgid "Reverse Route"
+msgstr "Opret rute"
+#
+#, fuzzy
+msgid "Route Properties"
+msgstr "Egenskaber"
+#
+msgid "Delete All Routes..."
+msgstr ""
+#
+msgid "Send To GPS..."
+msgstr ""
+#
+#, fuzzy
+msgid "Activate Waypoint"
+msgstr "Waypoints/mærker"
+#
+msgid "Activate Next in Route"
+msgstr ""
+#
+msgid "Remove Waypoint from Route"
+msgstr ""
+#
+#, fuzzy
+msgid "Delete Waypoint"
+msgstr "Waypoints/mærker"
+#
+#, fuzzy
+msgid "Mark/WP Properties"
+msgstr "Egenskaber"
+#
+msgid "Additional information"
+msgstr ""
+#
+msgid "Delete Mark"
+msgstr ""
+#
+msgid "Delete All Waypoints..."
+msgstr ""
+#
+msgid "Max Detail Here"
+msgstr ""
+#
+msgid "Scale In"
+msgstr ""
+#
+msgid "Scale Out"
+msgstr ""
+#
+msgid "Drop Mark Here"
+msgstr ""
+#
+msgid "Move Boat Here"
+msgstr ""
+#
+msgid "Measure....."
+msgstr ""
+#
+msgid "Measure Off"
+msgstr ""
+#
 msgid "Enable CM93 Detail Slider"
+msgstr ""
+#
+msgid "Object Query"
+msgstr ""
+#
+msgid "Zoom In"
+msgstr ""
+#
+msgid "Zoom Out"
+msgstr ""
+#
+#, fuzzy
+msgid "End Route"
+msgstr "Rute"
+#
+msgid "AIS Target Query"
 msgstr ""
 #
 msgid "Are you sure you want to delete <ALL> waypoints?"
@@ -289,38 +406,66 @@ msgstr "OpenCPN medelelse"
 msgid "cm93 Detail"
 msgstr ""
 #
-#, fuzzy
-msgid "Route Properties"
-msgstr "Egenskaber"
-#
 msgid "Are you sure you want to delete <ALL> routes?"
 msgstr "Er du sikker på at al <ALLE> ruter skal slettes"
-#
-#, fuzzy
-msgid "Track Properties"
-msgstr "Egenskaber"
 #
 msgid "OverZoom"
 msgstr ""
 #
-msgid "Failed to create ocpCursor."
-msgstr "Der opstod fejl i 'create ocpCursor'."
+msgid "Tide"
+msgstr ""
+#
+#, fuzzy
+msgid "Current"
+msgstr "Vis strømforhold"
+#
+msgid "OK"
+msgstr ""
+#
+#, fuzzy
+msgid "Prev"
+msgstr "Vis:"
+#
+msgid "Next"
+msgstr ""
+#
+msgid "Reference Station:"
+msgstr ""
+#
+msgid "Today"
+msgstr ""
+#
+msgid "Tomorrow"
+msgstr ""
 #
 msgid "AISTargetQuery"
 msgstr ""
+#
+# & ..?
+msgid "&OK"
+msgstr "&OK"
 #
 #, fuzzy
 msgid "Chart"
 msgstr "Udskriv kort"
 #
+msgid "This Leg"
+msgstr "Dette ben"
+#
 msgid "Leg/Route"
 msgstr "Sejlben/Rute"
 #
+msgid "XTE         L"
+msgstr ""
+#
+msgid "XTE         R"
+msgstr ""
+#
+msgid "ETA          "
+msgstr ""
+#
 msgid "Route"
 msgstr "Rute"
-#
-msgid "This Leg"
-msgstr "Dette ben"
 #
 msgid "GRIB File Directory"
 msgstr "Meteorologidata(GRIB) folder"
@@ -401,10 +546,6 @@ msgstr "&Afbryd"
 #
 msgid "Click to cancel the font selection."
 msgstr "Klik for at afbryde valg af skrifttype"
-#
-# & ..?
-msgid "&OK"
-msgstr "&OK"
 #
 msgid "Click to confirm the font selection."
 msgstr "Klik for at bekræfte valg af skrifttype."
@@ -623,19 +764,6 @@ msgstr "Vælg lydsignal for alarm"
 msgid "Supress Alerts for anchored/moored targets"
 msgstr ""
 #
-msgid "Language"
-msgstr ""
-#
-#, fuzzy
-msgid "Font Options"
-msgstr "Valgmuligheder for brugerinterface"
-#
-msgid "Text Element"
-msgstr ""
-#
-msgid "Choose Font..."
-msgstr ""
-#
 msgid "Language/Fonts"
 msgstr ""
 #
@@ -721,6 +849,28 @@ msgstr "Opdatering"
 msgid "Force Full Database Rebuild"
 msgstr "Genindlæs hele kortdatabasen"
 #
+msgid "Language"
+msgstr ""
+#
+#, fuzzy
+msgid "Font Options"
+msgstr "Valgmuligheder for brugerinterface"
+#
+msgid "Text Element"
+msgstr ""
+#
+msgid "Choose Font..."
+msgstr ""
+#
+msgid "GPS/Plotter Port"
+msgstr ""
+#
+msgid "Prepare GPS for Route/Waypoint upload and press Send..."
+msgstr ""
+#
+msgid "Progress..."
+msgstr ""
+#
 msgid "Cancel"
 msgstr "Afbryd"
 #
@@ -742,11 +892,47 @@ msgstr "Destination"
 msgid "Total Distance"
 msgstr "Afstand"
 #
+msgid "Plan Speed"
+msgstr ""
+#
+msgid "Time Enroute"
+msgstr ""
+#
 msgid "Waypoints"
 msgstr "Waypoints/mærker"
 #
-msgid "OK"
+msgid "Leg"
 msgstr ""
+#
+#, fuzzy
+msgid "To Waypoint"
+msgstr "Waypoints/mærker"
+#
+#, fuzzy
+msgid "Distance"
+msgstr "Afstand"
+#
+msgid "Bearing"
+msgstr ""
+#
+msgid "Latitude"
+msgstr "Breddegrad"
+#
+msgid "Longitude"
+msgstr "Længdegrad"
+#
+msgid "ETE"
+msgstr ""
+#
+msgid " %D Days  %H Hours  %M Minutes"
+msgstr ""
+#
+msgid " %H Hours  %M Minutes"
+msgstr ""
+#
+#, fuzzy
+msgid "Start"
+msgstr "Udskriv kort"
 #
 # Mark - ?
 msgid "Mark Name"
@@ -763,18 +949,29 @@ msgstr "Ikon for mærke"
 msgid "Position"
 msgstr ""
 #
-msgid "Latitude"
-msgstr "Breddegrad"
+# Translation?
+#, fuzzy
+msgid "Icon"
+msgstr "Ikon for mærke"
 #
-msgid "Longitude"
-msgstr "Længdegrad"
+#, fuzzy
+msgid "Description"
+msgstr "Destination"
 #
 msgid "Links"
 msgstr ""
 #
 #
+#~ msgid "Failed to create ocpCursor."
+#~ msgstr "Der opstod fejl i 'create ocpCursor'."
+#
+#
+#
+#
 #~ msgid "Fonts"
 #~ msgstr "Skrifttyper"
+#
+#
 #
 #
 #
@@ -783,8 +980,12 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "Cannot create opencpn log directory"
 #~ msgstr "Kan ikke oprette opencpn 'log' folder"
+#
+#
 #
 #
 #
@@ -793,8 +994,12 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "Using existing Config_File: "
 #~ msgstr "Anvender allerede oprettet konfigurationsfil: "
+#
+#
 #
 #
 #
@@ -803,8 +1008,12 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "Cannot create config file directory for "
 #~ msgstr "Kan ikke oprette konfigurationsfil for: "
+#
+#
 #
 #
 #
@@ -814,9 +1023,13 @@ msgstr ""
 #
 #
 #
+#
+#
 # S57data - better expression? Vector map data? ENC data?
 #~ msgid "Using s57data in "
 #~ msgstr "Bruger S57data fra "
+#
+#
 #
 #
 #
@@ -828,8 +1041,12 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "Using Tide/Current data from:  "
 #~ msgstr "Anvender tidevands- og strømdata fra: "
+#
+#
 #
 #
 #
@@ -842,8 +1059,12 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "GPS Watchdog Timeout is: %d sec."
 #~ msgstr "GPS overvågning timer ud efter: %d sek."
+#
+#
 #
 #
 #
@@ -853,9 +1074,13 @@ msgstr ""
 #
 #
 #
+#
+#
 # 'MyFrame' --?
 #~ msgid "opencpn::MyFrame exiting cleanly..."
 #~ msgstr "OpenCPN:: 'MyFrame' afslutter normalt..."
+#
+#
 #
 #
 #
@@ -865,8 +1090,12 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "   ***GPS Watchdog timeout..."
 #~ msgstr " ***GPS overvågning er timet ud"
+#
+#
 #
 #
 #
@@ -876,9 +1105,13 @@ msgstr ""
 #
 #
 #
+#
+#
 # Translation OK?
 #~ msgid "chart1.cpp:SetChartThumbnail...Could not create thumbnail"
 #~ msgstr "'chart1.cpp:SetChartThumbnail'...Kunne ikke oprette tommelfingerikon"
+#
+#
 #
 #
 #
@@ -887,8 +1120,12 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "   Unrecognized NMEA Sentence..."
 #~ msgstr " Ukendt NMEA datasætning"
+#
+#
 #
 #
 #
@@ -898,8 +1135,12 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "Linux command is:"
 #~ msgstr "Linux kommando er:"
+#
+#
 #
 #
 #
@@ -909,9 +1150,13 @@ msgstr ""
 #
 #
 #
+#
+#
 # Better message?
 #~ msgid "Parsing copy of /proc/tty/driver/serial..."
 #~ msgstr "Indlæser seriel driver (/proc/tty/driver/serial)"
+#
+#
 #
 #
 #
@@ -921,13 +1166,19 @@ msgstr ""
 #
 #
 #
+#
+#
 #~ msgid "Found Garmin USB Driver."
 #~ msgstr "Garmin USB-enhed fundet"
 #
 #
 #
+#
+#
 #~ msgid "Found Garmin Device."
 #~ msgstr "Garmin enhed fundet"
+#
+#
 #
 #
 #
