@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.37 2009/12/10 21:21:37 bdbcat Exp $
+ * $Id: chcanv.h,v 1.38 2009/12/26 21:10:41 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.38  2009/12/26 21:10:41  bdbcat
+ * TCWIN
+ *
  * Revision 1.37  2009/12/10 21:21:37  bdbcat
  * Beta 1210
  *
@@ -596,6 +599,8 @@ private:
       int         im;
       int         ib;
       int         it;
+      int         val_off;
+
 
       float       tcv[24];
       bool        btc_valid;
