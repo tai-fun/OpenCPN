@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.36 2009/12/22 22:01:40 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.37 2009/12/26 21:13:06 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.37  2009/12/26 21:13:06  bdbcat
+ * Correct georef
+ *
  * Revision 1.36  2009/12/22 22:01:40  bdbcat
  * Improve Georef
  *
@@ -99,6 +102,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.37  2009/12/26 21:13:06  bdbcat
+ * Correct georef
+ *
  * Revision 1.36  2009/12/22 22:01:40  bdbcat
  * Improve Georef
  *
@@ -232,7 +238,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.36 2009/12/22 22:01:40 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.37 2009/12/26 21:13:06 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -333,7 +339,7 @@ ChartDummy::ChartDummy()
       m_ChartFamily = CHART_FAMILY_UNKNOWN;
 
 
-      m_FullPath = _T("No Chart Available");
+      m_FullPath = _("No Chart Available");
       m_Description = m_FullPath;
 
 }
@@ -2532,33 +2538,24 @@ bool ChartBaseBSB::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
       {
             if(vp_last.bValid)
             {
-                  latlong_to_pix_vp(vp_proposed.clat, vp_proposed.clon, pixxd, pixyd, vp_last);
-                  pixx = pixxd;
-                  pixy = pixyd;
 
+                  wxRect rprop;
+                  ComputeSourceRectangle(vp_proposed, &rprop);
 
-                  int xmod = ( pixx - ( int ) ( vp_proposed.pix_width  * binary_scale_factor / 2 ) ) /4;
-                  xmod *= 4;
-                  int newx = xmod;
+                  int dx = rprop.x % 4;
+                  if(dx)
+                  {
+                        double new_lat, new_lon;
+                        fromSM((double)-dx / m_ppm_avg, 0., vp_proposed.clat, vp_proposed.clon, &new_lat, &new_lon);
+                        vp_proposed.clon = new_lon;
+                        ret_val = true;
+                  }
 
-                  int ymod = ( pixy - ( int ) ( vp_proposed.pix_height * binary_scale_factor / 2 ) ) /4;
-                  ymod *= 4;
-                  int newy = ymod;
+                  // Debug check
+//                  wxRect rprop_cor;
+//                  ComputeSourceRectangle(vp_proposed, &rprop_cor);
+//                  int dxc = rprop_cor.x % 4;
 
-                  SetVPParms ( &vp_proposed );     // preset here for next adjustment
-
-                  //    Possible adjustment to clat/clon
-                  double alat, alon;
-                  vp_pix_to_latlong(vp_last, ( int ) ( ( ( vp_proposed.pix_width /2 ) * binary_scale_factor ) + newx ),
-                                    ( int ) ( ( ( vp_proposed.pix_height/2 ) * binary_scale_factor ) + newy ),
-                                                &alat, &alon );
-
-                  //    Do not adjust the proposed latitude,
-                  //    since charts without internal georef have poor ypixel/lat registration typically
-      //            vp_proposed.clat = alat;
-                  vp_proposed.clon = alon;
-
-                  ret_val = true;
             }
       }
 
@@ -4311,7 +4308,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.36 2009/12/22 22:01:40 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.37 2009/12/26 21:13:06 bdbcat Exp $
 *
 */
 
