@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.74 2009/12/22 21:37:15 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.75 2009/12/26 21:14:00 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.75  2009/12/26 21:14:00  bdbcat
+ * Improve tcwin, messages
+ *
  * Revision 1.74  2009/12/22 21:37:15  bdbcat
  * Cleanup Messages
  *
@@ -358,7 +361,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.74 2009/12/22 21:37:15 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.75 2009/12/26 21:14:00 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -1097,7 +1100,7 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
 
                  case 13:                     // Ctrl M                      //    Drop Marker;
                         {
-                              RoutePoint *pWP = new RoutePoint ( m_cursor_lat, m_cursor_lon, wxString ( _T ( "triangle" ) ), wxString ( _T ( "New Mark" ) ), NULL );
+                              RoutePoint *pWP = new RoutePoint ( m_cursor_lat, m_cursor_lon, wxString ( _T ( "triangle" ) ), wxString ( _( "New Mark" ) ), NULL );
                               pSelect->AddSelectableRoutePoint ( m_cursor_lat, m_cursor_lon, pWP );
                               pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                               Refresh ( false );
@@ -1109,7 +1112,7 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
                        {
                              if ( event.GetModifiers() == wxMOD_CONTROL )
                              {
-                                     RoutePoint *pWP = new RoutePoint ( gLat, gLon, wxString ( _T ( "mob" ) ), wxString ( _T ( "MAN OVERBOARD" ) ), NULL );
+                                     RoutePoint *pWP = new RoutePoint ( gLat, gLon, wxString ( _T ( "mob" ) ), wxString ( _( "MAN OVERBOARD" ) ), NULL );
                                      pSelect->AddSelectableRoutePoint ( gLat, gLon, pWP );
                                      pConfig->AddNewWayPoint ( pWP, -1 );    // use auto next num
                                      Refresh ( false );
@@ -3835,9 +3838,9 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
               case SELTYPE_TRACKSEGMENT:
                     pdef_menu = new wxMenu();
 
-                    pdef_menu->Append ( ID_TK_MENU_PROPERTIES,        _T ( "Track Properties" ) );
-                    pdef_menu->Append ( ID_TK_MENU_DELETE,            _T ( "Delete Track" ) );
-                    pdef_menu->Append ( ID_TK_MENU_EXPORT,            _T ( "Export...." ) );
+                    pdef_menu->Append ( ID_TK_MENU_PROPERTIES,        _( "Track Properties" ) );
+                    pdef_menu->Append ( ID_TK_MENU_DELETE,            _( "Delete Track" ) );
+                    pdef_menu->Append ( ID_TK_MENU_EXPORT,            _( "Export...." ) );
 
                     PopupMenu ( pdef_menu, x, y );
 
@@ -3847,16 +3850,16 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
               case SELTYPE_ROUTESEGMENT:
                        pdef_menu = new wxMenu();
 
-                        pdef_menu->Append ( ID_RT_MENU_ACTIVATE,          _T ( "Activate Route" ) );
-                        pdef_menu->Append ( ID_RT_MENU_DEACTIVATE,        _T ( "Deactivate Route" ) );
-                        pdef_menu->Append ( ID_RT_MENU_INSERT,            _T ( "Insert Waypoint" ) );
-                        pdef_menu->Append ( ID_RT_MENU_APPEND,            _T ( "Append Waypoint" ) );
-                        pdef_menu->Append ( ID_RT_MENU_DELETE,            _T ( "Delete Route" ) );
-                        pdef_menu->Append ( ID_RT_MENU_REVERSE,           _T ( "Reverse Route" ) );
-                        pdef_menu->Append ( ID_RT_MENU_PROPERTIES,        _T ( "Route Properties" ) );
-                        pdef_menu->Append ( ID_RT_MENU_EXPORT,            _T ( "Export...." ) );
-                        pdef_menu->Append ( ID_RT_MENU_DELETEALL ,        _T ( "Delete All Routes..." ) );
-                        pdef_menu->Append ( ID_RT_MENU_SENDTOGPS,         _T ( "Send To GPS..." ) );
+                        pdef_menu->Append ( ID_RT_MENU_ACTIVATE,          _( "Activate Route" ) );
+                        pdef_menu->Append ( ID_RT_MENU_DEACTIVATE,        _( "Deactivate Route" ) );
+                        pdef_menu->Append ( ID_RT_MENU_INSERT,            _( "Insert Waypoint" ) );
+                        pdef_menu->Append ( ID_RT_MENU_APPEND,            _( "Append Waypoint" ) );
+                        pdef_menu->Append ( ID_RT_MENU_DELETE,            _( "Delete Route" ) );
+                        pdef_menu->Append ( ID_RT_MENU_REVERSE,           _( "Reverse Route" ) );
+                        pdef_menu->Append ( ID_RT_MENU_PROPERTIES,        _( "Route Properties" ) );
+                        pdef_menu->Append ( ID_RT_MENU_EXPORT,            _( "Export...." ) );
+                        pdef_menu->Append ( ID_RT_MENU_DELETEALL ,        _( "Delete All Routes..." ) );
+                        pdef_menu->Append ( ID_RT_MENU_SENDTOGPS,         _( "Send To GPS..." ) );
 
                         if ( m_pSelectedRoute )
                         {
@@ -3877,17 +3880,17 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                 {
                         pdef_menu = new wxMenu();
 
-                        pdef_menu->Append ( ID_RT_MENU_ACTPOINT,    _T ( "Activate Waypoint" ) );
-                        pdef_menu->Append ( ID_RT_MENU_ACTNXTPOINT, _T ( "Activate Next in Route" ) );
-                        pdef_menu->Append ( ID_RT_MENU_REMPOINT,    _T ( "Remove Waypoint from Route" ) );
-                        pdef_menu->Append ( ID_RT_MENU_DELPOINT,    _T ( "Delete Waypoint" ) );
-                        pdef_menu->Append ( ID_WP_MENU_PROPERTIES,  _T ( "Mark/WP Properties" ) );
+                        pdef_menu->Append ( ID_RT_MENU_ACTPOINT,    _( "Activate Waypoint" ) );
+                        pdef_menu->Append ( ID_RT_MENU_ACTNXTPOINT, _( "Activate Next in Route" ) );
+                        pdef_menu->Append ( ID_RT_MENU_REMPOINT,    _( "Remove Waypoint from Route" ) );
+                        pdef_menu->Append ( ID_RT_MENU_DELPOINT,    _( "Delete Waypoint" ) );
+                        pdef_menu->Append ( ID_WP_MENU_PROPERTIES,  _( "Mark/WP Properties" ) );
 
 
                         int NbrLinks = m_pFoundRoutePoint->m_HyperlinkList->GetCount();
                         if (NbrLinks > 0)
                         {
-                              pdef_menu->Append ( ID_WP_MENU_ADDITIONAL_INFO,   _T ( "Additional information" ) );      // toh, 2009.02.08
+                              pdef_menu->Append ( ID_WP_MENU_ADDITIONAL_INFO,   _( "Additional information" ) );      // toh, 2009.02.08
                         }
 
                         if(m_pSelectedRoute)
@@ -3908,13 +3911,13 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                 case SELTYPE_MARKPOINT:
                         pdef_menu = new wxMenu();
 
-                        pdef_menu->Append ( ID_WP_MENU_DELPOINT,    _T ( "Delete Mark" ) );
-                        pdef_menu->Append ( ID_WP_MENU_PROPERTIES,  _T ( "Mark/WP Properties" ) );
-                        pdef_menu->Append ( ID_WP_MENU_DELETEALL,   _T ( "Delete All Waypoints..." ) );
+                        pdef_menu->Append ( ID_WP_MENU_DELPOINT,    _( "Delete Mark" ) );
+                        pdef_menu->Append ( ID_WP_MENU_PROPERTIES,  _( "Mark/WP Properties" ) );
+                        pdef_menu->Append ( ID_WP_MENU_DELETEALL,   _( "Delete All Waypoints..." ) );
 
                         if (m_pFoundRoutePoint->m_HyperlinkList->GetCount() > 0)
                         {
-                              pdef_menu->Append ( ID_WP_MENU_ADDITIONAL_INFO,   _T ( "Additional information" ) );      // toh, 2009.02.08
+                              pdef_menu->Append ( ID_WP_MENU_ADDITIONAL_INFO,   _( "Additional information" ) );      // toh, 2009.02.08
                         }
 
                         PopupMenu ( pdef_menu, x, y );
@@ -3928,17 +3931,17 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
 
                         if(parent_frame->GetnChartStack() > 1)
                         {
-                              pdef_menu->Append ( ID_DEF_MENU_MAX_DETAIL, _T ( "Max Detail Here" ) );
-                              pdef_menu->Append ( ID_DEF_MENU_SCALE_IN,   _T ( "Scale In" ) );
-                              pdef_menu->Append ( ID_DEF_MENU_SCALE_OUT,  _T ( "Scale Out" ) );
+                              pdef_menu->Append ( ID_DEF_MENU_MAX_DETAIL, _( "Max Detail Here" ) );
+                              pdef_menu->Append ( ID_DEF_MENU_SCALE_IN,   _( "Scale In" ) );
+                              pdef_menu->Append ( ID_DEF_MENU_SCALE_OUT,  _( "Scale Out" ) );
                         }
-                        pdef_menu->Append ( ID_DEF_MENU_DROP_WP,    _T ( "Drop Mark Here" ) );
-                        pdef_menu->Append ( ID_DEF_MENU_MOVE_BOAT_HERE, _T ( "Move Boat Here" ) );
+                        pdef_menu->Append ( ID_DEF_MENU_DROP_WP,    _( "Drop Mark Here" ) );
+                        pdef_menu->Append ( ID_DEF_MENU_MOVE_BOAT_HERE, _( "Move Boat Here" ) );
 
                         if(!m_bMeasure_Active)
-                              pdef_menu->Append ( ID_DEF_MENU_ACTIVATE_MEASURE,    _T ( "Measure....." ) );
+                              pdef_menu->Append ( ID_DEF_MENU_ACTIVATE_MEASURE,    _( "Measure....." ) );
                         else
-                              pdef_menu->Append ( ID_DEF_MENU_DEACTIVATE_MEASURE,    _T ( "Measure Off" ) );
+                              pdef_menu->Append ( ID_DEF_MENU_DEACTIVATE_MEASURE,    _( "Measure Off" ) );
 
 
                         if (( Current_Ch->m_ChartType == CHART_TYPE_CM93COMP ))
@@ -3949,7 +3952,7 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                         }
 
                         if (( Current_Ch->m_ChartFamily == CHART_FAMILY_VECTOR ))
-                              pdef_menu->Append ( ID_DEF_MENU_QUERY,  _T ( "Object Query" ) );
+                              pdef_menu->Append ( ID_DEF_MENU_QUERY,  _( "Object Query" ) );
 
                         PopupMenu ( pdef_menu, x, y );
 
@@ -3959,12 +3962,12 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                 case SELTYPE_ROUTECREATE:
                         pdef_menu = new wxMenu();
 
-                        pdef_menu->Append ( ID_DEF_MENU_MAX_DETAIL, _T ( "Max Detail Here" ) );
-                        pdef_menu->Append ( ID_RC_MENU_SCALE_IN,    _T ( "Scale In" ) );
-                        pdef_menu->Append ( ID_RC_MENU_SCALE_OUT,   _T ( "Scale Out" ) );
-                        pdef_menu->Append ( ID_RC_MENU_ZOOM_IN,     _T ( "Zoom In" ) );
-                        pdef_menu->Append ( ID_RC_MENU_ZOOM_OUT,    _T ( "Zoom Out" ) );
-                        pdef_menu->Append ( ID_RC_MENU_FINISH,      _T ( "End Route" ) );
+                        pdef_menu->Append ( ID_DEF_MENU_MAX_DETAIL, _( "Max Detail Here" ) );
+                        pdef_menu->Append ( ID_RC_MENU_SCALE_IN,    _( "Scale In" ) );
+                        pdef_menu->Append ( ID_RC_MENU_SCALE_OUT,   _( "Scale Out" ) );
+                        pdef_menu->Append ( ID_RC_MENU_ZOOM_IN,     _( "Zoom In" ) );
+                        pdef_menu->Append ( ID_RC_MENU_ZOOM_OUT,    _( "Zoom Out" ) );
+                        pdef_menu->Append ( ID_RC_MENU_FINISH,      _( "End Route" ) );
 
                         PopupMenu ( pdef_menu, x, y );
 
@@ -3973,11 +3976,11 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                 case SELTYPE_AISTARGET:
                         pdef_menu = new wxMenu();
 
-                        pdef_menu->Append ( ID_DEF_MENU_MAX_DETAIL, _T ( "Max Detail Here" ) );
-                        pdef_menu->Append ( ID_DEF_MENU_SCALE_IN,   _T ( "Scale In" ) );
-                        pdef_menu->Append ( ID_DEF_MENU_SCALE_OUT,  _T ( "Scale Out" ) );
+                        pdef_menu->Append ( ID_DEF_MENU_MAX_DETAIL, _( "Max Detail Here" ) );
+                        pdef_menu->Append ( ID_DEF_MENU_SCALE_IN,   _( "Scale In" ) );
+                        pdef_menu->Append ( ID_DEF_MENU_SCALE_OUT,  _( "Scale Out" ) );
 
-                        pdef_menu->Append ( ID_DEF_MENU_AIS_QUERY,  _T ( "AIS Target Query" ) );
+                        pdef_menu->Append ( ID_DEF_MENU_AIS_QUERY,  _( "AIS Target Query" ) );
 
                         PopupMenu ( pdef_menu, x, y );
 
@@ -4169,7 +4172,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                                 pdialog->SetObjectTree(ppOD, obj_list->GetCount());
                                 pdialog->SetText ( *QueryResult );
 
-                                pdialog->Create ( this, -1, wxT ( "Object Query" ) );
+                                pdialog->Create ( this, -1, _( "Object Query" ) );
 //                                pdialog->SetSize ( 800, -1 );
                                 pdialog->Centre();
 
@@ -4189,7 +4192,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                       if(NULL == g_pais_query_dialog_active)
                       {
                             g_pais_query_dialog_active = new AISTargetQueryDialog();
-                            g_pais_query_dialog_active->Create ( this, -1, wxT ( "AIS Target Query" ), wxPoint(g_ais_query_dialog_x, g_ais_query_dialog_y));
+                            g_pais_query_dialog_active->Create ( this, -1, _( "AIS Target Query" ), wxPoint(g_ais_query_dialog_x, g_ais_query_dialog_y));
                       }
 
                       g_pais_query_dialog_active->SetMMSI(m_FoundAIS_MMSI);
@@ -4424,7 +4427,7 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                         SendToGpsDlg *pdlg = new SendToGpsDlg();
                         pdlg->SetRoute(m_pSelectedRoute);
 
-                        pdlg->Create ( NULL, -1, wxT ( "Send To GPS..." ) );
+                        pdlg->Create ( NULL, -1, _( "Send To GPS..." ) );
                         pdlg->ShowModal();
 
                         delete pdlg;
@@ -5968,12 +5971,12 @@ TCWin::TCWin ( ChartCanvas *parent, int x, int y, void *pvIDX )
         if ( strchr ( "Tt", pIDX->IDX_type ) )
         {
                 plot_type = TIDE_PLOT;
-                SetTitle ( wxString ( _T ( "Tide" ) ) );
+                SetTitle ( wxString ( _( "Tide" ) ) );
         }
         else
         {
                 plot_type = CURRENT_PLOT;
-                SetTitle ( wxString ( _T ( "Current" ) ) );
+                SetTitle ( wxString ( _( "Current" ) ) );
         }
 
         int sx,sy;
@@ -6069,12 +6072,12 @@ TCWin::TCWin ( ChartCanvas *parent, int x, int y, void *pvIDX )
 
         psList = NULL;
 
-        OK_button = new wxButton ( this, wxID_OK, wxT ( "OK" ),
+        OK_button = new wxButton ( this, wxID_OK, _( "OK" ),
                                    wxPoint ( sx - 100, sy - 32 ), wxDefaultSize );
         OK_button->SetBackgroundColour ( GetGlobalColor ( _T ( "UIBCK" ) ) );
 
 
-        PR_button = new wxButton ( this, ID_TCWIN_PR, wxT ( "Prev" ),
+        PR_button = new wxButton ( this, ID_TCWIN_PR, _( "Prev" ),
                                    wxPoint ( 10 , sy - 32 ), wxSize ( 40, -1 ) );
         PR_button->SetBackgroundColour ( GetGlobalColor ( _T ( "UIBCK" ) ) );
 
@@ -6082,7 +6085,7 @@ TCWin::TCWin ( ChartCanvas *parent, int x, int y, void *pvIDX )
         PR_button->GetSize ( &bsx, &bsy );
         PR_button->GetPosition ( &bpx, &bpy );
 
-        NX_button = new wxButton ( this, ID_TCWIN_NX, wxT ( "Next" ),
+        NX_button = new wxButton ( this, ID_TCWIN_NX, _( "Next" ),
                                    wxPoint ( bpx + bsx + 5, bpy ), wxSize ( 40, -1 ) );
         NX_button->SetBackgroundColour ( GetGlobalColor ( _T ( "UIBCK" ) ) );
 
@@ -6266,20 +6269,27 @@ void TCWin::OnPaint ( wxPaintEvent& event )
                         }
 
 
-                        ib = ( int ) tcmin - 1;
-                        it = ( int ) tcmax + 1;
-
 
 //    Set up the vertical parameters based on Tide or Current plot
                         if ( CURRENT_PLOT == plot_type )
                         {
+                                ib = ( int ) tcmin -  1;
+                                it = ( int ) tcmax  + 1;
+
                                 im = 2 * __max ( abs ( ib ), abs ( it ) );
                                 plot_y_offset = y_graph_h/2;
+                                val_off = 0;
                         }
                         else
                         {
-                                im = abs ( ib ) + abs ( it );
-                                plot_y_offset = ( y_graph_h * it ) /im;
+                                ib = ( int ) tcmin;
+                                if(tcmin < 0)
+                                      ib -= 1;
+                                it = ( int ) tcmax  + 1;
+
+                                im =  it - ib; //abs ( ib ) + abs ( it );
+                                plot_y_offset = ( y_graph_h * (it - ib) ) /im;
+                                val_off = ib;
                         }
 
 
@@ -6297,7 +6307,7 @@ void TCWin::OnPaint ( wxPaintEvent& event )
                         {
                                 wxPoint *pp = new wxPoint;
                                 pp->x =  x_graph + ( ( i ) * x_graph_w / 25 );
-                                pp->y = y_graph + ( plot_y_offset ) - ( int ) ( tcv[i] * y_graph_h / im );
+                                pp->y = y_graph + ( plot_y_offset ) - ( int ) ( (tcv[i]- val_off) * y_graph_h / im );
 
                                 psList->Append ( pp );
                         }
@@ -6321,7 +6331,7 @@ void TCWin::OnPaint ( wxPaintEvent& event )
                 i = ib;
                 while ( i < it + 1 )
                 {
-                        int yd = y_graph + ( plot_y_offset ) - ( i * y_graph_h / im );
+                        int yd = y_graph + ( plot_y_offset ) - (( i- val_off) * y_graph_h / im );
 
                         if ( ( plot_y_offset + y_graph ) == yd )
                                 dc.SetPen ( *pblack_2 );
@@ -6329,7 +6339,6 @@ void TCWin::OnPaint ( wxPaintEvent& event )
                                 dc.SetPen ( *pblack_1 );
 
                         dc.DrawLine ( x_graph, yd, x_graph+x_graph_w, yd );
-
                         snprintf ( sbuf, 99, "%d", i );
                         dc.DrawText ( wxString ( sbuf, wxConvUTF8 ), x_graph - 20, yd - 10 );
                         i += i_skip;
@@ -6385,7 +6394,7 @@ void TCWin::OnPaint ( wxPaintEvent& event )
                         int y_master_reference = y_graph - h - 2;
                         dc.DrawText ( mref, x - w, y_master_reference );
 
-                        wxString ref_legend ( _T ( "Reference Station:" ) );
+                        wxString ref_legend ( _( "Reference Station:" ) );
                         int wl;
                         dc.GetTextExtent ( ref_legend, &wl, &h );
                         dc.DrawText ( ref_legend, x - w/2 - wl/2, y_master_reference - h + 4 );
@@ -6437,9 +6446,9 @@ void TCWin::OnPaint ( wxPaintEvent& event )
                 wxDateTime this_now = wxDateTime::Now();
                 int day = graphday.GetWeekDay();
                 if ( day ==  this_now.GetWeekDay() )
-                        sday.Append ( _T ( "Today" ) );
+                        sday.Append ( _( "Today" ) );
                 else if ( day == ( this_now.GetWeekDay() + 1 ) % 7 )
-                        sday.Append ( _T ( "Tomorrow" ) );
+                        sday.Append ( _( "Tomorrow" ) );
                 dc.SetFont ( *pSFont );
                 dc.GetTextExtent ( wxString ( sday, wxConvUTF8 ), &w, &h );
                 dc.DrawText ( wxString ( sday, wxConvUTF8 ), 55 - w/2, y * 88/100 );
@@ -6933,7 +6942,7 @@ ocpCursor::ocpCursor ( const char **xpm_data, long type,
                                               hotSpotX, hotSpotY );
         if ( !hcursor )
         {
-                wxLogWarning ( _ ( "Failed to create ocpCursor." ) );
+                wxLogWarning ( _T( "Failed to create ocpCursor." ) );
                 return;
         }
 
@@ -7237,10 +7246,10 @@ bool AISTargetQueryDialog::Create ( wxWindow* parent,
       wxColour back_color = GetGlobalColor ( _T ( "UIBDR" ) );
       SetBackgroundColour ( back_color );
 
-      wxFont *dFont = pFontMgr->GetFont(_T("AISTargetQuery"), 12);
+      wxFont *dFont = pFontMgr->GetFont(_("AISTargetQuery"), 12);
       SetFont ( *dFont );
 
-      SetForegroundColour(pFontMgr->GetFontColor(_T("AISTargetQuery")));
+      SetForegroundColour(pFontMgr->GetFontColor(_("AISTargetQuery")));
 
       CreateControls();
 
@@ -7319,7 +7328,7 @@ void AISTargetQueryDialog::CreateControls()
       wxColour button_color = GetGlobalColor ( _T ( "UIBCK" ) );;
 
 // The OK button
-      wxButton* ok = new wxButton ( this, wxID_OK, wxT ( "&OK" ),
+      wxButton* ok = new wxButton ( this, wxID_OK, _( "&OK" ),
                                     wxDefaultPosition, wxDefaultSize, 0 );
       okCancelBox->Add ( ok, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
       ok->SetBackgroundColour ( button_color );
@@ -7554,7 +7563,7 @@ void S57QueryDialog::CreateControls()
         wxColour button_color = GetGlobalColor ( _T ( "UIBCK" ) );
 
 // The OK button
-        wxButton* ok = new wxButton ( this, wxID_OK, wxT ( "&OK" ), wxDefaultPosition, wxDefaultSize, 0 );
+        wxButton* ok = new wxButton ( this, wxID_OK, _( "&OK" ), wxDefaultPosition, wxDefaultSize, 0 );
         topSizer->Add ( ok, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
         ok->SetBackgroundColour ( button_color );
         ok->SetForegroundColour ( text_color );
@@ -7649,7 +7658,7 @@ wxString S57QueryDialog::format_attributes(wxString &attr, int lcol, int rcol)
                         unsigned int iline=0;
                         wxString tkr;
 
-                        wxStringTokenizer tk(attval, wxT(" |,"));
+                        wxStringTokenizer tk(attval, _T(" |,"));
                         while ( tk.HasMoreTokens() )
                         {
                               wxString token = tk.GetNextToken();
