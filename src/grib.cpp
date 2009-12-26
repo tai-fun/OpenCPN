@@ -51,7 +51,7 @@
 #endif
 
 
-CPL_CVSID ( "$Id: grib.cpp,v 1.10 2009/12/24 19:20:24 bdbcat Exp $" );
+CPL_CVSID ( "$Id: grib.cpp,v 1.11 2009/12/26 21:15:37 bdbcat Exp $" );
 
 extern FontMgr          *pFontMgr;
 extern ColorScheme      global_color_scheme;
@@ -628,29 +628,15 @@ void GRIBUIDialog::SetGribRecordSet ( GribRecordSet *pGribRecordSet )
                   // Wind
                   //    Actually need two records to draw the wind arrows
 
-                  if ( (pGR->getDataType()==GRB_WIND_VX )
-                        && (pGR->getLevelType()==LV_ABOV_GND)
-                        && (pGR->getLevelValue()==10))
-                  {
+                  if ( pGR->getDataType()==GRB_WIND_VX )
                         m_RS_Idx_WIND_VX = i;
-                  }
 
-
-                  if ( (pGR->getDataType()==GRB_WIND_VY)
-                        && (pGR->getLevelType()==LV_ABOV_GND)
-                        && (pGR->getLevelValue()==10) )
-                  {
+                  if ( pGR->getDataType()==GRB_WIND_VY)
                         m_RS_Idx_WIND_VY = i;
-                  }
 
                   //Pressure
-                  if ( (pGR->getDataType()==GRB_PRESSURE )
-                        && (pGR->getLevelType()==LV_MSL)
-                        && (pGR->getLevelValue()==0))
-                  {
+                  if ( pGR->getDataType()==GRB_PRESSURE )
                         m_RS_Idx_PRESS = i;
-                  }
-
 
                   // Significant Wave Height
                   if (pGR->getDataType()==GRB_HTSGW )
@@ -786,9 +772,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             // Wind
             //    Actually need two records to draw the wind arrows
 
-            if ( m_ben_Wind && (pGR->getDataType()==GRB_WIND_VX )
-                  && (pGR->getLevelType()==LV_ABOV_GND)
-                  && (pGR->getLevelValue()==10))
+            if ( m_ben_Wind && (pGR->getDataType()==GRB_WIND_VX ))
             {
                   if(pGRWindVY)
                         RenderGribWind(pGR, pGRWindVY,  pmdc, vp);
@@ -797,9 +781,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             }
 
 
-            else if ( m_ben_Wind && (pGR->getDataType()==GRB_WIND_VY)
-                  && (pGR->getLevelType()==LV_ABOV_GND)
-                  && (pGR->getLevelValue()==10) )
+            else if ( m_ben_Wind && (pGR->getDataType()==GRB_WIND_VY))
             {
                   if(pGRWindVX)
                         RenderGribWind(pGRWindVX, pGR,  pmdc, vp);
@@ -808,9 +790,7 @@ bool GRIBOverlayFactory::RenderGribOverlay ( wxMemoryDC *pmdc, ViewPort *vp )
             }
 
             //Pressure
-            if ( m_ben_Pressure && (pGR->getDataType()==GRB_PRESSURE )
-                  && (pGR->getLevelType()==LV_MSL)
-                  && (pGR->getLevelValue()==0))
+            if ( m_ben_Pressure && (pGR->getDataType()==GRB_PRESSURE ))
             {
                   RenderGribPressure(pGR,  pmdc, vp);
             }
@@ -910,6 +890,10 @@ bool GRIBOverlayFactory::RenderGribWind(GribRecord *pGRX, GribRecord *pGRY, wxMe
 
 bool GRIBOverlayFactory::RenderGribScatWind(GribRecord *pGRX, GribRecord *pGRY, wxMemoryDC *pmdc, ViewPort *vp)
 {
+      wxDateTime t ( m_pGribRecordSet->m_Reference_Time );
+      wxDateTime tnow = wxDateTime::Now();
+      wxTimeSpan dt = tnow - t;
+
        //    Get the the grid
       int imax = pGRX->getNi();                  // Longitude
       int jmax = pGRX->getNj();                  // Latitude
@@ -962,6 +946,21 @@ bool GRIBOverlayFactory::RenderGribScatWind(GribRecord *pGRX, GribRecord *pGRY, 
                   }
             }
       }
+
+      int age_hours = dt.GetHours();
+      if(age_hours > 12)
+      {
+            wxFont sfont = pmdc->GetFont();
+            wxFont mfont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
+            pmdc->SetFont(mfont);
+
+            wxString msg;
+            msg.Printf(_("WARNING:  QuickScat GRIB data is %d hours old."), age_hours);
+            pmdc->DrawText(msg, 10, 10);
+
+            pmdc->SetFont(sfont);
+      }
+
       return true;
 }
 
