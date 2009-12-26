@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.cpp,v 1.5 2009/12/22 21:43:22 bdbcat Exp $
+* $Id: chartdbs.cpp,v 1.6 2009/12/26 21:12:33 bdbcat Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.cpp,v $
+* Revision 1.6  2009/12/26 21:12:33  bdbcat
+* Correct Version string
+*
 * Revision 1.5  2009/12/22 21:43:22  bdbcat
 * Cleanup
 *
@@ -123,7 +126,7 @@ bool ChartTableHeader::CheckValid()
           char vbo[5];
           memcpy(vbo, dbVersion, 4);
           vbo[4] = 0;
-          msg.Printf(_T("%s"), vbo);
+          msg.Append(wxString(vbo, wxConvUTF8));
           msg.Prepend(wxT("   Warning: found incorrect chart db version: "));
           wxLogMessage(msg);
 
@@ -143,7 +146,7 @@ bool ChartTableHeader::CheckValid()
           char vbo[5];
           memcpy(vbo, dbVersion, 4);
           vbo[4] = 0;
-          msg.Printf(_T("%s"), vbo);
+          msg.Append(wxString(vbo, wxConvUTF8));
           msg.Prepend(wxT("Loading chart db version: "));
           wxLogMessage(msg);
     }
