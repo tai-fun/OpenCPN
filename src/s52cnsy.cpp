@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.22 2009/12/10 20:58:44 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.23 2009/12/26 21:15:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.23  2009/12/26 21:15:52  bdbcat
+ * UWTROC
+ *
  * Revision 1.22  2009/12/10 20:58:44  bdbcat
  * Beta 1210
  *
@@ -137,7 +140,7 @@ bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.22 2009/12/10 20:58:44 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.23 2009/12/26 21:15:52 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -1743,10 +1746,11 @@ static void *OBSTRN04 (void *param)
                         if (watlev == -9)  // default
                               obstrn04str.Append(_T(";SY(UWTROC04)"));
                         else {
-                              if (3 == watlev)
-                                    obstrn04str.Append(_T(";SY(UWTROC03)"));
-                              else
-                                    obstrn04str.Append(_T(";SY(UWTROC04)"));
+                              switch (watlev) {
+                                    case 2: obstrn04str.Append(_T(";SY(OBSTRN11)")); break;
+                                    case 3: obstrn04str.Append(_T(";SY(UWTROC03)")); break;
+                                    default: obstrn04str.Append(_T(";SY(UWTROC04)")); break;
+                              }
                         }
 
                   }
@@ -3326,25 +3330,25 @@ static wxString _LITDSN01(S57Obj *obj)
                   case 6: return_value.Append(_T("UQ"));   break;                   //ultra quick-flashing  IP 10.8;
                   case 7: return_value.Append(_T("Iso"));  break;                   //isophased IP 10.3;
                   case 8: return_value.Append(_T("Occ"));  break;                   //occulting IP 10.2;
-                  case 9: return_value.Append(_T(""));     break;                   //interrupted quick-flashing  IP 10.6;
-                  case 10: return_value.Append(_T(""));    break;                   //interrupted very quick-flashing   IP 10.7;
-                  case 11: return_value.Append(_T(""));    break;                   //interrupted ultra quick-flashing  IP 10.8;
+                  case 9: return_value.Append(_T("IQ"));   break;                   //interrupted quick-flashing  IP 10.6;
+                  case 10: return_value.Append(_T("IVQ")); break;                   //interrupted very quick-flashing   IP 10.7;
+                  case 11: return_value.Append(_T("IUQ")); break;                   //interrupted ultra quick-flashing  IP 10.8;
                   case 12: return_value.Append(_T("Mo"));  break;                   //morse     IP 10.9;
-                  case 13: return_value.Append(_T(""));    break;                   //fixed/flash     IP 10.10;
-                  case 14: return_value.Append(_T(""));    break;                   //flash/long-flash
-                  case 15: return_value.Append(_T(""));    break;                   //occulting/flash
-                  case 16: return_value.Append(_T(""));    break;                   //fixed/long-flash
-                  case 17: return_value.Append(_T(""));    break;                   //occulting alternating
-                  case 18: return_value.Append(_T(""));    break;                   //long-flash alternating
-                  case 19: return_value.Append(_T(""));    break;                   //flash alternating
-                  case 20: return_value.Append(_T(""));    break;                   //group alternating
+                  case 13: return_value.Append(_T("F + Fl"));   b_grp2 = true; break;                   //fixed/flash     IP 10.10;
+                  case 14: return_value.Append(_T("Fl + LFl")); b_grp2 = true; break;                   //flash/long-flash
+                  case 15: return_value.Append(_T("Occ + Fl")); b_grp2 = true; break;                   //occulting/flash
+                  case 16: return_value.Append(_T("F + LFl"));  b_grp2 = true;  break;                   //fixed/long-flash
+                  case 17: return_value.Append(_T("Al Occ"));    break;                   //occulting alternating
+                  case 18: return_value.Append(_T("Al LFl"));    break;                   //long-flash alternating
+                  case 19: return_value.Append(_T("Al Fl"));    break;                   //flash alternating
+                  case 20: return_value.Append(_T("Al Grp"));    break;                   //group alternating
                   case 21: return_value.Append(_T("F")); spost = _T(" (vert)");    break;                   //2 fixed (vertical)
                   case 22: return_value.Append(_T("F")); spost = _T(" (horz)");    break;                   //2 fixed (horizontal)
                   case 23: return_value.Append(_T("F")); spost = _T(" (vert)");    break;                   //3 fixed (vertical)
                   case 24: return_value.Append(_T("F")); spost = _T(" (horz)");    break;                   //3 fixed (horizontal)
-                  case 25: return_value.Append(_T("Q + LFL"));  b_grp2 = true;    break;                   //quick-flash plus long-flash
-                  case 26: return_value.Append(_T("VQ + LFL")); b_grp2 = true;    break;                   //very quick-flash plus long-flash
-                  case 27: return_value.Append(_T("UQ + LFL")); b_grp2 = true;    break;                   //ultra quick-flash plus long-flash
+                  case 25: return_value.Append(_T("Q + LFl"));  b_grp2 = true;    break;                   //quick-flash plus long-flash
+                  case 26: return_value.Append(_T("VQ + LFl")); b_grp2 = true;    break;                   //very quick-flash plus long-flash
+                  case 27: return_value.Append(_T("UQ + LFl")); b_grp2 = true;    break;                   //ultra quick-flash plus long-flash
                   case 28: return_value.Append(_T("Alt"));                        break;                   //alternating
                   case 29: return_value.Append(_T("F + Alt")); b_grp2 = true;     break;                   //fixed and alternating flashing
 
