@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-25 23:44-0500\n"
+"POT-Creation-Date: 2009-12-26 00:00-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Marco Certelli <marco_certelli@yahoo.it>\n"
 "Language-Team: \n"
@@ -600,6 +600,20 @@ msgstr "Cancella tutto"
 msgid "Select All"
 msgstr "Seleziona tutto"
 #
+msgid "Base"
+msgstr ""
+#
+#, fuzzy
+msgid "Standard"
+msgstr "Standard Nautico"
+#
+msgid "Other"
+msgstr ""
+#
+#, fuzzy
+msgid "MarinersStandard"
+msgstr "Standard Nautico"
+#
 msgid "Display Category"
 msgstr "Categoria Visualizzazione"
 #
@@ -627,11 +641,32 @@ msgstr "De-Sovrapponi Testo (sperimentale)"
 msgid "Chart Display Style"
 msgstr "Stile Visualizzazione Carta"
 #
+#, fuzzy
+msgid "Paper Chart"
+msgstr "Stampa la Carta"
+#
+msgid "Simplified"
+msgstr ""
+#
 msgid "Points"
 msgstr "Punti"
 #
+msgid "Plain"
+msgstr ""
+#
+msgid "Symbolized"
+msgstr ""
+#
 msgid "Boundaries"
 msgstr "Bordi"
+#
+#, fuzzy
+msgid "2 Color"
+msgstr "Colori"
+#
+#, fuzzy
+msgid "4 Color"
+msgstr "Colori"
 #
 msgid "Colors"
 msgstr "Colori"
@@ -653,6 +688,15 @@ msgstr "Profondità Sicura"
 #
 msgid "Deep Depth"
 msgstr "Profondità Alta"
+#
+msgid "Feet"
+msgstr ""
+#
+msgid "Metres"
+msgstr ""
+#
+msgid "Fathoms"
+msgstr ""
 #
 msgid "Chart Depth Units"
 msgstr "Unità di misura della profondità"
@@ -774,6 +818,12 @@ msgstr "Numero di anelli da mostrare"
 msgid "Distance between rings"
 msgstr "Distanza tra gli anelli Radar"
 #
+msgid "&Nautical miles"
+msgstr ""
+#
+msgid "&Kilometers"
+msgstr ""
+#
 msgid "Units"
 msgstr "Unità"
 #
@@ -795,6 +845,9 @@ msgstr "Mantieni la scala quando cambia la carta"
 #
 msgid "Available Chart Directories"
 msgstr "Cartelle da selezionare per ricercare Carte Nautiche"
+#
+msgid "All files (*.*)|*.*"
+msgstr ""
 #
 msgid "Add Selection"
 msgstr "Aggiungi le cartelle selezionate"
@@ -822,6 +875,9 @@ msgstr "Elementi Testo"
 #
 msgid "Choose Font..."
 msgstr "Scegli Carattere..."
+#
+msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
+msgstr ""
 #
 msgid "GPS/Plotter Port"
 msgstr ""

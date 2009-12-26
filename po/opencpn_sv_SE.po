@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-25 23:44-0500\n"
+"POT-Creation-Date: 2009-12-26 00:00-0500\n"
 "PO-Revision-Date: 2009-12-25 12:37+0100\n"
 "Last-Translator: Anders Arnell <anders.arnell@bredband.net>\n"
 "Language-Team: AB Torsk & Bäver <N/A>\n"
@@ -621,6 +621,20 @@ msgstr "Rensa alla"
 msgid "Select All"
 msgstr "Välj alla"
 #
+msgid "Base"
+msgstr ""
+#
+#, fuzzy
+msgid "Standard"
+msgstr "Marinstandard"
+#
+msgid "Other"
+msgstr ""
+#
+#, fuzzy
+msgid "MarinersStandard"
+msgstr "Marinstandard"
+#
 msgid "Display Category"
 msgstr "Visa kategori"
 #
@@ -648,11 +662,32 @@ msgstr "Rensa överlappande text"
 msgid "Chart Display Style"
 msgstr "Tema för sjökortsvisning"
 #
+#, fuzzy
+msgid "Paper Chart"
+msgstr "Skriv ut sjökort"
+#
+msgid "Simplified"
+msgstr ""
+#
 msgid "Points"
 msgstr "Utseende"
 #
+msgid "Plain"
+msgstr ""
+#
+msgid "Symbolized"
+msgstr ""
+#
 msgid "Boundaries"
 msgstr "Gränser"
+#
+#, fuzzy
+msgid "2 Color"
+msgstr "Färger"
+#
+#, fuzzy
+msgid "4 Color"
+msgstr "Färger"
 #
 msgid "Colors"
 msgstr "Färger"
@@ -674,6 +709,15 @@ msgstr "Säkert djup"
 #
 msgid "Deep Depth"
 msgstr "Djupt vatten"
+#
+msgid "Feet"
+msgstr ""
+#
+msgid "Metres"
+msgstr ""
+#
+msgid "Fathoms"
+msgstr ""
 #
 msgid "Chart Depth Units"
 msgstr "Enhet för djup"
@@ -795,6 +839,12 @@ msgstr "Antal radarringar som visas"
 msgid "Distance between rings"
 msgstr "Avstånd mellan ringar"
 #
+msgid "&Nautical miles"
+msgstr ""
+#
+msgid "&Kilometers"
+msgstr ""
+#
 msgid "Units"
 msgstr "Enheter"
 #
@@ -815,6 +865,9 @@ msgstr "Bibehåll skala vid växling till nytt sjökort"
 #
 msgid "Available Chart Directories"
 msgstr "Tillgängliga mappar för sjökort"
+#
+msgid "All files (*.*)|*.*"
+msgstr ""
 #
 msgid "Add Selection"
 msgstr "Lägg till markerad mapp"
@@ -842,6 +895,9 @@ msgstr "Textval"
 #
 msgid "Choose Font..."
 msgstr "Välj Teckensnitt..."
+#
+msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
+msgstr ""
 #
 msgid "GPS/Plotter Port"
 msgstr ""
@@ -939,8 +995,10 @@ msgid "Links"
 msgstr "Länkar"
 #
 #
+#
 #~ msgid "Failed to create ocpCursor."
 #~ msgstr "Misslyckades att skapa ocpCursor"
+#
 #
 #
 #~ msgid "Övrigt"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-25 23:44-0500\n"
+"POT-Creation-Date: 2009-12-26 00:00-0500\n"
 "PO-Revision-Date: 2009-12-25 16:11+0100\n"
 "Last-Translator: Bart <bart@parkhaven.net>\n"
 "Language-Team: Dutch <barty@parkhaven.net>\n"
@@ -614,6 +614,19 @@ msgstr ""
 msgid "Select All"
 msgstr "Selecteer attentie geluid"
 #
+msgid "Base"
+msgstr ""
+#
+#, fuzzy
+msgid "Standard"
+msgstr "Print Kaart"
+#
+msgid "Other"
+msgstr ""
+#
+msgid "MarinersStandard"
+msgstr ""
+#
 msgid "Display Category"
 msgstr ""
 #
@@ -645,11 +658,32 @@ msgid "Chart Display Style"
 msgstr "Laat weergave opties zien"
 #
 #, fuzzy
+msgid "Paper Chart"
+msgstr "Print Kaart"
+#
+msgid "Simplified"
+msgstr ""
+#
+#, fuzzy
 msgid "Points"
 msgstr "Lettertypen"
 #
+msgid "Plain"
+msgstr ""
+#
+msgid "Symbolized"
+msgstr ""
+#
 msgid "Boundaries"
 msgstr ""
+#
+#, fuzzy
+msgid "2 Color"
+msgstr "Sluiten"
+#
+#, fuzzy
+msgid "4 Color"
+msgstr "Sluiten"
 #
 #, fuzzy
 msgid "Colors"
@@ -674,6 +708,15 @@ msgid "Safety Depth"
 msgstr ""
 #
 msgid "Deep Depth"
+msgstr ""
+#
+msgid "Feet"
+msgstr ""
+#
+msgid "Metres"
+msgstr ""
+#
+msgid "Fathoms"
 msgstr ""
 #
 #, fuzzy
@@ -800,6 +843,12 @@ msgstr "Aantal Radar ringen laten zien"
 msgid "Distance between rings"
 msgstr "Afstand tussen ringen"
 #
+msgid "&Nautical miles"
+msgstr ""
+#
+msgid "&Kilometers"
+msgstr ""
+#
 #, fuzzy
 msgid "Units"
 msgstr "Lettertypen"
@@ -823,6 +872,9 @@ msgstr "Bewaar schaal wanneer kaart wordt gewisselt"
 #
 msgid "Available Chart Directories"
 msgstr "Beschikbare kaarten map"
+#
+msgid "All files (*.*)|*.*"
+msgstr ""
 #
 msgid "Add Selection"
 msgstr "Voeg selectie toe"
@@ -850,6 +902,9 @@ msgid "Text Element"
 msgstr ""
 #
 msgid "Choose Font..."
+msgstr ""
+#
+msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
 msgstr ""
 #
 msgid "GPS/Plotter Port"
@@ -948,80 +1003,100 @@ msgid "Links"
 msgstr "Linken"
 #
 #
+#
 #~ msgid "Failed to create ocpCursor."
 #~ msgstr "Niet gelukt om ocpCursor te creeeren"
+#
 #
 #
 #~ msgid "Cannot create opencpn home directory"
 #~ msgstr "Kan niet de opencpn basis map creeren"
 #
 #
+#
 #~ msgid "Cannot create opencpn log directory"
 #~ msgstr "kan niet de opencpn log map creeren"
+#
 #
 #
 #~ msgid " -------Starting opencpn-------"
 #~ msgstr " -------Start opencpn----------"
 #
 #
+#
 #~ msgid "Using existing Config_File: "
 #~ msgstr "Gebruik bestaande configuratie bestand:"
+#
 #
 #
 #~ msgid "Creating new Config_File: "
 #~ msgstr "Creer nieuw configuratie bestand"
 #
 #
+#
 #~ msgid "Cannot create config file directory for "
 #~ msgstr "Kan de configuratie map niet creeren"
+#
 #
 #
 #~ msgid "Looking for s57data in "
 #~ msgstr "Kijkt voor s57data in"
 #
 #
+#
 #~ msgid "Using s57data in "
 #~ msgstr "Gebruikt s57data in"
+#
 #
 #
 #~ msgid "Using Tide/Current data from:  "
 #~ msgstr "Gebruikt getijde/stroming data van:"
 #
 #
+#
 #~ msgid "MEH.NMEA Sentence received..."
 #~ msgstr "NMEA bericht ontvangen..."
+#
 #
 #
 #~ msgid "   Unrecognized NMEA Sentence..."
 #~ msgstr " Onbekend NMEA bericht....."
 #
 #
+#
 #~ msgid "Setting system time, delta t is %d seconds"
 #~ msgstr "Past de systeemtijd aan, verschil is %d seconden"
+#
 #
 #
 #~ msgid "Linux command is:"
 #~ msgstr "Linux commando is:"
 #
 #
+#
 #~ msgid "Warning: ocpnhelper failed...."
 #~ msgstr "Waarschuwing: OpenCPN helper probleem..."
+#
 #
 #
 #~ msgid "Parsing copy of /proc/tty/driver/serial..."
 #~ msgstr "Parsing copy of /proc/tty/driver/serial..."
 #
 #
+#
 #~ msgid "Parsing copy of /proc/tty/driver/usbserial..."
 #~ msgstr "Parsing copy of /proc/tty/driver/usbserial..."
+#
 #
 #
 #~ msgid "Found Garmin USB Driver."
 #~ msgstr "Garmin USB driver gevonden."
 #
 #
+#
 #~ msgid "Found Garmin Device."
 #~ msgstr "Garmin apparaat gevonden"
+#
 #
 #
 #~ msgid "GARMIN"

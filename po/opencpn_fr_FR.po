@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-25 23:44-0500\n"
+"POT-Creation-Date: 2009-12-26 00:00-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Serge <serge.diradourian@free.fr>\n"
 "Language-Team: \n"
@@ -597,6 +597,20 @@ msgstr "Tout supprimer"
 msgid "Select All"
 msgstr "Tout sélectionner"
 #
+msgid "Base"
+msgstr ""
+#
+#, fuzzy
+msgid "Standard"
+msgstr "Standard marine"
+#
+msgid "Other"
+msgstr ""
+#
+#, fuzzy
+msgid "MarinersStandard"
+msgstr "Standard marine"
+#
 msgid "Display Category"
 msgstr "Type d'affichage"
 #
@@ -624,11 +638,32 @@ msgstr "moins de textes"
 msgid "Chart Display Style"
 msgstr "Options d'affichage des Cartes"
 #
+#, fuzzy
+msgid "Paper Chart"
+msgstr "Imprimer carte"
+#
+msgid "Simplified"
+msgstr ""
+#
 msgid "Points"
 msgstr "Points"
 #
+msgid "Plain"
+msgstr ""
+#
+msgid "Symbolized"
+msgstr ""
+#
 msgid "Boundaries"
 msgstr "Limites de zones de cartes"
+#
+#, fuzzy
+msgid "2 Color"
+msgstr "Couleurs"
+#
+#, fuzzy
+msgid "4 Color"
+msgstr "Couleurs"
 #
 msgid "Colors"
 msgstr "Couleurs"
@@ -650,6 +685,15 @@ msgstr "Profondeur de sécurité"
 #
 msgid "Deep Depth"
 msgstr "Alarme bas fond"
+#
+msgid "Feet"
+msgstr ""
+#
+msgid "Metres"
+msgstr ""
+#
+msgid "Fathoms"
+msgstr ""
 #
 msgid "Chart Depth Units"
 msgstr "Affiche Unité de Profondeur"
@@ -771,6 +815,12 @@ msgstr "Nombre de cercles Radar affichés"
 msgid "Distance between rings"
 msgstr "Distance entre les Cercles"
 #
+msgid "&Nautical miles"
+msgstr ""
+#
+msgid "&Kilometers"
+msgstr ""
+#
 msgid "Units"
 msgstr "Unités"
 #
@@ -791,6 +841,9 @@ msgstr "Conserve l'échelle lors d'un changement de carte"
 #
 msgid "Available Chart Directories"
 msgstr "Répertoires de Cartes Disponibles"
+#
+msgid "All files (*.*)|*.*"
+msgstr ""
 #
 msgid "Add Selection"
 msgstr "Ajout Sélection"
@@ -818,6 +871,9 @@ msgstr "Eléments de texte"
 #
 msgid "Choose Font..."
 msgstr "Choix de police"
+#
+msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
+msgstr ""
 #
 msgid "GPS/Plotter Port"
 msgstr ""
@@ -914,35 +970,46 @@ msgstr "Destination"
 msgid "Links"
 msgstr "Liens"
 #
+#
 #~ msgid "Failed to create ocpCursor."
 #~ msgstr "Echec de création ocpCursor."
+#
 #
 #~ msgid "opencpn.log"
 #~ msgstr "opencpn.log"
 #
+#
 #~ msgid "Cannot create config file directory for "
 #~ msgstr "Ne peut créer de fichier de configuration pour"
+#
 #
 #~ msgid "MEH.NMEA Sentence received..."
 #~ msgstr "Phrase MEH.NMEA reçue..."
 #
+#
 #~ msgid "   Unrecognized NMEA Sentence..."
 #~ msgstr "Phrase NMEA non reconnue..."
+#
 #
 #~ msgid "Linux command is:"
 #~ msgstr "La commande Linux est:"
 #
+#
 #~ msgid "Warning: ocpnhelper failed...."
 #~ msgstr "ATTENTION: Echec de l'aide Opencpn...."
+#
 #
 #~ msgid "Found Garmin USB Driver."
 #~ msgstr "Pilote USB Garmin trouvé."
 #
+#
 #~ msgid "Found Garmin Device."
 #~ msgstr "Matériel Garmin trouvé."
 #
+#
 #~ msgid "ABCDEFGabcdefg12345"
 #~ msgstr "ABCDEFGabcdefg12345"
+#
 #
 #~ msgid "GARMIN"
 #~ msgstr "GARMIN"

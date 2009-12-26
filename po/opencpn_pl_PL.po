@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-25 23:44-0500\n"
+"POT-Creation-Date: 2009-12-26 00:00-0500\n"
 "PO-Revision-Date: 2009-12-21 22:03+0100\n"
 "Last-Translator: Władysław Stolle <stollew@poczta.onet.pl>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -613,6 +613,19 @@ msgstr ""
 msgid "Select All"
 msgstr "Wybierz Sygnał Alarmu"
 #
+msgid "Base"
+msgstr ""
+#
+#, fuzzy
+msgid "Standard"
+msgstr "Drukuj Mapę"
+#
+msgid "Other"
+msgstr ""
+#
+msgid "MarinersStandard"
+msgstr ""
+#
 msgid "Display Category"
 msgstr ""
 #
@@ -644,11 +657,32 @@ msgid "Chart Display Style"
 msgstr "Opcje wyświetlania Mapy"
 #
 #, fuzzy
+msgid "Paper Chart"
+msgstr "Drukuj Mapę"
+#
+msgid "Simplified"
+msgstr ""
+#
+#, fuzzy
 msgid "Points"
 msgstr "Fonty"
 #
+msgid "Plain"
+msgstr ""
+#
+msgid "Symbolized"
+msgstr ""
+#
 msgid "Boundaries"
 msgstr ""
+#
+#, fuzzy
+msgid "2 Color"
+msgstr "Zamknij"
+#
+#, fuzzy
+msgid "4 Color"
+msgstr "Zamknij"
 #
 #, fuzzy
 msgid "Colors"
@@ -673,6 +707,15 @@ msgid "Safety Depth"
 msgstr ""
 #
 msgid "Deep Depth"
+msgstr ""
+#
+msgid "Feet"
+msgstr ""
+#
+msgid "Metres"
+msgstr ""
+#
+msgid "Fathoms"
 msgstr ""
 #
 #, fuzzy
@@ -799,6 +842,12 @@ msgstr "Ilość pokazywanych kręgów radaru"
 msgid "Distance between rings"
 msgstr "Odległość między kręgami"
 #
+msgid "&Nautical miles"
+msgstr ""
+#
+msgid "&Kilometers"
+msgstr ""
+#
 #, fuzzy
 msgid "Units"
 msgstr "Fonty"
@@ -822,6 +871,9 @@ msgstr "Zachowaj skalę przy zmianie map"
 #
 msgid "Available Chart Directories"
 msgstr "Katalogi Dostępnych Map"
+#
+msgid "All files (*.*)|*.*"
+msgstr ""
 #
 msgid "Add Selection"
 msgstr "Dodaj Wybrane"
@@ -849,6 +901,9 @@ msgid "Text Element"
 msgstr ""
 #
 msgid "Choose Font..."
+msgstr ""
+#
+msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
 msgstr ""
 #
 msgid "GPS/Plotter Port"
@@ -947,14 +1002,17 @@ msgid "Links"
 msgstr "Linki"
 #
 #
+#
 #~ msgid "Failed to create ocpCursor."
 #~ msgstr "Nie można utworzyć kursora ocpCursor."
 #
 #
 #
 #
+#
 #~ msgid "Fonts"
 #~ msgstr "Fonty"
+#
 #
 #
 #
@@ -967,8 +1025,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "Cannot create opencpn log directory"
 #~ msgstr "Nie można stworzyć kalatagu logów OpenCPN"
+#
 #
 #
 #
@@ -981,8 +1041,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "Using existing Config_File: "
 #~ msgstr "Używam istniejącego pliku konfiguracyjnego Config_File:"
+#
 #
 #
 #
@@ -995,8 +1057,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "Cannot create config file directory for "
 #~ msgstr "Nie można stworzyć katalogu plików konfiguracyjnych dla"
+#
 #
 #
 #
@@ -1009,8 +1073,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "Using s57data in "
 #~ msgstr "Używam danych s57 w"
+#
 #
 #
 #
@@ -1023,8 +1089,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "Using Tide/Current data from:  "
 #~ msgstr "Używam danych Pływów i Prądów z:"
+#
 #
 #
 #
@@ -1041,8 +1109,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "GPS Watchdog Timeout is: %d sec."
 #~ msgstr "Przekroczenie czasu nadzoru GPS wynosi: %d sec."
+#
 #
 #
 #
@@ -1055,8 +1125,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "opencpn::MyFrame exiting cleanly..."
 #~ msgstr "OpenCPN::MyFrame kończy bez przeszków..."
+#
 #
 #
 #
@@ -1069,8 +1141,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "   ***GPS Watchdog timeout..."
 #~ msgstr "  ***Czas nadzoru GPS przekroczony... "
+#
 #
 #
 #
@@ -1083,8 +1157,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "chart1.cpp:SetChartThumbnail...Could not create thumbnail"
 #~ msgstr "Mapa1.cpp:UtwórzPodglądMapy...Nie można utworzyć pliku podglądu"
+#
 #
 #
 #
@@ -1097,8 +1173,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "   Unrecognized NMEA Sentence..."
 #~ msgstr "Nierozpoznany ciąg NMEA..."
+#
 #
 #
 #
@@ -1111,8 +1189,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "Linux command is:"
 #~ msgstr "Polecenie Linux jest:"
+#
 #
 #
 #
@@ -1125,8 +1205,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "Parsing copy of /proc/tty/driver/serial..."
 #~ msgstr "Przetwarzam kopię /proc/tty/driver/serial..."
+#
 #
 #
 #
@@ -1139,8 +1221,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "Found Garmin USB Driver."
 #~ msgstr "Znaleziono sterownik Garmin USB"
+#
 #
 #
 #
@@ -1153,6 +1237,7 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "ABCDEFGabcdefg12345"
 #~ msgstr "ABCDEFGabcdefg12345"
 #
@@ -1160,8 +1245,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "opencpn.log"
 #~ msgstr "opencpn.log"
+#
 #
 #
 #
@@ -1178,8 +1265,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "  "
 #~ msgstr " "
+#
 #
 #
 #
@@ -1192,8 +1281,10 @@ msgstr "Linki"
 #
 #
 #
+#
 #~ msgid "---"
 #~ msgstr "---"
+#
 #
 #
 #

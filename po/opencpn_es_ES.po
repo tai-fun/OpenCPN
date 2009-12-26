@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-25 23:44-0500\n"
+"POT-Creation-Date: 2009-12-26 00:00-0500\n"
 "PO-Revision-Date: 2009-12-24 18:05+0100\n"
 "Last-Translator: Jesus <jsio@gmx.com>\n"
 "Language-Team: Spanish\n"
@@ -623,6 +623,20 @@ msgstr "Borrar Todo"
 msgid "Select All"
 msgstr "Seleccionar Todo"
 #
+msgid "Base"
+msgstr ""
+#
+#, fuzzy
+msgid "Standard"
+msgstr "Estándar Marino"
+#
+msgid "Other"
+msgstr ""
+#
+#, fuzzy
+msgid "MarinersStandard"
+msgstr "Estándar Marino"
+#
 msgid "Display Category"
 msgstr "Mostrar Categoría"
 #
@@ -650,11 +664,32 @@ msgstr "De-Clutter Texto (exp.)"
 msgid "Chart Display Style"
 msgstr "Estilo Visualización Carta"
 #
+#, fuzzy
+msgid "Paper Chart"
+msgstr "Imprimir Carta"
+#
+msgid "Simplified"
+msgstr ""
+#
 msgid "Points"
 msgstr "Puntos"
 #
+msgid "Plain"
+msgstr ""
+#
+msgid "Symbolized"
+msgstr ""
+#
 msgid "Boundaries"
 msgstr "Límites"
+#
+#, fuzzy
+msgid "2 Color"
+msgstr "Colores"
+#
+#, fuzzy
+msgid "4 Color"
+msgstr "Colores"
 #
 msgid "Colors"
 msgstr "Colores"
@@ -676,6 +711,15 @@ msgstr "Profundidad Seguridad"
 #
 msgid "Deep Depth"
 msgstr "Gran Profundidad"
+#
+msgid "Feet"
+msgstr ""
+#
+msgid "Metres"
+msgstr ""
+#
+msgid "Fathoms"
+msgstr ""
 #
 msgid "Chart Depth Units"
 msgstr "Unidades Profundidad Carta"
@@ -797,6 +841,12 @@ msgstr "Número de marcas de radar mostradas"
 msgid "Distance between rings"
 msgstr "Distancia entre marcas"
 #
+msgid "&Nautical miles"
+msgstr ""
+#
+msgid "&Kilometers"
+msgstr ""
+#
 msgid "Units"
 msgstr "Unidades"
 #
@@ -819,6 +869,9 @@ msgstr "Conservar escala al alternar entre cartas"
 #
 msgid "Available Chart Directories"
 msgstr "Carpetas de Cartas disponibles"
+#
+msgid "All files (*.*)|*.*"
+msgstr ""
 #
 msgid "Add Selection"
 msgstr "Añadir Selección"
@@ -846,6 +899,9 @@ msgstr "Elementos de Texto"
 #
 msgid "Choose Font..."
 msgstr "Elegir Fuente..."
+#
+msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
+msgstr ""
 #
 msgid "GPS/Plotter Port"
 msgstr ""
@@ -941,6 +997,7 @@ msgstr "Destino"
 #
 msgid "Links"
 msgstr "Enlaces"
+#
 #
 #
 #~ msgid "Failed to create ocpCursor."
