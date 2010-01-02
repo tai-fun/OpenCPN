@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.75 2009/12/26 21:14:00 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.76 2010/01/02 02:20:27 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
+ * Revision 1.76  2010/01/02 02:20:27  bdbcat
+ * Debug code, Improve cm93 detail slider
+ *
  * Revision 1.75  2009/12/26 21:14:00  bdbcat
  * Improve tcwin, messages
  *
@@ -361,7 +364,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.75 2009/12/26 21:14:00 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.76 2010/01/02 02:20:27 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
@@ -476,6 +479,9 @@ void ViewPort::GetMercatorLLFromPix(const wxPoint &p, double *lat, double *lon)
       double d_east = xp / view_scale_ppm;
       double d_north = yp / view_scale_ppm;
 
+      //TODO  This could be fromSM_ECC to better match some Raster charts
+      //      However, it seems that cm93 (and S57) prefer no eccentricity coprrection
+      //      Think about it....
       double slat, slon;
       fromSM ( d_east, d_north, clat, clon, &slat, &slon );
 
@@ -3237,7 +3243,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
 
 //          Mouse Clicks
 
-//    Manage canvas panning
+//    Manage canvas 2
 /*
         if ( event.LeftDClick() )
         {
@@ -3495,8 +3501,33 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         if ( ( last_drag.x != mx ) || ( last_drag.y != my ) )
                         {
                                 m_bChartDragging = true;
-
                                 double dlat, dlon;
+
+/*
+                                double dy = ((double)(my - last_drag.y)) / VPoint.view_scale_ppm;
+                                double dx = ((double)(mx - last_drag.x)) / VPoint.view_scale_ppm;
+
+                                fromSM(-dx, dy, VPoint.clat, VPoint.clon, &dlat, &dlon);
+*/
+/*
+                                double tlat, tlon, blat, blon;
+                                VPoint.GetMercatorLLFromPix(wxPoint(0,0), &tlat, &tlon);
+                                VPoint.GetMercatorLLFromPix(wxPoint(VPoint.pix_width, VPoint.pix_height), &blat, &blon);
+
+                                double delta_lat = tlat - blat;
+                                double delta_lon = -fabs(tlon - blon);
+
+                                double yfactor =  ((double)(my - last_drag.y)) / VPoint.pix_height;
+                                double xfactor =  ((double)(mx - last_drag.x)) / VPoint.pix_width;
+
+                                dlat =  VPoint.clat + (yfactor * delta_lat);
+                                dlon =  VPoint.clon + (xfactor * delta_lon);
+*/
+
+
+
+//                                printf("\nDrag last_drag.x:%d last_drag.y:%d mx: %d  my:%d\n", last_drag.x, last_drag.y, mx, my);
+
                                 wxPoint p;
                                 GetCanvasPointPix ( VPoint.clat, VPoint.clon, &p );
                                 p.x -=( mx - last_drag.x );
@@ -4934,7 +4965,8 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
               (*olspec->m_render_callback)(&scratch_dc, &VPoint);            //(*pcallback)()
         }
 
-
+//        if(m_bShowTide)
+//            RenderGeorefErrorMap(&scratch_dc, &VPoint);
 
         //      If Depth Unit Display is selected, emboss it
         if ( g_bShowDepthUnits )
@@ -5167,6 +5199,129 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
         }
 
 }
+
+
+#if 0
+wxColour GetErrorGraphicColor(double val)
+{
+/*
+      double valm = wxMin(val_max, val);
+
+      unsigned char green = (unsigned char)(255 * (1 - (valm/val_max)));
+      unsigned char red   = (unsigned char)(255 * (valm/val_max));
+
+      wxImage::HSVValue hv = wxImage::RGBtoHSV(wxImage::RGBValue(red, green, 0));
+
+      hv.saturation = 1.0;
+      hv.value = 1.0;
+
+      wxImage::RGBValue rv = wxImage::HSVtoRGB(hv);
+      return wxColour(rv.red, rv.green, rv.blue);
+*/
+
+      //    HTML colors taken from NOAA WW3 Web representation
+
+      wxColour c;
+      if((val > 0) && (val < 1))         c.Set(_T("#002ad9"));
+      else if((val >= 1)  && (val < 2))   c.Set(_T("#006ed9"));
+      else if((val >= 2)  && (val < 3))   c.Set(_T("#00b2d9"));
+      else if((val >= 3)  && (val < 4))   c.Set(_T("#00d4d4"));
+      else if((val >= 4)  && (val < 5))   c.Set(_T("#00d9a6"));
+      else if((val >= 5)  && (val < 7))   c.Set(_T("#00d900"));
+      else if((val >= 7)  && (val < 9))   c.Set(_T("#95d900"));
+      else if((val >= 9)  && (val < 12))  c.Set(_T("#d9d900"));
+      else if((val >= 12) && (val < 15))  c.Set(_T("#d9ae00"));
+      else if((val >= 15) && (val < 18))  c.Set(_T("#d98300"));
+      else if((val >= 18) && (val < 21))  c.Set(_T("#d95700"));
+      else if((val >= 21) && (val < 24))  c.Set(_T("#d90000"));
+      else if((val >= 24) && (val < 27))  c.Set(_T("#ae0000"));
+      else if((val >= 27) && (val < 30))  c.Set(_T("#8c0000"));
+      else if((val >= 30) && (val < 36))  c.Set(_T("#870000"));
+      else if((val >= 36) && (val < 42))  c.Set(_T("#690000"));
+      else if((val >= 42) && (val < 48))  c.Set(_T("#550000"));
+      else if( val >= 48)                 c.Set(_T("#410000"));
+
+      return c;
+}
+
+void ChartCanvas::RenderGeorefErrorMap( wxMemoryDC *pmdc, ViewPort *vp)
+{
+      wxImage gr_image(vp->pix_width, vp->pix_height);
+      gr_image.InitAlpha();
+
+      double maxval = -10000;
+      double minval =  10000;
+
+      double rlat, rlon;
+      double glat, glon;
+
+      GetCanvasPixPoint(0, 0, rlat, rlon);
+
+      for(int i=1 ; i < vp->pix_height-1  ; i++)
+      {
+            for(int j=0 ; j < vp->pix_width ; j++)
+            {
+                  // Reference mercator value
+//                  vp->GetMercatorLLFromPix(wxPoint(j, i), &rlat, &rlon);
+
+                  // Georef value
+                  GetCanvasPixPoint(j, i, glat, glon);
+
+                  maxval = wxMax(maxval, (glat - rlat));
+                  minval = wxMin(minval, (glat - rlat));
+
+            }
+            rlat = glat;
+      }
+
+      GetCanvasPixPoint(0, 0, rlat, rlon);
+      for(int i=1 ; i < vp->pix_height-1 ; i++)
+      {
+            for(int j=0 ; j < vp->pix_width ; j++)
+            {
+                  // Reference mercator value
+//                  vp->GetMercatorLLFromPix(wxPoint(j, i), &rlat, &rlon);
+
+                  // Georef value
+                  GetCanvasPixPoint(j, i, glat, glon);
+
+                  double f = ((glat - rlat)-minval)/(maxval - minval);
+
+                  double dy = (f * 40);
+
+                  wxColour c = GetErrorGraphicColor(dy);
+                  unsigned char r = c.Red();
+                  unsigned char g = c.Green();
+                  unsigned char b = c.Blue();
+
+                  gr_image.SetRGB(j, i, r,g,b);
+                  if((glat - rlat )!= 0)
+                        gr_image.SetAlpha(j, i, 128);
+                  else
+                        gr_image.SetAlpha(j, i, 255);
+
+
+            }
+            rlat = glat;
+      }
+
+
+
+
+      //    Create a Bitmap
+      wxBitmap *pbm = new wxBitmap(gr_image);
+      wxMask *gr_mask = new wxMask(*pbm, wxColour(0,0,0));
+      pbm->SetMask(gr_mask);
+
+      pmdc->DrawBitmap(*pbm, 0,0);
+
+      delete pbm;
+
+}
+
+
+#endif
+
 
 
  bool ChartCanvas::RegisterOverlayProvider(int sequence, RenderOverlayCallBackFunction callback)
@@ -7834,7 +7989,13 @@ void AISroWin::OnPaint(wxPaintEvent& event)
 //------------------------------------------------------------------------------
 BEGIN_EVENT_TABLE(CM93DSlide, wxDialog)
             EVT_MOVE( CM93DSlide::OnMove )
-            EVT_COMMAND_SCROLL_THUMBRELEASE(-1, CM93DSlide::OnThumbRelease)
+            EVT_COMMAND_SCROLL_THUMBRELEASE(-1, CM93DSlide::OnChangeValue)
+            EVT_COMMAND_SCROLL_LINEUP(-1, CM93DSlide::OnChangeValue)
+            EVT_COMMAND_SCROLL_LINEDOWN(-1, CM93DSlide::OnChangeValue)
+            EVT_COMMAND_SCROLL_PAGEUP(-1, CM93DSlide::OnChangeValue)
+            EVT_COMMAND_SCROLL_PAGEDOWN(-1, CM93DSlide::OnChangeValue)
+            EVT_COMMAND_SCROLL_BOTTOM(-1, CM93DSlide::OnChangeValue)
+            EVT_COMMAND_SCROLL_TOP(-1, CM93DSlide::OnChangeValue)
             EVT_CLOSE(CM93DSlide::OnClose)
             END_EVENT_TABLE()
 
@@ -7909,18 +8070,18 @@ void CM93DSlide::OnMove( wxMoveEvent& event )
       event.Skip();
 }
 
-void CM93DSlide::OnThumbRelease( wxScrollEvent& event)
+void CM93DSlide::OnChangeValue( wxScrollEvent& event)
 {
       g_cm93_zoom_factor = m_pCM93DetailSlider->GetValue();
 
-      cc1->SetCursor(*wxHOURGLASS_CURSOR);
+      ::wxBeginBusyCursor();
 
       if(Current_Ch)
             Current_Ch->InvalidateCache();
       cc1->ReloadVP();
       cc1->Refresh(false);
 
-      cc1->SetCursor(wxNullCursor);
+      ::wxEndBusyCursor();
 }
 
 
