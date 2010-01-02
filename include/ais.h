@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.26 2009/11/18 01:26:42 bdbcat Exp $
+ * $Id: ais.h,v 1.27 2010/01/02 01:58:33 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.27  2010/01/02 01:58:33  bdbcat
+ * New Event, Clone Event
+ *
  * Revision 1.26  2009/11/18 01:26:42  bdbcat
  * 1.3.5 Beta 1117
  *
@@ -247,8 +250,8 @@ public:
 
     //      Per target collision parameters
     bool                      bCPA_Valid;
-    double      TCPA;                     // Minutes
-    double      CPA;                      // Nautical Miles
+    double                    TCPA;                     // Minutes
+    double                    CPA;                      // Nautical Miles
 
 
 };
@@ -289,6 +292,41 @@ enum
     EVT_AIS_PARSE_RX
 };
 
+//----------------------------------------------------------------------------
+// AISEvent
+//----------------------------------------------------------------------------
+
+class OCPN_AISEvent: public wxEvent
+{
+      public:
+            OCPN_AISEvent( wxEventType commandType = wxEVT_NULL, int id = 0 );
+
+            OCPN_AISEvent(const OCPN_AISEvent & event)
+            : wxEvent(event),
+                m_NMEAstring(event.m_NMEAstring),
+                m_extra(event.m_extra)
+                { }
+
+                ~OCPN_AISEvent( );
+
+    // accessors
+            wxString GetNMEAString() { return m_NMEAstring; }
+            void SetNMEAString(wxString string) { m_NMEAstring = string; }
+
+            void SetExtraLong(long n){ m_extra = n;}
+            long GetExtraLong(){ return m_extra;}
+
+    // required for sending with wxPostEvent()
+            wxEvent *Clone() const;
+
+      private:
+            wxString    m_NMEAstring;
+            long        m_extra;
+
+};
+
+    DECLARE_EVENT_TYPE(wxEVT_OCPN_AIS, -1)
+
 
 
 //---------------------------------------------------------------------------------
@@ -307,7 +345,7 @@ public:
     ~AIS_Decoder(void);
 
 
-    void OnEvtAIS(wxCommandEvent& event);
+    void OnEvtAIS(OCPN_AISEvent& event);
     AIS_Error Decode(const wxString& str);
     void Pause(void);
     void UnPause(void);
@@ -342,7 +380,6 @@ private:
     wxFrame           *m_parent_frame;
 
     wxString          m_data_source_string;
-    wxEvtHandler      *m_pParentEventHandler;
 
     int               nsentences;
     int               isentence;
@@ -376,12 +413,6 @@ DECLARE_EVENT_TABLE()
 #include <windows.h>
 #endif
 
-//    Constants
-
-
-//          Inter-thread communication event declaration
-DECLARE_EVENT_TYPE(EVT_AIS, -1)
-
 
 class OCP_AIS_Thread: public wxThread
 {
@@ -397,7 +428,7 @@ public:
 private:
       bool HandleRead(char *buf, int character_count);
 
-      wxEvtHandler            *m_pMainEventHandler;
+      wxEvtHandler            *m_pParentEventHandler;
       wxString                *m_pPortName;
       int                     TimeOutInSec;
       char                    *put_ptr;

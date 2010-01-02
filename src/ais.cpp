@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.cpp,v 1.36 2009/12/22 21:40:22 bdbcat Exp $
+ * $Id: ais.cpp,v 1.37 2010/01/02 01:59:12 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.cpp,v $
+ * Revision 1.37  2010/01/02 01:59:12  bdbcat
+ * New Event, Clone Event
+ *
  * Revision 1.36  2009/12/22 21:40:22  bdbcat
  * Cleanup Messages
  *
@@ -207,7 +210,7 @@ extern int              g_total_NMEAerror_messages;
 
 
 
-CPL_CVSID("$Id: ais.cpp,v 1.36 2009/12/22 21:40:22 bdbcat Exp $");
+CPL_CVSID("$Id: ais.cpp,v 1.37 2010/01/02 01:59:12 bdbcat Exp $");
 
 // the first string in this list produces a 6 digit MMSI... BUGBUG
 
@@ -301,6 +304,31 @@ char short_ais_type[][80] = {
 
 
 //#define AIS_DEBUG  1
+
+//------------------------------------------------------------------------------
+//    AIS Event Implementation
+//------------------------------------------------------------------------------
+DEFINE_EVENT_TYPE(wxEVT_OCPN_AIS)
+
+
+OCPN_AISEvent::OCPN_AISEvent( wxEventType commandType, int id )
+      :wxEvent(id, commandType)
+{
+}
+
+
+OCPN_AISEvent::~OCPN_AISEvent( )
+{
+}
+
+wxEvent* OCPN_AISEvent::Clone() const
+{
+      OCPN_AISEvent *newevent=new OCPN_AISEvent(*this);
+      newevent->m_NMEAstring=this->m_NMEAstring.c_str();  // this enforces a deep copy of the string data
+      return newevent;
+}
+
+
 
 //---------------------------------------------------------------------------------
 //
@@ -762,7 +790,7 @@ BEGIN_EVENT_TABLE(AIS_Decoder, wxEvtHandler)
   EVT_SOCKET(AIS_SOCKET_ID, AIS_Decoder::OnSocketEvent)
   EVT_TIMER(TIMER_AIS1, AIS_Decoder::OnTimerAIS)
   EVT_TIMER(TIMER_AISAUDIO, AIS_Decoder::OnTimerAISAudio)
-  EVT_COMMAND(ID_AIS_WINDOW, EVT_AIS, AIS_Decoder::OnEvtAIS)
+//  EVT_COMMAND(ID_AIS_WINDOW, EVT_AIS, AIS_Decoder::OnEvtAIS)
 
   END_EVENT_TABLE()
 
@@ -794,6 +822,10 @@ AIS_Decoder::AIS_Decoder(int window_id, wxFrame *pParent, const wxString& AISDat
       m_n_targets = 0;
 
       OpenDataSource(pParent, AISDataSource);
+
+      //  Create/connect a dynamic event handler slot for OCPN_AISEvent(s) coming from AIS thread
+      Connect(wxEVT_OCPN_AIS, (wxObjectEventFunction)(wxEventFunction)&AIS_Decoder::OnEvtAIS);
+
 }
 
 AIS_Decoder::~AIS_Decoder(void)
@@ -847,7 +879,7 @@ AIS_Decoder::~AIS_Decoder(void)
 //----------------------------------------------------------------------------------
 //     Handle events from AIS Serial Port RX thread
 //----------------------------------------------------------------------------------
-void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
+void AIS_Decoder::OnEvtAIS(OCPN_AISEvent& event)
 {
     switch(event.GetExtraLong())
     {
@@ -856,7 +888,7 @@ void AIS_Decoder::OnEvtAIS(wxCommandEvent& event)
 //              wxDateTime now = wxDateTime::Now();
 //              printf("AIS Event at %ld\n", now.GetTicks());
 
-            wxString message = event.GetString();
+            wxString message = event.GetNMEAString();
 
             int nr = 0;
             if(!message.IsEmpty())
@@ -1608,13 +1640,6 @@ void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
 
 //------------------------------------------------------------------------------------
 //
-//  AIS Target Query Support
-//
-//------------------------------------------------------------------------------------
-
-
-//------------------------------------------------------------------------------------
-//
 //      AIS Data Source Support
 //
 //------------------------------------------------------------------------------------
@@ -1622,8 +1647,6 @@ void AIS_Decoder::UpdateOneCPA(AIS_Target_Data *ptarget)
 
 AIS_Error AIS_Decoder::OpenDataSource(wxFrame *pParent, const wxString& AISDataSource)
 {
-      m_pParentEventHandler = pParent->GetEventHandler();
-
       pAIS_Thread = NULL;
       m_sock = NULL;
       m_OK = false;
@@ -2132,7 +2155,7 @@ AIS_Target_Data *AIS_Decoder::Get_Target_Data_From_MMSI(int mmsi)
 //-------------------------------------------------------------------------------------------------------------
 
 //          Inter-thread communication event implementation
-DEFINE_EVENT_TYPE(EVT_AIS)
+//DEFINE_EVENT_TYPE(EVT_AIS)
 
 
 
@@ -2145,7 +2168,7 @@ DEFINE_EVENT_TYPE(EVT_AIS)
 OCP_AIS_Thread::OCP_AIS_Thread(wxEvtHandler *pParent, const wxString& PortName)
 {
 
-      m_pMainEventHandler = pParent;
+      m_pParentEventHandler = pParent;
 
       m_pPortName = new wxString(PortName);
 
@@ -2237,13 +2260,13 @@ bool OCP_AIS_Thread::HandleRead(char *buf, int character_count)
 
                     tak_ptr = tptr;
 
-    //    Signal the main program thread
+    //    Signal the parent program thread
 
-                    wxCommandEvent event( EVT_AIS, ID_AIS_WINDOW );
+                    OCPN_AISEvent event(wxEVT_OCPN_AIS , ID_AIS_WINDOW );
                     event.SetEventObject( (wxObject *)this );
                     event.SetExtraLong(EVT_AIS_PARSE_RX);
-                    event.SetString(wxString(temp_buf,  wxConvUTF8));
-                    m_pMainEventHandler->AddPendingEvent(event);
+                    event.SetNMEAString(wxString(temp_buf,  wxConvUTF8));
+                    m_pParentEventHandler->AddPendingEvent(event);
 
 ///     msg.Printf(_T("         removing: %d,   (put_ptr-tak_ptr): %d,   nl_count:%d"), strlen(temp_buf), (int)(put_ptr-tak_ptr), nl_count);
 ///     wxLogMessage(msg);
