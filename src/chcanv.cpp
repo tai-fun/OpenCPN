@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.cpp,v 1.76 2010/01/02 02:20:27 bdbcat Exp $
+ * $Id: chcanv.cpp,v 1.77 2010/01/02 02:35:04 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,9 +26,11 @@
  ***************************************************************************
  *
  * $Log: chcanv.cpp,v $
- * Revision 1.76  2010/01/02 02:20:27  bdbcat
+ * Revision 1.77  2010/01/02 02:35:04  bdbcat
  * Debug code, Improve cm93 detail slider
  *
+ * Revision 1.76  2010/01/02 02:20:27  bdbcat
+ * Debug code, Improve cm93 detail slider
  * Revision 1.75  2009/12/26 21:14:00  bdbcat
  * Improve tcwin, messages
  *
@@ -364,7 +366,7 @@ static int mouse_y;
 static bool mouse_leftisdown;
 
 
-CPL_CVSID ( "$Id: chcanv.cpp,v 1.76 2010/01/02 02:20:27 bdbcat Exp $" );
+CPL_CVSID ( "$Id: chcanv.cpp,v 1.77 2010/01/02 02:35:04 bdbcat Exp $" );
 
 
 //  These are xpm images used to make cursors for this class.
