@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52plib.cpp,v 1.38 2009/12/22 21:31:31 bdbcat Exp $
+ * $Id: s52plib.cpp,v 1.39 2010/01/02 01:54:10 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Presentation Library
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.39  2010/01/02 01:54:10  bdbcat
+ * Correct word size error
+ *
  * Revision 1.38  2009/12/22 21:31:31  bdbcat
  * Cleanup Leaks
  *
@@ -102,6 +105,9 @@
  * Optimize HPGL cacheing
  *
  * $Log: s52plib.cpp,v $
+ * Revision 1.39  2010/01/02 01:54:10  bdbcat
+ * Correct word size error
+ *
  * Revision 1.38  2009/12/22 21:31:31  bdbcat
  * Cleanup Leaks
  *
@@ -243,7 +249,7 @@ extern s52plib          *ps52plib;
 void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, int dash, int space );
 extern bool GetDoubleAttr ( S57Obj *obj, const char *AttrName, double &val );
 
-CPL_CVSID ( "$Id: s52plib.cpp,v 1.38 2009/12/22 21:31:31 bdbcat Exp $" );
+CPL_CVSID ( "$Id: s52plib.cpp,v 1.39 2010/01/02 01:54:10 bdbcat Exp $" );
 
 
 //    Implement the Bounding Box list
@@ -6965,7 +6971,7 @@ void DrawWuLine ( wxDC *pDC, int X0, int Y0, int X1, int Y1, wxColour clrLine, i
             while ( --DeltaY )
             {
                   ErrorAccTemp = ErrorAcc;   /* remember currrent accumulated error */
-                  ErrorAcc += ErrorAdj;      /* calculate error for next pixel */
+                  ErrorAcc = (ErrorAcc + ErrorAdj) & 0xffff;      /* calculate error for next pixel */
                   if ( ErrorAcc <= ErrorAccTemp )
                   {
                         /* The error accumulator turned over, so advance the X coord */
