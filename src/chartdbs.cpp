@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.cpp,v 1.6 2009/12/26 21:12:33 bdbcat Exp $
+* $Id: chartdbs.cpp,v 1.7 2010/01/02 02:01:52 bdbcat Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.cpp,v $
+* Revision 1.7  2010/01/02 02:01:52  bdbcat
+* Correct to disallow multiple same chart additions
+*
 * Revision 1.6  2009/12/26 21:12:33  bdbcat
 * Correct Version string
 *
@@ -261,10 +264,10 @@ ChartTableEntry::~ChartTableEntry()
 
 ///////////////////////////////////////////////////////////////////////
 
-bool ChartTableEntry::IsEarlierThan(const ChartTableEntry &cte) const {
+bool ChartTableEntry::IsEqualToOrEarlierThan(const ChartTableEntry &cte) const {
     wxDateTime mine(edition_date);
     wxDateTime theirs(cte.edition_date);
-    return mine.IsEarlierThan(theirs);
+    return (mine.IsEarlierThan(theirs) | mine.IsEqualTo(theirs));
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -1069,7 +1072,7 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
                                     pnewChart = CreateChartTableEntry(full_name);
                                     if(pnewChart)
                                     {
-                                          if(pnewChart->IsEarlierThan(chartTable[isearch]))
+                                          if(pnewChart->IsEqualToOrEarlierThan(chartTable[isearch]))
                                           {
                                                 chartTable[isearch].SetValid(true);
                                                 bAddFinal = false;
