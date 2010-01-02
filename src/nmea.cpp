@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.cpp,v 1.47 2009/12/22 22:02:05 bdbcat Exp $
+ * $Id: nmea.cpp,v 1.48 2010/01/02 01:56:47 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  NMEA Data Object
@@ -51,7 +51,7 @@
 
 #define SERIAL_OVERLAPPED
 
-CPL_CVSID("$Id: nmea.cpp,v 1.47 2009/12/22 22:02:05 bdbcat Exp $");
+CPL_CVSID("$Id: nmea.cpp,v 1.48 2010/01/02 01:56:47 bdbcat Exp $");
 
 extern int             g_nNMEADebug;
 extern ComPortManager   *g_pCommMan;
@@ -84,6 +84,12 @@ OCPN_NMEAEvent::~OCPN_NMEAEvent( )
 {
 }
 
+wxEvent* OCPN_NMEAEvent::Clone() const
+{
+      OCPN_NMEAEvent *newevent=new OCPN_NMEAEvent(*this);
+      newevent->m_NMEAstring=this->m_NMEAstring.c_str();  // this enforces a deep copy of the string data
+      return newevent;
+}
 
 
 /*
@@ -172,9 +178,9 @@ NMEAWindow::NMEAWindow(int window_id, wxFrame *frame, const wxString& NMEADataSo
             if(m_hSerialComm == INVALID_HANDLE_VALUE)
             {
                   wxString msg(comx);
-                  msg.Prepend(_T("  Could not open serial port '"));
-                  msg.Append(_T("'\nSuggestion: Try closing other applications."));
-                  wxMessageDialog md(this, msg, _T("OpenCPN Message"), wxICON_ERROR );
+                  msg.Prepend(_("  Could not open serial port '"));
+                  msg.Append(_("'\nSuggestion: Try closing other applications."));
+                  wxMessageDialog md(this, msg, _("OpenCPN Message"), wxICON_ERROR );
                   md.ShowModal();
 
                   return;
