@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-26 16:09-0500\n"
-"PO-Revision-Date: 2009-12-26 13:59+0100\n"
+"POT-Creation-Date: 2010-01-01 21:50-0500\n"
+"PO-Revision-Date: 2009-12-27 18:47+0100\n"
 "Last-Translator: Jesus <jsio@gmx.com>\n"
-"Language-Team: Spanish <opencpn.es@gmx.com>\n"
+"Language-Team: SpanishTeam LaTabernadelPuerto.com <opencpn.es@gmx.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -66,10 +66,10 @@ msgid "Destination:          "
 msgstr "Destino:          "
 #
 msgid "ETA:                  "
-msgstr "ETA:                  "
+msgstr "Tiempo estimado llegada:                  "
 #
 msgid "ETA:                  Unknown"
-msgstr "ETA:                  Desconocido"
+msgstr "Tiempo estimado llegada:                  Desconocido"
 #
 #, c-format
 msgid ""
@@ -104,7 +104,7 @@ msgstr ""
 #
 #, c-format
 msgid "Course:               %5.0f Deg.\n"
-msgstr "Ruta:               %5.0f Deg.\n"
+msgstr "Rumbo:               %5.0f Deg.\n"
 #
 #, c-format
 msgid "Speed:                %5.2f Kts.\n"
@@ -112,11 +112,11 @@ msgstr "Velocidad:                %5.2f Kts.\n"
 #
 #, c-format
 msgid "Range:                %5.1f NM\n"
-msgstr "Rango:                %5.1f NM\n"
+msgstr "Alcance:                %5.1f NM\n"
 #
 #, c-format
 msgid "Bearing:              %5.0f Deg.\n"
-msgstr "Rumbo:              %5.0f Deg.\n"
+msgstr "Demora:              %5.0f Deg.\n"
 #
 msgid "Position:              "
 msgstr "Posición:              "
@@ -136,7 +136,7 @@ msgid ""
 "Recent Report Period:     %3d Sec.\n"
 "\n"
 msgstr ""
-"Recent Report Period:     %3d Sec.\n"
+"Plazo Informe Reciente:     %3d Sec.\n"
 "\n"
 #
 #, c-format
@@ -154,7 +154,7 @@ msgid "CPA:       \n"
 msgstr "CPA:       \n"
 #
 msgid "Could not resolve TCP/IP host '"
-msgstr "No se pudo resolver servidor TCP/IP"
+msgstr "No se pudo resolver anfitrión TCP/IP"
 #
 msgid ""
 "'\n"
@@ -198,10 +198,10 @@ msgstr ""
 "Por favor seleccione carpeta de cartas en Herramientas->Cartas."
 #
 msgid "Shift to Larger Scale Chart"
-msgstr "Ajustar Carta a Escala Superior"
+msgstr "Ajustar Carta a Escala Mayor"
 #
 msgid "Shift to Smaller Scale Chart"
-msgstr "Ajustar Carta a Escala Inferior"
+msgstr "Ajustar Carta a Escala Menor"
 #
 msgid "Create Route"
 msgstr "Crear Ruta"
@@ -265,7 +265,7 @@ msgstr ""
 "Puede que su impresora no esté correctamente configurada"
 #
 msgid " Ship: "
-msgstr " Nave: "
+msgstr " Barco: "
 #
 msgid "No Chart Available"
 msgstr "No Hay Carta Disponible"
@@ -288,11 +288,11 @@ msgstr "Desde Embarcación: %03d Deg  %6.2f NMi"
 #
 #, c-format
 msgid "TrueScale: %8.0f  Zoom %4.0fx"
-msgstr "Escala: %8.0f  Zoom %4.0fx"
+msgstr "Escala Real: %8.0f  Zoom %4.0fx"
 #
 #, c-format
 msgid "TrueScale: %8.0f  Zoom %4.2fx"
-msgstr "Escala: %8.0f  Zoom %4.2fx"
+msgstr "Escala real: %8.0f  Zoom %4.2fx"
 #
 msgid "Use nearby waypoint?"
 msgstr "¿Usar waypoint más cercano?"
@@ -301,10 +301,10 @@ msgid "OpenCPN Route Create"
 msgstr "Crear Ruta OpenCPN"
 #
 msgid "Track Properties"
-msgstr "Propiedades Track"
+msgstr "Propiedades Derrota"
 #
 msgid "Delete Track"
-msgstr "Borrar Rumbo"
+msgstr "Borrar Derrota"
 #
 msgid "Export...."
 msgstr "Exportar...."
@@ -334,7 +334,7 @@ msgid "Delete All Routes..."
 msgstr "Borrar Todas Las Rutas..."
 #
 msgid "Send To GPS..."
-msgstr "Enviar A GPS..."
+msgstr "Enviar a GPS..."
 #
 msgid "Activate Waypoint"
 msgstr "Activar Waypoint"
@@ -364,10 +364,10 @@ msgid "Max Detail Here"
 msgstr "Max Detalle Aquí"
 #
 msgid "Scale In"
-msgstr "Escala Superior"
+msgstr "Escala Mayor"
 #
 msgid "Scale Out"
-msgstr "Escala Inferior"
+msgstr "Escala Menor"
 #
 msgid "Drop Mark Here"
 msgstr "Poner Marca Aquí"
@@ -382,7 +382,7 @@ msgid "Measure Off"
 msgstr "Finalizar Medir"
 #
 msgid "Enable CM93 Detail Slider"
-msgstr "Habilitar Desplazamiento Detallado CM93"
+msgstr "Habilitar Control de Detalle CM93"
 #
 msgid "Object Query"
 msgstr "Consulta Objetos"
@@ -400,13 +400,13 @@ msgid "AIS Target Query"
 msgstr "Consulta Destino AIS"
 #
 msgid "Are you sure you want to delete <ALL> waypoints?"
-msgstr "¿Seguro que desea borrar <TODOS> waypoints?"
+msgstr "¿Seguro que desea borrar <TODOS> los waypoints?"
 #
 msgid "OpenCPN Alert"
 msgstr "Alerta OpenCPN "
 #
 msgid "cm93 Detail"
-msgstr "Detalles CM93"
+msgstr "Detalle CM93"
 #
 msgid "Are you sure you want to delete <ALL> routes?"
 msgstr "¿Seguro que desea borrar <TODAS> las rutas?"
@@ -418,7 +418,7 @@ msgid "Tide"
 msgstr "Marea"
 #
 msgid "Current"
-msgstr ""
+msgstr "Corriente"
 #
 msgid "OK"
 msgstr "OK"
@@ -485,7 +485,7 @@ msgstr "Altura de Ola Significativa, m"
 #
 #, c-format
 msgid "WARNING:  QuickScat GRIB data is %d hours old."
-msgstr ""
+msgstr "ATENCION:  Los datos QuickScat GRIB tienen ya %d horas."
 #
 msgid "Please Zoom or Scale Out to view suppressed HTSGW GRIB"
 msgstr "Ajuste Zoom o Escala para ver HTSGW GRIB eliminado"
@@ -543,6 +543,10 @@ msgstr "Pulse para cancelar selección de fuente."
 #
 msgid "Click to confirm the font selection."
 msgstr "Pulse para confirmar selección de fuente."
+#
+#, fuzzy
+msgid "  Could not open serial port '"
+msgstr "  No se pudo abrir puerto serie AIS '"
 #
 msgid "Ok"
 msgstr "Aceptar"
@@ -644,10 +648,10 @@ msgid "Show ATON labels"
 msgstr "Mostrar Etiquetas ATON"
 #
 msgid "Show Light Descriptions"
-msgstr "Mostrar Descripciones Resumidas"
+msgstr "Mostrar Descripción Luces"
 #
 msgid "De-Clutter Text (exp.)"
-msgstr "De-Clutter Texto (exp.)"
+msgstr "Des/agrupar Texto (exp.)"
 #
 msgid "Chart Display Style"
 msgstr "Estilo Visualización Carta"
@@ -662,10 +666,10 @@ msgid "Points"
 msgstr "Puntos"
 #
 msgid "Plain"
-msgstr "Plano"
+msgstr "Sencillo"
 #
 msgid "Symbolized"
-msgstr ""
+msgstr "Con símbolos"
 #
 msgid "Boundaries"
 msgstr "Límites"
@@ -719,7 +723,7 @@ msgid "AIS General"
 msgstr "General AIS"
 #
 msgid "AIS Data Port"
-msgstr "Puero Datos AIS"
+msgstr "Puerto Datos AIS"
 #
 msgid "CPA Calculation"
 msgstr "Cálculos CPA"
@@ -728,19 +732,19 @@ msgid "No CPA Calculation if target range is greater than (NMi):"
 msgstr "Sin cálculo CPA si el rango del objetivo es mayor de (NMi):"
 #
 msgid "Warn if CPA less than (NMi):"
-msgstr "Aviso si CPA es menor a (NMi):"
+msgstr "Aviso si CPA es inferior a (NMi):"
 #
 msgid "  ..And TCPA is less than (Minutes):"
-msgstr "..Y TCPA es menor a (Minutos):"
+msgstr "..y TCPA es inferior a (Minutos):"
 #
 msgid "Lost Targets"
 msgstr "Objetivos Perdidos"
 #
 msgid "Mark targets as lost after (Minutes:):"
-msgstr "Marcar objetivos como perdidos después de (Minutos:):"
+msgstr "Marcar objetivos como perdidos después de (Minutos):"
 #
 msgid "Remove lost targets after (Minutes:):"
-msgstr "Eliminar objetivos perdidos después de (Minutos:):"
+msgstr "Eliminar objetivos perdidos después de (Minutos):"
 #
 msgid "Display"
 msgstr "Mostrar"
@@ -752,10 +756,10 @@ msgid "      COG arrow predictor length (Minutes):"
 msgstr "     Predicción longitud flecha COG (Minutos):"
 #
 msgid "Show target tracks"
-msgstr "Mostrar Tracks objetivo"
+msgstr "Mostrar derrotas objetivo"
 #
 msgid "      Target track length (Minutes):"
-msgstr "      Longitud Track Objetivo (Minutos):"
+msgstr "      Longitud Derrota Objetivo (Minutos):"
 #
 msgid "Supress anchored/moored targets"
 msgstr "Suprimir objetivos anclados/amarrados"
@@ -803,16 +807,16 @@ msgid "Show GPX icons"
 msgstr "Mostrar iconos GPX"
 #
 msgid "Tracks"
-msgstr "Tracks"
+msgstr "Derrotas"
 #
 msgid "Show Track icon"
-msgstr "Mostrar Icono de Tracks"
+msgstr "Mostrar Icono Derrotas"
 #
 msgid "Place Trackpoints at time interval (Seconds):"
-msgstr "Marcar Puntos de Track a intervalo de tiempo (Segundos)"
+msgstr "Marcar Puntos de Derrota a intervalo de tiempo (Segundos):"
 #
 msgid "Place Trackpoints at distance interval (NMi):"
-msgstr "Puntos de Track a intervalo de distancia (NMi):"
+msgstr "Puntos de Derrota a intervalo de distancia (NMi):"
 #
 msgid "Radar rings"
 msgstr "Marcas de Radar"
@@ -892,7 +896,7 @@ msgid "GPS/Plotter Port"
 msgstr "Puerto GPS/Plotter"
 #
 msgid "Prepare GPS for Route/Waypoint upload and press Send..."
-msgstr "Prepare GPS para actualizar Route/Waypoint y pulse Enviar..."
+msgstr "Prepare GPS para actualizar Ruta/Waypoint y pulse Enviar..."
 #
 msgid "Progress..."
 msgstr "Progreso..."
@@ -919,7 +923,7 @@ msgid "Total Distance"
 msgstr "Distancia Total"
 #
 msgid "Plan Speed"
-msgstr ""
+msgstr "Velocidad Estimada"
 #
 msgid "Time Enroute"
 msgstr "Tiempo en ruta"
@@ -937,7 +941,7 @@ msgid "Distance"
 msgstr "Distancia"
 #
 msgid "Bearing"
-msgstr ""
+msgstr "Marcación"
 #
 msgid "Latitude"
 msgstr "Latitud"
@@ -946,7 +950,7 @@ msgid "Longitude"
 msgstr "Longitud"
 #
 msgid "ETE"
-msgstr ""
+msgstr "Tiempo estimado ruta"
 #
 msgid " %D Days  %H Hours  %M Minutes"
 msgstr " %D Días  %H Horas  %M Minutos"

@@ -7,12 +7,12 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-26 16:09-0500\n"
-"PO-Revision-Date: 2009-12-26 10:54+0100\n"
+"POT-Creation-Date: 2010-01-01 21:50-0500\n"
+"PO-Revision-Date: 2009-12-29 09:24+0100\n"
 "Last-Translator: Bart <bart@parkhaven.net>\n"
 "Language-Team: Dutch <barty@parkhaven.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Language: Dutch\n"
 "X-Poedit-Country: NETHERLANDS\n"
@@ -130,11 +130,13 @@ msgstr "UTC"
 msgid "Report Age:               %3d Sec.\n"
 msgstr "Rapport ouderdom:               %3d Sec.\n"
 #
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Recent Report Period:     %3d Sec.\n"
 "\n"
-msgstr "Recente Rapport periode:    %3d Sec.\n"
+msgstr ""
+"Recente Rapport periode   %3d Sec.\n"
+"\n"
 #
 #, c-format
 msgid "TCPA:                 %02d:%02d Hr:Min\n"
@@ -198,7 +200,7 @@ msgid "Shift to Smaller Scale Chart"
 msgstr "Ga naar kaart op kleinere schaal"
 #
 msgid "Create Route"
-msgstr "Creeer route"
+msgstr "Cr�er route"
 #
 msgid "Auto Follow"
 msgstr "Volg automatisch"
@@ -292,7 +294,7 @@ msgid "Use nearby waypoint?"
 msgstr "Gebruik nabijgelegen waypoint?"
 #
 msgid "OpenCPN Route Create"
-msgstr "OpenCPN Route creeeren"
+msgstr "OpenCPN Route cre�ren"
 #
 msgid "Track Properties"
 msgstr "Track Eigenschappen"
@@ -469,7 +471,7 @@ msgid "Wind Speed, Kts."
 msgstr "Wind Snelheid, Kts."
 #
 msgid "Wind Direction"
-msgstr "Wind Koers"
+msgstr "Wind richting"
 #
 msgid "Pressure, mBar"
 msgstr "Luchtdruk, mBar"
@@ -538,6 +540,10 @@ msgstr "Klik voor fontselectie te annuleren"
 msgid "Click to confirm the font selection."
 msgstr "Klik om het lettertype te bevestigen"
 #
+#, fuzzy
+msgid "  Could not open serial port '"
+msgstr "Kan de AIS Seriele poort niet openen"
+#
 msgid "Ok"
 msgstr "OK"
 #
@@ -557,7 +563,7 @@ msgid "Show Printing Icon"
 msgstr "Laat Printer icoon zien"
 #
 msgid "Chart Display Options"
-msgstr "Laat weergave opties zien"
+msgstr "Weergave opties"
 #
 msgid "Show Chart Outlines"
 msgstr "Laat Kaart randen zien"
@@ -566,7 +572,7 @@ msgid "Show DepthUnits"
 msgstr "Laat diepte eenheid zien"
 #
 msgid "Automatic Anchor Mark"
-msgstr "Automatische Anker markering"
+msgstr "Automatische anker markering"
 #
 msgid "NMEA Options"
 msgstr "NMEA opties"
@@ -617,7 +623,7 @@ msgid "Other"
 msgstr "Andere"
 #
 msgid "MarinersStandard"
-msgstr "MarinersStandard"
+msgstr "Marine Standaard"
 #
 msgid "Display Category"
 msgstr "Weergave Categorie"
@@ -725,13 +731,13 @@ msgid "Warn if CPA less than (NMi):"
 msgstr "Waarschuw als CPA minder is dan (NM):"
 #
 msgid "  ..And TCPA is less than (Minutes):"
-msgstr "...En TCPA is minder dan (Minuten):"
+msgstr "... en TCPA is minder dan (Minuten):"
 #
 msgid "Lost Targets"
 msgstr "Verloren Targets"
 #
 msgid "Mark targets as lost after (Minutes:):"
-msgstr "Markeer Target na niet ontvangen (minuten):"
+msgstr "Markeer target als verloren na niet ontvangen (minuten):"
 #
 msgid "Remove lost targets after (Minutes:):"
 msgstr "Verwijder verloren Target na (Minuten):"
@@ -746,7 +752,7 @@ msgid "      COG arrow predictor length (Minutes):"
 msgstr "       COG pijl voorspelling lengte (Minuten):"
 #
 msgid "Show target tracks"
-msgstr "Laat bestemming track zien"
+msgstr "Laat target track zien"
 #
 msgid "      Target track length (Minutes):"
 msgstr "       Target koers lengte (Minuten):"
@@ -755,7 +761,7 @@ msgid "Supress anchored/moored targets"
 msgstr "Onderdruk voor anker Target"
 #
 msgid "      Max moored target speed (Kts.):"
-msgstr "     Max voonanket target snelheid (Kts.):"
+msgstr "     Max vooranker target snelheid (Kts.):"
 #
 msgid "CPA/TCPA Alerts"
 msgstr "CPA/TCPA Waarschuwing"
@@ -773,7 +779,7 @@ msgid "Test Alert Sound"
 msgstr "Test attentie geluid"
 #
 msgid "Supress Alerts for anchored/moored targets"
-msgstr "Onderdruk waarschuwingen voor anker liggende objecten"
+msgstr "Onderdruk waarschuwingen voor anker liggende targets"
 #
 msgid "Language/Fonts"
 msgstr "Taal / Lettertype"
@@ -815,7 +821,7 @@ msgid "Show radar rings"
 msgstr "Laat Radar ringen zien"
 #
 msgid "Number of radar rings shown"
-msgstr "Aantal Radar ringen laten zien"
+msgstr "Aantal Radar ringen"
 #
 msgid "Distance between rings"
 msgstr "Afstand tussen ringen"

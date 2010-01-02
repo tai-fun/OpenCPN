@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenCPN\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-26 16:09-0500\n"
+"POT-Creation-Date: 2010-01-01 21:50-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Władysław Stolle <stollew@poczta.onet.pl>\n"
 "Language-Team: Wladyslaw Stolle <stollew@poczta.onet.pl>\n"
@@ -544,6 +544,10 @@ msgstr "Kliknij, żeby skasować wybór znaku."
 msgid "Click to confirm the font selection."
 msgstr "Kliknij aby potwierdzić wybór znaku."
 #
+#, fuzzy
+msgid "  Could not open serial port '"
+msgstr " Nie mogę otworzyć portu szeregowego AIS"
+#
 msgid "Ok"
 msgstr "Ok"
 #
@@ -978,6 +982,7 @@ msgstr "Opis"
 #
 msgid "Links"
 msgstr "Linki"
+#
 #
 #~ msgid "Failed to create ocpCursor."
 #~ msgstr "Nie można utworzyć kursora ocpCursor."
