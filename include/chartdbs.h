@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.h,v 1.2 2009/12/17 02:45:00 bdbcat Exp $
+* $Id: chartdbs.h,v 1.3 2010/01/02 02:15:35 bdbcat Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.h,v $
+* Revision 1.3  2010/01/02 02:15:35  bdbcat
+* Correct to disallow multiple same chart additions
+*
 * Revision 1.2  2009/12/17 02:45:00  bdbcat
 * Beta 1216
 *
@@ -121,7 +124,7 @@ struct ChartTableEntry
     ChartTableEntry(ChartBase &theChart);
     ~ChartTableEntry();
 
-    bool IsEarlierThan(const ChartTableEntry &cte) const;
+    bool IsEqualToOrEarlierThan(const ChartTableEntry &cte) const;
     bool Read(const ChartDatabase *pDb, wxInputStream &is);
     bool Write(const ChartDatabase *pDb, wxOutputStream &os);
     void Clear();
