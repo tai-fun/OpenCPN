@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s52cnsy.cpp,v 1.23 2009/12/26 21:15:52 bdbcat Exp $
+ * $Id: s52cnsy.cpp,v 1.24 2010/01/02 02:00:58 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  S52 Conditional Symbology Library
@@ -29,6 +29,9 @@
  ***************************************************************************
  *
  * $Log: s52cnsy.cpp,v $
+ * Revision 1.24  2010/01/02 02:00:58  bdbcat
+ * Add LNDARE01 as point symbol for OBSTRN
+ *
  * Revision 1.23  2009/12/26 21:15:52  bdbcat
  * UWTROC
  *
@@ -140,7 +143,7 @@ bool GetDoubleAttr(S57Obj *obj, const char *AttrName, double &val);
 
 extern s52plib  *ps52plib;
 
-CPL_CVSID("$Id: s52cnsy.cpp,v 1.23 2009/12/26 21:15:52 bdbcat Exp $");
+CPL_CVSID("$Id: s52cnsy.cpp,v 1.24 2010/01/02 02:00:58 bdbcat Exp $");
 
 wxString *CSQUAPNT01(S57Obj *obj);
 wxString *CSQUALIN01(S57Obj *obj);
@@ -1718,7 +1721,7 @@ static void *OBSTRN04 (void *param)
                               } else {
                                     switch (watlev) {
                                           case 1:
-                                          case 2: obstrn04str.Append(_T(";SY(OBSTRN11)")); sounding = FALSE; break;
+                                          case 2: obstrn04str.Append(_T(";SY(LNDARE01)")); sounding = FALSE; break;
                                           case 3: obstrn04str.Append(_T(";SY(DANGER52)")); sounding = TRUE;  break;
                                           case 4:
                                           case 5: obstrn04str.Append(_T(";SY(DANGER53)")); sounding = TRUE; break;
@@ -1747,7 +1750,7 @@ static void *OBSTRN04 (void *param)
                               obstrn04str.Append(_T(";SY(UWTROC04)"));
                         else {
                               switch (watlev) {
-                                    case 2: obstrn04str.Append(_T(";SY(OBSTRN11)")); break;
+                                    case 2: obstrn04str.Append(_T(";SY(LNDARE01)")); break;
                                     case 3: obstrn04str.Append(_T(";SY(UWTROC03)")); break;
                                     default: obstrn04str.Append(_T(";SY(UWTROC04)")); break;
                               }
