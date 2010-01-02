@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.23 2009/11/23 04:19:58 bdbcat Exp $
+ * $Id: nmea.h,v 1.24 2010/01/02 01:58:12 bdbcat Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
+ * Revision 1.24  2010/01/02 01:58:12  bdbcat
+ * Clone Event
+ *
  * Revision 1.23  2009/11/23 04:19:58  bdbcat
  * Various for build 1122
  *
@@ -195,7 +198,7 @@ class OCPN_NMEAEvent: public wxEvent
 
     // required for sending with wxPostEvent()
 //            wxEvent* Clone();
-            wxEvent *Clone() const { return new OCPN_NMEAEvent(*this); }
+            wxEvent *Clone() const; // { return new OCPN_NMEAEvent(*this); }
 
       private:
             wxString    m_NMEAstring;
