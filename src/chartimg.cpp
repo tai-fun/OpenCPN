@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartimg.cpp,v 1.37 2009/12/26 21:13:06 bdbcat Exp $
+ * $Id: chartimg.cpp,v 1.38 2010/01/02 02:04:00 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  ChartBase, ChartBaseBSB and Friends
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.38  2010/01/02 02:04:00  bdbcat
+ * Correct georef again, esp AdjustVP
+ *
  * Revision 1.37  2009/12/26 21:13:06  bdbcat
  * Correct georef
  *
@@ -102,6 +105,9 @@
  * Update for Mac OSX/Unicode
  *
  * $Log: chartimg.cpp,v $
+ * Revision 1.38  2010/01/02 02:04:00  bdbcat
+ * Correct georef again, esp AdjustVP
+ *
  * Revision 1.37  2009/12/26 21:13:06  bdbcat
  * Correct georef
  *
@@ -238,7 +244,7 @@ extern void *x_malloc(size_t t);
 extern "C"  double     round_msvc (double flt);
 
 
-CPL_CVSID("$Id: chartimg.cpp,v 1.37 2009/12/26 21:13:06 bdbcat Exp $");
+CPL_CVSID("$Id: chartimg.cpp,v 1.38 2010/01/02 02:04:00 bdbcat Exp $");
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -2294,10 +2300,7 @@ int ChartBaseBSB::vp_pix_to_latlong(ViewPort& vp, int pixx, int pixy, double *pl
             double d_north = yp / vp.view_scale_ppm;
 
             double slat, slon;
-            if(0)
-                  fromSM ( d_east, d_north, vp.clat, vp.clon, &slat, &slon );
-            else
-                  fromSM_ECC ( d_east, d_north, vp.clat, vp.clon, &slat, &slon );
+            fromSM_ECC ( d_east, d_north, vp.clat, vp.clon, &slat, &slon );
 
             *plat = slat;
 
@@ -2379,7 +2382,7 @@ int ChartBaseBSB::latlong_to_pix_vp(double lat, double lon, int &pixx, int &pixy
                 double xlon = lon;
 
                 //  Make sure lon and lon0 are same phase
-                if(xlon * vp.clon < 0.)
+                if((xlon * vp.clon) < 0.)
                 {
                       if(xlon < 0.)
                             xlon += 360.;
@@ -2422,8 +2425,10 @@ void ChartBaseBSB::ComputeSourceRectangle(ViewPort &vp, wxRect *pSourceRect)
 
     m_raster_scale_factor = binary_scale_factor;
 
-    if(!latlong_to_pix(vp.clat, vp.clon, pixxd, pixyd))
+//      If georef on this chart is good, and it is large scale or skewed....
+    if(bUseGeoRef/* && ((m_Chart_Scale < 240000.) || (Chart_Skew != 0))*/)
     {
+          latlong_to_pix(vp.clat, vp.clon, pixxd, pixyd);
           pSourceRect->x = pixxd - (int)(vp.pix_width  * binary_scale_factor / 2);
           pSourceRect->y = pixyd - (int)(vp.pix_height * binary_scale_factor / 2);
 
@@ -2507,9 +2512,10 @@ bool ChartBaseBSB::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
       //    Require the ViewPort to specify a lat/lon such that the center point falls on an exact 4 pixel
       //    boundary with respect to the native chart pixels.  This simplifies the arithmetic elsewhere....
 
-     //  If internal georeferencing on this chart is OK.......
-      if ( !latlong_to_pix ( vp_proposed.clat, vp_proposed.clon, pixxd, pixyd ) )
+           //      If georef on this chart is good, and it is large scale or skewed....
+      if(0/*bUseGeoRef*//* && ((m_Chart_Scale < 240000.) || (Chart_Skew != 0))*/)
       {
+            latlong_to_pix ( vp_proposed.clat, vp_proposed.clon, pixxd, pixyd );
             pixx = pixxd;
             pixy = pixyd;
 
@@ -2529,7 +2535,7 @@ bool ChartBaseBSB::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
             pix_to_latlong ( ( int ) ( ( ( vp_proposed.pix_width /2 ) * binary_scale_factor ) + newx ),
                                ( int ) ( ( ( vp_proposed.pix_height/2 ) * binary_scale_factor ) + newy ),
                                              &alat, &alon );
-            vp_proposed.clat = alat;
+//            vp_proposed.clat = alat;
             vp_proposed.clon = alon;
 
             ret_val = true;
@@ -3952,7 +3958,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
               {
                   bUseGeoRef = false;         // 4 REF points is too few for poly match.
               }
-              else if(nRefpoint <= 20)
+              else if(nRefpoint <= 12)
               {
                     cPoints.order = 2;      // If less than n points, use Polynomial curve fit to a quadratic equation
                                             // discovered and verified on ProblemCharts/NZ232_1 from Marco
@@ -4046,10 +4052,10 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
               double lon_ref = (lonmax + lonmin)/2.;
 
             // calculate the northing/easting from the reference point to a position
-            // about 10% of the chart size away from the reference point
+            // about xx% of the chart size away from the reference point
 
-              double lat_test = lat_ref; // + 0.10 * (latmax - latmin);
-              double lon_test = lon_ref + 0.10 * (lonmax - lonmin);
+              double lat_test = lat_ref;
+              double lon_test = lon_ref + 0.25 * (lonmax - lonmin);
               double easting, northing;
               toSM(lat_test, lon_test, lat_ref, lon_ref, &easting, &northing);
 
@@ -4189,7 +4195,8 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
              // cannot use georef at all
              // so hack out a reasonable ppm_avg from chart scale and scanning resolution (DU)
             //  converting chart scanning resolution in DotsPerInch to DotsPerMeter
-            //  and then scale by cos(lat_ref) to match sm projection algorithms
+
+//        double m_ppm_header = m_Chart_DU * 39.3701 / m_Chart_Scale;
 
         if((0 == m_ppm_avg) && (0 != m_Chart_Scale) && (0 != m_Chart_DU ))
         {
@@ -4308,7 +4315,7 @@ int   ChartBaseBSB::AnalyzeRefpoints(void)
 *  License along with this library; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 *
-*  $Id: chartimg.cpp,v 1.37 2009/12/26 21:13:06 bdbcat Exp $
+*  $Id: chartimg.cpp,v 1.38 2010/01/02 02:04:00 bdbcat Exp $
 *
 */
 
