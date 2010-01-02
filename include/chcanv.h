@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chcanv.h,v 1.38 2009/12/26 21:10:41 bdbcat Exp $
+ * $Id: chcanv.h,v 1.39 2010/01/02 02:16:25 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Canvas
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chcanv.h,v $
+ * Revision 1.39  2010/01/02 02:16:25  bdbcat
+ * Improve cm93 detail slider
+ *
  * Revision 1.38  2009/12/26 21:10:41  bdbcat
  * TCWIN
  *
@@ -861,7 +864,7 @@ class CM93DSlide : public wxDialog
 
             void OnCancelClick( wxCommandEvent& event );
             void OnMove( wxMoveEvent& event );
-            void OnThumbRelease( wxScrollEvent& event);
+            void OnChangeValue( wxScrollEvent& event);
             void OnClose(wxCloseEvent& event);
 
 
