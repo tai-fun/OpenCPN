@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.71 2009/12/23 01:50:27 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.72 2010/01/04 02:11:52 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.72  2010/01/04 02:11:52  bdbcat
+ * Restore stack index on load
+ *
  * Revision 1.71  2009/12/23 01:50:27  bdbcat
  * Update messages
  *
@@ -293,7 +296,7 @@ WX_DEFINE_OBJARRAY(ArrayOfCDI);
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.71 2009/12/23 01:50:27 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.72 2010/01/04 02:11:52 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -318,6 +321,7 @@ ChartBase       *Current_Ch;
 ChartDB         *ChartData;
 ChartStack      *pCurrentStack;
 wxString        *pdir_list[20];
+int             g_restore_stackindex;
 
 RouteList       *pRouteList;
 
@@ -2643,6 +2647,9 @@ void MyFrame::OnCloseWindow(wxCloseEvent& event)
 
       TrackOff();
 
+      if(pCurrentStack)
+            g_restore_stackindex = pCurrentStack->CurrentStackEntry;
+
       pConfig->UpdateSettings();
 
       delete g_printData;
@@ -4074,8 +4081,8 @@ bool MyFrame::DoChartUpdate(void)
         }
 
 
-        bool bOpenSmallest =  bFirstAuto;
-        bFirstAuto = false;                           // Auto open smallest once, on program start
+        bool bOpenSpecified =  bFirstAuto;
+        bFirstAuto = false;                           // Auto open specified index once, on program start
         bAutoOpen = true;                             // debugging
 
         if(bDBUpdateInProgress)
@@ -4180,11 +4187,14 @@ bool MyFrame::DoChartUpdate(void)
                               start_index = pCurrentStack->nEntry - 1;
                         }
 
-                        //    Another special case, open smallest on program start
-                        if(bOpenSmallest)
+                        //    Another special case, open specified index on program start
+                        if(bOpenSpecified)
                         {
                               search_direction = false;
-                              start_index = 0;
+                              start_index = g_restore_stackindex;
+                              if((start_index < 0) | (start_index >= pCurrentStack->nEntry))
+                                    start_index = 0;
+                              new_open_type = CHART_TYPE_DONTCARE;
                         }
 
                         pProposed = ChartData->OpenStackChartConditional(pCurrentStack, start_index, search_direction, new_open_type, new_open_family);
