@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: navutil.h,v 1.24 2009/12/10 21:22:09 bdbcat Exp $
+ * $Id: navutil.h,v 1.25 2010/01/04 02:16:17 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Navigation Utility Functions
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: navutil.h,v $
+ * Revision 1.25  2010/01/04 02:16:17  bdbcat
+ * Major changes to GPX
+ *
  * Revision 1.24  2009/12/10 21:22:09  bdbcat
  * Beta 1210
  *
@@ -172,7 +175,7 @@ WX_DECLARE_LIST(Hyperlink, HyperlinkList);// establish class as list member
 class RoutePoint
 {
 public:
-      RoutePoint(double lat, double lon, const wxString& icon_ident, const wxString& name, wxString *pGUID = NULL);
+      RoutePoint(double lat, double lon, const wxString& icon_ident, const wxString& name, wxString *pGUID = NULL, bool bAddToList = true);
       ~RoutePoint(void);
       void Draw(wxDC& dc, wxPoint *rpn = NULL);
       void DrawTransparentBox(wxDC& dc, int x, int y, int size_x, int size_y,
@@ -343,10 +346,18 @@ DECLARE_EVENT_TABLE()
 
 RoutePoint *LoadGPXTrackpoint(wxXmlNode* wptnode);
 void GPXLoadTrack ( wxXmlNode* trknode );
+void GPXLoadRoute ( wxXmlNode* rtenode, int routenum );
 
-wxXmlNode *CreateGPXTptNode ( RoutePoint *pr, int nbr );
 wxXmlNode *CreateGPXTrackStatic ( Route *pRoute );
+wxXmlNode *CreateGPXRouteStatic ( Route *pRoute );
+wxXmlNode *CreateGPXPointNode ( RoutePoint *pr, const wxString &name );
 
+void AppendGPXWayPoints ( wxXmlNode *RNode );
+void AppendGPXRoutes ( wxXmlNode *RNode );
+void AppendGPXTracks ( wxXmlNode *RNode );
+
+bool WptIsInRouteList(RoutePoint *pr);
+RoutePoint *WaypointExists( const wxString& name, double lat, double lon);
 
 //----------------------------------------------------------------------------
 //    Config
@@ -371,31 +382,17 @@ public:
       virtual bool UpdateChartDirs(ArrayOfCDI& dirarray);
       virtual void UpdateSettings();
 
-      void ExportGPX(wxWindow* parent);   // toh, 2009.02.15
-      void ImportGPX(wxWindow* parent);   // toh, 2009.02.15
+      void ExportGPX(wxWindow* parent);
+      void ImportGPX(wxWindow* parent);
 
       void CreateExportGPXNavObj(void);
-      void CreateGPXWayPoints(void);
-      void CreateGPXRoutes(void);
-      void CreateGPXTracks(void);
-
-      void CreateGPXRoute(Route *pRoute);
-      void CreateGPXTrack(Route *pRoute);
-
-      wxXmlNode *CreateGPXWptNode(RoutePoint *pr);
-      wxXmlNode *CreateGPXRptNode(RoutePoint *pr,int nbr);
-//      wxXmlNode *CreateGPXTptNode(RoutePoint *pr,int nbr);
       void WriteXMLNavObj(const wxString& file);
-      bool WptIsInRouteList(RoutePoint *pr);
-
-      RoutePoint *GPXLoadWaypoint(wxXmlNode* wptnode,bool &WpExists,bool LoadRoute=false);
-      void GPXLoadRoute(wxXmlNode* rtenode);
 
       bool ExportGPXRoute(wxWindow* parent, Route *pRoute);
 
       wxXmlDocument     *m_pXMLNavObj;
       wxXmlNode         *m_XMLrootnode;
-//    toh, end
+
 
       int m_NextRouteNum;
       int m_NextWPNum;
@@ -406,7 +403,7 @@ public:
       wxString    m_gpx_path;
 
       wxString                m_sNavObjSetFile;
-//      NavObjectCollection     *m_pNavObjectOutputSet;
+
       NavObjectCollection     *m_pNavObjectInputSet;
 
 //    These members are set/reset in Options dialog
@@ -516,16 +513,13 @@ class NavObjectCollection : public wxXmlDocument
 
             bool Create(wxString RootName, wxString Version, wxString Creator);
 
-            bool CreateGPXPoints(void);
-            bool CreateGPXRoutes(void);
-            bool CreateGPXTracks(void);
+            bool CreateNavObjGPXPoints(void);
+            bool CreateNavObjGPXRoutes(void);
+            bool CreateNavObjGPXTracks(void);
 
             bool LoadAllGPXTracks(void);
-//            void LoadGPXTrack(wxXmlNode *trknode);
 
       private:
-
-            wxXmlNode   *CreateMarkNode(RoutePoint *pr);
 
             wxXmlNode   *m_pXMLrootnode;
             wxXmlNode   *m_proot_next;
