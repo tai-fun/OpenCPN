@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-03 21:18-0500\n"
+"POT-Creation-Date: 2010-01-04 16:02-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -537,7 +537,7 @@ msgstr ""
 msgid "AISTargetQuery"
 msgstr ""
 
-#: src/chcanv.cpp:7488 src/chcanv.cpp:7723 src/navutil.cpp:5248
+#: src/chcanv.cpp:7488 src/chcanv.cpp:7723 src/navutil.cpp:5252
 msgid "&OK"
 msgstr ""
 
@@ -606,71 +606,71 @@ msgstr ""
 msgid "Please Zoom or Scale Out to view suppressed CRAIN GRIB"
 msgstr ""
 
-#: src/navutil.cpp:5148
+#: src/navutil.cpp:5152
 msgid "&Font family:"
 msgstr ""
 
-#: src/navutil.cpp:5154 src/navutil.cpp:5156
+#: src/navutil.cpp:5158 src/navutil.cpp:5160
 msgid "The font family."
 msgstr ""
 
-#: src/navutil.cpp:5161
+#: src/navutil.cpp:5165
 msgid "&Style:"
 msgstr ""
 
-#: src/navutil.cpp:5165 src/navutil.cpp:5167
+#: src/navutil.cpp:5169 src/navutil.cpp:5171
 msgid "The font style."
 msgstr ""
 
-#: src/navutil.cpp:5172
+#: src/navutil.cpp:5176
 msgid "&Weight:"
 msgstr ""
 
-#: src/navutil.cpp:5176 src/navutil.cpp:5178
+#: src/navutil.cpp:5180 src/navutil.cpp:5182
 msgid "The font weight."
 msgstr ""
 
-#: src/navutil.cpp:5185
+#: src/navutil.cpp:5189
 msgid "C&olour:"
 msgstr ""
 
-#: src/navutil.cpp:5195 src/navutil.cpp:5197
+#: src/navutil.cpp:5199 src/navutil.cpp:5201
 msgid "The font colour."
 msgstr ""
 
-#: src/navutil.cpp:5203
+#: src/navutil.cpp:5207
 msgid "&Point size:"
 msgstr ""
 
-#: src/navutil.cpp:5208 src/navutil.cpp:5210
+#: src/navutil.cpp:5212 src/navutil.cpp:5214
 msgid "The font point size."
 msgstr ""
 
-#: src/navutil.cpp:5217
+#: src/navutil.cpp:5221
 msgid "&Underline"
 msgstr ""
 
-#: src/navutil.cpp:5220 src/navutil.cpp:5222
+#: src/navutil.cpp:5224 src/navutil.cpp:5226
 msgid "Whether the font is underlined."
 msgstr ""
 
-#: src/navutil.cpp:5229
+#: src/navutil.cpp:5233
 msgid "Preview:"
 msgstr ""
 
-#: src/navutil.cpp:5234 src/navutil.cpp:5236
+#: src/navutil.cpp:5238 src/navutil.cpp:5240
 msgid "Shows the font preview."
 msgstr ""
 
-#: src/navutil.cpp:5243 src/options.cpp:412
+#: src/navutil.cpp:5247 src/options.cpp:412
 msgid "&Cancel"
 msgstr ""
 
-#: src/navutil.cpp:5245
+#: src/navutil.cpp:5249
 msgid "Click to cancel the font selection."
 msgstr ""
 
-#: src/navutil.cpp:5250 src/navutil.cpp:5252
+#: src/navutil.cpp:5254 src/navutil.cpp:5256
 msgid "Click to confirm the font selection."
 msgstr ""
 
@@ -1134,24 +1134,24 @@ msgstr ""
 msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
 msgstr ""
 
-#: src/routeman.cpp:886
+#: src/routeman.cpp:891
 msgid "GPS/Plotter Port"
 msgstr ""
 
-#: src/routeman.cpp:911
+#: src/routeman.cpp:916
 msgid "Prepare GPS for Route/Waypoint upload and press Send..."
 msgstr ""
 
-#: src/routeman.cpp:915
+#: src/routeman.cpp:920
 msgid "Progress..."
 msgstr ""
 
-#: src/routeman.cpp:928 src/routeprop.cpp:226 src/routeprop.cpp:713
+#: src/routeman.cpp:933 src/routeprop.cpp:226 src/routeprop.cpp:713
 #: src/routeprop.cpp:1108
 msgid "Cancel"
 msgstr ""
 
-#: src/routeman.cpp:931
+#: src/routeman.cpp:936
 msgid "Send"
 msgstr ""
 
