@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.24 2009/12/26 21:15:03 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.25 2010/01/04 02:15:35 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.25  2010/01/04 02:15:35  bdbcat
+ * Set default waypoint icon
+ *
  * Revision 1.24  2009/12/26 21:15:03  bdbcat
  * Messages
  *
@@ -84,6 +87,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.25  2010/01/04 02:15:35  bdbcat
+ * Set default waypoint icon
+ *
  * Revision 1.24  2009/12/26 21:15:03  bdbcat
  * Messages
  *
@@ -272,7 +278,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.24 2009/12/26 21:15:03 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.25 2010/01/04 02:15:35 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -1269,10 +1275,18 @@ wxBitmap *WayPointman::GetIconBitmap(const wxString& icon_key)
                   break;
       }
 
-      if(i == m_pcurrent_icon_array->GetCount())              // not found
+      if(i == m_pcurrent_icon_array->GetCount())              // key not found
+      {
+            for( i = 0 ; i< m_pcurrent_icon_array->GetCount() ; i++)
+            {
+                  pmi = (MarkIcon *)m_pcurrent_icon_array->Item(i);
+                  if(pmi->icon_name.IsSameAs(_T("circle")))
+                        break;
+            }
+      }
+
+      if(i == m_pcurrent_icon_array->GetCount())              // not found again
             pmi = (MarkIcon *)m_pcurrent_icon_array->Item(0);       // use item 0
-
-
 
       pret = pmi->picon_bitmap;
 
