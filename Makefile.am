@@ -341,9 +341,10 @@ install-data-local:
 	mkdir -p $(DESTDIR)$(pkgdatadir)/doc
 	cp -p ./$(srcdir)/data/doc/help.html  $(DESTDIR)$(pkgdatadir)/doc
 	mkdir -p $(DESTDIR)$(pkgdatadir)/doc/images
-	cp -p ./$(srcdir)/data/doc/images/*  $(DESTDIR)$(pkgdatadir)/doc/images
+	cp -p ./$(srcdir)/data/doc/images/*.jpg  $(DESTDIR)$(pkgdatadir)/doc/images
 	mkdir -p $(DESTDIR)$(pkgdatadir)/doc/includes
-	cp -p ./$(srcdir)/data/doc/includes/*  $(DESTDIR)$(pkgdatadir)/doc/includes
+	cp -p ./$(srcdir)/data/doc/includes/*.css  $(DESTDIR)$(pkgdatadir)/doc/includes
+	cp -p ./$(srcdir)/data/doc/includes/*.js  $(DESTDIR)$(pkgdatadir)/doc/includes
 	cp -p ./$(srcdir)/data/opencpn.png  /usr/share/icons
 	cp -p ./$(srcdir)/data/opencpn.desktop  /usr/share/applications
 	mkdir -p /usr/local/share/locale/de/LC_MESSAGES
