@@ -338,7 +338,12 @@ install-data-local:
 	cp -p ./$(srcdir)/data/tcdata/HARMONIC  $(DESTDIR)$(pkgdatadir)/tcdata
 	cp -p ./$(srcdir)/data/tcdata/HARMONIC.IDX  $(DESTDIR)$(pkgdatadir)/tcdata
 	cp -p ./$(srcdir)/data/license.txt  $(DESTDIR)$(pkgdatadir)
-	cp -p ./$(srcdir)/data/tips.html  $(DESTDIR)$(pkgdatadir)
+	mkdir -p $(DESTDIR)$(pkgdatadir)/doc
+	cp -p ./$(srcdir)/data/doc/help.html  $(DESTDIR)$(pkgdatadir)/doc
+	mkdir -p $(DESTDIR)$(pkgdatadir)/doc/images
+	cp -p ./$(srcdir)/data/doc/images/*  $(DESTDIR)$(pkgdatadir)/doc/images
+	mkdir -p $(DESTDIR)$(pkgdatadir)/doc/includes
+	cp -p ./$(srcdir)/data/doc/includes/*  $(DESTDIR)$(pkgdatadir)/doc/includes
 	cp -p ./$(srcdir)/data/opencpn.png  /usr/share/icons
 	cp -p ./$(srcdir)/data/opencpn.desktop  /usr/share/applications
 	mkdir -p /usr/local/share/locale/de/LC_MESSAGES
