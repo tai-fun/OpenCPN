@@ -1,0 +1,96 @@
+/* menu & menu links for IE Browsers */
+	a.menu_category_link:link {
+		font-family:		Arial, Helvetica, sans-serif;
+		font-size: 			x-small;
+
+	}
+	a.menu_category_link:active {
+		font-family:		Arial, Helvetica, sans-serif;
+		font-size: 			x-small;
+
+	}	
+	a.menu_category_link:visited  {
+		font-family:		Arial, Helvetica, sans-serif;
+		font-size: 			x-small;
+
+	}	a.menu_category_link:hover {
+		font-family:		Arial, Helvetica, sans-serif;
+		font-size: 			x-small;
+	}
+	a.menu_category_link:link {
+		color:				#800000;
+		font-weight: 		bold; 
+		text-decoration: 	none; 
+		font-size: 			8px;
+	} 
+	a.menu_category_link:active {
+		color:				#800000;
+		font-weight: 		bold; 
+		text-decoration: 	none; 
+		font-size: 			8px;
+	} 
+	a.menu_category_link:visited {
+		color:				#800000;
+		font-weight: 		bold; 
+		text-decoration: 	none; 
+		font-size: 			8px;
+	} 
+	a.menu_category_link:hover {
+		color:				#FF0000; 
+		font-weight: 		bold; 
+		text-decoration: 	none; 
+		font-size: 			8px;
+	}
+	.menu_category {
+		cursor:				hand;
+		color:				#800000;
+		border-bottom:	solid 1px #800000; 
+		font-size: 			medium;
+		font-weight: 		bold; 
+		width: 				90%;
+		padding:				4px;
+		padding-left:		8px;
+		margin-bottom:	2px;
+	} 
+
+
+	a.menu_subcategory_link:link, a.menu_subcategory_link:active, a.menu_subcategory_link:visited, .menu_subcategory{
+		font-family:		Arial, Helvetica, sans-serif;
+		font-size: 			x-small;
+	}
+	a.menu_subcategory_link:link, a.menu_subcategory_link:active, a.menu_subcategory_link:visited {
+		color:				#800000; 
+		font-weight: 		normal; 
+		text-decoration: 	none; 
+	} 
+	a.menu_subcategory_link:hover {
+		color:				#FF0000; 
+		font-weight: 		normal; 
+		text-decoration: 	underline;
+	}
+	.menu_subcategory {
+		font-size: 			x-small;
+		font-weight: 		normal; 
+		text-decoration: 	none; 
+		width: 				90%;
+		padding:				4px;
+		padding-left:		16px;
+	} 
+	
+	
+	a.menu_subcat_detail_link:link, a.menu_subcat_detail_link:active, a.menu_subcat_detail_link:visited {
+		color:				#800000; 
+		font-weight: 		normal; 
+		text-decoration: 	none; 
+	} 
+	a.menu_subcat_detail_link:hover {
+		color:				#FF00FF; 
+		font-weight: 		normal; 
+	}
+	.menu_subcat_detail_link {
+		font-weight: 		normal; 
+		text-decoration: 	njone; 
+		width: 				90%;
+		padding:				4px;
+		padding-left:		18px;
+	} 

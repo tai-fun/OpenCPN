@@ -1,0 +1,836 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>OpenCPN Help Page</TITLE>
+	
+	<link href="includes/menu.css" rel="stylesheet" type="text/css">
+	<link href="includes/opencpn.css" rel="stylesheet" type="text/css">
+	<!-- [if IE]>
+		<link href="includes/menu_ie.css" rel=stylesheet" type="text/css" />
+	<[endif] -->
+	<script src="includes/opencpn.js" type="text/javascript"></script> 
+	
+</HEAD>
+
+<BODY>
+<!-- master table -->
+<table align = "center" width="980">
+	
+	<tr>
+	
+		<!-- Left Menu -->
+		<td width="200" valign="top">
+			<div class="menu_category"><a class="menu_category_link" href="#">HOME</a></div>
+			
+			<div class="menu_category" id="menu_faq" onclick="openMenu('Intro')">Introduction</div>
+			<div id="sub_menu_intro">
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#why_ocpn">What it is</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#why_use_it">Why use it?</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#its_reliable">Is it reliable?</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#easy_2_use">Easy to Use?</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#its_accurate">Is it Accurate?</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#GPS">GPS needed?</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#charts">I need Charts!</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#help">I need help!</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#help_us">We need help too!</a></div>
+				<div>&nbsp;</div>
+			</div>
+			
+			<div class="menu_category" id="menu_using_ocpn" onclick="openMenu('Getting Started')">Getting Started</div>
+			<div id="sub_menu_using_ocpn" style="display:none">
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#interface">The Interface</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#default_screen">Default start screen</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#the_tool_bar">The Tool Bar</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#zoom">&bull; Zoom In/Out.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#scale">&bull; Scale In/Out.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#routes">&bull; Create Routes.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#auto_follow">&bull; Auto Follow.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#tool_box">&bull; Tool Box.</a></div>
+					<div class="menu_subcategory"><a class="menu_subcat_detail_link" href="#anchor_mark">&bull; Anchor Mark.</a></div>
+					<div class="menu_subcategory"><a class="menu_subcat_detail_link" href="#charts">&bull; Charts.</a></div>
+					<div class="menu_subcategory"><a class="menu_subcat_detail_link" href="#vector_charts">&bull; Vector Charts.</a></div>
+					<div class="menu_subcategory"><a class="menu_subcat_detail_link" href="#ais">&bull; AIS.</a></div>
+					<div class="menu_subcategory"><a class="menu_subcat_detail_link" href="#fonts">&bull; Fonts.</a></div>
+					<div class="menu_subcategory"><a class="menu_subcat_detail_link" href="#etc">&bull; ETC.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#enc_text">&bull; Show ENC Text.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#currents">&bull; Show Currents.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#tides">&bull; Show Tides.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#printer">&bull; Printer.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#gpx_inport">&bull; GPX Import.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#gpx_export">&bull; GPX Export .</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#track">&bull; Track.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#grib">&bull; GRIB.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#screen_brightness">&bull; Screen Brightness.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#help_files">&bull; Help Files.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#chart_win">&bull; Chart Data Panel.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#exit">&bull; Exit.</a></div>		
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#bottom_bar">&bull; Bottom Nav Bar.</a></div>				
+				<div>&nbsp;</div>
+			</div>
+			
+			<div class="menu_category" id="menu_navigation" onclick="openMenu('Navigation')">Navigation with OCPN</div>
+			<div id="sub_menu_navigation" style="display:none">
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#load_your_charts">Loading charts</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#get_gps_working">Get your GPS working.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#connect_auto_pilot">Connecting Your Auto Pilot.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#using_routes">Using Routes.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#right_clicks">General Chart Queries.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#measure">Measure Tool.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#overzoom">Overzoom.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#hot_keys">Hot Keys.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#faq">FAQ.</a></div>
+				<div class="menu_subcategory"><a class="menu_subcategory_link" href="#toc">Table of Contents.</a></div>
+				<div>&nbsp;</div>
+			</div>
+			
+
+		</td>
+
+		<!-- main panel -->
+		<td>
+			<a name="top"></a>
+			<!-- page title -->
+			<div class="page-title"><span class="language_select">NL | FR | EN </span>Welcome to the O<em>penCPN</em> Help pages</div>
+			
+			<!-- What is OpenCPN -->
+			<a name="why_ocpn"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>What is OpenCPN?</div>
+			<div class="bodytext"><span><img src="images/Main_screen-s.jpg" width="250" height="147" align="left" class="border1px"></span>OpenCPN is a simple, concise chart plotter/navigator.  It is designed to be used continuously at the ships helm station while underway. It will allow the operator to easily track their position on accurate chart images. Additionally, O<I>penCPN</I> can display tide and current predictions. If you have a suitable AIS receiver it will display AIS information transmitted by AIS equipped vessels.</div><br />
+			<div class="bodytext"><I>OpenCPN</I> is a complete and fully functioning program. It is licensed to you under the GNU public license. This and future upgrades will always be free to download without any gotchas. The source code is available and if you have programming skills, modifications can be made to suit your particular situation.</div>
+			<br />
+			<div class="bodytext">See the <A HREF="http://www.gnu.org/copyleft/gpl.html">GNU Public License</A> for details. </div>
+			<br />
+			<div class="bodytext">This help file covers features up to and including version 1.3.6. </div>
+			<div class="spacer">&nbsp;</div><br />
+			
+			
+			<!-- Why OpenCPN instead of Commercial Product -->
+			<a name="why_use_it"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Why should I use it instead of a commercial product?</div>
+			<div class="bodytext">OpenCPN has compelling reasons for its use.</div>
+				<ul class="listtext">
+					<li>It is Open Source software, meaning, among other things, that it is FREE TO DOWNLOAD and use.  Escape the commercial paid upgrade treadmill!</li>
+					<li>It is &quot;concise,&quot; meaning that the feature set is optimized for daily use, and excess features (aka &quot;bloatware&quot;) are not present. The application is thus smaller and faster, running acceptably on as little as a 300 Mhz Pentium-II Windows-98 computer. Especially, it starts up and shuts down quickly.</li>
+					<li>OpenCPN conforms more closely than many other consumer ECS's to international IMO specification S52 for ENC display. This is a worldwide standard, and promotes portability among watch-keeping officers on all ECDIS equipped ships and boats.</li>
+					<li>Based on extensive human factors engineering, the main objective of S52 is to reduce clutter and extraneous information. For example, the colors are very carefully selected to produce the most effective viewing under real bridge conditions. Thus, in high stress conditions at sea (crossings, low viz, etc.), the proper situational awareness is maintained.</li>
+				</ul>
+			</div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- Is it Reliable? -->
+			<a name="its_reliable"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Is it reliable for day to day use?</div>
+			<div class="bodytext">O<I>penCPN</I> is currently in a Beta release stage.  Traditionally, this means that there may be a few bugs. However, for normal usage, it runs just fine.</div><br />
+			<div class="bodytext">On a personal note, <I>openCPN</I> has, for years, been the full-time everyday navigator aboard M/V Dyad, a trawler catamaran cruising from Newfoundland to the Bahamas.</div><br />
+			<div class="bodytext">Of course any prudent mariner will have navigation tools and paper charts for the areas they will be sailing. Nothing that is electric and sails in salt water is 100% reliable. Low tech backups work even when wet.</div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- Easy to Use? -->
+			<a name="easy_2_use"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>I'm not techno savvy, is this easy to use?</div>
+			<div class="bodytext">Some familiarity with competitive products is assumed. There is precious little documentation available on OpenCPN yet. Usage is fairly intuitive.</div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- is it accurate -->
+			<a name="its_accurate"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>How accurate is it?</div>
+			<div class="bodytext">OpenCPN's accuracy is dependent upon the accuracy of  your GPS and the underlying chart database.  As for all such programs, O<I>penCPN</I> does not remove from the operator the responsibility to</div><br />
+			<div align="center"><div class="page-title" style="width: 250px">LOOK OUT THE WINDOW!</div></div>
+			<div class="bodytext">With that said, O<i>penCPN</i> will plot the boat position to within about 100 ft of its true position most of the time. O<i>penCPN</i> will warn the user if the chart data accuracy does not allow for safe navigation.</div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- Do I need GPS -->
+			<a name="GPS"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Do I need GPS?</div>
+			<div class="bodytext">O<I>penCPN</I> is optimized as an underway tool, so GPS data is necessary to allow boat position plotting. However, O<I>penCPN</I> can be used without GPS for planning purposes, such as route and waypoint entry and time/distance calculations.</div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- I needz Charts -->
+			<a name="charts"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Where can I find the charts I need?</div>
+			<div class="bodytext">O<I>penCPN</I> comes with a few sample charts. These are included to provide instant opportunity to experience the potential of the program. S57 vector charts (the equivalent to CM93/3) are now available for free download from NOAA. Find all the charts you need, both raster (RNC) and ENC's, for your region through NOOA OCS Website: <a href="http://www.nauticalcharts.noaa.gov/staff/charts.htm">http://www.nauticalcharts.noaa.gov/staff/charts.htm</a> </div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- help! -->
+			<a name="help"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>If I need help, where can I find it?</div>
+			<div class="bodytext">I check the SCCA Bulletin board at <A HREF="http://ssca.org/phpBB3/viewforum.php?f=12">http://ssca.org/phpBB3/viewforum.php?f=12</FONT></A></div>
+			<div class="bodytext">I also check in at the Cruiser Forum at: <A HREF="http://www.cruisersforum.com/forums/f121/opencpn-13653-8.html">
+			</A><A HREF="http://www.cruisersforum.com/forums/f121/opencpn-13653-8.html">http://www.cruisersforum.com/forums/f121/opencpn-13653-8.html</FONT></A></div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- Help us ... please! -->
+			<a name="help_us"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>How can I help?</div>
+			<div class="bodytext">If you'd like to develop enhancements to O<I>penCPN</I>, check out the project on SourceForge: <a href="http://sourceforge.net/projects/opencpn/">http://sourceforge.net/projects/opencpn/</a></div><br />
+			<div class="bodytext">Current items of interest are:</div>
+				<ul class="listtext">
+					<li>Testing: Use it, cruise it, abuse it, take notes.  Your feedback is appreciated.</li>
+					<li>Icons, color palettes, etc: Graphic designers invited.</li>
+				</ul>
+			<div class="bodytext">We welcome all comments and ideas, and especially look forward to your bug reports. I can be reached by email at: <A HREF="mailto:bdbcat@yahoo.com">bdbcat@yahoo.com</A></div>
+			<div class="spacer">&nbsp;</div>
+						<div class="spacer">&nbsp;</div>
+			
+			<!-- Getting Started with OpenCPN -->
+			<div class="page-title">Getting Started with O<I>penCPN</I></div>
+			<div class="bodytext">
+			  <div align="center"><a href="#TOC" target="_self">Table of Contents </a></div>
+			</div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- The Interface -->
+			<a name="interface"></a>
+			<div class="photo_tag">The O<i>penCPN</i> Interface<br />
+			</div>
+			<div class="bodytext">
+			  <div align="center"><img src="images/main_screen_labelled.jpg" class="border1px"></div>
+			</div>
+			<div class="spacer">&nbsp;</div>
+			
+			<div class="bodytext">We assume here that you have downloaded the proper file for your operating system and have installed it whilst keeping all the default folders.</div>
+			<blockquote class="bodytext">
+				<div class="bodytext">The file structures are:</div>
+				<ul class="listtext">
+					<li>Linux machines -  usr/bin/opencpn.</li>
+					<li>Windows - C:/Program Files/OpenCPN/</li>
+					<li>Macs - <i>{to be supplied)</i> </li>
+				</ul>
+			</blockquote>
+			<div class="bodytext">When your launch O<I>penCPN</I>, for the first time you will be greeted by a green tinted screen with raged outlines of coast lines. A Bulls Eye shows the default location on the U.S. coast at 31.8439 N and 080.7019&quot; W</div><br />
+			<div class="bodytext">The outline of the installed ENC chart shows as a green square. (Red chart outlines indicate raster charts when loaded). </div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- Default Screen -->
+			<a name="default_screen"></a>
+			<div class="photo_tag"> Default start screen</div>
+			<div align="center"><img src="images/default_screen.jpg" class="border1px"></div>
+			<div class="spacer">&nbsp;</div>
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- The Tool Bar -->
+			<a name="the_tool_bar"></a>
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Let's get familiar with the Tool Bar.</div>
+			<br />
+			<div align="center"><img src="images/toolbar.jpg" width="662" height="41" class="border1px"></div>
+			<div align="center" class="photo_tag">The O<i>penCPN</i> tool bar.</div>
+			<br />
+			<div class="bodytext">The Icons from left to right:</div>
+			<br />
+			<blockquote>
+				<!-- Zoom in-out -->
+				<a name="zoom"></a>		
+				<div class="toolbar_images"><img src="images/toolbar_zoom-in.jpg" width="32" height="32" class="border1px"> &nbsp; <img src="images/toolbar_zoom-out.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">ZOOM IN</span> and <span class="subheading">ZOOM OUT</span> - Magnifying Glass</div>
+				<div class="bodytext">These change the scale (size on your screen) of the chart you are working with. This  allows you to see more details. O<I>penCPN</I> now supports the use of the scroll wheel to accomplish this.</div><br />
+				<div class="bodytext">New in 1.3.6 is the <a href="index.html#overzoom">overzoom</a> warning feature which indicates a zoom greater than 4x..</div>
+				<div class="spacer">&nbsp;</div>
+								
+				<!-- Scale in-out -->
+				<a name="zoom"></a>	
+				<div class="toolbar_images"><img src="images/toolbar_scale-in.jpg" width="32" height="32" class="border1px"> &nbsp; <img src="images/toolbar_scale-out.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">SCALE IN</span> and <span class="subheading">SCALE OUT</span></div>
+				<div class="bodytext">These buttons will allow you to change the scale of chart you are using.</div><br />
+				<div class="bodytext">If a larger scale chart (large scale = greater detail in a smaller area) is available for the location of you mouse pointer will see more than one segmented bar in the lower left hand corner of the chart window.  The segmented color bars in the Status Bar -BLUE for Raster Green For ENC's, Brown/Yellow for CM93 charts – The  current chart displays as a lighter shade of its color.</div><br />
+				<div class="bodytext">When you hover the mouse pointer over the bar a thumbnail of the chart will appear under the SCALE IN/OUT icons. By clicking on the appropriate bar, or using the appropriate  HOT KEYS, you will switch to the chart shown in the thumbnail.   This feature is especially useful if you wish to view ECN or a Raster chart of the same area.</div>
+				<div class="spacer">&nbsp;</div>
+			
+				<!-- routes -->
+				<a name="routes"></a>	
+				<div class="toolbar_images"><img src="images/toolbar_create_route.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">CREATE NEW ROUTE.</span></div>
+				<div class="bodytext">Click it. Using the cursor keys  navigate to the appropriate chart. Left-Clicking sets a waypoint – Right-Click displays the route context menu.</div><br />
+				<div class="bodytext">If creating a route which extends off the currently displayed chart, move the route cursor into the desired area, Right-Click and select 'MAX DETAIL HERE' or 'Scale Out'.  This will give you a  chart showing the area under your mouse pointer without ending the route. Continue creating the route, using Right-Click drop-down menu zoom wheel or courser keys as necessary change chart, scale and/or zoom or to move the chart under your cursor. Practice to see which combination and methods work best for you.</div><br /> 
+				<div class="bodytext">Activate Route. Turns <span class="style3">red</span> - deactivated routes are <span class="style2">blue</span></div>
+				<br />
+				<div class="bodytext">The current version of O<I>penCPN</I> has no provision to hide multiple routes so all your routes will show on the chart all the time. </div><br />
+				<div class="bodytext"><span class="subheading">HACK:</span> To keep the chart clear of useful but un-needed routes follow these steps:</div>
+					<UL class="listtext">
+						<li>Create your route.</li>
+						<li><b>'Export to GPX'</b> with an descriptive file name and save it is a created folder called GPX_Routes.</li>
+						<li>Delete the route from the chart.</li>
+						<li>When needed, simply use the '<B>Import GPX</B>' to re-load the route file.</li>
+					</UL>
+				<div class="bodytext"><a href="index.html#using_routes">Please see here for using routes</a></div><br />
+				<div class="spacer">&nbsp;</div>
+				
+				<!-- auto_follow -->
+				<a name="auto_follow"></a>					
+				<div class="toolbar_images"><img src="images/toolbar_center-screen.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">AUTO FOLLOW</span></div>
+				<div class="bodytext">Click on this  to center the chart display on your current GPS location and engage <b><I>Auto Follow</i></b> (sometime called 'Cruise Mode'), for navigation. </div><br />
+				<div class="spacer">&nbsp;<a name="tool_box"></a></div>
+			
+				<!-- The Tool Box -->
+				<a name="tool_box"></a>				
+				<div class="toolbar_images"><img src="images/toolbar_settings.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">TOOL BOX</span> - a.k.a. O<i>penCPN</i> program settings</div>
+				<blockquote>
+					<div class="bodytext"><span class="subheading">Settings</span> – Selections are self explanatory with this exception:</div><br />
+					
+					<!-- Anchor Mark -->
+					<a name="anchor_mark"></a>	
+					<div class="bodytext"><span class="subheading">Automatic Anchor Mark</span></div>
+					<blockquote class="bodytext">
+						<div class="bodytext">Automatic Anchor Mark drops an anchor marker on the chart provided the following conditions are met:</div>
+						<ol class="listtext">
+							<li>In &quot;Cruising&quot; mode, meaning that speed has at some point exceeded 3.0 kts.</li>
+							<li>Current speed is less than 0.5</li>
+							<li>Opencpn has been up at least 30 minutes</li>
+							<li>And,&nbsp; opencpn is going down now by normal exit.</li>
+							<li>And, there is no &quot;Anchorage&quot; waypoint within 0.25 NM of current GPS location</li>
+						</ol>
+						<div class="bodytext">If these conditions are all true, O<i>penCPN</i> will drop a waypoint at the current location, with the name - &quot;Anchorage created on [Date Stamp]&quot;.</div><br />
+						<div class="bodytext">Thus waypoints are automatically created for known good anchorages as you shut down the computer. The 0.25 NM condition prevents clogging up frequently visited anchorages with closely spaced waypoints.&nbsp; The other conditions help to prevent spurious waypoints. </div>
+					</blockquote>
+					<a name="charts"></a><br />	
+			
+					<!-- Charts -->
+					<a name="charts"></a>	
+					<div class="bodytext"><span class="subheading">Charts:</span></div>
+					<blockquote>
+						<div class="bodytext">Set and/or remove your chart directories</div>
+					</blockquote>
+					<br />
+					
+					<!-- Vector Charts -->
+					<a name="vector_charts"></a>					
+					<div class="bodytext"><span class="subheading"> Vector Charts:</span> - ENC Chart Settings</div>
+					<blockquote>
+						<div class="bodytext"><i> { to be expanded }</i></div>
+					</blockquote>
+					<br />
+					
+					<!-- AIS -->
+					<a name="ais"></a>					
+					<div class="bodytext"><span class="subheading">AIS</span> -  Automatic Identification System (AIS) settings and preferences</div>
+					<blockquote>
+						<div class="bodytext">The Automatic Identification System (AIS) is a short range coastal tracking system used on ships and by Vessel Traffic Services (VTS) for identifying and locating vessels by electronically exchanging data with other nearby ships and VTS stations. Information such as unique identification, position, course, and speed can be displayed on a screen or an ECDIS. AIS is intended to assist the vessel's watch-standing officers and allow maritime authorities to track and monitor vessel movements, and integrates a standardized VHF transceiver system such as a LORAN-C or Global Positioning System receiver, with other electronic navigation sensors, such as a gyrocompass or rate of turn indicator. &nbsp;[AIS description courtesy: <a href="http://en.wikipedia.org/wiki/Automatic_Identification_System">www.wikipedia.org</a>].</div>
+						<br />
+						<div class="bodytext">O<i>penCPN</i>'s AIS function makes it is easy to interrogate targets, see other vessel's courses etc. It will calculate and display CPA and TCPA. </div>
+						<br />
+						<div class="bodytext">The following is a list of colours and shapes of AIS targets:</div>
+					</blockquote>
+					
+					<table class="tables_default" width="675" align="center" cellspacing="4" cellpadding="0" border="0">
+						<tr bgcolor="#99FF99">
+							<td colspan="2" align="center"><div class="table_header">AIS TARGET &amp; SHAPES </div></td>
+						</tr>
+						<tr>
+							<td width="200" align="center"><div class="table_cell"><div align="center">Colour / Shape</div></div> </td>
+							<td><div class="table_cell">Definition:</div></td>
+						</tr>
+						<tr>
+							<td><div class="table_cell">RED</div></td>
+							<td><div class="table_cell">Dangerous target, as per CPA & TCPA calculation</div></td>
+						</tr>
+						<tr>
+							<td><div class="table_cell">YELLOW</div></td>
+							<td><div class="table_cell">Basic AIS info received (MMSI, COG, SOG, navigational status., etc)</div></td>
+						</tr>
+						<tr>
+							<td><div class="table_cell">GREEN</div></td>
+							<td><div class="table_cell">Extended info received (basic plus name, callsign, destination ....)</div></td>
+						</tr>
+						<tr>
+						  <td valign="top"><div class="table_cell" style="height:40px">An X across the target</div></td>
+							<td valign="top"><div class="table_cell" style="height:40px">This defines an "Old" target, the last info received is older than the the value defined in "Mark target lost after (Minutes)" in the AIS configuration dialog.</div></td>
+						</tr>
+						<tr>
+							<td><div class="table_cell">blue square with target</div></td>
+							<td><div class="table_cell">AIS Class B target</div></td>
+						</tr>
+					</table>
+					<div class="spacer">&nbsp;</div>
+					<br />
+			
+			
+					<!-- Fonts -->
+					<a name="fonts"></a>					
+					<div class="bodytext"><span class="subheading">FONTS</span></div>
+					<blockquote>
+						<div class="bodytext"><span class="subheading">Console</span> - the font used in the navigation info window, displayed when a route is activated. </div>
+						<div class="bodytext"><span class="subheading">Marks</span> - the font properties used for waypoint marks.</div>
+					</blockquote>
+					<br />
+			
+					<!-- Charts -->
+					<a name="etc"></a>
+					<div class="bodytext"><span class="subheading">ETC</span> - additional settings</div>
+					<blockquote>
+						<div class="bodytext"><span class="subheading">GPX</span> - turns the GPX icons in the toolbar on and off.</div>
+						<div class="bodytext"><span class="subheading">Radar Rings</span> - display on/off options, number of rings to display, distance between rings and nautical miles/kilometers settings.</div>
+						<div class="bodytext"><span class="subheading">Waypoint locking </span> -toggles the lock/unlock of waypoints.</div>
+						<div class="bodytext"><span class="subheading">GUI Options</span> - enable/disable middle mouse wheel Zoom-to-cursor option.</div>
+					</blockquote>
+				</blockquote>
+				<div class="spacer">&nbsp;</div>
+						
+				<!-- Show ENC Text -->
+				<a name="enc_text"></a>							
+				<div class="toolbar_images"><img src="images/toolbar_text.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">Show ENC Text</span>- Click to display S-57 text on your ENC's</div>
+				<blockquote>
+					<div class="bodytext"><b>Note:</b> This may not appear to work if you have “Show Important Text Only” selected in the 'Settings/Vector Charts' tab. This setting has no function on Raster Charts.</div>
+				</blockquote>
+				<br />	
+				
+				<!-- Show Currents -->
+				<a name="currents"></a>					
+				<div class="toolbar_images"><img src="images/toolbar_currents.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">Show Currents</span></div>
+				<blockquote>
+					<div class="bodytext">To show or hide current velocity and direction arrows. Click the base of the current arrow to display data for that location. </div>
+				</blockquote>
+				<br />
+				
+				<!-- Show Tides -->
+				<a name="tides"></a>					
+				<div class="toolbar_images"><img src="images/toolbar_tides.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">Show Tides</span></div>
+				<blockquote>
+					<div class="bodytext">Shows Tide Stations on chart. Right Click the '<B>T</B>' icon to display tide information for that location. Close the box to hide the information.</div>
+					<div class="bodytext"><B>Hint</B>: The tide icon, '<B>T</B>', remains the same size regardless of chart scale. Zoom out and the icons will be easier to find. </div>
+				</blockquote>
+				<br />
+				
+				<!-- Printer -->
+				<a name="printer"></a>					
+				<div class="toolbar_images"><img src="images/toolbar_printer.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">Printer</span></div>
+				<blockquote>
+					<div class="bodytext">Makes a remarkably fine cup of decaffeinated coffee and a toasted bacon sandwich, just the thing for a chilly night watch.</div>
+					<div class="bodytext">If refreshments are not forthcoming, check the printer for a print of the current chart view.</div>
+				</blockquote>
+				<br />
+			
+				<!-- GPX Import -->
+				<a name="gpx_import"></a>				
+				<div class="toolbar_images"><img src="images/toolbar_GPX-in.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">GPX Import</span></div>
+				<blockquote>
+					<div class="bodytext">O<i>penCPN</i> supports the import and export of GPX (<a href="http://en.wikipedia.org/wiki/GPS_eXchange_Format">GPS eXchange</a>) files. This format contains one of two types of information, TRACKS or ROUTES. </div>
+					<ul class="listtext">
+						<li>Tracks: are a record of a journey made. It will contain the minimum of a latitude and longitude of a single waypoint. It usually contains additional information such as mark number, timestamp. etc.</li>
+						<li>Routes: are a plan of a journey to be made It must contains a latitude and longitude of at least one waypoint; It may also include other information such as a mark name. </li>
+					</ul>
+					<div class="bodytext">To import a previous track or route, click the GFX-in button and use the file browser to locate the desired file. It will auto load and display in O<i>penCPN</i>. Loaded GPX can be manipulated within O<i>penCPN</i>: For instance, a saved outbound track can be used as return route - right-click on the track and select &quot;Reverse Route&quot;. Similarly, addition waypoints may be added or removed from the track.</div>  <br />
+					<div class="bodytext">If the GPX Icons are not visible in the toolbar, they can be activated from Settings->Etc.->Show GFX Icons.</div>
+				</blockquote>
+				<br />
+				
+				<!-- GPX Export -->
+				<a name="gpx_export"></a>					
+				<div class="toolbar_images"><img src="images/toolbar_GPX-out.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">GPX Export </span></div>
+				<blockquote>
+					<div class="bodytext">GPX Export saves all current routes and tracks into a single file a directory on your hard disc.</div>
+					<blockquote> 
+						<div class="bodytext"> Single routes/tracks can be saved to an individual file by right clicking on the line and selecting &quot;export&quot;. A file browser will open for yo to save to a directory of your choice. </div>
+					</blockquote>
+				</blockquote>
+				<br />
+				
+				<!-- Track -->
+				<a name="track"></a>	
+				<div class="toolbar_images"><img src="images/toolbar_track.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">Track</span></div>
+				<blockquote>
+					<div class="bodytext"> By default, the track icon is displayed in the toolbar: If it's not visible, tick the checkbox in Tools->Etc.->Show track Icon. Addition settings control the track points by time interval (in seconds) or in nautical mile (resolution 0.00)</div> <br />
+					<div class="bodytext">Tracking is on upon startup by default. Clicking the icon toggles between enabled and disabled.</div><br />
+					<div class="bodytext">Right clicking on a track will generate a popup:</div><br />
+					<div class="bodytext"><img src="images/popup_track.jpg" width="185" height="82"></div>
+					<blockquote>
+						<div class="bodytext">&bull; Track Properties: </div>
+						<div class="bodytext">&bull; Delete Track: Removes the current track.</div>
+						<div class="bodytext">&bull; Export... saves the track as a GFX file. This can be re-imported later using GPX IN.</div>
+					</blockquote>
+					<div class="bodytext">The tracking function does not use course or speed. It uses only the Lat and Lon position data report from the GPS. If you decrease the logging frequency you will get "straighter" lines. Ensure your GPS is set to produce at least three digits of resolution.</div>
+				</blockquote>
+				<br />
+				
+				<!-- GRIB -->
+				<a name="grib"></a>	
+				<div class="toolbar_images"><img src="images/toolbar_grib.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">GRIB</span></div>
+				<blockquote>
+					<div class="bodytext"><a href="http://en.wikipedia.org/wiki/GRIB">GRIB</a> (GRIdded Binary) is a mathematically concise data format commonly used in meteorology to store historical and forecast weather data. It is standardized by the World Meteorological Organization's Commission for Basic Systems, known under number GRIB FM 92-IX, described in WMO Manual on Codes No.306. GRIB superseded the Aeronautical Data Format (ADF). </div><br />
+					<div class="bodytext">In short, it displays weather information on O<i>penCPN</i>.</div><br />
+					<div class="bodytext"> The icon enables and disables the function. If the icon is not visible, it can be displayed from Tools -> GRIB -> Show GRIB Icon. When first used, a pop-up window requests the path to the GRIB information. Any GRIB filename which is grayed out indicates no weather information or data which is unreadable.</div>
+					<br />
+					<div class="bodytext">O<i>penCPN</i> currently supports and displays wind barbs and pressure isobars at sea level. </div><br />
+					
+					<div class="bodytext">GRIB data available is:</div>
+					<blockquote>
+						<div class="bodytext">&bull; Wind speed (in Knots).</div>
+						<div class="bodytext">&bull; Wind Direction.</div>
+						<div class="bodytext">&bull; Pressure (mBars).</div>
+						<div class="bodytext">&bull; Significant wave height (in meters).</div>
+					</blockquote>
+					<div class="bodytext">Please keep in mind O<i>penCPN</i> is primarily an ECN reader and not a GRIB viewer: GRIBs in O<i>penCPN</i> are intended to be a convenience for passage planning. Other programs will provide better analysis and display of complete GRIB data models.</div>
+				</blockquote>
+				<br />
+				
+				<!-- Screen Brightness -->
+				<a name="screen_brightness"></a>	
+				<div class="toolbar_images"><img src="images/toolbar_brightness.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">Screen Brightness</span></div>
+				<blockquote>
+					<div class="bodytext">Clicking this icon will cycle through preset screen/color/brightness settings for day/dusk/night viewing.</div>
+				</blockquote>
+				<br />
+				
+				<!-- Help Files-->
+				<a name="help_files"></a>					
+				<div class="toolbar_images"><img src="images/toolbar_help.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">Help Files</span> and <span class="subheading">About O<i>penCPN</i></span> information.</div>
+				<blockquote>
+					<div class="bodytext">The About OpenCPN box. On the first of three tabs you will find the version number and copyright info. The middle tab shows the names and email addresses of the authors of this work and the third tab displays the GNU General Public License. </div><br />
+					<div class="bodytext">This document describes the conditions under which this application is licensed to you, the user.</div>
+				</blockquote>
+				<br />
+				
+				<!-- the Chart Data Window-->
+				<a name="chart_win"></a>					
+				<div class="toolbar_images"><img src="images/toolbar_chartwin.jpg" width="348" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">The Chart Data Window</div>
+				<blockquote>
+					<div class="bodytext">This window provide information on he location of the chart, the name of the area and the chart year. </div><br />
+					<div class="bodytext">Its background colour indicates the following.</div>
+					<blockquote>
+						<div class="bodytext"><img src="images/toolbar_chart_nogps.jpg" width="14" height="14" class="border1px">No GPS connected or signal lost.</div>
+						<div class="bodytext"><img src="images/toolbar_chart_gps.jpg" width="14" height="14" class="border1px">GPS connected and signal good.</div>
+						<div class="bodytext"><img src="images/toolbar_chart_unsafe.jpg" width="14" height="14" class="border1px"> Georeferencing is deemed unsuitable for navigation.</div>
+					</blockquote>
+					<div class="bodytext">The latter "unsafe" warning is rare, usually limited to very old BSB V1 charts. Use any ECN information with extreme caution.</div><br />
+				</blockquote>
+				<br />
+				
+				<!-- The Exit Button -->
+				<a name="bottom_bar"></a>	
+				<div class="toolbar_images"><img src="images/toolbar_close.jpg" width="32" height="32" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">The Big Red <big><B>'X'</B></big></span></div>
+				<blockquote>
+					<div class="bodytext">Hit this button or the one above it to shut down O<i>penCPN</i>. You can also use the Hot key combination [Ctrl] + [Q] to exit the program.</div>
+				</blockquote>
+				<br />
+				
+				<!-- The Bottom Nav Bar -->
+				<a name="bottom_bar"></a>	
+				<div class="toolbar_images"><img src="images/main_screen_basebar.jpg" class="border1px"></div>
+				<div class="bodytext"><span class="subheading">The Bottom Control Bar</span></div>
+				<blockquote>
+					<div class="bodytext">The bottom of the screen is reserved for live navigation and other data.</div><br />
+					<div class="bodytext">The first line provides a hover link to loaded chart previews. There are four colours:.</div>
+					<blockquote>
+						<div class="bodytext"><img src="images/toolbar_chart_vector_off.jpg" width="20" height="10" class="border1px">Vector Charts- not selected.</div>
+						<div class="bodytext"><img src="images/toolbar_chart_vector_on.jpg" width="20" height="10" class="border1px">Vector Charts - selected .</div>
+						<div class="bodytext"><img src="images/toolbar_chart_raster_off.jpg" width="20" height="10" class="border1px">Raster Charts - not selected.</div>
+						<div class="bodytext"><img src="images/toolbar_chart_raster_on.jpg" width="20" height="10" class="border1px"> Raster Chart - selected.</div>
+					</blockquote>
+					<div class="bodytext">The second line provides real time data from GPS: The information available is:.</div>
+					<blockquote>
+						<div class="bodytext">&bull; Ship's Position.</div>
+						<div class="bodytext">&bull; SOG (Speed over Ground)</div>
+						<div class="bodytext">&bull; COG (Course over Ground)</div>
+						<div class="bodytext">&bull; Cursor(Lon/Lat of cursor)</div>
+						<div class="bodytext">&bull; From Own Ship - (Degrees and distance in NM)</div>
+						<div class="bodytext">&bull; True Scale.</div>
+						<div class="bodytext">&bull; Zoom</div>
+					</blockquote>
+				</blockquote>				
+				
+			</blockquote>
+			<div>&nbsp;</div>
+			<div class="spacer">&nbsp;</div>
+			
+			
+
+			<!-- Using OpenCPN - operational guide -->
+			<div class="page-title">Navigating with O<I>penCPN</I></div><br />
+			
+			<!-- Load Your Charts -->
+			<a name="load_your_charts"></a>	
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Load Your Charts</div>
+			<div class="bodytext">Open the <a href="#tool_box">Tool Box</a> and choose the tab marked &quot;<a href="#charts">Charts</a>&quot;.</div><br />
+			
+			<div class="bodytext">Use the top window pane to locate and highlight the directories containing your charts. When you have a chart directory highlighted, chose &quot;Add Selection&quot;. The directory you selected will then appear in the bottom pane of the window and be added to the O<i>penCPN</i> chart database. </div><br />
+			<div class="bodytext">Repeat this for all the chart directories you wish O<i>penCPN</i> to be able to display.</div><br />
+			<div class="bodytext">When you have finished selecting and adding chart directories, choose &quot;OK&quot;.</div><br />
+			<div class="bodytext">A window with a progress bar will open showing that O<I>penCPN</I> is recognizing your selections.</div>
+			<blockquote><div class="bodytext"><span class="subheading">NOTE:</span> O<I>penCPN</I> can share chart directories with any other installed chart navigation system. There is no need to make a separate directory for O<i>penCPN</i> charts.</div></blockquote>
+			<div>&nbsp;</div>
+			
+			<!-- Get your GPS Working -->
+			<a name="get_gps_working"></a>	
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Get your GPS working</div><br />
+			<div class="bodytext">Open the <a href="#tool_box">Tool Box.</a></div><br />
+			<div class="bodytext">In the <strong>Settings</strong> tab, select the <strong>NMEA Data Source</strong> from the choices in shown in the drop-down box, and choose the port to which your GPS is connected. When the correct port is selected, the Chart information panel changes from pink to green. </div>
+			<br />
+			
+			<div class="bodytext">If you are using a standard serial port, then choose the proper physical port number to match. If, on the other hand, you are using a USB GPS, then you will select the virtual serial port which was created by your GPS device driver. You may need to try several selections to find the correct port. </div>
+			<blockquote><div class="bodytext"><span class="subheading">Hint:</span> For XP/Vista: Using the Device Manager, look for a serial port which appears and disappears dynamically as you plug and unplug the USB GPS cable. This is your virtual GPS serial port.</div><br /></blockquote>
+			<div class="bodytext">When the properly configured GPS is connected, powered up, and recognized, then O<I>penCPN</I> will show a pale green background in the upper right window of the tool bar. This bar also displays the current chart's PATH, File name as well as its Chart Name and Edition Year. </div><br />
+			<div class="bodytext">If no GPS is present or recognized, the chart identification window will have a pale red, or plum colored background. </div>
+			<blockquote><div class="bodytext"><span class="subheading">NOTE:</span> O<I>penCPN</I> automatically configures baud rate, bits, parity, etc. These do not need to be separately specified.</div></blockquote>
+			<div>&nbsp;</div>
+			
+			<!-- Connecting your Auto Pilot ... for maintenance, please see "Airplane! The Movie" -->
+			<a name="connect_auto_pilot"></a>				
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Connecting Your Auto Pilot</div>
+			<div class="bodytext">O<i>penCPN</i> may be interfaced to any NMEA compatible autopilot which recognizes the RMB NMEA sentence.  The serial port may be selected in the <a href="#tool_box">Tool Box</a> dialog.</div>
+			<div class="return_top"><a href="#top">Return to top</a></div>
+			
+			<!-- Using Routes" -->
+			<a name="using_routes"></a>				
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Using Routes</div>
+			<div class="bodytext">One of the key features of O<i>penCPN</i> is routes: The program allows you to create routes, gain useful planning data and to follow the route underway.</div>
+			<blockquote>
+				<div class="subheading">Creating Routes</div>
+				<div class="bodytext"><a href="index.html#routes">Please see here for create routes</a></div><br />
+				
+				<div class="subheading">Using Routes</div>
+				<div class="bodytext">To use a route, either creating a new route, or load a previously saved track or route from file. Right clicking anywhere on the route line will generate a pop-up which contains the following:</div>
+				<blockquote>
+					<div class="bodytext"><img src="images/routes_popup.jpg"></div><br />
+					<div class="bodytext">&bull; Activate Route - turns the autopilot/route tracking on.</div>
+					<div class="bodytext">&bull; <span class="grayed-out">Deactivate Route</span> - turns the autopilot/route tracking off.</div>
+					<div class="bodytext">&bull; Insert Waypoint - adds waypoint into route at cursor.</div>
+					<div class="bodytext">&bull; Append Waypoint - adds waypoint at end of route.</div>
+					<div class="bodytext">&bull; Delete Route - remove this route from O<i>penCPN</i>.</div>
+					<div class="bodytext">&bull; Reverse Route - reverses start and destinations, A -> B to B -> A. Useful for return leg journeys.</div>
+					<div class="bodytext">&bull; Route Properties - useful editor and summary of all waypoints, distances and ETA.</div>
+					<div class="bodytext">&bull; Export... - Saves the current route as GFX file.</div>
+					<div class="bodytext">&bull; Delete all routes - deletes all routes.</div>
+					<div class="bodytext">&bull; Send to GPS: Exports the current route and its waypoints to compatible GPS device.</div>
+				</blockquote>
+				
+				<!-- Activate Routes -->
+				<div class="subheading">Activate Routes</div>
+				<div class="bodytext">When the 'Activate Route' is clicked, a new display is opened top right. Clicking the ''Leg/Route' button toggles between"This Leg " and "Route". </div>
+				<br />
+				<div class="bodytext">The "This Leg" display shows the following data:</div>
+				<blockquote>
+					<div class="bodytext"><img src="images/activate_route.jpg" class="border1px"></div><br />
+					<div class="bodytext">&bull; XTE: {abbreviation to be confirmed}</div>
+					<div class="bodytext">&bull; BRG: {abbreviation to be confirmed}</div>
+					<div class="bodytext">&bull; RNG: {abbreviation to be confirmed}</div>
+					<div class="bodytext">&bull; TTG: {abbreviation to be confirmed}</div><br />
+					<div class="bodytext">The track chart below the readout provides a graphical representation of the ship's true position relative to the course. </div><br />
+				</blockquote>
+				<div class="bodytext">The "Route" display shows the following data:</div>
+				<blockquote>
+					<div class="bodytext">&bull; ETA: The expected time of arrival at destination</div>
+					<div class="bodytext">&bull; BRG: {abbreviation to be confirmed}</div>
+					<div class="bodytext">&bull; RNG: {abbreviation to be confirmed}</div>
+					<div class="bodytext">&bull; TTG: {abbreviation to be confirmed}</div><br />
+					<div class="bodytext">The track chart display is the same as :This Leg". </div>
+					<br />
+				</blockquote>
+				
+				<!-- Waypoints -->
+				<div class="subheading">Waypoints</div>
+				<blockquote>
+					<div class="bodytext">Waypoints can be edited by right clicking on them. This generates a popup with the following options.</div><br />
+
+					<div class="bodytext"><img src="images/rightclick_waypoint.jpg"></div><br />
+					
+					<div class="bodytext">Please Note: 'Activate Waypoint' and 'Activate Next in Route' are selectable only when 'Activate Route' is turned on: At all other times, they are grayed out.</div><br />
+					
+					<div class="subheading">Activate Waypoint</div>
+					<div class="bodytext">When the 'Activate Route' is clicked, the first route waypoint will be highlighted and flashing.  This priority is changes with 'Activate (this) Waypoint', moving the active  status to this mark: It then becomes highlighted and flashing.</div>
+					<br />
+					<div class="bodytext"><img src="images/active_route.jpg" class="border1px"></div><br />
+					
+					<div class="subheading">Activate Next in Route</div>
+					<div class="bodytext">This advances the highlighted waypoint to the next in the route.</div><br />
+					
+					<div class="subheading">Remove Waypoint from Route</div>
+					<div class="bodytext">Deletes the selected waypoint from the current route.</div><br />
+					
+					<div class="subheading">Remove Waypoint from Route</div>
+					<div class="bodytext">Deletes the selected waypoint from the current route, BUT NOT THE CHART.</div><br />
+					
+					<div class="subheading">Mark/WP Properties</div>
+					<div class="bodytext">This option provides details and editor for the waypoint.</div><br />
+					<div class="bodytext"><img src="images/mark_properties.jpg"></div><br />
+					<div class="bodytext"><b>Options:</b></div>
+					<blockquote>
+						<div class="bodytext">&bull; Mark Name - any alpha numeric text label.</div>
+						<div class="bodytext">&bull; Show Name - check box which show/hides the waypoint name.</div>
+						<div class="bodytext">&bull; Mark Icon - The waypoint can have anyone of a number of graphical icon marks, each representing a specific function/place type. Useful for identifying anchorages, buoy type, fuel stop, etc.</div>
+						<div class="bodytext">&bull; Latitude - Latitude of the mark:  Direct entry of position will move the mark to the new location.</div>
+						<div class="bodytext">&bull; Longitude - Longitude of the mark: Direct entry of position will move the mark to the new location.</div>
+						<div class="bodytext">&bull; Cancel - aborts any changes.</div>
+						<div class="bodytext">&bull; OK - updates the changes to the chart.</div>
+					</blockquote>
+				</blockquote>
+				<br />
+				
+				<!-- Route Properties -->
+				<div class="subheading">Route Properties.</div>
+				<blockquote>
+					<div class="bodytext">The route properties box contains both editing and data display functions.</div><br />
+					<div class="bodytext"><img src="images/route_properties.jpg"></div><br />
+					<div class="bodytext">&bull; Name:  Editable - the alphanumeric title of the route.</div>
+					<div class="bodytext">&bull; Depart From:  Editable - the alphanumeric title of the departure point.</div>
+					<div class="bodytext">&bull; Destination:  Editable - the alphanumeric title of the dedestination.</div>
+					<div class="bodytext">&bull; Total Distance:  Not editable - total distance in nautical miles.</div>
+					<div class="bodytext">&bull; Plan Speed:  Editable - Hulls speed in Knots.</div>
+					<div class="bodytext">&bull; Time Enroute:  Not editable - Estimated passage time based on distance x hulls speed.</div>
+					<div class="bodytext">&bull; Waypoints:  Not editable - list of waypoints. The data listes is: </div>
+					<blockquote>
+						<div class="bodytext">&bull; Waypoint ID - by number.</div>
+						<div class="bodytext">&bull; Waypoint Name - by number or name set in Waypoint properties.</div>
+						<div class="bodytext">&bull; Distance: - the distance between waypoints - the distance shown for waypoint 1 is the distance from Own Ship's position and waypoint 1: It is not added to the total route distance.</div>
+						<div class="bodytext">&bull; Bearing - the Bearing in Degrees True from waypoint X to Waypoint X + 1.</div>
+						<div class="bodytext">&bull; Longitude - position of the mark.</div>
+						<div class="bodytext">&bull; Latitude - position of the mark.</div>
+						<div class="bodytext">&bull; Elapsed Time.</div>
+					</blockquote>
+				</blockquote>
+
+			</blockquote>
+			<br />
+			
+			<!-- Right Clicks" -->
+			<a name="right_clicks"></a>				
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>General Chart Queries</div>
+			<div class="bodytext">Clicking anywhere on the O<i>penCPN </i>chart opens a pop-up box with four useful functions:</div>
+			<blockquote>
+				<div class="bodytext"><img src="images/right_click.jpg"></div><br />
+				<div class="bodytext">&bull; Drop Mark Here: This places a new mark on the Chart. This can be edited as waypoints above.</div>
+				<div class="bodytext">&bull; Move Boat Here: This moves the boat to the current cursor position.</div>
+				<div class="bodytext">&bull; Measure: This launches the Measure tool. [<a href="index.html#measure">see below</a>]</div>
+				<div class="bodytext">&bull; Object Query: Right-click any object then select Object Query, This launches the Object Properties Box</div><br />
+				<div class="bodytext"><img src="images/object_query.jpg"></div><br />
+				<div class="bodytext">&nbsp; By clicking on any category in the left panel, details will be displayed in the right panel.</div><br />
+			</blockquote>
+			<div class="spacer">&nbsp;</div>
+			
+			
+			<!-- Measure Tool -->
+			<a name="measure"></a>	
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>The Measure Tool</div>
+			<div class="bodytext">The measure tool is accessed from right-clicking on the chart and selecting the measure option. </div><br />
+			<div class="bodytext"><img src="images/measure.jpg" class="border1px"></div><br />
+			<div class="bodytext">By left clicking on the chart then moving the cursor to a new position, a real-time display is given of bearing (degrees) and range (nautical miles). To cancel the measure tool, right click the chart and select 'measure off...'.</div><br />
+			<div class="spacer">&nbsp;</div>
+			
+			<!-- Overzoom -->
+			<a name="overzoom"></a>	
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Overzoom</div>
+			<div class="bodytext">A new feature in 1.3.6 is the 'Overzoom' indicator. When zooming in on chart beyond 4x, the text 'Overzoom' appears top left, to remind users safe accuracy of the chart may have been exceeded.</div><br />
+			<div class="bodytext"><img src="images/overzoom.jpg" class="border1px"></div>
+			<div class="spacer">&nbsp;</div>
+
+			<!-- Hot Keys -->
+			<a name="hot_keys"></a>				
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Hot Keys</div>
+			<div class="bodytext">The following hot key shortcuts are defined:
+				<ul class="listtext">
+					<li><span class="subheading">F1:</span> <span class="grayed-out">Not currently used.</span></li>
+					<li><span class="subheading">F2:</span> Toggles Auto-Follow On and Off</li>
+					<li><span class="subheading">F3:</span> Show ENC Text.</li>
+					<li><span class="subheading">F4:</span> Activates the measuring tool.</span></li>
+					<li><span class="subheading">F5-7:</span><span class="grayed-out"> Not currently used.</span></li>
+					<li><span class="subheading">F8:</span> Auto Follow On</li>
+					<li><span class="subheading">F9:</span> Auto Follow Off</li>
+					<li><span class="subheading">F10:</span> Select Smaller Scale Chart (Scale In).</li>
+					<li><span class="subheading">F11:</span> Select larger Scale Chart (Scale Out).</li>
+					<li><span class="subheading">F12:</span> Toggle Hide/Show Chart outlines.</li>
+				</ul>
+				<ul class="listtext">
+					<li><span class="subheading">Arrow Keys:</span> Move the chart within the screen view  </li>
+					<li><span class="subheading">Ctrl + L-Arrow:</span> Smaller Scale Chart (Scale In) - [F10]</li>
+					<li><span class="subheading">Ctrl + R-Arrow:</span> Larger Scale Chart (Scale Out) - [F11]</li>
+				</ul>
+				<ul class="listtext">
+					<li><span class="subheading">Ctrl + 1:</span> Normal brightness</li>
+					<li><span class="subheading">Ctrl + 2:</span> Dusk brightness</li>
+					<li><span class="subheading">Ctrl + 3:</span> Night brightness</li>
+					<li><span class="subheading">Ctrl + Z:</span> Zoom In</li>
+					<li><span class="subheading">Ctrl + X</span> or <span class="subheading">-&nbsp;:</span> Zoom out</li>
+					<li><span class="subheading">Ctrl + O:</span> Show/Hide Chart outlines [F12]</li>
+					<li><span class="subheading">Ctrl + S:</span> Show/Hide ENC test [F3]</li>
+					<li><span class="subheading">Ctrl + M:</span> Drop marker at current cursor position.</li>
+					<li><span class="subheading">Ctrl + Q:</span> Quits openCPN</li>
+			</ul>
+			<ul>
+				<li><span class="subheading">Ctrl + spacebar:</span> Man Over Board, sets MOB Marker at current GPS position.</li>
+			</ul>
+			<div>&nbsp;</div>
+			
+			<!-- FAQ -->
+			<a name="faq"></a>	
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>FAQ</div>
+			<div class="bodytext"><span class="subheading">&#8226; What are all those 'U' things all over my chart?</span></div>
+			<blockquote>
+				<div class="bodytext">The feature being rendered is S57 Text relating to 'M_QUAL'. </div><br />
+				<div class="bodytext">This is a meta-object describing the quality of data shown. The Attribute of interest is CATZOC, or &quot;Category of Zone of Confidence&quot;. The value on most US ENC's is &quot;6&quot;, or &quot;un-assessed&quot;. Thus, the 'U'. </div><br />
+				<div class="bodytext">You can turn this symbol off in O<I>penCPN</I> by de-selecting the box next to M_QUAL in 'Tool Box' / 'Vector Charts' tab 'Mariners Standard' selection list box.</div><br />
+				<div class="bodytext">To learn the acronyms used in this application search the  S57 'Object and Attribute' catalog: <a href="http://www.s-57.com/">http://www.s-57.com/</a></div>
+			</blockquote>
+			<div class="spacer">&nbsp;</div>
+			
+			<div class="bodytext"><span class="subheading">&#8226; I have routes and way points in SeaClear and  I would like to import them into O<I>penCPN</i>. Can I do it?</span></div>
+			<blockquote>
+				<div class="bodytext">Yes. I had originally created and maintained all my routes and waypoints in SeaClear. I exported them, loaded them into GPSUtility (for Windows) and saved them as text files.</div>
+				<br />
+				<div class="bodytext">To import into O<i>pencpn</i>, I opened all my text files (routes and waypoints) with GPSUtility, saved that out as one big gpx file, and loaded it into O<i>penCPN</i>. Works like a champ.</div>
+				<br />
+				<div class="bodytext">I've edited them and saved them back out as gpx files with no trouble. Individual routes can be edited and saved in appropriately named .GPX files.</div>
+			</blockquote>
+			<div class="spacer">&nbsp;</div>
+				
+			<div class="bodytext"><span class="subheading">&#8226; Whenever I try to open a particular chart, O<i>penCPN</i> crashes. What's going on?</span></div>
+			<blockquote>
+				<div class="bodytext">Chances are the chart file is corrupted. Note  the  name and number of the suspect chart and replace it with a fresh download. </div><br />
+				<div class="bodytext">NOTE: A list of the charts with their names and file names can be found in the README.TEXT that accompanies the charts downloaded from NOOA.</div>
+			</blockquote>
+			<div class="spacer">&nbsp;</div>
+			
+			<div class="bodytext"><span class="subheading">&#8226; OpenCPN and Great Circle Navigation</span></div>
+			<blockquote>
+				<div class="bodytext">Raster charts display bearings and headings as straight, measurable lines on the chart. Similarly, Vector ENC's are rendered as Mercator projections in O<I>penCPN</I> and most other ECS's for the same reason. </div><br />
+				<div class="bodytext">For typical coastal navigation errors which occur using rhumb line instead of great circle calculations are small for the distances usually covered by one chart. </div><br />
+				<div class="bodytext">Great circle navigation is more useful when one wants to travel the minimum possible distance between two widely spaced points on the globe. I cannot personally imagine using one chart for one electronically navigated leg across an entire ocean. However, if I crossed an ocean with <I>openCPN </I>, I would lay out a route with great circle points manually plotted every couple of degrees, and engage the autopilot. Maybe the weather would cooperate.....</div><br />
+			</blockquote>
+			<div class="spacer">&nbsp;</div>
+			
+			<div class="bodytext">Fair winds and following seas -</div>
+			<blockquote><div class="bodytext">Dave and the O<I>penCPN</I> Team</div></blockquote>
+			<div>&nbsp;</div>
+			<a name="TOC"></a>
+
+			<!-- Yable of Contents -->
+			<a name="toc"></a>	
+			<div class="heading"><span class="float_return_top"><a href="#top">Return to top</a></span>Table of Contents</div><br />
+			<table width="800" border="0" align="center" cellpadding="0" cellspacing="2" class="tables_default">
+				<tr class="table_header">
+					<td colspan="3"><span class="listtext">Table of Contents</span></td>
+				</tr>
+				<tr>
+					<td width="50">&nbsp;</td>
+					<td width="20">&nbsp;</td>
+					<td>&nbsp;</td>
+				</tr>
+				<tr>
+					<td colspan="3"><div align="center">To be completed</div></td>
+				</tr>
+				<tr>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+				</tr>
+			</table>
+			<div class="return_top"><a href="#top">Return to top</a></div>
+		</td>
+	</tr>
+</table>
+
+
+</BODY>
+</HTML>
