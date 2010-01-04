@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: about.cpp,v 1.46 2010/01/02 02:35:34 bdbcat Exp $
+ * $Id: about.cpp,v 1.47 2010/01/04 02:18:13 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  About Dialog
@@ -27,6 +27,9 @@
  *
  *
  * $Log: about.cpp,v $
+ * Revision 1.47  2010/01/04 02:18:13  bdbcat
+ * 1.3.6
+ *
  * Revision 1.46  2010/01/02 02:35:34  bdbcat
  * 1.3.6
  *
@@ -172,7 +175,7 @@
 #include "about.h"
 #include "chart1.h"
 
-CPL_CVSID("$Id: about.cpp,v 1.46 2010/01/02 02:35:34 bdbcat Exp $");
+CPL_CVSID("$Id: about.cpp,v 1.47 2010/01/04 02:18:13 bdbcat Exp $");
 
 
 //    Some constants
@@ -191,6 +194,12 @@ char AuthorText[] =
 "   David S Register\n\
       bdbcat@yahoo.com\n\
       OpenCPN Lead Developer\n\n\
+    Gordon Mau\n\
+      gmau@hotmail.com\n\
+      OpenCPN Documentation\n\n\
+    Tim Francis\n\
+      tim.francis.asia@gmail.com\n\
+      OpenCPN Documentation\n\n\
     Mark A Sikes\n\
       markasikes@gmail.com\n\
       OpenCPN CoDeveloper\n\n\
@@ -450,23 +459,18 @@ void about::OnPageChange(wxNotebookEvent& event)
 {
       int i = event.GetSelection();
 
-      if(3 == i)                        // 3 is the index of "Tips" page
+      if(3 == i)                        // 3 is the index of "Help" page
       {
-            wxString tips_locn = _T("tips.html");
+            wxString tips_locn = _T("doc/help.html");
             tips_locn.Prepend(*m_pDataLocn);
-            wxLaunchDefaultBrowser(tips_locn);
-/*
-            if(NULL != m_ptips_window)
+            if(::wxFileExists(tips_locn))
+                  wxLaunchDefaultBrowser(tips_locn);
+            else
             {
-                  if(!m_btips_loaded)
-                  {
-                        wxString tips_locn = _T("tips.html");
-                        tips_locn.Prepend(*m_pDataLocn);
-                        m_ptips_window->LoadPage(tips_locn);
-                        m_btips_loaded = true;
-                  }
+                  wxString tips_locn = _T("doc/index.html");
+                  tips_locn.Prepend(*m_pDataLocn);
+                  wxLaunchDefaultBrowser(tips_locn);
             }
-*/
       }
 }
 
