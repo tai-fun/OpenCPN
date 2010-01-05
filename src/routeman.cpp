@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: routeman.cpp,v 1.25 2010/01/04 02:15:35 bdbcat Exp $
+ * $Id: routeman.cpp,v 1.26 2010/01/05 01:28:00 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Route Manager
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.26  2010/01/05 01:28:00  bdbcat
+ * Implement UserIcons for waypoints
+ *
  * Revision 1.25  2010/01/04 02:15:35  bdbcat
  * Set default waypoint icon
  *
@@ -87,6 +90,9 @@
  * Add RoutePoint manager
  *
  * $Log: routeman.cpp,v $
+ * Revision 1.26  2010/01/05 01:28:00  bdbcat
+ * Implement UserIcons for waypoints
+ *
  * Revision 1.25  2010/01/04 02:15:35  bdbcat
  * Set default waypoint icon
  *
@@ -251,6 +257,10 @@
 #include "bitmaps/xmred.xpm"
 #include "bitmaps/diamond.xpm"
 #include "bitmaps/activepoint.xpm"
+#include <wx/dir.h>                             // 09.10.07; toh
+#include <wx/filename.h>                        // 09.10.07; toh
+#include "wx/stdpaths.h"                        // 09.10.07; toh
+#include "wx/apptrait.h"                        // 09.10.07; toh
 
 
 extern ConsoleCanvas    *console;
@@ -262,6 +272,7 @@ extern NMEA0183         *pNMEA0183;
 extern AutoPilotWindow  *pAPilot;
 extern WayPointman      *pWayPointMan;
 extern wxRect           g_blink_rect;
+extern wxString         g_SData_Locn;     // 09.10.07; toh
 
 extern double           gLat, gLon, gSog, gCog;
 
@@ -278,7 +289,7 @@ WX_DEFINE_LIST(markicon_key_list_type);
 WX_DEFINE_LIST(markicon_description_list_type);
 
 
-CPL_CVSID("$Id: routeman.cpp,v 1.25 2010/01/04 02:15:35 bdbcat Exp $");
+CPL_CVSID("$Id: routeman.cpp,v 1.26 2010/01/05 01:28:00 bdbcat Exp $");
 
 //--------------------------------------------------------------------------------
 //      Routeman   "Route Manager"
@@ -1066,6 +1077,41 @@ WayPointman::WayPointman()
       MAKEICONARRAYS("xmgreen", xmgreen, "Green X")
       MAKEICONARRAYS("xmred", xmred, "Red X")
       MAKEICONARRAYS("activepoint", activepoint, "Active WP")
+
+// Load user defined icons; toh, 09.10.07
+      wxString UserIconPath = g_SData_Locn;
+      UserIconPath.Append(_T("UserIcons"));
+      if(wxDir::Exists(UserIconPath))
+      {
+            wxArrayString FileList;
+
+            wxDir dir(UserIconPath);
+            int n_files = dir.GetAllFiles(UserIconPath, &FileList);
+
+            for(int ifile=0 ; ifile < n_files ; ifile++)
+            {
+                  wxString name = FileList.Item(ifile);
+
+                  wxString iconname = name.BeforeFirst('.');
+
+      #ifdef __WXMSW__
+                  iconname = iconname.AfterLast('\\');
+      #else
+                  iconname = iconname.AfterLast('/');
+      #endif
+
+                  wxBitmap icon1;
+
+                  if (icon1.LoadFile(name,wxBITMAP_TYPE_XPM))
+                  {
+                        wxImage *iconImage = new wxImage;
+                        *iconImage = icon1.ConvertToImage();
+                        ProcessIcon(iconImage,iconname,iconname);
+                        delete iconImage;
+                  }
+            }
+      }
+// End load user defined icons; toh, 09.10.07
 
       m_nIcons = DayIconArray.GetCount();
       m_pcurrent_icon_array = &DayIconArray;
