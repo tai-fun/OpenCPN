@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chart1.cpp,v 1.72 2010/01/04 02:11:52 bdbcat Exp $
+ * $Id: chart1.cpp,v 1.73 2010/01/05 01:25:08 bdbcat Exp $
  *
  * Project:  OpenCPN
  * Purpose:  OpenCPN Main wxWidgets Program
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chart1.cpp,v $
+ * Revision 1.73  2010/01/05 01:25:08  bdbcat
+ * Move WaypointManager()
+ *
  * Revision 1.72  2010/01/04 02:11:52  bdbcat
  * Restore stack index on load
  *
@@ -296,7 +299,7 @@ WX_DEFINE_OBJARRAY(ArrayOfCDI);
 //------------------------------------------------------------------------------
 //      Static variable definition
 //------------------------------------------------------------------------------
-CPL_CVSID("$Id: chart1.cpp,v 1.72 2010/01/04 02:11:52 bdbcat Exp $");
+CPL_CVSID("$Id: chart1.cpp,v 1.73 2010/01/05 01:25:08 bdbcat Exp $");
 
 
 FILE            *flog;                  // log file
@@ -989,12 +992,6 @@ bool MyApp::OnInit()
 //      Init the Selectable AIS Target List
         pSelectAIS = new Select();
 
-//      Init the Route Manager
-        pRouteMan = new Routeman();
-
-//      Init the WayPoint Manager
-        pWayPointMan = new WayPointman();
-
 //      Who am I?
         phost_name = new wxString(::wxGetHostName());
 
@@ -1022,9 +1019,18 @@ bool MyApp::OnInit()
             * Windows: the directory where the executable file is located
             * Mac: appname.app/Contents/SharedSupport bundle subdirectory
 */
-
         g_SData_Locn = std_path.GetDataDir();         // where the application is located
         appendOSDirSlash(&g_SData_Locn) ;
+
+        imsg = _T("SData_Locn is ");
+        imsg += g_SData_Locn;
+        wxLogMessage(imsg);
+
+//      Init the Route Manager
+        pRouteMan = new Routeman();
+
+//      Init the WayPoint Manager
+        pWayPointMan = new WayPointman();
 
 
 //      Establish the location of the config file
@@ -1131,7 +1137,6 @@ bool MyApp::OnInit()
 
       //    Always use dot as decimal
         setlocale(LC_NUMERIC,"C");
-
 
         //        A special case for windows, which has some trouble finding the data files....
 #ifdef __WXMSW__
