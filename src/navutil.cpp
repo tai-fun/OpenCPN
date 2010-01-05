@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.60  2010/01/05 01:26:12  bdbcat
+ * Correct Hyperlinklist logic
+ *
  * Revision 1.59  2010/01/04 02:16:04  bdbcat
  * Major changes to GPX
  *
@@ -229,7 +232,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.59 2010/01/04 02:16:04 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.60 2010/01/05 01:26:12 bdbcat Exp $" );
 
 //    Statics
 
@@ -886,7 +889,11 @@ RoutePoint::~RoutePoint ( void )
       if ( NULL != pWayPointMan )
             pWayPointMan->m_pWayPointList->DeleteObject ( this );
 
-      delete m_HyperlinkList;
+      if(m_HyperlinkList)
+      {
+            m_HyperlinkList->DeleteContents(true);
+            delete m_HyperlinkList;
+      }
 }
 
 wxString RoutePoint::CreatePropString ( void )
@@ -2272,7 +2279,10 @@ int MyConfig::LoadMyConfig ( int iteration )
 
             double dval;
             if ( Read ( _T ( "S52_MAR_SAFETY_CONTOUR" ), &dval, 5.0 ) )
+            {
                   S52_setMarinerParam ( S52_MAR_SAFETY_CONTOUR, dval );
+                  S52_setMarinerParam ( S52_MAR_SAFETY_DEPTH, dval );  // Set safety_contour and safety_depth the same
+            }
 
             if ( Read ( _T ( "S52_MAR_SHALLOW_CONTOUR" ), &dval, 3.0 ) )
                   S52_setMarinerParam ( S52_MAR_SHALLOW_CONTOUR, dval );
@@ -4024,7 +4034,8 @@ RoutePoint *LoadGPXTrackpoint ( wxXmlNode* wptnode )
             // Read hyperlink
             else if ( ChildName == _T ( "link" ) )
             {
-                  linklist = new HyperlinkList;
+                  if(linklist == NULL)
+                        linklist = new HyperlinkList;
 
                   HrefString = child->GetPropVal ( _T ( "href" ),_T ( "" ) );
 
