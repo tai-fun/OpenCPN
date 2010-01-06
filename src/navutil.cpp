@@ -27,6 +27,9 @@
  *
  *
  * $Log: navutil.cpp,v $
+ * Revision 1.61  2010/01/06 00:06:57  bdbcat
+ * 1.3.6 Final
+ *
  * Revision 1.60  2010/01/05 01:26:12  bdbcat
  * Correct Hyperlinklist logic
  *
@@ -232,7 +235,7 @@
 #include "s52plib.h"
 #endif
 
-CPL_CVSID ( "$Id: navutil.cpp,v 1.60 2010/01/05 01:26:12 bdbcat Exp $" );
+CPL_CVSID ( "$Id: navutil.cpp,v 1.61 2010/01/06 00:06:57 bdbcat Exp $" );
 
 //    Statics
 
@@ -2760,6 +2763,8 @@ int MyConfig::LoadMyConfig ( int iteration )
                         wxString str_hyperlinks;
                         wxString sipb3 = sipb;
                         sipb3.Append ( _T ( "Link" ) );
+
+                        pWP->m_HyperlinkList->Clear();            // toh, 2010.01.05
 
                         bool cont = true;
                         int i=1;
