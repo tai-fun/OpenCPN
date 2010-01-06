@@ -1,3 +1,123 @@
+1.3.6 Changelog
+
+1.  Correct UWTROC symbolization for covered/uncovered rocks.
+2.  Correct BSB Chart PLY values for DTM on non-WGS84 datum charts.
+3.  Correct track last point logic, which was erroneously creating null track segs.
+4.  Correct symbolization of CM93 CTRPNT object.  Requires new s57data files.
+5.  Experimentally correct Route->SendToGPS, new default routename in xxRTE sentence is '00'.  Needs test...
+6.  Correct logic on startup with no chart database nor config file, in case user skips chart selection.
+7.  Improve cm93 symbolization, anchors and chains.
+8.  Correct COM ports left open on termination and after SendToGPS.
+9.  Add additional timeout between NMEA messages on SendToGPS.
+10. Experimentally change NMEA xxRTE message to use uppercase "C".  May break some existing GPS interfaces. Needs test...
+11. Correct some compound cm93/S57 light description strings, such as VQ(6)+LFL W 10s 8m 5M
+12. Correct RNC outline logic for non-rectangular charts crossing 180 E/W.
+13. Improve georeferencing algorithms for RNC's with small number of REF points.
+14. Correct memory leaks and generally improve performance in tracking function.
+15. Remove yellow chart accuracy highlighting hints on tracks due to high performance penalty.
+16. Allow only one "?" dialog.
+17. Allow extreme overzoom, with on-screen notification.
+18. Correct loss of wheel zoom and hotkeys after minimization on MSW.
+19. Correct occasional hang/crash on chart window resize.
+20. Add support for $xxGLL and $xxVTG NMEA sentences.
+21. Correct "MAX Detail Here" logic
+22. Implement preliminary GRIB file support.
+23. Force uni-core operation for multi-core processors under MSW.
+----Release Beta 1117----
+
+24. Correct large memory leak when displaying GRIBs in MSW.
+25. Correct crash on initial COM port error dialog in MSW.
+----Release Beta 1118----
+
+26. Correct RNC display spanning Longitude 0 (Greenwich)
+27. Correct CM93 DISMAR (Distance mark) symbolization.
+28. Correct error allowing two GRIB dialogs at one time, precluding consequent crash.
+29. Correctly interpret /DTM on RNC chart header.
+30. Correct RNC georef algorithms for REF points <= 12
+31. Correct small bug on RouteProperties page.
+32. Improve GRIB Wind barb and iosbar drawing speed and efficiency.
+33. Correct Unicode compile errors on vtg.cpp and gll.cpp.
+34. Correct crash on GRIB directory change after showing valid GRIBs
+35. On GRIB dialog open, pre-read at most 5 (five) most recent GRIB files to improve performance.
+36. Allow GRIB files with no indicated file type extension, such as ""grb" or "bz2".
+37. Add Toolbar->GRIB checkbox option for Hi Definition graphics;  Lo Definiton may be faster on some platforms.....
+38. Increase (slightly) the fully zoomed out scale available for cm93 charts.
+39. Correct GPX Track data structure and file format.
+40. Add confirm message if GPX Export will overwrite an existing file.
+41. In Toolbox->Etc, add option to "Preserve Scale" on chart switch.
+----Release Beta 1122----
+
+42. Implement Track Number scheme.
+43. Correct minor ownship drawing errors near screen edge.
+44. Correct trans-Pacific GRIB wind barb drawing
+45. Correctly interpret GLL and VTG sentences which have NULL fields or invalid data.
+46. Correct GRIB file sort logic
+47. Correct crash on close Waypoint Properties dialog after deleting the displayed point. 
+48. Ditto for Routes and Tracks
+49. Add ForceUpdate button to Toolbox->Charts.
+50. Disable ToolBar on chart database update cycle.
+51. On overzoomed CM93 charts, when ShowChartOutlines is OFF, show available larger scale chart outlines with dashed line.
+52. Correct position and vertical scaling of Tide/Current window
+53. Correct default size of GRIB Dialog
+54. Make GRIB Dialog tracking text controls READ_ONLY.
+54. Make Options->Charts selected directory text control READ_ONLY.
+55. Prepare for International message support using gnu gettext method...More to come...
+56. Implement NOAA WW3 Significant Wave Height/Wave Direction GRIB display.
+57. Convert RouteProperties Distance calculations to traditional Mercator Sailing algorithm.
+58. Add NMEA Data Monitor window.
+59. Rebuild Toolbox with new tabs to provide more headroom...
+60. Preserve Track On/Off state in config file.
+61. Add defaults for track parameters to config file
+62. Convert MSW builds to use dll C runtime libraries vs. static linked C-RTL.
+----Release Beta 1210----
+
+63. Correct GRIB SIGHW tracking logic causing fault.
+64. Implement transparency for some GRIB overlays.
+65. Correct Database update logic for currently open or cached charts.
+66. Improve HiDef GRIB Isobar rendering with splines.
+67. Improve Mercator distance/direction algorithms.
+68  Improve performance of chart database update cycle.
+69. Correct UWRTOC symbolization rules
+70. Correct cm93 crash above Latitude 80N/S
+----Release Beta 1216----
+
+71.  Correct rendering of multi-part GRIB isobars
+72.  Correct short distance panning of some RNCs which use Mercator georef estimator.
+73.  Correct memory leaks in GRIB subsystem.
+74.  Improve chart database scanning and building rules.
+75.  Add more localized messages and languages.
+76.  Add support for QuickScat GRIBs.
+----Release Beta 1222----
+
+77,  Correct config file load of ownship position.
+78.  Modify linux Makefile to create LC_MESSAGES dirs as necessary
+79.  Update GRIB data boxes on cursor navigation of GRIB tree in dialog.
+80.  Improve Language dialog by allowing only those locales generally available on system
+81.  Correct Large GRIB window calculations.
+82.  Improve short distance panning of some RNCs which use Mercator georef estimator.
+83.  Change symbolization of UWTROC which is always dry
+84.  Correct Euro GRIB wind arrow display.
+85   Convert  Windows installer to .MSI format.
+86.  Improve scaling of Tide and Current graphs.
+----Release 1.3.6 RC1226----
+
+87.  Change symbol for "UWTROC always dry" to same as "LNDARE as point feature".
+88.  Correct database logic preventing multiple duplicate chart additions.
+89.  Correct keyboard control logic for manipulation of cm93 detail slider.
+90.  Correct GPX output format using xmlns:opencpn extensions.
+91.  Arrange to start opencpn with last displayed chart, scale, and zoom.
+92.  Update Help file
+----Release 1.3.6----
+
+93.  Load and set S52 safety depth value from config file.
+94.  Implement UserIcons for waypoints.
+95.  Correct Waypoint hyperlink logic
+96.  Copy .mo files to proper destination
+97.  Correct Makefiles for Help file install.
+
+----Re-Release 1.3.6----
+
+
 1.3.4 ChangeLog
 
 1.  Improve AIS Target Management
