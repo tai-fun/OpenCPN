@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn 1.3.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-01 21:50-0500\n"
-"PO-Revision-Date: 2010-01-02 07:43+0100\n"
+"POT-Creation-Date: 2010-01-04 16:02-0500\n"
+"PO-Revision-Date: 2010-01-04 23:48+0100\n"
 "Last-Translator: Jesus <jsio@gmx.com>\n"
 "Language-Team: SpanishTeam LaTabernadelPuerto.com <opencpn.es@gmx.com>\n"
 "MIME-Version: 1.0\n"
@@ -18,32 +18,32 @@ msgstr ""
 "X-Poedit-Country: SPAIN\n"
 
 #
-#: src/about.cpp:332
+#: src/about.cpp:341
 msgid "OpenCPN...A Nice Little Open Source Chart Plotter/Navigator"
 msgstr "OpenCPN... es un programa Open Source simple y conciso para navegación/cartografía naútica"
 
 #
-#: src/about.cpp:341
+#: src/about.cpp:350
 msgid "About"
 msgstr "Acerca de"
 
 #
-#: src/about.cpp:360
+#: src/about.cpp:369
 msgid "Authors"
 msgstr "Autores"
 
 #
-#: src/about.cpp:376
+#: src/about.cpp:385
 msgid "License"
 msgstr "Licencia"
 
 #
-#: src/about.cpp:423
+#: src/about.cpp:432
 msgid "Help"
 msgstr "Ayuda"
 
 #
-#: src/about.cpp:438
+#: src/about.cpp:447
 msgid "Close"
 msgstr "Cerrar"
 
@@ -233,7 +233,7 @@ msgstr ""
 #
 #: src/ais.cpp:1719
 #: src/ais.cpp:1763
-#: src/chart1.cpp:3998
+#: src/chart1.cpp:4005
 #: src/nmea.cpp:183
 msgid "OpenCPN Message"
 msgstr "Mensaje OpenCPN"
@@ -259,25 +259,25 @@ msgid "AIS Alert"
 msgstr "Alerta AIS"
 
 #
-#: src/chart1.cpp:1495
+#: src/chart1.cpp:1499
 msgid "OpenCPN needs to update the chart database from config file entries...."
 msgstr "OpenCPN necesita actualizar la base de datos desde los archivos de configuración...."
 
 #
-#: src/chart1.cpp:1497
-#: src/chart1.cpp:1521
-#: src/chart1.cpp:3367
+#: src/chart1.cpp:1501
+#: src/chart1.cpp:1525
+#: src/chart1.cpp:3374
 msgid "OpenCPN Info"
 msgstr "Información OpenCPN"
 
 #
-#: src/chart1.cpp:1505
-#: src/chart1.cpp:3276
+#: src/chart1.cpp:1509
+#: src/chart1.cpp:3283
 msgid "OpenCPN Chart Update"
 msgstr "Actualizar Cartas OpenCPN"
 
 #
-#: src/chart1.cpp:1519
+#: src/chart1.cpp:1523
 msgid ""
 "           No Charts Installed.\n"
 "Please select chart folders in ToolBox->Charts."
@@ -286,109 +286,109 @@ msgstr ""
 "Por favor seleccione carpeta de cartas en Herramientas->Cartas."
 
 #
-#: src/chart1.cpp:2134
+#: src/chart1.cpp:2138
 msgid "Shift to Larger Scale Chart"
 msgstr "Ajustar Carta a Escala Mayor"
 
 #
-#: src/chart1.cpp:2136
+#: src/chart1.cpp:2140
 msgid "Shift to Smaller Scale Chart"
 msgstr "Ajustar Carta a Escala Menor"
 
 #
-#: src/chart1.cpp:2142
+#: src/chart1.cpp:2146
 msgid "Create Route"
 msgstr "Crear Ruta"
 
 #
-#: src/chart1.cpp:2144
+#: src/chart1.cpp:2148
 msgid "Auto Follow"
 msgstr "Autoseguimiento"
 
 #
-#: src/chart1.cpp:2150
-#: src/chart1.cpp:3203
+#: src/chart1.cpp:2154
+#: src/chart1.cpp:3210
 msgid "ToolBox"
 msgstr "Herramientas"
 
 #
-#: src/chart1.cpp:2152
+#: src/chart1.cpp:2156
 msgid "Show ENC Text"
 msgstr "Mostrar Texto ENC"
 
 #
-#: src/chart1.cpp:2158
+#: src/chart1.cpp:2162
 msgid "Show Currents"
 msgstr "Mostrar Corrientes"
 
 #
-#: src/chart1.cpp:2160
+#: src/chart1.cpp:2164
 msgid "Show Tides"
 msgstr "Mostrar Mareas"
 
 #
-#: src/chart1.cpp:2168
+#: src/chart1.cpp:2172
 msgid "Print Chart"
 msgstr "Imprimir Carta"
 
 #
-#: src/chart1.cpp:2176
+#: src/chart1.cpp:2180
 msgid "Import GPX file"
 msgstr "Importar Fichero GPX"
 
 #
-#: src/chart1.cpp:2180
+#: src/chart1.cpp:2184
 msgid "Export GPX file"
 msgstr "Exportar Fichero GPX"
 
 #
-#: src/chart1.cpp:2188
+#: src/chart1.cpp:2192
 msgid "Toggle Tracking"
 msgstr "Activar seguimiento"
 
 #
-#: src/chart1.cpp:2196
+#: src/chart1.cpp:2200
 msgid "Show GRIB dialog"
 msgstr "Mostrar diálogo GRIB"
 
 #
-#: src/chart1.cpp:2203
+#: src/chart1.cpp:2207
 msgid "Change Color Scheme"
 msgstr "Cambiar Esquema Color"
 
 #
-#: src/chart1.cpp:2205
+#: src/chart1.cpp:2209
 msgid "About OpenCPN"
 msgstr "Acerca de OpenCPN"
 
 #
-#: src/chart1.cpp:2242
-#: src/chart1.cpp:3840
+#: src/chart1.cpp:2246
+#: src/chart1.cpp:3847
 msgid "Exit OpenCPN"
 msgstr "Salir de OpenCPN"
 
 #
-#: src/chart1.cpp:2958
+#: src/chart1.cpp:2965
 msgid "Chart1::Event...TCMgr Not Available"
 msgstr "Chart1::Event...TCMgr No Disponible"
 
 #
-#: src/chart1.cpp:3367
+#: src/chart1.cpp:3374
 msgid "Please restart OpenCPN to activate new language selection."
 msgstr "Reinicie OpenCPN para activar nuevo idioma."
 
 #
-#: src/chart1.cpp:3995
+#: src/chart1.cpp:4002
 msgid "Chart file corrupt.. disabling this chart \n"
 msgstr "Fichero de carta corrupto.. desactivando carta \n"
 
 #
-#: src/chart1.cpp:4450
+#: src/chart1.cpp:4460
 msgid "Chart Print"
 msgstr "Imprimir Carta"
 
 #
-#: src/chart1.cpp:4454
+#: src/chart1.cpp:4464
 msgid ""
 "There was a problem printing.\n"
 "Perhaps your current printer is not set correctly?"
@@ -397,7 +397,7 @@ msgstr ""
 "Puede que su impresora no esté correctamente configurada"
 
 #
-#: src/chart1.cpp:4866
+#: src/chart1.cpp:4876
 msgid " Ship: "
 msgstr " Barco: "
 
@@ -714,7 +714,7 @@ msgstr "Búsqueda Destino AIS"
 #
 #: src/chcanv.cpp:7488
 #: src/chcanv.cpp:7723
-#: src/navutil.cpp:6196
+#: src/navutil.cpp:5252
 msgid "&OK"
 msgstr "&Aceptar"
 
@@ -802,96 +802,96 @@ msgid "Please Zoom or Scale Out to view suppressed CRAIN GRIB"
 msgstr "Ajuste Zoom o Escala para ver CRAIN GRIB eliminado"
 
 #
-#: src/navutil.cpp:6096
+#: src/navutil.cpp:5152
 msgid "&Font family:"
 msgstr "Tipo de &Fuente:"
 
 #
-#: src/navutil.cpp:6102
-#: src/navutil.cpp:6104
+#: src/navutil.cpp:5158
+#: src/navutil.cpp:5160
 msgid "The font family."
 msgstr "Tipo de fuente."
 
 #
-#: src/navutil.cpp:6109
+#: src/navutil.cpp:5165
 msgid "&Style:"
 msgstr "E&stilo:"
 
 #
-#: src/navutil.cpp:6113
-#: src/navutil.cpp:6115
+#: src/navutil.cpp:5169
+#: src/navutil.cpp:5171
 msgid "The font style."
 msgstr "Estilo de fuente."
 
 #
-#: src/navutil.cpp:6120
+#: src/navutil.cpp:5176
 msgid "&Weight:"
 msgstr "Tamaño:"
 
 #
-#: src/navutil.cpp:6124
-#: src/navutil.cpp:6126
+#: src/navutil.cpp:5180
+#: src/navutil.cpp:5182
 msgid "The font weight."
 msgstr "Tamaño de fuente."
 
 #
-#: src/navutil.cpp:6133
+#: src/navutil.cpp:5189
 msgid "C&olour:"
 msgstr "C&olor:"
 
 #
-#: src/navutil.cpp:6143
-#: src/navutil.cpp:6145
+#: src/navutil.cpp:5199
+#: src/navutil.cpp:5201
 msgid "The font colour."
 msgstr "Color de fuente."
 
 #
-#: src/navutil.cpp:6151
+#: src/navutil.cpp:5207
 msgid "&Point size:"
 msgstr "Tamaño de &Punto:"
 
 #
-#: src/navutil.cpp:6156
-#: src/navutil.cpp:6158
+#: src/navutil.cpp:5212
+#: src/navutil.cpp:5214
 msgid "The font point size."
 msgstr "Tamaño de punto de fuente."
 
 #
-#: src/navutil.cpp:6165
+#: src/navutil.cpp:5221
 msgid "&Underline"
 msgstr "&Subrayar"
 
 #
-#: src/navutil.cpp:6168
-#: src/navutil.cpp:6170
+#: src/navutil.cpp:5224
+#: src/navutil.cpp:5226
 msgid "Whether the font is underlined."
 msgstr "Si la fuente está subrayada."
 
 #
-#: src/navutil.cpp:6177
+#: src/navutil.cpp:5233
 msgid "Preview:"
 msgstr "Vista previa:"
 
 #
-#: src/navutil.cpp:6182
-#: src/navutil.cpp:6184
+#: src/navutil.cpp:5238
+#: src/navutil.cpp:5240
 msgid "Shows the font preview."
 msgstr "Muestra vista previa de fuente."
 
 #
-#: src/navutil.cpp:6191
+#: src/navutil.cpp:5247
 #: src/options.cpp:412
 msgid "&Cancel"
 msgstr "&Cancelar"
 
 #
-#: src/navutil.cpp:6193
+#: src/navutil.cpp:5249
 msgid "Click to cancel the font selection."
 msgstr "Pulse para cancelar selección de fuente."
 
 #
-#: src/navutil.cpp:6198
-#: src/navutil.cpp:6200
+#: src/navutil.cpp:5254
+#: src/navutil.cpp:5256
 msgid "Click to confirm the font selection."
 msgstr "Pulse para confirmar selección de fuente."
 
@@ -1474,22 +1474,22 @@ msgid "WAV files (*.wav)|*.wav|All files (*.*)|*.*"
 msgstr "Archivos WAV (*.wav)|*.wav|Todos los archivos (*.*)|*.*"
 
 #
-#: src/routeman.cpp:880
+#: src/routeman.cpp:891
 msgid "GPS/Plotter Port"
 msgstr "Puerto GPS/Plotter"
 
 #
-#: src/routeman.cpp:905
+#: src/routeman.cpp:916
 msgid "Prepare GPS for Route/Waypoint upload and press Send..."
 msgstr "Prepare GPS para actualizar Ruta/Waypoint y pulse Enviar..."
 
 #
-#: src/routeman.cpp:909
+#: src/routeman.cpp:920
 msgid "Progress..."
 msgstr "Progreso..."
 
 #
-#: src/routeman.cpp:922
+#: src/routeman.cpp:933
 #: src/routeprop.cpp:226
 #: src/routeprop.cpp:713
 #: src/routeprop.cpp:1108
@@ -1497,7 +1497,7 @@ msgid "Cancel"
 msgstr "Cancelar"
 
 #
-#: src/routeman.cpp:925
+#: src/routeman.cpp:936
 msgid "Send"
 msgstr "Enviar"
 
