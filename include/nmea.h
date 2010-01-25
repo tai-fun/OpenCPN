@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nmea.h,v 1.25 2010/01/25 01:31:53 badfeed Exp $
+ * $Id: nmea.h,v 1.26 2010/01/25 20:27:15 badfeed Exp $
  *
  * Project:  OpenCP
  * Purpose:  NMEA Data Object
@@ -26,8 +26,8 @@
  ***************************************************************************
  *
  * $Log: nmea.h,v $
- * Revision 1.25  2010/01/25 01:31:53  badfeed
- * Re-enable GSocket rename workaround for gtk
+ * Revision 1.26  2010/01/25 20:27:15  badfeed
+ * Undo re-enabled GSocket rename workaround for gtk, until a better approach is found
  *
  * Revision 1.24  2010/01/02 01:58:12  bdbcat
  * Clone Event
@@ -109,10 +109,10 @@
 // newer versions of glib define its own GSocket but we unfortunately use this
 // name in our own (semi-)public header and so can't change it -- rename glib
 // one instead
-#define GSocket GlibGSocket
-#include <gtk/gtk.h>
+//#define GSocket GlibGSocket
+//#include <gdk/gdk.h>
 //#include <glib.h>
-#undef GSocket
+//#undef GSocket
 #endif
 
 
