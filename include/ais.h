@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ais.h,v 1.27 2010/01/02 01:58:33 bdbcat Exp $
+ * $Id: ais.h,v 1.28 2010/02/03 02:55:13 badfeed Exp $
  *
  * Project:  OpenCPN
  * Purpose:  AIS Decoder Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: ais.h,v $
+ * Revision 1.28  2010/02/03 02:55:13  badfeed
+ * Re-enable GSocket rename workaround for gtk, take 2.
+ *
  * Revision 1.27  2010/01/02 01:58:33  bdbcat
  * New Event, Clone Event
  *
@@ -110,7 +113,6 @@
  *
  */
 
-
 #include "wx/wxprec.h"
 
 #ifndef  WX_PRECOMP
@@ -118,7 +120,21 @@
 #endif //precompiled headers
 
 #include <wx/datetime.h>
+
+////////////TH//////////////////
+#ifdef __WXGTK__
+// newer versions of glib define its own GSocket but we unfortunately use this
+// name in our own (semi-)public header and so can't change it -- rename glib
+// one instead
+#define GSocket GlibGSocket
+#include <gtk/gtk.h>
+//#include <glib.h>
 #include "wx/socket.h"
+#undef GSocket
+#else
+#include "wx/socket.h"
+#endif
+///////////TH100126////////////////
 #include "wx/sound.h"
 
 #include "dychart.h"
