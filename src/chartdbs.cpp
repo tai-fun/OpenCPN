@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.cpp,v 1.7 2010/01/02 02:01:52 bdbcat Exp $
+* $Id: chartdbs.cpp,v 1.8 2010/02/09 01:57:59 badfeed Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.cpp,v $
+* Revision 1.8  2010/02/09 01:57:59  badfeed
+* fix a few case-sensitivity problems, particularly with cm93
+*
 * Revision 1.7  2010/01/02 02:01:52  bdbcat
 * Correct to disallow multiple same chart additions
 *
@@ -760,23 +763,16 @@ int ChartDatabase::TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDia
 
 
       nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.geo")), pprog);
-
-      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.KAP")), pprog);
-#ifndef  __WXMSW__
       nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.kap")), pprog);
-#endif
-
-
 
 #ifdef USE_S57
       nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.000")), pprog);
-
-      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.S57")), pprog);
+      nAdd += SearchDirAndAddCharts(dir_path, wxString(_T("*.s57")), pprog);
 #endif
 
 
 #ifdef USE_CM93
-      nAdd += SearchDirAndAddCharts(dir_path, _T("00300000.A"), pprog);     // for cm93
+      nAdd += SearchDirAndAddCharts(dir_path, _T("00300000.a"), pprog);     // for cm93
 #endif
 
       return nAdd;
@@ -901,7 +897,7 @@ wxString ChartDatabase::Check_CM93_Structure(wxString dir_name)
                   wxDir dir_n(dir_next);
                   wxString candidate_n;
 
-                  wxRegEx test_n(_T("^[A-G]"));
+                  wxRegEx test_n(_T("^[A-Ga-g]"));
                   bool b_probably_found_cm93 = false;
                   bool b_cont_n = dir_n.GetFirst(&candidate_n);
                   while(b_cont_n)
@@ -952,7 +948,7 @@ wxString ChartDatabase::Check_CM93_Structure(wxString dir_name)
 // ----------------------------------------------------------------------------
 
 int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString& filespec_base,
-                                         wxProgressDialog *pprog, bool bCheckBothCases)
+                                         wxProgressDialog *pprog)
 {
       wxString msg(_T("Searching directory: "));
       msg += dir_name_base;
@@ -964,8 +960,8 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
             return 0;
 
       wxString dir_name = dir_name_base;
-      wxString filespec = filespec_base;
-
+      wxString filespec = filespec_base.Upper();
+      wxString lowerFileSpec = filespec.Lower();
       wxString filename;
 
 //    Count the files
@@ -980,7 +976,7 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
       wxString cm93_cell_name = Check_CM93_Structure(dir_name);
       if(cm93_cell_name.Len())
       {
-            if(filespec != _T("00300000.A"))
+            if (filespec != _T("00300000.A"))
                   return false;
             else
                   filespec = cm93_cell_name;
@@ -988,9 +984,17 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
 
 
       wxDir dir(dir_name);
-
       dir.GetAllFiles(dir_name, &FileList, filespec, gaf_flags);
-
+#ifndef __WXMSW__
+      if (filespec != lowerFileSpec)
+      {
+          // add lowercase filespec files too
+          wxArrayString lowerFileList;
+          dir.GetAllFiles(dir_name, &lowerFileList, lowerFileSpec, gaf_flags);
+          for (wxArrayString::const_iterator item = lowerFileList.begin(); item != lowerFileList.end(); item++)
+              FileList.Add(*item);
+      }
+#endif
 
       int nFile = FileList.GetCount();
 
@@ -1018,10 +1022,8 @@ int ChartDatabase::SearchDirAndAddCharts(wxString& dir_name_base, const wxString
             wxString file_name = file.GetFullName();
 
             //    Validate the file name again, considering MSW's semi-random treatment of case....
-            wxString fs_upper = filespec.Upper();
-            wxString fs_lower = filespec.Lower();
-
-            if(!file_name.Matches(fs_lower) && !file_name.Matches(fs_upper))
+            // TODO...something fishy here - may need to normalize saved name?
+            if(!file_name.Matches(lowerFileSpec) && !file_name.Matches(filespec))
                 continue;
 
             if(pprog)

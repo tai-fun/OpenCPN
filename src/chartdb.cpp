@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: chartdb.cpp,v 1.32 2009/12/22 21:42:02 bdbcat Exp $
+ * $Id: chartdb.cpp,v 1.33 2010/02/09 01:57:58 badfeed Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Chart Database Object
@@ -26,6 +26,9 @@
  ***************************************************************************
  *
  * $Log: chartdb.cpp,v $
+ * Revision 1.33  2010/02/09 01:57:58  badfeed
+ * fix a few case-sensitivity problems, particularly with cm93
+ *
  * Revision 1.32  2009/12/22 21:42:02  bdbcat
  * Cleanup Messages
  *
@@ -158,7 +161,7 @@ extern int          g_nCacheLimit;
 bool G_FloatPtInPolygon(MyFlPoint *rgpts, int wnumpts, float x, float y) ;
 
 
-CPL_CVSID("$Id: chartdb.cpp,v 1.32 2009/12/22 21:42:02 bdbcat Exp $");
+CPL_CVSID("$Id: chartdb.cpp,v 1.33 2010/02/09 01:57:58 badfeed Exp $");
 
 // ============================================================================
 // implementation
@@ -226,7 +229,7 @@ ChartBase *ChartDB::GetChart(const wxChar *theFilePath) const
       else {
             wxRegEx rxName(wxT("[0-9]+"));
             wxRegEx rxExt(wxT("[A-G]"));
-            if (rxName.Matches(fn.GetName()) && rxExt.Matches(fn.GetExt())) {
+            if (rxName.Matches(fn.GetName()) && rxExt.Matches(chartExt)) {
                   pch = new cm93compchart;
             }
       }

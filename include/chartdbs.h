@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: chartdbs.h,v 1.3 2010/01/02 02:15:35 bdbcat Exp $
+* $Id: chartdbs.h,v 1.4 2010/02/09 01:58:44 badfeed Exp $
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -26,6 +26,9 @@
 ***************************************************************************
 *
 * $Log: chartdbs.h,v $
+* Revision 1.4  2010/02/09 01:58:44  badfeed
+* fix a few case-sensitivity problems, particularly with cm93
+*
 * Revision 1.3  2010/01/02 02:15:35  bdbcat
 * Correct to disallow multiple same chart additions
 *
@@ -201,7 +204,7 @@ protected:
 
 private:
     bool IsChartDirUsed(const wxString &theDir);
-    int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, wxProgressDialog *pprog, bool bCheckBothCases = false);
+    int SearchDirAndAddCharts(wxString& dir, const wxString& filespec, wxProgressDialog *pprog);
     int TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDialog *pprog, wxString& dir_magic, bool bForce);
     bool DetectDirChange(wxString dir_path, wxString magic, wxString &new_magic, wxProgressDialog *pprog);
     wxString Check_CM93_Structure(wxString dir_name);

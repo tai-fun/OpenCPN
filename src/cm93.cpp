@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cm93.cpp,v 1.31 2009/12/26 21:14:30 bdbcat Exp $
+ * $Id: cm93.cpp,v 1.32 2010/02/09 01:57:59 badfeed Exp $
  *
  * Project:  OpenCPN
  * Purpose:  cm93 Chart Object
@@ -27,6 +27,9 @@
  *
 
  * $Log: cm93.cpp,v $
+ * Revision 1.32  2010/02/09 01:57:59  badfeed
+ * fix a few case-sensitivity problems, particularly with cm93
+ *
  * Revision 1.31  2009/12/26 21:14:30  bdbcat
  * Update per Pierre
  *
@@ -217,6 +220,34 @@ static unsigned char Decode_table[256];
 
 static bool  cm93_decode_table_created;
 
+// Case-insensitive cm93 directory tree depth-first traversal to find the dictionary...
+// This could be made simpler, but matches the old code better as is
+class FindCM93Dictionary : public wxDirTraverser
+{
+public:
+    FindCM93Dictionary(wxString& path) : m_path(path) {}
+
+    virtual wxDirTraverseResult OnFile(const wxString& filename)
+    {
+        wxString name = filename.AfterLast(wxFileName::GetPathSeparator()).Lower();
+        if (name == wxT("cm93obj.dic"))
+        {
+            m_path = filename;
+            return wxDIR_STOP;
+        }
+
+        return wxDIR_CONTINUE;
+    }
+
+    virtual wxDirTraverseResult OnDir(const wxString& WXUNUSED(dirname))
+    {
+        return wxDIR_CONTINUE;
+    }
+
+private:
+    wxString& m_path;
+};
+
 cm93_dictionary::cm93_dictionary()
 {
       m_S57ClassArray   = NULL;
@@ -248,8 +279,12 @@ bool cm93_dictionary::LoadDictionary(wxString dictionary_dir)
       wxString sf(dir);
       sf.Append(_T("CM93OBJ.DIC"));
 
-      if(!wxFileName::FileExists(sf))
-            return false;
+      if(!wxFileName::FileExists(sf)) {
+            sf = dir;
+            sf.Append(_T("cm93obj.dic"));
+            if (!wxFileName::FileExists(sf))
+                return false;
+      }
 
       wxTextFile file;
       if(!file.Open(sf))
@@ -4808,7 +4843,7 @@ cm93_dictionary *cm93compchart::FindAndLoadDictFromDir(const wxString &dir)
             }
 
             //    Abort the search loop if the directory tree does not contain some indication of CM93
-            if((wxNOT_FOUND == path.Find(_T("cm93"))) && (wxNOT_FOUND == path.Find(_T("CM93"))))
+            if((wxNOT_FOUND == path.Lower().Find(_T("cm93"))))
             {
                   bdone = true;
                   wxLogMessage(_T("Early break2"));
@@ -4821,16 +4856,10 @@ cm93_dictionary *cm93compchart::FindAndLoadDictFromDir(const wxString &dir)
 
             if(dir.IsOpened())
             {
-                  found_dict_file_name = dir.FindFirst(path, _T("CM93OBJ.dic"));
-                  if(found_dict_file_name.Len())
-                        bdone = true;
-
-                  else
-                  {
-                        found_dict_file_name = dir.FindFirst(path, _T("CM93OBJ.DIC"));
-                        if(found_dict_file_name.Len())
-                               bdone = true;
-                  }
+                // Find the dictionary name, case insensitively
+                FindCM93Dictionary cm93Dictionary(found_dict_file_name);
+                dir.Traverse(cm93Dictionary);
+                bdone = found_dict_file_name.Len() != 0;
             }
 
             fnc.Assign(path);                                 // convert the path to a filename for next loop
