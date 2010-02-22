@@ -56,7 +56,7 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #define snprintf mysnprintf
 #endif
 
-CPL_CVSID("$Id: georef.c,v 1.21 2009/12/17 02:50:09 bdbcat Exp $");
+CPL_CVSID("$Id: georef.c,v 1.22 2010/02/22 19:39:22 badfeed Exp $");
 
 
 /* For NAD27 shift table */
@@ -443,7 +443,7 @@ void toSM_ECC(double lat, double lon, double lat0, double lon0, double *x, doubl
       double test;
       double ypy;
 
-      double f = 1.0 / 298.;    // flattening .003355
+      double f = 1.0 / WGSinvf;       // WGS84 ellipsoid flattening parameter
       double e2 = 2 * f - f * f;      // eccentricity^2  .006700
       double e = sqrt(e2);
 
@@ -498,7 +498,7 @@ void fromSM_ECC(double x, double y, double lat0, double lon0, double *lat, doubl
       double z, s0, lon1;
       double falsen, t, xi, esf;
 
-      double f = 1.0 / 298.;    // flattening .003355
+      double f = 1.0 / WGSinvf;       // WGS84 ellipsoid flattening parameter
       double es = 2 * f - f * f;      // eccentricity^2  .006700
       double e = sqrt(es);
 
@@ -794,9 +794,11 @@ void DistanceBearingMercator(double lat0, double lon0, double lat1, double lon1,
 
       //    This idea comes from Thomas(Cagney)
       //    We simply require the dlat to be (slightly) non-zero, and carry on.
+      //    MAS022210 for HamishB from 1e-4 && .001 to 1e-9 for better precision
+      //    on small latitude diffs
       mlat0 = lat0;
-      if(fabs(lat1 - lat0) < 1e-4)
-            mlat0 += .001;
+      if(fabs(lat1 - lat0) < 1e-9)
+            mlat0 += 1e-9;
 
       toSM_ECC(lat1, lon1x, mlat0, lon0x, &east, &north);
 
