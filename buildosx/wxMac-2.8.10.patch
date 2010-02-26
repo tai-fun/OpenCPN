@@ -1,0 +1,19 @@
+diff -rupN wxMac-2.8.10/src/wxWindows.xcodeproj/project.pbxproj wxMac-2.8.10-patched/src/wxWindows.xcodeproj/project.pbxproj
+--- wxMac-2.8.10/src/wxWindows.xcodeproj/project.pbxproj	2009-03-06 07:23:13.000000000 -0500
++++ wxMac-2.8.10-patched/src/wxWindows.xcodeproj/project.pbxproj	2010-02-02 22:05:32.000000000 -0500
+@@ -4562,7 +4564,6 @@
+ 				);
+ 				GCC_USE_GCC3_PFE_SUPPORT = YES;
+ 				GCC_VERSION_i386 = 4.0;
+-				GCC_VERSION_ppc = 3.3;
+ 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+ 				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+ 				GCC_WARN_EFFECTIVE_CPLUSPLUS_VIOLATIONS = NO;
+@@ -4605,7 +4606,6 @@
+ 				);
+ 				GCC_USE_GCC3_PFE_SUPPORT = YES;
+ 				GCC_VERSION_i386 = 4.0;
+-				GCC_VERSION_ppc = 3.3;
+ 				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+ 				GCC_WARN_EFFECTIVE_CPLUSPLUS_VIOLATIONS = NO;
+ 				GCC_WARN_UNINITIALIZED_AUTOS = YES;

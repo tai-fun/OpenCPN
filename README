@@ -67,7 +67,9 @@ See below for information on obtaining and installing wxWidgets.
 3.  Platform Specific Build Notes
 ----------------------------------------------------------------------
 
-a.  MS Windows
+---------------------------------------
+Building For MS Windows
+---------------------------------------
 
 If you would like to build OpenCPN for MS Windows from source, perform
 the following steps.
@@ -78,15 +80,11 @@ at sourceforge.net.  The development team will try to help you out.
 ---------------------------
 STEP 0:  Background
 ---------------------------
+OpenCPN for MS Windows (TM) is built using Visual Studio or VS Express.
+You may download (for free) the latest version of the Express tools from:
 
-OpenCPN for MS Windows (TM) is built using the Watcom C/C++ command line tools.
-You may download (for free) the latest version from:
-
-		http://www.openwatcom.org/
+		http://www.microsoft.com/express/downloads/default.aspx
 		
-Version 1.6 tools are current.
-		
- 
 ---------------------------
 STEP 1:  Download wxWidgets
 ---------------------------
@@ -96,8 +94,8 @@ resources from wxWidgets, a portable GUI framework for C++
 (and Python). You must download and build wxWidgets before
 attempting to compile OpenCPN.
 
-OpenCPN builds use wxWidgets 2.6.x series (or later) for 
-Microsoft Windows (MSW), available at 
+OpenCPN builds use wxWidgets 2.6.x series (or later) for
+Microsoft Windows (MSW), available at
 "http://www.wxwidgets.org/".
 
 When you download and execute the MSW setup.exe program for wxWidgets,
@@ -108,7 +106,6 @@ Make a note of the base install location, which will be something like
 		
 You will need this later.		
 
-
 ------------------------
 STEP 2:  Build wxWidgets
 ------------------------
@@ -117,60 +114,33 @@ build it.   The standard wxWidgets build procedures work fine,
 and are dependent on your system build tools and environment.
 See the README files in the wxWidgets installation directory.
 
-For example, if you use the MSVC makefile build methodology, then
-in the directory c:\wxWidgets-2.8.3\build\msw, the command
+For example, if you use MSVC, in the directory c:\wxWidgets-2.8.3\build\msw,
+you can open wx.dsw to build everything.
 
-		wmake -f makefile.wat
-		
-will build a statically linkable Debug configuration of wxWidgets.
-		
-Build the configurations for all the wxWidgets projects 
-corresponding to which configurations of OpenCPN that you want 
+Build the configurations for all the wxWidgets projects
+corresponding to which configurations of OpenCPN that you want
 to build. OpenCPN for Windows may be built in Debug and Release
-configurations.  OpenCPN can use either multithreaded static or 
+configurations.  OpenCPN can use either multithreaded static or
 multithreaded dynamic libraries. Choose...
 
 ------------------------
-STEP3:  Set OpenCPN Options
+STEP 3:  Set OpenCPN Locations
 ------------------------
-Set the required build options in file:
-	makefile.wat
-See the comments within.
+In particular, YOU MUST set the WX_BASE environment variable to the location
+of the installed wxWidgets libraries.  You can do this for your system or user
+generally, or do it in a command shell and then start the VS IDE from the shell:
 
-In particular, YOU MUST set the location of the installed wxWidgets
-libraries. e.g.
-		WX_BASE = c:\wxWidgets-2.8.3
+		set WX_BASE = c:\wxWidgets-2.8.3
 
 ------------------------
-STEP4:  Build OpenCPN 
+STEP 4:  Build OpenCPN
 ------------------------
-From an MS-Dos command line window, in the opencpn base directory, do:
+Open the buildwin\OpenCPN.sln solution in the VS IDE and build the
+configurations you want.
 
-            wmake -f makefile.wat clean
-            wmake -f makefile.wat
-
-The opencpn.exe, (debug version) file will be built in the .\debug_ directory.
-
-For a release build, edit the file makefile.wat and change the definition of
-BUILD to
-		BUILD = release
-		
-Then, 		
-            wmake -f makefile.wat clean
-            wmake -f makefile.wat
-			
-The release opencpn.exe file will be built in the .\release_ directory.
-
-
-In either case, do:
-            wmake -f makefile.wat install
-
-This will copy the appropriate files to the install location specified in
-makefile.wat, typically c:\Program Files\opencpn
-
-OpenCPN is now ready to run.
-
-c. For Macintosh OSx
+---------------------------------------
+Building For Macintosh OSx
+---------------------------------------
 
 If you would like to build OpenCPN for Macintosh OSx from source, perform
 the following steps.
@@ -187,101 +157,21 @@ You may download (for free) the latest version from:
 
 		http://developer.apple.com/tools/download/
 		
-Version 3.0 tools are what the latest build was tested with.
-Version 3.1 is available but has not been tested.
-		
- 
----------------------------
-STEP 1:  Download wxWidgets
----------------------------
-To simplify the implementation of a near-identical user
-interface across platforms, OpenCPN uses classes and
-resources from wxWidgets, a portable GUI framework for C++
-(and Python). You must download and build wxWidgets before
-attempting to compile OpenCPN. Currently testing is being
-done with 2.8.8
-
-OpenCPN builds use wxWidgets 2.8.7 series (or later) for 
-Macintosh OSx, available at 
-"http://www.wxwidgets.org/".
-
-When you download and execute the configuration tool for wxWidgets,
-the wxWidgets files will be installed to your system.
-Make a note of the base install location, which will be something like
-		
-		\Users\YourUserName\wxWidgets-2.8.8
-		
-You will need this later.		
+Version 3.1 and 3.2 are what the latest build has been tested with.
 
 ------------------------
-STEP 2:  Build wxWidgets
-------------------------
-When you have downloaded and installed wxWidgets, you must
-build it.   The standard wxWidgets build procedures work fine,
-and are dependent on your system build tools and environment.
-See the README files in the wxWidgets installation directory.
-
-Currently testing is being done with the XCode build, Xcode 3.0, and the
-default settings. Locate the wxWindows.xcodeproj and open it with
-XCode. You will need to copy the setup.h file from the src/mac directory
-to /src before the build.
-
-If you are using a different version of wxWidgets or Xcode here are the
-basic steps you will need to follow.
-
-The build system for wxWidgets uses a configure command to setup the
-many options provided. These are the configure commands used to build
-the libraries we tested with. they are a good place to start.
-
-system 10.4 building wxMac 2.6.4
-
-../configure --with-mac --enable-monolithic --disable-shared --disable-dynlib --disable-dynamicloader -enable-debug -enable-debug_gdb --enable-stdpathscd
-
-system 10.5 building wxMac 2.8.7
-
-../configure  --with-libpng --enable-monolithic --disable-shared --disable-dynlib --disable-dynamicloader -enable-debug -enable-debug_gdb --with-macosx-sdk=/Developer/SDKs/MacOSX10.5.sdk --with-macosx-version-min=10.4 --with-zlib=builtin
-
-Copy the new libraries to the opencpn directory. These libraries
-are normally in \Users\YourUserName\opencpn\buildosx\libraries
-
-------------------------
-STEP4:  Build OpenCPN 
+STEP 1:  Build OpenCPN Using Xcode
 ------------------------
 
-Note: The current project setup assumes the opencpn and wxWidgets-2.8.8 are at the same level in the same directory.
-If this is not the case, you will have to adjust the search paths in the project 
-to point to the include files for wxWidgets.
-
-Start the XCode Tools and open the openCPNOSx.xcodeproj in \Users\YourUserName\opencpn\buildosx\
+Start the XCode Tools and open the openCPNOSx.xcodeproj in <download-location>/OpenCPN/buildosx
 
 Select 'Build' from the build menu
 
-OpenCPN is now ready to run.
+OpenCPN is now ready to run.  (You thought this was going to be hard?) ;)
 
-------------------------
-STEP4 (alternative)
-      Build OpenCPN using ./configure && make [&& make dmg]
-------------------------
-OpenCPN will build for Mac OS X from a shell script by using the
-familiar Autotools configure and make:
-
-% cd opencpn; ./configure --with-wx-config=path/to/your/wx-config && make
-
-If make sucessfully completes you should have a directory called OpenCPN.app
-which you can open with finder or from the command like with 'open'. As always
-if you have questions or problems please let the OpenCPN development team know
-by posting to the OpenCPN project forum at sourceforge.net.
-
-If you'd like to build a disk image (dmg file) then use the dmg target like so:
-
-% make dmg
-
--------------------------
-Notes For Advanced Users:
-
-a. Windows
-
-b. LINUX
+---------------------------------------
+Building for LINUX
+---------------------------------------
 
 i.  Obtain wxWidgets
 
@@ -309,6 +199,9 @@ and the required data files to /usr/local/share/opencpn.
 This location may be changed using the "--program-prefix=" parameter during
 configuration.
 
+---------------------------------------
+
+Notes For Advanced Users:
 
 Some configure options specific to opencpn are available:
 
@@ -327,7 +220,7 @@ Some configure options specific to opencpn are available:
 
         --with-wx-config=<file>	    Specify the location of a valid wx-config
                                     script as created by wxWidgets installation.
-                                    Default is as found in $PATH.            
+                                    Default is as found in $PATH.
 
 WxWidgets linkages and include paths are discovered by the
 makefile using conventional wx-config scripts as
@@ -335,7 +228,7 @@ normally installed by this packages.
 
 iii.  Known Build Bugs/Gotchas
 
-(1). This particular flavor of wxWidgets, 
+(1). This particular flavor of wxWidgets,
 
   (__WXX11__, version 2.6...2.8, compiled without wxWidgets 2.4 compatibility)
 
