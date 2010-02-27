@@ -910,7 +910,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\nWX_VER=2.8.10\nWX_ROOT=\"${PROJECT_DIR}/../..\"\nWX_DIR=\"${WX_ROOT}/wxMac-${WX_VER}\"\nWX_PATCH=\"${PROJECT_DIR}/patches/wxMac-${WX_VER}.patch\"\n\nif [ ! -d \"${WX_DIR}\" ]; then\n    curl -L http://downloads.sourceforge.net/project/wxwindows/wxMac/${WX_VER}/wxMac-${WX_VER}.tar.gz 2> /dev/null | (cd \"${WX_ROOT}\"; tar zxvf -)\n    if [ -f \"${WX_PATCH}\" ]; then\n        (cd \"${WX_DIR}\"; patch -p1 < \"${WX_PATCH}\")\n    fi\nfi\n\ncase ${ACTION} in\n    build)\n        (cd \"${WX_DIR}/src\"; xcodebuild -project wxWindows.xcodeproj -configuration ${BUILD_STYLE} build)\n        ;;\n    clean)\n        (cd \"${WX_DIR}/src\"; xcodebuild -project wxWindows.xcodeproj -configuration ${BUILD_STYLE} clean)\n        ;;\nesac\n\nexit 0";
+			shellScript = "#!/bin/bash\n\nWX_VER=2.8.10\nWX_ROOT=\"${PROJECT_DIR}/../..\"\nWX_DIR=\"${WX_ROOT}/wxMac-${WX_VER}\"\nWX_PATCH=\"${PROJECT_DIR}/wxMac-${WX_VER}.patch\"\n\nif [ ! -d \"${WX_DIR}\" ]; then\n    curl -L http://downloads.sourceforge.net/project/wxwindows/wxMac/${WX_VER}/wxMac-${WX_VER}.tar.gz 2> /dev/null | (cd \"${WX_ROOT}\"; tar zxvf -)\n    if [ -f \"${WX_PATCH}\" ]; then\n        (cd \"${WX_DIR}\"; patch -p1 < \"${WX_PATCH}\")\n    fi\nfi\n\ncase ${ACTION} in\n    build)\n        (cd \"${WX_DIR}/src\"; xcodebuild -project wxWindows.xcodeproj -configuration ${BUILD_STYLE} build)\n        ;;\n    clean)\n        (cd \"${WX_DIR}/src\"; xcodebuild -project wxWindows.xcodeproj -configuration ${BUILD_STYLE} clean)\n        ;;\nesac\n\nexit 0";
 		};
 /* End PBXShellScriptBuildPhase section */
 
