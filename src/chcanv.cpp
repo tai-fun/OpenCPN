@@ -2010,8 +2010,10 @@ wxRegion ViewPort::GetVPRegion( size_t n, float *llpoints, int chart_native_scal
             pfp+=2;
       }
 
+#if defined(__WXOSX_COCOA__) or defined(__WXOSX__)
+	return wxRegion(0,0,pix_width, pix_height);
+#elif defined(__WXGTK__)
 
-#ifdef __WXGTK__
       sigaction(SIGSEGV, NULL, &sa_all_old);             // save existing action for this signal
 
       struct sigaction temp;
