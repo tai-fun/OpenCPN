@@ -8994,8 +8994,14 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
                         while ( upd_final )
                         {
                                 wxRect rect = upd_final.GetRect();
+#ifdef __WXOSX_COCOA__ // blitting with a 1-bit wxMask seem to be broken in 2.9.2-svn
+				scratch_dc.Blit ( rect.x, rect.y, rect.width, rect.height,
+					&ssdc_r, rect.x, rect.y, wxCOPY, false );      // Blit without mask (work since parent copied as bg)
+#else
+
                                 scratch_dc.Blit ( rect.x, rect.y, rect.width, rect.height,
                                                   &ssdc_r, rect.x, rect.y, wxCOPY, true );      // Blit with mask
+#endif
                                 upd_final ++ ;
                         }
 

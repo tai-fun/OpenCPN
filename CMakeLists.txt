@@ -26,7 +26,7 @@ ENDIF (COMMAND cmake_policy)
 
 PROJECT(OpenCPN)
 
-#SET(CMAKE_VERBOSE_MAKEFILE ON)
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 SET(PACKAGE_NAME opencpn)
 INCLUDE( ${CMAKE_SOURCE_DIR}/VERSION.cmake )
@@ -36,10 +36,14 @@ SET(PACKAGE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 MESSAGE (STATUS "*** Building ${PACKAGE_NAME} ${PACKAGE_VERSION} ***")
 
 SET(wxWidgets_USE_LIBS base core net xml html adv aui)
+IF(APPLE)
+	SET(wxWidgets_CONFIG_EXECUTABLE /usr/local/bin/wx-config)
+	SET(wxWidgets_wxrc_EXECUTABLE /usr/local/bin/wxrc)
+ENDIF(APPLE)
 
 # Find wxWidgets here, and the setting get inherited by all plugins.
 # These options can be used to set the linux widgets build type
-SET( wxWidgets_USE_DEBUG OFF)
+SET( wxWidgets_USE_DEBUG ON)
 SET( wxWidgets_USE_UNICODE ON)
 SET( wxWidgets_USE_UNIVERSAL OFF)
 SET( wxWidgets_USE_STATIC OFF)
@@ -447,14 +451,16 @@ IF(WIN32)
 ENDIF(WIN32)
 IF(APPLE)
   INCLUDE_DIRECTORIES(/usr/X11/include /usr/X11/include/GL)
-  SET(CMAKE_C_FLAGS_DEBUG "-O2 -arch i386")
-  SET(CMAKE_C_FLAGS_MINSIZEREL "-O2 -arch i386")
-  SET(CMAKE_C_FLAGS_RELEASE "-O2 -arch i386")
-  SET(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -arch i386")
-  SET(CMAKE_CXX_FLAGS_DEBUG "-O2 -arch i386")
-  SET(CMAKE_CXX_FLAGS_MINSIZEREL "-O2 -arch i386")
-  SET(CMAKE_CXX_FLAGS_RELEASE "-O2 -arch i386")
-  SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -arch i386")
+  #SET(CMAKE_C_FLAGS_DEBUG "-O2 -arch i386")
+  SET(CMAKE_C_FLAGS_DEBUG "-g")
+  #SET(CMAKE_C_FLAGS_MINSIZEREL "-O2 -arch i386")
+  #SET(CMAKE_C_FLAGS_RELEASE "-O2 -arch i386")
+  #SET(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -arch i386")
+  #SET(CMAKE_CXX_FLAGS_DEBUG "-O2 -arch i386")
+  SET(CMAKE_CXX_FLAGS_DEBUG "-g")
+  #SET(CMAKE_CXX_FLAGS_MINSIZEREL "-O2 -arch i386")
+  #SET(CMAKE_CXX_FLAGS_RELEASE "-O2 -arch i386")
+  #SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -arch i386")
 
   SET(SRCS ${SRCS}
     include/macsercomm.h
