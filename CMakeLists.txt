@@ -102,6 +102,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/build)
 # Let cmake find additional modules private to opencpn
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/")
 
+IF(NOT APPLE)
 FIND_PACKAGE(GTK2 2.6)
 IF (GTK2_FOUND)
     INCLUDE_DIRECTORIES(${GTK2_INCLUDE_DIRS})
@@ -114,6 +115,8 @@ FIND_PACKAGE(OpenGL REQUIRED)
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 
 FIND_PACKAGE(Gettext REQUIRED)
+ENDIF(NOT APPLE)
+
 
 # For convenience we define the sources as a variable. You can add 
 # header files and cpp/c files and CMake will sort them out
@@ -511,12 +514,12 @@ ENDIF(UNIX)
 
 #   Certain older Cmake FindGTK2 modules ( e.g. cmake-2.8.0-2) do not yield all of the required link libraries
 #   So, add them manually.
-IF(UNIX)
+IF(UNIX AND NOT APPLE)
 TARGET_LINK_LIBRARIES(${PACKAGE_NAME}
       dl
       gobject-2.0
 )
-ENDIF(UNIX)
+ENDIF(UNIX AND NOT APPLE)
 
 
 
