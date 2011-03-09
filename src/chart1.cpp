@@ -872,7 +872,7 @@ bool MyApp::OnInit()
 #endif
 #ifdef __WXOSX_COCOA__
 // set a debugging assertion handler for 2.9.2-trunk wxwidgets - patg
-	wxSetAssertHandler(ocpnwxAssert);
+	//wxSetAssertHandler(ocpnwxAssert);
 #endif
 
         // create the opencpn "log" directory if we need to

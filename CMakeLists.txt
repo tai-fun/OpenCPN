@@ -468,6 +468,7 @@ IF(APPLE)
   SET(SRCS ${SRCS}
     include/macsercomm.h
     src/macsercomm.cpp
+    src/macutils_cocoa.cpp
     include/macutils.h
     src/macutils.c
     )
