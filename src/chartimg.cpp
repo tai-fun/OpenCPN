@@ -3413,7 +3413,6 @@ bool ChartBaseBSB::RenderRegionViewOnDC(wxMemoryDC& dc, const ViewPort& VPoint, 
       if(cached_image_ok)
       {
             //    Anything to do?
-           bool bsame_region = (Region == m_last_region);          // only want to do this once
 #ifdef __WXOSX_COCOA__
       bool bsame_region = ocpn_mac_region_compare(Region, m_last_region);          // workaround for cocoa wx2.9
 #else
