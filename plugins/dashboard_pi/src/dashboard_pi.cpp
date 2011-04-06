@@ -489,7 +489,10 @@ void dashboard_pi::SetNMEASentence(wxString &sentence)
                   {
                         if (mPriHeadingT >= 1) {
                               mPriHeadingT = 1;
-                              SendSentenceToAllInstruments(OCPN_DBP_STC_HDT, m_NMEA0183.Hdt.DegreesTrue, _T("Deg"));
+                              if (m_NMEA0183.Hdt.DegreesTrue < 999.)
+                              {
+                                    SendSentenceToAllInstruments(OCPN_DBP_STC_HDT, m_NMEA0183.Hdt.DegreesTrue, _T("Deg"));
+                              }
                         }
                   }
             }
@@ -644,7 +647,10 @@ void dashboard_pi::SetNMEASentence(wxString &sentence)
                   {
                         if (mPriHeadingT >= 2) {
                               mPriHeadingT = 2;
-                              SendSentenceToAllInstruments(OCPN_DBP_STC_HDT, m_NMEA0183.Vhw.DegreesTrue, _T("Deg"));
+                              if (m_NMEA0183.Vhw.DegreesTrue < 999.)
+                              {
+                                    SendSentenceToAllInstruments(OCPN_DBP_STC_HDT, m_NMEA0183.Vhw.DegreesTrue, _T("Deg"));
+                              }
                         }
                         if (mPriHeadingM >= 3) {
                               mPriHeadingM = 3;
