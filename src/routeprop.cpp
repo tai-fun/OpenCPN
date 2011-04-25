@@ -1850,6 +1850,7 @@ void MarkProp::OnMarkpropCancelClick( wxCommandEvent& event )
             cc1->RefreshRect(m_pRoutePoint->CurrentRect_in_DC.Inflate(1000,100), false);
       }
       Show(false);
+      EndModal(wxYES);
       event.Skip();
 }
 
@@ -1864,6 +1865,7 @@ void MarkProp::OnMarkpropOkClick( wxCommandEvent& event )
       }
 
     Show(false);
+    EndModal(wxYES);
     event.Skip();
 }
 
@@ -2238,6 +2240,7 @@ bool MarkInfo::SaveChanges(void)
 void MarkInfo::OnMarkinfoCancelClick( wxCommandEvent& event )
 {
       Show(false);
+      EndModal(wxYES);
       event.Skip();
 }
 
@@ -2245,6 +2248,7 @@ void MarkInfo::OnMarkinfoCancelClick( wxCommandEvent& event )
 void MarkInfo::OnMarkinfoOkClick( wxCommandEvent& event )
 {
       Show(false);
+      EndModal(wxYES);
       event.Skip();
 }
 

@@ -2652,7 +2652,7 @@ ocpnToolBarSimple *MyFrame::CreateAToolbar()
 
 #ifdef __WXOSX_COCOA__
     m_pStatDummyTool = NULL; // use AddStretchableSpace instead
-    tb->AddStretchableSpace(); // this is the wxWidgets way to do it...
+    tb->AddStretchableSpace(); // >= wxwidgets2.9.1
 #else
     m_pStatDummyTool = tb->AddControl(m_ptool_ct_dummyStaticBmp);
 #endif
@@ -3159,9 +3159,11 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
       m_toolBar->ClearBackground();
 
 #ifdef ocpnUSE_OPNCTOOLBAR
+#ifndef __WXOSX_COCOA__
       m_toolBar->SetToggledBackgroundColour(GetGlobalColor(_T("GREY1")));
 
       m_toolBar->SetColorScheme(cs);
+#endif
 #endif
 
 //    UpdateToolbarDynamics();
@@ -3874,8 +3876,13 @@ void MyFrame::OnToolLeftClick(wxCommandEvent& event)
             pRouteManagerDialog->UpdateTrkListCtrl();
             pRouteManagerDialog->UpdateWptListCtrl();
             pRouteManagerDialog->UpdateLayListCtrl();
+#ifdef __WXOSX_COCOA__
+            int dlg_ret;
+            dlg_ret = pRouteManagerDialog->ShowModal();
+#else
             pRouteManagerDialog->Show();
             pRouteManagerDialog->SetFocus();
+#endif
             break;
       }
 
