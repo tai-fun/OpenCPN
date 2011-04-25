@@ -1,0 +1,18 @@
+
+Author:  patrick guelat (pg@imp.ch)
+Changed: 2011-04-25 
+
+
+MAC OSX Build Instructions
+--------------------------
+
+The following steps are needed to build OpenCPN sucessfully on 10.6:
+
+1. Install MacPorts --> http://www.macports.org/
+2. Install cmake from MacPorts (port install cmake)
+3. Get wxWidgets source -> svn checkout http://svn.wxwidgets.org/svn/wx/wxWidgets/trunk wxWidgets
+4. cd into wxWidgets and run ./configure --with-osx-cocoa --disable-std_containers
+5. make / make install  (in wxWidgets)
+6. cd to the opencpn-source dir an run:  mkdir build ; cd build ; cmake .. ; make install
+7. run opencpn :  opencpn.app/Contents/MacOS/OpenCPN
+

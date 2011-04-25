@@ -33,7 +33,7 @@
 #define __S57CHART_H__
 
 #include <wx/wx.h>
-#include "wx/generic/progdlgg.h"
+#include "wx/progdlg.h"
 #include "bbox.h"
 #include "chartbase.h"
 #include "wx/dir.h"
@@ -230,6 +230,7 @@ private:
       bool CreateHeaderDataFromSENC(void);
       bool GetBaseFileAttr(wxFileName fn);
 
+      void ResetPointBBoxes(void);
 
            //    Access to raw ENC DataSet
       bool InitENCMinimal( const wxString& FullPath );

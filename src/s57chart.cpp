@@ -65,6 +65,9 @@
 #define new DEBUG_NEW
 #endif
 
+#ifdef __WXOSX_COCOA__
+#include "macutils.h"
+#endif
 
 CPL_CVSID("$Id: s57chart.cpp,v 1.61 2010/06/24 01:48:02 bdbcat Exp $");
 
@@ -153,6 +156,8 @@ S57Obj::S57Obj()
         m_n_lsindex = 0;
         m_lsindex_array = NULL;
         m_n_edge_max_points = 0;
+
+        bBBObj_valid = false;
 
 
         //        Set default (unity) auxiliary transform coefficients
@@ -525,8 +530,13 @@ S57Obj::S57Obj(char *first_line, wxInputStream *pfpx, double dummy, double dummy
                         double xll, yll;
                         fromSM(easting, northing, point_ref_lat, point_ref_lon, &yll, &xll);
 
-                        BBObj.SetMin(xll, yll);
-                        BBObj.SetMax(xll, yll);
+//                        BBObj.SetMin(xll, yll);
+//                        BBObj.SetMax(xll, yll);
+                        m_lon = xll;
+                        m_lat = yll;
+                        BBObj.SetMin(m_lon -.25, m_lat - .25);
+                        BBObj.SetMax(m_lon +.25, m_lat + .25);
+
 
                     }
                     else
@@ -624,6 +634,7 @@ S57Obj::S57Obj(char *first_line, wxInputStream *pfpx, double dummy, double dummy
                           // set s57obj bbox as lat/lon
                           BBObj.SetMin(xmin, ymin);
                           BBObj.SetMax(xmax, ymax);
+                          bBBObj_valid = true;
 
                           //  and declare x/y of the object to be average east/north of all points
                           double e1, e2, n1, n2;
@@ -632,6 +643,12 @@ S57Obj::S57Obj(char *first_line, wxInputStream *pfpx, double dummy, double dummy
 
                           x = (e1 + e2) / 2.;
                           y = (n1 + n2) / 2.;
+
+                          //  Set the object base point
+                          double xll, yll;
+                          fromSM(x, y, line_ref_lat, line_ref_lon, &yll, &xll);
+                          m_lon = xll;
+                          m_lat = yll;
 
                           //  Capture the edge and connected node table indices
                           my_fgets(buf, MAX_LINE, *pfpx);     // this will be "\n"
@@ -691,6 +708,7 @@ S57Obj::S57Obj(char *first_line, wxInputStream *pfpx, double dummy, double dummy
                             //  Set the s57obj bounding box as lat/lon
                             BBObj.SetMin(ppg->Get_xmin(), ppg->Get_ymin());
                             BBObj.SetMax(ppg->Get_xmax(), ppg->Get_ymax());
+                            bBBObj_valid = true;
 
                             //  and declare x/y of the object to be average east/north of all points
                             double e1, e2, n1, n2;
@@ -700,6 +718,11 @@ S57Obj::S57Obj(char *first_line, wxInputStream *pfpx, double dummy, double dummy
                             x = (e1 + e2) / 2.;
                             y = (n1 + n2) / 2.;
 
+                          //  Set the object base point
+                            double xll, yll;
+                            fromSM(x, y, area_ref_lat, area_ref_lon, &yll, &xll);
+                            m_lon = xll;
+                            m_lat = yll;
 
                           //  Capture the edge and connected node table indices
 //                            my_fgets(buf, MAX_LINE, *pfpx);     // this will be "\n"
@@ -1612,7 +1635,11 @@ bool s57chart::RenderRegionViewOnDC(wxMemoryDC& dc, const ViewPort& VPoint, cons
 
       bool force_new_view = false;
 
+#ifdef __WXOSX_COCOA__
+      if(!ocpn_mac_region_compare(Region, m_last_Region))  // workaround for cocoa wx2.9
+#else
       if(Region != m_last_Region)
+#endif
             force_new_view = true;
 
       ps52plib->PrepareForRender();
@@ -1623,6 +1650,12 @@ bool s57chart::RenderRegionViewOnDC(wxMemoryDC& dc, const ViewPort& VPoint, cons
             UpdateLUPs(this);                               // and update the LUPs
             ClearRenderedTextCache();                       // and reset the text renderer,
                                                             //for the case where depth(height) units change
+            ResetPointBBoxes();
+      }
+
+      if(VPoint.view_scale_ppm != m_last_vp.view_scale_ppm)
+      {
+            ResetPointBBoxes();
       }
 
       SetLinePriorities();
@@ -4513,6 +4546,47 @@ int s57chart::_insertRules(S57Obj *obj, LUPrec *LUP, s57chart *pOwner)
    return 1;
 }
 
+void s57chart::ResetPointBBoxes(void)
+{
+      ObjRazRules *top;
+      ObjRazRules *nxx;
+
+      for (int i=0; i<PRIO_NUM; ++i)
+      {
+            top = razRules[i][0];
+
+            while ( top != NULL)
+            {
+                  if(top->obj->npt == 1)                    // do not reset multipoints
+                  {
+                        top->obj->bBBObj_valid = false;
+                        top->obj->BBObj.SetMin(top->obj->m_lon -.25, top->obj->m_lat - .25);
+                        top->obj->BBObj.SetMax(top->obj->m_lon +.25, top->obj->m_lat + .25);
+                  }
+
+                  nxx  = top->next;
+                  top = nxx;
+            }
+
+            top = razRules[i][1];
+
+            while ( top != NULL)
+            {
+                  if(top->obj->npt == 1)                    // do not reset multipoints
+                  {
+                        top->obj->bBBObj_valid = false;
+                        top->obj->BBObj.SetMin(top->obj->m_lon -.25, top->obj->m_lat - .25);
+                        top->obj->BBObj.SetMax(top->obj->m_lon +.25, top->obj->m_lat + .25);
+                  }
+
+                  nxx  = top->next;
+                  top = nxx;
+            }
+      }
+}
+
+
+
 
 //      Traverse the ObjRazRules tree, and fill in
 //      any Lups/rules not linked on initial chart load.
@@ -4540,9 +4614,12 @@ void s57chart::UpdateLUPs(s57chart *pOwner)
             while ( top != NULL)
             {
                 LUP = ps52plib->S52_LUPLookup(PAPER_CHART, top->obj->FeatureName, top->obj);
-                ps52plib->_LUP2rules(LUP, top->obj);
-                _insertRules(top->obj, LUP, pOwner);
-                top->obj->m_DisplayCat = LUP->DISC;
+                if(LUP)
+                {
+                  ps52plib->_LUP2rules(LUP, top->obj);
+                  _insertRules(top->obj, LUP, pOwner);
+                  top->obj->m_DisplayCat = LUP->DISC;
+                }
 
                 nxx  = top->next;
                 top = nxx;
@@ -4557,9 +4634,12 @@ void s57chart::UpdateLUPs(s57chart *pOwner)
             while ( top != NULL)
             {
                 LUP = ps52plib->S52_LUPLookup(SIMPLIFIED, top->obj->FeatureName, top->obj);
-                ps52plib->_LUP2rules(LUP, top->obj);
-                _insertRules(top->obj, LUP, pOwner);
-                top->obj->m_DisplayCat = LUP->DISC;
+                if(LUP)
+                {
+                      ps52plib->_LUP2rules(LUP, top->obj);
+                      _insertRules(top->obj, LUP, pOwner);
+                      top->obj->m_DisplayCat = LUP->DISC;
+                }
 
                 nxx  = top->next;
                 top = nxx;
@@ -4574,8 +4654,12 @@ void s57chart::UpdateLUPs(s57chart *pOwner)
             while ( top != NULL)
             {
                 LUP = ps52plib->S52_LUPLookup(SYMBOLIZED_BOUNDARIES, top->obj->FeatureName, top->obj);
-                ps52plib->_LUP2rules(LUP, top->obj);
-                _insertRules(top->obj, LUP, pOwner);
+                if(LUP)
+                {
+                      ps52plib->_LUP2rules(LUP, top->obj);
+                      _insertRules(top->obj, LUP, pOwner);
+                      top->obj->m_DisplayCat = LUP->DISC;
+                }
 
                 nxx  = top->next;
                 top = nxx;
@@ -4590,9 +4674,12 @@ void s57chart::UpdateLUPs(s57chart *pOwner)
             while ( top != NULL)
             {
                 LUP = ps52plib->S52_LUPLookup(PLAIN_BOUNDARIES, top->obj->FeatureName, top->obj);
-                ps52plib->_LUP2rules(LUP, top->obj);
-                _insertRules(top->obj, LUP, pOwner);
-                top->obj->m_DisplayCat = LUP->DISC;
+                if(LUP)
+                {
+                      ps52plib->_LUP2rules(LUP, top->obj);
+                      _insertRules(top->obj, LUP, pOwner);
+                      top->obj->m_DisplayCat = LUP->DISC;
+                }
 
                 nxx  = top->next;
                 top = nxx;
@@ -5364,6 +5451,9 @@ bool s57chart::DoesLatLonSelectObject(float lat, float lon, float select_radius,
                 //  For single Point objects, the integral object bounding box contains the lat/lon of the object,
                 //  possibly expanded by text or symbol rendering
                 {
+                    if(!obj->bBBObj_valid)
+                            return false;
+
                     if(1 == obj->npt)
                     {
                           //  Special case for LIGHTS

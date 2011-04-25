@@ -32,6 +32,9 @@
 #ifndef  WX_PRECOMP
   #include "wx/wx.h"
 #endif //precompiled headers
+#ifdef __WXOSX_COCOA__
+#include "wx/wrapsizer.h"
+#endif
 
 #include <typeinfo>
 #include "dashboard_pi.h"
@@ -880,6 +883,10 @@ void dashboard_pi::OnToolbarToolCallback(int id)
                   wxAuiPaneInfo &pane = m_pauimgr->GetPane( dashboard_window );
                   if (pane.IsOk())
                         pane.Show(cnt==0);
+		  if (pane.IsFloating() && pane.IsShown()) {
+			//std::cout << "IMPDEBUG: Floating Pane, making transparent" << std::endl;
+			if(pane.frame) pane.frame->SetTransparent(128);
+		}
             }
       }
       // Toggle is handled by the toolbar but we must keep plugin manager b_toggle updated
@@ -999,7 +1006,7 @@ bool dashboard_pi::SaveConfig(void)
             pConf->Write( _T("FontSmall"), g_pFontSmall->GetNativeFontInfoDesc() );
 
             pConf->Write( _T("DashboardCount" ), (int)m_ArrayOfDashboardWindow.GetCount() );
-            for (size_t i = 0; i < m_ArrayOfDashboardWindow.GetCount(); i++)
+            for (int i = 0; i < m_ArrayOfDashboardWindow.GetCount(); i++)
             {
                   DashboardWindowContainer *cont = m_ArrayOfDashboardWindow.Item(i);
                   pConf->SetPath( wxString::Format( _T("/PlugIns/Dashboard/Dashboard%d"), i+1 ) );
@@ -1007,7 +1014,7 @@ bool dashboard_pi::SaveConfig(void)
                   pConf->Write( _T("Orientation"), cont->m_sOrientation );
                   pConf->Write( _T("InstrumentWidth"), cont->m_iInstrumentWidth );
                   pConf->Write( _T("InstrumentCount"), (int)cont->m_aInstrumentList.GetCount() );
-                  for (size_t j = 0; j < cont->m_aInstrumentList.GetCount(); j++)
+                  for (int j = 0; j < cont->m_aInstrumentList.GetCount(); j++)
                         pConf->Write( wxString::Format(_T("Instrument%d"), j+1), cont->m_aInstrumentList.Item(j));
             }
 
@@ -1020,7 +1027,7 @@ bool dashboard_pi::SaveConfig(void)
 void dashboard_pi::ApplyConfig(void)
 {
       // Reverse order to handle deletes
-      for (size_t i = m_ArrayOfDashboardWindow.GetCount(); i > 0; i--)
+      for (int i = m_ArrayOfDashboardWindow.GetCount(); i > 0; i--)
       {
             DashboardWindowContainer *cont = m_ArrayOfDashboardWindow.Item(i-1);
             if ( cont->m_bIsDeleted )
@@ -1483,7 +1490,11 @@ DashboardWindow::DashboardWindow(wxWindow *pparent, wxWindowID id, wxAuiManager 
       SetBackgroundColour(cl);
 
 //wx2.9      itemBoxSizer = new wxWrapSizer(wxVERTICAL);
+#ifdef __WXOSX_COCOA__
+      itemBoxSizer = new wxWrapSizer(wxVERTICAL);
+#else
       itemBoxSizer = new wxBoxSizer(wxVERTICAL);
+#endif
       SetSizer(itemBoxSizer);
 }
 

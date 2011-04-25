@@ -62,6 +62,10 @@
 #include <signal.h>
 #include <setjmp.h>
 
+#ifdef __WXOSX_COCOA__
+#include "macutils.h"
+#endif
+
 struct sigaction sa_all_chart;
 struct sigaction sa_all_previous;
 
@@ -2919,11 +2923,11 @@ bool ChartBaseBSB::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
       ViewPort vp_save = vp_proposed;                 // save a copy
 
       int ret_val = 0;
+      double binary_scale_factor = GetPPM() / vp_proposed.view_scale_ppm;
 
       if(vp_last.IsValid())
       {
 
-                  double binary_scale_factor = GetPPM() / vp_proposed.view_scale_ppm;
 
                   //    We only need to adjust the VP if the cache is valid and potentially usable, i.e. the scale factor is integer...
                   //    The objective here is to ensure that the VP center falls on an exact pixel boundary within the cache
@@ -3354,7 +3358,11 @@ bool ChartBaseBSB::RenderViewOnDC(wxMemoryDC& dc, const ViewPort& VPoint)
 
       wxRegion rgn(0,0,VPoint.pix_width, VPoint.pix_height);
 
+#ifdef __WXOSX__
+      bool bsame_region = ocpn_mac_region_compare(rgn, m_last_region);  // workaround for cocoa wx2.9
+#else
       bool bsame_region = (rgn == m_last_region);          // only want to do this once
+#endif
 
 
       if(!bsame_region)
@@ -3402,11 +3410,14 @@ bool ChartBaseBSB::RenderRegionViewOnDC(wxMemoryDC& dc, const ViewPort& VPoint, 
       m_cached_scale_ppm = VPoint.view_scale_ppm;
       m_last_vprect = dest;
 
-
       if(cached_image_ok)
       {
             //    Anything to do?
-           bool bsame_region = (Region == m_last_region);          // only want to do this once
+#ifdef __WXOSX_COCOA__
+      bool bsame_region = ocpn_mac_region_compare(Region, m_last_region);          // workaround for cocoa wx2.9
+#else
+      bool bsame_region = (Region == m_last_region);          // only want to do this once
+#endif
 
            if((bsame_region) && (Rsrc == cache_rect)  )
            {

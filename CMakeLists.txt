@@ -26,9 +26,14 @@ ENDIF (COMMAND cmake_policy)
 
 PROJECT(OpenCPN)
 
-#SET(CMAKE_VERBOSE_MAKEFILE ON)
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 
-SET(PACKAGE_NAME opencpn)
+IF(APPLE)
+  SET(PACKAGE_NAME OpenCPN)
+ELSE(APPLE)
+  SET(PACKAGE_NAME opencpn)
+ENDIF(APPLE)
+
 INCLUDE( ${CMAKE_SOURCE_DIR}/VERSION.cmake )
 SET(PACKAGE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
@@ -36,10 +41,14 @@ SET(PACKAGE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 MESSAGE (STATUS "*** Building ${PACKAGE_NAME} ${PACKAGE_VERSION} ***")
 
 SET(wxWidgets_USE_LIBS base core net xml html adv aui)
+IF(APPLE)
+	SET(wxWidgets_CONFIG_EXECUTABLE /usr/local/bin/wx-config)
+	SET(wxWidgets_wxrc_EXECUTABLE /usr/local/bin/wxrc)
+ENDIF(APPLE)
 
 # Find wxWidgets here, and the setting get inherited by all plugins.
 # These options can be used to set the linux widgets build type
-SET( wxWidgets_USE_DEBUG OFF)
+SET( wxWidgets_USE_DEBUG ON)
 SET( wxWidgets_USE_UNICODE ON)
 SET( wxWidgets_USE_UNIVERSAL OFF)
 SET( wxWidgets_USE_STATIC OFF)
@@ -101,6 +110,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/build)
 # Let cmake find additional modules private to opencpn
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/")
 
+IF(NOT APPLE)
 FIND_PACKAGE(GTK2 2.6)
 IF (GTK2_FOUND)
     INCLUDE_DIRECTORIES(${GTK2_INCLUDE_DIRS})
@@ -113,6 +123,8 @@ FIND_PACKAGE(OpenGL REQUIRED)
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 
 FIND_PACKAGE(Gettext REQUIRED)
+ENDIF(NOT APPLE)
+
 
 # For convenience we define the sources as a variable. You can add 
 # header files and cpp/c files and CMake will sort them out
@@ -462,6 +474,7 @@ IF(APPLE)
   SET(SRCS ${SRCS}
     include/macsercomm.h
     src/macsercomm.cpp
+    src/macutils_cocoa.cpp
     include/macutils.h
     src/macutils.c
     )
@@ -508,12 +521,12 @@ ENDIF(UNIX)
 
 #   Certain older Cmake FindGTK2 modules ( e.g. cmake-2.8.0-2) do not yield all of the required link libraries
 #   So, add them manually.
-IF(UNIX)
+IF(UNIX AND NOT APPLE)
 TARGET_LINK_LIBRARIES(${PACKAGE_NAME}
       dl
       gobject-2.0
 )
-ENDIF(UNIX)
+ENDIF(UNIX AND NOT APPLE)
 
 
 
@@ -568,6 +581,7 @@ IF(UNIX)
   INSTALL(FILES src/bitmaps/other_svg_src/opencpn.svg DESTINATION ${PREFIX_DATA}/icons/hicolor/scalable/apps )
   INSTALL(FILES data/opencpn.desktop DESTINATION ${PREFIX_DATA}/applications )
 ENDIF(UNIX)
+ENDIF(NOT APPLE)
 
 #  Fix up time_t definition
 # Checks for 32-bit version. And always use 32-bit time_t for compatibility
@@ -638,7 +652,11 @@ MACRO(GETTEXT_BUILD_MO _poFile _lang)
       COMMENT "i18n [${_poBasename}]: Created mo file."
    )
 
+IF(APPLE)
+   INSTALL(FILES ${_gmoFile} DESTINATION ${CMAKE_BINARY_DIR}/OpenCPN.app/Contents/Resources/${_lang}.lproj RENAME ${PACKAGE_NAME}.mo )
+ELSE(APPLE)
    INSTALL(FILES ${_gmoFile} DESTINATION ${PREFIX_DATA}/locale/${_lang}/LC_MESSAGES RENAME ${PACKAGE_NAME}.mo )
+ENDIF(APPLE)
    SET(_gmoFiles ${_gmoFiles} ${_gmoFile})
 ENDMACRO(GETTEXT_BUILD_MO)
 
@@ -665,7 +683,6 @@ ADD_CUSTOM_TARGET(i18n COMMENT "i18n: Done." DEPENDS ${_gmoFiles})
 ADD_DEPENDENCIES(${PACKAGE_NAME} i18n)
 ENDIF(GETTEXT_MSGFMT_EXECUTABLE)
 
-ENDIF(NOT APPLE)
 
 
 # On Windows builds, copy the wxWidgets dlls and  to the executable directory
@@ -795,4 +812,3 @@ INCLUDE(CPack)
 
 MESSAGE(STATUS "Writing spec file...")
 
- 	  	 

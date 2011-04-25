@@ -36,7 +36,7 @@
 #include <wx/arrimpl.cpp>
 #include <wx/encconv.h>
 #include <wx/regex.h>
-#include <wx/generic/progdlgg.h>
+#include <wx/progdlg.h>
 
 #include "chartdbs.h"
 #include "chartbase.h"
