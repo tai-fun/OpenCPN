@@ -689,18 +689,6 @@ Please click \"OK\" to agree and proceed, \"Cancel\" to quit.\n"));
 }
 
 
-#ifdef __WXOSX_COCOA__
-void ocpnwxAssert(const wxString &file, int line, const wxString &func, const wxString &cond, const wxString &msg)
-{
-	wxString emsg;
-	emsg.Printf(_T("File %s: %d, function %s, condition: %s : %s"),
-		file, line, func, cond, msg);
-	wxMessageDialog mdlg(gFrame, emsg, wxString("WX Assertion Failure"), wxICON_INFORMATION | wxOK );
-	int dlg_ret;
-	dlg_ret = mdlg.ShowModal();
-}
-
-#endif
 
 // `Main program' equivalent, creating windows and returning main app frame
 //------------------------------------------------------------------------------
@@ -891,10 +879,6 @@ bool MyApp::OnInit()
         log.Append(_T("Logs/"));
 //#elif defined __WXMSW__
 //        log.Append(_T("opencpn\\"));
-#endif
-#ifdef __WXOSX_COCOA__
-// set a debugging assertion handler for 2.9.2-trunk wxwidgets - patg
-	//wxSetAssertHandler(ocpnwxAssert);
 #endif
 
         // create the opencpn "log" directory if we need to
@@ -2823,9 +2807,9 @@ void MyFrame::RequestNewToolbar()
 {
       UpdateToolbar(global_color_scheme);
 
-      //DestroyMyToolbar();
-      //m_toolBar = CreateAToolbar();
-      //SetToolBar((wxToolBar *)m_toolBar);
+//      DestroyMyToolbar();
+//      m_toolBar = CreateAToolbar();
+//      SetToolBar((wxToolBar *)m_toolBar);
 }
 
 
@@ -3154,24 +3138,6 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
             break;
     }
 
-<<<<<<< HEAD
-    DestroyMyToolbar();
-    m_toolBar = CreateAToolbar();
-    SetToolBar((wxToolBar *)m_toolBar);
-
-    wxColour back_color = GetGlobalColor(_T("GREY2"));            // Was GREY1, switched on v 1.3.4 transparent icons
-=======
-/*    Romoved at 2.2 build 710 for testing
-#ifdef __WXOSX__
-    // RMS Problems with 2.8.3 on the mac and Destroy toolbar
-    //DestroyMyToolbar();
-    if (0 == m_toolBar)
-    {
-      m_toolBar = CreateAToolbar();
-      SetToolBar((wxToolBar *)m_toolBar);
-    }
-#else
-*/
     if (!IsFullScreen() || (IsFullScreen() && g_bFullscreenToolbar))
     {
           DestroyMyToolbar();
@@ -3191,6 +3157,12 @@ void MyFrame::UpdateToolbar(ColorScheme cs)
     //  Set background
       m_toolBar->SetBackgroundColour(back_color);
       m_toolBar->ClearBackground();
+
+#ifdef ocpnUSE_OPNCTOOLBAR
+      m_toolBar->SetToggledBackgroundColour(GetGlobalColor(_T("GREY1")));
+
+      m_toolBar->SetColorScheme(cs);
+#endif
 
 //    UpdateToolbarDynamics();
 //    UpdateToolbarStatusBox(false);
@@ -3589,7 +3561,7 @@ void MyFrame::DoSetSize(void)
               wxRect stat_box;
               m_pStatusBar->GetFieldRect(0, stat_box);
 #ifdef __WXOSX_COCOA__
-              int font_size = stat_box.width / 22;                // 30 for linux
+              int font_size = stat_box.width / 22;
 #else
               int font_size = stat_box.width / 28;                // 30 for linux
 #endif
