@@ -102,6 +102,7 @@ enum {
         ID_AISALERTSELECTSOUND,
         ID_AISALERTTESTSOUND,
         ID_TRACKCHECKBOX,
+        ID_DAILYCHECKBOX,
         ID_CM93ZOOM,
         ID_PANELPIM,
         ID_GRIBCHECKBOX,
@@ -118,7 +119,8 @@ enum {
         ID_SKEWCOMPBOX,
         ID_GARMINHOST,
         ID_FILTERNMEA,
-        ID_FULLSCREENQUILT
+        ID_FULLSCREENQUILT,
+        ID_FSTOOLBARCHECKBOX
 
 
 };
@@ -331,8 +333,10 @@ public:
     wxCheckBox              *pEnableZoomToCursor;
     wxCheckBox              *pPreserveScale;
     wxCheckBox		    *pPlayShipsBells;  // pjotrc 2010.02.09
+    wxCheckBox              *pFullScreenToolbar;
 
     wxCheckBox              *pTrackShowIcon;
+    wxCheckBox              *pTrackDaily;
     wxRadioButton           *m_pCheck_Trackpoint_time;
     wxRadioButton           *m_pCheck_Trackpoint_distance;
     wxTextCtrl              *m_pText_TP_Secs;

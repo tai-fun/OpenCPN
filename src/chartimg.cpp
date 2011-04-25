@@ -981,7 +981,7 @@ InitReturn ChartKAP::Init( const wxString& name, ChartInitFlag init_flags )
                                     bp_set = true;
                               }
 
-                              if(stru.Matches(_T("*UTM*")))
+                              if(stru.Matches(_T("*TM*")))
                               {
                                     m_projection = PROJECTION_TRANSVERSE_MERCATOR;
                                     bp_set = true;
@@ -2923,11 +2923,11 @@ bool ChartBaseBSB::AdjustVP(ViewPort &vp_last, ViewPort &vp_proposed)
       ViewPort vp_save = vp_proposed;                 // save a copy
 
       int ret_val = 0;
+      double binary_scale_factor = GetPPM() / vp_proposed.view_scale_ppm;
 
       if(vp_last.IsValid())
       {
 
-                  double binary_scale_factor = GetPPM() / vp_proposed.view_scale_ppm;
 
                   //    We only need to adjust the VP if the cache is valid and potentially usable, i.e. the scale factor is integer...
                   //    The objective here is to ensure that the VP center falls on an exact pixel boundary within the cache
@@ -3494,7 +3494,14 @@ bool ChartBaseBSB::RenderRegionViewOnDC(wxMemoryDC& dc, const ViewPort& VPoint, 
 
      //     Default is to try using the cache
      if(m_b_cdebug)printf("  Render Region By GVUC\n");
-     bool bnewview = GetViewUsingCache(Rsrc, dest, Region, RENDER_HIDEF);
+
+     //     A performance enhancement.....
+     ScaleTypeEnum scale_type_zoom = RENDER_HIDEF;
+     double binary_scale_factor = VPoint.view_scale_ppm / GetPPM();
+     if(binary_scale_factor < .250)
+           scale_type_zoom = RENDER_LODEF;
+
+     bool bnewview = GetViewUsingCache(Rsrc, dest, Region, scale_type_zoom);
 
      //    Select the data into the dc
      pPixCache->SelectIntoDC(dc);

@@ -56,6 +56,8 @@ class M_COVR_Desc
       bool     WriteWKB(void *p);
       int      ReadWKB(wxFFileInputStream &ifs);
       void     Update(M_COVR_Desc *pmcd);
+      wxRegion GetRegion(const ViewPort &vp, wxPoint *pwp);
+
 
       int         m_cell_index;
       int         m_object_id;
@@ -350,6 +352,8 @@ class cm93chart : public s57chart
 
             wxPoint *GetDrawBuffer(int nSize);
 
+            wxRegion          m_render_region;
+
       private:
             InitReturn CreateHeaderDataFromCM93Cell(void);
             int read_header_and_populate_cib(header_struct *ph, Cell_Info_Block *pCIB);
@@ -399,6 +403,7 @@ class cm93chart : public s57chart
 
             wxPoint     *m_pDrawBuffer;               // shared outline drawing buffer
             int         m_nDrawBufferSize;
+
 
 };
 
@@ -470,7 +475,8 @@ class cm93compchart : public s57chart
             InitReturn CreateHeaderData();
             cm93_dictionary *FindAndLoadDictFromDir(const wxString &dir);
             void FillScaleArray(double lat, double lon);
-            void PrepareChartScale(const ViewPort &vpt, int cmscale);
+            int PrepareChartScale(const ViewPort &vpt, int cmscale);
+            int GetCMScaleFromVP(const ViewPort &vpt);
             bool DoRenderRegionViewOnDC(wxMemoryDC& dc, const ViewPort& VPoint, const wxRegion &Region);
 
 
@@ -512,6 +518,7 @@ class CM93OffsetDialog: public wxDialog
             ~CM93OffsetDialog( );
 
             void OnClose(wxCloseEvent& event);
+            void OnOK(wxCommandEvent& event);
 
             void SetColorScheme( );
             void UpdateMCOVRList( const ViewPort &vpt );     // Rebuild MCOVR list
@@ -529,6 +536,7 @@ class CM93OffsetDialog: public wxDialog
 
             wxSpinCtrl        *m_pSpinCtrlXoff;
             wxSpinCtrl        *m_pSpinCtrlYoff;
+            wxButton          *m_OKButton;
 
             wxWindow          *m_pparent;
             cm93compchart     *m_pcompchart;

@@ -77,7 +77,11 @@ extern NMEAHandler      *g_pnmea;
 extern FontMgr          *pFontMgr;
 
 extern int              g_restore_stackindex;
+extern int              g_restore_dbindex;
 extern RouteList        *pRouteList;
+extern LayerList        *pLayerList;
+extern bool             g_bIsNewLayer;
+extern int              g_LayerIdx;
 extern Select           *pSelect;
 extern MyConfig         *pConfig;
 extern ArrayOfCDI       g_ChartDirArray;
@@ -108,7 +112,9 @@ extern Routeman         *g_pRouteMan;
 extern ComPortManager   *g_pCommMan;
 
 extern bool             s_bSetSystemTime;
-extern bool             g_bDisplayGrid;         //Flig indicating if grid is to be displayed
+extern bool             g_bDisplayGrid;         //Flag indicating if grid is to be displayed
+extern bool             g_bPlayShipsBells;
+extern bool             g_bFullscreenToolbar;
 
 extern bool             g_bShowDepthUnits;
 extern bool             g_bAutoAnchorMark;
@@ -126,14 +132,6 @@ extern wxRect           g_blink_rect;
 
 extern wxArrayString    *pMessageOnceArray;
 
-// Flav add for CM93 offset manual setup
-#ifdef FLAV
-extern double           g_CM93Maps_Offset_x;
-extern double           g_CM93Maps_Offset_y;
-extern bool             g_CM93Maps_Offset_on;
-extern bool             g_CM93Maps_Offset_Enable;
-#endif
-
 //    AIS Global configuration
 extern bool             g_bCPAMax;
 extern double           g_CPAMax_NM;
@@ -149,6 +147,7 @@ extern bool             g_bShowCOG;
 extern double           g_ShowCOG_Mins;
 extern bool             g_bAISShowTracks;
 extern bool             g_bTrackCarryOver;
+extern bool             g_bTrackDaily;
 extern double           g_AISShowTracks_Mins;
 extern bool             g_bShowMoored;
 extern double           g_ShowMoored_Kts;
@@ -252,7 +251,11 @@ extern bool             g_bfilter_cogsog;
 extern int              g_COGFilterSec;
 extern int              g_SOGFilterSec;
 
+extern bool             g_bQuiltEnable;
 extern bool             g_bFullScreenQuilt;
+extern bool             g_bQuiltStart;
+
+extern int              g_SkewCompUpdatePeriod;
 
 //------------------------------------------------------------------------------
 // Some wxWidgets macros for useful classes
@@ -261,6 +264,7 @@ WX_DEFINE_LIST ( RouteList );
 WX_DEFINE_LIST ( SelectableItemList );
 WX_DEFINE_LIST ( RoutePointList );
 WX_DEFINE_LIST ( HyperlinkList );         // toh, 2009.02.22
+WX_DEFINE_LIST ( LayerList );
 
 //-----------------------------------------------------------------------------
 //          Selectable Item
@@ -910,6 +914,8 @@ RoutePoint::RoutePoint ( double lat, double lon, const wxString& icon_ident, con
 
       //  Nice defaults
       m_seg_len = 0.0;
+      m_seg_vmg = 0.0;
+      m_seg_etd = wxInvalidDateTime;
       m_bDynamicName = false;
       m_bPtIsSelected = false;
       m_bIsBeingEdited = false;
@@ -924,10 +930,12 @@ RoutePoint::RoutePoint ( double lat, double lon, const wxString& icon_ident, con
       m_bShowName = true;
       m_bKeepXRoute = false;
       m_bIsVisible = true;
+      m_bIsListed = true;
       m_ConfigWPNum = -1;
       CurrentRect_in_DC = wxRect ( 0,0,0,0 );
       m_NameLocationOffsetX = -10;
       m_NameLocationOffsetY = 8;
+      m_pMarkFont = NULL;
 
       m_prop_string_format = _T ( "A" );              // Set the current Property String format indicator
 
@@ -943,12 +951,20 @@ RoutePoint::RoutePoint ( double lat, double lon, const wxString& icon_ident, con
       m_IconName = icon_ident;
       ReLoadIcon();
 
-      m_MarkName = name;
+      SetName(name);
 
       //  Possibly add the waypoint to the global list maintained by the waypoint manager
 
       if ( bAddToList && NULL != pWayPointMan )
             pWayPointMan->m_pWayPointList->Append ( this );
+
+      m_bIsInLayer = g_bIsNewLayer;
+      if (m_bIsInLayer) {
+            m_LayerID = g_LayerIdx;
+            m_bIsListed = false;
+      }
+      else
+            m_LayerID = 0;
 }
 
 
@@ -964,6 +980,28 @@ RoutePoint::~RoutePoint ( void )
             delete m_HyperlinkList;
       }
 }
+
+void RoutePoint::SetName(wxString name)
+{
+      m_MarkName = name;
+      CalculateNameExtents();
+}
+
+
+void RoutePoint::CalculateNameExtents(void)
+{
+      if(m_pMarkFont)
+      {
+            wxScreenDC dc;
+
+            dc.SetFont ( *m_pMarkFont );
+            m_NameExtents = dc.GetTextExtent ( m_MarkName );
+      }
+      else
+            m_NameExtents = wxSize(0,0);
+
+}
+
 
 wxString RoutePoint::CreatePropString ( void )
 {
@@ -1037,7 +1075,7 @@ void RoutePoint::Draw ( wxDC& dc, wxPoint *rpn )
       if ( NULL != rpn )
             *rpn = r;
 
-      if ( !m_bIsVisible && !m_bIsInTrack)     // pjotrc 2010.02.13
+      if ( !m_bIsVisible /*&& !m_bIsInTrack*/)     // pjotrc 2010.02.13, 2011.02.24
             return;
 
       //    Optimization, especially apparent on tracks in normal cases
@@ -1063,15 +1101,24 @@ void RoutePoint::Draw ( wxDC& dc, wxPoint *rpn )
 
 
 //    Calculate the mark drawing extents
-      wxRect r1 ( r.x-sx2, r.y-sy2, sx2 * 2, sy2 * 2 );
+      wxRect r1 ( r.x-sx2, r.y-sy2, sx2 * 2, sy2 * 2 );           // the bitmap extents
+
       if ( m_bShowName )
       {
-            dc.SetFont ( *pFontMgr->GetFont ( _( "Marks" ) ) );
-            int stextx, stexty;
-            dc.GetTextExtent ( m_MarkName, &stextx, &stexty );
-            wxRect r2 ( r.x + m_NameLocationOffsetX, r.y + m_NameLocationOffsetY, stextx, stexty );
-            r1.Union ( r2 );
+            if(0 == m_pMarkFont)
+            {
+                  m_pMarkFont = pFontMgr->GetFont ( _( "Marks" ) );
+                  m_FontColor = pFontMgr->GetFontColor(_("Marks"));
+                  CalculateNameExtents();
+            }
+
+            if(m_pMarkFont)
+            {
+                  wxRect r2 ( r.x + m_NameLocationOffsetX, r.y + m_NameLocationOffsetY, m_NameExtents.x, m_NameExtents.y );
+                  r1.Union ( r2 );
+            }
       }
+
       hilitebox = r1;
       hilitebox.x -= r.x;
       hilitebox.y -= r.y;
@@ -1101,10 +1148,13 @@ void RoutePoint::Draw ( wxDC& dc, wxPoint *rpn )
 
       if ( m_bShowName )
       {
-            dc.SetFont ( *pFontMgr->GetFont ( _( "Marks" ) ) );
-            dc.SetTextForeground(pFontMgr->GetFontColor(_("Marks")));
+            if(m_pMarkFont)
+            {
+                  dc.SetFont ( *m_pMarkFont );
+                  dc.SetTextForeground(m_FontColor);
 
-            dc.DrawText ( m_MarkName, r.x + m_NameLocationOffsetX, r.y + m_NameLocationOffsetY );
+                  dc.DrawText ( m_MarkName, r.x + m_NameLocationOffsetX, r.y + m_NameLocationOffsetY );
+            }
       }
 
 
@@ -1193,7 +1243,9 @@ Route::Route ( void )
       m_nPoints = 0;
       m_nm_sequence = 1;
       m_route_length = 0.0;
+      m_route_time = 0.0;
       m_bVisible = true;
+      m_bListed = true;
       m_bDeleteOnArrival = false;
 
       pRoutePointList = new RoutePointList;
@@ -1203,6 +1255,14 @@ Route::Route ( void )
       m_ArrivalRadius = .05;        // default, Miles
 
       RBBox.Reset();
+
+      m_bIsInLayer = g_bIsNewLayer;
+      if (m_bIsInLayer) {
+            m_LayerID = g_LayerIdx;
+            m_bListed = false;
+      }
+      else
+            m_LayerID = 0;
 }
 
 
@@ -1225,15 +1285,26 @@ void Route::CloneRoute(Route *psourceroute, int start_nPoint, int end_nPoint, wx
 
       int i;
       for (i = start_nPoint; i <= end_nPoint; i++) {
-            AddPoint(psourceroute->GetPoint(i), false);
+            if (!psourceroute->m_bIsInLayer)
+                  AddPoint(psourceroute->GetPoint(i), false);
+            else {
+                  RoutePoint *psourcepoint = psourceroute->GetPoint(i);
+                  RoutePoint *ptargetpoint = new RoutePoint( psourcepoint->m_lat, psourcepoint->m_lon, psourcepoint->m_IconName, psourcepoint->GetName(), GPX_EMPTY_STRING, false );
+
+                  AddPoint(ptargetpoint, false);
+
+                  CloneAddedRoutePoint(m_pLastAddedPoint, psourcepoint);
+            }
       }
 
       CalculateBBox();
- 
+
 }
 
 void Route::CloneTrack(Route *psourceroute, int start_nPoint, int end_nPoint, wxString suffix)
 {
+      if (psourceroute->m_bIsInLayer) return;
+
       m_bIsTrack = psourceroute->m_bIsTrack;
 
       m_RouteNameString = psourceroute->m_RouteNameString+suffix;
@@ -1252,7 +1323,7 @@ void Route::CloneTrack(Route *psourceroute, int start_nPoint, int end_nPoint, wx
       for (i = start_nPoint; i <= end_nPoint; i++) {
 
             RoutePoint *psourcepoint = psourceroute->GetPoint(i);
-            RoutePoint *ptargetpoint = new RoutePoint( psourcepoint->m_lat, psourcepoint->m_lon, psourcepoint->m_IconName, psourcepoint->m_MarkName, GPX_EMPTY_STRING, false );
+            RoutePoint *ptargetpoint = new RoutePoint( psourcepoint->m_lat, psourcepoint->m_lon, psourcepoint->m_IconName, psourcepoint->GetName(), GPX_EMPTY_STRING, false );
 
             AddPoint(ptargetpoint, false);
 
@@ -1270,7 +1341,30 @@ void Route::CloneTrack(Route *psourceroute, int start_nPoint, int end_nPoint, wx
       }
 
       CalculateBBox();
- 
+
+}
+
+void Route::CloneAddedRoutePoint(RoutePoint *ptargetpoint, RoutePoint *psourcepoint)
+{
+            ptargetpoint->m_MarkDescription = psourcepoint->m_MarkDescription;
+            ptargetpoint->m_prop_string_format = psourcepoint->m_prop_string_format;
+            ptargetpoint->m_bKeepXRoute = psourcepoint->m_bKeepXRoute;
+            ptargetpoint->m_bIsVisible = psourcepoint->m_bIsVisible;
+            ptargetpoint->m_bPtIsSelected = false;
+            ptargetpoint->m_pbmIcon = psourcepoint->m_pbmIcon;
+            ptargetpoint->m_bShowName = psourcepoint->m_bShowName;
+            ptargetpoint->m_bBlink = psourcepoint->m_bBlink;
+            ptargetpoint->m_bBlink = psourcepoint->m_bDynamicName;
+            ptargetpoint->CurrentRect_in_DC = psourcepoint->CurrentRect_in_DC;
+            ptargetpoint->m_NameLocationOffsetX = psourcepoint->m_NameLocationOffsetX;
+            ptargetpoint->m_NameLocationOffsetX = psourcepoint->m_NameLocationOffsetY;
+            ptargetpoint->m_CreateTime = psourcepoint->m_CreateTime;
+            ptargetpoint->m_HyperlinkList = new HyperlinkList;
+
+            if (!psourcepoint->m_HyperlinkList->IsEmpty()) {
+                  HyperlinkList::iterator iter = psourcepoint->m_HyperlinkList->begin();
+                  psourcepoint->m_HyperlinkList->splice(iter, *(ptargetpoint->m_HyperlinkList));
+            }
 }
 
 void Route::CloneAddedTrackPoint(RoutePoint *ptargetpoint, RoutePoint *psourcepoint)
@@ -1322,9 +1416,11 @@ void Route::AddPoint ( RoutePoint *pNewPoint, bool b_rename_in_sequence )
 
       m_pLastAddedPoint = pNewPoint;
 
-      if ( b_rename_in_sequence && pNewPoint->m_MarkName.IsEmpty() && !pNewPoint->m_bKeepXRoute)
+      if ( b_rename_in_sequence && pNewPoint->GetName().IsEmpty() && !pNewPoint->m_bKeepXRoute)
       {
-            pNewPoint->m_MarkName.Printf ( _T ( "%03d" ), m_nPoints );
+            wxString name;
+            name.Printf ( _T ( "%03d" ), m_nPoints );
+            pNewPoint->SetName(name);
             pNewPoint->m_bDynamicName = true;
       }
       return;
@@ -1705,6 +1801,8 @@ int Route::GetIndexOf ( RoutePoint *prp )
 void Route::DeletePoint ( RoutePoint *rp, bool bRenamePoints )
 {
       //    n.b. must delete Selectables  and update config before deleting the point
+      if (rp->m_bIsInLayer) return;
+
       pSelect->DeleteAllSelectableRoutePoints ( this );
       pSelect->DeleteAllSelectableRouteSegments ( this );
       pConfig->DeleteWayPoint ( rp );
@@ -1848,19 +1946,41 @@ void Route::CalculateBBox()
 
 void Route::CalculateDCRect ( wxDC& dc_route, wxRect *prect, ViewPort &VP )
 {
-
       dc_route.ResetBoundingBox();
       dc_route.DestroyClippingRegion();
 
-      // Draw the route on the dc
-      Draw ( dc_route, VP );
+      // Draw the route in skeleton form on the dc
+      // That is, draw only the route points, assuming that the segements will
+      // always be fully contained within the resulting rectangle.
+      // Can we prove this?
+      if ( m_bVisible)
+      {
+            wxPoint rpt1, rpt2;
+            DrawPointWhich ( dc_route, 1, &rpt1 );
+
+            wxRoutePointListNode *node = pRoutePointList->GetFirst();
+            RoutePoint *prp1 = node->GetData();
+            node = node->GetNext();
+
+            while ( node )
+            {
+
+                  RoutePoint *prp2 = node->GetData();
+                  prp2->Draw ( dc_route, &rpt2 );
+
+                  rpt1 = rpt2;
+                  prp1 = prp2;
+
+                  node = node->GetNext();
+            }
+      }
+
 
       //  Retrieve the drawing extents
       prect->x = dc_route.MinX() - 1;
       prect->y = dc_route.MinY() - 1;
-      prect->width  = dc_route.MaxX() - dc_route.MinX() + 2; // Mouse Poop?
+      prect->width  = dc_route.MaxX() - dc_route.MinX() + 2;
       prect->height = dc_route.MaxY() - dc_route.MinY() + 2;
-
 }
 
 
@@ -1868,12 +1988,13 @@ void Route::CalculateDCRect ( wxDC& dc_route, wxRect *prect, ViewPort &VP )
 Update the route segment lengths, storing each segment length in <destination> point.
 Also, compute total route length by summing segment distances.
 */
-void Route::UpdateSegmentDistances()
+void Route::UpdateSegmentDistances(double planspeed)
 {
       wxPoint rpt, rptn;
       float slat1, slon1, slat2, slon2;
 
       double route_len = 0.0;
+      double route_time = 0.0;
 
       wxRoutePointListNode *node = pRoutePointList->GetFirst();
 
@@ -1903,6 +2024,48 @@ void Route::UpdateSegmentDistances()
 
                   slat1 = slat2;
                   slon1 = slon2;
+
+
+//    If Point1 Description contains VMG, store it for Properties Dialog in Point2
+//    If Point1 Description contains ETD, store it in Point1
+
+                  if (planspeed > 0.) {
+                        double vmg = 0.0;
+                        wxDateTime etd;
+
+                        if (prp0->m_MarkDescription.Find(_T("VMG="))!= wxNOT_FOUND) {
+                              wxString s_vmg = (prp0->m_MarkDescription.Mid(prp0->m_MarkDescription.Find(_T("VMG="))+4)).BeforeFirst(';');
+                              if (!s_vmg.ToDouble(&vmg))
+                                    vmg = planspeed;
+                              }
+
+                        double legspeed = planspeed;
+                        if (vmg > 0.1 && vmg < 1000.) legspeed = vmg;
+                        if (legspeed > 0.1 && legspeed < 1000.) {
+                              route_time += dd/legspeed;
+                              prp->m_seg_vmg = legspeed;
+                              }
+
+                        prp0->m_seg_etd = wxInvalidDateTime;
+                        if (prp0->m_MarkDescription.Find(_T("ETD="))!= wxNOT_FOUND) {
+                              wxString s_etd = (prp0->m_MarkDescription.Mid(prp0->m_MarkDescription.Find(_T("ETD="))+4)).BeforeFirst(';');
+                              wxString tz = etd.ParseDateTime(s_etd);
+                              if (tz) {
+                                    if (tz.Find(_T("UT")) != wxNOT_FOUND)
+                                          prp0->m_seg_etd = etd;
+                                    else
+                                          if (tz.Find(_T("LMT")) != wxNOT_FOUND) {
+                                                prp0->m_seg_etd = etd;
+                                                long lmt_offset = (long)((prp0->m_lon*3600.)/15.);
+                                                wxTimeSpan lmt(0,0,(int)lmt_offset,0);
+                                                prp0->m_seg_etd -= lmt;
+                                                }
+                                          else
+                                                prp0->m_seg_etd = etd.ToUTC();
+                              }
+                        }
+                  }
+
                   prp0 = prp;
 
                   node = node->GetNext();
@@ -1910,6 +2073,7 @@ void Route::UpdateSegmentDistances()
       }
 
       m_route_length = route_len;
+      m_route_time = route_time*3600.;
 }
 
 
@@ -1961,6 +2125,11 @@ void Route::SetVisible(bool visible)
       m_bVisible = visible;
 }
 
+void Route::SetListed(bool visible)
+{
+      m_bListed = visible;
+}
+
 void Route::AssembleRoute ( void )
 {
       //    iterate over the RoutePointGUIDs
@@ -1996,7 +2165,11 @@ void Route::RenameRoutePoints ( void )
       {
             RoutePoint *prp = node->GetData();
             if ( prp->m_bDynamicName )
-                  prp->m_MarkName.Printf ( _T ( "%03d" ), i );
+            {
+                  wxString name;
+                  name.Printf ( _T ( "%03d" ), i );
+                  prp->SetName(name);
+            }
 
             node = node->GetNext();
             i++;
@@ -2031,6 +2204,8 @@ bool Route::IsEqualTo ( Route *ptargetroute )
       if ( NULL == pthisnode )
             return false;
 
+      if (this->m_bIsInLayer || ptargetroute->m_bIsInLayer) return false;
+
       if (this->GetnPoints() != ptargetroute->GetnPoints())
            return false;
 
@@ -2045,7 +2220,7 @@ bool Route::IsEqualTo ( Route *ptargetroute )
             if ( ( fabs ( pthisrp->m_lat - pthatrp->m_lat ) > 1.0e-6 ) || ( fabs ( pthisrp->m_lon - pthatrp->m_lon ) > 1.0e-6 ) )
                   return false;
 
-            if ( !pthisrp->m_MarkName.IsSameAs ( pthatrp->m_MarkName ) )
+            if ( !pthisrp->GetName().IsSameAs ( pthatrp->GetName() ) )
                   return false;
 
             pthisnode = pthisnode->GetNext();
@@ -2073,9 +2248,9 @@ Track::Track ( void )
       m_minTrackpoint_delta = .01;
       m_bTrackTime = false;
       m_bTrackDistance = false;
-      m_prev_time = wxDateTime::Now();
-      m_prev_time.ResetTime();            // set to midnight this morning.
-
+      //m_prev_time = wxDateTime::Now();
+      //m_prev_time.ResetTime();            // set to midnight this morning.
+      m_prev_time = wxInvalidDateTime;
       m_prev_glon = -999.;
       m_prev_glat = -999.;
 
@@ -2101,19 +2276,61 @@ void Track::Start ( void )
       }
 }
 
-void Track::Stop ( void )
+void Track::Stop ( bool do_add_point )
 {
       double delta = DistGreatCircle ( gLat, gLon, m_prev_glat, m_prev_glon );
 
-      if (( m_bRunning ) && ( delta > m_minTrackpoint_delta ))
-            AddPointNow();                   // Add last point
-
+      if (( m_bRunning ) && (( delta > m_minTrackpoint_delta ) || do_add_point))
+            AddPointNow( do_add_point );                   // Add last point
 
       m_TimerTrack.Stop();
       m_bRunning = false;
       m_track_run = 0;
 }
 
+bool Track::DoExtendDaily()
+{
+            Route *pExtendRoute = NULL;
+            RoutePoint *pExtendPoint = NULL;
+
+            RoutePoint *pLastPoint = this->GetPoint(1);
+
+            wxRouteListNode *route_node = pRouteList->GetFirst();
+            while(route_node) {
+                  Route *proute = route_node->GetData();
+                  if (proute->m_bIsTrack) {
+                        RoutePoint *track_node = proute->GetLastPoint();
+                              if(track_node->m_CreateTime <= pLastPoint->m_CreateTime)
+                                    if (!pExtendPoint || track_node->m_CreateTime > pExtendPoint->m_CreateTime) {
+                                          pExtendPoint = track_node;
+                                          pExtendRoute = proute;
+                                    }
+                  }
+                  route_node = route_node->GetNext();                         // next route
+            }
+            if (pExtendRoute
+                  && pExtendRoute->GetPoint(1)->m_CreateTime.FromTimezone(wxDateTime::GMT0).IsSameDate(pLastPoint->m_CreateTime.FromTimezone(wxDateTime::GMT0))){
+                        int begin = 1;
+                        if (pLastPoint->m_CreateTime == pExtendPoint->m_CreateTime) begin = 2;
+                        pSelect->DeleteAllSelectableTrackSegments(pExtendRoute);
+                        pExtendRoute->CloneTrack(this, begin, this->GetnPoints(), _T(""));
+                        pSelect->AddAllSelectableTrackSegments ( pExtendRoute );
+                        pSelect->DeleteAllSelectableTrackSegments(this);
+                        this->ClearHighlights();
+                        return true;
+            }
+            else
+                  return false;
+}
+
+void Track::FixMidnight(Track *pPreviousTrack)
+{
+      RoutePoint *pMidnightPoint = pPreviousTrack->GetLastPoint();
+      CloneAddedTrackPoint(m_pLastAddedPoint, pMidnightPoint);
+      m_prev_glat = pMidnightPoint->m_lat;
+      m_prev_glon = pMidnightPoint->m_lon;
+      m_prev_time = pMidnightPoint->m_CreateTime.FromUTC();
+}
 
 void Track::OnTimerTrack ( wxTimerEvent& event )
 {
@@ -2133,7 +2350,7 @@ void Track::OnTimerTrack ( wxTimerEvent& event )
 
       if ( b_addpoint )
             AddPointNow();
-      else if ( ( GetnPoints() < 2 )&& (delta < m_DeltaDistance) )  //continuously update track beginning point timestamp if no movement.
+      else if ( ( GetnPoints() < 2 ) && (delta < m_DeltaDistance) && !g_bTrackDaily)  //continuously update track beginning point timestamp if no movement.
       {
             wxDateTime now = wxDateTime::Now();
             pRoutePointList->GetFirst()->GetData()->m_CreateTime = now.ToUTC();
@@ -2142,16 +2359,23 @@ void Track::OnTimerTrack ( wxTimerEvent& event )
       m_TimerTrack.Start ( 1000, wxTIMER_CONTINUOUS );
 }
 
-void Track::AddPointNow()
+void Track::AddPointNow(bool do_add_point)
 {
 
       wxDateTime now = wxDateTime::Now();
 
-      if((m_prev_glat == gLat) && (m_prev_glon == gLon))                 // avoid zero length segs
-            return;
+        //wxString imsg = now.FormatISODate()+now.FormatISOTime()+_T("AddPointNow()");
+        //wxLogMessage(imsg);
 
-      if(m_prev_time == now)                                            // avoid zero time segs
-            return;
+      if((m_prev_glat == gLat) && (m_prev_glon == gLon))                 // avoid zero length segs
+            if (!do_add_point) return;
+
+      if (m_prev_time.IsValid())
+            if(m_prev_time == now)                                            // avoid zero time segs
+                 if (!do_add_point) return;
+
+        //imsg = now.FormatISODate()+now.FormatISOTime()+_T("Adding Point Now");
+        //wxLogMessage(imsg);
 
       RoutePoint *pTrackPoint = new RoutePoint ( gLat, gLon, wxString ( _T ( "empty" ) ), wxString ( _T ( "" ) ), GPX_EMPTY_STRING );
       pTrackPoint->m_bShowName = false;
@@ -2290,7 +2514,47 @@ Route *Track::RouteFromTrack(wxProgressDialog *pprog)
 }
 
 
+//-----------------------------------------------------------------------------
+//          Layer Implementation
+//-----------------------------------------------------------------------------
 
+Layer::Layer ( void )
+{
+      m_bIsVisibleOnChart = true;
+      m_bIsVisibleOnListing = false;
+      m_bHasVisibleNames = true;
+      m_NoOfItems = 0;
+
+      m_LayerName = _T("");
+      m_LayerFileName = _T("");
+      m_LayerDescription = _T("");
+      m_CreateTime = wxDateTime::Now();
+}
+
+
+Layer::~Layer ( void )
+{
+//  Remove this layer from the global layer list
+      if ( NULL != pLayerList )
+            pLayerList->DeleteObject ( this );
+
+}
+
+// Layer helper function
+
+wxString GetLayerName(int id)
+{
+      wxString name(_T("unknown layer"));
+      if (id<=0) return(name);
+      LayerList::iterator it;
+      int index = 0;
+      for (it = (*pLayerList).begin(); it != (*pLayerList).end(); ++it, ++index)
+      {
+            Layer *lay = (Layer *)(*it);
+            if (lay->m_LayerID == id) return (lay->m_LayerName);
+      }
+      return(name);
+}
 
 
 //-----------------------------------------------------------------------------
@@ -2311,6 +2575,7 @@ MyConfig::MyConfig ( const wxString &appName, const wxString &vendorName, const 
       m_pNavObjectChangesSet = new NavObjectCollection();
 
       m_bIsImporting = false;
+      g_bIsNewLayer = false;
 }
 
 
@@ -2366,7 +2631,8 @@ int MyConfig::LoadMyConfig ( int iteration )
 
       Read ( _T ( "WindowsComPortMax" ),  &g_nCOMPortCheck, 32 );
 
-      Read ( _T ( "ChartQuilting" ),  &m_bQuilt, 0 );
+      Read ( _T ( "ChartQuilting" ),  &g_bQuiltEnable, 0 );
+      Read ( _T ( "ChartQuiltingInitial" ),  &g_bQuiltStart, 0 );
 
       Read ( _T ( "UseRasterCharts" ),  &g_bUseRaster, 1 );             // default is true......
       Read ( _T ( "UseVectorCharts" ),  &g_bUseVector, 0 );
@@ -2382,6 +2648,7 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "AnchorWatch2GUID" ),  &g_AW2GUID, _T(""));
 
       Read ( _T ( "InitialStackIndex" ),  &g_restore_stackindex, 0 );
+      Read ( _T ( "InitialdBIndex" ),  &g_restore_dbindex, -1 );
       Read ( _T ( "CM93DetailFactor" ),  &g_cm93_zoom_factor, 0 );
       g_cm93_zoom_factor = wxMin(g_cm93_zoom_factor,CM93_ZOOM_FACTOR_MAX_RANGE);
       g_cm93_zoom_factor = wxMax(g_cm93_zoom_factor,(-CM93_ZOOM_FACTOR_MAX_RANGE));
@@ -2393,12 +2660,15 @@ int MyConfig::LoadMyConfig ( int iteration )
       if((g_cm93detail_dialog_y < 0) || (g_cm93detail_dialog_y > display_height))
             g_cm93detail_dialog_y = 5;
 
+      Read ( _T ( "SkewCompUpdatePeriod" ),  &g_SkewCompUpdatePeriod, 10 );
 
       Read ( _T ( "ShowCM93DetailSlider" ),  &g_bShowCM93DetailSlider, 0 );
 
       Read ( _T ( "SetSystemTime" ), &s_bSetSystemTime, 0 );
       Read ( _T ( "ShowDebugWindows" ), &m_bShowDebugWindows, 1 );
       Read ( _T ( "ShowGrid" ), &g_bDisplayGrid, 0 );
+      Read ( _T ( "PlayShipsBells" ), &g_bPlayShipsBells, 0 );
+      Read ( _T ( "FullscreenToolbar" ), &g_bFullscreenToolbar, 1 );
       Read ( _T ( "ShowPrintIcon" ), &g_bShowPrintIcon, 0 );
       Read ( _T ( "ShowDepthUnits" ), &g_bShowDepthUnits, 1 );
       Read ( _T ( "AutoAnchorDrop" ),  &g_bAutoAnchorMark, 0 );
@@ -2410,6 +2680,7 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "FullScreenQuilt" ),  &g_bFullScreenQuilt, 1 );
 
       Read ( _T ( "StartWithTrackActive" ),  &g_bTrackCarryOver, 0 );
+      Read (_T ( "AutomaticDailyTracks" ),  &g_bTrackDaily, 0 );
 
       wxString stps;
       Read ( _T ( "PlanSpeed" ),  &stps );
@@ -2958,6 +3229,13 @@ int MyConfig::LoadMyConfig ( int iteration )
             m_NextRouteNum = routenum + 1;
       }
 
+      //    Layers
+      if ( 0 == iteration )
+      {
+//            int laynum = 0;
+            pLayerList = new LayerList;
+      }
+
       //    Marks
       if ( 0 == iteration )
       {
@@ -3314,6 +3592,8 @@ bool MyConfig::AddNewRoute ( Route *pr, int crm )
       wxString str_buf;
       int acrm;
 
+      if (pr->m_bIsInLayer) return true;
+
       if ( crm != -1 )
             acrm = crm;
       else
@@ -3338,6 +3618,8 @@ bool MyConfig::AddNewRoute ( Route *pr, int crm )
 
 bool MyConfig::UpdateRoute ( Route *pr )
 {
+      if (pr->m_bIsInLayer) return true;
+
       if ( pr->m_bIsTrack )
       {
             if (!m_bIsImporting)
@@ -3375,6 +3657,8 @@ bool MyConfig::DeleteConfigRoute ( Route *pr )
 {
       wxString str_buf;
 
+      if (pr->m_bIsInLayer) return true;
+
 //    Build the Group Name
       wxString t ( _T ( "/Routes/RouteDefn" ) );
       str_buf.Printf ( _T ( "%d" ), pr->m_ConfigRouteNum );
@@ -3411,6 +3695,8 @@ bool MyConfig::AddNewWayPoint ( RoutePoint *pWP, int crm )
       wxString str_buf;
       int acrm;
 
+      if (pWP->m_bIsInLayer) return true;
+
       if ( crm != -1 )
             acrm = crm;
       else
@@ -3435,6 +3721,8 @@ bool MyConfig::UpdateWayPoint ( RoutePoint *pWP )
 {
       wxString str_buf;
 
+      if (pWP->m_bIsInLayer) return true;
+
 //    Build the Group Name
       wxString t ( _T ( "/Marks/MarkDefn" ) );
       str_buf.Printf ( _T ( "%d" ), pWP->m_ConfigWPNum );
@@ -3456,6 +3744,8 @@ bool MyConfig::UpdateWayPoint ( RoutePoint *pWP )
 bool MyConfig::DeleteWayPoint ( RoutePoint *pWP )
 {
       wxString str_buf;
+
+      if (pWP->m_bIsInLayer) return true;
 
 //    Build the Group Name
       wxString t ( _T ( "/Marks/MarkDefn" ) );
@@ -3530,6 +3820,8 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "ShowPrintIcon" ), g_bShowPrintIcon );
       Write ( _T ( "SetSystemTime" ), s_bSetSystemTime );
       Write ( _T ( "ShowGrid" ), g_bDisplayGrid );
+      Write ( _T ( "PlayShipsBells" ), g_bPlayShipsBells );
+      Write ( _T ( "FullscreenToolbar" ), g_bFullscreenToolbar );
       Write ( _T ( "ShowDepthUnits" ), g_bShowDepthUnits );
       Write ( _T ( "AutoAnchorDrop" ),  g_bAutoAnchorMark );
       Write ( _T ( "ShowChartOutlines" ),  g_bShowOutlines );
@@ -3547,8 +3839,6 @@ void MyConfig::UpdateSettings()
 
       Write ( _T ( "SkewToNorthUp" ), g_bskew_comp );
 
-      if(cc1)
-            Write ( _T ( "ChartQuilting" ), cc1->GetQuiltMode());
 
       Write ( _T ( "UseRasterCharts" ), g_bUseRaster );
       Write ( _T ( "UseVectorCharts" ), g_bUseVector );
@@ -3559,7 +3849,11 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "COGUPAvgSeconds" ), g_COGAvgSec );
       Write ( _T ( "OwnshipCOGPredictorMinutes" ), g_ownship_predictor_minutes );
 
+      Write ( _T ( "ChartQuilting" ), g_bQuiltEnable);
       Write ( _T ( "FullScreenQuilt" ), g_bFullScreenQuilt );
+
+      if(cc1)
+            Write ( _T ( "ChartQuiltingInitial" ), cc1->GetQuiltMode() );
 
       Write ( _T ( "NMEALogWindowSizeX" ),  g_NMEALogWindow_sx );
       Write ( _T ( "NMEALogWindowSizeY" ),  g_NMEALogWindow_sy );
@@ -3569,8 +3863,10 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "PreserveScaleOnX" ),   g_bPreserveScaleOnX );
 
       Write ( _T ( "StartWithTrackActive" ),   g_bTrackCarryOver );
+      Write ( _T ( "AutomaticDailyTracks" ),   g_bTrackDaily );
 
       Write ( _T ( "InitialStackIndex" ),  g_restore_stackindex );
+      Write ( _T ( "InitialdBIndex" ),  g_restore_dbindex );
 
       Write ( _T ( "AnchorWatch1GUID" ),   g_AW1GUID );
       Write ( _T ( "AnchorWatch2GUID" ),   g_AW2GUID );
@@ -3824,6 +4120,8 @@ void MyConfig::StoreNavObjChanges(void)
 
 bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
 {
+      //if (pRoute->m_bIsInLayer) return true;
+
       //FIXME: get rid of the Dialogs and unite with the other
       wxFileDialog saveDialog( parent, _( "Export GPX file" ), m_gpx_path, wxT ( "" ),
                   wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
@@ -3869,6 +4167,8 @@ bool MyConfig::ExportGPXRoute ( wxWindow* parent, Route *pRoute )
 
 bool MyConfig::ExportGPXWaypoint ( wxWindow* parent, RoutePoint *pRoutePoint )
 {
+      //if (pRoutePoint->m_bIsInLayer) return true;
+
       //FIXME: get rid of the Dialogs and unite with the other
       wxFileDialog saveDialog( parent, _( "Export GPX file" ), m_gpx_path, wxT ( "" ),
                   wxT ( "GPX files (*.gpx)|*.gpx" ), wxFD_SAVE );
@@ -3940,7 +4240,9 @@ void MyConfig::ExportGPX ( wxWindow* parent )
             while ( node )
             {
                   pr = node->GetData();
-                  if ( pr->m_bKeepXRoute || !WptIsInRouteList ( pr ) )
+
+//                  if ( pr->m_bKeepXRoute || !WptIsInRouteList ( pr ) )
+                  if (( pr->m_bKeepXRoute || !WptIsInRouteList ( pr )) && !(pr->m_bIsInLayer) )
                   {
                         gpxroot->AddWaypoint(CreateGPXWpt(pr, GPX_WPT_WAYPOINT));
                   }
@@ -3951,13 +4253,15 @@ void MyConfig::ExportGPX ( wxWindow* parent )
             while ( node1 )
             {
                   Route *pRoute = node1->GetData();
-                  if ( !pRoute->m_bIsTrack )
-                  {
-                        gpxroot->AddRoute(CreateGPXRte ( pRoute ));
-                  }
-                  else
-                  {
-                        gpxroot->AddTrack(CreateGPXTrk ( pRoute ));
+                  if ( !(pRoute->m_bIsInLayer)) {
+                        if ( !pRoute->m_bIsTrack )
+                        {
+                              gpxroot->AddRoute(CreateGPXRte ( pRoute ));
+                        }
+                        else
+                        {
+                              gpxroot->AddTrack(CreateGPXTrk ( pRoute ));
+                        }
                   }
                   node1 = node1->GetNext();
             }
@@ -4011,7 +4315,7 @@ GpxWptElement *CreateGPXWpt ( RoutePoint *pr, char * waypoint_type, bool b_props
       }
 
       return new GpxWptElement(waypoint_type, pr->m_lat, pr->m_lon,
-            0, &pr->m_CreateTime, 0, -1, pr->m_MarkName, GPX_EMPTY_STRING,
+                               0, &pr->m_CreateTime, 0, -1, pr->GetName(), GPX_EMPTY_STRING,
             pr->m_MarkDescription, GPX_EMPTY_STRING, &lnks,
             pr->m_IconName, wxString(_T("WPT")), fix_undefined,
             -1, -1, -1, -1, -1, -1, exts);
@@ -4085,18 +4389,42 @@ GpxTrkElement *CreateGPXTrk ( Route *pRoute )
       return trk;
 }
 
-void MyConfig::ImportGPX ( wxWindow* parent )
+void MyConfig::ImportGPX ( wxWindow* parent, bool islayer, wxString dirpath, bool isdirectory )
 {
+      int response = wxID_CANCEL;
       m_bIsImporting = true;
-      //FIXME: unite the loading itself with NavObjectCollection::LoadAllGPXObjects()
-      wxFileDialog openDialog( parent, _( "Import GPX file" ), m_gpx_path, wxT ( "" ),
-                               wxT ( "GPX files (*.gpx)|*.gpx|All files (*.*)|*.*" ), wxFD_OPEN | wxFD_MULTIPLE );
-      int response = openDialog.ShowModal();
+      g_bIsNewLayer = islayer;
+      wxArrayString file_array;
+      Layer *l = NULL;
+
+                    //wxString impmsg;
+                    //impmsg.Printf(wxT("ImportGPX: %d, %s, %d"), islayer, dirpath.c_str(), isdirectory);
+                    //wxLogMessage(impmsg);
+
+
+      if (!islayer || dirpath.IsSameAs(_T(""))) {
+            //FIXME: unite the loading itself with NavObjectCollection::LoadAllGPXObjects()
+            wxFileDialog openDialog( parent, _( "Import GPX file" ), m_gpx_path, wxT ( "" ),
+                                     wxT ( "GPX files (*.gpx)|*.gpx|All files (*.*)|*.*" ), wxFD_OPEN | wxFD_MULTIPLE );
+            response = openDialog.ShowModal();
+            if ( response == wxID_OK )
+            {
+                  openDialog.GetPaths(file_array);
+            }
+
+      } else {
+            if (isdirectory){
+                  if (wxDir::GetAllFiles( dirpath, &file_array, wxT("*.gpx")))
+                        response = wxID_OK;
+            }
+            else {
+                  file_array.Add(dirpath);
+                  response = wxID_OK;
+            }
+      }
 
       if ( response == wxID_OK )
       {
-            wxArrayString file_array;
-            openDialog.GetPaths(file_array);
 
             //    Record the currently selected directory for later use
             if(file_array.GetCount())
@@ -4104,13 +4432,41 @@ void MyConfig::ImportGPX ( wxWindow* parent )
                   wxFileName fn ( file_array[0] );
                   m_gpx_path = fn.GetPath();
             }
+            if (islayer) {
+                  l = new Layer();
+                  l->m_LayerID = ++g_LayerIdx;
+                  l->m_LayerFileName = file_array[0];
+                  if (file_array.GetCount()<=1)
+                        wxFileName::SplitPath(file_array[0],NULL,NULL,&(l->m_LayerName),NULL,NULL);
+                  else {
+                        if (dirpath.IsSameAs(_T("")))
+                        wxFileName::SplitPath(m_gpx_path,NULL,NULL,&(l->m_LayerName),NULL,NULL);
+                        else
+                        wxFileName::SplitPath(dirpath,NULL,NULL,&(l->m_LayerName),NULL,NULL);
+                  }
+
+                    wxString laymsg;
+                    laymsg.Printf(wxT("New layer %d: %s"), l->m_LayerID, l->m_LayerName.c_str());
+                    wxLogMessage(laymsg);
+
+                  pLayerList->Insert(l);
+            }
 
             for(unsigned int i=0 ; i < file_array.GetCount() ; i++)
             {
                   wxString path = file_array[i];
 
+                    //wxString filmsg;
+                    //filmsg.Printf(wxT("Trying layer file %d: %s"), i, path.c_str());
+                    //wxLogMessage(filmsg);
+
                   if ( ::wxFileExists ( path ) )
                   {
+
+                    //wxString gpxmsg;
+                    //gpxmsg.Printf(wxT("Reading layer file %d: %s"), i, path.c_str());
+                    //wxLogMessage(gpxmsg);
+
                         GpxDocument *pXMLNavObj = new GpxDocument();
 				if ( pXMLNavObj->LoadFile ( path ) )
                         {
@@ -4128,7 +4484,7 @@ void MyConfig::ImportGPX ( wxWindow* parent )
                                           if ( ChildName == _T ( "wpt" ) )
                                           {
                                                 RoutePoint *pWp = ::LoadGPXWaypoint((GpxWptElement *)child, _T("circle"), true);          // Full Viz
-                                                RoutePoint *pExisting = WaypointExists( pWp->m_MarkName, pWp->m_lat, pWp->m_lon);
+                                                RoutePoint *pExisting = WaypointExists( pWp->GetName(), pWp->m_lat, pWp->m_lon);
                                                 if(!pExisting)
                                                 {
                                                       if (WaypointExists(pWp->m_GUID)) //We try to import a waypoint with the same guid but different properties, so we assign it a new guid to keep them both
@@ -4138,21 +4494,32 @@ void MyConfig::ImportGPX ( wxWindow* parent )
                                                             pWayPointMan->m_pWayPointList->Append ( pWp );
 
                                                       pWp->m_bIsolatedMark = true;      // This is an isolated mark
+                                                      pWp->m_bIsInLayer = g_bIsNewLayer;
                                                       AddNewWayPoint ( pWp,m_NextWPNum );   // use auto next num
                                                       pSelect->AddSelectableRoutePoint ( pWp->m_lat, pWp->m_lon, pWp );
                                                       pWp->m_ConfigWPNum = m_NextWPNum;
+
+                                                      if (g_bIsNewLayer)
+                                                            pWp->m_LayerID = g_LayerIdx;
+                                                      else
+                                                            pWp->m_LayerID = 0;
                                                       m_NextWPNum++;
                                                 }
-
+                                                if (islayer)
+                                                      l->m_NoOfItems++;
                                           }
                                           else if ( ChildName == _T ( "rte" ) )
                                           {
                                                 ::GPXLoadRoute ( (GpxRteElement *)child, m_NextRouteNum, true );        // Full visibility
                                                 m_NextRouteNum++;
+                                                if (islayer)
+                                                      l->m_NoOfItems++;
                                           }
                                           else if ( ChildName == _T ( "trk" ) )
                                           {
                                                 ::GPXLoadTrack ( (GpxTrkElement *)child, true );                        // Full visibility
+                                                if (islayer)
+                                                      l->m_NoOfItems++;
                                           }
                                     }
                               }
@@ -4163,6 +4530,7 @@ void MyConfig::ImportGPX ( wxWindow* parent )
             }
       }
       m_bIsImporting = false;
+      g_bIsNewLayer = false;
 }
 
 //-------------------------------------------------------------------------
@@ -4173,14 +4541,16 @@ void MyConfig::ImportGPX ( wxWindow* parent )
 RoutePoint *WaypointExists( const wxString& name, double lat, double lon)
 {
       RoutePoint *pret = NULL;
+      if (g_bIsNewLayer) return NULL;
       wxRoutePointListNode *node = pWayPointMan->m_pWayPointList->GetFirst();
-
       bool Exists = false;
       while ( node )
       {
             RoutePoint *pr = node->GetData();
 
-            if ( name == pr->m_MarkName )
+            if (pr->m_bIsInLayer) return NULL;
+
+            if ( name == pr->GetName() )
             {
                   if ( fabs ( lat-pr->m_lat ) < 1.e-6 && fabs ( lon-pr->m_lon ) < 1.e-6 )
                   {
@@ -4197,11 +4567,13 @@ RoutePoint *WaypointExists( const wxString& name, double lat, double lon)
 
 RoutePoint *WaypointExists( const wxString& guid)
 {
+      if (g_bIsNewLayer) return NULL;
       wxRoutePointListNode *node = pWayPointMan->m_pWayPointList->GetFirst();
-
       while ( node )
       {
             RoutePoint *pr = node->GetData();
+
+            if (pr->m_bIsInLayer) return NULL;
 
             if ( guid == pr->m_GUID )
             {
@@ -4248,7 +4620,9 @@ bool WptIsInRouteList ( RoutePoint *pr )
 
 Route *RouteExists( const wxString& guid )
 {
+      if (g_bIsNewLayer) return NULL;
       wxRouteListNode *route_node = pRouteList->GetFirst();
+
       while ( route_node )
        {
             Route *proute = route_node->GetData();
@@ -4263,6 +4637,7 @@ Route *RouteExists( const wxString& guid )
 
 Route *RouteExists( Route * pTentRoute )
  {
+      if (g_bIsNewLayer) return NULL;
       wxRouteListNode *route_node = pRouteList->GetFirst();
       while ( route_node )
       {
@@ -4936,6 +5311,7 @@ RoutePoint *LoadGPXWaypoint (GpxWptElement *wptnode, wxString def_symbol_name, b
       LatString.ToDouble ( &rlat );
       LonString.ToDouble ( &rlon );
 
+      if (g_bIsNewLayer) GuidString = _T("");
       RoutePoint *pWP = new RoutePoint ( rlat, rlon, SymString, NameString, GuidString, false );      // do not add to global WP list yet...
       pWP->m_MarkDescription = DescString;
 
@@ -5050,7 +5426,7 @@ void GPXLoadTrack ( GpxTrkElement* trknode, bool b_fullviz )
                               else if ( ext_name == _T ( "opencpn:guid" ) )
                               {
 						TiXmlNode *g_child = ext_child->FirstChild();
-                                    if ( g_child != NULL )
+                                    if ( g_child != NULL && (!g_bIsNewLayer))
                                           pTentTrack->m_GUID = wxString::FromUTF8 ( g_child->ToText()->Value() );
                               }
                         }
@@ -5172,7 +5548,7 @@ Route *LoadGPXTrack (GpxTrkElement *trknode, bool b_fullviz)
             {
                   RoutePoint *pWp = LoadGPXWaypoint ( (GpxWptElement *)child, _T("square"), b_fullviz );
 
-                  RoutePoint *pExisting = WaypointExists( pWp->m_MarkName, pWp->m_lat, pWp->m_lon);
+                  RoutePoint *pExisting = WaypointExists( pWp->GetName(), pWp->m_lat, pWp->m_lon);
 
                   if(!pExisting)
                   {
@@ -5230,7 +5606,7 @@ Route *LoadGPXTrack (GpxTrkElement *trknode, bool b_fullviz)
                         else if ( ext_name == _T ( "opencpn:guid" ) )
                         {
 					TiXmlNode *g_child = ext_child->FirstChild();
-                              if ( g_child != NULL )
+                              if ( g_child != NULL && (!g_bIsNewLayer))
                               {
                                     pTentRoute->m_GUID = wxString::FromUTF8 ( g_child->ToText()->Value() );
                               }
@@ -5259,7 +5635,7 @@ Route *LoadGPXRoute(GpxRteElement *rtenode, int routenum, bool b_fullviz)
             {
                   RoutePoint *pWp = LoadGPXWaypoint ( (GpxWptElement *)child, _T("square"), b_fullviz );
 
-                  RoutePoint *pExisting = WaypointExists( pWp->m_MarkName, pWp->m_lat, pWp->m_lon);
+                  RoutePoint *pExisting = WaypointExists( pWp->GetName(), pWp->m_lat, pWp->m_lon);
 
                   if(!pExisting || !pExisting->m_bKeepXRoute)
                   {
@@ -5268,6 +5644,11 @@ Route *LoadGPXRoute(GpxRteElement *rtenode, int routenum, bool b_fullviz)
 
                         pTentRoute->AddPoint ( pWp, false );                      // don't auto-rename numerically
                         pWp->m_ConfigWPNum = 1000 + ( routenum * 100 ) + ip;  // dummy mark number
+                        pWp->m_bIsInLayer = g_bIsNewLayer;
+                        if (g_bIsNewLayer)
+                              pWp->m_LayerID = g_LayerIdx;
+                        else
+                              pWp->m_LayerID = 0;
                   }
                   else
                   {
@@ -5316,7 +5697,7 @@ Route *LoadGPXRoute(GpxRteElement *rtenode, int routenum, bool b_fullviz)
                         else if ( ext_name == _T ( "opencpn:guid" ) )
                         {
 					TiXmlNode *g_child = ext_child->FirstChild();
-                              if ( g_child != NULL )
+                              if ( g_child != NULL && (!g_bIsNewLayer))
                               {
                                     pTentRoute->m_GUID = wxString::FromUTF8 ( g_child->ToText()->Value() );
                               }
@@ -5350,7 +5731,7 @@ void UpdateRoute(Route *pTentRoute)
                         ex_rp->m_lon = prp->m_lon;
                         ex_rp->m_IconName = prp->m_IconName;
                         ex_rp->m_MarkDescription = prp->m_MarkDescription;
-                        ex_rp->m_MarkName = prp->m_MarkName;
+                        ex_rp->SetName(prp->GetName());
                   }
                   else
                   {
@@ -5478,7 +5859,7 @@ bool NavObjectCollection::CreateNavObjGPXPoints ( void )
       {
             pr = node->GetData();
 
-            if ( pr->m_bIsolatedMark) //( !WptIsInRouteList ( pr ) )
+            if (( pr->m_bIsolatedMark) && !(pr->m_bIsInLayer))//( !WptIsInRouteList ( pr ) )
             {
                   m_pXMLrootnode->AddWaypoint ( CreateGPXWpt(pr, GPX_WPT_WAYPOINT) );
             }
@@ -5496,7 +5877,7 @@ bool NavObjectCollection::CreateNavObjGPXRoutes ( void )
       {
             Route *pRoute = node1->GetData();
 
-            if ( !pRoute->m_bIsTrack )                            // Not tracks
+            if ( !pRoute->m_bIsTrack && !(pRoute->m_bIsInLayer) )                            // Not tracks
             {
                   m_pXMLrootnode->AddRoute(CreateGPXRte(pRoute));
             }
@@ -5517,7 +5898,7 @@ bool NavObjectCollection::CreateNavObjGPXTracks ( void )
 
             if ( pRoutePointList->GetCount() )
             {
-                  if ( pRoute->m_bIsTrack )                            // Tracks only
+                  if ( pRoute->m_bIsTrack && !(pRoute->m_bIsInLayer))                            // Tracks only
                   {
                         //Redundant - RoutePointList *pRoutePointList = pRoute->pRoutePointList;
                         m_pXMLrootnode->AddTrack(CreateGPXTrk(pRoute));
@@ -5552,7 +5933,7 @@ bool NavObjectCollection::LoadAllGPXObjects()
                   {
 			      int m_NextWPNum = 0; //FIXME: we do not need it for GPX
                         RoutePoint *pWp = ::LoadGPXWaypoint((GpxWptElement *)child, _T("circle"));
-                        RoutePoint *pExisting = WaypointExists( pWp->m_MarkName, pWp->m_lat, pWp->m_lon);
+                        RoutePoint *pExisting = WaypointExists( pWp->GetName(), pWp->m_lat, pWp->m_lon);
                         if(!pExisting)
                         {
                               if ( NULL != pWayPointMan )
@@ -6714,10 +7095,10 @@ wxString toSDMM ( int NEflag, double a, bool hi_precision )
             neg = 1;
       }
 
-      double mpy = 600000.0;
+      double mpy = 600.0;
 
       if(hi_precision)
-            mpy = mpy * 100.;
+            mpy = mpy * 1000.;
 
       d = ( int ) a;
       m = ( long ) wxRound( ( a - ( double ) d ) * mpy );
@@ -6730,9 +7111,9 @@ wxString toSDMM ( int NEflag, double a, bool hi_precision )
       if ( !NEflag )
       {
             if(hi_precision)
-                  s.Printf ( _T ( "%d %02ld.%06ld'" ), d, m / 1000000, m % 1000000 );
+                  s.Printf ( _T ( "%d %02ld.%04ld'" ), d, m / 10000, m % 10000 );
             else
-                  s.Printf ( _T ( "%d %02ld.%04ld'" ), d, m / 10000,   m % 10000 );
+                  s.Printf ( _T ( "%d %02ld.%01ld'" ), d, m / 10,   m % 10 );
       }
       else
       {
@@ -6763,9 +7144,9 @@ wxString toSDMM ( int NEflag, double a, bool hi_precision )
             if(b_print)
             {
                   if(hi_precision)
-                        s.Printf ( _T ( "%03d %02ld.%06ld %c" ), d, m / 1000000, ( m % 1000000 ), c );
+                        s.Printf ( _T ( "%03d %02ld.%04ld %c" ), d, m / 10000, ( m % 10000 ), c );
                   else
-                        s.Printf ( _T ( "%03d %02ld.%04ld %c" ), d, m / 10000,   ( m % 10000 ), c );
+                        s.Printf ( _T ( "%03d %02ld.%01ld %c" ), d, m / 10,   ( m % 10 ), c );
             }
       }
       return s;

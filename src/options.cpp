@@ -113,9 +113,11 @@ extern bool             g_bWayPointPreventDragging;
 
 extern bool             g_bPreserveScaleOnX;
 extern bool             g_bPlayShipsBells;   // pjotrc 2010.02.09
+extern bool             g_bFullscreenToolbar;
 
 extern bool             g_bEnableZoomToCursor;
 extern bool             g_bShowTrackIcon;
+extern bool             g_bTrackDaily;
 extern double           g_TrackIntervalSeconds;
 extern double           g_TrackDeltaDistance;
 extern double           g_TrackDeltaDistance;
@@ -148,6 +150,7 @@ extern bool             g_bAISRolloverShowCPA;
 extern bool             g_bAIS_ACK_Timeout;
 extern double           g_AckTimeout_Mins;
 
+extern bool             g_bQuiltEnable;
 extern bool             g_bFullScreenQuilt;
 
 extern wxLocale         locale_def_lang;
@@ -465,7 +468,7 @@ void options::CreateControls()
     itemStaticBoxSizerCDO->Add(pSDisplayGrid, 1, wxALIGN_LEFT|wxALL, 2);
 
     //  Depth Unit checkbox
-    pSDepthUnits = new wxCheckBox( itemPanel5, ID_SHOWDEPTHUNITSBOX1, _("Show DepthUnits"));
+    pSDepthUnits = new wxCheckBox( itemPanel5, ID_SHOWDEPTHUNITSBOX1, _("Show Depth Units"));
     itemStaticBoxSizerCDO->Add(pSDepthUnits, 1, wxALIGN_LEFT|wxALL, 2);
 
     //  Skewed Raster compenstation checkbox
@@ -832,7 +835,7 @@ void options::CreateControls()
         _("Base"),
         _("Standard"),
         _("Other"),
-        _("MarinersStandard")
+        _("Mariners Standard")
     };
     pDispCat = new wxRadioBox( ps57Ctl, ID_RADIOBOX, _("Display Category"), wxDefaultPosition, wxDefaultSize,
                                4, pDispCatStrings, 1, wxRA_SPECIFY_COLS );
@@ -840,7 +843,7 @@ void options::CreateControls()
 
 
 
-    pCheck_SOUNDG = new wxCheckBox( ps57Ctl, ID_SOUNDGCHECKBOX, _("ShowSoundings"));
+    pCheck_SOUNDG = new wxCheckBox( ps57Ctl, ID_SOUNDGCHECKBOX, _("Show Soundings"));
     pCheck_SOUNDG->SetValue(FALSE);
     itemBoxSizer75->Add(pCheck_SOUNDG, 1, wxALIGN_LEFT|wxALL|wxEXPAND, check_spacing_2);
 
@@ -1172,8 +1175,8 @@ void options::CreateControls()
     itemBoxSizerAdvancedPanel->Add(itemStaticBoxSizerTrack, 0, wxGROW|wxALL, border_size);
     pTrackShowIcon = new wxCheckBox( itemPanelAdvanced, ID_TRACKCHECKBOX, _("Show Track icon"));
     itemStaticBoxSizerTrack->Add(pTrackShowIcon, 1, wxALIGN_LEFT|wxALL, border_size);
-
-
+    pTrackDaily = new wxCheckBox( itemPanelAdvanced, ID_DAILYCHECKBOX, _("Automatic Daily Tracks"));
+    itemStaticBoxSizerTrack->Add(pTrackDaily, 1, wxALIGN_LEFT|wxALL, border_size);
 
     wxFlexGridSizer *pTrackGrid = new wxFlexGridSizer(2);
     pTrackGrid->AddGrowableCol(1);
@@ -1251,6 +1254,9 @@ void options::CreateControls()
 
     pPlayShipsBells = new wxCheckBox( itemPanelAdvanced, ID_BELLSCHECKBOX, _("Play ships bells"));   // pjotrc 2010.02.09
     itemStaticBoxSizerGUIOption->Add(pPlayShipsBells, 1, wxALIGN_LEFT|wxALL, border_size);           // pjotrc 2010.02.09
+
+    pFullScreenToolbar = new wxCheckBox( itemPanelAdvanced, ID_FSTOOLBARCHECKBOX, _("Show toolbar in fullscreen mode"));
+    itemStaticBoxSizerGUIOption->Add(pFullScreenToolbar, 1, wxALIGN_LEFT|wxALL, border_size);
 
 
     //  Printing checkbox
@@ -1361,7 +1367,7 @@ void options::SetInitialSettings()
 
       pPrintShowIcon->SetValue(g_bShowPrintIcon);
       pCDOOutlines->SetValue(g_bShowOutlines);
-      pCDOQuilting->SetValue(pParent->GetQuiltMode());
+      pCDOQuilting->SetValue(g_bQuiltEnable);
       pFullScreenQuilt->SetValue(!g_bFullScreenQuilt);
       pSDepthUnits->SetValue(g_bShowDepthUnits);
       pSkewComp->SetValue(g_bskew_comp);
@@ -1388,8 +1394,10 @@ void options::SetInitialSettings()
       pEnableZoomToCursor->SetValue(g_bEnableZoomToCursor);
       pPreserveScale->SetValue(g_bPreserveScaleOnX);
       pPlayShipsBells->SetValue(g_bPlayShipsBells);   // pjotrc 2010.02.09
+      pFullScreenToolbar->SetValue(g_bFullscreenToolbar);
 
       pTrackShowIcon->SetValue(g_bShowTrackIcon);
+      pTrackDaily->SetValue(g_bTrackDaily);
 
       s.Printf(_T("%4.0f"),g_TrackIntervalSeconds);
       m_pText_TP_Secs->SetValue(s);
@@ -1738,8 +1746,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
     g_bShowOutlines = pCDOOutlines->GetValue();
     g_bDisplayGrid = pSDisplayGrid->GetValue();
 
-
-    pParent->SetQuiltMode(pCDOQuilting->GetValue());
+    g_bQuiltEnable = pCDOQuilting->GetValue();
     g_bFullScreenQuilt = !pFullScreenQuilt->GetValue();
 
     g_bShowDepthUnits = pSDepthUnits->GetValue();
@@ -1771,6 +1778,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
     g_bPreserveScaleOnX = pPreserveScale->GetValue();
 
     g_bPlayShipsBells = pPlayShipsBells->GetValue();   // pjotrc 2010.02.09
+    g_bFullscreenToolbar = pFullScreenToolbar->GetValue();
 
     g_bShowTrackIcon = pTrackShowIcon->GetValue();
     m_pText_TP_Secs->GetValue().ToDouble(&g_TrackIntervalSeconds);
@@ -1778,7 +1786,7 @@ void options::OnXidOkClick( wxCommandEvent& event )
     g_bTrackTime = m_pCheck_Trackpoint_time->GetValue();
     g_bTrackDistance = m_pCheck_Trackpoint_distance->GetValue();
 
-
+    g_bTrackDaily = pTrackDaily->GetValue();
 
     g_bEnableZoomToCursor = pEnableZoomToCursor->GetValue();
 
