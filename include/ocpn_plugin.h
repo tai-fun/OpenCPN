@@ -435,5 +435,7 @@ extern "C"  DECL_EXP wxAuiManager *GetFrameAuiManager(void);
 
 extern "C"  DECL_EXP bool AddLocaleCatalog( wxString catalog );
 
+extern "C"  DECL_EXP void PushNMEABuffer( wxString str );
+
 #endif            // _PLUGIN_H_
 
