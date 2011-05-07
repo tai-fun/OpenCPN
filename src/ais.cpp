@@ -404,7 +404,7 @@ AIS_Target_Data::AIS_Target_Data()
     CPA = 100;                // Large values avoid false alarms
     TCPA = 100;
 
-    Range_NM = 1.;
+    Range_NM = -1.;
     Brg = 0;
 
     DimA = DimB = DimC = DimD = 0;;
@@ -652,8 +652,10 @@ wxString AIS_Target_Data::BuildQueryResult( void )
             result.Append(_T("\n"));
 
             int crs = wxRound(COG);
-            if(b_positionValid)
+            if((b_positionValid) && (crs < 360))
                   line.Printf(_("Course:                 %03d Deg.\n"), crs);
+            else if((b_positionValid) && (crs == 360))
+                  line.Printf(_("Course:                 000 Deg.\n"));
             else
                   line.Printf(_("Course:                 Unavailable\n"));
             result.Append(line);
@@ -684,7 +686,7 @@ wxString AIS_Target_Data::BuildQueryResult( void )
             }
       }
 
-      if(b_positionValid && bGPSValid)
+      if(b_positionValid && bGPSValid && (Range_NM >= 0.))
                   line.Printf(_("Range:                %5.1f NM\n"), Range_NM);
       else
             line.Printf(_("Range:                  Unavailable\n"));
@@ -1578,8 +1580,10 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
  //   int utc_day = now.GetDay();
  //   wxDateTime::Month utc_month = now.GetMonth();
  //   int utc_year = now.GetYear();
-    ptd->ReportTicks = now.GetTicks();       // Default is my idea of NOW
-                                            // which may disagee with target...
+
+    //  Not all messages should reset report ticks....Handle case by case
+//    ptd->ReportTicks = now.GetTicks();       // Default is my idea of NOW
+
 
     int message_ID = bstr->GetInt(1, 6);        // Parse on message ID
 
@@ -1596,6 +1600,8 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
         {
             n_msg1++;
 
+            ptd->b_positionValid = true;
+
             ptd->NavStatus = bstr->GetInt(39, 4);
             ptd->SOG = 0.1 * (bstr->GetInt(51, 10));
 
@@ -1603,16 +1609,18 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
             if(lon & 0x08000000)                    // negative?
                 lon |= 0xf0000000;
             ptd->Lon = lon / 600000.;
+            if(ptd->Lon > 180.)
+                  ptd->b_positionValid = false;
 
             int lat = bstr->GetInt(90, 27);
             if(lat & 0x04000000)                    // negative?
                 lat |= 0xf8000000;
             ptd->Lat = lat / 600000.;
+            if(ptd->Lat > 90.)
+                  ptd->b_positionValid = false;
 
             ptd->COG = 0.1 * (bstr->GetInt(117, 12));
             ptd->HDG = 1.0 * (bstr->GetInt(129, 9));
-
-            ptd->b_positionValid = true;
 
             ptd->ROTAIS = bstr->GetInt(43, 8);
             double rot_dir = 1.0;
@@ -1664,6 +1672,8 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 
             ptd->Class = AIS_CLASS_A;
 
+            if(ptd->b_positionValid)
+                  ptd->ReportTicks = now.GetTicks();
             break;
         }
 
@@ -1694,17 +1704,8 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 
                 ptd->Class = AIS_CLASS_B;
 
-//            if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )    // pjotrc 2010.02.07
-//            {
-//                  g_total_NMEAerror_messages++;
-//                  wxString msg(_T("   AIS type 18...(MMSI, lon, lat:"));
-//			wxString item;
-//      		item.Printf(_T("%d, %10.5f, %10.5f"), ptd->MMSI, ptd->Lon, ptd->Lat);
-//                  msg.Append(item);
-//			msg.Append(_T(" ) "));
-//                  ThreadMessage(msg);
-//            }
-
+                if(ptd->b_positionValid)
+                      ptd->ReportTicks = now.GetTicks();
                 break;
           }
 
@@ -1745,12 +1746,6 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
                   ptd->Draft = (double)(bstr->GetInt(295, 8)) / 10.0;
 
                   bstr->GetStr(303,120, &ptd->Destination[0], 20);
-
-                  if(AIS_version_indicator > 0)
-                  {
-                        int blue_paddle = bstr->GetInt(143, 2);
-                        ptd->b_blue_paddle = (blue_paddle == 2);             // paddle is set
-                  }
 
                   parse_result = true;
             }
@@ -1807,13 +1802,15 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
                       lat |= 0xf8000000;
                 ptd->Lat = lat / 600000.;
 
-                ptd->COG = 0.;
+                ptd->COG = -1.;
                 ptd->HDG = 511;
-                ptd->SOG = 0.;
+                ptd->SOG = -1.;
 
                 ptd->b_positionValid = true;
                 parse_result = true;
 
+                if(ptd->b_positionValid)
+                      ptd->ReportTicks = now.GetTicks();
                 break;
           }
      case 9:                                    // Special Position Report (Standard SAR Aircraft Position Report)
@@ -1874,8 +1871,8 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
 
                 ptd->Class = AIS_ATON;
 
-            if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
-            {
+                if( g_nNMEADebug && (g_total_NMEAerror_messages < g_nNMEADebug) )
+                {
                   g_total_NMEAerror_messages++;
                   wxString msg(_T("   AIS type 21...(MMSI, lon, lat:"));
 			wxString item;
@@ -1883,7 +1880,10 @@ bool AIS_Decoder::Parse_VDXBitstring(AIS_Bitstring *bstr, AIS_Target_Data *ptd)
                   msg.Append(item);
 			msg.Append(_T(" ) "));
                   ThreadMessage(msg);
-            }
+                }
+
+                if(ptd->b_positionValid)
+                      ptd->ReportTicks = now.GetTicks();
 
                 break;
           }
@@ -3678,7 +3678,10 @@ wxString OCPNListCtrl::GetTargetColumnData(AIS_Target_Data *pAISTarget, long col
             switch (column)
             {
                   case tlNAME:
-                        ret = trimAISField(pAISTarget->ShipName);
+                        if( (pAISTarget->Class == AIS_ATON) || (pAISTarget->Class == AIS_BASE))
+                              ret =  _("-");
+                        else
+                              ret = trimAISField(pAISTarget->ShipName);
                         break;
 
                   case tlCALL:
@@ -3694,7 +3697,10 @@ wxString OCPNListCtrl::GetTargetColumnData(AIS_Target_Data *pAISTarget, long col
                         break;
 
                   case tlTYPE:
-                        ret = pAISTarget->Get_vessel_type_string(false);
+                        if( (pAISTarget->Class == AIS_ATON) || (pAISTarget->Class == AIS_BASE))
+                              ret =  _("-");
+                        else
+                              ret = pAISTarget->Get_vessel_type_string(false);
                         break;
 
                   case tlNAVSTATUS:
@@ -3703,6 +3709,8 @@ wxString OCPNListCtrl::GetTargetColumnData(AIS_Target_Data *pAISTarget, long col
                               ret =  ais_status[pAISTarget->NavStatus];
                         else
                               ret = _("-");
+                        if( (pAISTarget->Class == AIS_ATON) || (pAISTarget->Class == AIS_BASE))
+                              ret =  _("-");
                         break;
                   }
 
@@ -3718,16 +3726,22 @@ wxString OCPNListCtrl::GetTargetColumnData(AIS_Target_Data *pAISTarget, long col
 
                   case tlCOG:
                   {
-                        if( (pAISTarget->COG >= 360.0)|| (pAISTarget->Class == AIS_ATON) )
+                        if( (pAISTarget->COG >= 360.0) || (pAISTarget->Class == AIS_ATON) || (pAISTarget->Class == AIS_BASE))
                               ret =  _("-");
                         else
-                              ret.Printf(_T("%5.0f"), pAISTarget->COG);
+                        {
+                              int crs = wxRound( pAISTarget->COG);
+                              if(crs == 360)
+                                    ret.Printf(_T("  000"));
+                              else
+                                    ret.Printf(_T("  %03d"), crs);
+                        }
                         break;
                   }
 
                   case tlSOG:
                   {
-                        if( (pAISTarget->SOG > 100.)|| (pAISTarget->Class == AIS_ATON) )
+                        if( (pAISTarget->SOG > 100.) || (pAISTarget->Class == AIS_ATON) || (pAISTarget->Class == AIS_BASE))
                               ret = _("-");
                         else
                               ret.Printf(_T("%5.1f"), pAISTarget->SOG);
@@ -3736,7 +3750,7 @@ wxString OCPNListCtrl::GetTargetColumnData(AIS_Target_Data *pAISTarget, long col
 
                   case tlRNG:
                   {
-                        if(pAISTarget->b_positionValid && bGPSValid)
+                        if(pAISTarget->b_positionValid && bGPSValid && (pAISTarget->Range_NM >= 0.))
                               ret.Printf(_T("%5.2f"), pAISTarget->Range_NM);
                         else
                               ret = _("-");
@@ -3859,8 +3873,21 @@ int ArrayItemCompare( AIS_Target_Data *pAISTarget1, AIS_Target_Data *pAISTarget2
       else
       {
             if (g_bAisTargetList_sortReverse)
-                  return (int)(n2 - n1);
-            return (int)(n1 - n2);
+            {
+                  if(n2 > n1)
+                        return 1;
+                  else if(n2 < n1)
+                        return -1;
+                  else return 0;
+            }
+            else
+            {
+                  if(n2 > n1)
+                        return -1;
+                  else if(n2 < n1)
+                        return 1;
+                  else return 0;
+            }
       }
 }
 
@@ -4176,9 +4203,12 @@ void AISTargetListDialog::UpdateAISTargetList(void)
                   AIS_Target_Data *pAISTarget = it->second;
                   item.SetId(index);
 
-                  if ( (NULL != pAISTarget) && (pAISTarget->b_positionValid) && (pAISTarget->Range_NM <= g_AisTargetList_range) )
+                  if ( NULL != pAISTarget)
                   {
-                        m_ptarget_array->Add(pAISTarget);
+                        if((pAISTarget->b_positionValid) && (pAISTarget->Range_NM <= g_AisTargetList_range) )
+                              m_ptarget_array->Add(pAISTarget);
+                        else if(!pAISTarget->b_positionValid)
+                              m_ptarget_array->Add(pAISTarget);
                   }
             }
 

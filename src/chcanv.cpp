@@ -306,6 +306,8 @@ enum
         ID_WP_MENU_ADDITIONAL_INFO,
 
         ID_DEF_MENU_QUILTREMOVE,
+        ID_DEF_MENU_COGUP,
+        ID_DEF_MENU_NORTHUP,
         ID_DEF_MENU_LAST
 
 };
@@ -912,7 +914,7 @@ int Quilt::GetNewRefChart(void)
       unsigned int im = m_extended_stack_array.GetCount();
       if(im > 0)
       {
-            for(unsigned int is=0 ; is<im-1 ; is++)
+            for(unsigned int is=0 ; is<im ; is++)
             {
                   const ChartTableEntry &m = ChartData->GetChartTableEntry(m_extended_stack_array.Item(is));
                   if((m.GetScale() >= m_reference_scale) && (m_reference_type == m.GetChartType()))
@@ -2591,6 +2593,8 @@ BEGIN_EVENT_TABLE ( ChartCanvas, wxWindow )
         EVT_MENU ( ID_DEF_MENU_MOVE_BOAT_HERE,     ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_DEF_MENU_GOTO_HERE,          ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_DEF_MENU_GOTOPOSITION,       ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_COGUP,              ChartCanvas::PopupMenuHandler )
+        EVT_MENU ( ID_DEF_MENU_NORTHUP,            ChartCanvas::PopupMenuHandler )
 
         EVT_MENU ( ID_RT_MENU_ACTIVATE,     ChartCanvas::PopupMenuHandler )
         EVT_MENU ( ID_RT_MENU_DEACTIVATE,   ChartCanvas::PopupMenuHandler )
@@ -2680,7 +2684,14 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
 
         m_pRolloverRouteSeg           = NULL;
 
-        m_brightdir = 0;
+        m_bbrightdir = false;
+
+        m_pos_image_user_day        = NULL;
+        m_pos_image_user_dusk       = NULL;
+        m_pos_image_user_night      = NULL;
+        m_pos_image_user_grey_day   = NULL;
+        m_pos_image_user_grey_dusk  = NULL;
+        m_pos_image_user_grey_night = NULL;
 
         VPoint.Invalidate();
 
@@ -2935,35 +2946,6 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
         double factor_dusk = 0.5;
         double factor_night = 0.25;
 
-        //Green
-        m_os_image_green_day   = _img_ship_green->ConvertToImage();
-
-        int img_width = m_os_image_green_day.GetWidth();
-        int img_height = m_os_image_green_day.GetHeight();
-
-        m_os_image_green_dusk = m_os_image_green_day.Copy();
-        m_os_image_green_night = m_os_image_green_day.Copy();
-
-        for(int iy=0 ; iy < img_height ; iy++)
-        {
-              for(int ix=0 ; ix < img_width ; ix++)
-              {
-                    if(!m_os_image_green_day.IsTransparent(ix, iy))
-                    {
-                        wxImage::RGBValue rgb(m_os_image_green_day.GetRed(ix, iy), m_os_image_green_day.GetGreen(ix, iy), m_os_image_green_day.GetBlue(ix, iy));
-                        wxImage::HSVValue hsv = wxImage::RGBtoHSV(rgb);
-                        hsv.value = hsv.value * factor_dusk;
-                        wxImage::RGBValue nrgb = wxImage::HSVtoRGB(hsv);
-                        m_os_image_green_dusk.SetRGB(ix, iy, nrgb.red, nrgb.green, nrgb.blue);
-
-                        hsv = wxImage::RGBtoHSV(rgb);
-                        hsv.value = hsv.value * factor_night;
-                        nrgb = wxImage::HSVtoRGB(hsv);
-                        m_os_image_green_night.SetRGB(ix, iy, nrgb.red, nrgb.green, nrgb.blue);
-                    }
-              }
-        }
-
        //Red
         m_os_image_red_day   = _img_ship_red->ConvertToImage();
 
@@ -3025,18 +3007,79 @@ ChartCanvas::ChartCanvas ( wxFrame *frame ) :
 
 #endif
         //  Set initial pointers to ownship images
-        m_pos_image_green = &m_os_image_green_day;
         m_pos_image_red   = &m_os_image_red_day;
 
         //  Look for user defined ownship image
         //  This may be found in the shared data location along with other user defined icons.
-        //  and will be called "onwship.xpm"
-        m_pos_image_user = NULL;
+        //  and will be called "ownship.xpm"
         if(pWayPointMan && pWayPointMan->DoesIconExist(_T("ownship")))
         {
               wxBitmap *pbmp = pWayPointMan->GetIconBitmap(_T("ownship"));
-              m_pos_image_user = new wxImage;
-              *m_pos_image_user = pbmp->ConvertToImage();
+              m_pos_image_user_day = new wxImage;
+              *m_pos_image_user_day = pbmp->ConvertToImage();
+              m_pos_image_user_day->InitAlpha();
+
+              int gimg_width = m_pos_image_user_day->GetWidth();
+              int gimg_height = m_pos_image_user_day->GetHeight();
+
+              // Make dusk and night images
+              m_pos_image_user_dusk  = new wxImage;
+              m_pos_image_user_night = new wxImage;
+
+              *m_pos_image_user_dusk  = m_pos_image_user_day->Copy();
+              *m_pos_image_user_night = m_pos_image_user_day->Copy();
+
+              for(int iy=0 ; iy < gimg_height ; iy++)
+              {
+                    for(int ix=0 ; ix < gimg_width ; ix++)
+                    {
+                          if(!m_pos_image_user_day->IsTransparent(ix, iy))
+                          {
+                                wxImage::RGBValue rgb(m_pos_image_user_day->GetRed(ix, iy), m_pos_image_user_day->GetGreen(ix, iy), m_pos_image_user_day->GetBlue(ix, iy));
+                                wxImage::HSVValue hsv = wxImage::RGBtoHSV(rgb);
+                                hsv.value = hsv.value * factor_dusk;
+                                wxImage::RGBValue nrgb = wxImage::HSVtoRGB(hsv);
+                                m_pos_image_user_dusk->SetRGB(ix, iy, nrgb.red, nrgb.green, nrgb.blue);
+
+                                hsv = wxImage::RGBtoHSV(rgb);
+                                hsv.value = hsv.value * factor_night;
+                                nrgb = wxImage::HSVtoRGB(hsv);
+                                m_pos_image_user_night->SetRGB(ix, iy, nrgb.red, nrgb.green, nrgb.blue);
+                          }
+                    }
+              }
+
+              //  Make some alternate greyed out day/dusk/night images
+              m_pos_image_user_grey_day = new wxImage;
+              *m_pos_image_user_grey_day = m_pos_image_user_day->ConvertToGreyscale();
+
+
+              m_pos_image_user_grey_dusk  = new wxImage;
+              m_pos_image_user_grey_night = new wxImage;
+
+              *m_pos_image_user_grey_dusk  = m_pos_image_user_grey_day->Copy();
+              *m_pos_image_user_grey_night = m_pos_image_user_grey_day->Copy();
+
+              for(int iy=0 ; iy < gimg_height ; iy++)
+              {
+                    for(int ix=0 ; ix < gimg_width ; ix++)
+                    {
+                          if(!m_pos_image_user_grey_day->IsTransparent(ix, iy))
+                          {
+                                wxImage::RGBValue rgb(m_pos_image_user_grey_day->GetRed(ix, iy), m_pos_image_user_grey_day->GetGreen(ix, iy), m_pos_image_user_grey_day->GetBlue(ix, iy));
+                                wxImage::HSVValue hsv = wxImage::RGBtoHSV(rgb);
+                                hsv.value = hsv.value * factor_dusk;
+                                wxImage::RGBValue nrgb = wxImage::HSVtoRGB(hsv);
+                                m_pos_image_user_grey_dusk->SetRGB(ix, iy, nrgb.red, nrgb.green, nrgb.blue);
+
+                                hsv = wxImage::RGBtoHSV(rgb);
+                                hsv.value = hsv.value * factor_night;
+                                nrgb = wxImage::HSVtoRGB(hsv);
+                                m_pos_image_user_grey_night->SetRGB(ix, iy, nrgb.red, nrgb.green, nrgb.blue);
+                          }
+                    }
+              }
+
         }
 
         m_pQuilt = new Quilt();
@@ -3084,7 +3127,13 @@ ChartCanvas::~ChartCanvas()
 
         delete m_prot_bm;
 
-        delete m_pos_image_user;
+        delete m_pos_image_user_day;
+        delete m_pos_image_user_dusk;
+        delete m_pos_image_user_night;
+        delete m_pos_image_user_grey_day;
+        delete m_pos_image_user_grey_dusk;
+        delete m_pos_image_user_grey_night;
+
 
 }
 
@@ -3240,10 +3289,12 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
                         break;
 
                   case WXK_F2:
+					  {
+					    *(int *)(0) = 0;
                         parent_frame->TogglebFollow();
                         b_proc = true;
                         break;
-
+					  }
                   case WXK_F3:
                         parent_frame->ToggleENCText();
                         b_proc = true;
@@ -3265,13 +3316,20 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
 
                   case WXK_F6:
                   {
-                        if(0 == m_brightdir)
+                        int mod =  event.GetModifiers() & wxMOD_SHIFT;
+                        if(mod != m_brightmod)
+                        {
+                              m_brightmod = mod;
+                              m_bbrightdir = !m_bbrightdir;
+                        }
+
+                        if(!m_bbrightdir)
                         {
                               g_nbrightness -= 10;
                               if(g_nbrightness <= 0)
                               {
                                     g_nbrightness = 0;
-                                    m_brightdir = 1;
+                                    m_bbrightdir = true;
                               }
                         }
                         else
@@ -3280,9 +3338,11 @@ bool ChartCanvas::Do_Hotkeys(wxKeyEvent &event)
                               if(g_nbrightness >= 100)
                               {
                                     g_nbrightness = 100;
-                                    m_brightdir = 0;
+                                    m_bbrightdir = false;
                               }
                         }
+
+//                        printf("%d\n", g_nbrightness);
 
                         SetScreenBrightness(g_nbrightness);
                         b_proc = true;
@@ -3428,24 +3488,28 @@ void ChartCanvas::SetColorScheme(ColorScheme cs)
       switch(cs)
       {
             case GLOBAL_COLOR_SCHEME_DAY:
-                  m_pos_image_green = &m_os_image_green_day;
                   m_pos_image_red   = &m_os_image_red_day;
                   m_pos_image_grey  = &m_os_image_grey_day;
+                  m_pos_image_user       = m_pos_image_user_day;
+                  m_pos_image_user_grey  = m_pos_image_user_grey_day;
                   break;
             case GLOBAL_COLOR_SCHEME_DUSK:
-                  m_pos_image_green = &m_os_image_green_dusk;
                   m_pos_image_red   = &m_os_image_red_dusk;
                   m_pos_image_grey  = &m_os_image_grey_dusk;
+                  m_pos_image_user       = m_pos_image_user_dusk;
+                  m_pos_image_user_grey  = m_pos_image_user_grey_dusk;
                   break;
             case GLOBAL_COLOR_SCHEME_NIGHT:
-                  m_pos_image_green = &m_os_image_green_night;
                   m_pos_image_red   = &m_os_image_red_night;
                   m_pos_image_grey  = &m_os_image_grey_night;
+                  m_pos_image_user       = m_pos_image_user_night;
+                  m_pos_image_user_grey  = m_pos_image_user_grey_night;
                   break;
             default:
-                  m_pos_image_green = &m_os_image_green_day;
                   m_pos_image_red   = &m_os_image_red_day;
                   m_pos_image_grey  = &m_os_image_grey_day;
+                  m_pos_image_user       = m_pos_image_user_day;
+                  m_pos_image_user_grey  = m_pos_image_user_grey_day;
                   break;
       }
 
@@ -3813,6 +3877,8 @@ bool ChartCanvas::ZoomCanvasOut(double lat, double lon)
             return false;
       m_bzooming = true;
 
+      bool b_do_zoom = true;
+
       double zoom_factor = 2.0;
       double max_allowed_scale = 1e8;
 
@@ -3850,15 +3916,23 @@ bool ChartCanvas::ZoomCanvasOut(double lat, double lon)
                         proposed_scale_onscreen = max_allowed_scale;
             }
       }
-
-
-
-      if((lat == 0.) && (lon == 0.))            // this is a special secret code, means to change scale only
-            SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
       else
-            SetViewPoint ( lat, lon, GetCanvasScaleFactor() / proposed_scale_onscreen, VPoint.skew, VPoint.rotation );
+      {
+            double min_scale = m_canvas_width / (WGS84_semimajor_axis_meters * PI);  // something like 180 degrees
+            if((GetCanvasScaleFactor() / proposed_scale_onscreen) < min_scale)
+                  b_do_zoom = false;
+      }
 
-      Refresh(false);
+
+      if(b_do_zoom)
+      {
+            if((lat == 0.) && (lon == 0.))            // this is a special secret code, means to change scale only
+                  SetVPScale(GetCanvasScaleFactor() / proposed_scale_onscreen);
+            else
+                  SetViewPoint ( lat, lon, GetCanvasScaleFactor() / proposed_scale_onscreen, VPoint.skew, VPoint.rotation );
+
+            Refresh(false);
+      }
 
       m_bzooming = false;
 
@@ -4381,32 +4455,29 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                 wxImage *pos_image;
                 wxColour pred_colour;
 
-                if(g_bUseGreenShip)
-                {
-                        pos_image = m_pos_image_green;
-                        pred_colour = GetGlobalColor ( _T ( "GREEN2" ) );
+                pos_image = m_pos_image_red;
+                pred_colour = GetGlobalColor ( _T ( "URED" ) );
 
-                        if(SHIP_NORMAL != m_ownship_state)
-                        {
-                            pos_image = m_pos_image_red;
-                            pred_colour = GetGlobalColor ( _T ( "UDKRD" ) );
-                        }
-                }
-                else
+                if(SHIP_NORMAL != m_ownship_state)
                 {
-                        pos_image = m_pos_image_red;
-                        pred_colour = GetGlobalColor ( _T ( "URED" ) );
-
-                        if(SHIP_NORMAL != m_ownship_state)
-                        {
-                              pos_image = m_pos_image_grey;
-                              pred_colour = GetGlobalColor ( _T ( "GREY1" ) );
-                        }
+                      pos_image = m_pos_image_grey;
+                      pred_colour = GetGlobalColor ( _T ( "GREY1" ) );
                 }
+
 
                 //      Substitute user ownship image if found
                 if(m_pos_image_user)
+                {
                       pos_image = m_pos_image_user;
+                      pred_colour = GetGlobalColor ( _T ( "URED" ) );
+
+                      if(SHIP_NORMAL != m_ownship_state)
+                      {
+                            pos_image = m_pos_image_user_grey;
+                            pred_colour = GetGlobalColor ( _T ( "GREY1" ) );
+                      }
+
+                }
 
 
                 int img_width = pos_image->GetWidth();
@@ -4441,7 +4512,7 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
 
                         wxPoint rot_ctr(1 + img_width/2, 1 + img_height/2);
 
-                        wxImage rot_image = pos_image->Rotate(-(icon_rad - (PI / 2.)), rot_ctr);
+                        wxImage rot_image = pos_image->Rotate(-(icon_rad - (PI / 2.)), rot_ctr, true);
                         wxBitmap os_bm(rot_image);
                         wxMemoryDC mdc(os_bm);
 
@@ -4538,8 +4609,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                                     double py = ( pya * sin ( cog_rad ) ) - ( pxa * cos ( cog_rad ) );
 
 
-                                    icon[i].x = ( int ) ( px ) + lPredPoint.x;
-                                    icon[i].y = ( int ) ( py ) + lPredPoint.y;
+                                    icon[i].x = ( int )wxRound( px ) + lPredPoint.x;
+                                    icon[i].y = ( int )wxRound( py ) + lPredPoint.y;
                               }
 
 
@@ -4625,8 +4696,8 @@ void ChartCanvas::ShipDraw ( wxDC& dc )
                               double py = ( pya * sin ( cog_rad ) ) - ( pxa * cos ( cog_rad ) );
 
 
-                              icon[i].x = ( int ) ( px ) + lPredPoint.x;
-                              icon[i].y = ( int ) ( py ) + lPredPoint.y;
+                              icon[i].x = ( int ) wxRound( px ) + lPredPoint.x;
+                              icon[i].y = ( int ) wxRound( py ) + lPredPoint.y;
                         }
 
                         wxPen ppPen1 ( pred_colour, 2, wxSOLID );
@@ -6272,7 +6343,7 @@ void ChartCanvas::PanTimerEvent ( wxTimerEvent& event )
 
 }
 
-bool ChartCanvas::CheckEdgePan ( int x, int y )
+bool ChartCanvas::CheckEdgePan ( int x, int y, bool bdragging )
 {
       bool bft = false;
       int pan_margin = 20;
@@ -6308,10 +6379,13 @@ bool ChartCanvas::CheckEdgePan ( int x, int y )
       double new_lat, new_lon;
       GetCanvasPixPoint ( np.x, np.y, new_lat, new_lon );
 
-      //    Of course, if the mouse left button is not down, we must stop the event injection
-      wxMouseState state = ::wxGetMouseState();
-      if(!state.LeftDown())
-            bft = false;
+      //    Of course, if dragging, and the mouse left button is not down, we must stop the event injection
+      if(bdragging)
+      {
+            wxMouseState state = ::wxGetMouseState();
+            if(!state.LeftDown())
+                  bft = false;
+      }
 
         if ( ( bft ) && !pPanTimer->IsRunning() )
         {
@@ -6525,7 +6599,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                 r_rband.y = y;
                 m_bDrawingRoute = true;
 
-                CheckEdgePan ( x, y );
+                CheckEdgePan ( x, y, event.Dragging() );
                 Refresh ( false );
         }
 
@@ -6536,7 +6610,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
               r_rband.x = x;
               r_rband.y = y;
 
-              CheckEdgePan ( x, y );
+              CheckEdgePan ( x, y, event.Dragging() );
               Refresh ( false );
         }
 
@@ -6846,7 +6920,7 @@ void ChartCanvas::MouseEvent ( wxMouseEvent& event )
                         m_pFoundPoint->m_slat = m_cursor_lat;             // update the SelectList entry
                         m_pFoundPoint->m_slon = m_cursor_lon;
 
-                        if ( CheckEdgePan ( x, y ) )
+                        if ( CheckEdgePan ( x, y, true ) )
                         {
                                 double new_cursor_lat, new_cursor_lon;
                                 GetCanvasPixPoint ( x, y, new_cursor_lat, new_cursor_lon );
@@ -7542,38 +7616,31 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
                         pdef_menu->AppendSeparator();
                   }
 
-                  if (Current_Ch && ( Current_Ch->GetChartType() == CHART_TYPE_CM93COMP ))
+                  if (Current_Ch && ( Current_Ch->GetChartFamily() == CHART_FAMILY_VECTOR ))
                   {
-                        pdef_menu->AppendCheckItem(ID_DEF_MENU_CM93ZOOM, _("Enable CM93 Detail Slider"));
-                        if(pCM93DetailSlider)
-                              pdef_menu->Check(ID_DEF_MENU_CM93ZOOM, pCM93DetailSlider->IsShown());
+                        pdef_menu->Append ( ID_DEF_MENU_QUERY,  _( "Object Query" ) );
+                        pdef_menu->AppendSeparator();
                   }
 
-                  if (Current_Ch && ( Current_Ch->GetChartFamily() == CHART_FAMILY_VECTOR ))
-                        pdef_menu->Append ( ID_DEF_MENU_QUERY,  _( "Object Query" ) );
+
 
               }
               else
               {
                     ChartBase *pChartTest = m_pQuilt->GetChartAtPix(wxPoint(x, y));
                     if(pChartTest && (pChartTest->GetChartFamily() == CHART_FAMILY_VECTOR ))
-                        pdef_menu->Append ( ID_DEF_MENU_QUERY,  _( "Object Query" ) );
-
-                    if((VPoint.b_quilt) &&
-                            (pCurrentStack && pCurrentStack->b_valid && (pCurrentStack->nEntry > 1)))
                     {
-                          pdef_menu->Append ( ID_DEF_MENU_QUILTREMOVE,  _( "Remove this chart from quilt." ) );
+                        pdef_menu->Append ( ID_DEF_MENU_QUERY,  _( "Object Query" ) );
+                        pdef_menu->AppendSeparator();
                     }
+
 
               }
 
 
         }
 
-        if(seltype & SELTYPE_AISTARGET)
-        {
-              pdef_menu->Append ( ID_DEF_MENU_AIS_QUERY,  _( "AIS Target Query" ) );
-        }
+
 
 
         //        Following Select type are exclusive
@@ -7594,26 +7661,59 @@ void ChartCanvas::CanvasPopupMenu ( int x, int y, int seltype )
         //        Add invariant items
         pdef_menu->Append ( ID_DEF_MENU_DROP_WP,    _( "Drop Mark Here" ) );
         pdef_menu->Append ( ID_DEF_MENU_MOVE_BOAT_HERE, _( "Move Boat Here" ) );
-        pdef_menu->Append(ID_DEF_MENU_GOTOPOSITION, _("Jump To Position..."));
-
-//        if ( !g_pRouteMan->GetpActiveRoute() )
         if ( !(g_pRouteMan->GetpActiveRoute()  || (seltype & SELTYPE_MARKPOINT)) )
-                    pdef_menu->Append ( ID_DEF_MENU_GOTO_HERE, _( "Go To Here" ) );
+              pdef_menu->Append ( ID_DEF_MENU_GOTO_HERE, _( "Go To Here" ) );
+        pdef_menu->Append(ID_DEF_MENU_GOTOPOSITION, _("Jump To Position..."));
+        pdef_menu->AppendSeparator();
+
+        if(!g_bCourseUp)
+            pdef_menu->Append(ID_DEF_MENU_COGUP, _("Set Course Up Mode"));
+        else
+            pdef_menu->Append(ID_DEF_MENU_NORTHUP, _("Set North Up Mode"));
 
 
         if(!m_bMeasure_Active )
               pdef_menu->Append ( ID_DEF_MENU_ACTIVATE_MEASURE,    _( "Measure....." ) );
         else if(m_bMeasure_Active)
               pdef_menu->Append ( ID_DEF_MENU_DEACTIVATE_MEASURE,    _( "Measure Off" ) );
+        pdef_menu->AppendSeparator();
 
         if ( g_pAIS )
-              pdef_menu->Append(ID_DEF_MENU_AISTARGETLIST, _("AIS target list"));
+        {
+              if(seltype & SELTYPE_AISTARGET)
+                    pdef_menu->Append ( ID_DEF_MENU_AIS_QUERY,  _( "AIS Target Query" ) );
 
+              pdef_menu->Append(ID_DEF_MENU_AISTARGETLIST, _("AIS target list"));
+              pdef_menu->AppendSeparator();
+        }
+
+
+        bool bneed_sep = false;
+        if (Current_Ch && ( Current_Ch->GetChartType() == CHART_TYPE_CM93COMP ))
+        {
+              pdef_menu->AppendCheckItem(ID_DEF_MENU_CM93ZOOM, _("Enable CM93 Detail Slider"));
+              if(pCM93DetailSlider)
+              {
+                    pdef_menu->Check(ID_DEF_MENU_CM93ZOOM, pCM93DetailSlider->IsShown());
+                    bneed_sep = true;
+              }
+        }
 
         if(!VPoint.b_quilt && Current_Ch && (Current_Ch->GetChartType() == CHART_TYPE_CM93COMP))
+        {
               pdef_menu->Append ( ID_DEF_MENU_CM93OFFSET_DIALOG, _( "CM93 Offset Dialog" ) );
+              bneed_sep = true;
+        }
+
+        if(bneed_sep)
+              pdef_menu->AppendSeparator();
 
 
+        if((VPoint.b_quilt) &&
+            (pCurrentStack && pCurrentStack->b_valid && (pCurrentStack->nEntry > 1)))
+        {
+              pdef_menu->Append ( ID_DEF_MENU_QUILTREMOVE,  _( "Remove this chart from quilt." ) );
+        }
 
 
 #ifdef __WXMSW__
@@ -7797,13 +7897,21 @@ void ChartCanvas::PopupMenuHandler ( wxCommandEvent& event )
                         break;
                    }
 
-                case ID_DEF_MENU_GOTOPOSITION:
+                case ID_DEF_MENU_COGUP:
+                      gFrame->ToggleCourseUp();
+                      break;
+
+                case ID_DEF_MENU_NORTHUP:
+                      gFrame->ToggleCourseUp();
+                      break;
+
+               case ID_DEF_MENU_GOTOPOSITION:
                         if ( NULL == pGoToPositionDialog )          // There is one global instance of the Go To Position Dialog
                         pGoToPositionDialog = new GoToPositionDialog ( this );
                         pGoToPositionDialog->Show();
                         break;
 
-            case ID_WP_MENU_DELPOINT:
+               case ID_WP_MENU_DELPOINT:
                 {
                        if (m_pFoundRoutePoint == pAnchorWatchPoint1) pAnchorWatchPoint1 = NULL;       // pjotrc 2010.02.15
                        else if (m_pFoundRoutePoint == pAnchorWatchPoint2) pAnchorWatchPoint2 = NULL;  // pjotrc 2010.02.15
@@ -9296,7 +9404,11 @@ void ChartCanvas::OnPaint ( wxPaintEvent& event )
         //  Draw S52 compatible Scale Bar
         wxCoord w, h;
         scratch_dc.GetSize(&w, &h);
-        ScaleBarDraw( scratch_dc, 20, h - 20 );
+        if(g_bDisplayGrid)
+              ScaleBarDraw( scratch_dc, 60, h - 20 );
+        else
+              ScaleBarDraw( scratch_dc, 20, h - 20 );
+
 
         // Maybe draw a Grid
         if(g_bDisplayGrid && (fabs(VPoint.rotation) < 1e-5) && ((fabs(VPoint.skew) < 1e-9) || g_bskew_comp))
@@ -9893,12 +10005,24 @@ void ChartCanvas::DrawAllRoutesInBBox ( wxDC& dc, LLBBox& BltBBox, const wxRegio
                             else
                                   pRouteDraw->Draw ( dc, VPoint );
                       }
+                      else if(pRouteDraw->IsTrack())
+                      {
+                            Track *trk = (Track *)pRouteDraw;
+                            if(trk->IsRunning())
+                            {
+                              wxBoundingBox xbox = pRouteDraw->RBBox;
+                              xbox.Expand(gLon, gLat);
+                              if ( BltBBox.Intersect ( xbox, 0 ) != _OUT )
+                                  active_route = pRouteDraw;
+                            }
+                      }
+
                 }
 
                 node = node->GetNext();
         }
 
-        //  Draw any active or selected route last, so that is is always on top
+        //  Draw any active or selected route (or track) last, so that is is always on top
         if(active_route)
               active_route->Draw ( dc, VPoint );
 
@@ -12739,6 +12863,7 @@ void RolloverWin::SetBestPosition(int x, int y, int off_x, int off_y, int rollov
       if((x + off_x + m_size.x) > parent_size.x)
       {
             xp = x - (off_x/2) - m_size.x;
+            xp = wxMax(0, xp);
       }
       else
             xp = x + off_x;
@@ -13096,13 +13221,11 @@ int InitScreenBrightness(void)
                   g_pcurtain = new wxDialog(NULL, -1, _T(""), wxPoint(0,0), wxSize(200,200),
                                       wxNO_BORDER | wxTRANSPARENT_WINDOW |wxSTAY_ON_TOP | wxDIALOG_NO_PARENT);
 
-                  //ShowWindow(hWnd, SW_HIDE);
                   g_pcurtain->Hide();
-				  HWND hWnd = GetHwndOf(g_pcurtain);
+			HWND hWnd = GetHwndOf(g_pcurtain);
                   SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | ~WS_EX_APPWINDOW);
-                  //ShowWindow(hWnd, SW_SHOW);
 
-				  g_pcurtain->SetBackgroundColour(wxColour(0,0,0));
+			g_pcurtain->SetBackgroundColour(wxColour(0,0,0));
                   g_pcurtain->SetTransparent(0);
 
                   g_pcurtain->Maximize();
@@ -13158,6 +13281,8 @@ int SetScreenBrightness(int brightness)
 {
 #ifdef BRIGHT_CURTAIN
 
+      if(NULL == g_pcurtain)
+            InitScreenBrightness();
 
       if(g_pcurtain)
       {

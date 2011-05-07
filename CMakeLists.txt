@@ -554,6 +554,7 @@ ENDIF (USE_S57)
 SET(tcData
         data/tcdata/HARMONIC
         data/tcdata/HARMONIC.IDX
+        data/tcdata/README.harmonics
    )
 INSTALL(FILES ${tcData} DESTINATION ${PREFIX_PKGDATA}/tcdata )
 
@@ -660,6 +661,7 @@ GETTEXT_BUILD_MO(po/opencpn_nb_NO.po nb_NO)
 GETTEXT_BUILD_MO(po/opencpn_tr_TR.po tr_TR)
 GETTEXT_BUILD_MO(po/opencpn_fi_FI.po fi_FI)
 GETTEXT_BUILD_MO(po/opencpn_el_GR.po el_GR)
+GETTEXT_BUILD_MO(po/opencpn_zh_TW.po zh_TW)
 ADD_CUSTOM_TARGET(i18n COMMENT "i18n: Done." DEPENDS ${_gmoFiles})
 #ADD_DEPENDENCIES(i18n ${PACKAGE_PO_FILES})
 ADD_DEPENDENCIES(${PACKAGE_NAME} i18n)
@@ -713,8 +715,9 @@ IF(WIN32 AND NOT UNIX)
     GET_FILENAME_COMPONENT( VC9_FILE_NAME ${vc9_redist} NAME )
     SET( CPACK_NSIS_EXTRA_INSTALL_COMMANDS ${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}
 #      " ;Execute silent and wait\\n  ExecWait '\\\"$INSTDIR\\\\vc9\\\\${VC9_FILE_NAME} /q:a /c:msiexec /i vcredist.msi /qn /l*v %temp%\\\\vcredist_x86.log\\\"' $0\\n"
-      "ExecWait '\\\"$INSTDIR\\\\vc9\\\\${VC9_FILE_NAME}\\\" /q:a /c:\\\"VCREDI~1.EXE /q:a /c:\\\"\\\"msiexec /i vcredist.msi /qn\\\"\\\" \\\"' $0\\n"
-           " Remove folder\\n  RMDir /r \\\"$INSTDIR\\\\vc9\\\"\\n\\n" )
+#      "ExecWait '\\\"$INSTDIR\\\\vc9\\\\${VC9_FILE_NAME}\\\" /q:a /c:\\\"VCREDI~1.EXE /q:a /c:\\\"\\\"msiexec /i vcredist.msi /qn\\\"\\\" \\\"' $0\\n"
+      "ExecWait '\\\"$INSTDIR\\\\vc9\\\\${VC9_FILE_NAME}\\\" /qb' $0\\n"
+      " Remove folder\\n  RMDir /r \\\"$INSTDIR\\\\vc9\\\"\\n\\n" )
 
 
 ELSE(WIN32 AND NOT UNIX)

@@ -6,7 +6,6 @@
  *
  ***************************************************************************
  *   Copyright (C) 2010 by David S. Register   *
- *   $EMAIL$   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -255,6 +254,10 @@ extern bool             g_bFullScreenQuilt;
 extern bool             g_bQuiltStart;
 
 extern int              g_SkewCompUpdatePeriod;
+
+extern int              g_toolbar_x;
+extern int              g_toolbar_y;
+extern long             g_toolbar_orient;
 
 //------------------------------------------------------------------------------
 // Some wxWidgets macros for useful classes
@@ -2643,6 +2646,10 @@ int MyConfig::LoadMyConfig ( int iteration )
       Read ( _T ( "LookAheadMode" ),  &g_bLookAhead, 0 );
       Read ( _T ( "SkewToNorthUp" ),  &g_bskew_comp, 1 );
 
+      Read ( _T ( "ToolbarX"),  &g_toolbar_x, 0);
+      Read ( _T ( "ToolbarY" ),  &g_toolbar_y, 0);
+      Read ( _T ( "ToolbarOrient" ),  &g_toolbar_orient, wxTB_HORIZONTAL);
+
       Read ( _T ( "AnchorWatch1GUID" ),  &g_AW1GUID, _T(""));
       Read ( _T ( "AnchorWatch2GUID" ),  &g_AW2GUID, _T(""));
 
@@ -3037,8 +3044,8 @@ int MyConfig::LoadMyConfig ( int iteration )
 
                               if ( bNeedNew )
                               {
-                                    pOLE = ( OBJLElement * ) malloc ( sizeof ( OBJLElement ) );
-                                    strcpy ( pOLE->OBJLName, sObj.mb_str() );
+                                    pOLE = ( OBJLElement * ) calloc ( sizeof ( OBJLElement ), 1 );
+                                    strncpy ( pOLE->OBJLName, sObj.mb_str(), 6 );
                                     pOLE->nViz = val;
 
                                     ps52plib->pOBJLArray->Add ( ( void * ) pOLE );
@@ -3870,6 +3877,10 @@ void MyConfig::UpdateSettings()
       Write ( _T ( "AnchorWatch1GUID" ),   g_AW1GUID );
       Write ( _T ( "AnchorWatch2GUID" ),   g_AW2GUID );
 
+      Write ( _T ( "ToolbarX" ),   g_toolbar_x );
+      Write ( _T ( "ToolbarY" ),   g_toolbar_y );
+      Write ( _T ( "ToolbarOrient" ),   g_toolbar_orient );
+
       wxString st0;
       st0.Printf ( _T ( "%g" ), g_PlanSpeed );
       Write ( _T ( "PlanSpeed" ), st0 );
@@ -3889,7 +3900,10 @@ void MyConfig::UpdateSettings()
                   OBJLElement *pOLE = ( OBJLElement * ) ( ps52plib->pOBJLArray->Item ( iPtr ) );
 
                   wxString st1 ( _T ( "viz" ) );
-                  st1.Append ( wxString ( pOLE->OBJLName,  wxConvUTF8 ) );
+                  char name[7];
+                  strncpy(name, pOLE->OBJLName, 6);
+                  name[6] = 0;
+                  st1.Append ( wxString ( name,  wxConvUTF8 ) );
                   Write ( st1, pOLE->nViz );
             }
       }

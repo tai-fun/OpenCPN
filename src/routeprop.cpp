@@ -455,13 +455,19 @@ bool RouteProp::IsThisRouteExtendable()
                   double rlon = pLastPoint->m_lon;
 
                   m_pExtendPoint = pWayPointMan->GetOtherNearbyWaypoint(rlat, rlon, nearby_radius_meters, pLastPoint->m_GUID);
-                  if ( m_pExtendPoint && !m_pExtendPoint->m_bIsInTrack ) {
-                        pEditRouteArray = g_pRouteMan->GetRouteArrayContaining(m_pExtendPoint);
-                  }
-                  // remove invisible & own routes from choices
-                  for ( i = pEditRouteArray->GetCount(); i > 0; i-- ) {
-                        Route *p = (Route *)pEditRouteArray->Item(i-1);
-                        if (!p->IsVisible() || (p->m_GUID == m_pRoute->m_GUID)) pEditRouteArray->RemoveAt(i-1);
+                  if ( m_pExtendPoint && !m_pExtendPoint->m_bIsInTrack )
+                  {
+                        wxArrayPtrVoid *pCloseWPRouteArray = g_pRouteMan->GetRouteArrayContaining(m_pExtendPoint);
+                        if(pCloseWPRouteArray)
+                        {
+                              pEditRouteArray = pCloseWPRouteArray;
+
+                        // remove invisible & own routes from choices
+                              for ( i = pEditRouteArray->GetCount(); i > 0; i-- ) {
+                                    Route *p = (Route *)pEditRouteArray->Item(i-1);
+                                    if (!p->IsVisible() || (p->m_GUID == m_pRoute->m_GUID)) pEditRouteArray->RemoveAt(i-1);
+                              }
+                        }
                   }
             }
 
@@ -1255,8 +1261,14 @@ bool RouteProp::UpdateProperties()
                         s.Printf(_T("%5.2f"), leg_speed);
                   }
                   if (arrival) m_wpList->SetItem(item_line_index, 7, s);
-                  if (!enroute) m_wpList->SetItem(item_line_index, 7, nullify);
-			if (enroute) m_wpList->SetItem(item_line_index, 8, tide_form);
+
+                 if (enroute)
+                       m_wpList->SetItem(item_line_index, 8, tide_form);
+                 else {
+                        m_wpList->SetItem(item_line_index, 7, nullify);
+                        m_wpList->SetItem(item_line_index, 8, nullify);
+                 }
+
 
       //  Save for iterating distance/bearing calculation
                   slat = prp->m_lat;

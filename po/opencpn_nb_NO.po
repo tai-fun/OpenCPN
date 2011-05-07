@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OpenCPN 2.4.412\n"
+"Project-Id-Version: OpenCPN 2.4.423\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-23 23:41-0400\n"
-"PO-Revision-Date: 2011-04-18 00:59+0100\n"
+"POT-Creation-Date: 2011-05-06 23:46-0400\n"
+"PO-Revision-Date: 2011-05-04 23:29+0100\n"
 "Last-Translator: Frode Lynum <post@kb-h.com>\n"
 "Language-Team: OpenCPN Norge <post@opencpn.kb-h.com>\n"
 "MIME-Version: 1.0\n"
@@ -442,6 +442,9 @@ msgstr "Gjennomsn.fart (Knop)"
 msgid "B"
 msgstr "B"
 #
+msgid "Barge, tanker, chemical"
+msgstr ""
+#
 msgid "Base"
 msgstr "Base"
 #
@@ -487,6 +490,12 @@ msgstr "Grenser"
 #
 msgid "Brg"
 msgstr "Kurs"
+#
+msgid "Bulk carrier maritime"
+msgstr ""
+#
+msgid "Bunkership"
+msgstr ""
 #
 msgid "C&olour:"
 msgstr "F&arge:"
@@ -656,6 +665,10 @@ msgstr "Konsoll Verdi"
 msgid "Constrained by draught"
 msgstr "Forhindret av dypgående"
 #
+#, fuzzy
+msgid "Container vessel"
+msgstr "Seilfartøy"
+#
 msgid "Could not resolve TCP/IP host '"
 msgstr "Kunne ikke løse TCP/IP vert '"
 #
@@ -666,11 +679,18 @@ msgstr "Kurs opp"
 msgid "Course:                 %03d Deg.\n"
 msgstr "Kurs:                 %03d Gra.\n"
 #
+#, fuzzy
+msgid "Course:                 000 Deg.\n"
+msgstr "Kurs:                 %03d Gra.\n"
+#
 msgid "Course:                 Unavailable\n"
 msgstr "Kurs:                 Utilgjengelig\n"
 #
 msgid "Create Route"
 msgstr "Lag rute"
+#
+msgid "Cruise ship"
+msgstr ""
 #
 msgid "Current"
 msgstr "Strøm"
@@ -819,9 +839,6 @@ msgstr "Estimert tid : "
 msgid "Etc."
 msgstr "Diverse"
 #
-msgid "Exit OpenCPN"
-msgstr "Avslutt OpenCPN"
-#
 msgid "Export GPX file"
 msgstr "Eksporter GPX fil"
 #
@@ -840,17 +857,26 @@ msgstr "Kunne ikke laste libgps.so"
 msgid "Failed to load libgps.so.19"
 msgstr "Kunne ikke laste libgps.so.19"
 #
+msgid "Fast ship"
+msgstr ""
+#
 msgid "Fathoms"
 msgstr "Favner"
 #
 msgid "Feet"
 msgstr "Fot"
 #
+msgid "Ferry"
+msgstr ""
+#
 msgid "Filter NMEA Course and Speed data"
 msgstr "Filtrer NMEA Kurs og Fartsdata"
 #
 msgid "Filter Period (Sec.)"
 msgstr "Filterperiode (Sek.)"
+#
+msgid "Fishing boat"
+msgstr ""
 #
 msgid "Fix.Struct."
 msgstr "Fast konstr."
@@ -863,6 +889,12 @@ msgstr "Skriftvalg"
 #
 msgid "Force Full Database Rebuild"
 msgstr "Fremtving full kartdatabase gjenoppbygging"
+#
+msgid "Freightbarge"
+msgstr ""
+#
+msgid "Freightbarge with containers"
+msgstr ""
 #
 #, c-format
 msgid "From Ownship: %03d Deg  %6.2f NMi"
@@ -879,6 +911,13 @@ msgstr "GPSD Dataserver"
 #
 msgid "GUI Options"
 msgstr "Brukergrensesnitt alternativer"
+#
+#, fuzzy
+msgid "Gas tanker"
+msgstr "Raster"
+#
+msgid "General cargo Vessel maritime"
+msgstr ""
 #
 msgid "Go To Here"
 msgstr "Gå hit"
@@ -909,6 +948,9 @@ msgstr "Skjul for kart"
 #
 msgid "High Speed Craft"
 msgstr "Høyhastighets fartøy"
+#
+msgid "Hydrofoil"
+msgstr ""
 #
 msgid "I&mport GPX..."
 msgstr "I&mporter GPX..."
@@ -1018,6 +1060,9 @@ msgstr "Begrens avstand: NM"
 msgid "Links"
 msgstr "Linker"
 #
+msgid "Liquified gas tanker"
+msgstr ""
+#
 msgid "List contents"
 msgstr "Vis innhold"
 #
@@ -1126,6 +1171,39 @@ msgstr "Militær Fartøy"
 msgid "Moored"
 msgstr "Fortøyd"
 #
+msgid "Motor freighter"
+msgstr ""
+#
+msgid "Motor freighter pushing at least one tank-ship"
+msgstr ""
+#
+msgid "Motor freighter pushing one or more freighters"
+msgstr ""
+#
+msgid "Motor freighter with one or more ships alongside"
+msgstr ""
+#
+msgid "Motor freighter with tanker"
+msgstr ""
+#
+msgid "Motor freighter, tug"
+msgstr ""
+#
+msgid "Motor tanker"
+msgstr ""
+#
+msgid "Motor tanker, dry cargo as if liquid (e.g. cement)"
+msgstr ""
+#
+msgid "Motor tanker, liquid cargo, type C"
+msgstr ""
+#
+msgid "Motor tanker, liquid cargo, type N"
+msgstr ""
+#
+msgid "Motor tanker, tug"
+msgstr ""
+#
 msgid "Move Boat Here"
 msgstr "Flytt båt hit"
 #
@@ -1182,6 +1260,12 @@ msgstr "OK"
 #
 msgid "Object Query"
 msgstr "Objekt informasjon"
+#
+msgid "Object, not otherwise specified"
+msgstr ""
+#
+msgid "Object, towed, not otherwise specified"
+msgstr ""
 #
 msgid "Ok"
 msgstr "Ok"
@@ -1268,6 +1352,12 @@ msgstr "Pass/V"
 msgid "Passenger Ship"
 msgstr "Passasjer Fartøy"
 #
+msgid "Passenger ship without accomodation"
+msgstr ""
+#
+msgid "Passenger ship, ferry, cruise ship, red cross ship"
+msgstr ""
+#
 msgid "Pilot Vessel"
 msgstr "Los Fartøy"
 #
@@ -1297,6 +1387,9 @@ msgstr "Start OpenCPN på nytt for å aktivere valgt språk."
 #
 msgid "Pleasure craft"
 msgstr "Lystbåt"
+#
+msgid "Pleasure craft, longer than 20 metres"
+msgstr ""
 #
 msgid "PlugInManager searching for PlugIns in location "
 msgstr "Utvidelses behandling søker etter mappen for utvidelser"
@@ -1348,12 +1441,12 @@ msgstr "Posisjon"
 msgid "Position:               "
 msgstr "Posisjon:"
 #
+#, fuzzy
 msgid ""
 "Possible libgps API version mismatch.\n"
 "libgps did not reasonably respond to version request\n"
 "\n"
-"                              Would you like to use this version of libgps "
-"anyway?"
+"Would you like to use this version of libgps anyway?"
 msgstr ""
 "Mulig libgps API versjons forskjell.\n"
 "libgps gav ikke et gyldig svar på versjon forespørsel\n"
@@ -1398,6 +1491,63 @@ msgstr "Forløp..."
 #
 msgid "Properties"
 msgstr "Egenskaper"
+#
+msgid "Pushboat, single"
+msgstr ""
+#
+msgid "Pushtow, eight barges at least one tanker or gas barge"
+msgstr ""
+#
+msgid "Pushtow, eight cargo barges"
+msgstr ""
+#
+msgid "Pushtow, five barges at least one tanker or gas barge"
+msgstr ""
+#
+msgid "Pushtow, five cargo barges"
+msgstr ""
+#
+msgid "Pushtow, four barges at least one tanker or gas barge"
+msgstr ""
+#
+msgid "Pushtow, four cargo barges"
+msgstr ""
+#
+msgid "Pushtow, nine on more barges"
+msgstr ""
+#
+msgid "Pushtow, nine or more barges at least one tanker or gas barge"
+msgstr ""
+#
+msgid "Pushtow, one cargo barge"
+msgstr ""
+#
+msgid "Pushtow, one tank/gas barge"
+msgstr ""
+#
+msgid "Pushtow, seven barges at least one tanker or gas barge"
+msgstr ""
+#
+msgid "Pushtow, seven cargo barges"
+msgstr ""
+#
+msgid "Pushtow, six barges at least one tanker or gas barge"
+msgstr ""
+#
+msgid "Pushtow, six cargo barges"
+msgstr ""
+#
+msgid "Pushtow, three barges at least one tanker or gas barge"
+msgstr ""
+#
+msgid "Pushtow, three cargo barges"
+msgstr ""
+#
+msgid "Pushtow, two barges at least one tanker or gas barge"
+msgstr ""
+#
+msgid "Pushtow, two cargo barges"
+msgstr ""
 #
 msgid "RACON"
 msgstr "RACON"
@@ -1454,6 +1604,9 @@ msgid ""
 msgstr ""
 "Seneste rapport periode:   %3d Sek.\n"
 "\n"
+#
+msgid "Red cross ship"
+msgstr ""
 #
 msgid "Ref. Pt"
 msgstr "Ref.Pkt."
@@ -1582,8 +1735,18 @@ msgstr "Send rute til GPS"
 msgid "Send To GPS..."
 msgstr "Send til GPS..."
 #
+msgid "Service vessel, police patrol, port service"
+msgstr ""
+#
 msgid "Set Anchor Watch"
 msgstr "Sett ankervakt"
+#
+#, fuzzy
+msgid "Set Course Up Mode"
+msgstr "Kurs opp"
+#
+msgid "Set North Up Mode"
+msgstr ""
 #
 msgid "Settings"
 msgstr "Innstillinger"
@@ -1667,7 +1830,7 @@ msgid "Show target tracks"
 msgstr "Vis slepestrek etter mål"
 #
 msgid "Show toolbar in fullscreen mode"
-msgstr ""
+msgstr "Vis verktøylinje i fullskjermsmodus"
 #
 msgid "Shows the font preview."
 msgstr "Viser forhåndsvisning av skrift."
@@ -1780,6 +1943,22 @@ msgstr "TCPA:  \n"
 #, c-format
 msgid "TCPA:                 %02d:%02d Hr:Min\n"
 msgstr "TCPA:                 %02d:%02d Tim:Min\n"
+#
+#, fuzzy
+msgid "Tankbarge"
+msgstr "Tanker"
+#
+msgid "Tankbarge, dry cargo as if liquid (e.g. cement)"
+msgstr ""
+#
+msgid "Tankbarge, gas"
+msgstr ""
+#
+msgid "Tankbarge, liquid cargo, type C"
+msgstr ""
+#
+msgid "Tankbarge, liquid cargo, type N"
+msgstr ""
 #
 msgid "Tanker"
 msgstr "Tanker"
@@ -1902,6 +2081,28 @@ msgstr "Virkelig skala: %8.0f  Zoom %4.2fx"
 msgid "Tug"
 msgstr "Taubåt"
 #
+msgid "Tug freighter, coupled"
+msgstr ""
+#
+msgid "Tug, assisting a vessel or linked combination"
+msgstr ""
+#
+msgid "Tug, freighter"
+msgstr ""
+#
+msgid "Tug, freighter/tanker, coupled"
+msgstr ""
+#
+msgid "Tug, one or more tows"
+msgstr ""
+#
+msgid "Tug, single"
+msgstr ""
+#
+#, fuzzy
+msgid "Tug, tanker"
+msgstr "Tanker"
+#
 msgid "Type"
 msgstr "Type"
 #
@@ -1934,6 +2135,9 @@ msgstr "Underveis for seil"
 #
 msgid "Underway"
 msgstr "Underveis"
+#
+msgid "Unit carrier maritime"
+msgstr ""
 #
 msgid "Units"
 msgstr "Enheter"
@@ -1988,6 +2192,15 @@ msgstr "Slepefartøy"
 #
 msgid "Vessel Towing, Long"
 msgstr "Slepefartøy, langt"
+#
+#, fuzzy
+msgid "Vessel, type unknown"
+msgstr "Slepefartøy"
+#
+msgid ""
+"Vessel, work maintainance craft, floating derrick, cable-ship, buoy-ship, "
+"dredge"
+msgstr ""
 #
 msgid "Virtual"
 msgstr "Virtuell"
@@ -2092,3 +2305,7 @@ msgstr "wgsox"
 #
 msgid "wgsoy"
 msgstr "wgsoy"
+#
+#
+#~ msgid "Exit OpenCPN"
+#~ msgstr "Avslutt OpenCPN"

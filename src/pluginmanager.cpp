@@ -945,6 +945,26 @@ bool AddLocaleCatalog( wxString catalog )
       return locale_def_lang.AddCatalog( catalog );
 }
 
+void PushNMEABuffer( wxString buf )
+{
+      //if ( buf.Mid(3,3).IsSameAs(_T("VDM")) || buf.Mid(3,3).IsSameAs(_T("VDO")) )
+      if ( buf.Mid(1,2).IsSameAs(_T("AI")) ) // AIALR AITXT AIVDM AIVDO
+      {
+            OCPN_AISEvent event( wxEVT_OCPN_AIS, 0 );
+//            event.SetEventObject( (wxObject *)this );
+            event.SetExtraLong(EVT_AIS_PARSE_RX);
+            event.SetNMEAString( buf );
+            g_pAIS->AddPendingEvent( event );
+      }
+      else
+      {
+            OCPN_NMEAEvent event( wxEVT_OCPN_NMEA, 0 );
+            event.SetNMEAString( buf );
+            wxFrame       *pParent = s_ppim->GetParentFrame();
+            pParent->GetEventHandler()->AddPendingEvent( event );
+      }
+}
+
 //-----------------------------------------------------------------------------------------
 //    The opencpn_plugin base class implementation
 //-----------------------------------------------------------------------------------------
